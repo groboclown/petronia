@@ -57,7 +57,7 @@ The example config file does several things.
 
 * Disables the Windows Shell from interpreting the <kbd>Win</kbd> key.
     * This means the standard Windows hotkeys, like <kbd>win</kbd><kbd>d</kbd>
-        (show desktop), <kbd>win</kbd><kdb>r</kbd> (run command dialog), and
+        (show desktop), <kbd>win</kbd><kbd>r</kbd> (run command dialog), and
         so on, won't be available.
 * Strips off the borders from the Windows, except for Firefox, Chrome,
     Explorer, and Outlook.
@@ -69,7 +69,7 @@ The example config file does several things.
         tell, at times, which window has the focus.*
 
 Even though the chrome is gone from windows, you can still use
-<kbd>alt</kbd><kbd>space<kbd></kbd> to open the window's system menu, and
+<kbd>alt</kbd><kbd>space</kbd> to open the window's system menu, and
 select Minimize, Restore, Maximize, or Close.
 
 Likewise, you can use <kbd>alt</kbd><kbd>tab</kbd> to move between windows.
@@ -121,13 +121,13 @@ create a full screen layout, or an overlapping side-bar.
 
 To close Windows Explorer as the current shell:
 
-    1. Press <kbd>Ctrl</kbd><kbd>Shift</kbd> while right-clicking on the task bar.
+1. Press <kbd>Ctrl</kbd><kbd>Shift</kbd> while right-clicking on the task bar.
        This will bring up a context menu that lets you stop Windows Explorer.
-    2. From the context menu, select **Exit Explorer**.
+2. From the context menu, select **Exit Explorer**.
 
 To restart Windows Explorer as the current shell:
 
-    1. Stop Cormorant.
-    2. Press <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>Del</kbd>, select "Task Manager".
-    3. From Task Manager, select **File** -> **Run new task**
-    4. From this new Create New Task dialog, enter "explorer", and click **OK**. 
+1. Stop Cormorant.
+2. Press <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>Del</kbd>, select "Task Manager".
+3. From Task Manager, select **File** -> **Run new task**
+4. From this new Create New Task dialog, enter "explorer", and click **OK**. 
