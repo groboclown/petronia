@@ -83,7 +83,7 @@ class Component(object):
 
 
 def _cleanup_listeners(bus, listeners):
-    for listener in listeners:
+    for listener in list(listeners):
         bus.remove_listener(listener)
 
 

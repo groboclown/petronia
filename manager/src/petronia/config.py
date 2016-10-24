@@ -262,11 +262,11 @@ class ApplicationConfig(BaseConfig):
         """
         for matcher in self.managed_chrome_matchers:
             if matcher.matches(window_info):
-                print("*** Matched managed chrome: {0}".format(window_info))
+                # print("DEBUG Matched managed chrome: {0}".format(window_info))
                 return True
         for matcher in self.managed_chome_not_matchers:
             if matcher.matches(window_info):
-                print("*** Matched not managed chrome: {0}".format(window_info))
+                # print("DEBUG Matched not managed chrome: {0}".format(window_info))
                 return False
         return self.managed_chrome_default_match
 

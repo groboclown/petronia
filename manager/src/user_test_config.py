@@ -8,8 +8,15 @@ def load_config():
         'monitors': [config.MonitorResConfig(0, 1366, 768, False)],
         'workgroup': config.WorkGroupConfig({
             'default': [config.LayoutConfig('default', 'split-layout', config.ORIENTATION_HORIZONTAL, [
-                config.ChildSplitConfig(1, config.LayoutConfig('main', 'portal', None, None)),
+                # Initial window is a floating full-screen
+                config.ChildSplitConfig(0, config.LayoutConfig('main', 'portal', None, None)),
+
+                config.ChildSplitConfig(1, config.LayoutConfig('left', 'portal', None, None)),
                 config.ChildSplitConfig(1, config.LayoutConfig('right', 'split-layout', config.ORIENTATION_VERTICAL, [
+                    # Testing out split navigation.
+                    # Looks like a single nagigation request is triggering mutiple moves.s
+                    config.ChildSplitConfig(5, config.LayoutConfig('right-top', 'portal', None, None)),
+                    config.ChildSplitConfig(1, config.LayoutConfig('right-bottom', 'portal', None, None)),
                 ]))
             ])]
         })

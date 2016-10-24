@@ -41,7 +41,7 @@ class Portal(Tile):
         self._on_add_window(event_id, target_id, event_obj)
 
     def _on_add_window(self, event_id, target_id, event_obj):
-        print("DEBUG _on_add_window for cid {0} ({1})".format(self.cid, event_id))
+        # print("DEBUG _on_add_window for cid {0} ({1})".format(self.cid, event_id))
         window_cid = event_obj['window-cid']
         window_index = self._get_window_index(window_cid)
         if target_id != self.cid and window_index >= 0:
@@ -170,6 +170,7 @@ class Portal(Tile):
 
     def _on_direction_negotiation_begin(self, event_id, target_id, event_obj):
         # Portals only go up
+        print("DEBUG Starting Negotiation at {1}".format(self.cid))
         self._fire_negotiation_discover(event_obj, True)
 
     def _on_direction_negotiation_descend(self, event_id, target_id, event_obj):

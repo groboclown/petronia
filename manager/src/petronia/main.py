@@ -5,41 +5,34 @@
 
 # http://stackoverflow.com/questions/2270527/how-to-code-a-new-windows-shell
 
-from petronia.system.bus import Bus
-from petronia.system.id_manager import IdManager
-from petronia.system.registrar import Registrar
-from petronia.shell.control.command_handler import CommandHandler
-from petronia.shell.control.layout_management import LayoutManagementController
-from petronia.shell.control.root_layout import RootLayout
-from petronia.shell.control.split_layout import get_object_factories as layout_factories
-from petronia.shell.control.portal import get_object_factories as portal_factories
-from petronia.shell.control.active_portal_manager import ActivePortalManager
-from petronia.shell.native.windows_hook_event import WindowsHookEvent
-from petronia.shell.native.window_mapper import WindowMapper
-from petronia.shell.view.render_selected_layout import RenderSelectedPanels
-from petronia.shell.view.render_active_portal import RenderActivePortal
-from petronia.util import worker_thread
+from .system.bus import Bus
+from .system.id_manager import IdManager
+from .system.registrar import Registrar
+from .shell.control.command_handler import CommandHandler
+from .shell.control.layout_management import LayoutManagementController
+from .shell.control.root_layout import RootLayout
+from .shell.control.split_layout import get_object_factories as layout_factories
+from .shell.control.portal import get_object_factories as portal_factories
+from .shell.control.active_portal_manager import ActivePortalManager
+from .shell.native.windows_hook_event import WindowsHookEvent
+from .shell.native.window_mapper import WindowMapper
+from .shell.view.render_selected_layout import RenderSelectedPanels
+from .shell.view.render_active_portal import RenderActivePortal
+from .util import worker_thread
+from .script.read_config import read_user_configuration
 from .tests.bus_logger import log_events
 
 import sys
-import importlib
 
 
 if __name__ == '__main__':
-    config_module = None
-    if len(sys.argv) > 1:
-        mod_name = sys.argv[1]
-        if mod_name.endswith('.py'):
-            mod_name = mod_name[:-3]
-        mod_name = mod_name.replace('\\', '/').replace('/', '.')
-        print("Importing configuration {0}".format(mod_name))
-        config_module = importlib.import_module(mod_name)
-    if config_module is None or not(hasattr(config_module, 'load_config')) or not callable(config_module.load_config):
-        raise Exception("Argument 1 must be a Python file that provides the 'load_config' method.")
-    # Temporary hard-coded setup until the config loading is working right.
-    config = config_module.load_config()
+    if len(sys.argv) <= 1:
+        print("Usage: arg 1: the user configuration file")
+        exit(1)
+
+    config = read_user_configuration(sys.argv[1])
     bus = Bus()
-    log_events(bus)
+    # log_events(bus)
     id_mgr = IdManager(bus)
     cmd_handler = CommandHandler(bus, config)
     registrar = Registrar(bus, id_mgr, config)

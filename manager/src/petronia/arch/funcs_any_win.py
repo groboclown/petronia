@@ -664,7 +664,7 @@ def shell__keyboard_hook(callback):
                 # a nonzero value to prevent the system from passing the
                 # message to the rest of the hook chain or the target window
                 # procedure.
-                print("NOT FORWARDING KEY")
+                # print("DEBUG NOT FORWARDING KEY")
                 return 1
 
     callback_pointer = HOOK_CALLBACK_TYPE(low_level_handler)

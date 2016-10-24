@@ -127,7 +127,7 @@ class HotKeyChain(object):
                 permutation_keys = []
                 _key_permutations(keys[0], 0, [], permutation_keys)
                 for perm in permutation_keys:
-                    print("Combo {0} + {1} => {2}".format(perm, keys[1:], chain_command[1]))
+                    # print("DEBUG Combo {0} + {1} => {2}".format(perm, keys[1:], chain_command[1]))
                     combos.append((perm, keys[1:], chain_command[1]))
 
         # Change the variable in a single command.

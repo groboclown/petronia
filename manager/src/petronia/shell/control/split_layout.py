@@ -137,17 +137,20 @@ class SplitLayout(Layout):
             self._log_debug("Redirect to self from the bad direction")
             return self._fire_negotiation_target(self.cid, event_obj)
 
+        index_change = _ORIENT_DIRS[self.__layout_config.orientation][direction]
+
         # Determine if we can handle this direction, based on our orientation.
-        if _MOVE_PARENT_DIR == _ORIENT_DIRS[self.__layout_config.orientation][direction]:
+        if _MOVE_PARENT_DIR == index_change:
             # move to the parent
             self._log_debug("Cannot move in direction for this split, telling parent to handle it")
             return self._fire_negotiation_discover(event_obj)
 
         # We came from a child, so discover the child's index.
         child_cids = self._child_cids
+        child_count = len(child_cids)
         source_pos = child_cids.index(previous_cid)
         if source_pos < 0:
-            if len(child_cids) <= 0:
+            if child_count <= 0:
                 # No children.
                 # Just end it already
                 if dest_type == PORTAL_TYPE:
@@ -163,12 +166,9 @@ class SplitLayout(Layout):
             self._log_debug("Split can't find previous child cid as a child, so just choosing one.")
             source_pos = 0
 
-        next_pos = source_pos + _ORIENT_DIRS[self.__layout_config.orientation][direction]
-        # rotate the next pos around the edges of the list.
-        if next_pos < 0:
-            next_pos += len(child_cids)
-        if next_pos >= len(child_cids):
-            next_pos -= len(child_cids)
+        # Rotate through the children indices.
+        next_pos = (source_pos + index_change + child_count) % child_count
+
         # Go down into the children
         self._log_debug("Redirecting movement to the next child index {0}".format(next_pos))
         self._fire_negotiation_descend(child_cids[next_pos], event_obj)
@@ -206,9 +206,9 @@ class SplitLayout(Layout):
 
         step_pos = 0
         current_dyn = start_pos
-        print("Splitting {0} (base size ({1},{2})x({3},{4})".format(
-            self.cid, static_min_pos, static_max_pos, start_pos, max_pos
-        ))
+        # print("DEBUG Splitting {0} (base size ({1},{2})x({3},{4})".format(
+        #     self.cid, static_min_pos, static_max_pos, start_pos, max_pos
+        # ))
         for child_cid in self._child_cids:
             split = self._get_split(child_cid)
             if split.size <= 0:
@@ -219,8 +219,10 @@ class SplitLayout(Layout):
             next_dyn = current_dyn + ((split.size * diff_pos) // step_count)
             if next_step >= step_count:
                 # last child, make it full size
-                next_dyn = max_pos
-            print(" - child {0}@{1} ({2},{3}) ({4} steps)".format(child_cid, step_pos, current_dyn, next_dyn, split.size))
+                # Remember, this is a width or height, not a final pixels position.
+                next_dyn = max_pos - current_dyn
+            # print("DEBUG - child {0}@{1} ({2},{3}) ({4} steps)".format(
+            #     child_cid, step_pos, current_dyn, next_dyn, split.size))
             size = {
                 static_min: static_min_pos,
                 static_max: static_max_pos,

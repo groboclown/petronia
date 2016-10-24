@@ -36,12 +36,14 @@ class RenderActivePortal(Component):
         border = self.__config.chrome.portal_chrome_border
         if active:
             border = self.__config.chrome.portal_chrome_active_border
-        if border['width'] > 0:
-            rect = {
-                'left': size['x'], 'right': size['x'] + size['width'],
-                'top': size['y'], 'bottom': size['y'] + size['height']
-            }
-            print("DEBUG Rendering portal outline {0} {1} {2}".format(rect, hex(border['color']), border['width']))
-            # funcs.window__draw_border_outline(rect, border['color'], border['width'])
-        else:
-            print("DEBUG === Skipping because border is {0} ({1}) {2}".format(border['width'], active and "Active" or "Deactivated", event_obj))
+        # if border['width'] > 0:
+        #     rect = {
+        #         'left': size['x'], 'right': size['x'] + size['width'],
+        #         'top': size['y'], 'bottom': size['y'] + size['height']
+        #     }
+        #     funcs.window__draw_border_outline(rect, border['color'], border['width'])
+        rect = {
+            'left': size['x'], 'right': size['x'] + size['width'],
+            'top': size['y'], 'bottom': size['y'] + size['height']
+        }
+        print("DEBUG {0}Portal @ {1}".format(active and "Active " or "", rect))

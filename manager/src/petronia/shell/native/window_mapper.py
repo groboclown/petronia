@@ -248,6 +248,9 @@ class WindowMapper(Identifiable, Component):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
             if 'x' in obj and 'y' in obj and 'height' in obj and 'width' in obj:
+                print("DEBUG setting window {0} to ({1}, {2}) @ ({3}, {4})".format(
+                    target_id, obj['width'], obj['height'], obj['x'], obj['y']
+                ))
                 window__set_position(
                     hwnd, None, obj['x'], obj['y'], obj['width'], obj['height'],
                     ['frame-changed', 'draw-frame', 'async-window-pos']

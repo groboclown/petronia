@@ -1,9 +1,19 @@
 from .layout import Layout
-from .portal import PORTAL_CATEGORY
 from ...system import event_ids
 from ...system import target_ids
 from ...config import LayoutConfig
+from ..navigation import *
 import threading
+
+
+_DIRECTION_INDEX = {
+    DIR_NORTH: -1,
+    DIR_SOUTH: 1,
+    DIR_WEST: -1,
+    DIR_EAST: 1,
+    DIR_PREVIOUS: -1,
+    DIR_NEXT: 1,
+}
 
 
 class RootLayout(Layout):
@@ -98,7 +108,8 @@ class RootLayout(Layout):
             if self.__monitors is None:
                 self._log_error("Called 'root_create_layout' before a resolution changed event generated.  " +
                                 "Setup order is probably wrong.")
-                # TODO could generate a new event to trigger the windows_hook_event to regenerate the monitor setup event.
+                # TODO could generate a new event to trigger the windows_hook_event to regenerate the monitor setup
+                # event.
                 return
             self.__in_layout_mode = True
             workgroup = self.config.get_workgroup_for_display(self.__monitors)
@@ -188,13 +199,37 @@ class RootLayout(Layout):
         #
         # For now, just loop through the layouts in a reasonable manner.
 
-        # FIXME
+        index_change = 1
+        if 'direction' in event_obj:
+            if DIR_PARENT == event_obj['direction']:
+                # use the first child
+                return self._on_direction_negotiation_descend__portal(event_obj)
+            if event_obj['direction'] in _DIRECTION_INDEX:
+                index_change = _DIRECTION_INDEX[event_obj['direction']]
 
-        raise NotImplementedError()
+        previous_cid = event_obj['previous-cid']
+        previous_child_index = self._child_cids.index(previous_cid)
+        if previous_child_index < 0:
+            # Don't know where it's from.  Just use a good match.
+            self._log_warn("Unknown child cid {0} for root layout".format(previous_cid))
+            return self._on_direction_negotiation_descend__portal(event_obj)
+
+        # Rotate through the child indicies
+        next_child_index = (previous_child_index + index_change + self._child_count) % self._child_count
+
+        return self._fire_negotiation_descend(self._child_cids[next_child_index], event_obj)
 
     def _on_direction_negotiation_descend__portal(self, event_obj):
-        # FIXME
-        raise NotImplementedError()
+        # Just find the first valid child.
+        for child_cid in self._child_cids:
+            if child_cid != event_obj['previous-cid']:
+                return self._fire_negotiation_descend(child_cid, event_obj)
+        if self._child_count > 0:
+            # Just reuse the first one.
+            return self._fire_negotiation_descend(self._child_cids[0], event_obj)
+        # Whoops.  Use the origin.
+        self._log_warn("Could not find a child of the root node.  Sending movement back to the origin")
+        self._fire_negotiation_descend(event_obj['origin-portal-cid'], event_obj)
 
     def _do_layout(self):
         # Very special layout operation.
