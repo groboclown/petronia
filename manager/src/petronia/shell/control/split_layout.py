@@ -211,6 +211,10 @@ class SplitLayout(Layout):
         ))
         for child_cid in self._child_cids:
             split = self._get_split(child_cid)
+            if split.size <= 0:
+                # Floating child.
+                self._fire(event_ids.LAYOUT__SET_RECTANGLE, child_cid, self.size)
+                continue
             next_step = step_pos + split.size
             next_dyn = current_dyn + ((split.size * diff_pos) // step_count)
             if next_step >= step_count:

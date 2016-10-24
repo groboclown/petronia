@@ -23,8 +23,10 @@ class RenderActivePortal(Component):
 
     def _on_render1(self, event_id, target_id, event_obj):
         self._on_render(event_id, target_id, event_obj)
+
     def _on_render2(self, event_id, target_id, event_obj):
         self._on_render(event_id, target_id, event_obj)
+
     def _on_render3(self, event_id, target_id, event_obj):
         self._on_render(event_id, target_id, event_obj)
 
@@ -40,6 +42,6 @@ class RenderActivePortal(Component):
                 'top': size['y'], 'bottom': size['y'] + size['height']
             }
             print("DEBUG Rendering portal outline {0} {1} {2}".format(rect, hex(border['color']), border['width']))
-            funcs.window__draw_border_outline(rect, border['color'], border['width'])
+            # funcs.window__draw_border_outline(rect, border['color'], border['width'])
         else:
             print("DEBUG === Skipping because border is {0} ({1}) {2}".format(border['width'], active and "Active" or "Deactivated", event_obj))

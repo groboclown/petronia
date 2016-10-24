@@ -48,9 +48,10 @@ def load_config():
     }])
 
     application = config.ApplicationConfig(managed_chome_not_matchers=[
-        config.AppMatcher(exec_re='\\\\firefox.exe(\\s+|$)'),
-        config.AppMatcher(exec_re='\\\\chrome.exe(\\s+|$)'),
-        config.AppMatcher(exec_re='\\\\OUTLOOK.EXE(\\s+|$)'),
+        config.AppMatcher(exec_re=r'.*?\\firefox.exe$'),
+        config.AppMatcher(exec_re=r'.*?\\chrome.exe$'),
+        config.AppMatcher(exec_re=r'.*?\\outlook.exe$'),
+        config.AppMatcher(exec_re=r'.*?\\explorer.exe$'),
     ])
 
     hotkeys = config.HotKeyConfig()

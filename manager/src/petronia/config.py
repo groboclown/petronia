@@ -224,6 +224,10 @@ class LayoutConfig(BaseConfig):
 
 
 class ChildSplitConfig(BaseConfig):
+    """
+    To make a child "floating" (some layout types are floating), set the
+    child split "size" to 0.
+    """
     def __init__(self, size, layout_def):
         assert isinstance(size, int)
         assert layout_def is None or isinstance(layout_def, LayoutConfig)
@@ -300,21 +304,21 @@ class AppMatcher(BaseConfig):
         assert title_exact is None or isinstance(title_exact, str)
         self.title_exact = title_exact
         if isinstance(title_re, str):
-            title_re = re.compile(title_re)
+            title_re = re.compile(title_re, re.IGNORECASE)
         assert title_re is None or (hasattr(title_re, "match") and callable(title_re.match))
         self.title_re = title_re
 
         assert module_exact is None or isinstance(module_exact, str)
         self.module_exact = module_exact
         if isinstance(module_re, str):
-            module_re = re.compile(module_re)
+            module_re = re.compile(module_re, re.IGNORECASE)
         assert module_re is None or (hasattr(module_re, "match") and callable(module_re.match))
         self.module_re = module_re
 
         assert exec_exact is None or isinstance(exec_exact, str)
         self.exec_exact = exec_exact
         if isinstance(exec_re, str):
-            exec_re = re.compile(exec_re)
+            exec_re = re.compile(exec_re, re.IGNORECASE)
         assert exec_re is None or (hasattr(exec_re, "match") and callable(exec_re.match))
         self.exec_re = exec_re
 

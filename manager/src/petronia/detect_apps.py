@@ -5,7 +5,7 @@ if __name__ == '__main__':
     hwnd_list = funcs.window__find_handles()
     for hwnd in hwnd_list:
         module_filename = funcs.window__get_module_filename(hwnd)
-        pid = funcs.window__get_thread_process_id(hwnd)
+        pid = funcs.window__get_process_id(hwnd)
         exec_filename = funcs.process__get_executable_filename(pid)
         info = {
             'hwnd': hwnd,

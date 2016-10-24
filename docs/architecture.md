@@ -109,6 +109,10 @@ renderers, which respond to certain messages to draw on the screen.
 User input is *modal*.  The user may enter different states, which allow
 for different sets of input to perform different actions.
 
+_(Note: some of the events listed here aren't implemented right, or are
+documented wrong.  This is mostly a guide, not a precise documentation of the
+events.  This is a big todo - to correctly document the events.)_
+
 ### Common Commands
 
 Some commands are common across all the modes.

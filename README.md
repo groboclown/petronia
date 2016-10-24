@@ -59,8 +59,8 @@ The example config file does several things.
     * This means the standard Windows hotkeys, like <kbd>win</kbd><kbd>d</kbd>
         (show desktop), <kbd>win</kbd><kdb>r</kbd> (run command dialog), and
         so on, won't be available.
-* Strips off the borders from the Windows, except for Firefox, Chrome, and
-  Outlook.
+* Strips off the borders from the Windows, except for Firefox, Chrome,
+    Explorer, and Outlook.
 * Splits the screen into tiles, depending on the monitor size.
 * Installs key handlers.
     * <kbd>win</kbd><kbd>esc</kbd>: show the start menu.
@@ -73,6 +73,48 @@ Even though the chrome is gone from windows, you can still use
 select Minimize, Restore, Maximize, or Close.
 
 Likewise, you can use <kbd>alt</kbd><kbd>tab</kbd> to move between windows.
+
+
+## Configuration Options
+
+The configuration is a Python file that provides the function `load_config()`,
+which returns a `petronia.config.Config` object.  Configuration isn't
+straightforward (yet), so here's some guides to get it to do what you want.
+
+### Discover Process, Module, and Class Names
+
+There are some applications that just don't do well without the title bar.
+For those applications, you can add a regular expression (or exact string
+matcher) to the ApplicationConfig.  To test out the names of the applications,
+you can run the `petronia.window_discovery` application.
+
+### Monitor Order and Size
+
+To determine your current monitor configuration, you can run the
+`petronia.detect_monitors` application.  It will output the lines needed
+for your configuration to match the current monitor setup.
+
+### Layouts
+
+The next big thing to configure is the "feel" of your layout.  Your layout
+has 2 general items: *splits* and *portals*.  Portals are where the windows
+end up; these are the "sink nodes" in the layout graph.  The splits are
+how the screen is divided up; splits can be vertical or horizontal.
+
+* Portal - the end node of a split.  Use a `None` layout to define a
+    portal.
+* Horizontal split - Splits the layout area into horizontal bars, like layers
+    on a cake.
+* Vertical split - splits the screen into vertical bars.
+
+Each child in a layout has a relative "size".  If there are two splits, each
+with a size of 1, then they each take up half the screen.  If one has a size
+of 2, and the other a size of 1, then the 2 will take up 2/3 of the area,
+and the other will take up 1/3 of the area.
+
+If you set a child size of "0", then it will be considered "floating", and
+will take up the size of the entire owning layout.  This is how you can
+create a full screen layout, or an overlapping side-bar.
 
 
 ## Future Notes if this ever becomes a full-on Shell program
