@@ -45,7 +45,7 @@ Once you have your configuration setup, you just run in a cmd prompt:
 
 ```
 > set Path=(python 3.5.2 directory);%Path%
-> cd (Cormorant dir)\manager\src
+> cd (petronia dir)\manager\src
 > python -u -m petronia.main my_config_file.py
 ```
 
@@ -86,7 +86,7 @@ straightforward (yet), so here's some guides to get it to do what you want.
 There are some applications that just don't do well without the title bar.
 For those applications, you can add a regular expression (or exact string
 matcher) to the ApplicationConfig.  To test out the names of the applications,
-you can run the `petronia.window_discovery` application.
+you can run the `petronia.discover_apps` application.
 
 ### Monitor Order and Size
 
@@ -127,7 +127,7 @@ To close Windows Explorer as the current shell:
 
 To restart Windows Explorer as the current shell:
 
-1. Stop Cormorant.
+1. Stop Petronia.
 2. Press <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>Del</kbd>, select "Task Manager".
 3. From Task Manager, select **File** -> **Run new task**
 4. From this new Create New Task dialog, enter "explorer", and click **OK**. 
