@@ -170,7 +170,7 @@ class Portal(Tile):
 
     def _on_direction_negotiation_begin(self, event_id, target_id, event_obj):
         # Portals only go up
-        print("DEBUG Starting Negotiation at {1}".format(self.cid))
+        print("DEBUG Starting Negotiation at {0}".format(self.cid))
         self._fire_negotiation_discover(event_obj, True)
 
     def _on_direction_negotiation_descend(self, event_id, target_id, event_obj):

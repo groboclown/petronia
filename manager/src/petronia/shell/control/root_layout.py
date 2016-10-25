@@ -191,6 +191,8 @@ class RootLayout(Layout):
         self._on_root_create_layout(None, None, None)
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
+        print("DEBUG Root discover")
+
         # This is really complex when dealing with multi-monitor situations (think
         # 5 monitors stacked like:
         #
@@ -208,8 +210,9 @@ class RootLayout(Layout):
                 index_change = _DIRECTION_INDEX[event_obj['direction']]
 
         previous_cid = event_obj['previous-cid']
-        previous_child_index = self._child_cids.index(previous_cid)
-        if previous_child_index < 0:
+        try:
+            previous_child_index = self._child_cids.index(previous_cid)
+        except ValueError:
             # Don't know where it's from.  Just use a good match.
             self._log_warn("Unknown child cid {0} for root layout".format(previous_cid))
             return self._on_direction_negotiation_descend__portal(event_obj)
@@ -220,6 +223,7 @@ class RootLayout(Layout):
         return self._fire_negotiation_descend(self._child_cids[next_child_index], event_obj)
 
     def _on_direction_negotiation_descend__portal(self, event_obj):
+        print("DEBUG Root descend portal")
         # Just find the first valid child.
         for child_cid in self._child_cids:
             if child_cid != event_obj['previous-cid']:

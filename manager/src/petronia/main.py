@@ -8,6 +8,7 @@
 from .system.bus import Bus
 from .system.id_manager import IdManager
 from .system.registrar import Registrar
+from .system.logger import Logger, LEVEL_DEBUG, LEVEL_VERBOSE, LEVEL_ERROR
 from .shell.control.command_handler import CommandHandler
 from .shell.control.layout_management import LayoutManagementController
 from .shell.control.root_layout import RootLayout
@@ -32,6 +33,7 @@ if __name__ == '__main__':
 
     config = read_user_configuration(sys.argv[1])
     bus = Bus()
+    Logger(bus, LEVEL_VERBOSE)
     # log_events(bus)
     id_mgr = IdManager(bus)
     cmd_handler = CommandHandler(bus, config)
@@ -39,17 +41,20 @@ if __name__ == '__main__':
     for reg_objects in (layout_factories(), portal_factories()):
         for category, factory in reg_objects.items():
             registrar.register_category_factory(category, factory)
-    root_layout = RootLayout(bus, config, id_mgr)
-    layout_manager = LayoutManagementController(bus, id_mgr)
-    apm = ActivePortalManager(bus)
+    if config.uses_layout:
+        RootLayout(bus, config, id_mgr)
+        LayoutManagementController(bus, id_mgr)
+        ActivePortalManager(bus)
 
     # Important: Mapper before Hook Event
     wm = WindowMapper(bus, id_mgr, config)
 
     # Important: Hook Event first
     whe = WindowsHookEvent(bus, config)
-    rsp = RenderSelectedPanels(bus, config)
-    rap = RenderActivePortal(bus, config)
+
+    if config.uses_layout:
+        RenderSelectedPanels(bus, config)
+        RenderActivePortal(bus, config)
 
     sys.stdin.read(1)
 

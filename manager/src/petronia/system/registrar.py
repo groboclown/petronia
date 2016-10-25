@@ -65,3 +65,19 @@ class Registrar(Identifiable, Component):
         except BaseException as e:
             self._log_error("Failed creating category {0} cid {1}".format(category, cid), e)
         return None
+
+
+class StatefulRegistrar(Registrar):
+    def __init__(self, bus, id_manager, config):
+        super().__init__(bus, id_manager, config)
+
+        self.__created_objects = {}
+
+    @property
+    def created_objects_by_cid(self):
+        return self.__created_objects
+
+    def _create_object(self, category, cid, arguments):
+        ret = super()._create_object(category, cid, arguments)
+        self.__created_objects[cid] = ret
+        return ret

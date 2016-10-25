@@ -13,8 +13,6 @@ def load_config():
 
                 config.ChildSplitConfig(1, config.LayoutConfig('left', 'portal', None, None)),
                 config.ChildSplitConfig(1, config.LayoutConfig('right', 'split-layout', config.ORIENTATION_VERTICAL, [
-                    # Testing out split navigation.
-                    # Looks like a single nagigation request is triggering mutiple moves.s
                     config.ChildSplitConfig(5, config.LayoutConfig('right-top', 'portal', None, None)),
                     config.ChildSplitConfig(1, config.LayoutConfig('right-bottom', 'portal', None, None)),
                 ]))
@@ -55,10 +53,10 @@ def load_config():
     }])
 
     application = config.ApplicationConfig(managed_chome_not_matchers=[
-        config.AppMatcher(exec_re=r'.*?\\firefox.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\chrome.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\outlook.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\explorer.exe$'),
+        config.AppMatcher(exec_re=r'.*?\\firefox\.exe$'),
+        config.AppMatcher(exec_re=r'.*?\\chrome\.exe$'),
+        config.AppMatcher(exec_re=r'.*?\\outlook\.exe$'),
+        config.AppMatcher(exec_re=r'.*?\\explorer\.exe$'),
     ])
 
     hotkeys = config.HotKeyConfig()
@@ -104,6 +102,15 @@ def load_config():
     command = config.CommandConfig()
 
     chrome = config.ChromeConfig()
+    chrome.has_title = False
+    chrome.portal_chrome_border = {
+        'color': 0x404040, 'width': 0,  # 0 width means that it's not drawn.
+        'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
+    }
+    chrome.portal_chrome_active_border = {
+        'color': 0x808000, 'width': 0,  # 0 width means that it's not drawn.
+        'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
+    }
 
     return config.Config(
         layouts_by_display,

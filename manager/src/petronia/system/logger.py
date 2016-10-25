@@ -22,11 +22,11 @@ LOG_LEVELS = {
 
 
 class Logger(Identifiable, MarshalableComponent):
-    def __init__(self, bus):
+    def __init__(self, bus, threshold=LEVEL_DEBUG):
         MarshalableComponent.__init__(self, bus)
         Identifiable.__init__(self, target_ids.LOGGER)
 
-        self.__level = 0
+        self.__level = threshold
         self._listen(event_ids.LOG__DEBUG, target_ids.LOGGER, lambda e, t, o: self.debug(*self.__as_args(o)))
         self._listen(event_ids.LOG__VERBOSE, target_ids.LOGGER, lambda e, t, o: self.verbose(*self.__as_args(o)))
         self._listen(event_ids.LOG__INFO, target_ids.LOGGER, lambda e, t, o: self.info(*self.__as_args(o)))
@@ -65,9 +65,9 @@ class Logger(Identifiable, MarshalableComponent):
         if level > self.__level:
             # TODO real logging
             if ex is None:
-                print("LOG [{0}] {1}".format(level, message))
+                print("[{0}] {1}".format(level, message))
             else:
-                print("LOG [{0}] {1} {2}".format(level, message, ex))
+                print("[{0}] {1} {2}".format(level, message, ex))
 
     @staticmethod
     def __as_args(event_obj):

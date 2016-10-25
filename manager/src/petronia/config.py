@@ -13,11 +13,6 @@ DEFAULT_MODE = "default"
 LAYOUT_MANAGEMENT_MODE = "Layout Management"
 
 
-def load_config():
-    # TODO actually load a config
-    return Config(DisplayWorkGroupsConfig(), ApplicationConfig(), HotKeyConfig(), CommandConfig(), ChromeConfig())
-
-
 class BaseConfig(object):
     pass
 
@@ -26,21 +21,27 @@ class Config(object):
     """
     Stores all the configuration information
     """
-    def __init__(self, workgroups, applications, hotkeys, commands, chrome):
-        assert isinstance(workgroups, DisplayWorkGroupsConfig)
-        assert isinstance(applications, ApplicationConfig)
-        assert isinstance(hotkeys, HotKeyConfig)
-        assert isinstance(commands, CommandConfig)
-        assert isinstance(chrome, ChromeConfig)
+    def __init__(self, workgroups=None, applications=None, hotkeys=None, commands=None, chrome=None):
+        assert workgroups is None or isinstance(workgroups, DisplayWorkGroupsConfig)
+        assert applications is None or isinstance(applications, ApplicationConfig)
+        assert hotkeys is None or isinstance(hotkeys, HotKeyConfig)
+        assert commands is None or isinstance(commands, CommandConfig)
+        assert chrome is None or isinstance(chrome, ChromeConfig)
 
         self.__workgroups = workgroups
-        self.__applications = applications
-        self.__hotkeys = hotkeys
-        self.__commands = commands
-        self.__chrome = chrome
+        self.__applications = applications is None and ApplicationConfig() or applications
+        self.__hotkeys = hotkeys is None and HotKeyConfig() or hotkeys
+        self.__commands = commands is None and CommandConfig() or commands
+        self.__chrome = chrome is None and ChromeConfig() or chrome
 
     def get_workgroup_for_display(self, monitors):
+        if self.__workgroups is None:
+            return []
         return self.__workgroups.get_workgroup_for_display(monitors)
+
+    @property
+    def uses_layout(self):
+        return self.__workgroups is not None
 
     @property
     def applications(self):
@@ -354,10 +355,13 @@ class HotKeyConfig(BaseConfig):
     """
     Associates a hotkey with an action.
 
-    TODO this needs to be modal.
+    TODO this needs better setup support.
     """
     def __init__(self):
-        self.__key_modes = {}
+        self.__key_modes = {
+            # Always have at least a default mode
+            DEFAULT_MODE: HotKeyChain()
+        }
 
     @property
     def mode_combos(self):
@@ -418,6 +422,7 @@ class ChromeConfig(BaseConfig):
         self.scrollbar_width = 0
         self.scrollbar_height = 0
         self.has_title = False
+        self.has_resize_border = False
         self.portal_chrome_border = {
             'color': 0x404040, 'width': 2,  # Placeholders
             'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
@@ -448,7 +453,7 @@ class ChromeConfig(BaseConfig):
         :return: True if the windows should not have wide borders or title bars with the
             controls (system menu, minimize, maximize, restore).
         """
-        return True
+        return not self.has_title
 
     @property
     def remove_resize_border(self):
@@ -456,7 +461,7 @@ class ChromeConfig(BaseConfig):
 
         :return: True if the window borders should not be resizable.
         """
-        return True
+        return not self.has_resize_border
 
     @property
     def show_taskbar_with_start_menu(self):

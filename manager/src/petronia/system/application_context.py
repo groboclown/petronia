@@ -2,7 +2,7 @@
 from .bus import Bus
 from .id_manager import IdManager
 from .registrar import Registrar
-from ..config import Config, load_config
+from ..config import Config
 
 
 class ApplicationContext(object):
@@ -19,8 +19,6 @@ class ApplicationContext(object):
         if registry is None:
             registry = Registrar(bus, id_manager)
         assert isinstance(registry, Registrar)
-        if config is None:
-            config = load_config()
         assert isinstance(config, Config)
 
         self.__bus = bus

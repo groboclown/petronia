@@ -57,6 +57,7 @@ class Tile(Parent, Identifiable, MarshalableComponent):
 
     # noinspection PyUnusedLocal
     def _on_direction_negotiation_target(self, event_id, target_id, event_obj):
+        print("DEBUG negotiation target {0}".format(self.cid))
         event_obj['chained-event-obj']['destination-cid'] = self.cid
         self._negotiation_complete(event_obj)
         target = event_obj['chained-event-target']

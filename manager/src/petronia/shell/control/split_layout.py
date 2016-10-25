@@ -76,6 +76,7 @@ class SplitLayout(Layout):
                 self._set_child_data(child_cid, 'split', split)
 
     def _on_direction_negotiation_descend__portal(self, event_obj):
+        print("DEBUG negotiation descend for portal; {0}".format(self.cid))
         # Came from a parent.  Find the first available child.
         dest_type = event_obj['destination-type']
         child_cids = self._child_cids
@@ -93,8 +94,8 @@ class SplitLayout(Layout):
         self._log_debug("Redirecting movement to the first child".format(child_cids[0]))
         self._fire_negotiation_descend(child_cids[0], event_obj)
 
-
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
+        print("DEBUG negotiation discover {0}".format(self.cid))
         self.__direction_negotiate(event_obj, True)
 
     def __direction_negotiate(self, event_obj, can_visit_parent):
@@ -106,7 +107,7 @@ class SplitLayout(Layout):
         if direction == DIR_PARENT:
             if can_visit_parent:
                 # We're done.
-                self._log_debug("Navigate to parent as final destination")
+                self._log_verbose("Navigate to parent as final destination")
                 return self._fire_negotiation_target(self.parent_cid, event_obj)
 
             if dest_type == PORTAL_TYPE:
@@ -119,7 +120,7 @@ class SplitLayout(Layout):
 
             # The parent can't be visited, and the destination isn't supposed to be a portal.
             # So we're the target.`
-            self._log_debug("Navigate to self, as the parent, as the final destination")
+            self._log_verbose("Navigate to self, as the parent, as the final destination")
             return self._fire_negotiation_target(self.cid, event_obj)
 
         if direction not in _ORIENT_DIRS[self.__layout_config.orientation]:
@@ -131,46 +132,49 @@ class SplitLayout(Layout):
             # Just end it already
             if dest_type == PORTAL_TYPE:
                 # redirect to origin
-                self._log_debug("Redirect to origin from the bad direction")
+                self._log_verbose("Redirect to origin from the bad direction")
                 self._fire_negotiation_target(origin_cid, event_obj)
             # just use self
-            self._log_debug("Redirect to self from the bad direction")
+            self._log_verbose("Redirect to self from the bad direction")
             return self._fire_negotiation_target(self.cid, event_obj)
 
         index_change = _ORIENT_DIRS[self.__layout_config.orientation][direction]
+        print("DEBUG {0}: Rotating in {1} direction".format(self.cid, index_change))
+        print("DEBUG  -- children: {0}".format(self._child_cids))
 
         # Determine if we can handle this direction, based on our orientation.
         if _MOVE_PARENT_DIR == index_change:
             # move to the parent
-            self._log_debug("Cannot move in direction for this split, telling parent to handle it")
+            self._log_verbose("Cannot move in direction for this split, telling parent to handle it")
             return self._fire_negotiation_discover(event_obj)
 
         # We came from a child, so discover the child's index.
         child_cids = self._child_cids
         child_count = len(child_cids)
-        source_pos = child_cids.index(previous_cid)
-        if source_pos < 0:
+        try:
+            source_pos = child_cids.index(previous_cid)
+        except ValueError:
             if child_count <= 0:
                 # No children.
                 # Just end it already
                 if dest_type == PORTAL_TYPE:
                     # redirect to origin
-                    self._log_debug("Split with no children cannot redirect to a child portal,"+
-                                    " so pushing back to origin")
+                    self._log_verbose("Split with no children cannot redirect to a child portal,"+
+                                      " so pushing back to origin")
                     self._fire_negotiation_target(origin_cid, event_obj)
                 # just use self
-                self._log_debug("Split with no children cannot go deeper, so using self as target.")
+                self._log_verbose("Split with no children cannot go deeper, so using self as target.")
                 return self._fire_negotiation_target(self.cid, event_obj)
 
             # just choose something
-            self._log_debug("Split can't find previous child cid as a child, so just choosing one.")
+            self._log_verbose("Split can't find previous child cid as a child, so just choosing one.")
             source_pos = 0
 
         # Rotate through the children indices.
         next_pos = (source_pos + index_change + child_count) % child_count
 
         # Go down into the children
-        self._log_debug("Redirecting movement to the next child index {0}".format(next_pos))
+        self._log_verbose("Redirecting movement to the next child index {0}".format(next_pos))
         self._fire_negotiation_descend(child_cids[next_pos], event_obj)
 
     def _fire_negotiation_target(self, target_cid, event_obj):
