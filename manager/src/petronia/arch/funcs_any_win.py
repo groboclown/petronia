@@ -35,6 +35,9 @@ def load_functions(environ, func_map):
     func_map['window__send_message'] = window__send_message
     func_map['window__post_message'] = window__post_message
     func_map['window__close'] = window__close
+    func_map['window__maximize'] = window__maximize
+    func_map['window__minimize'] = window__minimize
+    func_map['window__restore'] = window__restore
     func_map['window__get_visibility_states'] = window__get_visibility_states
     func_map['window__draw_border_outline'] = window__draw_border_outline
     func_map['window__set_transparency'] = window__set_transparency
@@ -322,7 +325,9 @@ def window__maximize(hwnd):
 
 
 def window__minimize(hwnd):
-    windll.user32.ShowWindow(hwnd, SW_MINIMIZE)
+    res = windll.user32.ShowWindow(hwnd, SW_MINIMIZE)
+    if res == 0:
+        raise WinError()
 
 
 def window__restore(hwnd):

@@ -214,6 +214,8 @@ MODE__CHANGE_TO = "Input Mode Changed To" + EVENT_THREAD__NOTICE
 
 TELL_WINDOWS__OPEN_START_MENU = "Hey Windows, Open Start Menu" + EVENT_THREAD__USER_REQUEST
 TELL_WINDOWS__FOCUS_WINDOW = "Hey Windows, Focus This Window" + EVENT_THREAD__USER_REQUEST
+TELL_WINDOWS__MINIMIZE_WINDOW = "Hey Windows, Minimize This Window" + EVENT_THREAD__USER_REQUEST
+TELL_WINDOWS__MAXIMIZE_WINDOW = "Hey Windows, Maximize This Window" + EVENT_THREAD__USER_REQUEST
 
 
 # ---------------------------------------------------------------------------

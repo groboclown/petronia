@@ -72,12 +72,14 @@ def load_config():
             "win+left => move-window-to-other-portal west",
             "win+right => move-window-to-other-portal east",
 
+            "win+pgup => move-window-to-other-portal next",
+            "win+pgdn => move-window-to-other-portal previous",
+
+            "win+tab => minimize",
+
             "win+f11 => quit",
 
             "win+esc => open-start-menu",
-
-            # TODO include command to open the start menu,
-            # and block the win key from being passed on.
         ],
         True  # block the windows key, because we remapped it to win+esc
         # False

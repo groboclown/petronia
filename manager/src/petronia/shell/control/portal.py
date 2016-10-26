@@ -36,6 +36,7 @@ class Portal(Tile):
         self._listen(event_ids.PORTAL__SET_ACTIVE, cid, self._on_portal_becomes_active)
         self._listen(event_ids.PORTAL__ACTIVATED, target_ids.ANY, self._on_portal_activated)
 
+    # noinspection PyUnusedLocal
     def _on_move_window_here(self, event_id, target_id, event_obj):
         event_obj['make-focused'] = True
         self._on_add_window(event_id, target_id, event_obj)
@@ -46,6 +47,8 @@ class Portal(Tile):
         window_index = self._get_window_index(window_cid)
         if target_id != self.cid and window_index >= 0:
             # Remove the window
+            print("DEBUG Removing window {0} from portal {1}, moving to {2}".format(
+                window_cid, self.cid, target_id))
             self._log_debug("Removing window {0} from portal {1}, moving to {2}".format(
                 window_cid, self.cid, target_id))
             del self.__windows[window_index]
@@ -53,13 +56,16 @@ class Portal(Tile):
                 for listener in self.__window_listeners[window_cid]:
                     self._remove_listener(listener)
                 del self.__window_listeners[window_cid]
-        elif window_index < 0:
+        elif target_id == self.cid and window_index < 0:
             # Take on the new window
+            print("DEBUG Moving widow {0} to portal {2} from {1}".format(
+                window_cid, self.cid, target_id))
             self._log_debug("Moving widow {0} to portal {2} from {1}".format(
                 window_cid, self.cid, target_id))
             window_info = event_obj['window-info']
+            self.__windows.append(window_info)
             window_rect = self._get_window_rect()
-            window_rect['make-focused'] = 'make-focused' in event_obj and event_obj['make-focused'] or None
+            window_rect['make-focused'] = 'make-focused' in event_obj and event_obj['make-focused'] or False
             self._fire(event_ids.LAYOUT__SET_RECTANGLE, window_cid, window_rect)
 
             def this_window_activated(e, t, o):
@@ -76,7 +82,6 @@ class Portal(Tile):
             ]
             if 'make-focused' in event_obj and event_obj['make-focused']:
                 self._fire(event_ids.PORTAL__SET_ACTIVE, self.cid, {})
-            self.__windows.append(window_info)
 
     def _on_portal_becomes_active(self, event_id, target_id, event_obj):
         self._on_set_first_window_focused(event_id, target_id, event_obj)
@@ -109,12 +114,21 @@ class Portal(Tile):
         if self.__top_window_index is not None and self.__top_window_index < len(self.__windows):
             dest_window_info = self.__windows[self.__top_window_index]
         if dest_window_info is not None:
-            self._fire(event_ids.DIRECTION_NEGOTIATION__BEGIN, self.cid, create_direction_negotiation_start_event_obj(
-                self.cid, event_obj['direction'], PORTAL_TYPE, event_ids.PORTAL__MOVE_WINDOW_TO_DESTINATION, self.cid, {
+            if 'destination-cid' in event_obj:
+                # Allow for direct action, rather than going through negotiation.
+                self._fire(event_ids.PORTAL__MOVE_WINDOW_HERE, event_obj['destination-cid'], {
                     'window-cid': dest_window_info['cid'],
                     'window-info': dest_window_info,
-                }
-            ))
+                })
+            else:
+                self._fire(
+                    event_ids.DIRECTION_NEGOTIATION__BEGIN, self.cid, create_direction_negotiation_start_event_obj(
+                    self.cid, event_obj['direction'], PORTAL_TYPE, event_ids.PORTAL__MOVE_WINDOW_TO_DESTINATION,
+                        self.cid, {
+                            'window-cid': dest_window_info['cid'],
+                            'window-info': dest_window_info,
+                        }
+                ))
         else:
             self._log_verbose("Could not move a window from portal {0}, as it has no windows.".format(self.cid))
 
@@ -182,7 +196,7 @@ class Portal(Tile):
         if 'window-parent' in event_obj:
             dest_cid = event_obj['window-parent']
         for window_info in self.__windows:
-            self._fire(event_ids.PORTAL__MOVE_WINDOW_HERE, dest_cid, {
+            self._fire(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, dest_cid, {
                 'window-cid': window_info['cid'],
                 'window-info': window_info,
             })

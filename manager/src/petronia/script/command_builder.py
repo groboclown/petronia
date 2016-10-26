@@ -16,6 +16,8 @@ def create_all_commands():
         create_change_layout_management_selection_shape(),
         create_join_selected_layout(),
         create_split(),
+        create_minimize(),
+        create_maximize(),
     ]
 
 
@@ -61,3 +63,11 @@ def create_join_selected_layout():
 
 def create_split():
     return Command("split", command_helper.split_layout)
+
+
+def create_minimize():
+    return Command("minimize", command_helper.minimize)
+
+
+def create_maximize():
+    return Command("maximize", command_helper.maximize)

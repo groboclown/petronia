@@ -32,7 +32,7 @@ class RootLayout(Layout):
 
         self._listen(event_ids.WINDOW__CREATED, target_ids.ANY, self._on_new_window_created)
         self._listen(event_ids.OS__RESOLUTION_CHANGED, target_ids.BROADCAST, self._on_resolution_changed)
-        self._listen(event_ids.PORTAL__MOVE_WINDOW_HERE, target_ids.ANY, self._on_window_assigned_portal)
+        self._listen(event_ids.PORTAL__WINDOW_MOVED_TO_OTHER_PORTAL, target_ids.ANY, self._on_window_move_request)
         self._listen(event_ids.LAYOUT__ROOT_LAYOUT_CREATE, target_ids.TOP_LAYOUT, self._on_root_create_layout)
         self._listen(event_ids.LAYOUT__SWITCH_TO, target_ids.TOP_LAYOUT, self._on_workflow_layout_switch)
 
@@ -69,7 +69,7 @@ class RootLayout(Layout):
             })
 
     # noinspection PyUnusedLocal
-    def _on_window_assigned_portal(self, event_id, target_id, event_obj):
+    def _on_window_move_request(self, event_id, target_id, event_obj):
         # A window was assigned to a portal.  Remove from our list of pending.
         window_cid = event_obj['window-cid']
         # window_info = event_obj['window-info']

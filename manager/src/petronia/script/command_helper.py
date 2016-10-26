@@ -4,10 +4,7 @@
 from ..system import event_ids
 from ..system import target_ids
 from ..shell.native.shutdown import shutdown_system
-
-
-DIRECTIONS = ['north', 'south', 'east', 'west']
-ROTATE = ['left', 'right']
+from ..shell.navigation import DIRECTIONS
 
 
 # noinspection PyUnusedLocal
@@ -45,7 +42,8 @@ def focus_portal_by_alias(bus, alias_name):
 
 
 def move_window_to_other_portal(bus, direction):
-    if direction.lower() in ['north', 'east', 'south', 'west']:
+    if direction.lower() in DIRECTIONS:
+        print("DEBUG firing move portal " + direction)
         bus.fire(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, target_ids.ACTIVE_PORTAL_MANAGER,
                  {'direction': direction.lower()})
 
@@ -64,3 +62,11 @@ def join_selected_layout(bus):
 
 def split_layout(bus):
     bus.fire(event_ids.LAYOUT_SELECTION__SPLIT, target_ids.BROADCAST, {})
+
+
+def minimize(bus):
+    bus.fire(event_ids.TELL_WINDOWS__MINIMIZE_WINDOW, target_ids.WINDOW_MAPPER, {})
+
+
+def maximize(bus):
+    bus.fire(event_ids.TELL_WINDOWS__MAXIMIZE_WINDOW, target_ids.WINDOW_MAPPER, {})

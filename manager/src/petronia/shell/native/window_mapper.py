@@ -18,7 +18,7 @@ from ...arch.funcs import (
     window__get_module_filename, process__get_executable_filename,
     window__get_class_name, window__is_visible, window__set_position,
     window__activate, window__get_title, window__get_visibility_states,
-    window__get_active_window,
+    window__get_active_window, window__maximize, window__minimize,
     process__get_current_pid, process__get_username_domain_for_pid,
     shell__set_window_metrics
 )
@@ -73,6 +73,8 @@ class WindowMapper(Identifiable, Component):
         self._listen(event_ids.LAYOUT__SET_RECTANGLE, target_ids.ANY, self._on_window_move_resize)
         self._listen(event_ids.TELL_WINDOWS__FOCUS_WINDOW, target_ids.ANY, self._on_set_window_focus)
         self._listen(event_ids.ZORDER__SET_WINDOW_ON_TOP, target_ids.ANY, self._on_set_window_top)
+        self._listen(event_ids.TELL_WINDOWS__MINIMIZE_WINDOW, target_ids.ANY, self._on_minimize_window)
+        self._listen(event_ids.TELL_WINDOWS__MAXIMIZE_WINDOW, target_ids.ANY, self._on_maximize_window)
 
         # Requests that require knowing OS states of windows
         self._listen(event_ids.FOCUS__MAKE_OWNED_PORTAL_ACTIVE, target_ids.WINDOW_MAPPER,
@@ -248,8 +250,8 @@ class WindowMapper(Identifiable, Component):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
             if 'x' in obj and 'y' in obj and 'height' in obj and 'width' in obj:
-                print("DEBUG setting window {0} to ({1}, {2}) @ ({3}, {4})".format(
-                    target_id, obj['width'], obj['height'], obj['x'], obj['y']
+                print("DEBUG setting window {0} to ({1}, {2}) @ ({3}, {4})  {5}".format(
+                    target_id, obj['width'], obj['height'], obj['x'], obj['y'], obj
                 ))
                 window__set_position(
                     hwnd, None, obj['x'], obj['y'], obj['width'], obj['height'],
@@ -273,6 +275,31 @@ class WindowMapper(Identifiable, Component):
                 hwnd, ["top"],
                 position['x'], position['y'], position['width'], position['height'],
                 ["show-window"])
+
+    # noinspection PyUnusedLocal
+    def _on_maximize_window(self, event_id, target_id, obj):
+        if target_id in self.__cid_to_handle:
+            hwnd = self.__cid_to_handle[target_id]
+        else:
+            hwnd = window__get_active_window()
+
+        if hwnd:
+            window__maximize(hwnd)
+
+    # noinspection PyUnusedLocal
+    def _on_minimize_window(self, event_id, target_id, obj):
+        if target_id in self.__cid_to_handle:
+            print("Using a known window handle")
+            hwnd = self.__cid_to_handle[target_id]
+        else:
+            print("getting the active window handle")
+            hwnd = window__get_active_window()
+
+        if hwnd is not None:
+            print("DEBUG minimizing handle " + hwnd)
+            window__minimize(hwnd)
+        else:
+            print("DEBUG nothing to minimize")
 
     # noinspection PyUnusedLocal
     def _on_make_owned_portal_active(self, event_id, target_id, obj):

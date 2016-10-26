@@ -373,7 +373,11 @@ STR_VK_MAP = {
     "modechange": 0x1F,           # VK_MODECHANGE    IME mode change request
     "space": 0x20,                # VK_SPACE    SPACEBAR
     "prior": 0x21,                # VK_PRIOR    PAGE UP key
+    "pgup": 0x21,                 # VK_PRIOR    PAGE UP key
+    "pageup": 0x21,               # VK_PRIOR    PAGE UP key
     "next": 0x22,                 # VK_NEXT    PAGE DOWN key
+    "pgdn": 0x22,                 # VK_NEXT    PAGE DOWN key
+    "pagedown": 0x22,             # VK_NEXT    PAGE DOWN key
     "end": 0x23,                  # VK_END    END key
     "home": 0x24,                 # VK_HOME    HOME key
     "left": 0x25,                 # VK_LEFT    LEFT ARROW key
