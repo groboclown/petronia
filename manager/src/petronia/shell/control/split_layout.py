@@ -76,7 +76,7 @@ class SplitLayout(Layout):
                 self._set_child_data(child_cid, 'split', split)
 
     def _on_direction_negotiation_descend__portal(self, event_obj):
-        print("DEBUG negotiation descend for portal; {0}".format(self.cid))
+        # print("DEBUG negotiation descend for portal; {0}".format(self.cid))
         # Came from a parent.  Find the first available child.
         dest_type = event_obj['destination-type']
         child_cids = self._child_cids
@@ -95,7 +95,7 @@ class SplitLayout(Layout):
         self._fire_negotiation_descend(child_cids[0], event_obj)
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
-        print("DEBUG negotiation discover {0}".format(self.cid))
+        # print("DEBUG negotiation discover {0}".format(self.cid))
         self.__direction_negotiate(event_obj, True)
 
     def __direction_negotiate(self, event_obj, can_visit_parent):
@@ -139,8 +139,8 @@ class SplitLayout(Layout):
             return self._fire_negotiation_target(self.cid, event_obj)
 
         index_change = _ORIENT_DIRS[self.__layout_config.orientation][direction]
-        print("DEBUG {0}: Rotating in {1} direction".format(self.cid, index_change))
-        print("DEBUG  -- children: {0}".format(self._child_cids))
+        # print("DEBUG {0}: Rotating in {1} direction".format(self.cid, index_change))
+        # print("DEBUG  -- children: {0}".format(self._child_cids))
 
         # Determine if we can handle this direction, based on our orientation.
         if _MOVE_PARENT_DIR == index_change:

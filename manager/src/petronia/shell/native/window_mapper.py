@@ -250,9 +250,9 @@ class WindowMapper(Identifiable, Component):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
             if 'x' in obj and 'y' in obj and 'height' in obj and 'width' in obj:
-                print("DEBUG setting window {0} to ({1}, {2}) @ ({3}, {4})  {5}".format(
-                    target_id, obj['width'], obj['height'], obj['x'], obj['y'], obj
-                ))
+                # print("DEBUG setting window {0} to ({1}, {2}) @ ({3}, {4})  {5}".format(
+                #     target_id, obj['width'], obj['height'], obj['x'], obj['y'], obj
+                # ))
                 window__set_position(
                     hwnd, None, obj['x'], obj['y'], obj['width'], obj['height'],
                     ['frame-changed', 'draw-frame', 'async-window-pos']
@@ -296,10 +296,10 @@ class WindowMapper(Identifiable, Component):
             hwnd = window__get_active_window()
 
         if hwnd is not None:
-            print("DEBUG minimizing handle " + hwnd)
+            # print("DEBUG minimizing handle " + hwnd)
             window__minimize(hwnd)
-        else:
-            print("DEBUG nothing to minimize")
+        # else:
+        #     print("DEBUG nothing to minimize")
 
     # noinspection PyUnusedLocal
     def _on_make_owned_portal_active(self, event_id, target_id, obj):

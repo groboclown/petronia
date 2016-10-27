@@ -798,7 +798,7 @@ def shell__pump_messages(on_exit_callback=None):
     while True:
         msg = GetMessageW(byref(message), 0, 0, 0)
         if msg <= 0:
-            print("DEBUG quit message in queue")
+            # print("DEBUG quit message in queue")
             # 0 means WM_QUIT, < 0 means error
             if on_exit_callback is not None and callable(on_exit_callback):
                 on_exit_callback()

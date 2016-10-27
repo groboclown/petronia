@@ -42,13 +42,10 @@ class Portal(Tile):
         self._on_add_window(event_id, target_id, event_obj)
 
     def _on_add_window(self, event_id, target_id, event_obj):
-        # print("DEBUG _on_add_window for cid {0} ({1})".format(self.cid, event_id))
         window_cid = event_obj['window-cid']
         window_index = self._get_window_index(window_cid)
         if target_id != self.cid and window_index >= 0:
             # Remove the window
-            print("DEBUG Removing window {0} from portal {1}, moving to {2}".format(
-                window_cid, self.cid, target_id))
             self._log_debug("Removing window {0} from portal {1}, moving to {2}".format(
                 window_cid, self.cid, target_id))
             del self.__windows[window_index]
@@ -58,8 +55,6 @@ class Portal(Tile):
                 del self.__window_listeners[window_cid]
         elif target_id == self.cid and window_index < 0:
             # Take on the new window
-            print("DEBUG Moving widow {0} to portal {2} from {1}".format(
-                window_cid, self.cid, target_id))
             self._log_debug("Moving widow {0} to portal {2} from {1}".format(
                 window_cid, self.cid, target_id))
             window_info = event_obj['window-info']
@@ -184,7 +179,6 @@ class Portal(Tile):
 
     def _on_direction_negotiation_begin(self, event_id, target_id, event_obj):
         # Portals only go up
-        print("DEBUG Starting Negotiation at {0}".format(self.cid))
         self._fire_negotiation_discover(event_obj, True)
 
     def _on_direction_negotiation_descend(self, event_id, target_id, event_obj):

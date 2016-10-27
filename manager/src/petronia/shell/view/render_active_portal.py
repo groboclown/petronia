@@ -46,4 +46,4 @@ class RenderActivePortal(Component):
             'left': size['x'], 'right': size['x'] + size['width'],
             'top': size['y'], 'bottom': size['y'] + size['height']
         }
-        print("DEBUG {0}Portal @ {1}".format(active and "Active " or "", rect))
+        # print("DEBUG {0}Portal @ {1}".format(active and "Active " or "", rect))

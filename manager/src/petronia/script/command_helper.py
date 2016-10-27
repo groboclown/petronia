@@ -43,7 +43,7 @@ def focus_portal_by_alias(bus, alias_name):
 
 def move_window_to_other_portal(bus, direction):
     if direction.lower() in DIRECTIONS:
-        print("DEBUG firing move portal " + direction)
+        # print("DEBUG firing move portal " + direction)
         bus.fire(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, target_ids.ACTIVE_PORTAL_MANAGER,
                  {'direction': direction.lower()})
 
