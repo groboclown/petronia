@@ -12,14 +12,26 @@ LEVEL_WARN = 30
 LEVEL_ERROR = 40
 LEVEL_FATAL = 50
 
-LOG_LEVELS = {
-    "DEBUG": LEVEL_DEBUG,
-    "VERBOSE": LEVEL_VERBOSE,
-    "INFO": LEVEL_INFO,
-    "WARN": LEVEL_WARN,
-    "ERROR": LEVEL_ERROR,
-    "FATAL": LEVEL_FATAL
+LEVEL_DEBUG_STR = "DEBUG"
+LEVEL_VERBOSE_STR = "VERBOSE"
+LEVEL_INFO_STR = "INFO"
+LEVEL_WARN_STR = "WARN"
+LEVEL_ERROR_STR = "ERROR"
+LEVEL_FATAL_STR = "FATAL"
+_LOG_LEVELS = {
+    LEVEL_DEBUG_STR: LEVEL_DEBUG,
+    LEVEL_VERBOSE_STR: LEVEL_VERBOSE,
+    LEVEL_INFO_STR: LEVEL_INFO,
+    LEVEL_WARN_STR: LEVEL_WARN,
+    LEVEL_ERROR_STR: LEVEL_ERROR,
+    LEVEL_FATAL_STR: LEVEL_FATAL
 }
+_LOG_LEVEL_RANGE = (
+    (LEVEL_VERBOSE, LEVEL_DEBUG_STR),
+    (LEVEL_INFO, LEVEL_VERBOSE_STR),
+    (LEVEL_WARN, LEVEL_INFO_STR),
+    (LEVEL_ERROR, LEVEL_WARN_STR),
+)
 
 
 class Logger(Identifiable, MarshalableComponent):
@@ -55,8 +67,8 @@ class Logger(Identifiable, MarshalableComponent):
         self._fire(event_ids.SYSTEM__QUIT, target_ids.ANY, {})
 
     def set_level(self, level):
-        if isinstance(level, str) and level in LOG_LEVELS:
-            self.__level = LOG_LEVELS[level]
+        if isinstance(level, str) and level in _LOG_LEVELS:
+            self.__level = _LOG_LEVELS[level]
         elif isinstance(level, int):
             self.__level = level
         else:
@@ -66,9 +78,9 @@ class Logger(Identifiable, MarshalableComponent):
         if level > self.__level:
             # TODO real logging
             if ex is None:
-                print("[{0}] {1}".format(level, message))
+                print("[{0}] {1}".format(self.__level_str(level), message))
             else:
-                print("[{0}] {1} {2}".format(level, message, ex))
+                print("[{0}] {1} {2}".format(self.__level_str(level), message, ex))
                 traceback.print_exc(ex)
 
     @staticmethod
@@ -91,3 +103,10 @@ class Logger(Identifiable, MarshalableComponent):
             ret.append(None)
 
         return ret
+
+    @staticmethod
+    def __level_str(level):
+        for max, name in _LOG_LEVEL_RANGE:
+            if level < max:
+                return name
+        return LEVEL_FATAL_STR
