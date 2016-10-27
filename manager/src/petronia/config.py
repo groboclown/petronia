@@ -23,13 +23,19 @@ class Config(object):
     """
     def __init__(self, workgroups=None, applications=None, hotkeys=None, commands=None, chrome=None):
         assert workgroups is None or isinstance(workgroups, DisplayWorkGroupsConfig)
-        assert applications is None or isinstance(applications, ApplicationConfig)
         assert hotkeys is None or isinstance(hotkeys, HotKeyConfig)
         assert commands is None or isinstance(commands, CommandConfig)
         assert chrome is None or isinstance(chrome, ChromeConfig)
 
+        if applications is None:
+            applications = ApplicationListConfig([])
+        elif isinstance(applications, list) or isinstance(applications, tuple):
+            applications = ApplicationListConfig(applications)
+        elif not isinstance(applications, ApplicationListConfig):
+            applications = ApplicationListConfig([applications])
+
         self.__workgroups = workgroups
-        self.__applications = applications is None and ApplicationConfig() or applications
+        self.__applications = applications
         self.__hotkeys = hotkeys is None and HotKeyConfig() or hotkeys
         self.__commands = commands is None and CommandConfig() or commands
         self.__chrome = chrome is None and ChromeConfig() or chrome
@@ -236,23 +242,95 @@ class ChildSplitConfig(BaseConfig):
         self.layout_def = layout_def
 
 
-class ApplicationConfig(BaseConfig):
+class AbstractApplicationConfig(BaseConfig):
+    def is_managed_chrome(self, window_info):
+        """
+
+        :param window_info:
+        :return: True if the window should be "managed" by the system, in terms of
+            look-and-feel of the application.  None if the configuration has no information
+            about  this window.
+        """
+        raise NotImplementedError()
+
+    def is_tiled(self, window_info):
+        """
+
+        :param window_info:
+        :return: True if the window should belong to a tile, False if it acts like a floating, traditional window.
+            None if the configuration has no information about  this window.
+        """
+        raise NotImplementedError()
+
+    def is_contained_in(self, layout_id, window_info):
+        """
+
+        :param layout_id:
+        :param window_info:
+        :return: True if the given window should belong, by default, to the given layout.
+            None if the configuration has no information about  this window.
+        """
+        raise NotImplementedError()
+
+
+class ApplicationListConfig(AbstractApplicationConfig):
+    def __init__(self, app_configs, default_is_tiled=True, default_is_managed_chrome=True):
+        assert isinstance(app_configs, list) or isinstance(app_configs, tuple)
+        for app in app_configs:
+            assert isinstance(app, AbstractApplicationConfig)
+        self.__app_configs = app_configs
+        self.default_is_tiled = default_is_tiled
+        self.default_is_managed_chrome = default_is_managed_chrome
+
+    def is_contained_in(self, layout_id, window_info):
+        for app in self.__app_configs:
+            res = app.is_contained_in(layout_id, window_info)
+            if res is not None:
+                return res
+        return None
+
+    def is_tiled(self, window_info):
+        for app in self.__app_configs:
+            res = app.is_tiled(window_info)
+            if res is not None:
+                return res
+        return self.default_is_tiled
+
+    def is_managed_chrome(self, window_info):
+        for app in self.__app_configs:
+            res = app.is_managed_chrome(window_info)
+            if res is not None:
+                return res
+        return self.default_is_managed_chrome
+
+
+class ApplicationConfig(AbstractApplicationConfig):
     """
     Matches any number of applications (through the matcher regex), and associates
     it with one or more panels.
     """
-    def __init__(self, managed_chrome_default_match=True,
-                 managed_chrome_matchers=None,
-                 managed_chome_not_matchers=None):
-        self.managed_chrome_default_match = managed_chrome_default_match
-        if managed_chrome_matchers is None:
-            managed_chrome_matchers = tuple()
-        if managed_chome_not_matchers is None:
-            managed_chome_not_matchers = tuple()
-        assert isinstance(managed_chrome_matchers, list) or isinstance(managed_chrome_matchers, tuple)
-        self.managed_chrome_matchers = managed_chrome_matchers
-        assert isinstance(managed_chome_not_matchers, list) or isinstance(managed_chome_not_matchers, tuple)
-        self.managed_chome_not_matchers = managed_chome_not_matchers
+    def __init__(self,
+                 is_managed_chrome=True,
+                 is_tiled=True,
+                 app_matchers=None,
+                 layout_matchers=None):
+        if app_matchers is None:
+            app_matchers = tuple()
+        elif isinstance(app_matchers, AppMatcher):
+            app_matchers = (app_matchers,)
+        for matcher in app_matchers:
+            assert isinstance(matcher, AppMatcher)
+        if layout_matchers is None:
+            layout_matchers = tuple()
+        elif not isinstance(layout_matchers, list) or not isinstance(layout_matchers, tuple):
+            layout_matchers = (layout_matchers,)
+        for matcher in layout_matchers:
+            assert hasattr(matcher, 'match') and callable(matcher.match)
+
+        self.__is_managed_chrome = is_managed_chrome
+        self.__is_tiled = is_tiled
+        self.__app_matchers = app_matchers
+        self.__layout_matchers = layout_matchers
 
     def is_managed_chrome(self, window_info):
         """
@@ -261,18 +339,26 @@ class ApplicationConfig(BaseConfig):
         :return: True if the window should be "managed" by the system, in terms of
             look-and-feel of the application.
         """
-        for matcher in self.managed_chrome_matchers:
+        for matcher in self.__app_matchers:
             if matcher.matches(window_info):
                 # print("DEBUG Matched managed chrome: {0}".format(window_info))
-                return True
-        for matcher in self.managed_chome_not_matchers:
+                return self.__is_managed_chrome
+        return None
+
+    def is_tiled(self, window_info):
+        for matcher in self.__app_matchers:
             if matcher.matches(window_info):
-                # print("DEBUG Matched not managed chrome: {0}".format(window_info))
-                return False
-        return self.managed_chrome_default_match
+                return self.__is_tiled
+        return None
 
     def is_contained_in(self, layout_id, window_info):
-        return True
+        for matcher in self.__app_matchers:
+            if matcher.matches(window_info):
+                for layout_matcher in self.__layout_matchers:
+                    if layout_matcher.matches(layout_id):
+                        return True
+                return False
+        return None
 
 
 class AppMatcher(BaseConfig):
@@ -289,7 +375,7 @@ class AppMatcher(BaseConfig):
         'module_filename': None, 'visibility': ['shown', 'maximized', 'active']}}
     """
     def __init__(self, match_returns=True, title_exact=None, title_re=None, module_exact=None, module_re=None,
-                 exec_exact=None, exec_re=None):
+                 exec_exact=None, exec_re=None, class_exact=None, class_re=None):
         """
 
         :param match_returns: the value to return if a match happens; otherwise, the Not of this is returned.
@@ -302,52 +388,41 @@ class AppMatcher(BaseConfig):
         """
         self.match_returns = match_returns
 
-        assert title_exact is None or isinstance(title_exact, str)
-        self.title_exact = title_exact
-        if isinstance(title_re, str):
-            title_re = re.compile(title_re, re.IGNORECASE)
-        assert title_re is None or (hasattr(title_re, "match") and callable(title_re.match))
-        self.title_re = title_re
+        self.exact_matchers = {}
+        self.re_matchers = {}
 
-        assert module_exact is None or isinstance(module_exact, str)
-        self.module_exact = module_exact
-        if isinstance(module_re, str):
-            module_re = re.compile(module_re, re.IGNORECASE)
-        assert module_re is None or (hasattr(module_re, "match") and callable(module_re.match))
-        self.module_re = module_re
-
-        assert exec_exact is None or isinstance(exec_exact, str)
-        self.exec_exact = exec_exact
-        if isinstance(exec_re, str):
-            exec_re = re.compile(exec_re, re.IGNORECASE)
-        assert exec_re is None or (hasattr(exec_re, "match") and callable(exec_re.match))
-        self.exec_re = exec_re
+        def add_matcher(name, exact, regex):
+            if exact is not None:
+                assert isinstance(exact, str)
+                self.exact_matchers[name] = exact
+            if regex is not None:
+                if isinstance(regex, str):
+                    regex = re.compile(regex, re.IGNORECASE)
+                assert (hasattr(regex, "match") and callable(regex.match))
+                self.re_matchers[name] = regex
+        add_matcher('title', title_exact, title_re)
+        add_matcher('module_filename', module_exact, module_re)
+        add_matcher('exec_filename', exec_exact, exec_re)
+        add_matcher('class', class_exact, class_re)
 
     def matches(self, window_info):
-        if window_info['title'] is not None:
-            if self.title_exact is not None:
-                if self.title_exact == window_info['title']:
-                    return self.match_returns
-            if self.title_re is not None:
-                if self.title_re.match(window_info['title']) is not None:
-                    return self.match_returns
-
-        if window_info['module_filename'] is not None:
-            if self.module_exact is not None:
-                if self.module_exact == window_info['module_filename']:
-                    return self.match_returns
-            if self.module_re is not None:
-                if self.module_re.match(window_info['module_filename']) is not None:
-                    return self.match_returns
-
-        if window_info['exec_filename'] is not None:
-            if self.exec_exact is not None:
-                if self.exec_exact == window_info['exec_filename']:
-                    return self.match_returns
-            if self.exec_re is not None:
-                if self.exec_re.match(window_info['exec_filename']) is not None:
-                    return self.match_returns
-
+        # Default to not knowing about this window
+        ret = None
+        for key, value in window_info.items():
+            if key in self.exact_matchers:
+                if ret is None:
+                    ret = self.exact_matchers[key] == value
+                else:
+                    ret = ret and self.exact_matchers[key] == value
+            if key in self.re_matchers:
+                if ret is None:
+                    ret = self.re_matchers[key].match(value) is not None
+                else:
+                    ret = ret and (self.re_matchers[key].match(value) is not None)
+        if ret is None:
+            return ret
+        if ret:
+            return self.match_returns
         return not self.match_returns
 
 

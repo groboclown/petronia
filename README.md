@@ -85,7 +85,7 @@ straightforward (yet), so here's some guides to get it to do what you want.
 
 There are some applications that just don't do well without the title bar.
 For those applications, you can add a regular expression (or exact string
-matcher) to the ApplicationConfig.  To test out the names of the applications,
+matcher) to an ApplicationConfig.  To test out the names of the applications,
 you can run the `petronia.discover_apps` application.
 
 ### Monitor Order and Size

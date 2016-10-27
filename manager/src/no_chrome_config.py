@@ -12,11 +12,14 @@ def load_config():
     :return:
     """
 
-    applications = config.ApplicationConfig(managed_chome_not_matchers=[
-        config.AppMatcher(exec_re=r'.*?\\firefox\.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\chrome\.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\outlook\.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\explorer\.exe$'),
+    applications = config.ApplicationListConfig([
+        # General non-chromed apps.
+        config.ApplicationConfig(is_managed_chrome=False, is_tiled=True, app_matchers=[
+            config.AppMatcher(exec_re=r'.*?\\firefox\.exe$'),
+            config.AppMatcher(exec_re=r'.*?\\chrome\.exe$'),
+            config.AppMatcher(exec_re=r'.*?\\explorer\.exe$'),
+            config.AppMatcher(exec_re=r'.*?\\outlook\.exe$'),
+        ]),
     ])
 
     chrome = config.ChromeConfig()

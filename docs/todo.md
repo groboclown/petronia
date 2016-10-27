@@ -17,6 +17,8 @@ The classes participating in it are:
 * portal
 * split_layout
 
+It's not working well on multi-monitor setups.  Single screen seems okay.
+
 ## Windows Integration
 
 *Priority: **HIGH***

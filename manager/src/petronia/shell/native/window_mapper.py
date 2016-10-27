@@ -159,7 +159,8 @@ class WindowMapper(Identifiable, Component):
             self.__cid_to_handle[cid] = hwnd
             self._log_debug("Registered {0} ({1}) ({2}) ({3}) as {4}".format(
                 hex(hwnd), module_filename, exec_filename, pid, cid))
-            self._fire_for_window(event_ids.WINDOW__CREATED, info)
+            if self.__config.applications.is_tiled(info):
+                self._fire_for_window(event_ids.WINDOW__CREATED, info)
             return info
         return None
 

@@ -93,7 +93,7 @@ class NavigationTests(unittest.TestCase):
                 'monitors': [config.MonitorResConfig(0, 1000, 1000, False)],
                 'workgroup': config.WorkGroupConfig({'default': [self.root_layout]})
             }]),
-            config.ApplicationConfig(),
+            config.ApplicationListConfig(),
             config.HotKeyConfig(),
             config.CommandConfig(),
             config.ChromeConfig())

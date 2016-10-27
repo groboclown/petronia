@@ -2,6 +2,7 @@
 from . import event_ids
 from . import target_ids
 from .component import MarshalableComponent, Identifiable
+import traceback
 
 
 LEVEL_DEBUG = 0
@@ -68,6 +69,7 @@ class Logger(Identifiable, MarshalableComponent):
                 print("[{0}] {1}".format(level, message))
             else:
                 print("[{0}] {1} {2}".format(level, message, ex))
+                traceback.print_exc(ex)
 
     @staticmethod
     def __as_args(event_obj):

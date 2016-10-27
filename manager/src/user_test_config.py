@@ -52,11 +52,23 @@ def load_config():
         })
     }])
 
-    application = config.ApplicationConfig(managed_chome_not_matchers=[
-        config.AppMatcher(exec_re=r'.*?\\firefox\.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\chrome\.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\outlook\.exe$'),
-        config.AppMatcher(exec_re=r'.*?\\explorer\.exe$'),
+    applications = config.ApplicationListConfig([
+
+        # Apps that should not  belong to the tiling, because it messes up the
+        # display.  These come before the general non-chromed apps, because it
+        # they both include a matching entry, but this one contains a more
+        # precise entry.
+        config.ApplicationConfig(is_managed_chrome=False, is_tiled=False, app_matchers=[
+            config.AppMatcher(class_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_re=r'.*?\\outlook\.exe$'),
+        ]),
+
+        # General non-chromed apps.
+        config.ApplicationConfig(is_managed_chrome=False, is_tiled=True, app_matchers=[
+            config.AppMatcher(exec_re=r'.*?\\firefox\.exe$'),
+            config.AppMatcher(exec_re=r'.*?\\chrome\.exe$'),
+            config.AppMatcher(exec_re=r'.*?\\explorer\.exe$'),
+            config.AppMatcher(exec_re=r'.*?\\outlook\.exe$'),
+        ]),
     ])
 
     hotkeys = config.HotKeyConfig()
@@ -116,7 +128,7 @@ def load_config():
 
     return config.Config(
         layouts_by_display,
-        application,
+        applications,
         hotkeys,
         command,
         chrome)
