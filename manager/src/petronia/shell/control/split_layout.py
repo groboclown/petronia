@@ -200,8 +200,8 @@ class SplitLayout(Layout):
         static_min_pos = self.size[static_min]
         static_max_pos = self.size[static_max]
         start_pos = self.size[dyn_min]
-        max_pos = self.size[dyn_max]
-        diff_pos = max_pos - start_pos
+        diff_pos = self.size[dyn_max]
+        max_pos = diff_pos + start_pos
 
         # First, calculate the number of split steps
         step_count = 0
@@ -210,9 +210,9 @@ class SplitLayout(Layout):
 
         step_pos = 0
         current_dyn = start_pos
-        # print("DEBUG Splitting {0} (base size ({1},{2})x({3},{4})".format(
-        #     self.cid, static_min_pos, static_max_pos, start_pos, max_pos
-        # ))
+        print("DEBUG Splitting {0} (base size ({1},{2})x({3},{4})".format(
+            self.cid, static_min_pos, static_max_pos, start_pos, max_pos
+        ))
         for child_cid in self._child_cids:
             split = self._get_split(child_cid)
             if split.size <= 0:
@@ -224,14 +224,14 @@ class SplitLayout(Layout):
             if next_step >= step_count:
                 # last child, make it full size
                 # Remember, this is a width or height, not a final pixels position.
-                next_dyn = max_pos - current_dyn
-            # print("DEBUG - child {0}@{1} ({2},{3}) ({4} steps)".format(
-            #     child_cid, step_pos, current_dyn, next_dyn, split.size))
+                next_dyn = max_pos
+            print("DEBUG - child {0}@{1} ({2},{3}) ({4} steps)".format(
+                child_cid, step_pos, current_dyn, next_dyn - current_dyn, split.size))
             size = {
                 static_min: static_min_pos,
                 static_max: static_max_pos,
                 dyn_min: current_dyn,
-                dyn_max: next_dyn
+                dyn_max: next_dyn - current_dyn,
             }
             self._fire(event_ids.LAYOUT__SET_RECTANGLE, child_cid, size)
             step_pos = next_step
