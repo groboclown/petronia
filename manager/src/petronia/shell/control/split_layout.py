@@ -171,7 +171,15 @@ class SplitLayout(Layout):
             source_pos = 0
 
         # Rotate through the children indices.
-        next_pos = (source_pos + index_change + child_count) % child_count
+        # next_pos = (source_pos + index_change + child_count) % child_count
+        # Don't rotate the children.  This causes bad loops that are hard (or impossible)
+        # for the user to escape.  We might, in the future, allow for some keys to rotate
+        # while others don't.
+
+        next_pos = source_pos + index_change
+        if next_pos < 0 or next_pos >= child_count:
+            # push up to parent.
+            return self._fire_negotiation_discover(event_obj, False)
 
         # Go down into the children
         self._log_verbose("Redirecting movement to the next child index {0}".format(next_pos))

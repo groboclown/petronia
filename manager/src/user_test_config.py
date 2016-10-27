@@ -53,7 +53,6 @@ def load_config():
     }])
 
     applications = config.ApplicationListConfig([
-
         # Apps that should not  belong to the tiling, because it messes up the
         # display.  These come before the general non-chromed apps, because it
         # they both include a matching entry, but this one contains a more
@@ -78,6 +77,7 @@ def load_config():
         ]),
     ])
 
+    # See petronia.util.hotkey_chain for the key names.
     hotkeys = config.HotKeyConfig()
     hotkeys.parse_hotkey_mode_keys(
         config.DEFAULT_MODE,
@@ -95,6 +95,9 @@ def load_config():
             "win+pgdn => move-window-to-other-portal previous",
 
             "win+tab => minimize",
+
+            # Launch a CMD.exe command prompt in a stand alone window.
+            "win+launch_app1 => cmd cmd.exe /c start cmd.exe",
 
             "win+f11 => quit",
 

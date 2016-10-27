@@ -18,6 +18,7 @@ def create_all_commands():
         create_split(),
         create_minimize(),
         create_maximize(),
+        create_exec_cmd(),
     ]
 
 
@@ -71,3 +72,7 @@ def create_minimize():
 
 def create_maximize():
     return Command("maximize", command_helper.maximize)
+
+
+def create_exec_cmd():
+    return Command("cmd", command_helper.exec_cmd)

@@ -4,7 +4,10 @@
 from ..system import event_ids
 from ..system import target_ids
 from ..shell.native.shutdown import shutdown_system
-from ..shell.navigation import DIRECTIONS
+from ..shell.navigation import DIRECTIONS, ROTATABLE_DIRECTIONS
+
+import subprocess
+import shlex
 
 
 # noinspection PyUnusedLocal
@@ -25,7 +28,7 @@ def move_focus(bus, direction):
 
 
 def switch_top_window(bus, rotate):
-    if rotate.lower() in ROTATE:
+    if rotate.lower() in ROTATABLE_DIRECTIONS:
         bus.fire(event_ids.ZORDER__WINDOW_SHOWN_CHANGE, target_ids.ACTIVE_PORTAL_MANAGER, {'direction': rotate.lower()})
 
 
@@ -70,3 +73,16 @@ def minimize(bus):
 
 def maximize(bus):
     bus.fire(event_ids.TELL_WINDOWS__MAXIMIZE_WINDOW, target_ids.WINDOW_MAPPER, {})
+
+
+def exec_cmd(bus, *cmd_line):
+    # The cmd_line is a space-split set of arguments.  Because we're running a
+    # command line, and should allow all kinds of inputs, we'll join it back
+    # together and split to allow quoting.
+    full_cmd = " ".join(cmd_line)
+    args = shlex.split(full_cmd)
+    # TODO look at making this a bus command, or at least a bus announcement.
+    proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    bus.fire(event_ids.LOG__INFO, target_ids.LOGGER, {
+        'message': '{0}: {1}'.format(proc.pid, args)
+    })
