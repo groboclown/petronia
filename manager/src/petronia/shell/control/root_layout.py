@@ -133,7 +133,7 @@ class RootLayout(Layout):
                         for window_info in self.__windows_pending_assignment_by_cid.values():
                             windows_by_layout[0].append(window_info)
                         self.__windows_pending_assignment_by_cid = {}
-                if len(self.__windows_pending_assignment_by_cid) <= 0:
+                if len(self.__windows_pending_assignment_by_cid) > 0:
                     self._log_warn("Orphaned windows: {0}".format(self.__windows_pending_assignment_by_cid.keys()))
 
                 for i in range(len(top_layouts)):

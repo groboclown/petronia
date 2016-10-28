@@ -64,17 +64,27 @@ def load_config():
         # can be restored to its default size and position by removing the
         # registry key
         # HKEY_CURRENT_USER\Software\Microsoft\Office\(version)\Options\Reminders
-        config.ApplicationConfig(is_managed_chrome=False, is_tiled=False, app_matchers=[
-            config.AppMatcher(class_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_re=r'.*?\\outlook\.exe$'),
+        config.ApplicationChromeConfig(is_managed_chrome=False, is_tiled=False, app_matchers=[
+            config.AppMatcher(class_name_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_path='outlook.exe'),
         ]),
 
-        # General non-chromed apps.
-        config.ApplicationConfig(is_managed_chrome=False, is_tiled=True, app_matchers=[
-            config.AppMatcher(exec_re=r'.*?\\firefox\.exe$'),
-            config.AppMatcher(exec_re=r'.*?\\chrome\.exe$'),
-            config.AppMatcher(exec_re=r'.*?\\explorer\.exe$'),
-            config.AppMatcher(exec_re=r'.*?\\outlook\.exe$'),
+        # General non-chromed apps.  These ones appear on the default screen.
+        config.ApplicationChromeConfig(is_managed_chrome=False, is_tiled=True, app_matchers=[
+            config.AppMatcher(exec_path='firefox.exe'),
+            config.AppMatcher(exec_path='chrome.exe'),
+            config.AppMatcher(exec_path='explorer.exe'),
+            config.AppMatcher(exec_path='outlook.exe'),
         ]),
+
+        # If there is enough space, these go to the big side panel.
+        # If that isn't in the workgroup, then these are put int the
+        # default layout.
+        config.ApplicationPositionConfig(app_matchers=[
+            config.AppMatcher(exec_path='firefox.exe'),
+            config.AppMatcher(exec_path='chrome.exe'),
+            config.AppMatcher(exec_path='explorer.exe'),
+            config.AppMatcher(exec_path='outlook.exe'),
+        ], layout_names=['left']),
     ])
 
     # See petronia.util.hotkey_chain for the key names.
@@ -101,6 +111,9 @@ def load_config():
             # Unstick the right windows key.  Doesn't work.
             # "rshift+win+? => inject-scancodes rwin down rwin up",
 
+            # Redefine the Windows lock screen keystroke.
+            # This doesn't actually do anything, because Windows reads in
+            # the Win+L key combination before anything can interrupt it.
             "win+l => lock-screen",
 
             # Launch a CMD.exe command prompt in a stand alone window.

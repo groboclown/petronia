@@ -4,6 +4,8 @@
 
 Layout is good enough for now.
 
+
+
 ## Navigation
 
 *Priority: **EXTREME***
@@ -18,6 +20,32 @@ The classes participating in it are:
 * split_layout
 
 It's not working well on multi-monitor setups.  Single screen seems okay.
+
+That means it's probably an issue with root_layout.
+
+
+## Put windows in an initial portal
+
+Change config's `is_contained_in` to examine a list of layout ids, and return the
+best layout id matching this application home.  To implement this, the way the
+WINDOW__CREATED is fired needs to change.
+
+Now, the active_portal_manager will need to go through its list of aliases and
+portal CIDs, and pass those to each config's app matcher for the window that was
+passed in the WINDOW__CREATED event.  If the app matcher
+returns one of the names, then that takes the window with the LAYOUT__ADD_WINDOW
+event.  active_portal_manager will listen to WINDOW__CREATED for this; the
+layouts will now not listen to that.
+
+After a layout change, root_layout will need to send a new event that tells the
+window_mapper to resend the WINDOW_CREATED event for each of its windows.
+
+
+## Change to Another Workgroup
+
+The config code is there.  Just add in the event and the command
+to hook it together.
+
 
 ## Windows Integration
 

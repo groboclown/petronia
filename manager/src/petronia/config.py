@@ -265,6 +265,22 @@ class AbstractApplicationConfig(BaseConfig):
     def is_contained_in(self, layout_id, window_info):
         """
 
+        TODO change this to examine a list of layout ids, and return the best layout id
+        matching this application home.  To implement this, the way the WINDOW__CREATED
+        is fired needs to change.
+
+        Now, the active_portal_manager will need to go through its list of aliases and
+        portal CIDs, and pass those to each config's app matcher for the window that was
+        passed in the WINDOW__CREATED event.  If the app matcher
+        returns one of the names, then that takes the window with the LAYOUT__ADD_WINDOW
+        event.  active_portal_manager will listen to WINDOW__CREATED for this; the
+        layouts will now not listen to that.
+
+        After a layout change, root_layout will need to send a new event that tells the
+        window_mapper to resend the WINDOW_CREATED event for each of its windows.
+
+
+
         :param layout_id:
         :param window_info:
         :return: True if the given window should belong, by default, to the given layout.
@@ -304,7 +320,7 @@ class ApplicationListConfig(AbstractApplicationConfig):
         return self.default_is_managed_chrome
 
 
-class ApplicationConfig(AbstractApplicationConfig):
+class ApplicationChromeConfig(AbstractApplicationConfig):
     """
     Matches any number of applications (through the matcher regex), and associates
     it with one or more panels.
@@ -312,25 +328,17 @@ class ApplicationConfig(AbstractApplicationConfig):
     def __init__(self,
                  is_managed_chrome=True,
                  is_tiled=True,
-                 app_matchers=None,
-                 layout_matchers=None):
+                 app_matchers=None):
         if app_matchers is None:
             app_matchers = tuple()
         elif isinstance(app_matchers, AppMatcher):
             app_matchers = (app_matchers,)
         for matcher in app_matchers:
             assert isinstance(matcher, AppMatcher)
-        if layout_matchers is None:
-            layout_matchers = tuple()
-        elif not isinstance(layout_matchers, list) or not isinstance(layout_matchers, tuple):
-            layout_matchers = (layout_matchers,)
-        for matcher in layout_matchers:
-            assert hasattr(matcher, 'match') and callable(matcher.match)
 
         self.__is_managed_chrome = is_managed_chrome
         self.__is_tiled = is_tiled
         self.__app_matchers = app_matchers
-        self.__layout_matchers = layout_matchers
 
     def is_managed_chrome(self, window_info):
         """
@@ -352,10 +360,42 @@ class ApplicationConfig(AbstractApplicationConfig):
         return None
 
     def is_contained_in(self, layout_id, window_info):
-        for matcher in self.__app_matchers:
-            if matcher.matches(window_info):
+        return None
+
+
+class ApplicationPositionConfig(AbstractApplicationConfig):
+    """
+    Matches any number of applications (through the matcher regex), and associates
+    it with one or more panels.
+    """
+    def __init__(self, layout_names, app_matchers):
+        if not isinstance(app_matchers, list) and not isinstance(app_matchers, tuple):
+            assert isinstance(app_matchers, AppMatcher)
+            app_matchers = (app_matchers,)
+        for matcher in app_matchers:
+            assert isinstance(matcher, AppMatcher)
+        self.__app_matchers = app_matchers
+
+        self.__layout_matchers = []
+        if not isinstance(layout_names, list) and not isinstance(layout_names, tuple):
+            layout_names = (layout_names,)
+        for name in layout_names:
+            if isinstance(name, str):
+                name = re.compile(re.escape(name))
+            assert hasattr(name, 'match') and callable(name.match)
+            self.__layout_matchers.append(name)
+
+    def is_managed_chrome(self, window_info):
+        return None
+
+    def is_tiled(self, window_info):
+        return None
+
+    def is_contained_in(self, layout_id, window_info):
+        for app_matcher in self.__app_matchers:
+            if app_matcher.matches(window_info):
                 for layout_matcher in self.__layout_matchers:
-                    if layout_matcher.matches(layout_id):
+                    if layout_matcher.match(layout_id) is not None:
                         return True
                 return False
         return None
@@ -374,46 +414,43 @@ class AppMatcher(BaseConfig):
         'title': 'win-py-shell - cmd.exe',
         'module_filename': None, 'visibility': ['shown', 'maximized', 'active']}}
     """
-    def __init__(self, match_returns=True, title_exact=None, title_re=None, module_exact=None, module_re=None,
-                 exec_exact=None, exec_re=None, class_exact=None, class_re=None):
+    def __init__(self, match_returns=True, title=None, title_re=None, module_path=None, module_path_re=None,
+                 exec_path=None, exec_path_re=None, class_name=None, class_name_re=None):
         """
 
         :param match_returns: the value to return if a match happens; otherwise, the Not of this is returned.
-        :param title_exact:
+        :param title: either use this or title_re
         :param title_re:
-        :param module_exact:
-        :param module_re:
-        :param exec_exact:
-        :param exec_re:
+        :param module_path:
+        :param module_path_re:
+        :param exec_path:
+        :param exec_path_re:
+        :param class_name:
+        :param class_name_re:
         """
         self.match_returns = match_returns
 
-        self.exact_matchers = {}
         self.re_matchers = {}
 
         def add_matcher(name, exact, regex):
             if exact is not None:
+                assert regex is None
                 assert isinstance(exact, str)
-                self.exact_matchers[name] = exact
-            if regex is not None:
+                self.re_matchers[name] = re.compile(r'.*?\\' + re.escape(regex) + '$', re.IGNORECASE)
+            elif regex is not None:
                 if isinstance(regex, str):
                     regex = re.compile(regex, re.IGNORECASE)
                 assert (hasattr(regex, "match") and callable(regex.match))
                 self.re_matchers[name] = regex
-        add_matcher('title', title_exact, title_re)
-        add_matcher('module_filename', module_exact, module_re)
-        add_matcher('exec_filename', exec_exact, exec_re)
-        add_matcher('class', class_exact, class_re)
+        add_matcher('title', title, title_re)
+        add_matcher('module_filename', module_path, module_path_re)
+        add_matcher('exec_filename', exec_path, exec_path_re)
+        add_matcher('class', class_name, class_name_re)
 
     def matches(self, window_info):
         # Default to not knowing about this window
         ret = None
         for key, value in window_info.items():
-            if key in self.exact_matchers:
-                if ret is None:
-                    ret = self.exact_matchers[key] == value
-                else:
-                    ret = ret and self.exact_matchers[key] == value
             if key in self.re_matchers:
                 if ret is None:
                     ret = self.re_matchers[key].match(value) is not None
