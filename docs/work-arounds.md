@@ -1,6 +1,16 @@
 # So Frustrating!  Why Is This Happening?
 
 
+### There's A Stupid Blue Box Around Stuff.  And Now I'm Hearing Voices.
+
+You've activated the annoying Narrator program.  You *might* be able to close
+it normally.  <kbd>&#x21ea; Caps Lock</kbd><kbd>Esc</kbd> is supposed to turn
+it off once it starts running.  To keep it from running, you can use several
+tricks to keep it from running.  The Internet has some "friendly" advice.
+
+But then, you know, Internet.
+
+
 ### The Win Key Gets Stuck
 
 If you block the Windows key from being processed, the <kbd>&#x2756; Win</kbd>

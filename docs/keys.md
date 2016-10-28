@@ -5,11 +5,11 @@
 * <kbd>&#x21ea; Caps Lock</kbd>
 * <kbd>&#x21b5; Enter</kbd>
 * <kbd>&#x25a4; Menu</kbd>
-* <kbd>&#x21b9; Tab</kbd>
-* <kbd>&#x2b05; Left Arrow</kbd>
-* <kbd>&#x27a1; Right Arrow</kbd>
-* <kbd>&#x2b06; Up Arrow</kbd>
-* <kbd>&#x2b07; Down Arrow</kbd>
+* <kbd>Tab &#x21b9;</kbd>
+* <kbd>&#x2b05;</kbd> Left Arrow
+* <kbd>&#x27a1;</kbd> Right Arrow
+* <kbd>&#x2b06;</kbd> Up Arrow
+* <kbd>&#x2b07;</kbd> Down Arrow
 * <kbd>&#x232b; Backspace</kbd>
 * <kbd>&#x263e; Sleep</kbd>
 * <kbd>&#x2709; Mail</kbd>
@@ -28,7 +28,7 @@
 * <kbd>&#x23ed; Next Song</kbd>
 * <kbd>&#x23ea; Fast Backward</kbd>
 * <kbd>&#x23e9; Fast Forward</kbd>
-* <kbd>&#2732; Ctrl</kbd>
+* <kbd>&#x2732; Ctrl</kbd>
 * <kbd></kbd>
 * <kbd></kbd>
 * <kbd></kbd>
