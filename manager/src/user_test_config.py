@@ -83,8 +83,7 @@ def load_config():
         config.DEFAULT_MODE,
         [
             # Mode tests
-            "win+f1 => " + config.MODE_CHANGE_COMMAND + " mode1",
-            "win+f2 => " + config.MODE_CHANGE_COMMAND + " mode2",
+            "win+~ => " + config.MODE_CHANGE_COMMAND + " simple-windows-mode",
 
             "win+up => move-window-to-other-portal north",
             "win+down => move-window-to-other-portal south",
@@ -99,29 +98,36 @@ def load_config():
             # Launch a CMD.exe command prompt in a stand alone window.
             "win+launch_app1 => cmd cmd.exe /c start cmd.exe",
 
+            # Doesn't fully work yet.  Instead, press "enter" in the
+            # cmd window.
             "win+f11 => quit",
 
             "win+esc => open-start-menu",
         ],
-        True  # block the windows key, because we remapped it to win+esc
+        block_win_key=True  # block the windows key, because we remapped it to win+esc
         # False
     )
-    hotkeys.parse_simple_mode_keys(
-        "mode1",
+
+    # Just use Windows without any special parsing.  The windows key acts as Windows intends.
+    hotkeys.parse_hotkey_mode_keys(
+        "simple-windows-mode",
         [
-            "esc => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
-            "f2 => " + config.MODE_CHANGE_COMMAND + " mode2",
-            "f11 => quit",
-        ]
+            "win+~ => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
+        ],
+        block_win_key=False
     )
-    hotkeys.parse_simple_mode_keys(
-        "mode2",
-        [
-            "esc => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
-            "f1 => " + config.MODE_CHANGE_COMMAND + " mode1",
-            "f11 => quit",
-        ]
-    )
+
+    # "simple mode" is exclusive mode for this application. It sucks in all
+    # input.  This is useful for an operation that controls how Petronia
+    # works, such as manipulating the layout.
+    # hotkeys.parse_simple_mode_keys(
+    #     "mode1",
+    #     [
+    #         "esc => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
+    #         "f2 => " + config.MODE_CHANGE_COMMAND + " mode2",
+    #         "f11 => quit",
+    #     ]
+    # )
 
     command = config.CommandConfig()
 

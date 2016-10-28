@@ -57,3 +57,19 @@ first.
 A custom task bar would be neat.  This is lots of extra coding,
 potentially, though.  Especially if we want to add in our own
 notification tray.
+
+
+## Future Notes if this ever becomes a full-on Shell program
+
+To close Windows Explorer as the current shell:
+
+1. Press <kbd>Ctrl</kbd><kbd>Shift</kbd> while right-clicking on the task bar.
+       This will bring up a context menu that lets you stop Windows Explorer.
+2. From the context menu, select **Exit Explorer**.
+
+To restart Windows Explorer as the current shell:
+
+1. Stop Petronia.
+2. Press <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>Del</kbd>, select "Task Manager".
+3. From Task Manager, select **File** -> **Run new task**
+4. From this new Create New Task dialog, enter "explorer", and click **OK**. 

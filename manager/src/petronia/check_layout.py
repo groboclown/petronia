@@ -21,6 +21,9 @@ if __name__ == '__main__':
         print("Usage: arg 1: the user configuration file")
         exit(1)
 
+    # TODO allow a second argument to select the work group
+    # in the monitor selection to test.
+
     config = read_user_configuration(sys.argv[1])
 
     bus = SingleThreadedBus()
