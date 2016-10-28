@@ -291,6 +291,15 @@ def _key_permutations(key_alt_list, alt_index, current_list, final_list):
             _key_permutations(key_alt_list, alt_index + 1, next_list, final_list)
 
 
+def vk_to_names(vk):
+    maps = []
+    for vk_str, code in STR_VK_MAP.items():
+        # There are multiple mappings; return them all.
+        if code == vk:
+            maps.append(vk_str)
+    return maps
+
+
 # Built-in alias VK keys for user-specified keys
 VK_ALIASES = {
     "win": ["lwin", "rwin"],
@@ -562,32 +571,32 @@ STR_VK_MAP = {
     "7": 0x37,                    # 7 key
     "8": 0x38,                    # 8 key
     "9": 0x39,                    # 9 key
-    "A": 0x41,                    # A key
-    "B": 0x42,                    # B key
-    "C": 0x43,                    # C key
-    "D": 0x44,                    # D key
-    "E": 0x45,                    # E key
-    "F": 0x46,                    # F key
-    "G": 0x47,                    # G key
-    "H": 0x48,                    # H key
-    "I": 0x49,                    # I key
-    "J": 0x4A,                    # J key
-    "K": 0x4B,                    # K key
-    "L": 0x4C,                    # L key
-    "M": 0x4D,                    # M key
-    "N": 0x4E,                    # N key
-    "O": 0x4F,                    # O key
-    "P": 0x50,                    # P key
-    "Q": 0x51,                    # Q key
-    "R": 0x52,                    # R key
-    "S": 0x53,                    # S key
-    "T": 0x54,                    # T key
-    "U": 0x55,                    # U key
-    "V": 0x56,                    # V key
-    "W": 0x57,                    # W key
-    "X": 0x58,                    # X key
-    "Y": 0x59,                    # Y key
-    "Z": 0x5A,                    # Z key
+    "a": 0x41,                    # A key
+    "b": 0x42,                    # B key
+    "c": 0x43,                    # C key
+    "d": 0x44,                    # D key
+    "e": 0x45,                    # E key
+    "f": 0x46,                    # F key
+    "g": 0x47,                    # G key
+    "h": 0x48,                    # H key
+    "i": 0x49,                    # I key
+    "j": 0x4A,                    # J key
+    "k": 0x4B,                    # K key
+    "l": 0x4C,                    # L key
+    "m": 0x4D,                    # M key
+    "n": 0x4E,                    # N key
+    "o": 0x4F,                    # O key
+    "p": 0x50,                    # P key
+    "q": 0x51,                    # Q key
+    "r": 0x52,                    # R key
+    "s": 0x53,                    # S key
+    "t": 0x54,                    # T key
+    "u": 0x55,                    # U key
+    "v": 0x56,                    # V key
+    "w": 0x57,                    # W key
+    "x": 0x58,                    # X key
+    "y": 0x59,                    # Y key
+    "z": 0x5A,                    # Z key
 }
 
 _MODIFIER_KEYS = set()

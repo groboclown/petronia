@@ -170,7 +170,8 @@ and the <kbd>`</kbd> key, followed by the <kbd>F12</kbd> key.
 
 ### `parse_simple_mode_keys`
 
-
+With the simple mode, Petronia captures all your Windows input.  This allows you
+to have a mode that doesn't 
 
 
 ## Chrome Configuration
@@ -178,10 +179,13 @@ and the <kbd>`</kbd> key, followed by the <kbd>F12</kbd> key.
 
 ## Old Doc Stuff
 
-* Disables the Windows Shell from interpreting the <kbd>Win</kbd> key.
-    * This means the standard Windows hotkeys, like <kbd>win</kbd><kbd>d</kbd>
-        (show desktop), <kbd>win</kbd><kbd>r</kbd> (run command dialog), and
-        so on, won't be available.
+* Disables the Windows Shell from interpreting the <kbd>&#x2756; win</kbd> key.
+    * This means the standard Windows hotkeys, like
+        <kbd>&#x2756; win</kbd><kbd>d</kbd> (show desktop),
+        <kbd>&#x2756; win</kbd><kbd>r</kbd> (run command dialog), and
+        so on, won't be available.  Some keys, though, are just global and
+        can't be overridden, like <kbd>&#x2756; win</kbd><kbd>l</kbd>
+        (lock screen), and can lead to the win key being stuck.
 * Strips off the borders from the Windows, except for Firefox, Chrome,
     Explorer, and Outlook.
 * Splits the screen into tiles, depending on the monitor size.

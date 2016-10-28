@@ -18,6 +18,8 @@ def create_all_commands():
         create_split(),
         create_minimize(),
         create_maximize(),
+        create_inject_keys(),
+        create_lock_screen(),
         create_exec_cmd(),
     ]
 
@@ -72,6 +74,14 @@ def create_minimize():
 
 def create_maximize():
     return Command("maximize", command_helper.maximize)
+
+
+def create_inject_keys():
+    return Command("inject-keys", command_helper.inject_keys)
+
+
+def create_lock_screen():
+    return Command("lock-screen", command_helper.lock_screen)
 
 
 def create_exec_cmd():

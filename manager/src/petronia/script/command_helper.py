@@ -75,6 +75,19 @@ def maximize(bus):
     bus.fire(event_ids.TELL_WINDOWS__MAXIMIZE_WINDOW, target_ids.WINDOW_MAPPER, {})
 
 
+def lock_screen(bus):
+    bus.fire(event_ids.TELL_WINDOWS__LOCK_SCREEN, target_ids.WINDOWS_HOOKS, {})
+
+
+def inject_keys(bus, *key_commands):
+    key_pairs = []
+    for i in range(len(key_commands) / 2):
+        key_pairs[i] (key_commands[i * 2], key_commands[(i * 2) + 1])
+    bus.fire(event_ids.TELL_WINDOWS__INJECT_KEYS, target_ids.WINDOWS_HOOKS, {
+        'keys': key_pairs,
+    })
+
+
 def exec_cmd(bus, *cmd_line):
     # The cmd_line is a space-split set of arguments.  Because we're running a
     # command line, and should allow all kinds of inputs, we'll join it back

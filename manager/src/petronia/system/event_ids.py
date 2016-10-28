@@ -216,7 +216,8 @@ TELL_WINDOWS__OPEN_START_MENU = "Hey Windows, Open Start Menu" + EVENT_THREAD__U
 TELL_WINDOWS__FOCUS_WINDOW = "Hey Windows, Focus This Window" + EVENT_THREAD__USER_REQUEST
 TELL_WINDOWS__MINIMIZE_WINDOW = "Hey Windows, Minimize This Window" + EVENT_THREAD__USER_REQUEST
 TELL_WINDOWS__MAXIMIZE_WINDOW = "Hey Windows, Maximize This Window" + EVENT_THREAD__USER_REQUEST
-
+TELL_WINDOWS__INJECT_KEYS = "Hey Windows, Inject These Keystrokes" + EVENT_THREAD__USER_REQUEST
+TELL_WINDOWS__LOCK_SCREEN = "Hey Windows, Lock Workstation" + EVENT_THREAD__USER_REQUEST
 
 # ---------------------------------------------------------------------------
 # Lists of all the event types

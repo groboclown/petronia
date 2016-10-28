@@ -95,6 +95,14 @@ def load_config():
 
             "win+tab => minimize",
 
+            # Unstick the left windows key.  Doesn't work.
+            # "lshift+win+? => inject-scancodes lwin down lwin up",
+
+            # Unstick the right windows key.  Doesn't work.
+            # "rshift+win+? => inject-scancodes rwin down rwin up",
+
+            "win+l => lock-screen",
+
             # Launch a CMD.exe command prompt in a stand alone window.
             "win+launch_app1 => cmd cmd.exe /c start cmd.exe",
 

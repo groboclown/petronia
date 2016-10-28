@@ -526,3 +526,16 @@ TOKEN_QUERY = 0x8
 
 # https://msdn.microsoft.com/en-us/library/aa379626(v=vs.85).aspx
 TOKEN_INFORMATION__TOKEN_USER = 1
+
+# https://msdn.microsoft.com/en-us/library/ms646270(v=vs.85).aspx
+INPUT_MOUSE = 0
+INPUT_KEYBOARD = 1
+INPUT_HARDWARE = 2
+
+# https://msdn.microsoft.com/en-us/library/ms646271(v=vs.85).aspx
+KEYEVENTF_EXTENDEDKEY = 0x0001
+KEYEVENTF_KEYUP = 0x0002
+KEYEVENTF_UNICODE = 0x0004
+KEYEVENTF_SCANCODE = 0x0008
+
+

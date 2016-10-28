@@ -1,6 +1,6 @@
 
 from petronia.arch import funcs
-from petronia.util.hotkey_chain import STR_VK_MAP
+from petronia.util.hotkey_chain import vk_to_names
 
 
 def shell_hook():
@@ -22,11 +22,7 @@ def shell_hook():
 
 
 def vk_to_str(vk):
-    maps = []
-    for vk_str, code in STR_VK_MAP.items():
-        # There are multiple mappings; return them all.
-        if code == vk:
-            maps.append(vk_str)
+    maps = vk_to_names(vk)
     if len(maps) <= 0:
         return "<unknown>"
     return ",".join(maps)

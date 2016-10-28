@@ -11,13 +11,13 @@ from ...system.component import Component, Identifiable
 from ...arch.funcs import (
     shell__keyboard_hook, shell__shell_hook, shell__pump_messages, shell__unhook,
     shell__create_global_message_handler, shell__register_window_hook,
-    shell__open_start_menu,
+    shell__open_start_menu, shell__inject_scancode, shell__lock_workstation,
     window__create_message_window, monitor__find_monitors, window__send_message,
     SHELL__CANCEL_CALLBACK_CHAIN
 )
 from ...arch import windows_constants
 from ...config import Config, DEFAULT_MODE, MODE_CHANGE_COMMAND
-from ...util.hotkey_chain import on_key_hook, ACTION_PENDING, IGNORED
+from ...util.hotkey_chain import on_key_hook, ACTION_PENDING, IGNORED, STR_VK_MAP
 import threading
 
 # for the bits of Windows compatiblity that oozed out of funcs
@@ -46,6 +46,8 @@ class WindowsHookEvent(Identifiable, Component):
 
         # probably should be somewhere else, but this is good.
         self._listen(event_ids.TELL_WINDOWS__OPEN_START_MENU, target_ids.ANY, self._on_open_start_menu)
+        self._listen(event_ids.TELL_WINDOWS__INJECT_KEYS, target_ids.ANY, self._on_inject_keys)
+        self._listen(event_ids.TELL_WINDOWS__LOCK_SCREEN, target_ids.ANY, self._on_lock_screen)
 
         # noinspection PyUnusedLocal
         def key_callback(vk_code, scan_code, is_key_up, is_injected):
@@ -127,7 +129,15 @@ class WindowsHookEvent(Identifiable, Component):
                         self._log_error("CONFIG: unknown mode {0}".format(new_mode))
                 else:
                     self._fire(event_ids.USER__COMMAND, target_ids.BROADCAST, {'command': res})
-            self._log_debug("Returning Cancel Key Forward ({0} {1})".format(hex(vk_code), is_down and "Dn" or "Up"))
+
+            # Weird things happen if we block win+L and win+U;
+            # specifically, the win key is stuck down.
+            # Experiments found that if we don't block the key release,
+            # then things won't get stuck.
+            if not is_down and (vk_code == 0x5B or vk_code == 0x5C):
+                self._log_verbose("Not blocking a Win key up")
+                return None
+            self._log_verbose("Returning Cancel Key Forward ({0} {1})".format(hex(vk_code), is_down and "Dn" or "Up"))
             return SHELL__CANCEL_CALLBACK_CHAIN
 
     def _shell_message(self, source_hwnd, action_id, lparam):
@@ -146,6 +156,25 @@ class WindowsHookEvent(Identifiable, Component):
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def _on_open_start_menu(self, event_id, target_id, event_obj):
         shell__open_start_menu(self.__config.chrome.show_taskbar_with_start_menu)
+
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
+    def _on_inject_keys(self, event_id, target_id, event_obj):
+        key_pairs = event_obj['keys']
+        for key, is_key_up in key_pairs:
+            if key in STR_VK_MAP:
+                scan_code = STR_VK_MAP[key]
+            elif key.isdigit():
+                scan_code = int(key)
+            else:
+                raise OSError("Unknown scan code `{0}`".format(key))
+
+            is_key_up = event_obj['is-key-up'].strip().lower()
+            keyup = is_key_up in ['up', 'true', 'yes', 'off']
+            shell__inject_scancode(scan_code, keyup)
+
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
+    def _on_lock_screen(self, event_id, target_id, event_obj):
+        shell__lock_workstation()
 
     def close(self):
         try:
@@ -194,6 +223,7 @@ def _populate_event__app_command(event_obj, lparam):
     pass
 
 
+# noinspection PyUnusedLocal
 def _populate_event__noop(event_obj, lparam):
     pass
 

@@ -51,6 +51,8 @@ def load_functions(environ, func_map):
     func_map['shell__register_window_hook'] = shell__register_window_hook
     func_map['shell__create_global_message_handler'] = shell__create_global_message_handler
     func_map['shell__unhook'] = shell__unhook
+    func_map['shell__inject_scancode'] = shell__inject_scancode
+    func_map['shell__lock_workstation'] = shell__lock_workstation
     func_map['shell__pump_messages'] = shell__pump_messages
     func_map['shell__system_parameters_info'] = shell__system_parameters_info
     func_map['monitor__find_monitors'] = monitor__find_monitors
@@ -745,6 +747,38 @@ def shell__unhook(hook_id):
     UnhookWindowsHookEx(hook_id)
     if hook_id in _CALLBACK_POINTERS:
         del _CALLBACK_POINTERS[hook_id]
+
+
+# see https://msdn.microsoft.com/en-us/library/ms646270(v=vs.85).aspx
+# see https://msdn.microsoft.com/en-us/library/ms646271(v=vs.85).aspx
+class INPUT_KEYBOARD(Structure):
+    _fields_ = [
+        ("type", wintypes.DWORD),
+        ("wVk", wintypes.WORD),
+        ("wScan", wintypes.WORD),
+        ("dwFlags", wintypes.DWORD),
+        ("time", wintypes.DWORD),
+        ("dwExtraInfo", c_void_p),
+    ]
+
+
+def shell__inject_scancode(scancode, is_key_up):
+    inp = INPUT_KEYBOARD()
+    inp.type = INPUT_KEYBOARD
+    inp.wScan = scancode
+    if is_key_up:
+        inp.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
+    else:
+        inp.dwFlags = KEYEVENTF_SCANCODE
+    res = windll.user32.SendInput(1, byref(inp), c_sizeof(INPUT_KEYBOARD))
+    if res != 1:  # 1 == number of events sent
+        raise WinError()
+
+
+def shell__lock_workstation():
+    res = windll.user32.LockWorkStation()
+    if res == 0:
+        raise WinError()
 
 
 def shell__register_window_hook(hwnd, message_id_callbacks=None, callback=None):
