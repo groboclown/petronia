@@ -79,12 +79,15 @@ def load_config():
         # If there is enough space, these go to the big side panel.
         # If that isn't in the workgroup, then these are put int the
         # default layout.
-        config.ApplicationPositionConfig(app_matchers=[
-            config.AppMatcher(exec_path='firefox.exe'),
-            config.AppMatcher(exec_path='chrome.exe'),
-            config.AppMatcher(exec_path='explorer.exe'),
-            config.AppMatcher(exec_path='outlook.exe'),
-        ], layout_names=['left']),
+        config.ApplicationPositionConfig(
+            portal_names=['left'],
+            app_matchers=[
+                config.AppMatcher(exec_path='firefox.exe'),
+                config.AppMatcher(exec_path='chrome.exe'),
+                config.AppMatcher(exec_path='explorer.exe'),
+                config.AppMatcher(exec_path='outlook.exe'),
+            ]
+        ),
     ])
 
     # See petronia.util.hotkey_chain for the key names.
