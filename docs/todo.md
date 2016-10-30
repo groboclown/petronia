@@ -26,10 +26,6 @@ That means it's probably an issue with root_layout.
 
 ## Put windows in an initial portal
 
-Change config's `is_contained_in` to examine a list of layout ids, and return the
-best layout id matching this application home.  To implement this, the way the
-WINDOW__CREATED is fired needs to change.
-
 Now, the active_portal_manager will need to go through its list of aliases and
 portal CIDs, and pass those to each config's app matcher for the window that was
 passed in the WINDOW__CREATED event.  If the app matcher

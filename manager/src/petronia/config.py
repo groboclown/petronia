@@ -262,29 +262,16 @@ class AbstractApplicationConfig(BaseConfig):
         """
         raise NotImplementedError()
 
-    def is_contained_in(self, layout_id, window_info):
+    def get_best_portal_match(self, portal_aliases, window_info):
         """
 
-        TODO change this to examine a list of layout ids, and return the best layout id
-        matching this application home.  To implement this, the way the WINDOW__CREATED
-        is fired needs to change.
+        Examines the list of portal aliases, and return the best match for this application's
+        initial placement.  This can return None if it doesn't know anything about the input
+        application.
 
-        Now, the active_portal_manager will need to go through its list of aliases and
-        portal CIDs, and pass those to each config's app matcher for the window that was
-        passed in the WINDOW__CREATED event.  If the app matcher
-        returns one of the names, then that takes the window with the LAYOUT__ADD_WINDOW
-        event.  active_portal_manager will listen to WINDOW__CREATED for this; the
-        layouts will now not listen to that.
-
-        After a layout change, root_layout will need to send a new event that tells the
-        window_mapper to resend the WINDOW_CREATED event for each of its windows.
-
-
-
-        :param layout_id:
-        :param window_info:
-        :return: True if the given window should belong, by default, to the given layout.
-            None if the configuration has no information about  this window.
+        :param portal_aliases:
+        :param window_info: information about the application's window.
+        :return: The portal alias to place the given window.
         """
         raise NotImplementedError()
 
@@ -297,13 +284,6 @@ class ApplicationListConfig(AbstractApplicationConfig):
         self.__app_configs = app_configs
         self.default_is_tiled = default_is_tiled
         self.default_is_managed_chrome = default_is_managed_chrome
-
-    def is_contained_in(self, layout_id, window_info):
-        for app in self.__app_configs:
-            res = app.is_contained_in(layout_id, window_info)
-            if res is not None:
-                return res
-        return None
 
     def is_tiled(self, window_info):
         for app in self.__app_configs:
@@ -318,6 +298,13 @@ class ApplicationListConfig(AbstractApplicationConfig):
             if res is not None:
                 return res
         return self.default_is_managed_chrome
+
+    def get_best_portal_match(self, portal_aliases, window_info):
+        for app in self.__app_configs:
+            res = app.get_best_portal_match(portal_aliases, window_info)
+            if res is not None:
+                return res
+        return None
 
 
 class ApplicationChromeConfig(AbstractApplicationConfig):
@@ -359,7 +346,7 @@ class ApplicationChromeConfig(AbstractApplicationConfig):
                 return self.__is_tiled
         return None
 
-    def is_contained_in(self, layout_id, window_info):
+    def get_best_portal_match(self, portal_aliases, window_info):
         return None
 
 
@@ -368,7 +355,7 @@ class ApplicationPositionConfig(AbstractApplicationConfig):
     Matches any number of applications (through the matcher regex), and associates
     it with one or more panels.
     """
-    def __init__(self, layout_names, app_matchers):
+    def __init__(self, portal_names, app_matchers):
         if not isinstance(app_matchers, list) and not isinstance(app_matchers, tuple):
             assert isinstance(app_matchers, AppMatcher)
             app_matchers = (app_matchers,)
@@ -376,14 +363,14 @@ class ApplicationPositionConfig(AbstractApplicationConfig):
             assert isinstance(matcher, AppMatcher)
         self.__app_matchers = app_matchers
 
-        self.__layout_matchers = []
-        if not isinstance(layout_names, list) and not isinstance(layout_names, tuple):
-            layout_names = (layout_names,)
-        for name in layout_names:
+        self.__portal_matchers = []
+        if not isinstance(portal_names, list) and not isinstance(portal_names, tuple):
+            portal_names = (portal_names,)
+        for name in portal_names:
             if isinstance(name, str):
                 name = re.compile(re.escape(name))
             assert hasattr(name, 'match') and callable(name.match)
-            self.__layout_matchers.append(name)
+            self.__portal_matchers.append(name)
 
     def is_managed_chrome(self, window_info):
         return None
@@ -391,13 +378,16 @@ class ApplicationPositionConfig(AbstractApplicationConfig):
     def is_tiled(self, window_info):
         return None
 
-    def is_contained_in(self, layout_id, window_info):
+    def get_best_portal_match(self, portal_aliases, window_info):
         for app_matcher in self.__app_matchers:
             if app_matcher.matches(window_info):
-                for layout_matcher in self.__layout_matchers:
-                    if layout_matcher.match(layout_id) is not None:
-                        return True
-                return False
+                for portal_matcher in self.__portal_matchers:
+                    for portal_alias in portal_aliases:
+                        if portal_matcher.match(portal_alias) is not None:
+                            return portal_alias
+                # Application matched, but no portal matched.  Return
+                # None, in case this is matched by another ApplicationConfig.
+                return None
         return None
 
 

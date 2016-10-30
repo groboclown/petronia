@@ -11,10 +11,6 @@ class ActivePortalManager(Identifiable, Component):
         Component.__init__(self, bus)
         Identifiable.__init__(self, target_ids.ACTIVE_PORTAL_MANAGER)
 
-        # This is a temporary measure to handle some window movement, until the real navigation is
-        # fixed and working.
-        # Maybe it'll be permanent; and because I'm putting it here early, it'll probably end up being
-        # permanent.
         self.__portal_cids = []
         self._listen(event_ids.REGISTRAR__OBJECT_REGISTERED, target_ids.ANY, self._on_object_registered)
         self._listen(event_ids.REGISTRAR__OBJECT_REMOVED, target_ids.ANY, self._on_object_removed)

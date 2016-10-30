@@ -219,6 +219,7 @@ TELL_WINDOWS__MAXIMIZE_WINDOW = "Hey Windows, Maximize This Window" + EVENT_THRE
 TELL_WINDOWS__INJECT_KEYS = "Hey Windows, Inject These Keystrokes" + EVENT_THREAD__USER_REQUEST
 TELL_WINDOWS__LOCK_SCREEN = "Hey Windows, Lock Workstation" + EVENT_THREAD__USER_REQUEST
 
+
 # ---------------------------------------------------------------------------
 # Lists of all the event types
 
