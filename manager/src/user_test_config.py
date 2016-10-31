@@ -122,6 +122,12 @@ def load_config():
             # Launch a CMD.exe command prompt in a stand alone window.
             "win+launch_app1 => cmd cmd.exe /c start cmd.exe",
 
+            # Launch a CMD with nice colors and an initial directory.
+            # Note that the backslash character must be escaped, once for
+            # being within a Python string, and again due to the parsing of the command
+            # line args, so a total of 4 backslashes to equal 1 real backslash.
+            'win+p => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\\\',
+
             # Doesn't fully work yet.  Instead, press "enter" in the
             # cmd window.
             "win+f11 => quit",

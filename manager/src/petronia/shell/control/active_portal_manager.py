@@ -1,4 +1,5 @@
 
+from ...config import Config
 from ...system.component import Component, Identifiable
 from ...system import event_ids
 from ...system import target_ids
@@ -7,9 +8,12 @@ from ..navigation import create_direction_negotiation_start_event_obj, DIR_PREVI
 
 
 class ActivePortalManager(Identifiable, Component):
-    def __init__(self, bus):
+    def __init__(self, bus, config):
         Component.__init__(self, bus)
         Identifiable.__init__(self, target_ids.ACTIVE_PORTAL_MANAGER)
+        assert isinstance(config, Config)
+
+        self.__config = config
 
         self.__portal_cids = []
         self._listen(event_ids.REGISTRAR__OBJECT_REGISTERED, target_ids.ANY, self._on_object_registered)
@@ -28,6 +32,11 @@ class ActivePortalManager(Identifiable, Component):
         self._listen(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, target_ids.ACTIVE_PORTAL_MANAGER,
                      self._move_portal_window_to_other_portal)
         self._listen(event_ids.PORTAL__ACTIVATED, target_ids.ANY, self._on_portal_activated)
+
+        # Because this class owns the list of portals and their aliases, we can have it also take on the
+        # responsibility of the window to portal assignment.  This may need to be split out eventually.
+
+        self._listen(event_ids.WINDOW__CREATED, target_ids.ANY, self._on_window_created)
 
     # noinspection PyUnusedLocal
     def _on_focus_move(self, event_id, target_id, event_obj):
@@ -48,7 +57,9 @@ class ActivePortalManager(Identifiable, Component):
 
     # noinspection PyUnusedLocal
     def _on_create_portal_alias(self, event_id, target_id, event_obj):
-        if self.__active_portal_cid is not None:
+        if 'portal-cid' in event_obj:
+            self.__portal_aliases[event_obj['portal-cid']] = event_obj['alias']
+        elif self.__active_portal_cid is not None:
             self.__portal_aliases[event_obj['alias']] = self.__active_portal_cid
 
     # noinspection PyUnusedLocal
@@ -105,3 +116,19 @@ class ActivePortalManager(Identifiable, Component):
             pass
         except ValueError:
             pass
+
+    # noinspection PyUnusedLocal
+    def _on_window_created(self, event_id, target_id, event_obj):
+        portal_alias = self.__config.applications.get_best_portal_match(
+            self.__portal_aliases.keys(), event_obj['window-info'])
+        if portal_alias in self.__portal_aliases:
+            dest_cid = self.__portal_aliases[portal_alias]
+        elif self.__active_portal_cid is not None:
+            dest_cid = self.__active_portal_cid
+        elif len(self.__portal_cids) > 0:
+            dest_cid = self.__portal_cids[0]
+        else:
+            self._log_warn("Window added before any portal created.")
+            # raise OSError("Window added before any portal created.")
+            return
+        self._fire(event_ids.LAYOUT__ADD_WINDOW, dest_cid, event_obj)

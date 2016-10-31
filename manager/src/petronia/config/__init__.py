@@ -1,5 +1,6 @@
 
 from .application import ApplicationChromeConfig, AppMatcher, ApplicationListConfig, ApplicationPositionConfig
+from .chrome import ChromeConfig
 from .command import CommandConfig
 from .config import Config
 from .hotkey import HotKeyConfig, DEFAULT_MODE

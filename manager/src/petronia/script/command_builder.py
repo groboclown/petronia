@@ -18,6 +18,7 @@ def create_all_commands():
         create_split(),
         create_minimize(),
         create_maximize(),
+        create_change_layout(),
         create_inject_keys(),
         create_lock_screen(),
         create_exec_cmd(),
@@ -74,6 +75,10 @@ def create_minimize():
 
 def create_maximize():
     return Command("maximize", command_helper.maximize)
+
+
+def create_change_layout():
+    return Command("change-layout", command_helper.change_layout)
 
 
 def create_inject_keys():

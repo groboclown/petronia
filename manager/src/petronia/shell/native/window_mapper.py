@@ -80,6 +80,9 @@ class WindowMapper(Identifiable, Component):
         self._listen(event_ids.FOCUS__MAKE_OWNED_PORTAL_ACTIVE, target_ids.WINDOW_MAPPER,
                      self._on_make_owned_portal_active)
 
+        self._listen(event_ids.LAYOUT__RESEND_WINDOW_CREATED_EVENTS, target_ids.ANY,
+                     self._on_resend_window_created_events)
+
         # Setup Chrome
         shell__set_window_metrics(config.chrome.get_system_window_settings())
 
@@ -110,7 +113,7 @@ class WindowMapper(Identifiable, Component):
                 try:
                     window__set_style(hwnd, style_data)
                 except OSError as e:
-                    self._log_warn("Problem setting style for {0}".format(info['class']), e)
+                    self._log_debug("Problem setting style for {0}".format(info['class']), e)
                 window__redraw(hwnd)
 
     def _init_window(self, hwnd):
@@ -313,6 +316,12 @@ class WindowMapper(Identifiable, Component):
             self._fire_for_window(event_ids.WINDOW__FOCUSED, info)
         else:
             self._log_warn("Could not find window CID that is active; handle is {0}".format(key))
+
+    # noinspection PyUnusedLocal
+    def _on_resend_window_created_events(self, event_id, target_id, obj):
+        for info in self.__handle_map.values():
+            if self.__config.applications.is_tiled(info):
+                self._fire_for_window(event_ids.WINDOW__CREATED, info)
 
     def _fire_for_window(self, event_id, info):
         # Only fire for visible windows

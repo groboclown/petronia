@@ -14,6 +14,7 @@ class CommandHandler(Identifiable, Component):
 
         self._listen(event_ids.USER__COMMAND, target_ids.ANY, self._on_command)
 
+    # noinspection PyUnusedLocal
     def _on_command(self, event_id, target_id, obj):
         request = obj['command']
         name, args = self._split_command(request)

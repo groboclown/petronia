@@ -75,6 +75,12 @@ def maximize(bus):
     bus.fire(event_ids.TELL_WINDOWS__MAXIMIZE_WINDOW, target_ids.WINDOW_MAPPER, {})
 
 
+def change_layout(bus, layout_name):
+    bus.fire(event_ids.LAYOUT__SWITCH_TO, target_ids.TOP_LAYOUT, {
+        'layout-name': layout_name
+    })
+
+
 def lock_screen(bus):
     bus.fire(event_ids.TELL_WINDOWS__LOCK_SCREEN, target_ids.WINDOWS_HOOKS, {})
 
@@ -94,6 +100,7 @@ def exec_cmd(bus, *cmd_line):
     # together and split to allow quoting.
     full_cmd = " ".join(cmd_line)
     args = shlex.split(full_cmd)
+    print('Running "' + ('" "'.join(args)) + '"')
     # TODO look at making this a bus command, or at least a bus announcement.
     proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     bus.fire(event_ids.LOG__INFO, target_ids.LOGGER, {

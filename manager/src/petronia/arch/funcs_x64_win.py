@@ -69,8 +69,9 @@ def window__set_style(hwnd, style_update):
     if expected_style != final_style:
         # raise OSError("Did not fully set style to {0}; found {1}".format(
         #     expected_style, final_style))
-        print("Did not fully set style to {0}; found {1}".format(
-            expected_style, final_style))
+        # print("DEBUG Did not fully set style to {0}; found {1}".format(
+        #     expected_style, final_style))
+        pass
 
     return original_style
 

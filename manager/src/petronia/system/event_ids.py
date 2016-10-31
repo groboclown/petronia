@@ -141,6 +141,7 @@ LAYOUT__SET_RECTANGLE = "Set Screen Rectangle" + EVENT_THREAD__NOTICE
 LAYOUT__REMOVE_OBJECT = "Remove Object" + EVENT_THREAD__NOW
 LAYOUT__ROOT_LAYOUT_CREATE = "Root Layout Create" + EVENT_THREAD__NOTICE
 LAYOUT__ADD_WINDOW = "Add Top-Level Window" + EVENT_THREAD__NOTICE
+LAYOUT__RESEND_WINDOW_CREATED_EVENTS = "Resend Window Created Events" + EVENT_THREAD__NOTICE
 
 
 # ---------------------------------------------------------------------------

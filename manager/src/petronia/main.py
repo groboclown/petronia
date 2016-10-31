@@ -38,13 +38,16 @@ if __name__ == '__main__':
     id_mgr = IdManager(bus)
     cmd_handler = CommandHandler(bus, config)
     registrar = Registrar(bus, id_mgr, config)
+
+    # TODO this factory declaration needs to be extensible.
     for reg_objects in (layout_factories(), portal_factories()):
         for category, factory in reg_objects.items():
             registrar.register_category_factory(category, factory)
+
     if config.uses_layout:
         RootLayout(bus, config, id_mgr)
         LayoutManagementController(bus, id_mgr)
-        ActivePortalManager(bus)
+        ActivePortalManager(bus, config)
 
     # Important: Mapper before Hook Event
     wm = WindowMapper(bus, id_mgr, config)

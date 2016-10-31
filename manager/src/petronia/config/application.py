@@ -145,6 +145,9 @@ class ApplicationPositionConfig(AbstractApplicationConfig):
     def get_best_portal_match(self, portal_aliases, window_info):
         for app_matcher in self.__app_matchers:
             if app_matcher.matches(window_info):
+                # The portal matchers are in-order of preference;
+                # if any portal alias matches the first matcher, use
+                # that portal alias first.
                 for portal_matcher in self.__portal_matchers:
                     for portal_alias in portal_aliases:
                         if portal_matcher.match(portal_alias) is not None:
@@ -190,7 +193,7 @@ class AppMatcher(BaseConfig):
             if exact is not None:
                 assert regex is None
                 assert isinstance(exact, str)
-                self.re_matchers[name] = re.compile(r'.*?\\' + re.escape(regex) + '$', re.IGNORECASE)
+                self.re_matchers[name] = re.compile(r'.*?\\' + re.escape(exact) + '$', re.IGNORECASE)
             elif regex is not None:
                 if isinstance(regex, str):
                     regex = re.compile(regex, re.IGNORECASE)
