@@ -74,8 +74,7 @@ Once you have your configuration setup, you just run in a cmd prompt:
 > python -u -m petronia.main my_config_file.py
 ```
 
-Press <kbd>&#x2756; Win</kbd><kbd>F4</kbd> in the cmd window to stop the
-program.
+Press <kbd>&#x2756; Win</kbd><kbd>F4</kbd> to stop the program.
 
 *So bleeding edge!*
 
