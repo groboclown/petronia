@@ -28,26 +28,13 @@ def load_config():
             config.AppMatcher(class_name_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_path='outlook.exe'),
         ]),
 
-        # General non-chromed apps.  These ones appear on the default screen.
+        # General non-chromed apps.
         config.ApplicationChromeConfig(is_managed_chrome=False, is_tiled=True, app_matchers=[
             config.AppMatcher(exec_path='firefox.exe'),
             config.AppMatcher(exec_path='chrome.exe'),
             config.AppMatcher(exec_path='explorer.exe'),
             config.AppMatcher(exec_path='outlook.exe'),
         ]),
-
-        # If there is enough space, these go to the big side panel.
-        # If that isn't in the workgroup, then these are put int the
-        # default layout.
-        config.ApplicationPositionConfig(
-            portal_names=['left'],
-            app_matchers=[
-                config.AppMatcher(exec_path='firefox.exe'),
-                config.AppMatcher(exec_path='chrome.exe'),
-                config.AppMatcher(exec_path='explorer.exe'),
-                config.AppMatcher(exec_path='outlook.exe'),
-            ]
-        ),
     ])
 
     chrome = config.ChromeConfig()
@@ -60,6 +47,16 @@ def load_config():
     chrome.portal_chrome_border['width'] = 0
     chrome.portal_chrome_active_border['width'] = 0
 
+    # Need to be able to stop the program.
+    hotkeys = config.HotKeyConfig()
+    hotkeys.parse_hotkey_mode_keys(
+        config.DEFAULT_MODE,
+        [
+            "win+f4 => quit",
+        ]
+    )
+
     return config.Config(
         applications=applications,
-        chrome=chrome)
+        chrome=chrome,
+        hotkeys=hotkeys)
