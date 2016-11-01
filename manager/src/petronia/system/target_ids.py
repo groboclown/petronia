@@ -16,8 +16,6 @@ BUS = "Bus"
 
 BUS_BACKGROUND_WORKER = "Bus Background Worker"
 
-CONFIGURATION = "Configuration"
-
 REGISTRAR = "Registry"
 
 WINDOWS_HOOKS = "Windows Hooks"
@@ -31,3 +29,5 @@ WINDOW_MAPPER = "Window Mapper"
 ACTIVE_PORTAL_MANAGER = "Active Portal Manager"
 
 LAYOUT_MANAGEMENT_CONTROLLER = "Layout Management Controller"
+
+CONFIGURATION_LOADER = "Configuration Loader"

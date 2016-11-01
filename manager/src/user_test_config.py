@@ -103,16 +103,13 @@ def load_config():
             "win+left => move-window-to-other-portal west",
             "win+right => move-window-to-other-portal east",
 
+            # "next" and "previous" window movement bypasses how layouts
+            # think about directions, and just moves in order through the
+            # portals.
             "win+pgup => move-window-to-other-portal next",
             "win+pgdn => move-window-to-other-portal previous",
 
             "win+tab => minimize",
-
-            # Unstick the left windows key.  Doesn't work.
-            # "lshift+win+? => inject-scancodes lwin down lwin up",
-
-            # Unstick the right windows key.  Doesn't work.
-            # "rshift+win+? => inject-scancodes rwin down rwin up",
 
             # Redefine the Windows lock screen keystroke.
             # This doesn't actually do anything, because Windows reads in
@@ -129,6 +126,9 @@ def load_config():
             'win+p => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\\\',
 
             "win+f4 => quit",
+
+            # load-config, with no arguments, just reloads the current config file.
+            "win+alt+f11 => load-config",
 
             "win+esc => open-start-menu",
         ],

@@ -28,16 +28,21 @@ class RootLayout(Layout):
         self.__layout_name = None
         self.__monitors = None
 
-        self._listen(event_ids.OS__RESOLUTION_CHANGED, target_ids.BROADCAST, self._on_resolution_changed)
+        self.__layout_lock = threading.RLock()
+
+        self._listen(event_ids.OS__RESOLUTION_CHANGED, target_ids.ANY, self._on_resolution_changed)
         self._listen(event_ids.LAYOUT__ROOT_LAYOUT_CREATE, target_ids.TOP_LAYOUT, self._on_root_create_layout)
         self._listen(event_ids.LAYOUT__SWITCH_TO, target_ids.TOP_LAYOUT, self._on_workflow_layout_switch)
-
-        self.__layout_lock = threading.RLock()
+        self._listen(event_ids.CONFIG__UPDATE, target_ids.ANY, self._on_config_update)
 
     def _on_resolution_changed(self, event_id, target_id, event_obj):
         with self.__layout_lock:
             self.__monitors = event_obj['monitors']
             self._on_workflow_layout_switch(event_id, target_id, {'layout-name': self.__layout_name})
+
+    # noinspection PyUnusedLocal
+    def _on_config_update(self, event_id, target_id, event_obj):
+        self._on_workflow_layout_switch(event_id, target_id, {'layout-name': self.__layout_name})
 
     # noinspection PyUnusedLocal
     def _on_workflow_layout_switch(self, event_id, target_id, event_obj):

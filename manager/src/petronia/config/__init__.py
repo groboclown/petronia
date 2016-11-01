@@ -3,6 +3,7 @@ from .application import ApplicationChromeConfig, AppMatcher, ApplicationListCon
 from .chrome import ChromeConfig
 from .command import CommandConfig
 from .config import Config
+from .config_type import ConfigType
 from .hotkey import HotKeyConfig, DEFAULT_MODE
 from .workgroup import (
     DisplayWorkGroupsConfig, MonitorResConfig, LayoutConfig, WorkGroupConfig, ChildSplitConfig,

@@ -2,14 +2,15 @@
 Manages the user configuration.
 """
 
-from .application import ApplicationListConfig
+from .application import ApplicationListConfig, AbstractApplicationConfig
 from .chrome import ChromeConfig
 from .command import CommandConfig
 from .hotkey import HotKeyConfig
 from .workgroup import DisplayWorkGroupsConfig
+from .config_type import ConfigType
 
 
-class Config(object):
+class Config(ConfigType):
     """
     Stores all the configuration information
     """
@@ -25,8 +26,8 @@ class Config(object):
             applications = ApplicationListConfig([])
         elif isinstance(applications, list) or isinstance(applications, tuple):
             applications = ApplicationListConfig(applications)
-        elif not isinstance(applications, ApplicationListConfig):
-            applications = ApplicationListConfig([applications])
+        else:
+            assert isinstance(applications, AbstractApplicationConfig)
 
         self.__workgroups = workgroups
         self.__applications = applications

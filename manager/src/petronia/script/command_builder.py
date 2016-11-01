@@ -19,6 +19,7 @@ def create_all_commands():
         create_minimize(),
         create_maximize(),
         create_change_layout(),
+        create_load_config(),
         create_inject_keys(),
         create_lock_screen(),
         create_exec_cmd(),
@@ -79,6 +80,10 @@ def create_maximize():
 
 def create_change_layout():
     return Command("change-layout", command_helper.change_layout)
+
+
+def create_load_config():
+    return Command('load-config', command_helper.load_config)
 
 
 def create_inject_keys():

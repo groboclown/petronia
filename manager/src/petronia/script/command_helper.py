@@ -81,6 +81,13 @@ def change_layout(bus, layout_name):
     })
 
 
+def load_config(bus, *config_file):
+    event_obj = {}
+    if len(config_file) > 0:
+        event_obj['config-file'] = config_file[0]
+    bus.fire(event_ids.CONFIG__REQUEST_LOAD, target_ids.CONFIGURATION_LOADER, event_obj)
+
+
 def lock_screen(bus):
     bus.fire(event_ids.TELL_WINDOWS__LOCK_SCREEN, target_ids.WINDOWS_HOOKS, {})
 
@@ -88,7 +95,7 @@ def lock_screen(bus):
 def inject_keys(bus, *key_commands):
     key_pairs = []
     for i in range(len(key_commands) / 2):
-        key_pairs[i] (key_commands[i * 2], key_commands[(i * 2) + 1])
+        key_pairs.append((key_commands[i * 2], key_commands[(i * 2) + 1]))
     bus.fire(event_ids.TELL_WINDOWS__INJECT_KEYS, target_ids.WINDOWS_HOOKS, {
         'keys': key_pairs,
     })
