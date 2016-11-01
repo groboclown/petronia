@@ -128,9 +128,7 @@ def load_config():
             # line args, so a total of 4 backslashes to equal 1 real backslash.
             'win+p => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\\\',
 
-            # Doesn't fully work yet.  Instead, press "enter" in the
-            # cmd window.
-            "win+f11 => quit",
+            "win+f4 => quit",
 
             "win+esc => open-start-menu",
         ],
@@ -159,8 +157,6 @@ def load_config():
     #     ]
     # )
 
-    command = config.CommandConfig()
-
     chrome = config.ChromeConfig()
     chrome.has_title = False
     chrome.portal_chrome_border = {
@@ -173,8 +169,7 @@ def load_config():
     }
 
     return config.Config(
-        layouts_by_display,
-        applications,
-        hotkeys,
-        command,
-        chrome)
+        workgroups=layouts_by_display,
+        applications=applications,
+        hotkeys=hotkeys,
+        chrome=chrome)

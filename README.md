@@ -24,8 +24,8 @@ between different tiles.
 You can setup your keys however you like.  You can have a keystroke to
 enter a window movement mode, or use hotkeys.
 
-You can also prevent Windows from using the <kbd>win</kbd> key and use it
-for whatever you like.
+You can also prevent Windows from using the <kbd>&#x2756; Win</kbd> key and
+use it for whatever you like.
 
 #### Strip off Useless Borders to See More of What's Important
 
@@ -33,7 +33,12 @@ With a tile layout, and the availability of keys to perform the same actions,
 the title bar and resize borders are useless wastes of space.  Remove them and
 see more of what's actually important.
 
-*TODO: before and after pictures*
+<img src="docs/imgs/intellij-chrome-win8.1"></img>
+*Windows 8.1 - Look at all that wasted screen space*
+
+<img src="docs/img/intellij-dechromed.png"></img>
+*Oh mi gorsh I can see so much more of my work!*
+
 
 ## Current State of the Software
 
@@ -67,10 +72,10 @@ Once you have your configuration setup, you just run in a cmd prompt:
 > python -u -m petronia.main my_config_file.py
 ```
 
-Press <kbd>Enter</kbd> in the cmd window to stop the program.
+Press <kbd>&#x2756; Win</kbd><kbd>F4</kbd> in the cmd window to stop the
+program.
 
 *So bleeding edge!*
 
 See the [Getting Started Guide](docs/user-getting-started.md) for details
 on how to run and setup your Petronia environment.
-

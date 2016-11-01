@@ -4,7 +4,9 @@ You configure Petronia through a Python script that creates a `Config` object.
 It's not simple, and you need to know a bit about programming.  But, oh,
 *the power!*
 
-## The Example Config
+## The Example Configurations
+
+### `user_test_config.py`
 
 To get you started, take a gander at the example config file,
 [user_test_config.py](../manager/src/user_test_config.py).  This guy sets
@@ -29,6 +31,12 @@ their own key bindings.
 The chrome config defines what to do when an application has been selected
 for a strip down.  You can give it a border, or select if you want the
 title bars removed.
+
+### `no_chrome_config.py`
+
+The [no_chrome_config.py](../manager/src/no_chrome_config.py) shows an example
+where all you care about is removing the nasty Chrome off select windows.  You
+still have full access to all the native Windows commands.
 
 
 ## Layout Configuration
@@ -120,6 +128,11 @@ you valuable insight into how to distinguish it from other windows.
 
 ## Hotkey Configuration
 
+*For reference:*
+
+* [The full list of supported Petronia Commands](user-commands.md)
+* [Petronia keys](keys.md)
+
 The hotkey configuration section allows you to map Petronia commands to
 keyboard shortcuts.  The hotkey configurations are *modal*, meaning that
 you can have multiple keyboard configurations, and switch between them.
@@ -164,42 +177,72 @@ are held down together, and
 lshift + twiddle , f12 => win+esc => open-start-menu 
 ```
 
-to force the task bar Start Menu to open when you hold down the left shift key
-and the <kbd>`</kbd> key, followed by the <kbd>F12</kbd> key.
+to force the task bar Start Menu to open when you hold down the left
+<kbd>&#x21e7; Shift</kbd> key and the <kbd>`</kbd> key, followed by the
+<kbd>F12</kbd> key.
+
+
+#### Preventing Windows From Using the Windows Key
+
+In the hotkey mode, you can tell Petronia to have Windows ignore the
+<kbd>&#x2756; Win</kbd> key.  This means tapping <kbd>&#x2756; Win</kbd>
+won't trigger the start menu to pop up.  It also means that a few of the
+nice [Windows key shortcuts](https://en.wikipedia.org/wiki/Windows_key),
+like <kbd>&#x2756; Win</kbd><kbd>R</kbd> to open the run dialog, are not
+available.  You'll need to provide your own hotkey actions to provide an
+equivalent function.
+
+Note that a few key sequences will always be recognized by Windows, and
+can't be overridden or disabled.  This includes
+<kbd>&#x2756; Win</kbd><kbd>L</kbd> (lock screen).
 
 
 ### `parse_simple_mode_keys`
 
-With the simple mode, Petronia captures all your Windows input.  This allows you
-to have a mode that doesn't 
+With the simple mode, Petronia captures all your Windows input.  This allows
+you to have a mode that doesn't require you to hold down a key the whole time.
+This will become more useful when the layout management mode is implemented.
+
+You are expected to include a change mode command key (say, <kbd>Esc</kbd>)
+to revert back to standard mode.  Without this, you'll be suck in a
+non-keyboard Windows computer, and you'll have to stop Petronia through the
+Task Manager using your mouse.  *Yuck!*
+
+This mode only recognizes single keys per command.  It doesn't allow for
+combo keys like <kbd>&#x21e7; Shift</kbd><kbd>F1</kbd> or
+<kbd>&#x2732; Ctrl</kbd><kbd>&#x1f507; Mute</kbd>.
 
 
 ## Chrome Configuration
 
+You can configure the general setup for each application, as well as some
+global configuration options, in the `ChromeConfig`.
+
+### Global Settings
+
+These settings affect all applications running in the system.
+
+* **border_width** Width of the grabbable resize border.
+* **border_padding** Space between the application area and the resize border.
+  *Windows Visa and above only.*
+* **scrollbar_width** Width for vertical scrollbars.
+* **scrollbar_height** Height for horizontal scrollbars.
+
+
+### Per Application Settings
+
+For the [applications](#Application Configuration) that opt-in to being
+managed by Chrome, you can dictate how their chrome will appear.
+
+* **has_title** `True` or `False`, to strip off the title bar and its
+  buttons.  Note that even with this removed, you can still open the system
+  menu for the window by pressing <kbd>Alt</kbd><kbd>Space</kbd>.  This
+  gives you quick access to the minimize, maximize, restore, close, and
+  (sometimes) resize actions.
+* **has_resize_border** `True` or `False`, to remove the fat resize border.
+
 
 ## Old Doc Stuff
-
-* Disables the Windows Shell from interpreting the <kbd>&#x2756; win</kbd> key.
-    * This means the standard Windows hotkeys, like
-        <kbd>&#x2756; win</kbd><kbd>d</kbd> (show desktop),
-        <kbd>&#x2756; win</kbd><kbd>r</kbd> (run command dialog), and
-        so on, won't be available.  Some keys, though, are just global and
-        can't be overridden, like <kbd>&#x2756; win</kbd><kbd>l</kbd>
-        (lock screen), and can lead to the win key being stuck.
-* Strips off the borders from the Windows, except for Firefox, Chrome,
-    Explorer, and Outlook.
-* Splits the screen into tiles, depending on the monitor size.
-* Installs key handlers.
-    * <kbd>win</kbd><kbd>esc</kbd>: show the start menu.
-    * <kbd>win</kbd><kbd>left</kbd> (or any other arrow key): move the
-        currently focused window to another tile.  *It can be hard to
-        tell, at times, which window has the focus.*
-
-Even though the chrome is gone from windows, you can still use
-<kbd>alt</kbd><kbd>space</kbd> to open the window's system menu, and
-select Minimize, Restore, Maximize, or Close.
-
-Likewise, you can use <kbd>alt</kbd><kbd>tab</kbd> to move between windows.
 
 
 ## Configuration Options

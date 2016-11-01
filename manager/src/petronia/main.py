@@ -59,7 +59,11 @@ if __name__ == '__main__':
         RenderSelectedPanels(bus, config)
         RenderActivePortal(bus, config)
 
-    sys.stdin.read(1)
+    # For easy shutdown if the shutdown key sequence doesn't work.
+    # However, uncommenting this means that the main thread won't
+    # stop until the user sends it some input.
 
-    worker_thread.stop_all_threads()
-    exit()
+    # sys.stdin.read(1)
+
+    # worker_thread.stop_all_threads()
+    # exit()

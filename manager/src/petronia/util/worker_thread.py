@@ -17,7 +17,7 @@ def stop_all_threads():
 
 
 class WorkerThread(object):
-    def __init__(self, cid, daemon=True):
+    def __init__(self, cid, daemon=False):
         self.__thread = threading.Thread(
             target=lambda: self._run(),
             daemon=daemon

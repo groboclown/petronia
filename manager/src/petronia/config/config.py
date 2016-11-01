@@ -16,6 +16,8 @@ class Config(object):
     def __init__(self, workgroups=None, applications=None, hotkeys=None, commands=None, chrome=None):
         assert workgroups is None or isinstance(workgroups, DisplayWorkGroupsConfig)
         assert hotkeys is None or isinstance(hotkeys, HotKeyConfig)
+        if commands is None:
+            commands = CommandConfig()
         assert commands is None or isinstance(commands, CommandConfig)
         assert chrome is None or isinstance(chrome, ChromeConfig)
 
