@@ -49,7 +49,7 @@ single layout to cover all your screens - *but don't expect it to be nice.*
 
 To understand your monitor layout, for use in the configuration, you can run:
 
-```(cmd)
+```cmd
 > python -m petronia.detect_monitors
 ```
 
@@ -81,7 +81,7 @@ the end nodes of the layout tree, and can't be split.
 
 You define a layout like:
 
-```(python)
+```python
 config.LayoutConfig('right', 'split-layout', config.ORIENTATION_VERTICAL, [
     config.ChildSplitConfig(5, config.LayoutConfig('right-top', 'portal', None, None)),
     config.ChildSplitConfig(1, config.LayoutConfig('right-bottom', 'portal', None, None)),
@@ -109,7 +109,7 @@ To test out your layout configuration, to see how Petronia will split up
 the screens based on the layout definition it finds for your monitors,
 you can run:
 
-```(cmd)
+```cmd
 > python -m petronia.check_layout (work group name)
 ```
 
@@ -118,7 +118,7 @@ you can run:
 
 To check how Petronia recognizes your applications, you can run
 
-```(cmd)
+```cmd
 > python -m petronia.detect_apps
 ```
 
@@ -139,7 +139,7 @@ you can have multiple keyboard configurations, and switch between them.
 
 To better understand how Petronia maps your key stokes, you can run
  
-```(cmd)
+```cmd
 > python -m petronia.detect_keys
 ```
 

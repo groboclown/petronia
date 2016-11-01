@@ -33,10 +33,10 @@ With a tile layout, and the availability of keys to perform the same actions,
 the title bar and resize borders are useless wastes of space.  Remove them and
 see more of what's actually important.
 
-<img src="docs/imgs/intellij-chrome-win8.1"></img>
+![Windows 8.1 Chrome](docs/imgs/intellij-chrome-win8.1)
 *Windows 8.1 - Look at all that wasted screen space*
 
-<img src="docs/img/intellij-dechromed.png"></img>
+![Without Chrome](docs/img/intellij-dechromed.png)
 *Oh mi gorsh I can see so much more of my work!*
 
 
@@ -66,7 +66,7 @@ whatever you want, but it should live in the `manager/src` directory.
 
 Once you have your configuration setup, you just run in a cmd prompt:
 
-```
+```cmd
 > set Path=(python 3.5.2 directory);%Path%
 > cd (petronia dir)\manager\src
 > python -u -m petronia.main my_config_file.py
