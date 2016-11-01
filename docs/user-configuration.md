@@ -82,7 +82,8 @@ the end nodes of the layout tree, and can't be split.
 You define a layout like:
 
 ```python
-config.LayoutConfig('right', 'split-layout', config.ORIENTATION_VERTICAL, [
+from petronia import config
+layout = config.LayoutConfig('right', 'split-layout', config.ORIENTATION_VERTICAL, [
     config.ChildSplitConfig(5, config.LayoutConfig('right-top', 'portal', None, None)),
     config.ChildSplitConfig(1, config.LayoutConfig('right-bottom', 'portal', None, None)),
 ])
@@ -93,6 +94,10 @@ splits the region from top-to-bottom (vertically).  It then defines 2 child
 splits, the first with a size 5 defined as a portal, and the second as a
 size 1 portal.  Because there are two children, with their sizes totalling 6,
 the first portal will take up 5/6 of the space, and the second 1/6.
+
+The two split types are `config.ORIENTATION_VERTIAL` for a top-to-bottom
+splitting of windows, and `config.ORIENTATION_HORIZONTAL` for a left-to-right
+splitting of windows.
 
 
 ### Top Level Splits
@@ -131,7 +136,7 @@ you valuable insight into how to distinguish it from other windows.
 *For reference:*
 
 * [The full list of supported Petronia Commands](user-commands.md)
-* [Petronia keys](keys.md)
+* [How to name your keys](keys.md)
 
 The hotkey configuration section allows you to map Petronia commands to
 keyboard shortcuts.  The hotkey configurations are *modal*, meaning that
@@ -257,12 +262,6 @@ There are some applications that just don't do well without the title bar.
 For those applications, you can add a regular expression (or exact string
 matcher) to an ApplicationConfig.  To test out the names of the applications,
 you can run the `petronia.discover_apps` application.
-
-### Monitor Order and Size
-
-To determine your current monitor configuration, you can run the
-`petronia.detect_monitors` application.  It will output the lines needed
-for your configuration to match the current monitor setup.
 
 ### Layouts
 

@@ -1,7 +1,16 @@
+# Key Names
 
+## Modifier Keys
 
-* <kbd>&#x21e7; Shift</kbd>
+| Key on the Keyboard | Config Name(s) |
+| <kbd>&#x21e7; Shift</kbd> | `shift` (either shift key), `lshift` (left shift key), `rshift` (right shift key) |
+
 * <kbd>&#x2756; Win</kbd> (Also called the *Super* key)
+* <kbd>&#x2732; Ctrl</kbd>
+* <kbd>Alt</kbd>
+
+## Normal Keys
+
 * <kbd>&#x21ea; Caps Lock</kbd>
 * <kbd>&#x21b5; Enter</kbd>
 * <kbd>&#x25a4; Menu</kbd>
@@ -28,7 +37,5 @@
 * <kbd>&#x23ed; Next Song</kbd>
 * <kbd>&#x23ea; Fast Backward</kbd>
 * <kbd>&#x23e9; Fast Forward</kbd>
-* <kbd>&#x2732; Ctrl</kbd>
-* <kbd></kbd>
 * <kbd></kbd>
 * <kbd></kbd>

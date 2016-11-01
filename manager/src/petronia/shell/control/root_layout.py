@@ -36,6 +36,7 @@ class RootLayout(Layout):
         self._listen(event_ids.CONFIG__UPDATE, target_ids.ANY, self._on_config_update)
 
     def _on_resolution_changed(self, event_id, target_id, event_obj):
+        self._log_info("RootLayout: monitor resolution changed")
         with self.__layout_lock:
             self.__monitors = event_obj['monitors']
             self._on_workflow_layout_switch(event_id, target_id, {'layout-name': self.__layout_name})
@@ -126,8 +127,6 @@ class RootLayout(Layout):
         self._on_root_create_layout(None, None, None)
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
-        print("DEBUG Root discover")
-
         # This is really complex when dealing with multi-monitor situations (think
         # 5 monitors stacked like:
         #
@@ -154,20 +153,17 @@ class RootLayout(Layout):
 
         # Rotate through the child indicies
         next_child_index = (previous_child_index + index_change + self._child_count) % self._child_count
-        print("DEBUG root rotating movement from index {0} to {1}".format(previous_child_index, next_child_index))
+        self._log_debug("Root rotating movement from index {0} to {1}".format(previous_child_index, next_child_index))
 
         return self._fire_negotiation_descend(self._child_cids[next_child_index], event_obj)
 
     def _on_direction_negotiation_descend__portal(self, event_obj):
-        print("DEBUG Root descend portal")
         # Just find the first valid child.
         for child_cid in self._child_cids:
             if child_cid != event_obj['previous-cid']:
-                print("DEBUG root descending into first non-previous child {0}".format(child_cid))
                 return self._fire_negotiation_descend(child_cid, event_obj)
         if self._child_count > 0:
             # Just reuse the first one.
-            print("DEBUG root descending into first child {0}".format(self._child_cids[0]))
             return self._fire_negotiation_descend(self._child_cids[0], event_obj)
         # Whoops.  Use the origin.
         self._log_warn("Could not find a child of the root node.  Sending movement back to the origin")

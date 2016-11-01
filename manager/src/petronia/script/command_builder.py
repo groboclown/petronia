@@ -20,8 +20,8 @@ def create_all_commands():
         create_maximize(),
         create_change_layout(),
         create_load_config(),
-        create_inject_keys(),
         create_lock_screen(),
+        create_inject_keys(),
         create_exec_cmd(),
     ]
 
@@ -86,12 +86,12 @@ def create_load_config():
     return Command('load-config', command_helper.load_config)
 
 
-def create_inject_keys():
-    return Command("inject-keys", command_helper.inject_keys)
-
-
 def create_lock_screen():
     return Command("lock-screen", command_helper.lock_screen)
+
+
+def create_inject_keys():
+    return Command("inject-keys", command_helper.inject_keys)
 
 
 def create_exec_cmd():
