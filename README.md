@@ -33,11 +33,13 @@ With a tile layout, and the availability of keys to perform the same actions,
 the title bar and resize borders are useless wastes of space.  Remove them and
 see more of what's actually important.
 
-[Windows 8.1 Chrome](../master/docs/imgs/intellij-chrome-win8.1.png?raw=true)
+![Windows 8.1 Chrome](../master/docs/imgs/intellij-chrome-win8.1.png?raw=true)
+
 *Windows 8.1 - Look at all that wasted screen space*
 
-![Without Chrome](../master/docs/img/intellij-dechromed.png?raw=true)
-*Oh mi gorsh I can see so much more of my work!*
+![Without Chrome](../master/docs/imgs/intellij-dechromed.png?raw=true)
+
+*Windows 8.1 stripped of all the chrome - Oh mi gorsh I can see so much more of my work!*
 
 
 ## Current State of the Software
