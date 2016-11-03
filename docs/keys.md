@@ -97,13 +97,13 @@ configuration file as `f1` to `f24`.
 | <kbd>&#x1f506; Raise Brightness</kbd> | ? |
 | <kbd>:/;</kbd> | `:`, `;`, `colon` |
 | <kbd>+/=</kbd> | `plus` |
-| <kbd>,/&lt;</kbd> | `,`, `&lt;`, `comma` |
+| <kbd>,/&lt;</kbd> | `,`, `<`, `comma` |
 | <kbd>-/_</kbd> | `minus` |
-| <kbd>./&gt;</kbd> | `.`, `&gt;`, `period` |
+| <kbd>./&gt;</kbd> | `.`, `>`, `period` |
 | <kbd>//?</kbd> | `/`, `slash`, `?`, `question`, `question-mark` |
-| <kbd>\`/~</kbd> | `~`, `\``, `tilde`, `twiddle`, `back-tick` |
+| <kbd>\`/~</kbd> | `~`, `\`, `tilde`, `twiddle`, `back-tick` |
 | <kbd>\[/{</kbd> | `[`, `{`, `left-bracket` |
-| <kbd>\|/\\</kbd> | `|`, `\\`, `pipe`, `backslash` |
+| <kbd>\|/\\</kbd> | `|`, `\`, `pipe`, `backslash` |
 | <kbd>]/}</kbd> | `]`, `}`, `right-bracket` |
 | <kbd>'/"</kbd> | `"`, `'`, `quote`, `tick` |
     
@@ -116,7 +116,7 @@ These need to be verified
 | ------------------- | -------------- |
 | <kbd>Pause/Break</kbd> | `break`, `pause` (TODO see if these are actually different) |
 | <kbd>半角/全角</kbd>, <kbd>한/영</kbd> | `kana`, `hangul` |
-| <kbd>?</kbd> | `junja` |
+| <kbd>(unknown)</kbd> | `junja` |
 | <kbd>한자</kbd> | `hanja` |
 | <kbd>漢字</kbd> | `kanji` |
 | <kbd>CrSel</kbd> | `crsel` |
