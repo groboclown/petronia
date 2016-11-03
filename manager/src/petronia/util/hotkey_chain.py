@@ -316,8 +316,11 @@ MODIFIERS = {
     "lshift",
     "rshift",
     "control",
+    "ctrl",
     "lcontrol",
+    "lctrl",
     "rcontrol",
+    "rctrl",
     "alt",
     "lalt",
     "ralt",
@@ -449,29 +452,31 @@ STR_VK_MAP = {
     "lshift": 0xA0,               # VK_LSHIFT    Left SHIFT key
     "rshift": 0xA1,               # VK_RSHIFT    Right SHIFT key
     "lcontrol": 0xA2,             # VK_LCONTROL    Left CONTROL key
+    "lctrl": 0xA2,             # VK_LCONTROL    Left CONTROL key
     "rcontrol": 0xA3,             # VK_RCONTROL    Right CONTROL key
+    "rctrl": 0xA3,             # VK_RCONTROL    Right CONTROL key
     "lmenu": 0xA4,                # VK_LMENU    Left MENU key
     "lalt": 0xA4,                # VK_LMENU    Left MENU key
     "rmenu": 0xA5,                # VK_RMENU    Right MENU key
     "ralt": 0xA5,                # VK_RMENU    Right MENU key
-    "browser_back": 0xA6,         # VK_BROWSER_BACK    Browser Back key
-    "browser_forward": 0xA7,      # VK_BROWSER_FORWARD    Browser Forward key
-    "browser_refresh": 0xA8,      # VK_BROWSER_REFRESH    Browser Refresh key
-    "browser_stop": 0xA9,         # VK_BROWSER_STOP    Browser Stop key
-    "browser_search": 0xAA,       # VK_BROWSER_SEARCH    Browser Search key
-    "browser_favorites": 0xAB,    # VK_BROWSER_FAVORITES    Browser Favorites key
-    "browser_home": 0xAC,         # VK_BROWSER_HOME    Browser Start and Home key
-    "volume_mute": 0xAD,          # VK_VOLUME_MUTE    Volume Mute key
-    "volume_down": 0xAE,          # VK_VOLUME_DOWN    Volume Down key
-    "volume_up": 0xAF,            # VK_VOLUME_UP    Volume Up key
-    "media_next_track": 0xB0,     # VK_MEDIA_NEXT_TRACK    Next Track key
-    "media_prev_track": 0xB1,     # VK_MEDIA_PREV_TRACK    Previous Track key
-    "media_stop": 0xB2,           # VK_MEDIA_STOP    Stop Media key
-    "media_play_pause": 0xB3,     # VK_MEDIA_PLAY_PAUSE    Play/Pause Media key
-    "launch_mail": 0xB4,          # VK_LAUNCH_MAIL    Start Mail key
-    "launch_media_select": 0xB5,  # VK_LAUNCH_MEDIA_SELECT    Select Media key
-    "launch_app1": 0xB6,          # VK_LAUNCH_APP1    Start Application 1 key
-    "launch_app2": 0xB7,          # VK_LAUNCH_APP2    Start Application 2 key
+    "browser-back": 0xA6,         # VK_BROWSER_BACK    Browser Back key
+    "browser-forward": 0xA7,      # VK_BROWSER_FORWARD    Browser Forward key
+    "browser-refresh": 0xA8,      # VK_BROWSER_REFRESH    Browser Refresh key
+    "browser-stop": 0xA9,         # VK_BROWSER_STOP    Browser Stop key
+    "browser-search": 0xAA,       # VK_BROWSER_SEARCH    Browser Search key
+    "browser-favorites": 0xAB,    # VK_BROWSER_FAVORITES    Browser Favorites key
+    "browser-home": 0xAC,         # VK_BROWSER_HOME    Browser Start and Home key
+    "volume-mute": 0xAD,          # VK_VOLUME_MUTE    Volume Mute key
+    "volume-down": 0xAE,          # VK_VOLUME_DOWN    Volume Down key
+    "volume-up": 0xAF,            # VK_VOLUME_UP    Volume Up key
+    "media-next-track": 0xB0,     # VK_MEDIA_NEXT_TRACK    Next Track key
+    "media-prev-track": 0xB1,     # VK_MEDIA_PREV_TRACK    Previous Track key
+    "media-stop": 0xB2,           # VK_MEDIA_STOP    Stop Media key
+    "media-play-pause": 0xB3,     # VK_MEDIA_PLAY_PAUSE    Play/Pause Media key
+    "launch-mail": 0xB4,          # VK_LAUNCH_MAIL    Start Mail key
+    "launch-media-select": 0xB5,  # VK_LAUNCH_MEDIA_SELECT    Select Media key
+    "launch-app1": 0xB6,          # VK_LAUNCH_APP1    Start Application 1 key
+    "launch-app2": 0xB7,          # VK_LAUNCH_APP2    Start Application 2 key
     # 0xB8-B9 - Reserved
     "oem_1": 0xBA,                # VK_OEM_1    Used for miscellaneous characters;
                                   # it can vary by keyboard.  For the US standard keyboard, the ';:' key

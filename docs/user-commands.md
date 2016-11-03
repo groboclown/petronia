@@ -5,6 +5,17 @@ All the commands you can run with hotkeys.
 
 ## Built-In Command List
 
+#### `change mode (mode)`
+
+**Arguments**:
+
+* `mode`: name of the key mode to switch to
+
+Switches the current hotkey mode to the given mode.  Note that the new
+mode should contain its own `change mode` command to go back to the
+default one.
+
+
 #### `quit`
 
 **Arguments**: None
@@ -109,6 +120,18 @@ Maximize the currently active window.
 **Arguments**: None
 
 Minimize (to the task bar) the currently active window.
+
+
+#### `resize (x) (y)`
+
+**Arguments**:
+
+* `x`: integer amount to resize in the x (horizontal) direction; may be
+    negative or 0.
+* `y`: integer amount to resize in the y (vertical) direction; may be
+    negative or 0.
+
+Resize the currently active window by the given amount.
 
 
 #### `load-config (config file)`

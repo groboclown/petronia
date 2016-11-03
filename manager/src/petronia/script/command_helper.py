@@ -75,6 +75,13 @@ def maximize(bus):
     bus.fire(event_ids.TELL_WINDOWS__MAXIMIZE_WINDOW, target_ids.WINDOW_MAPPER, {})
 
 
+def resize(bus, adjust_x, adjust_y):
+    bus.fire(event_ids.TELL_WINDOWS__RESIZE_WINDOW, target_ids.WINDOW_MAPPER, {
+        'adjust-x': int(adjust_x),
+        'adjust-y': int(adjust_y),
+    })
+
+
 def change_layout(bus, layout_name):
     bus.fire(event_ids.LAYOUT__SWITCH_TO, target_ids.TOP_LAYOUT, {
         'layout-name': layout_name

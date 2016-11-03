@@ -97,6 +97,7 @@ def load_config():
         [
             # Mode tests
             "win+~ => " + config.MODE_CHANGE_COMMAND + " simple-windows-mode",
+            "win+F11 => " + config.MODE_CHANGE_COMMAND + " resize-window-mode",
 
             "win+up => move-window-to-other-portal north",
             "win+down => move-window-to-other-portal south",
@@ -128,7 +129,7 @@ def load_config():
             "win+f4 => quit",
 
             # load-config, with no arguments, just reloads the current config file.
-            "win+alt+f11 => load-config",
+            "win+alt+f2 => load-config",
 
             "win+esc => open-start-menu",
         ],
@@ -148,14 +149,20 @@ def load_config():
     # "simple mode" is exclusive mode for this application. It sucks in all
     # input.  This is useful for an operation that controls how Petronia
     # works, such as manipulating the layout.
-    # hotkeys.parse_simple_mode_keys(
-    #     "mode1",
-    #     [
-    #         "esc => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
-    #         "f2 => " + config.MODE_CHANGE_COMMAND + " mode2",
-    #         "f11 => quit",
-    #     ]
-    # )
+    hotkeys.parse_simple_mode_keys(
+        "resize-window-mode",
+        [
+            "esc => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
+            "up => resize 0 -4",
+            "down => resize 0 4",
+            "left => resize -4 0",
+            "right => resize 4 0",
+            "j => resize 0 -1",
+            "k => resize 0 1",
+            "h => resize -1 0",
+            "l => resize 1 0",
+        ]
+    )
 
     chrome = config.ChromeConfig()
     chrome.has_title = False

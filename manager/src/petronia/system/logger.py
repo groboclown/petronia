@@ -31,6 +31,7 @@ _LOG_LEVEL_RANGE = (
     (LEVEL_INFO, LEVEL_VERBOSE_STR),
     (LEVEL_WARN, LEVEL_INFO_STR),
     (LEVEL_ERROR, LEVEL_WARN_STR),
+    (LEVEL_FATAL, LEVEL_ERROR_STR),
 )
 
 
@@ -86,8 +87,11 @@ class Logger(Identifiable, MarshalableComponent):
             if ex is None:
                 print("[{0}] {1}".format(self.__level_str(level), message))
             else:
-                print("[{0}] {1} {2}".format(self.__level_str(level), message, ex))
-                traceback.print_exc(ex)
+                print("[{0}] {1}: {2}".format(self.__level_str(level), message, ex))
+                try:
+                    traceback.print_exception(ex, ex, ex)
+                except BaseException:
+                    print("[{0}] {1} (no stack trace found)".format(self.__level_str(level), ex))
 
     @staticmethod
     def __as_args(event_obj):

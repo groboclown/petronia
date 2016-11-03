@@ -24,21 +24,26 @@ class CommandHandler(Identifiable, Component):
                 try:
                     cmd.invoke(self.__bus, args)
                 except BaseException as e:
-                    self._log_error("OnCommand failed: '{0}'".format(request, e))
+                    self._log_error("OnCommand failed: '{0}'".format(request), e)
                 return
         self._log_error("CONFIG No such registered command {0} (request: {1})".format(name, request))
 
     @staticmethod
     def _split_command(request):
         request = request.strip()
-        args = request.split(',')
-        pos = args[0].strip().find(' ')
-        if pos > 0:
-            name = args[0][:pos].strip().lower()
-            ret_args = [args[0][pos:].strip()]
-        else:
-            name = args[0]
-            ret_args = []
+        # args = request.split(',')
+        # pos = args[0].strip().find(' ')
+        # if pos > 0:
+        #     name = args[0][:pos].strip().lower()
+        #     ret_args = [args[0][pos:].strip()]
+        # else:
+        #     name = args[0]
+        #     ret_args = []
+        # for arg in args[1:]:
+        #     ret_args.append(arg.strip())
+        args = request.split(" ")
+        name = args[0].strip().lower()
+        ret_args = []
         for arg in args[1:]:
             ret_args.append(arg.strip())
         return name, ret_args

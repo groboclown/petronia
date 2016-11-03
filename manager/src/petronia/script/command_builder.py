@@ -18,6 +18,7 @@ def create_all_commands():
         create_split(),
         create_minimize(),
         create_maximize(),
+        create_resize(),
         create_change_layout(),
         create_load_config(),
         create_lock_screen(),
@@ -76,6 +77,10 @@ def create_minimize():
 
 def create_maximize():
     return Command("maximize", command_helper.maximize)
+
+
+def create_resize():
+    return Command("resize", command_helper.resize)
 
 
 def create_change_layout():

@@ -18,7 +18,7 @@ from ...arch.funcs import (
     window__get_module_filename, process__get_executable_filename,
     window__get_class_name, window__is_visible, window__set_position,
     window__activate, window__get_title, window__get_visibility_states,
-    window__get_active_window, window__maximize, window__minimize,
+    window__get_active_window, window__maximize, window__minimize, window__move_resize,
     process__get_current_pid, process__get_username_domain_for_pid,
     shell__set_window_metrics
 )
@@ -75,6 +75,7 @@ class WindowMapper(Identifiable, Component):
         self._listen(event_ids.ZORDER__SET_WINDOW_ON_TOP, target_ids.ANY, self._on_set_window_top)
         self._listen(event_ids.TELL_WINDOWS__MINIMIZE_WINDOW, target_ids.ANY, self._on_minimize_window)
         self._listen(event_ids.TELL_WINDOWS__MAXIMIZE_WINDOW, target_ids.ANY, self._on_maximize_window)
+        self._listen(event_ids.TELL_WINDOWS__RESIZE_WINDOW, target_ids.ANY, self._on_window_resize)
 
         # Requests that require knowing OS states of windows
         self._listen(event_ids.FOCUS__MAKE_OWNED_PORTAL_ACTIVE, target_ids.WINDOW_MAPPER,
@@ -304,6 +305,25 @@ class WindowMapper(Identifiable, Component):
             window__minimize(hwnd)
         # else:
         #     print("DEBUG nothing to minimize")
+
+    # noinspection PyUnusedLocal
+    def _on_window_resize(self, event_id, target_id, obj):
+        if target_id in self.__cid_to_handle:
+            print("Using a known window handle")
+            hwnd = self.__cid_to_handle[target_id]
+        else:
+            print("getting the active window handle")
+            hwnd = window__get_active_window()
+
+        if hwnd is not None:
+            # print("DEBUG minimizing handle " + hwnd)
+            rect = window__border_rectangle(hwnd)
+            width = rect['width'] + int(obj['adjust-x'])
+            height = rect['height'] + int(obj['adjust-y'])
+            print("Resizing to ({0}, {1}), {2}x{3}".format(rect['x'], rect['y'], width, height))
+            window__move_resize(hwnd, rect['x'], rect['y'], width, height)
+        else:
+            self._log_warn("No active window found")
 
     # noinspection PyUnusedLocal
     def _on_make_owned_portal_active(self, event_id, target_id, obj):
