@@ -12,6 +12,7 @@ from ...system import target_ids
 from ...system.component import Component, Identifiable
 from ...system.id_manager import IdManager
 from ...config import Config
+from ...arch.windows_constants import PETRONIA_CREATED_WINDOW__CLASS_PREFIX
 from ...arch.funcs import (
     window__find_handles, window__get_style, window__set_style, window__border_rectangle,
     window__redraw, window__get_process_id, process__get_username_domain_for_pid,
@@ -135,6 +136,10 @@ class WindowMapper(Identifiable, Component):
         # probably a bug in the underlying winapi calls.
         # if username_domain != _CURRENT_USER_DOMAIN:
         #     print(" - ignoring {0} from other user {1}@{2}".format(pid, username_domain[0], username_domain[1]))
+        class_name = window__get_class_name(hwnd)
+        if class_name is None or class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
+            self._log_debug("Ignoring self-managed window with class {0}".format(class_name))
+            return None
         cid = self.__id_manager.allocate('hwnd')
         key = str(hwnd)
         module_filename = ""

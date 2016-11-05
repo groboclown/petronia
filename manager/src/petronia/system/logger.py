@@ -82,7 +82,7 @@ class Logger(Identifiable, MarshalableComponent):
             self.set_level(event_obj['level'])
 
     def __do_log(self, level, message, ex):
-        if level > self.__level:
+        if level >= self.__level:
             # TODO real logging
             if ex is None:
                 print("[{0}] {1}".format(self.__level_str(level), message))

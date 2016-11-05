@@ -87,7 +87,7 @@ class Parent(object):
 
     # noinspection PyUnusedLocal
     def _on_child_removed(self, event_id, target_id, event_obj):
-        self._remove_child(event_id)
+        self._remove_child(target_id)
 
     def _remove_child(self, child_cid):
         if child_cid in self.__child_cid_data:

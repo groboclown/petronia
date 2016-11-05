@@ -36,7 +36,7 @@ class RootLayout(Layout):
         self._listen(event_ids.CONFIG__UPDATE, target_ids.ANY, self._on_config_update)
 
     def _on_resolution_changed(self, event_id, target_id, event_obj):
-        self._log_info("RootLayout: monitor resolution changed")
+        self._log_verbose("Monitor resolution changed")
         with self.__layout_lock:
             self.__monitors = event_obj['monitors']
             self._on_workflow_layout_switch(event_id, target_id, {'layout-name': self.__layout_name})
@@ -51,6 +51,7 @@ class RootLayout(Layout):
         # still perform the change.  If the user had changed around the layout manually,
         # the layout may need adjustment.  Also, this will reset the windows to their
         # original position.
+        self._log_verbose("Switching Layout")
 
         # Remove all children.  When the last is removed, that will trigger
         # _on_last_child_removed, which will rebuild the layout.
@@ -59,6 +60,7 @@ class RootLayout(Layout):
             if self._has_children:
                 self._log_verbose("Delaying workflow layout switch - need to clear out children first")
                 for child_cid in self._child_cids:
+                    self._log_verbose("Requesting removal of child {0}".format(child_cid))
                     self._fire(event_ids.LAYOUT__REMOVE_OBJECT, child_cid, {
                         'window-parent': target_ids.TOP_LAYOUT,
                     })
@@ -124,6 +126,7 @@ class RootLayout(Layout):
             self._fire(event_ids.LAYOUT__RESEND_WINDOW_CREATED_EVENTS, target_ids.WINDOW_MAPPER, {})
 
     def _on_last_child_removed(self):
+        self._log_verbose("Last root child removed; going on to create the layout.")
         self._on_root_create_layout(None, None, None)
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):

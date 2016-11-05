@@ -31,6 +31,7 @@ def load_functions(environ, func_map):
     func_map['window__client_rectangle'] = window__client_rectangle
     func_map['window__move_resize'] = window__move_resize
     func_map['window__redraw'] = window__redraw
+    func_map['window__repaint'] = window__repaint
     func_map['window__wait_gui_thread_idle'] = window__wait_gui_thread_idle
     func_map['window__send_message'] = window__send_message
     func_map['window__post_message'] = window__post_message
@@ -39,12 +40,19 @@ def load_functions(environ, func_map):
     func_map['window__minimize'] = window__minimize
     func_map['window__restore'] = window__restore
     func_map['window__get_visibility_states'] = window__get_visibility_states
-    func_map['window__draw_border_outline'] = window__draw_border_outline
-    func_map['window__set_transparency'] = window__set_transparency
     func_map['window__set_position'] = window__set_position
+    func_map['window__set_layered_attributes'] = window__set_layered_attributes
     func_map['window__get_active_window'] = window__get_active_window
     func_map['window__activate'] = window__activate
     func_map['window__create_message_window'] = window__create_message_window
+    func_map['window__create_display_window'] = window__create_display_window
+    func_map['window__get_font_for_description'] = window__get_font_for_description
+    func_map['window__draw_border_outline'] = window__draw_border_outline
+    func_map['window__get_text_size'] = window__get_text_size
+    func_map['window__do_paint'] = window__do_paint
+    func_map['window__do_draw'] = window__do_draw
+    func_map['paint__draw_text'] = paint__draw_text
+    func_map['paint__draw_outline_text'] = paint__draw_outline_text
     func_map['shell__get_task_bar_window_handles'] = shell__get_task_bar_window_handles
     func_map['shell__keyboard_hook'] = shell__keyboard_hook
     func_map['shell__shell_hook'] = shell__shell_hook
@@ -115,6 +123,9 @@ SetWindowPos = windll.user32.SetWindowPos
 SetActiveWindow = windll.user32.SetActiveWindow
 
 SetForegroundWindow = windll.user32.SetForegroundWindow
+
+SetLayeredWindowAttributes = windll.user32.SetLayeredWindowAttributes
+SetLayeredWindowAttributes.argtypes = [wintypes.HWND, wintypes.COLORREF, wintypes.BYTE, wintypes.DWORD]
 
 WNDPROCTYPE = WINFUNCTYPE(c_int, wintypes.HWND, c_uint, wintypes.WPARAM, wintypes.LPARAM)
 
@@ -293,6 +304,13 @@ def window__redraw(hwnd):
         windll.user32.ShowWindow(hwnd, SW_RESTORE)
 
 
+def window__repaint(hwnd):
+    # res = windll.user32.InvalidateRect(hwnd, None, False)
+    res = windll.user32.RedrawWindow(hwnd, None, None, RDW_INVALIDATE)
+    if res == 0:
+        raise WinError()
+
+
 def window__wait_gui_thread_idle(hwnd):
     thread_pid = window__get_process_id(hwnd)
     if thread_pid:
@@ -410,6 +428,7 @@ class LOGBRUSH(Structure):
 
 def window__draw_border_outline(rect, color, width, line_style=PS_SOLID, fill_style=BS_NULL):
     """
+    Draws a border on the screen.  Does not need a window context.
 
     :param fill_style:
     :param line_style:
@@ -451,22 +470,6 @@ def window__draw_border_outline(rect, color, width, line_style=PS_SOLID, fill_st
             windll.gdi32.DeleteDC(dc_handle)
 
 
-def window__set_transparency(hwnd, alpha_value=128):
-    raise NotImplemented()
-    # TODO this needs to depend upon the SetWindowLong or SetWindowLongPtr
-    # defined in x86 and x64.
-    # if alpha_value < 0 or alpha_value > 255:
-    #     raise ValueError("Alpha must be within the range 0 to 255")
-    # ret = windll.user32.SetWindowLong(hwnd, GWL_EXSTYLE, window__get_exstyle(hwnd) | WS_EX_LAYERED)
-    # if ret == 0:
-    #     # TODO real error
-    #     raise WinError()
-    # ret = windll.user32.SetLayeredWindowAttributes(hwnd, wintypes.RGB(0, 0, 0), alpha_value, LWA_ALPHA)
-    # if not ret:
-    #     # TODO real error
-    #     raise WinError()
-
-
 def window__set_position(hwnd, hwnd_after_zorder, x, y, width, height, flags):
     zorder = hwnd_after_zorder
     if zorder in HWND_ZORDER_MAP:
@@ -481,8 +484,17 @@ def window__set_position(hwnd, hwnd_after_zorder, x, y, width, height, flags):
     SetWindowPos(hwnd, zorder, x, y, width, height, uflags)
 
 
+def window__set_layered_attributes(hwnd, r, g, b, a):
+    res = SetLayeredWindowAttributes(
+        hwnd, wintypes.RGB(r, g, b), a, LWA_ALPHA)
+    if res == 0:
+        raise WinError()
+
+
 def window__get_active_window():
-    hwnd = windll.user32.GetActiveWindow()
+    # GetActiveWindow is only for the current thread.
+    # It usually just returns None.
+    hwnd = windll.user32.GetForegroundWindow()
     if hwnd == 0:
         return None
     return hwnd
@@ -520,8 +532,7 @@ class WNDCLASSEX(Structure):
 
 def window__create_message_window(
         class_name,
-        message_handler,
-        title=None):
+        message_handler):
     """
     Create a "message" window - a window that's only for posting messages
     to, and for handling other OS messages.
@@ -531,10 +542,11 @@ def window__create_message_window(
 
     :param message_handler: the handler procedure created by shell__create_global_message_handler
     :param class_name: unique class name for the window
-    :param title: defaults to the class name
-    :return:
+    :return: hwnd
     """
-    title = title or class_name
+
+    if not class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
+        class_name = PETRONIA_CREATED_WINDOW__CLASS_PREFIX + class_name
 
     # A persistent pointer to a handler.  Must be persisted so it isn't
     # removed when we exit this method.
@@ -557,20 +569,312 @@ def window__create_message_window(
     if not RegisterClassExW(byref(window_class)):
         # TODO real error
         raise WinError()
-    # Message window only
-    # hwnd = CreateWindowExW(
-    #     0, class_name, title,
-    #     0, 0, 0, 0, 0, HWND_MESSAGE, None, None, None
-    # )
     # Top level, never viewed, window.  Note that we set title to
     # "null" to further emphasize that this is a non-viewable window.
+    # We don't use a message-only window, so that the window can
+    # receive global event hooks.
     hwnd = CreateWindowExW(
         0, class_name, None,
         WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, HWND_DESKTOP, None, hinst, None
     )
+    if hwnd is None or hwnd == 0:
+        raise WinError()
 
     _CALLBACK_POINTERS[hwnd] = window_proc
     return hwnd
+
+
+def window__create_display_window(
+        class_name,
+        title,
+        message_handler,
+        style_flags):
+    """
+    Create a viewable window, to do stuff to it.
+
+    :param class_name:
+    :param message_handler: the handler procedure created by shell__create_global_message_handler
+    :param title: defaults to the class name
+    :param style_flags: list of strings within WS_STYLE_BIT_MAP
+    :return: hwnd
+    """
+
+    if not class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
+        class_name = PETRONIA_CREATED_WINDOW__CLASS_PREFIX + class_name
+
+    # A persistent pointer to a handler.  Must be persisted so it isn't
+    # removed when we exit this method.
+    window_proc = WNDPROCTYPE(message_handler)
+    hinst = GetModuleHandleW(None)
+
+    window_class = WNDCLASSEX()
+    window_class.cbSize = c_sizeof(WNDCLASSEX)
+    window_class.style = CS_DBLCLKS
+    window_class.lpfnWndProc = window_proc
+    window_class.cbClsExtra = 0
+    window_class.cbWndExtra = 0
+    window_class.hInstance = hinst
+    window_class.hIcon = 0
+    window_class.hCursor = 0
+    window_class.hBrush = 0
+    window_class.lpszMenuName = 0
+    window_class.lpszClassName = class_name
+    window_class.hIconSm = 0
+
+    if not RegisterClassExW(byref(window_class)):
+        raise WinError()
+
+    style = 0
+    for flag in style_flags:
+        if flag in WS_STYLE_BIT_MAP:
+            style |= WS_STYLE_BIT_MAP[flag]
+
+    hwnd = CreateWindowExW(
+        0, class_name, title,
+        style, 0, 0, 10, 10,
+        None,  # HWND_DESKTOP,
+        None, hinst, None
+    )
+    if hwnd is None or hwnd == 0:
+        raise WinError()
+
+    _CALLBACK_POINTERS[hwnd] = window_proc
+    return hwnd
+
+
+_FONT_HANDLES = {}
+
+
+def window__get_font_for_description(font, hwnd=None, base_hdc=None):
+    if font in _FONT_HANDLES:
+        return _FONT_HANDLES[font]
+    font_details = font.split(',')
+    font_name = font_details[0].strip()
+    font_params = font_details[1:]
+    created_hdc = None
+    hdc = base_hdc
+    if base_hdc is None:
+        if hwnd is None:
+            hdc = windll.gdi32.CreateDCW("DISPLAY", None, None, None)
+            created_hdc = hdc
+        else:
+            hdc = windll.user32.GetDC(hwnd)
+    try:
+        # if windll.gdi32.FontExist(hdc, font_name) != 0:
+        #     raise OSError("Unknown font {0}".format(font_name))
+
+        point = 12
+        weight = FW_NORMAL
+        italic = 0
+        underline = 0
+        strikeout = 0
+
+        for param in font_params:
+            param = param.strip().lower()
+            if param.endswith('pt'):
+                point = int(param[:-2])
+            elif 'bold' == param or 'b' == param:
+                weight = FW_BOLD
+            elif 'italic' == param or 'italics' == param or 'i' == param:
+                italic = 1
+            elif 'underline' == param or 'under' == param or 'u' == param:
+                underline = 1
+            elif 'strikethrough' == param or 'strikeout' == param or 'strike' == param or 's' == param:
+                strikeout = 1
+
+        pixels_per_point_y = windll.gdi32.GetDeviceCaps(hdc, LOGPIXELSY)
+        if pixels_per_point_y <= 0:
+            pixels_per_point_y = 72
+        height = (point * pixels_per_point_y) // 72
+        hfont = windll.gdi32.CreateFontW(
+            -height, 0, 0, 0,
+            weight, italic, underline, strikeout,
+            DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY, FF_DONTCARE,
+            create_unicode_buffer(font_name))
+        if hfont == 0 or hfont is None:
+            raise WinError()
+        _FONT_HANDLES[font] = hfont
+
+        atexit.register(_delete_gdi_object, hfont)
+
+        return hfont
+    finally:
+        if base_hdc is None and created_hdc is None:
+            windll.user32.ReleaseDC(hdc)
+        if base_hdc is None and created_hdc is not None:
+            windll.gdi32.DeleteDC(hdc)
+
+
+def _delete_gdi_object(obj_handle):
+    windll.gdi32.DeleteObject(obj_handle)
+
+
+def window__get_text_size(hfont, text, hwnd=None, base_hdc=None):
+    """
+    Can be called within or outside a paint context.
+
+    :param hwnd:
+    :param hfont:
+    :param text:
+    :param base_hdc: set to the paint's hdc if within a Paint callback.
+    :return: width, height
+    """
+    lines = text.splitlines()
+    height = 0
+    width = 0
+    size = wintypes.SIZE()
+    old_hfont = None
+    created_hdc = None
+    hdc = base_hdc
+    if base_hdc is None:
+        if hwnd is None:
+            # hdc = windll.gdi32.CreateDCW(HWND_DESKTOP)
+            hdc = windll.gdi32.CreateDCW("DISPLAY", None, None, None)
+            created_hdc = hdc
+        else:
+            hdc = windll.user32.GetDC(hwnd)
+    try:
+        old_hfont = windll.gdi32.SelectObject(hdc, hfont)
+        for line in lines:
+            res = windll.gdi32.GetTextExtentPoint32W(
+                hdc,
+                create_unicode_buffer(line), len(line),
+                byref(size)
+            )
+            if res == 0:
+                raise WinError()
+            height += size.cy
+            width = max(width, size.cx)
+        return width, height
+    finally:
+        # To prevent a memory leak
+        if hdc is not None and old_hfont is not None:
+            windll.gdi32.SelectObject(hdc, old_hfont)
+        if base_hdc is None and created_hdc is None:
+            windll.user32.ReleaseDC(hdc)
+        if base_hdc is None and created_hdc is not None:
+            windll.gdi32.DeleteDC(hdc)
+
+
+class PAINTSTRUCT(Structure):
+    _fields_ = [
+        ("hdc", wintypes.HANDLE),
+        ("fErase", c_bool),
+        ("rcPaint", wintypes.RECT),
+        ("fRestore", c_bool),
+        ("fIncUpdate", c_bool),
+        ("rgbReserved", wintypes.BYTE * 32),
+    ]
+
+
+def window__do_paint(hwnd, paint_callback):
+    """
+    Start the paint callback message.
+
+    :param hwnd:
+    :param paint_callback: function, takes 2 argument: the hwnd, and the hdc of the paint.
+    :return: paint_callback return value
+    """
+    ps = PAINTSTRUCT()
+    hdc = windll.user32.BeginPaint(hwnd, byref(ps))
+    if hdc == 0 or hdc is None:
+        raise WinError()
+    try:
+        return paint_callback(hwnd, hdc)
+    finally:
+        windll.user32.EndPaint(hwnd, byref(ps))
+
+
+def window__do_draw(hwnd, paint_callback):
+    hdc = windll.user32.GetDC(hwnd)
+    try:
+        paint_callback(hwnd, hdc)
+    finally:
+        windll.user32.ReleaseDC(hdc)
+
+
+def paint__draw_text(hdc, hfont, text, pos_x, pos_y, width, height, fg_color, bg_color):
+    old_hfont = None
+    try:
+        old_hfont = windll.gdi32.SelectObject(hdc, hfont)
+        if fg_color:
+            fg = wintypes.RGB((fg_color >> 16) & 0xff, (fg_color >> 8) & 0xff, fg_color & 0xff)
+            windll.gdi32.SetTextColor(hdc, fg)
+        if bg_color:
+            bg = wintypes.RGB((bg_color >> 16) & 0xff, (bg_color >> 8) & 0xff, bg_color & 0xff)
+            windll.gdi32.SetBkColor(hdc, bg)
+            windll.gdi32.SetBkMode(hdc, OPAQUE)
+        else:
+            bg = wintypes.RGB(0, 0, 0)
+            windll.gdi32.SetBkColor(hdc, bg)
+            windll.gdi32.SetBkMode(hdc, TRANSPARENT)
+
+        rect = wintypes.RECT()
+        rect.left = pos_x
+        rect.top = pos_y
+        rect.right = pos_x + width
+        rect.bottom = pos_y + height
+
+        ret = windll.user32.DrawTextW(
+            hdc, create_unicode_buffer(text), len(text), byref(rect),
+            DT_LEFT | DT_TOP | DT_NOPREFIX)
+        if ret == 0:
+            raise WinError()
+    finally:
+        # To prevent a memory leak
+        if old_hfont is not None:
+            windll.gdi32.SelectObject(hdc, old_hfont)
+
+
+def paint__draw_outline_text(hdc, hfont, text, pos_x, pos_y, outline_width, outline_color, fill_color, bg_color):
+    """
+
+    :param hdc:
+    :param hfont:
+    :param text:
+    :param pos_x: logical x position
+    :param pos_y: logical y position
+    :param outline_width:
+    :param outline_color:
+    :param fill_color:
+    :param bg_color:
+    :return:
+    """
+    outline_rgb = wintypes.RGB((outline_color >> 16) & 0xff, (outline_color >> 8) & 0xff, outline_color & 0xff)
+    fill_rgb = wintypes.RGB((fill_color >> 16) & 0xff, (fill_color >> 8) & 0xff, fill_color & 0xff)
+    old_hfont = None
+    fill_brush = None
+    outline_pen = None
+    try:
+        old_hfont = windll.gdi32.SelectObject(hdc, hfont)
+
+        outline_pen = windll.gdi32.CreatePen(PS_GEOMETRIC | PS_SOLID, outline_width, outline_rgb)
+        windll.gdi32.SelectObject(hdc, outline_pen)
+
+        fill_brush = windll.gdi32.CreateSolidBrush(fill_rgb)
+        windll.gdi32.SelectObject(hdc, fill_brush)
+
+        if bg_color:
+            bg = wintypes.RGB((bg_color >> 16) & 0xff, (bg_color >> 8) & 0xff, bg_color & 0xff)
+            windll.gdi32.SetBkColor(hdc, bg)
+            windll.gdi32.SetBkMode(hdc, OPAQUE)
+        else:
+            bg = wintypes.RGB(0, 0, 0)
+            windll.gdi32.SetBkColor(hdc, bg)
+            windll.gdi32.SetBkMode(hdc, TRANSPARENT)
+
+        windll.gdi32.BeginPath(hdc)
+        windll.gdi32.TextOutW(hdc, pos_x, pos_y, create_unicode_buffer(text), len(text))
+        windll.gdi32.EndPath(hdc)
+        windll.gdi32.StrokeAndFillPath(hdc)
+    finally:
+        if fill_brush is not None:
+            _delete_gdi_object(fill_brush)
+        if outline_pen is not None:
+            _delete_gdi_object(outline_pen)
+        # To prevent a memory leak
+        if old_hfont is not None:
+            windll.gdi32.SelectObject(hdc, old_hfont)
 
 
 def shell__get_task_bar_window_handles():
@@ -708,7 +1012,6 @@ def shell__shell_hook(callback):
     hook_id = None
 
     def shell_handler(code, wparam, lparam):
-        print("Shell handler")
         call_next = True
         try:
             if code >= 0:
@@ -724,7 +1027,7 @@ def shell__shell_hook(callback):
             if call_next or code < 0:
                 return CallNextHookEx(hook_id, code, wparam, lparam)
             else:
-                print("Canceling callback chain")
+                # print("Canceling callback chain")
                 # From the docs:
                 # If the hook procedure processed the message, it may return
                 # a nonzero value to prevent the system from passing the

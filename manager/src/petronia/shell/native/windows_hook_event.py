@@ -108,6 +108,12 @@ class WindowsHookEvent(Identifiable, Component):
 
     def _modal_hotkey(self, vk_code, is_down):
         if on_key_hook(vk_code, is_down):
+            # TODO see if this event firing takes too much time.
+            self._fire(event_ids.OS__KEY_ACTION, target_ids.BROADCAST, {
+                'vk-code': vk_code,
+                'is-down': is_down,
+            })
+
             res = self.__key_combos[self.__mode].key_action(vk_code, is_down)
             if res == IGNORED:
                 return None
@@ -136,9 +142,9 @@ class WindowsHookEvent(Identifiable, Component):
             # Experiments found that if we don't block the key release,
             # then things won't get stuck.
             if not is_down and (vk_code == 0x5B or vk_code == 0x5C):
-                self._log_verbose("Not blocking a Win key up")
+                self._log_debug("Not blocking a Win key up")
                 return None
-            self._log_verbose("Returning Cancel Key Forward ({0} {1})".format(hex(vk_code), is_down and "Dn" or "Up"))
+            self._log_debug("Returning Cancel Key Forward ({0} {1})".format(hex(vk_code), is_down and "Dn" or "Up"))
             return SHELL__CANCEL_CALLBACK_CHAIN
 
     def _shell_message(self, source_hwnd, action_id, lparam):

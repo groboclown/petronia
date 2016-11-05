@@ -132,6 +132,9 @@ def load_config():
             "win+alt+f2 => load-config",
 
             "win+esc => open-start-menu",
+
+            # Test, for screen sharing of tutorials
+            "win+shift+f10 => toggle-show-key-action 0xffffff 0x000000 bottom-left"
         ],
         block_win_key=True  # block the windows key, because we remapped it to win+esc
         # False
@@ -153,14 +156,24 @@ def load_config():
         "resize-window-mode",
         [
             "esc => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
-            "up => resize 0 -4",
-            "down => resize 0 4",
-            "left => resize -4 0",
-            "right => resize 4 0",
+            "enter => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
+            "up => resize 0 -16",
+            "down => resize 0 16",
+            "left => resize -16 0",
+            "right => resize 16 0",
             "j => resize 0 -1",
             "k => resize 0 1",
             "h => resize -1 0",
             "l => resize 1 0",
+
+            # Numpad equivalents
+            "separator => " + config.MODE_CHANGE_COMMAND + " " + config.DEFAULT_MODE,
+            "numpad8 => resize 0 -4",
+            "numpad2 => resize 0 4",
+            "numpad4 => resize -4 0",
+            "numpad6 => resize 4 0",
+            "add => resize 4 4",
+            "subtract => resize -4 -4",
         ]
     )
 

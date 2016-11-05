@@ -297,7 +297,13 @@ def vk_to_names(vk):
         # There are multiple mappings; return them all.
         if code == vk:
             maps.append(vk_str)
+    if len(maps) <= 0:
+        maps.append("#{0}".format(hex(vk)))
     return maps
+
+
+def is_vk_modifier(vk):
+    return vk in _MODIFIER_KEYS
 
 
 # Built-in alias VK keys for user-specified keys
@@ -357,7 +363,7 @@ STR_VK_MAP = {
     "shift": 0x10,                # VK_SHIFT    SHIFT key
     "sft": 0x10,                  # VK_SHIFT    SHIFT key
     "control": 0x11,              # VK_CONTROL  CTRL key
-    "ctr": 0x11,                  # VK_CONTROL  CTRL key
+    "ctrl": 0x11,                 # VK_CONTROL  CTRL key
     "menu": 0x12,                 # VK_MENU     ALT key
     "alt": 0x12,                  # VK_MENU     ALT key
 

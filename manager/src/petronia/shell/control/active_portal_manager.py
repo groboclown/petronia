@@ -72,7 +72,8 @@ class ActivePortalManager(Identifiable, Component):
     def _move_portal_window_to_other_portal(self, event_id, target_id, event_obj):
         if self.__active_portal_cid is not None:
             # This is the temporary movement handler until navigation can handle it better.
-            print("DEBUG Moving active window in {0} {1}".format(self.__active_portal_cid, event_obj['direction']))
+            self._log_verbose("Moving active window in {0} {1}".format(
+                self.__active_portal_cid, event_obj['direction']))
             direction = event_obj['direction']
             if DIR_NEXT == direction:
                 dir_add = 1
@@ -95,8 +96,8 @@ class ActivePortalManager(Identifiable, Component):
             return self._fire(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, self.__active_portal_cid, {
                 'destination-cid': dest_cid
             })
-        else:
-            print("DEBUG no active portal")
+        # else:
+        #     print("DEBUG no active portal")
 
     # noinspection PyUnusedLocal
     def _on_portal_activated(self, event_id, target_id, event_obj):
@@ -128,7 +129,6 @@ class ActivePortalManager(Identifiable, Component):
         elif len(self.__portal_cids) > 0:
             dest_cid = self.__portal_cids[0]
         else:
-            self._log_warn("Window added before any portal created.")
-            # raise OSError("Window added before any portal created.")
+            self._log_verbose("Window added before any portal created.")
             return
         self._fire(event_ids.LAYOUT__ADD_WINDOW, dest_cid, event_obj)

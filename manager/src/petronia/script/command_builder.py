@@ -24,6 +24,7 @@ def create_all_commands():
         create_lock_screen(),
         create_inject_keys(),
         create_exec_cmd(),
+        create_toggle_show_key_action(),
     ]
 
 
@@ -101,3 +102,7 @@ def create_inject_keys():
 
 def create_exec_cmd():
     return Command("cmd", command_helper.exec_cmd)
+
+
+def create_toggle_show_key_action():
+    return Command("toggle-show-key-action", command_helper.toggle_show_key_action)

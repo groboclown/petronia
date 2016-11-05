@@ -5,9 +5,11 @@ from ..system import event_ids
 from ..system import target_ids
 from ..shell.native.shutdown import shutdown_system
 from ..shell.navigation import DIRECTIONS, ROTATABLE_DIRECTIONS
-
 import subprocess
 import shlex
+
+# Actions that are already implemented.
+from ..shell.view.show_key_actions import toggle_show_key_action
 
 
 # noinspection PyUnusedLocal

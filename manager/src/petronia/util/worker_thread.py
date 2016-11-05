@@ -91,7 +91,7 @@ class WorkerThread(object):
                     except BaseException as e:
                         # TODO log the error better
                         print("<<ERROR Worker Thread action failed: {0}>>".format(e))
-                        traceback.print_exc(e)
+                        traceback.print_exception(e, e, e)
         finally:
             # No lock on this, because it's not a read then write.
             self.__state = 3

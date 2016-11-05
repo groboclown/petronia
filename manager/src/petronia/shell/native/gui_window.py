@@ -2,102 +2,185 @@
 from ...system import event_ids
 from ...system import target_ids
 from ...system.component import Component, Identifiable
+from ...arch import windows_constants
+from ...arch.funcs import (
+    window__create_display_window,
+    window__client_rectangle,
+    window__set_layered_attributes,
+    window__set_position,
+    window__set_style,
+    window__get_text_size,
+    window__get_font_for_description,
+    window__move_resize,
+    window__send_message,
+    window__repaint,
+    window__do_paint,
+    window__do_draw,
+    window__get_font_for_description,
+    window__get_text_size,
+    monitor__find_monitors,
+    paint__draw_text,
+    paint__draw_outline_text,
+    shell__create_global_message_handler,
+    shell__pump_messages,
+)
+import threading
 
 
 class GuiWindow(Identifiable, Component):
-    def __init__(self, cid, bus, title):
+    """
+    Abstract GUI window for showing information to the user.
+    """
+    def __init__(self, cid, bus, class_name, title, position_details,
+                 font=None,
+                 is_invisible=False,
+                 is_always_on_top=False):
         Component.__init__(self, bus)
         Identifiable.__init__(self, cid)
 
+        self.__has_quit = False
+        self.__removing = False
+        self.__hwnd = None
+        self.__hfont = None
 
-def window__create_display_window(
-        title,
-        message_handler,
-        style_flags):
-    """
-    Create a viewable window, to do stuff to it.
+        def do_paint(hwnd, hdc):
+            window_size = window__client_rectangle(hwnd)
+            self._on_paint(hwnd, hdc, window_size['width'], window_size['height'])
 
-    :param message_handler: the handler procedure created by shell__create_global_message_handler
-    :param title: defaults to the class name
-    :param style_flags: list of strings within WS_STYLE_BIT_MAP
-    :return: hwnd
-    """
-    global _REGISTERED_DISPLAY_WINDOW_CLASS
+        # noinspection PyUnusedLocal
+        def paint(hwnd, message, wparam, lparam):
+            window__do_paint(hwnd, do_paint)
 
-    # A persistent pointer to a handler.  Must be persisted so it isn't
-    # removed when we exit this method.
-    window_proc = WNDPROCTYPE(message_handler)
-    hinst = GetModuleHandleW(None)
+        self.__message_id_callbacks = {
+            windows_constants.WM_PAINT: paint
+        }
 
-    if not _REGISTERED_DISPLAY_WINDOW_CLASS:
-        window_class = WNDCLASSEX()
-        window_class.cbSize = c_sizeof(WNDCLASSEX)
-        window_class.style = CS_DBLCLKS
-        window_class.lpfnWndProc = window_proc
-        window_class.cbClsExtra = 0
-        window_class.cbWndExtra = 0
-        window_class.hInstance = hinst
-        window_class.hIcon = 0
-        window_class.hCursor = 0
-        window_class.hBrush = 0
-        window_class.lpszMenuName = 0
-        window_class.lpszClassName = _DISPLAY_WINDOW_CLASS
-        window_class.hIconSm = 0
+        style_flags = {
+            # WS_OVERLAPPEDWINDOW
+            'border', 'dialog-frame', 'sysmenu-button', 'size-border', 'minimize-button', 'maximize-button'
+        }
+        ex_style_flags = {
+            # WS_EX_OVERLAPPEDWINDOW
+            'window-edge': True, 'client-edge': True
+        }
+        if is_invisible:
+            style_flags.add('popup')
+            style_flags.remove('border')
+            style_flags.remove('dialog-frame')
+            style_flags.remove('size-border')
+            style_flags.remove('maximize-button')
+            ex_style_flags['layered'] = True
+        if is_always_on_top:
+            ex_style_flags['topmost'] = True
 
-        if not RegisterClassExW(byref(window_class)):
-            raise WinError()
+        def on_exit_callback():
+            self.__has_quit = True
+            self.close()
 
-        _REGISTERED_DISPLAY_WINDOW_CLASS = True
+        def message_pumper():
+            # These MUST be in the same thread!
+            message_callback_handler = shell__create_global_message_handler(self.__message_id_callbacks)
+            self.__hwnd = window__create_display_window(class_name, title, message_callback_handler, style_flags)
 
-    style = WS_OVERLAPPEDWINDOW
-    ex_style = 0
-    if invisible:
-        style |= WS_POPUP
-        style &= ~(WS_CAPTION | WS_SIZEBOX | WS_MAXIMIZEBOX)
-        ex_style |= WS_EX_LAYERED
+            # TODO fix the set_layered_attributes call
+            # if is_invisible:
+            #     window__set_layered_attributes(self.__hwnd, 0, 0, 0, 0)
 
-    if always_on_top:
-        ex_style |= WS_EX_TOPMOST
+            if font is not None:
+                self.__hfont = window__get_font_for_description(font, hwnd=self.__hwnd)
+            pos_x, pos_y, width, height = _parse_window_pos_details(position_details, self.__hwnd, self.__hfont)
 
-    hwnd = CreateWindowExW(
-        0, _DISPLAY_WINDOW_CLASS, title,
-        style, 0, 0, 10, 10,
-        None,  # HWND_DESKTOP,
-        None, hinst, None
-    )
-    if hwnd is None or hwnd == 0:
-        raise WinError()
+            if is_always_on_top:
+                window__set_position(
+                    self.__hwnd, 'topmost',
+                    pos_x, pos_y, width, height,
+                    ['no-activate'])
+            else:
+                window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
 
-    hfont = None
-    if font is not None:
-        hdc = windll.gdi32.GetDCW(hwnd)
+            window__set_style(self.__hwnd, ex_style_flags)
+
+            shell__pump_messages(on_exit_callback)
+
+            self.__has_quit = True
+
+        pump_thread = threading.Thread(
+            target=message_pumper,
+            daemon=True
+        )
+        pump_thread.start()
+
+        self._listen(event_ids.REGISTRAR__OBJECT_REMOVED, cid, self._on_removed)
+
+    # noinspection PyUnusedLocal
+    def _on_removed(self, event_id, target_id, event_obj):
+        # Prevent recursion
+        if not self.__removing:
+            self.__removing = True
+            self.close()
+
+    def close(self):
         try:
-            hfont = _get_font_for_description(hdc, font)
-            windll.user32.SendMessageW(hwnd, WM_SETFONT, hfont, 0)
+            self.__removing = True
+            if not self.__has_quit:
+                window__send_message(self.__hwnd, windows_constants.WM_QUIT, 0, 0)
         finally:
-            windll.gdi32.ReleaseDCW(hdc)
+            super().close()
 
-    pos_x, pos_y, width, height = _parse_window_pos_details(position_details, hwnd, hfont)
+    def add_message_handler(self, message_id, handler):
+        if isinstance(message_id, str):
+            message_id = windows_constants.WM_MESSAGE_NAMES[message_id]
+        self.__message_id_callbacks[message_id] = handler
 
-    if always_on_top:
-        windll.user32.SetWindowPos(
-            hwnd, HWND_TOPMOST, pos_x, pos_y, width, height,
-            SWP_NOACTIVATE)
-        ex_style |= WS_EX_TOPMOST
-    else:
-        window__move_resize(hwnd, pos_x, pos_y, width, height, False)
+    def draw(self):
+        if not self.__has_quit:
+            window__repaint(self.__hwnd)
 
-    res = windll.user32.SetWindowLong(hwnd, GWL_EXSTYLE, ex_style)
-    if res == 0:
-        raise WinError()
+    def draw_now(self):
+        def do_paint(hwnd, hdc):
+            window_size = window__client_rectangle(hwnd)
+            self._on_paint(hwnd, hdc, window_size['width'], window_size['height'])
+        window__do_draw(self.__hwnd, do_paint)
 
-    if invisible:
-        res = windll.user32.SetLayeredWindowAttributes(hwnd, wintypes.RGB(0, 0, 0), 0xff, LWA_ALPHA)
-        if res == 0:
-            raise WinError()
+    def _on_paint(self, hwnd, hdc, width, height):
+        pass
 
-    _CALLBACK_POINTERS[hwnd] = window_proc
-    return hwnd
+    @staticmethod
+    def _get_text_size(text, font_desc, hwnd=None, hdc=None):
+        """
+
+        :param text:
+        :param font_desc:
+        :param hwnd: (optional) the window's handle
+        :param hdc: (optional) the paint dc handle
+        :return: width, height
+        """
+        hfont = window__get_font_for_description(font_desc, hwnd=hwnd, base_hdc=hdc)
+        return window__get_text_size(hfont, text, hwnd=hwnd, base_hdc=hdc)
+
+    @staticmethod
+    def _draw_text(hdc, text, font_desc, pos_x, pos_y, width, height, fg_color, bg_color):
+        """
+
+        :param hdc: paint hdc
+        :param font_desc: string describing the font.
+        :param pos_x: logical x position
+        :param pos_y: logical y position
+        :param width: text box width
+        :param height: text box height
+        :param fg_color: foreground color, in 0xRRGGBB format.
+        :param bg_color: background color, in 0xRRGGBB format.  If None, then
+            the background will not be drawn.
+        :return:
+        """
+        hfont = window__get_font_for_description(font_desc, base_hdc=hdc)
+        paint__draw_text(hdc, hfont, text, pos_x, pos_y, width, height, fg_color, bg_color)
+
+    @staticmethod
+    def _draw_outline_text(hdc, text, font_desc, pos_x, pos_y,
+                           outline_width, outline_color, fill_color, bg_color):
+        hfont = window__get_font_for_description(font_desc, base_hdc=hdc)
+        paint__draw_outline_text(hdc, hfont, text, pos_x, pos_y, outline_width, outline_color, fill_color, bg_color)
 
 
 def _parse_window_pos_details(pos, hwnd, hfont):
@@ -110,27 +193,10 @@ def _parse_window_pos_details(pos, hwnd, hfont):
 
     if 'text-size' in pos and hfont is not None:
         text = pos['text-size']
-        lines = text.splitlines()
-        height = 0
-        width = 0
-        size = wintypes.SIZE()
-        hdc = windll.gdi32.GetDCW(hwnd)
-        try:
-            for line in lines:
-                res = windll.gdi32.GetTextExtentPoint32W(
-                    hdc,
-                    create_unicode_buffer(line), len(line),
-                    byref(size)
-                )
-                if res == 0:
-                    raise WinError()
-                height += size.cy
-                width = max(width, size.cx)
-        finally:
-            windll.gdi32.ReleaseDCW(hdc)
+        width, height = window__get_text_size(hwnd, hfont, text)
 
     if 'relative' in pos:
-        relative = pos['relative'].split(' ')
+        relative = pos['relative'].split('-')
         if 'monitor' in pos:
             monitor_index = pos['monitor']
         else:
@@ -150,4 +216,7 @@ def _parse_window_pos_details(pos, hwnd, hfont):
         elif 'left' in relative:
             pos_x = monitors[monitor_index]['left'] + padding
 
+    # print("DEBUG translated {0} into ({1},{2}) {3}x{4}".format(
+    #     pos, pos_x, pos_y, width, height
+    # ))
     return pos_x, pos_y, width, height

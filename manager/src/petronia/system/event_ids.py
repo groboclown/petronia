@@ -121,6 +121,7 @@ OS__WINDOW_MONITOR_CHANGED = "OS Window Monitor Changed" + EVENT_THREAD__NOTICE
 OS__WINDOW_FLASH = "OS Window Flash" + EVENT_THREAD__NOTICE
 OS__APP_COMMAND = "OS AppCommand" + EVENT_THREAD__NOTICE
 OS__RESOLUTION_CHANGED = "OS Resolution Changed" + EVENT_THREAD__NOTICE
+OS__KEY_ACTION = "OS Key Pressed or Released" + EVENT_THREAD__NOTICE
 
 
 # ---------------------------------------------------------------------------
@@ -202,6 +203,12 @@ DIRECTION_NEGOTIATION__COMPLETE = "Direction Negotiation Complete" + EVENT_THREA
 # Alias Management
 
 PORTAL__CREATE_ALIAS = "Current Portal Alias" + EVENT_THREAD__USER_REQUEST
+
+
+# ---------------------------------------------------------------------------
+# Special Rendering Events
+
+RENDER__UPDATE = "Render Update" + EVENT_THREAD__NOTICE
 
 
 # ---------------------------------------------------------------------------
