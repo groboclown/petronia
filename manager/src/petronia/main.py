@@ -19,28 +19,23 @@ from .shell.native.windows_hook_event import WindowsHookEvent
 from .shell.native.window_mapper import WindowMapper
 from .shell.view.render_selected_layout import RenderSelectedPanels
 from .shell.view.render_active_portal import RenderActivePortal
-from .util import worker_thread
+from .shell.view.render_text import get_object_factories as render_text_factories
 from .script.read_config import read_user_configuration
 from .tests.bus_logger import log_events
 
 import sys
 
 
-if __name__ == '__main__':
-    if len(sys.argv) <= 1:
-        print("Usage: arg 1: the user configuration file")
-        exit(1)
-
-    config = read_user_configuration(sys.argv[1])
+def setup(config_file):
+    config = read_user_configuration(config_file)
     bus = Bus()
     Logger(bus, LEVEL_VERBOSE)
-    # log_events(bus)
     id_mgr = IdManager(bus)
-    cmd_handler = CommandHandler(bus, config)
+    CommandHandler(bus, config)
     registrar = Registrar(bus, id_mgr, config)
 
     # TODO this factory declaration needs to be extensible.
-    for reg_objects in (layout_factories(), portal_factories()):
+    for reg_objects in (layout_factories(), portal_factories(), render_text_factories()):
         for category, factory in reg_objects.items():
             registrar.register_category_factory(category, factory)
 
@@ -50,20 +45,25 @@ if __name__ == '__main__':
         ActivePortalManager(bus, config)
 
     # Important: Mapper before Hook Event
-    wm = WindowMapper(bus, id_mgr, config)
+    WindowMapper(bus, id_mgr, config)
 
-    # Important: Hook Event first
-    whe = WindowsHookEvent(bus, config)
+    # Important: Hook Event after Mapper
+    WindowsHookEvent(bus, config)
 
     if config.uses_layout:
         RenderSelectedPanels(bus, config)
         RenderActivePortal(bus, config)
 
-    # For easy shutdown if the shutdown key sequence doesn't work.
-    # However, uncommenting this means that the main thread won't
-    # stop until the user sends it some input.
+    return bus
 
-    # sys.stdin.read(1)
 
-    # worker_thread.stop_all_threads()
-    # exit()
+def main_setup():
+    if len(sys.argv) <= 1:
+        print("Usage: arg 1: the user configuration file")
+        exit(1)
+
+    setup(sys.argv[1])
+
+
+if __name__ == '__main__':
+    main_setup()
