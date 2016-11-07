@@ -58,7 +58,7 @@ class Portal(Tile):
             del self.__windows[window_index]
             if window_cid in self.__window_listeners:
                 for event_id, listener in self.__window_listeners[window_cid].items():
-                    self._remove_listener(event_id, listener)
+                    self._remove_listener(event_id, window_cid, listener)
                 del self.__window_listeners[window_cid]
         elif target_id == self.cid and window_index < 0:
             # Take on the new window
