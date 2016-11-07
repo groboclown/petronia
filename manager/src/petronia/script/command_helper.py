@@ -8,9 +8,6 @@ from ..shell.navigation import DIRECTIONS, ROTATABLE_DIRECTIONS
 import subprocess
 import shlex
 
-# Actions that are already implemented.
-from ..shell.view.show_key_actions import toggle_show_key_action
-
 
 # noinspection PyUnusedLocal
 def quit_shell(bus):

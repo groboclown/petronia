@@ -132,9 +132,6 @@ def load_config():
             "win+alt+f2 => load-config",
 
             "win+esc => open-start-menu",
-
-            # Test, for screen sharing of tutorials
-            "win+shift+f10 => toggle-show-key-action 0xffffff 0x000000 bottom-left"
         ],
         block_win_key=True  # block the windows key, because we remapped it to win+esc
         # False

@@ -108,12 +108,6 @@ class WindowsHookEvent(Identifiable, Component):
 
     def _modal_hotkey(self, vk_code, is_down):
         if on_key_hook(vk_code, is_down):
-            # TODO see if this event firing takes too much time.
-            self._fire(event_ids.OS__KEY_ACTION, target_ids.BROADCAST, {
-                'vk-code': vk_code,
-                'is-down': is_down,
-            })
-
             res = self.__key_combos[self.__mode].key_action(vk_code, is_down)
             if res == IGNORED:
                 return None
