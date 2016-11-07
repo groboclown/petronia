@@ -87,9 +87,17 @@ class Parent(object):
 
     # noinspection PyUnusedLocal
     def _on_child_removed(self, event_id, target_id, event_obj):
-        self._remove_child(target_id)
+        self.__remove_child_data(target_id)
 
     def _remove_child(self, child_cid):
+        if child_cid in self.__child_cid_data:
+            # TODO send close event to the child
+
+            self.__remove_child_data(child_cid)
+        else:
+            self._log_warn("INTERNAL ERROR Cannot remove; no such child: {0}".format(child_cid))
+
+    def __remove_child_data(self, child_cid):
         if child_cid in self.__child_cid_data:
             for listener in self.__child_cid_data[child_cid]['listeners']:
                 self._remove_listener(listener)

@@ -47,15 +47,18 @@ def read_user_configuration(config_file):
 
 def _load_module(config_file):
     file_name = os.path.abspath(config_file)
-    if file_name in _LOADED_MODULES:
-        config_module = _LOADED_MODULES[file_name]
-        try:
-            importlib.reload(config_module)
-            return config_module
-        except BaseException as e:
-            print("CONFIG ERROR: Problem reloading {0}".format(config_file))
-            traceback.print_exc(e)
-            return None
+
+    # This doesn't work right...
+    # if file_name in _LOADED_MODULES:
+    #     config_module = _LOADED_MODULES[file_name]
+    #     try:
+    #         importlib.reload(config_module)
+    #         return config_module
+    #     except BaseException as e:
+    #         print("CONFIG ERROR: Problem reloading {0}".format(config_file))
+    #         traceback.print_exc(e)
+    #         return None
+
     index = 0
     module_name = "user_config_mod0"
     while module_name in _MODULE_NAMES:

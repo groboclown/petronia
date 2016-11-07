@@ -7,7 +7,7 @@ def load_config():
         'name': 'laptop-screen',
         'monitors': [config.MonitorResConfig(0, 1366, 768, False)],
         'workgroup': config.WorkGroupConfig({
-            'default': [config.LayoutConfig('default', 'split-layout', config.ORIENTATION_HORIZONTAL, [
+            'default': [config.LayoutConfig('primary', 'split-layout', config.ORIENTATION_HORIZONTAL, [
                 # Initial window is a floating full-screen
                 config.ChildSplitConfig(0, config.LayoutConfig('main', 'portal', None, None)),
 
@@ -26,7 +26,7 @@ def load_config():
         ],
         'workgroup': config.WorkGroupConfig({
             'default': [
-                config.LayoutConfig('default', 'split-layout', config.ORIENTATION_HORIZONTAL, [
+                config.LayoutConfig('primary', 'split-layout', config.ORIENTATION_HORIZONTAL, [
                     config.ChildSplitConfig(3, config.LayoutConfig('web', 'portal', None, None)),
                     config.ChildSplitConfig(2, config.LayoutConfig('irc', 'split-layout', config.ORIENTATION_VERTICAL, [
                         config.ChildSplitConfig(3, None),

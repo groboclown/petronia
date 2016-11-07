@@ -108,15 +108,32 @@ class ActivePortalManager(Identifiable, Component):
     def _on_object_registered(self, event_id, target_id, event_obj):
         if event_obj['category'] == PORTAL_CATEGORY:
             self.__portal_cids.append(event_obj['cid'])
+            # TODO Something like this SHOULD happen, but this causes generally
+            # bad things, specifically the least significant window suddenly becomes
+            # active, and all the initial windows are shoved into it.
+            # if self.__active_portal_cid is None:
+            #     self._fire(event_ids.PORTAL__ACTIVATED, target_ids.BROADCAST, {
+            #         'portal-cid': event_obj['cid']
+            #     })
 
     # noinspection PyUnusedLocal
     def _on_object_removed(self, event_id, target_id, event_obj):
-        try:
-            self.__portal_cids.remove(event_obj['cid'])
-        except KeyError:
-            pass
-        except ValueError:
-            pass
+        if 'cid' in event_obj:
+            removed_cid = event_obj['cid']
+            try:
+                self.__portal_cids.remove(removed_cid)
+            except KeyError:
+                pass
+            except ValueError:
+                pass
+            if self.__active_portal_cid == removed_cid:
+                if len(self.__portal_cids) > 0:
+                    self._fire(event_ids.PORTAL__ACTIVATED, target_ids.BROADCAST, {
+                        'portal-cid': self.__portal_cids[0]
+                    })
+                else:
+                    self._log_info("Removed the last portal; nothing is active")
+                    self.__active_portal_cid = None
 
     # noinspection PyUnusedLocal
     def _on_window_created(self, event_id, target_id, event_obj):

@@ -5,6 +5,10 @@ from .component import Identifiable, Component
 from .. import config
 from ..script.read_config import read_user_configuration
 
+# BUGS:
+#   * keys are not reloaded, and stop being processed.
+#   * windows are not moved back to original position.
+
 
 class ConfigLoader(Identifiable, Component, config.ConfigType):
     def __init__(self, bus, config_file=None):

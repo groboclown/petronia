@@ -8,6 +8,7 @@
 from .system.bus import Bus
 from .system.id_manager import IdManager
 from .system.registrar import Registrar
+from .system.config_loader import ConfigLoader
 from .system.logger import Logger, LEVEL_DEBUG, LEVEL_VERBOSE, LEVEL_ERROR
 from .shell.component_factory_registry import register_factories
 from .shell.control.command_handler import CommandHandler
@@ -30,6 +31,7 @@ def setup(config_file):
     Logger(bus, LEVEL_VERBOSE)
     id_mgr = IdManager(bus)
     CommandHandler(bus, config)
+    ConfigLoader(bus, config_file)
     registrar = Registrar(bus, id_mgr, config)
 
     register_factories(registrar)

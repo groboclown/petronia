@@ -122,7 +122,13 @@ class RootLayout(Layout):
                 events = []
                 child_cid = self._add_child_layout(top_layouts[0], size, events)
                 self._set_child_data(child_cid, 'monitor', size)
+
             # Re-allocate all the open windows to their correct portals.
+            self._fire(event_ids.FOCUS__PORTAL_ALIAS, target_ids.ACTIVE_PORTAL_MANAGER, {
+                # TODO replace this magic "default" keyword.  At least make it a
+                # constant and well-documented value.
+                'alias': 'main'
+            })
             self._fire(event_ids.LAYOUT__RESEND_WINDOW_CREATED_EVENTS, target_ids.WINDOW_MAPPER, {})
 
     def _on_last_child_removed(self):

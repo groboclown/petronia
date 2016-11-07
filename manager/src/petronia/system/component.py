@@ -23,7 +23,7 @@ class Component(object):
 
     def close(self):
         self._remove_all_listeners()
-        self._log_debug("closed component {0}".format(self))
+        self._log_verbose("closed component {0}".format(self))
 
     def _listen(self, event_id, target_id, callback):
         # TODO There is weirdness here - registering the same callback

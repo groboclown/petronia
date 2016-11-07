@@ -344,6 +344,7 @@ class WindowMapper(Identifiable, Component):
 
     # noinspection PyUnusedLocal
     def _on_resend_window_created_events(self, event_id, target_id, obj):
+        self._log_debug("Resending window create events.")
         for info in self.__handle_map.values():
             if self.__config.applications.is_tiled(info):
                 self._fire_for_window(event_ids.WINDOW__CREATED, info)
