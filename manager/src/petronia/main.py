@@ -9,17 +9,15 @@ from .system.bus import Bus
 from .system.id_manager import IdManager
 from .system.registrar import Registrar
 from .system.logger import Logger, LEVEL_DEBUG, LEVEL_VERBOSE, LEVEL_ERROR
+from .shell.component_factory_registry import register_factories
 from .shell.control.command_handler import CommandHandler
 from .shell.control.layout_management import LayoutManagementController
 from .shell.control.root_layout import RootLayout
-from .shell.control.split_layout import get_object_factories as layout_factories
-from .shell.control.portal import get_object_factories as portal_factories
 from .shell.control.active_portal_manager import ActivePortalManager
 from .shell.native.windows_hook_event import WindowsHookEvent
 from .shell.native.window_mapper import WindowMapper
 from .shell.view.render_selected_layout import RenderSelectedPanels
 from .shell.view.render_active_portal import RenderActivePortal
-from .shell.view.render_text import get_object_factories as render_text_factories
 from .script.read_config import read_user_configuration
 from .tests.bus_logger import log_events
 
@@ -34,10 +32,7 @@ def setup(config_file):
     CommandHandler(bus, config)
     registrar = Registrar(bus, id_mgr, config)
 
-    # TODO this factory declaration needs to be extensible.
-    for reg_objects in (layout_factories(), portal_factories(), render_text_factories()):
-        for category, factory in reg_objects.items():
-            registrar.register_category_factory(category, factory)
+    register_factories(registrar)
 
     if config.uses_layout:
         RootLayout(bus, config, id_mgr)
