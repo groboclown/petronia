@@ -24,7 +24,6 @@ def create_all_commands():
         create_lock_screen(),
         create_inject_keys(),
         create_exec_cmd(),
-        create_toggle_show_key_action(),
     ]
 
 
