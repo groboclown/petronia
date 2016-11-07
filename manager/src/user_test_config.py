@@ -118,7 +118,7 @@ def load_config():
             "win+l => lock-screen",
 
             # Launch a CMD.exe command prompt in a stand alone window.
-            "win+launch_app1 => cmd cmd.exe /c start cmd.exe",
+            "win+launch-app1 => cmd cmd.exe /c start cmd.exe",
 
             # Launch a CMD with nice colors and an initial directory.
             # Note that the backslash character must be escaped, once for

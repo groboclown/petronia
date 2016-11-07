@@ -22,7 +22,7 @@ WINDOWS_HOOKS = "Windows Hooks"
 
 CONTROL_MANAGER = "Control Manager"
 
-TOP_LAYOUT = "Top Layout"
+TOP_LAYOUT = "Root Layout"
 
 WINDOW_MAPPER = "Window Mapper"
 

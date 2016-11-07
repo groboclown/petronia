@@ -92,18 +92,19 @@ class Parent(object):
     def _remove_child(self, child_cid):
         if child_cid in self.__child_cid_data:
             # TODO send close event to the child
-
+            self._log_warn("TODO no close event sent to child")
             self.__remove_child_data(child_cid)
         else:
             self._log_warn("INTERNAL ERROR Cannot remove; no such child: {0}".format(child_cid))
 
     def __remove_child_data(self, child_cid):
         if child_cid in self.__child_cid_data:
-            for listener in self.__child_cid_data[child_cid]['listeners']:
-                self._remove_listener(listener)
+            for event_id, target_id, listener in self.__child_cid_data[child_cid]['listeners']:
+                self._remove_listener(event_id, target_id, listener)
             del self.__child_cid_data[child_cid]
             if child_cid in self.__ordered_child_cids:
                 self.__ordered_child_cids.remove(child_cid)
+            print("DEBUG removed child {2} for {0}; {1} children left ({3})".format(self.cid, self._child_count, child_cid, self._child_cids))
             if len(self.__child_cid_data) <= 0:
                 self._on_last_child_removed()
         else:
@@ -113,7 +114,7 @@ class Parent(object):
         if child_cid not in self.__child_cid_data:
             self._log_warn("INTERNAL ERROR Cannot listen; no such child: {0}".format(child_cid))
         else:
-            self.__child_cid_data[child_cid]['listeners'].append(listener)
+            self.__child_cid_data[child_cid]['listeners'].append((event_id, child_cid, listener))
             self._listen(event_id, child_cid, listener)
 
     def _on_last_child_removed(self):

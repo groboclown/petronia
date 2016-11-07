@@ -9,7 +9,7 @@ from .system.bus import Bus
 from .system.id_manager import IdManager
 from .system.registrar import Registrar
 from .system.config_loader import ConfigLoader
-from .system.logger import Logger, LEVEL_DEBUG, LEVEL_VERBOSE, LEVEL_ERROR
+from .system.logger import Logger, LEVEL_DEBUG, LEVEL_VERBOSE, LEVEL_WARN
 from .shell.component_factory_registry import register_factories
 from .shell.control.command_handler import CommandHandler
 from .shell.control.layout_management import LayoutManagementController
@@ -29,6 +29,8 @@ def setup(config_file):
     config = read_user_configuration(config_file)
     bus = Bus()
     Logger(bus, LEVEL_VERBOSE)
+    # Logger(bus, LEVEL_DEBUG)
+    # Logger(bus, LEVEL_WARN)
     id_mgr = IdManager(bus)
     CommandHandler(bus, config)
     ConfigLoader(bus, config_file)

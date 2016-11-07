@@ -6,7 +6,7 @@ from ...system.component import MarshalableComponent, Identifiable
 from ...system.id_manager import Parent
 
 
-class Tile(Parent, Identifiable, MarshalableComponent):
+class Tile(Identifiable, Parent, MarshalableComponent):
     """
     Base class for the layouts and portals.
     """
@@ -43,8 +43,7 @@ class Tile(Parent, Identifiable, MarshalableComponent):
         raise NotImplementedError()
 
     def _on_remove_self(self, event_id, target_id, event_obj):
-        # New parent for orphaned children is 'window-parent'
-        self.close()
+        raise NotImplementedError()
 
     def _on_direction_negotiation_begin(self, event_id, target_id, event_obj):
         raise NotImplementedError()

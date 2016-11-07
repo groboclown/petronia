@@ -66,16 +66,17 @@ class Bus(object):
         finally:
             self.__listener_lock.release()
 
-    def remove_listener(self, callback):
+    def remove_listener(self, event_id, target_id, callback):
+        key = self.__event_target_key(event_id, target_id)
         self.__listener_lock.acquire_write()
         try:
-            for key, event_listeners in self.__listeners.items():
-                try:
-                    event_listeners.remove(callback)
-                except KeyError:
-                    # can happen even if the callback seems to be in the list,
-                    # but isn't any longer due to a weak reference.
-                    pass
+            event_listeners = self.__listeners[key]
+            try:
+                event_listeners.remove(callback)
+            except KeyError:
+                # can happen even if the callback seems to be in the list,
+                # but isn't any longer due to a weak reference.
+                pass
         finally:
             self.__listener_lock.release()
         self.fire(event_ids.BUS__LISTENER_REMOVED, target_ids.BROADCAST, {})

@@ -64,6 +64,10 @@ class RootLayout(Layout):
                     self._fire(event_ids.LAYOUT__REMOVE_OBJECT, child_cid, {
                         'window-parent': target_ids.TOP_LAYOUT,
                     })
+                # Because those removals happen in a NOW event, we can see
+                # if we can initiate the layout.
+                # However, let's just be formal about it. Especially in case
+                # the associated event thread changes.
             else:
                 # directly setup the layout
                 self._on_root_create_layout(event_id, target_id, event_obj)
@@ -124,7 +128,7 @@ class RootLayout(Layout):
                 self._set_child_data(child_cid, 'monitor', size)
 
             # Re-allocate all the open windows to their correct portals.
-            self._fire(event_ids.FOCUS__PORTAL_ALIAS, target_ids.ACTIVE_PORTAL_MANAGER, {
+            self._fire(event_ids.PORTAL__SET_ACTIVE, target_ids.ACTIVE_PORTAL_MANAGER, {
                 # TODO replace this magic "default" keyword.  At least make it a
                 # constant and well-documented value.
                 'alias': 'main'
@@ -162,7 +166,7 @@ class RootLayout(Layout):
 
         # Rotate through the child indicies
         next_child_index = (previous_child_index + index_change + self._child_count) % self._child_count
-        self._log_debug("Root rotating movement from index {0} to {1}".format(previous_child_index, next_child_index))
+        self._log_verbose("Root rotating movement from index {0} to {1}".format(previous_child_index, next_child_index))
 
         return self._fire_negotiation_descend(self._child_cids[next_child_index], event_obj)
 

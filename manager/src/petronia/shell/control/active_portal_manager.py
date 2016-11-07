@@ -40,10 +40,11 @@ class ActivePortalManager(Identifiable, Component):
 
     # noinspection PyUnusedLocal
     def _on_focus_move(self, event_id, target_id, event_obj):
-        if self.__active_portal_cid is not None:
+        active = self._find_active_portal_cid()
+        if active is not None:
             direction = event_obj['direction']
             self._fire(
-                event_ids.DIRECTION_NEGOTIATION__BEGIN, self.__active_portal_cid,
+                event_ids.DIRECTION_NEGOTIATION__BEGIN, active,
                 create_direction_negotiation_start_event_obj(
                     self.cid, direction, 'portal', event_ids.PORTAL__SET_ACTIVE, None, {}
                 )
@@ -58,22 +59,25 @@ class ActivePortalManager(Identifiable, Component):
     # noinspection PyUnusedLocal
     def _on_create_portal_alias(self, event_id, target_id, event_obj):
         if 'portal-cid' in event_obj:
+            print("DEBUG registered alias {0} on portal {1}".format(event_obj['alias'], event_obj['portal-cid']))
             self.__portal_aliases[event_obj['portal-cid']] = event_obj['alias']
         elif self.__active_portal_cid is not None:
+            print("DEBUG registered alias {0} on portal {1}".format(event_obj['alias'], self.__active_portal_cid))
             self.__portal_aliases[event_obj['alias']] = self.__active_portal_cid
 
     # noinspection PyUnusedLocal
     def _on_focus_portal_alias(self, event_id, target_id, event_obj):
         alias = event_obj['alias']
-        if alias in self.__portal_aliases:
+        if alias in self.__portal_aliases and self.__portal_aliases[alias] in self.__portal_cids:
             self._fire(event_ids.PORTAL__SET_ACTIVE, self.__portal_aliases[alias], {})
 
     # noinspection PyUnusedLocal
     def _move_portal_window_to_other_portal(self, event_id, target_id, event_obj):
-        if self.__active_portal_cid is not None:
+        active = self._find_active_portal_cid()
+        if active is not None:
             # This is the temporary movement handler until navigation can handle it better.
             self._log_verbose("Moving active window in {0} {1}".format(
-                self.__active_portal_cid, event_obj['direction']))
+                active, event_obj['direction']))
             direction = event_obj['direction']
             if DIR_NEXT == direction:
                 dir_add = 1
@@ -82,18 +86,18 @@ class ActivePortalManager(Identifiable, Component):
             else:
                 # Use the normal movement.  This should be the only line in the
                 # "if __active_portal_cid is not None" statement.
-                return self._fire(event_id, self.__active_portal_cid, event_obj)
+                return self._fire(event_id, active, event_obj)
 
             portals = list(self.__portal_cids)
             portal_count = len(portals)
             try:
-                current_index = portals.index(self.__active_portal_cid)
+                current_index = portals.index(active)
                 dest_cid = portals[(portal_count + current_index + dir_add) % portal_count]
             except KeyError:
                 if portal_count <= 0:
                     return self._log_warn("No portals registered; cannot move window.")
                 dest_cid = portals[0]
-            return self._fire(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, self.__active_portal_cid, {
+            return self._fire(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, active, {
                 'destination-cid': dest_cid
             })
         # else:
@@ -118,34 +122,44 @@ class ActivePortalManager(Identifiable, Component):
 
     # noinspection PyUnusedLocal
     def _on_object_removed(self, event_id, target_id, event_obj):
-        if 'cid' in event_obj:
-            removed_cid = event_obj['cid']
-            try:
-                self.__portal_cids.remove(removed_cid)
-            except KeyError:
-                pass
-            except ValueError:
-                pass
-            if self.__active_portal_cid == removed_cid:
-                if len(self.__portal_cids) > 0:
-                    self._fire(event_ids.PORTAL__ACTIVATED, target_ids.BROADCAST, {
-                        'portal-cid': self.__portal_cids[0]
-                    })
-                else:
-                    self._log_info("Removed the last portal; nothing is active")
-                    self.__active_portal_cid = None
+        try:
+            self.__portal_cids.remove(target_id)
+            self._log_verbose("Removed registered portal {0}".format(target_id))
+            # Ensure the active portal is still accurate
+            self._find_active_portal_cid()
+        except KeyError:
+            pass
+        except ValueError:
+            pass
 
     # noinspection PyUnusedLocal
     def _on_window_created(self, event_id, target_id, event_obj):
         portal_alias = self.__config.applications.get_best_portal_match(
             self.__portal_aliases.keys(), event_obj['window-info'])
+        print("DEBUG matched {1} with {0}".format(event_obj['window-info']['exec_filename'], portal_alias))
+        dest_cid = None
         if portal_alias in self.__portal_aliases:
             dest_cid = self.__portal_aliases[portal_alias]
-        elif self.__active_portal_cid is not None:
-            dest_cid = self.__active_portal_cid
-        elif len(self.__portal_cids) > 0:
-            dest_cid = self.__portal_cids[0]
-        else:
-            self._log_verbose("Window added before any portal created.")
-            return
+            if dest_cid not in self.__portal_cids:
+                dest_cid = None
+        if dest_cid is None:
+            dest_cid = self._find_active_portal_cid()
+            if dest_cid is None:
+                self._log_verbose("Window added before any portal created.")
+                return
         self._fire(event_ids.LAYOUT__ADD_WINDOW, dest_cid, event_obj)
+
+    def _find_active_portal_cid(self):
+        ret = self.__active_portal_cid
+        if ret is not None:
+            # Ensure it exists
+            if ret not in self.__portal_cids:
+                self.__active_portal_cid = None
+                ret = None
+        if ret is None:
+            if len(self.__portal_cids) > 0:
+                ret = self.__portal_cids[0]
+                self._fire(event_ids.PORTAL__SET_ACTIVE, ret, {})
+            else:
+                print("DEBUG no active portal, because there are no known portals.")
+        return ret

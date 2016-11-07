@@ -16,7 +16,14 @@ def get_object_factories():
 
 def portal_factory(cid, arguments, bus, id_manager, config):
     parent_cid = arguments['parent-cid']
-    return Portal(cid, bus, config, id_manager, parent_cid)
+    ret = Portal(cid, bus, config, id_manager, parent_cid)
+    if 'layout-def' in arguments:
+        layout_def = arguments['layout-def']
+        bus.fire(event_ids.PORTAL__CREATE_ALIAS, target_ids.ACTIVE_PORTAL_MANAGER, {
+             'alias': layout_def.name,
+             'portal-cid': cid,
+        })
+    return ret
 
 
 class Portal(Tile):
@@ -50,8 +57,8 @@ class Portal(Tile):
                 window_cid, self.cid, target_id))
             del self.__windows[window_index]
             if window_cid in self.__window_listeners:
-                for listener in self.__window_listeners[window_cid]:
-                    self._remove_listener(listener)
+                for event_id, listener in self.__window_listeners[window_cid].items():
+                    self._remove_listener(event_id, listener)
                 del self.__window_listeners[window_cid]
         elif target_id == self.cid and window_index < 0:
             # Take on the new window
@@ -71,10 +78,10 @@ class Portal(Tile):
 
             self._listen(event_ids.WINDOW__FOCUSED, window_cid, this_window_activated)
             self._listen(event_ids.WINDOW__REDRAW, window_cid, this_window_redraw)
-            self.__window_listeners[window_cid] = [
-                this_window_activated,
-                this_window_redraw,
-            ]
+            self.__window_listeners[window_cid] = {
+                event_ids.WINDOW__FOCUSED: this_window_activated,
+                event_ids.WINDOW__REDRAW: this_window_redraw,
+            }
             if 'make-focused' in event_obj and event_obj['make-focused']:
                 self._fire(event_ids.PORTAL__SET_ACTIVE, self.cid, {})
 
@@ -194,7 +201,8 @@ class Portal(Tile):
                 'window-cid': window_info['cid'],
                 'window-info': window_info,
             })
-        super()._on_remove_self(event_id, target_id, event_obj)
+        # Immediately close; do not wait for the events.
+        self.close()
 
     def _do_layout(self):
         window_rect = self._get_window_rect()

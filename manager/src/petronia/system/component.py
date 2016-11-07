@@ -15,7 +15,7 @@ class Component(object):
     def __init__(self, bus):
         assert isinstance(bus, Bus)
         self.__bus = bus
-        self.__listeners = set()
+        self.__listeners = []
         weakref.finalize(self, _cleanup_listeners, self.__bus, self.__listeners)
         atexit.register(self.close)
 
@@ -35,11 +35,16 @@ class Component(object):
         :param callback:
         :return:
         """
-        self.__listeners.add(callback)
+        self.__listeners.append((event_id, target_id, callback))
         self.__bus.add_listener(event_id, target_id, callback)
 
-    def _remove_listener(self, callback):
-        self.__bus.remove_listener(callback)
+    def _remove_listener(self, event_id, target_id, callback):
+        self.__bus.remove_listener(event_id, target_id, callback)
+        for i in range(len(self.__listeners)):
+            eid, tid, value = self.__listeners[i]
+            if eid == event_id and tid == target_id and value == callback:
+                del self.__listeners[i]
+                return
 
     def _remove_all_listeners(self):
         _cleanup_listeners(self.__bus, self.__listeners)
@@ -84,8 +89,11 @@ class Component(object):
 
 
 def _cleanup_listeners(bus, listeners):
-    for listener in list(listeners):
-        bus.remove_listener(listener)
+    assert isinstance(bus, Bus)
+    assert isinstance(listeners, list)
+    for event_id, target_id, listener in listeners:
+        bus.remove_listener(event_id, target_id, listener)
+    listeners.clear()
 
 
 class MarshalableComponent(Component, Marshalable):
@@ -102,11 +110,14 @@ class Identifiable(object):
         self.__cid = cid
 
     def close(self):
-        self._fire(event_ids.REGISTRAR__OBJECT_REMOVED, self.cid, {
-            'cid': self.cid,
+        cid = self.cid
+        print("DEBUG Identifiable close() call for {0}".format(cid))
+        assert isinstance(self, Component)
+        self._fire(event_ids.REGISTRAR__OBJECT_REMOVED, cid, {
+            'cid': cid,
             'type': type(self)
         })
-        super().close()
+        Component.close(self)
 
     def _get_log_src(self):
         return self.cid
