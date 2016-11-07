@@ -13,8 +13,9 @@ First thing, you need to get the stuff that allows you to run Petronia.
 2. Download the [python.org](https://python.org) Python v3.5 distribution
     appropriate for your computer (64-bit or 32-bit).
 3. Download the Petronia source.  Yeah, we're cookin' with gas here.
-    Get it from gitub.  Clone the repo, or just download it.
-    *TODO better instructions.*
+    Get it from gitub.
+    [Clone the repo](https://github.com/groboclown/petronia), or just
+    [download it](https://github.com/groboclown/petronia/archive/master.zip).
 
 
 ## Install the Stuff
@@ -33,13 +34,13 @@ already there), and run the main program from the `manager/src` directory.
 ```cmd
 > set Path=(python directory);%Path%
 > cd (petronia directory)\manager\src
-> python -u -m petronia.main user_test_config.py
+> python -u -m petronia.cmd user_test_config.py
 ```
 
 The `user_test_config.py` argument tells Petronia where to find your
 configuration file.
 
-Press <kbd>Enter</kbd> in the command prompt to stop it.
+Press <kbd>&crarr; Enter</kbd> in the command prompt to stop it.
 
 
 ## What Just Happened?
@@ -89,8 +90,20 @@ into the default mode.
 At this point, I bet you just can't wait to dive into the configuration to
 get your computer working how you want.
 
-[Go for it.](user-configuration.md)  Start writing your own configuration
-now.
+[Go for it.](user-configuration.md)  Start writing your own configuration now.
 
 You'll have to shut down Petronia and restart it with the new configuration,
-and restart it for each update.
+and restart it for each update.  *There is a secret mojo sauce that allows
+you to reload the configuration on the fly.*
+
+Additionally, you can switch to the experimental `main` executable:
+
+```cmd
+> python -u -m petronia.main user_test_config.py
+```
+
+In this mode, you can simply press <kbd>&#x2756; Win</kbd><kbd>F4</kbd>
+(or whichever key combination you have mapped to the `quit` command) to stop
+the program.  *Note that this is experimental, and issues have come up where
+to really stop it you have to kill the Python process.  So, use at your own
+risk.*

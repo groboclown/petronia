@@ -65,7 +65,13 @@ potentially, though.  Especially if we want to add in our own
 notification tray.
 
 
-## Future Notes if this ever becomes a full-on Shell program
+## Shell Replacement
+
+*Priority: **FAR DISTANT FUTURE***
+
+A full on Explorer replacement.
+
+### Some notes if this ever becomes a reality
 
 To close Windows Explorer as the current shell:
 
@@ -76,6 +82,6 @@ To close Windows Explorer as the current shell:
 To restart Windows Explorer as the current shell:
 
 1. Stop Petronia.
-2. Press <kbd>Ctrl</kbd><kbd>Alt</kbd><kbd>Del</kbd>, select "Task Manager".
+2. Press <kbd>&#x2732; Ctrl</kbd><kbd>Alt</kbd><kbd>Del</kbd>, select "Task Manager".
 3. From Task Manager, select **File** -> **Run new task**
 4. From this new Create New Task dialog, enter "explorer", and click **OK**. 

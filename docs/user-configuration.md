@@ -83,6 +83,7 @@ You define a layout like:
 
 ```python
 from petronia import config
+
 layout = config.LayoutConfig('right', 'split-layout', config.ORIENTATION_VERTICAL, [
     config.ChildSplitConfig(5, config.LayoutConfig('right-top', 'portal', None, None)),
     config.ChildSplitConfig(1, config.LayoutConfig('right-bottom', 'portal', None, None)),

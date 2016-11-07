@@ -14,6 +14,7 @@ override mode, they act just as any other key.
 | <kbd>Alt</kbd> | `alt` (either Alt key), `lalt` (left Alt key), `ralt` (right Alt key) |
 | <kbd>&#x21ea; Caps Lock</kbd> | `caps-lock` |
 
+
 ## Normal Keys
 
 These are all keys that can be used with modifiers.
@@ -108,7 +109,7 @@ configuration file as `f1` to `f24`.
 | <kbd>'/"</kbd> | `"`, `'`, `quote`, `tick` |
     
 
-## Others
+### Others
 
 These need to be verified
 

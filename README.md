@@ -71,10 +71,10 @@ Once you have your configuration setup, you just run in a cmd prompt:
 ```cmd
 > set Path=(python 3.5.2 directory);%Path%
 > cd (petronia dir)\manager\src
-> python -u -m petronia.main my_config_file.py
+> python -u -m petronia.cmd my_config_file.py
 ```
 
-Press <kbd>&#x2756; Win</kbd><kbd>F4</kbd> to stop the program.
+Press <kbd>&crarr; Enter</kbd> in the command window to stop the program.
 
 *So bleeding edge!*
 
