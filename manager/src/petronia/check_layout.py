@@ -5,7 +5,6 @@ from .system.registrar import Registrar
 from .system import event_ids
 from .system import target_ids
 from .arch import funcs
-from .shell.control.root_layout import RootLayout
 from .script.read_config import read_user_configuration
 
 import sys

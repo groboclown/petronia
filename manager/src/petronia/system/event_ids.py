@@ -121,7 +121,6 @@ OS__WINDOW_MONITOR_CHANGED = "OS Window Monitor Changed" + EVENT_THREAD__NOTICE
 OS__WINDOW_FLASH = "OS Window Flash" + EVENT_THREAD__NOTICE
 OS__APP_COMMAND = "OS AppCommand" + EVENT_THREAD__NOTICE
 OS__RESOLUTION_CHANGED = "OS Resolution Changed" + EVENT_THREAD__NOTICE
-OS__KEY_ACTION = "OS Key Pressed or Released" + EVENT_THREAD__NOTICE
 
 
 # ---------------------------------------------------------------------------
