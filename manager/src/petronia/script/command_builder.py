@@ -101,3 +101,67 @@ def create_inject_keys():
 
 def create_exec_cmd():
     return Command("cmd", command_helper.exec_cmd)
+
+
+if __name__ == '__main__':
+    # Create the 'user-commands.md' file.
+
+    __FILE_TEMPLATE = """# Hotkey Commands
+
+All the commands you can run with hotkeys.
+
+See also [custom commands](user-custom-commands.md).
+<!-- that file generates this file -->
+
+Reference: [command_builder.py](../manager/src/petronia/script/command_builder.py)
+
+
+## Built-In Command List
+
+{0}
+"""
+
+    __COMMAND_TEMPLATE = """### `{name} {args_list}`
+
+**Arguments**: {args_desc}
+
+{help}
+
+"""
+
+    __ARG_HEADER_TEMPLATE = "({0})"
+    __ARG_DESC_TEMPLATE = "* `{0}` - {1}"
+
+    __cmds = []
+
+    for __cmd in create_all_commands():
+        __docs = __cmd.describe().splitlines()
+        __parts = {'desc': [], 'arg': None}
+        __args = []
+        __mode = 'desc'
+        for __line in __docs:
+            __line = __line.strip()
+            if __line.startswith(':param bus:'):
+                __mode = None
+            elif __line.startswith(':param '):
+                __mode = 'arg'
+                __parts['arg'] = []
+                __name = __line[7:__line.find(':', 1)]
+                __line = __line[__line.find(':', 1)+1:]
+                __args.append((__name, __parts['arg']))
+            elif __line.startswith(':'):
+                __mode = None
+            if __mode is not None:
+                __parts[__mode].append(__line)
+        __arg_headers = []
+        __arg_descs = []
+        for __arg_name, __arg_desc_list in __args:
+            __arg_headers.append(__ARG_HEADER_TEMPLATE.format(__arg_name).strip())
+            __arg_descs.append(__ARG_DESC_TEMPLATE.format(__arg_name, " ".join(__arg_desc_list)).strip())
+        __cmds.append(__COMMAND_TEMPLATE.format(
+            name=__cmd.name,
+            args_list=" ".join(__arg_headers),
+            args_desc=len(__args) <= 0 and "None" or ("\n\n" + "\n".join(__arg_descs)),
+            help="\n".join(__parts['desc']).strip()
+        ))
+    print(__FILE_TEMPLATE.format("\n\n".join(__cmds)))

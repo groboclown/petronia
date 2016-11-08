@@ -15,5 +15,8 @@ class Command(object):
     def invoke(self, bus, args):
         self.__invoker(bus, *args)
 
+    def describe(self):
+        return self.__invoker.__doc__
+
     def __str__(self):
         print("Cmd({0})".format(self.__name))

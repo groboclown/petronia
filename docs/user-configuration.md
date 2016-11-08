@@ -74,7 +74,7 @@ There are several sections of configuration that you can configure.
 Setting up the component configuration allows for selecting individual parts
 of the Petronia system to be active.
 
-*TODO not implemented yet.*
+*At the moment there is nothing to be done here.*
 
 
 
