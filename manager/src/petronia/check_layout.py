@@ -11,6 +11,7 @@ from .shell.control.portal import get_object_factories as portal_factories
 from .script.read_config import read_user_configuration
 
 import sys
+from .shell.component_factory_registry import register_factories
 
 
 if __name__ == '__main__':
@@ -19,19 +20,19 @@ if __name__ == '__main__':
     """
     if len(sys.argv) <= 1:
         print("Usage: arg 1: the user configuration file")
+        print("arg 2 (optional): the layout for the selected work group to use")
         exit(1)
 
-    # TODO allow a second argument to select the work group
-    # in the monitor selection to test.
+    layout_name = None
+    if len(sys.argv) >= 3:
+        layout_name = sys.argv[2]
 
     config = read_user_configuration(sys.argv[1])
 
     bus = SingleThreadedBus()
     id_mgr = IdManager(bus)
     registrar = Registrar(bus, id_mgr, config)
-    for reg_objects in (layout_factories(), portal_factories()):
-        for category, factory in reg_objects.items():
-            registrar.register_category_factory(category, factory)
+    register_factories(registrar)
 
     sizes = {}
 
@@ -50,7 +51,7 @@ if __name__ == '__main__':
         index += 1
 
     bus.add_listener(event_ids.LAYOUT__SET_RECTANGLE, target_ids.ANY, set_size_listener)
-    root_layout = RootLayout(bus, config, id_mgr)
+    root_layout = RootLayout(bus, config, id_mgr, layout_name)
     bus.fire(event_ids.OS__RESOLUTION_CHANGED, target_ids.BROADCAST, {
         'monitors': monitors
     })

@@ -30,8 +30,10 @@ class DisplayWorkGroupsConfig(BaseConfig):
                 'monitors': list(g['monitors']),
                 'workgroup': g['workgroup']
             }
-            # Make sure the monitors are sorted.
-            sorted(group['monitors'], key=lambda m: m.monitor_index)
+            # Setup the monitor indicies
+            for i in range(len(group['monitors'])):
+                assert isinstance(group['monitors'][i], MonitorResConfig)
+                group['monitors'][i].update_monitor_index(i)
             self.__groups.append(group)
 
     def get_workgroup_for_display(self, monitors):
@@ -100,20 +102,22 @@ class MonitorResConfig(BaseConfig):
     The configuration for a single monitor at a specific resolution.  Used by the
     DisplayWorkGroupConfig to map a monitor setup to a workgroup.
     """
-    def __init__(self, monitor_index, res_x, res_y, show_bar):
+    def __init__(self, res_x, res_y):
         """
 
-        :param monitor_index: monitor index (starts with 0)
         :param res_x: monitor x resolution
         :param res_y: monitor y resolution
-        :param show_bar: show the start bar?
         """
-        self.monitor_index = monitor_index
+        self.monitor_index = 0
         self.res_x = res_x
         self.res_y = res_y
-        self.id = str(monitor_index) + "x" + str(res_x) + "x" + str(res_y)
-        self.show_bar = show_bar
+        self.id = str(self.monitor_index) + "x" + str(res_x) + "x" + str(res_y)
+        self.show_bar = False
         self.top_panel = None
+
+    def update_monitor_index(self, monitor_index):
+        self.monitor_index = monitor_index
+        self.id = str(monitor_index) + "x" + str(self.res_x) + "x" + str(self.res_y)
 
     def find_match_rank(self, index, monitor_description):
         """

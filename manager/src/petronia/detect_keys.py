@@ -1,6 +1,8 @@
 
 from petronia.arch import funcs
 from petronia.util.hotkey_chain import vk_to_names
+import sys
+import threading
 
 
 def shell_hook():
@@ -28,5 +30,14 @@ def vk_to_str(vk):
     return ",".join(maps)
 
 if __name__ == '__main__':
-    print("Warning: Ctrl+C won't normally exit.  You'll need to kill the python process with Task Manager.")
-    shell_hook()
+    # print("Warning: Ctrl+C won't normally exit.  You'll need to kill the python process with Task Manager.")
+    # shell_hook()
+
+    print("Press 'Enter' to stop checking keys.")
+    pump_thread = threading.Thread(
+        target=shell_hook,
+        daemon=True
+    )
+    pump_thread.start()
+    sys.stdin.read()
+    exit()

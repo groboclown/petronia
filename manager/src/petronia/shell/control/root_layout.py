@@ -21,11 +21,11 @@ class RootLayout(Layout):
     The root layout needs considerable locking when dealing with the layout.
     """
 
-    def __init__(self, bus, config, id_manager):
+    def __init__(self, bus, config, id_manager, initial_layout_name=None):
         Layout.__init__(self, target_ids.TOP_LAYOUT, bus, config, id_manager, None)
 
         # When the root layout is computing
-        self.__layout_name = None
+        self.__layout_name = initial_layout_name
         self.__monitors = None
 
         self.__layout_lock = threading.RLock()

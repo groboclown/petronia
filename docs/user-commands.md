@@ -134,6 +134,17 @@ Minimize (to the task bar) the currently active window.
 Resize the currently active window by the given amount.
 
 
+
+#### `layout-name (name)`
+
+**Arguments**:
+
+* `name`: layout to switch to
+
+Switches to the layout named `name`, which should be defined within the
+current work group.
+
+
 #### `load-config (config file)`
 
 **Arguments**:

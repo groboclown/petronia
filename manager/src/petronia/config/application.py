@@ -193,7 +193,12 @@ class AppMatcher(BaseConfig):
             if exact is not None:
                 assert regex is None
                 assert isinstance(exact, str)
-                self.re_matchers[name] = re.compile(r'.*?\\' + re.escape(exact) + '$', re.IGNORECASE)
+                regex = re.escape(exact)
+                if name.endswith("_filename"):
+                    regex = r'.*?\\' + regex + '$'
+                else:
+                    regex = '^' + regex + '$'
+                self.re_matchers[name] = re.compile(regex, re.IGNORECASE)
             elif regex is not None:
                 if isinstance(regex, str):
                     regex = re.compile(regex, re.IGNORECASE)
