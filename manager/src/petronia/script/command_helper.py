@@ -277,14 +277,14 @@ def inject_keys(bus, *key_commands):
 def exec_cmd(bus, *cmd_line):
     """
     Executes an external process using the given arguments.  Note that the
-    backslash (`\`)character must be escaped, because they are within a Python
+    backslash (`\`) character must be escaped, because they are within a Python
     string, so a total of 2 backslashes to equal 1 real backslash.
 
     For example, to run a command prompt with fancy colors and start it in the
-    root of the file system, use:
+    root of the file system when you press <kbd>F1</kbd>, use:
 
     ```
-    cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\\\
+    'f1 => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\'
     ```
 
     :param bus:
