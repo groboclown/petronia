@@ -16,6 +16,14 @@ _DIRECTION_INDEX = {
 }
 
 
+def root_layout_factory(bus, config, id_manager):
+    if config.uses_layout:
+        layout_name = None
+        if 'layout-name' in config.init_options:
+            layout_name = config.init_options['layout-name']
+        RootLayout(bus, config, id_manager, layout_name)
+
+
 class RootLayout(Layout):
     """
     The root layout needs considerable locking when dealing with the layout.

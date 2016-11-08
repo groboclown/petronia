@@ -35,8 +35,16 @@ _LOG_LEVEL_RANGE = (
 )
 
 
+# noinspection PyUnusedLocal
+def logger_factory(bus, config, id_manager):
+    log_level = LEVEL_WARN
+    if 'log-level' in config.init_options:
+        log_level = config.init_options['log-level']
+    Logger(bus, log_level)
+
+
 class Logger(Identifiable, MarshalableComponent):
-    def __init__(self, bus, threshold=LEVEL_DEBUG):
+    def __init__(self, bus, threshold=LEVEL_WARN):
         MarshalableComponent.__init__(self, bus)
         Identifiable.__init__(self, target_ids.LOGGER)
 

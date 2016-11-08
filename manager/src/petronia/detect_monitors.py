@@ -19,8 +19,8 @@ if __name__ == '__main__':
     index = 0
     print("[")
     for monitor in funcs.monitor__find_monitors():
-        print("    # ({0},{1}) -> ({2},{3})".format(
-            monitor['left'], monitor['top'], monitor['right'], monitor['bottom']))
+        print("    # screen {0} virtual position: ({1},{2}) -> ({3},{4})".format(
+            index, monitor['left'], monitor['top'], monitor['right'], monitor['bottom']))
         print("    config.MonitorResConfig({1}, {2}),".format(
             index, monitor['right'] - monitor['left'], monitor['bottom'] - monitor['top']))
         index += 1

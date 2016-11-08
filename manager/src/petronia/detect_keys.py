@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # print("Warning: Ctrl+C won't normally exit.  You'll need to kill the python process with Task Manager.")
     # shell_hook()
 
-    print("Press 'Enter' to stop checking keys.")
+    print("Press Ctrl+C to stop checking keys.")
     pump_thread = threading.Thread(
         target=shell_hook,
         daemon=True

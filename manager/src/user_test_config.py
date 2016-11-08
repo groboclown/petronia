@@ -5,7 +5,7 @@ from petronia import config
 def load_config():
     layouts_by_display = config.DisplayWorkGroupsConfig(groups=[{
         'name': 'laptop-screen',
-        'monitors': [config.MonitorResConfig(0, 1366, 768, False)],
+        'monitors': [config.MonitorResConfig(1366, 768)],
         'workgroup': config.WorkGroupConfig({
             'default': [config.LayoutConfig('primary', 'split-layout', config.ORIENTATION_HORIZONTAL, [
                 # Initial window is a floating full-screen
@@ -21,8 +21,8 @@ def load_config():
     }, {
         'name': '2-monitors, docked',
         'monitors': [
-            config.MonitorResConfig(0, 1920, 1080, False),
-            config.MonitorResConfig(1, 1280, 1024, False)
+            config.MonitorResConfig(1920, 1080),
+            config.MonitorResConfig(1280, 1024)
         ],
         'workgroup': config.WorkGroupConfig({
             'default': [
@@ -40,7 +40,7 @@ def load_config():
         })
     }, {
         'name': 'remote desktop 1024x768',
-        'monitors': [config.MonitorResConfig(0, 1024, 768, False)],
+        'monitors': [config.MonitorResConfig(1024, 768)],
         'workgroup': config.WorkGroupConfig({
             'default': [config.LayoutConfig('default', 'split-layout', config.ORIENTATION_HORIZONTAL, [
                 config.ChildSplitConfig(3, config.LayoutConfig('main', 'portal', None, None)),

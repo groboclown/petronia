@@ -6,12 +6,9 @@ from .system import event_ids
 from .system import target_ids
 from .arch import funcs
 from .shell.control.root_layout import RootLayout
-from .shell.control.split_layout import get_object_factories as layout_factories
-from .shell.control.portal import get_object_factories as portal_factories
 from .script.read_config import read_user_configuration
 
 import sys
-from .shell.component_factory_registry import register_factories
 
 
 if __name__ == '__main__':
@@ -28,11 +25,12 @@ if __name__ == '__main__':
         layout_name = sys.argv[2]
 
     config = read_user_configuration(sys.argv[1])
+    config.init_options['layout-name'] = layout_name
 
     bus = SingleThreadedBus()
     id_mgr = IdManager(bus)
     registrar = Registrar(bus, id_mgr, config)
-    register_factories(registrar)
+    config.register_components(registrar)
 
     sizes = {}
 
@@ -51,7 +49,6 @@ if __name__ == '__main__':
         index += 1
 
     bus.add_listener(event_ids.LAYOUT__SET_RECTANGLE, target_ids.ANY, set_size_listener)
-    root_layout = RootLayout(bus, config, id_mgr, layout_name)
     bus.fire(event_ids.OS__RESOLUTION_CHANGED, target_ids.BROADCAST, {
         'monitors': monitors
     })

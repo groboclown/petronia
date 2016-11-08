@@ -2,15 +2,16 @@
 from . import target_ids
 from . import event_ids
 from .component import Identifiable, Component
-from .. import config
+from ..config import ConfigType, Config
 from ..script.read_config import read_user_configuration
 
-# BUGS:
-#   * keys are not reloaded, and stop being processed.
-#   * windows are not moved back to original position.
+
+# noinspection PyUnusedLocal
+def config_loader_factory(bus, config, id_manager):
+    ConfigLoader(bus, config.init_options['config-file'])
 
 
-class ConfigLoader(Identifiable, Component, config.ConfigType):
+class ConfigLoader(Identifiable, Component, ConfigType):
     def __init__(self, bus, config_file=None):
         Component.__init__(self, bus)
         Identifiable.__init__(self, target_ids.CONFIGURATION_LOADER)
@@ -19,9 +20,9 @@ class ConfigLoader(Identifiable, Component, config.ConfigType):
 
         if config_file is not None:
             self.__config = read_user_configuration(config_file)
-            assert isinstance(self.__config, config.Config)
+            assert isinstance(self.__config, Config)
         else:
-            self.__config = config.Config()
+            self.__config = Config()
 
         self._listen(event_ids.CONFIG__REQUEST_LOAD, target_ids.CONFIGURATION_LOADER, self._load_config_file)
 

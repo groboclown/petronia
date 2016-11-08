@@ -7,6 +7,12 @@ from ..control.portal import PORTAL_CATEGORY
 from ..navigation import create_direction_negotiation_start_event_obj, DIR_PREVIOUS, DIR_NEXT
 
 
+# noinspection PyUnusedLocal
+def active_portal_manager_factory(bus, config, id_manager):
+    if config.uses_layout:
+        ActivePortalManager(bus, config)
+
+
 class ActivePortalManager(Identifiable, Component):
     def __init__(self, bus, config):
         Component.__init__(self, bus)

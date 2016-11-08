@@ -24,6 +24,9 @@ class Registrar(Identifiable, Component):
 
         self._listen(event_ids.REGISTRAR__REGISTER_OBJECT, target_ids.REGISTRAR, self._on_register_object)
 
+    def activate_singleton(self, factory):
+        factory(self._bus, self.__config, self.__id_manager)
+
     def register_category_factory(self, category, factory):
         """
 

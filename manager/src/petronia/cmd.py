@@ -10,7 +10,6 @@ import sys
 if __name__ == '__main__':
     from . import main
     bus = main.main_setup()
-    # log_events(bus)
 
     sys.stdin.read(1)
 

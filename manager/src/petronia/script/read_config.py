@@ -36,12 +36,13 @@ def read_user_configuration(config_file):
         except BaseException as e:
             # TODO Better error logging
             print("CONFIG ERROR: Problem loading {0}".format(config_file))
-            traceback.print_exc(e)
+            traceback.print_exception(e, e, e)
             config = None
 
     if config is None:
         config = _create_default_config()
     assert isinstance(config, Config)
+    config.init_options['config-file'] = config_file
     return config
 
 
@@ -56,7 +57,7 @@ def _load_module(config_file):
     #         return config_module
     #     except BaseException as e:
     #         print("CONFIG ERROR: Problem reloading {0}".format(config_file))
-    #         traceback.print_exc(e)
+    #         traceback.print_exception(e, e, e)
     #         return None
 
     index = 0
@@ -76,7 +77,7 @@ def _load_module(config_file):
     except BaseException as e:
         # TODO Better error logging
         print("CONFIG ERROR: Problem loading {0}".format(config_file))
-        traceback.print_exc(e)
+        traceback.print_exception(e, e, e)
         return None
 
 

@@ -5,6 +5,11 @@ from ...system import target_ids
 from ...script.command import Command
 
 
+# noinspection PyUnusedLocal
+def command_handler_factory(bus, config, id_manager):
+    CommandHandler(bus, config)
+
+
 class CommandHandler(Identifiable, Component):
     def __init__(self, bus, config):
         Component.__init__(self, bus)
