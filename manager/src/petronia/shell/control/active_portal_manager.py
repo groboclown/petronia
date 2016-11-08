@@ -65,10 +65,10 @@ class ActivePortalManager(Identifiable, Component):
     # noinspection PyUnusedLocal
     def _on_create_portal_alias(self, event_id, target_id, event_obj):
         if 'portal-cid' in event_obj:
-            print("DEBUG registered alias {0} on portal {1}".format(event_obj['alias'], event_obj['portal-cid']))
+            # print("DEBUG registered alias {0} on portal {1}".format(event_obj['alias'], event_obj['portal-cid']))
             self.__portal_aliases[event_obj['portal-cid']] = event_obj['alias']
         elif self.__active_portal_cid is not None:
-            print("DEBUG registered alias {0} on portal {1}".format(event_obj['alias'], self.__active_portal_cid))
+            # print("DEBUG registered alias {0} on portal {1}".format(event_obj['alias'], self.__active_portal_cid))
             self.__portal_aliases[event_obj['alias']] = self.__active_portal_cid
 
     # noinspection PyUnusedLocal
@@ -142,7 +142,7 @@ class ActivePortalManager(Identifiable, Component):
     def _on_window_created(self, event_id, target_id, event_obj):
         portal_alias = self.__config.applications.get_best_portal_match(
             self.__portal_aliases.keys(), event_obj['window-info'])
-        print("DEBUG matched {1} with {0}".format(event_obj['window-info']['exec_filename'], portal_alias))
+        # print("DEBUG matched {1} with {0}".format(event_obj['window-info']['exec_filename'], portal_alias))
         dest_cid = None
         if portal_alias in self.__portal_aliases:
             dest_cid = self.__portal_aliases[portal_alias]
@@ -151,7 +151,7 @@ class ActivePortalManager(Identifiable, Component):
         if dest_cid is None:
             dest_cid = self._find_active_portal_cid()
             if dest_cid is None:
-                self._log_verbose("Window added before any portal created.")
+                self._log_debug("Window added before any portal created.")
                 return
         self._fire(event_ids.LAYOUT__ADD_WINDOW, dest_cid, event_obj)
 
@@ -166,6 +166,6 @@ class ActivePortalManager(Identifiable, Component):
             if len(self.__portal_cids) > 0:
                 ret = self.__portal_cids[0]
                 self._fire(event_ids.PORTAL__SET_ACTIVE, ret, {})
-            else:
-                print("DEBUG no active portal, because there are no known portals.")
+            # else:
+            #     print("DEBUG no active portal, because there are no known portals.")
         return ret

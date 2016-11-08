@@ -73,7 +73,7 @@ class Layout(Tile):
 
     def _on_remove_self(self, event_id, target_id, event_obj):
         for child_cid in self._child_cids:
-            print("DEBUG {0} requesting removal of child {1}".format(self.cid, child_cid))
+            # print("DEBUG {0} requesting removal of child {1}".format(self.cid, child_cid))
             self._fire(event_ids.LAYOUT__REMOVE_OBJECT, child_cid, {
                 'window-parent': self.parent_cid,
             })
@@ -81,7 +81,7 @@ class Layout(Tile):
 
     def _on_last_child_removed(self):
         # Immediately terminate this object.
-        print("DEBUG {0} last child removed; closing".format(self.cid))
+        # print("DEBUG {0} last child removed; closing".format(self.cid))
         self.close()
 
     def _on_direction_negotiation_descend(self, event_id, target_id, event_obj):

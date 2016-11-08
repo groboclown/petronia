@@ -21,7 +21,7 @@ def shutdown_system():
             # Continue in case there are more windows we own
     if not matched:
         time.sleep(0.1)
-        print("DEBUG could not find a window to post a quit to.  Forcing quit.")
-        for t in threading.enumerate():
-            print("Running thread: {0}".format(t))
+        # print("DEBUG could not find a window to post a quit to.  Forcing quit.")
+        # for t in threading.enumerate():
+        #     print("Running thread: {0}".format(t))
         exit()

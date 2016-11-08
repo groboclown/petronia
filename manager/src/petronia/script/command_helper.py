@@ -7,6 +7,7 @@ from ..shell.native.shutdown import shutdown_system
 from ..shell.navigation import DIRECTIONS, ROTATABLE_DIRECTIONS
 import subprocess
 import shlex
+import re
 
 
 # noinspection PyUnusedLocal
@@ -276,15 +277,14 @@ def inject_keys(bus, *key_commands):
 def exec_cmd(bus, *cmd_line):
     """
     Executes an external process using the given arguments.  Note that the
-    backslash (`\`)character must be escaped, once for being within a Python
-    string, and again due to the parsing of the command line args, so a total of
-    4 backslashes to equal 1 real backslash.
+    backslash (`\`)character must be escaped, because they are within a Python
+    string, so a total of 2 backslashes to equal 1 real backslash.
 
     For example, to run a command prompt with fancy colors and start it in the
     root of the file system, use:
 
     ```
-    cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\\\\\\\
+    cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\\\
     ```
 
     :param bus:
@@ -293,12 +293,13 @@ def exec_cmd(bus, *cmd_line):
     """
     # The cmd_line is a space-split set of arguments.  Because we're running a
     # command line, and should allow all kinds of inputs, we'll join it back
-    # together and split to allow quoting.
+    # together.
     full_cmd = " ".join(cmd_line)
-    args = shlex.split(full_cmd)
-    print('Running "' + ('" "'.join(args)) + '"')
+
+    # We won't use shlex, because, for Windows, splitting is just unnecessary.
+    print('CMD Running `' + full_cmd + '`')
     # TODO look at making this a bus command, or at least a bus announcement.
-    proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    proc = subprocess.Popen(full_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     bus.fire(event_ids.LOG__INFO, target_ids.LOGGER, {
-        'message': '{0}: {1}'.format(proc.pid, args)
+        'message': '{0}: {1}'.format(proc.pid, full_cmd)
     })

@@ -111,7 +111,7 @@ class Identifiable(object):
 
     def close(self):
         cid = self.cid
-        print("DEBUG Identifiable close() call for {0}".format(cid))
+        # print("DEBUG Identifiable close() call for {0}".format(cid))
         assert isinstance(self, Component)
         self._fire(event_ids.REGISTRAR__OBJECT_REMOVED, cid, {
             'cid': cid,

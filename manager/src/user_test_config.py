@@ -121,10 +121,10 @@ def load_config():
             "win+launch-app1 => cmd cmd.exe /c start cmd.exe",
 
             # Launch a CMD with nice colors and an initial directory.
-            # Note that the backslash character must be escaped, once for
-            # being within a Python string, and again due to the parsing of the command
-            # line args, so a total of 4 backslashes to equal 1 real backslash.
-            'win+p => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\\\',
+            # Note that the backslash character must be escaped, because
+            # it's in a python string, so a total of 2 backslashes to equal 1
+            # real backslash.
+            'win+p => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\',
 
             "win+f4 => quit",
 

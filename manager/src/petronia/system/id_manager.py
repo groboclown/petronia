@@ -104,7 +104,9 @@ class Parent(object):
             del self.__child_cid_data[child_cid]
             if child_cid in self.__ordered_child_cids:
                 self.__ordered_child_cids.remove(child_cid)
-            print("DEBUG removed child {2} for {0}; {1} children left ({3})".format(self.cid, self._child_count, child_cid, self._child_cids))
+            # print("DEBUG removed child {2} for {0}; {1} children left ({3})".format(
+            #     self.cid, self._child_count, child_cid, self._child_cids
+            # ))
             if len(self.__child_cid_data) <= 0:
                 self._on_last_child_removed()
         else:
