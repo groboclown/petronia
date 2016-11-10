@@ -29,11 +29,11 @@ Start up a command prompt.  If you don't know what this is, then you're
 probably going to get in over your head later.
 
 From a command prompt, add the installed Python 3.5 to your path (if it's not
-already there), and run the main program from the `manager/src` directory.
+already there), and run the main program from the `src` directory.
  
 ```cmd
 > set Path=(python directory);%Path%
-> cd (petronia directory)\manager\src
+> cd (petronia directory)\src
 > python -u -m petronia.cmd user_test_config.py
 ```
 

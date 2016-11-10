@@ -3,9 +3,9 @@
 All the commands you can run with hotkeys.
 
 See also [custom commands](user-custom-commands.md).
-<!-- that file generates this file -->
 
-Reference: [command_builder.py](../manager/src/petronia/script/command_builder.py)
+Reference: [command_builder.py](../src/petronia/script/command_builder.py)
+<!-- that file generates this file -->
 
 
 ## Built-In Command List

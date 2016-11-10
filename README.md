@@ -66,13 +66,13 @@ then use the 64-bit Python.  If you are running a 32-bit OS, then use the
 
 Then, download the source.  You'll need to configure the setup for your
 computer; the example is `user_test_config.py`.  You can name the file
-whatever you want, but it should live in the `manager/src` directory.
+whatever you want, but it should live in the `src` directory.
 
 Once you have your configuration setup, you just run in a cmd prompt:
 
 ```cmd
 > set Path=(python 3.5.2 directory);%Path%
-> cd (petronia dir)\manager\src
+> cd (petronia dir)\src
 > python -u -m petronia.cmd my_config_file.py
 ```
 

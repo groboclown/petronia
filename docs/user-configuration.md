@@ -11,7 +11,7 @@ oh, *the power!*
 ### `user_test_config.py`
 
 To get you started, take a gander at the example config file,
-[user_test_config.py](../manager/src/user_test_config.py).  This guy sets
+[user_test_config.py](../src/user_test_config.py).  This guy sets
 up the configuration in several parts, the [layout](#layout-configuration),
 the [applications](#application-configuration), the
 [hotkeys](#hotkey-configuration), and the [chrome](#chrome-configuration).
@@ -36,7 +36,7 @@ title bars removed.
 
 ### `no_chrome_config.py`
 
-The [no_chrome_config.py](../manager/src/no_chrome_config.py) shows an example
+The [no_chrome_config.py](../src/no_chrome_config.py) shows an example
 where all you care about is removing the nasty Chrome off select windows.  You
 still have full access to all the native Windows commands.
 
@@ -45,7 +45,7 @@ exclusion from the chrome stripping.
 
 ### `simple_config.py`
 
-The [simple.py](../manager/src/simple.py) provides an extremely simple, but
+The [simple_config.py](../src/simple_config.py) provides an extremely simple, but
 not too useful, configuration that strips off the chrome and registers a quit
 key.  It's about as simple as you can get.
 

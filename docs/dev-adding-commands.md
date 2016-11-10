@@ -12,6 +12,6 @@ Add the builder for that invoker in `petronia.script.command_builder`.
 After creating your new command, regenerate the documentation by running
 
 ```
-> cd manager\src
-> python -m petronia.script.command_builder > ..\..\docs\user-commands.md
+> cd src
+> python -m petronia.script.command_builder > ..\docs\user-commands.md
 ```

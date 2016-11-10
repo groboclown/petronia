@@ -4,7 +4,7 @@ basedir = '../..'
 
 import sys, os
 
-assert os.path.exists(SPECPATH + '/' + basedir + '/manager/src/petronia/' + script_name + '.py'), "Could not find script {0}".format(script_name)
+assert os.path.exists(SPECPATH + '/' + basedir + '/src/petronia/' + script_name + '.py'), "Could not find script {0}".format(script_name)
 assert isinstance(exe_name, str), "exe_name is not a string"
 assert isinstance(use_cli, bool), "use_cli is not a boolean"
 
@@ -14,13 +14,13 @@ dist = exe_name + arch
 
 block_cipher = None
 
-scripts = [basedir + '/manager/src/petronia/' + script_name + '.py']
+scripts = [basedir + '/src/petronia/' + script_name + '.py']
 data_files = [
     (basedir + '/README.md', '.'),
     (basedir + '/docs', 'docs'),
-    (basedir + '/manager/src/no_chrome_config.py', 'example-configs'),
-    (basedir + '/manager/src/user_test_config.py', 'example-configs'),
-    (basedir + '/manager/src/simple_config.py', 'example-configs'),
+    (basedir + '/src/no_chrome_config.py', 'example-configs'),
+    (basedir + '/src/user_test_config.py', 'example-configs'),
+    (basedir + '/src/simple_config.py', 'example-configs'),
 ]
 
 extra_imports = [

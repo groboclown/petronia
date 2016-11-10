@@ -36,7 +36,7 @@ def cmp_zips(zip_name1, zip_name2):
             return False
         del zip_contents2[name]
     if len(zip_contents2) > 0:
-        print("{1} contains files {3}, which are not in {0}".format(
+        print("{1} contains files {2}, which are not in {0}".format(
             zip_name1, zip_name2, zip_contents2.keys()
         ))
     return True

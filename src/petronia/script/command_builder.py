@@ -13,8 +13,7 @@ def create_all_commands():
         create_create_current_portal_alias(),
         create_focus_portal_by_alias(),
         create_move_window_to_other_portal(),
-        create_change_layout_management_selection_shape(),
-        create_join_selected_layout(),
+        create_change_layout_management_selection_shape(),create_join_selected_layout(),
         create_split(),
         create_minimize(),
         create_maximize(),
@@ -111,9 +110,9 @@ if __name__ == '__main__':
 All the commands you can run with hotkeys.
 
 See also [custom commands](user-custom-commands.md).
-<!-- that file generates this file -->
 
-Reference: [command_builder.py](../manager/src/petronia/script/command_builder.py)
+Reference: [command_builder.py](../src/petronia/script/command_builder.py)
+<!-- that file generates this file -->
 
 
 ## Built-In Command List
