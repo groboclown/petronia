@@ -1,6 +1,7 @@
 
 import os
-import importlib
+from importlib.util import spec_from_file_location
+from importlib.util import module_from_spec
 import traceback
 from ..config import Config, HotKeyConfig, DEFAULT_MODE
 
@@ -66,8 +67,8 @@ def _load_module(config_file):
         index += 1
         module_name = "user_config_mod{0}".format(index)
     try:
-        spec = importlib.util.spec_from_file_location(module_name, file_name)
-        config_module = importlib.util.module_from_spec(spec)
+        spec = spec_from_file_location(module_name, file_name)
+        config_module = module_from_spec(spec)
         if config_module is not None:
             spec.loader.exec_module(config_module)
             _LOADED_MODULES[file_name] = config_module

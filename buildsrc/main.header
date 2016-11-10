@@ -1,0 +1,5 @@
+# -*- mode: python -*-
+
+script_name = 'main'
+exe_name = 'petronia'
+use_cli = False

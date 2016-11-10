@@ -1,0 +1,5 @@
+# -*- mode: python -*-
+
+script_name = 'check_layout'
+exe_name = 'check-layout'
+use_cli = True

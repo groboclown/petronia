@@ -151,6 +151,9 @@ def load_config():
             # real backslash.
             'win+p => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\',
 
+            # Replace the old "win+e" to open an explorer window.
+            'win+e => cmd explorer.exe c:\\',
+
             "win+f4 => quit",
 
             # load-config, with no arguments, just reloads the current config file.

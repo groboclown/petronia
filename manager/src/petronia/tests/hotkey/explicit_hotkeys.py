@@ -31,7 +31,6 @@ CallNextHookEx = ctypes.windll.user32.CallNextHookEx
 UnhookWindowsHookEx = ctypes.windll.user32.UnhookWindowsHookEx
 
 
-
 if __name__ == '__main__':
     def handler(key_code, event_code):
         print("{0} {1}".format(hex(key_code), hex(event_code)))
@@ -54,10 +53,10 @@ if __name__ == '__main__':
         msg = GetMessageW(byref(message), 0, 0, 0)
         if msg == -1:
             UnhookWindowsHookEx(handle[0])
-            exit(0)
+            sys.exit(0)
 
         elif msg == 0:  # GetMessage return 0 only if WM_QUIT
-            exit(0)
+            sys.exit(0)
         else:
             TranslateMessage(byref(message))
             DispatchMessageW(byref(message))

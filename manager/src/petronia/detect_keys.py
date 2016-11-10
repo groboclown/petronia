@@ -14,7 +14,7 @@ def shell_hook():
     def on_exit_callback():
         print("Quitting")
         funcs.shell__unhook(handle[0])
-        exit(0)
+        sys.exit(0)
 
     # noinspection PyUnusedLocal
     def handler(vk_code, scan_code, is_key_up, is_injected):
@@ -61,4 +61,4 @@ if __name__ == '__main__':
     while True:
         getpass.getpass("")
 
-    exit()
+    sys.exit()

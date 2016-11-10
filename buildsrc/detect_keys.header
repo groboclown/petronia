@@ -1,0 +1,5 @@
+# -*- mode: python -*-
+
+script_name = 'detect_keys'
+exe_name = 'detect-keys'
+use_cli = True

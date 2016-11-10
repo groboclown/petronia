@@ -116,8 +116,6 @@ DefWindowProcW.argtypes = [wintypes.HWND, c_uint, wintypes.WPARAM, wintypes.LPAR
 
 SystemParametersInfoW = windll.user32.SystemParametersInfoW
 
-SetWindowLongPtrW = windll.user32.SetWindowLongPtrW
-
 SetWindowPos = windll.user32.SetWindowPos
 
 SetActiveWindow = windll.user32.SetActiveWindow
@@ -1140,7 +1138,7 @@ def shell__pump_messages(on_exit_callback=None):
             if on_exit_callback is not None and callable(on_exit_callback):
                 on_exit_callback()
             else:
-                exit(0)
+                sys.exit(0)
         else:
             TranslateMessage(byref(message))
             DispatchMessageW(byref(message))

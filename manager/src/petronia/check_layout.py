@@ -1,11 +1,11 @@
 
-from .system.bus import SingleThreadedBus
-from .system.id_manager import IdManager
-from .system.registrar import Registrar
-from .system import event_ids
-from .system import target_ids
-from .arch import funcs
-from .script.read_config import read_user_configuration
+from petronia.system.bus import SingleThreadedBus
+from petronia.system.id_manager import IdManager
+from petronia.system.registrar import Registrar
+from petronia.system import event_ids
+from petronia.system import target_ids
+from petronia.arch import funcs
+from petronia.script.read_config import read_user_configuration
 
 import sys
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     if len(sys.argv) <= 1:
         print("Usage: arg 1: the user configuration file")
         print("arg 2 (optional): the layout for the selected work group to use")
-        exit(1)
+        sys.exit(1)
 
     layout_name = None
     if len(sys.argv) >= 3:
@@ -67,4 +67,4 @@ if __name__ == '__main__':
                     x2=size['x'] - monitor['left'] + size['width'], y2=size['y'] - monitor['top'] + size['height']))
             index += 1
 
-    exit()
+    sys.exit(0)

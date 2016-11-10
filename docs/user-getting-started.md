@@ -57,17 +57,17 @@ You'll also notice that your trusty <kbd>win</kbd> key now doesn't work how
 you're used to.  Instead, it gives you some control over your window layout.
 
  * <kbd>&#x2756; Win</kbd><kbd>up arrow</kbd> Move the currently active
-    window to the [portal](#Portal) *north* of where it's at now.
+    window to the [portal](user-configuration.md#splits-and-portals) *north* of where it's at now.
  * <kbd>&#x2756; Win</kbd><kbd>down arrow</kbd> Move the currently active
-    window to the [portal](#Portal) *south* of where it's at now.
+    window to the [portal](user-configuration.md#splits-and-portals) *south* of where it's at now.
  * <kbd>&#x2756; Win</kbd><kbd>left arrow</kbd> Move the currently active
-    window to the [portal](#Portal) *west* of where it's at now.
+    window to the [portal](user-configuration.md#splits-and-portals) *west* of where it's at now.
  * <kbd>&#x2756; Win</kbd><kbd>right arrow</kbd> Move the currently active
-    window to the [portal](#Portal) *east* of where it's at now.
+    window to the [portal](user-configuration.md#splits-and-portals) *east* of where it's at now.
  * <kbd>&#x2756; Win</kbd><kbd>page up</kbd> Move the currently active window
-    to the *next* [portal](#Portal).
+    to the *next* [portal](user-configuration.md#splits-and-portals).
  * <kbd>&#x2756; Win</kbd><kbd>page down</kbd> Move the currently active
-    window to the *previous* [portal](#Portal).
+    window to the *previous* [portal](user-configuration.md#splits-and-portals).
  * <kbd>&#x2756; Win</kbd><kbd>Tab</kbd> Minimize the currently active window. 
  * <kbd>&#x2756; Win</kbd><kbd>Launch App 1</kbd> Start a command prompt
     window.  This is usually the extra media button that looks like a
@@ -76,8 +76,22 @@ you're used to.  Instead, it gives you some control over your window layout.
     Since the Windows key has been preempted, this explicit remapping of the
     functionality becomes necessary.
  * <kbd>&#x2756; Win</kbd><kbd>~</kbd> Switch over to Windows Classic mode.
+ * <kbd>&#x2756; Win</kbd><kbd>F11</kbd> Switch to Resize Mode.  This allows
+    you to resize the active window using the keyboard.  Press
+    <kbd>Esc</kbd> to return to the default hotkey mode.
+ * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>F2</kbd> Reload the current
+    configuration file.
+ * <kbd>&#x2756; Win</kbd><kbd>&#x21e7; Shift</kbd><kbd>0-9</kbd> Save the
+    current [portal](user-configuration.md#splits-and-portals) as associated
+    with this number key, for quick re-focusing.
+ * <kbd>&#x2756; Win</kbd><kbd>0-9</kbd> Focus on the top window in the
+    [portal](user-configuration.md#splits-and-portals) that was previously
+    saved with the
+    <kbd>&#x2756; Win</kbd><kbd>&#x21e7; Shift</kbd><kbd>0-9</kbd> hotkey.
  * <kbd>&#x2756; Win</kbd><kbd>P</kbd> Start up a new command prompt with a
     blue background, white text, and in the root directory.
+ * <kbd>&#x2756; Win</kbd><kbd>E</kbd> Start Windows Explorer to browse
+    your files.
  * <kbd>&#x2756; Win</kbd><kbd>F4</kbd> This is supposed to quit Petronia.
     If you started it with `python -m petronia.cmd`, this will partially stop
     the application, but it won't fully terminate.  If you instead ran

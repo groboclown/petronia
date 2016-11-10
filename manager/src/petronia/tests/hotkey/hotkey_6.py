@@ -13,7 +13,7 @@ def shell_hook():
 
     def on_exit_callback():
         funcs.shell__unhook(handle[0])
-        exit(0)
+        sys.exit(0)
 
     def message_pumper():
         def handler(vk_code, scan_code, is_key_up, is_injected):

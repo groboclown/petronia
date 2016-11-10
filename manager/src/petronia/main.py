@@ -5,14 +5,14 @@
 
 # http://stackoverflow.com/questions/2270527/how-to-code-a-new-windows-shell
 
-from .system.bus import Bus
-from .system.id_manager import IdManager
-from .system.registrar import Registrar
-from .system.logger import Logger, LEVEL_DEBUG, LEVEL_VERBOSE, LEVEL_WARN
-from .shell.native.windows_hook_event import WindowsHookEvent
-from .shell.native.window_mapper import WindowMapper
-from .script.read_config import read_user_configuration
-from .tests.bus_logger import log_events
+from petronia.system.bus import Bus
+from petronia.system.id_manager import IdManager
+from petronia.system.registrar import Registrar
+from petronia.system.logger import Logger, LEVEL_DEBUG, LEVEL_VERBOSE, LEVEL_WARN
+from petronia.shell.native.windows_hook_event import WindowsHookEvent
+from petronia.shell.native.window_mapper import WindowMapper
+from petronia.script.read_config import read_user_configuration
+from petronia.tests.bus_logger import log_events
 
 import sys
 
@@ -40,7 +40,7 @@ def setup(config_file, layout_name):
 def main_setup():
     if len(sys.argv) <= 1:
         print("Usage: arg 1: the user configuration file")
-        exit(1)
+        sys.exit(1)
 
     layout_name = None
     if len(sys.argv) >= 3:

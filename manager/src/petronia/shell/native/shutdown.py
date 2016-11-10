@@ -4,6 +4,7 @@ from ...arch import funcs
 from ...arch.windows_constants import *
 import time
 import threading
+import sys
 import _thread
 
 
@@ -24,4 +25,4 @@ def shutdown_system():
         # print("DEBUG could not find a window to post a quit to.  Forcing quit.")
         # for t in threading.enumerate():
         #     print("Running thread: {0}".format(t))
-        exit()
+        sys.exit()

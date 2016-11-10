@@ -1,6 +1,8 @@
 
 from ctypes import windll, wintypes, byref
 import threading
+import sys
+
 
 def hk_1():
     print("1 pressed")
@@ -30,9 +32,9 @@ def hook_keyboard():
             msg = windll.user32.GetMessageW(byref(message), 0, 0, 0)
             print("found message {0}".format(msg))
             if msg == -1:
-                exit(0)
+                sys.exit(0)
             elif msg == 0:  # WM_QUIT
-                exit(0)
+                sys.exit(0)
             else:
                 windll.user32.TranslateMessage(byref(message))
                 windll.user32.DispatchMessageW(byref(message))

@@ -1,0 +1,5 @@
+# -*- mode: python -*-
+
+script_name = 'detect_monitors'
+exe_name = 'detect-monitors'
+use_cli = True

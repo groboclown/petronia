@@ -6,6 +6,7 @@ from ctypes import wintypes
 from ctypes import CFUNCTYPE, POINTER, c_int, c_uint, c_void_p
 from ctypes import byref
 import atexit
+import sys
 import threading
 
 WH_KEYBOARD_LL = 0x00D
@@ -54,10 +55,10 @@ def hook_keyboard():
         msg = GetMessageW(byref(message), 0, 0, 0)
         if msg == -1:
             UnhookWindowsHookEx(handle[0])
-            exit(0)
+            sys.exit(0)
 
         elif msg == 0:  # GetMessage return 0 only if WM_QUIT
-            exit(0)
+            sys.exit(0)
         else:
             TranslateMessage(byref(message))
             DispatchMessageW(byref(message))

@@ -1,0 +1,5 @@
+# -*- mode: python -*-
+
+script_name = 'detect_apps'
+exe_name = 'detect-apps'
+use_cli = True
