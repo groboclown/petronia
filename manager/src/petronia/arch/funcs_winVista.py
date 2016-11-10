@@ -352,7 +352,7 @@ def shell__open_start_menu(show_taskbar):
         # The trick Windows uses is pushing it off-screen, so it's just barely
         # visible.
 
-        windll.user32.GetWindowRect(taskbar_hwnd, byref(rect))
+        windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
         # Figure out which corner it's in.  It's either top, left, right, or bottom.
         # We do this by finding a "0", which indicates where on the screen it's
         # located.  However, with strange, multi-monitor setups, this isn't always
