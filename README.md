@@ -2,6 +2,8 @@
 
 #### Or: How We Removed Useless Space From Our Windows and Used All That Extra Screen Space To Do Important Things 
 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=SRBJnFcBuqI" target="_blank"><img src="http://img.youtube.com/vi/SRBJnFcBuqI/0.jpg" alt="Introduction to Petronia" width="240" height="180" border="10" /></a>
+
 #### Manage Your Windows as Tiles
 
 [Tiles](https://en.wikipedia.org/wiki/Tiling_window_manager) allow you

@@ -110,6 +110,31 @@ def load_config():
             "win+pgup => move-window-to-other-portal next",
             "win+pgdn => move-window-to-other-portal previous",
 
+            # A set of quick keys to swap between portals.  Hold down
+            # win+shift+(number key) to assign a portal to that number, and
+            # win+(number key) to jump to the top window in that portal.
+            "win+shift+1 => create-current-portal-alias P1",
+            "win+shift+2 => create-current-portal-alias P2",
+            "win+shift+3 => create-current-portal-alias P3",
+            "win+shift+4 => create-current-portal-alias P4",
+            "win+shift+5 => create-current-portal-alias P5",
+            "win+shift+6 => create-current-portal-alias P6",
+            "win+shift+7 => create-current-portal-alias P7",
+            "win+shift+8 => create-current-portal-alias P8",
+            "win+shift+9 => create-current-portal-alias P9",
+            "win+shift+0 => create-current-portal-alias P0",
+            "win+1 => focus-portal-by-alias P1",
+            "win+2 => focus-portal-by-alias P2",
+            "win+3 => focus-portal-by-alias P3",
+            "win+4 => focus-portal-by-alias P4",
+            "win+5 => focus-portal-by-alias P5",
+            "win+6 => focus-portal-by-alias P6",
+            "win+7 => focus-portal-by-alias P7",
+            "win+8 => focus-portal-by-alias P8",
+            "win+9 => focus-portal-by-alias P9",
+            "win+0 => focus-portal-by-alias P0",
+
+            # Minimize the currently focused window.
             "win+tab => minimize",
 
             # Redefine the Windows lock screen keystroke.
@@ -131,6 +156,8 @@ def load_config():
             # load-config, with no arguments, just reloads the current config file.
             "win+alt+f2 => load-config",
 
+            # Because the windows key is blocked from being used as normal, this
+            # gives you a way to still open the start menu.
             "win+esc => open-start-menu",
         ],
         block_win_key=True  # block the windows key, because we remapped it to win+esc

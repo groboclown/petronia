@@ -12,9 +12,9 @@ oh, *the power!*
 
 To get you started, take a gander at the example config file,
 [user_test_config.py](../manager/src/user_test_config.py).  This guy sets
-up the configuration in several parts, the [layout](#Layout Configuration),
-the [applications](#Application Configuration), the
-[hotkeys](#Hotkey Configuration), and the [chrome](#Chrome Configuration).
+up the configuration in several parts, the [layout](#layout-configuration),
+the [applications](#application-configuration), the
+[hotkeys](#hotkey-configuration), and the [chrome](#chrome-configuration).
 
 For the layout, it specifies 3 monitor setups.  Each one is for a different
 configuration of monitors - the normal laptop screen, the laptop docked with
@@ -54,16 +54,16 @@ key.  It's about as simple as you can get.
 
 There are several sections of configuration that you can configure.
 
-* [Component Configuration](#Component Configuration) - Defines which
+* [Component Configuration](#component-configuration) - Defines which
     Petronia components will be active.
-* [Layout Configuration](#Layout Configuration) - How the screen is split up
+* [Layout Configuration](#layout-configuration) - How the screen is split up
     for different monitors.
-* [Chrome Configuration](#Chrome Configuration) - How the windows are
+* [Chrome Configuration](#chrome-configuration) - How the windows are
     modified, and some other system-wide settings for the appearance of
     windows.
-* [Hotkey Configuration](#Hotkey Configuration) - Registered key modes, and
+* [Hotkey Configuration](#hotkey-configuration) - Registered key modes, and
     actions associated with keys.
-* [Application Configuration](#Application Configuration) - Application
+* [Application Configuration](#application-configuration) - Application
     specific configuration, to select how different windows work with the
     chrome and layout configurations.
 
@@ -72,10 +72,11 @@ There are several sections of configuration that you can configure.
 ### Component Configuration
 
 Setting up the component configuration allows for selecting individual parts
-of the Petronia system to be active.
+of the Petronia system to activate.  This is only loaded once, for the initial
+configuration file at start time.
 
-*At the moment there is nothing to be done here.*
-
+*At the moment there is nothing to be done here.*  This will eventually allow
+for pluggable behaviors.
 
 
 ### Layout Configuration
@@ -85,7 +86,7 @@ top-level layout per monitor, but if you need more control, you can use a
 single layout to cover all your screens - *but don't expect it to be nice.*
 
 Layouts are contained in a `DisplayWorkGroupsConfig`.  This allows you to
-define a [work group](#Work Groups) for each [monitor setup](#Monitors).
+define a [work group](#work-group-layouts) for each [monitor setup](#monitors).
 
 ```python
 from petronia import config
@@ -123,7 +124,7 @@ To understand your monitor layout, for use in the configuration, you can run:
 
 This tells you how you can specify your monitors in the configuration file.
 Note that the order of the monitors is very important.  The first appearing
-monitor maps to the first [top-level split](#Top Level Splits).
+monitor maps to the first [top-level split](#top-level-splits).
 
 Petronia will attempt to find the best matched monitor layout in the configuration
 for your current monitor arrangement.
@@ -133,15 +134,16 @@ It's only important if you find yourself changing multiple resolutions
 regularly, or move between locations where you have different monitor setups.
 
 
-#### Work Groups
+#### Work Group Layouts
 
-You can associate multiple *work groups* of layout configurations for a single
-monitor setup.  When Petronia starts up, it uses the layout named `default`.
+You can associate multiple layout configurations for a single
+monitor setup.  When Petronia starts up, it uses the layout named `default`,
+unless you specified one at the command line.
 
 You can swap to a different layout within the current work group by creating a
-hotkey that runs the [layout-name](user-commands.md#layout-name)
+hotkey that runs the [layout-name](user-commands.md#change-layout-layout_name)
 
-Each layout should have one [top level split](#Top Level Splits) per monitor,
+Each layout should have one [top level split](#top-level-splits) per monitor,
 or one top level split for all your monitors (which isn't supported well).
 
 
@@ -153,7 +155,7 @@ to one per monitor.  If you have just one top-level split defined, then it
 will cover all your monitors.
 
 Within the top level split, you can configure your
-[splits and portals](#Splits and Portals).
+[splits and portals](#splits-and-portals).
 
 
 #### Splits and Portals
@@ -270,9 +272,9 @@ This registers a single *chrome configuration*, which defines how Petronia
 will act upon the matching application window.  In this case, the
 `is_matched_chrome` value is `False`, so it won't have the title bar
 and resize borders be affected by the
-[chrome configuration](#Chrome Configuration).  Additionally, `is-tiled` is
+[chrome configuration](#chrome-configuration).  Additionally, `is-tiled` is
 set to `False`, so it also will not be managed within the
-[portal layouts](#Splits and Portals), and won't react to portal movement
+[portal layouts](#splits-and-portals), and won't react to portal movement
 key actions.
 
 
@@ -289,21 +291,23 @@ With an app matcher, you can define the following attributes:
 * `title`: A string that matches the application window's title, ignoring
     capitalization.
 * `title_re`: A Python regular expression that matches the application
-    window's title.
+    window's title.  Can either be a proper compiled (`re.compile`)
+    regular expression, or a string of the regular expression.
 * `module_path`: The path of the module that controls the window.
     You can specify "MyModule.dll", and it will match for any module
     that has the "MyModule.dll" file, regardless of its path.
-* `module_path_re`: A Python regular expression version of the path of the
-    module that controls the window.
+* `module_path_re`: A Python regular expression (string or re) version of the
+    path of the module that controls the window.
 * `exec_path`: The path of the executable that created the window.
     You can specify "MyCommand.exe", and it will match for any executable
     that has the "MyCommand.exe" file, regardless of its path.
-* `exec_path_re`: A Python regular expression version of the path of the
-    executable that created the window.
+* `exec_path_re`: A Python regular expression (string or re) of the path of
+    the executable that created the window.
 * `class_name`: The specific class name of the window.  Each window generally
     has its own class name, so you can distinguish different windows that
     came from the same executable.
-* `class_name_re`: A Python regular expression version of the `class_name`.
+* `class_name_re`: A Python regular expression (string or re) of the
+    `class_name`.
 
 To find the class name, module path, and executable path, for all visible
 windows, run:
@@ -357,7 +361,7 @@ from *most specific* to *least specific*.
 *For reference:*
 
 * [The full list of supported Petronia Commands](user-commands.md)
-* [How to name your keys](keys.md)
+* [How to name your keys](user-keys.md)
 
 The hotkey configuration section allows you to map Petronia commands to
 keyboard shortcuts.  The hotkey configurations are *modal*, meaning that
@@ -457,7 +461,7 @@ These settings affect all applications running in the system.
 
 #### Per Application Settings
 
-For the [applications](#Application Configuration) that opt-in to being
+For the [applications](#application-configuration) that opt-in to being
 managed by Chrome, you can dictate how their chrome will appear.
 
 * **has_title** `True` or `False`, to strip off the title bar and its

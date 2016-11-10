@@ -19,11 +19,17 @@ key sequence <kbd>&#x2756; Win</kbd><kbd>L</kbd> and the ease of access center
 key sequence <kbd>&#x2756; Win</kbd><kbd>U</kbd>.  For these two, Windows
 intercepts the key sequence before anything else can run.
 
-There's a solution in the code, which doesn't block the windows key *release*.
-This seems to do the trick.  If you do get in a position where it's stuck,
-I found that you can open the on-screen keyboard app, and click on the
-<kbd>&#x2756; Win</kbd> key.  This seems to get it unstuck.  You may need to
-play around with it.
+If you do get in a position where it's stuck, here's a few things to try:
+
+* Tapping the <kbd>&#x2756; Win</kbd> can unstick it.
+* If you have the [open-start-menu](user-commands.md#open-start-menu)
+    action, I've noticed that sometimes, if it's open and active when
+    you hibernate your computer, it can cause the windows key to get stuck.
+    Try closing the start menu and see if that helps.  If that isn't enough,
+    use the `open-start-menu` command several times.
+* If the key is still really stuck, you can open the Windows on-screen
+    keyboard app, and click on the <kbd>&#x2756; Win</kbd> key.  This seems
+    to get it unstuck.  You may need to play around with it.
 
 
 ### A Window Won't Move To Another Monitor
@@ -31,7 +37,8 @@ play around with it.
 Sometimes, one window can move freely between monitors, while others seem to
 get stuck in a single one.
 
-This is more of a bug that needs to be fixed.  It's probably an issue
-somewhere in the root_layout.  My guess is once the root layout better
-understands monitor geometry (how one monitor is positioned relative to
-others), this will even itself out.
+A good way to get past this is to include
+[hotkeys](user-configuration.md#hotkey-configuration) for the
+[move-window-to-other-portal](user-commands.md#move-window-to-other-portal-direction)
+command with arguments `next` and `previous`.  This bypasses the layout's idea
+of what directions mean, and instead just moves through each portal.
