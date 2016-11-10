@@ -1,6 +1,3 @@
-"""
-Manages the user configuration.
-"""
 
 from .base_config import BaseConfig
 
@@ -10,6 +7,7 @@ class ChromeConfig(BaseConfig):
     Controls the "chrome" around the windows.
     """
     def __init__(self, border_width=4, border_color=0xff0000):
+        super()
         self.border_width = border_width
         self.border_padding = 0
         self.border_color = border_color

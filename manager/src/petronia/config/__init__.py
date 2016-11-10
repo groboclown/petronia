@@ -10,6 +10,7 @@ from .workgroup import (
     ORIENTATION_CENTER, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL
 )
 from .component import ComponentConfig
+from .shell import ShellConfig, WindowsShellConfig
 
 MODE_CHANGE_COMMAND = "change mode"
 LAYOUT_MANAGEMENT_MODE = "Layout Management"

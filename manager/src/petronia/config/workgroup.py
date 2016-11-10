@@ -20,6 +20,7 @@ class DisplayWorkGroupsConfig(BaseConfig):
         * 'workgroup': WorkGroupConfig object.
     """
     def __init__(self, groups=None):
+        super()
         if groups is None:
             groups = []
 

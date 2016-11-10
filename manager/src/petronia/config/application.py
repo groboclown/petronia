@@ -43,6 +43,7 @@ class AbstractApplicationConfig(BaseConfig):
 class ApplicationListConfig(AbstractApplicationConfig):
     def __init__(self, app_configs, default_is_tiled=True, default_is_managed_chrome=True):
         assert isinstance(app_configs, list) or isinstance(app_configs, tuple)
+        super()
         for app in app_configs:
             assert isinstance(app, AbstractApplicationConfig)
         self.__app_configs = app_configs
@@ -80,6 +81,7 @@ class ApplicationChromeConfig(AbstractApplicationConfig):
                  is_managed_chrome=True,
                  is_tiled=True,
                  app_matchers=None):
+        super()
         if app_matchers is None:
             app_matchers = tuple()
         elif isinstance(app_matchers, AppMatcher):

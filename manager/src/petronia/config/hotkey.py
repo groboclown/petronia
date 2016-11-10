@@ -15,6 +15,7 @@ class HotKeyConfig(BaseConfig):
     TODO this needs better setup support.
     """
     def __init__(self):
+        super()
         self.__key_modes = {
             # Always have at least a default mode
             DEFAULT_MODE: HotKeyChain()

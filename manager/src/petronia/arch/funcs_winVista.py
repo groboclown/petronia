@@ -333,6 +333,8 @@ def shell__open_start_menu(show_taskbar):
     taskbar_hwnd = windll.user32.FindWindowW("Shell_TrayWnd", None)
     if taskbar_hwnd is None or 0 == taskbar_hwnd:
         raise WinError()
+    taskbar_size = wintypes.RECT()
+    windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
 
     # if show_taskbar:
     #     if windll.user32.IsWindowVisible(taskbar_hwnd):
@@ -346,11 +348,19 @@ def shell__open_start_menu(show_taskbar):
     #                     or show_cmd == SW_RESTORE):
     #                 show_taskbar = False
     if show_taskbar:
-        # The task bar is auto-hide.  A simple show isn't sufficient to show it.
-        # It looks like it needs more force, like searching for some child window.
-        # windll.user32.ShowWindow(taskbar_hwnd, SW_SHOW)
-        # windll.user32.SetWindowPos(taskbar_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW)
-        print("<<Don't know how to show the task bar>>")
+        # The task bar is auto-hide.  It's always present, but not on screen.
+        # The trick Windows uses is pushing it off-screen, so it's just barely
+        # visible.
+
+        windll.user32.GetWindowRect(taskbar_hwnd, byref(rect))
+        # Figure out which corner it's in.  It's either top, left, right, or bottom.
+        # We do this by finding a "0", which indicates where on the screen it's
+        # located.  However, with strange, multi-monitor setups, this isn't always
+        # correct.  But it's a good guess.
+        # windll.user32.SetWindowPos(taskbar_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW)
+
+        # TODO show the task bar.
+        # print("<<Don't know how to show the task bar>>")
 
     # Find the process ID of the taskbar window.
     taskbar_pid = wintypes.DWORD()
@@ -397,8 +407,6 @@ def shell__open_start_menu(show_taskbar):
                             windll.user32.ShowWindow(hwnd, SW_HIDE)
                             return False
                 # print("DEBUG showing the start menu ({0})".format(placement.showCmd))
-                # windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
-                # windll.user32.ShowWindow(hwnd, SW_RESTORE)
                 windll.user32.ShowWindow(hwnd, SW_SHOW)
 
                 # If the task bar is hidden, then part of the start window is not shown fully.

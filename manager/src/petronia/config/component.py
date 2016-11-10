@@ -21,6 +21,8 @@ class ComponentConfig(BaseConfig):
         from ..system.extensions.component_factory_registry import get_base_extension_factories
         from ..system.extensions.singleton_factory_registry import get_base_singleton_factories
 
+        super()
+
         self.__extensions = dict(get_base_extension_factories())
         if extensions is not None:
             for category, factory in extensions:

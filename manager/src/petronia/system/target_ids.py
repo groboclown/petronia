@@ -31,3 +31,5 @@ ACTIVE_PORTAL_MANAGER = "Active Portal Manager"
 LAYOUT_MANAGEMENT_CONTROLLER = "Layout Management Controller"
 
 CONFIGURATION_LOADER = "Configuration Loader"
+
+SHELL = "OS Shell"

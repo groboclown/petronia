@@ -37,7 +37,11 @@ If you do get in a position where it's stuck, here's a few things to try:
 Sometimes, one window can move freely between monitors, while others seem to
 get stuck in a single one.
 
-A good way to get past this is to include
+Most likely, the window was already maximized.  Try restoring it with the
+system context menu (<kbd>Alt</kbd><kbd>Space</kbd>, followed by <kbd>R</kbd>).
+
+Sometimes, this can happen if the portals get confused about the ordering
+between themselves.  A good way to get past this is to include
 [hotkeys](user-configuration.md#hotkey-configuration) for the
 [move-window-to-other-portal](user-commands.md#move-window-to-other-portal-direction)
 command with arguments `next` and `previous`.  This bypasses the layout's idea

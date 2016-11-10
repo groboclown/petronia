@@ -10,13 +10,16 @@ from .hotkey import HotKeyConfig
 from .workgroup import DisplayWorkGroupsConfig
 from .config_type import ConfigType
 from .component import ComponentConfig
+from .shell import ShellConfig, WindowsShellConfig
 
 
 class Config(ConfigType):
     """
     Stores all the configuration information
     """
-    def __init__(self, workgroups=None, applications=None, hotkeys=None, commands=None, chrome=None, component=None):
+    def __init__(self, workgroups=None, applications=None, hotkeys=None, commands=None, chrome=None, component=None,
+                 shell=None):
+        super()
         assert workgroups is None or isinstance(workgroups, DisplayWorkGroupsConfig)
         assert hotkeys is None or isinstance(hotkeys, HotKeyConfig)
         if commands is None:
@@ -24,6 +27,7 @@ class Config(ConfigType):
         assert commands is None or isinstance(commands, CommandConfig)
         assert chrome is None or isinstance(chrome, ChromeConfig)
         assert component is None or isinstance(component, ComponentConfig)
+        assert shell is None or isinstance(shell, ShellConfig)
 
         if applications is None:
             applications = ApplicationListConfig([])
@@ -38,6 +42,7 @@ class Config(ConfigType):
         self.__commands = commands is None and CommandConfig() or commands
         self.__chrome = chrome is None and ChromeConfig() or chrome
         self.__component = component is None and ComponentConfig() or component
+        self.__shell = shell is None and WindowsShellConfig() or shell
         self.__init_options = defaultdict(None)
 
     def get_workgroup_for_display(self, monitors):
@@ -66,9 +71,14 @@ class Config(ConfigType):
         return self.__chrome
 
     @property
+    def shell(self):
+        return self.__shell
+
+    @property
     def init_options(self):
         return self.__init_options
 
     def register_components(self, registrar):
         self.__component.register_extensions(registrar)
         self.__component.activate_singletons(registrar)
+        registrar.activate_singleton(self.shell.get_shell_component_factory())

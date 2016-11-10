@@ -98,7 +98,7 @@ class WindowMapper(Identifiable, Component):
     def _setup_window_style(self, info):
         if 'title' not in info:
             info['title'] = window__get_title(info['hwnd'])
-        if info['visible'] and self.__config.applications.is_managed_chrome(info):
+        if self._is_chrome_managed(info):
             hwnd = info['hwnd']
             orig_size = window__border_rectangle(hwnd)
             orig_style = window__get_style(hwnd)
@@ -168,10 +168,24 @@ class WindowMapper(Identifiable, Component):
             self.__cid_to_handle[cid] = hwnd
             self._log_debug("Registered {0} ({1}) ({2}) ({3}) as {4}".format(
                 hex(hwnd), module_filename, exec_filename, pid, cid))
-            if self.__config.applications.is_tiled(info):
+            if self.is_tile_managed(info):
                 self._fire_for_window(event_ids.WINDOW__CREATED, info)
             return info
         return None
+
+    def _is_chrome_managed(self, window_info):
+        return (
+            window_info['visible']
+            and self.__config.applications.is_managed_chrome(window_info)
+            and not self.__config.shell.matches_shell_window(window_info)
+        )
+
+    def is_tile_managed(self, window_info):
+        return (
+            window_info['visible']
+            and self.__config.applications.is_tiled(window_info)
+            and not self.__config.shell.matches_shell_window(window_info)
+        )
 
     # noinspection PyUnusedLocal
     def _on_window_created(self, event_id, target_id, obj):

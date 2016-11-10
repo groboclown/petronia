@@ -13,6 +13,7 @@ class CommandConfig(BaseConfig):
     of a script.
     """
     def __init__(self):
+        super()
         self.__commands = list(command_builder.create_all_commands())
 
     @property

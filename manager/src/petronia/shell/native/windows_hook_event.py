@@ -43,11 +43,7 @@ class WindowsHookEvent(Identifiable, Component):
         self._reload_hotkeys(None, None, None)
 
         self._listen(event_ids.CONFIG__UPDATE, target_ids.ANY, self._reload_hotkeys)
-
-        # probably should be somewhere else, but this is good.
-        self._listen(event_ids.TELL_WINDOWS__OPEN_START_MENU, target_ids.ANY, self._on_open_start_menu)
         self._listen(event_ids.TELL_WINDOWS__INJECT_KEYS, target_ids.ANY, self._on_inject_keys)
-        self._listen(event_ids.TELL_WINDOWS__LOCK_SCREEN, target_ids.ANY, self._on_lock_screen)
 
         # noinspection PyUnusedLocal
         def key_callback(vk_code, scan_code, is_key_up, is_injected):
@@ -155,10 +151,6 @@ class WindowsHookEvent(Identifiable, Component):
         })
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
-    def _on_open_start_menu(self, event_id, target_id, event_obj):
-        shell__open_start_menu(self.__config.chrome.show_taskbar_with_start_menu)
-
-    # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def _on_inject_keys(self, event_id, target_id, event_obj):
         key_pairs = event_obj['keys']
         for key, is_key_up in key_pairs:
@@ -172,10 +164,6 @@ class WindowsHookEvent(Identifiable, Component):
             is_key_up = event_obj['is-key-up'].strip().lower()
             keyup = is_key_up in ['up', 'true', 'yes', 'off']
             shell__inject_scancode(scan_code, keyup)
-
-    # noinspection PyUnusedLocal,PyMethodMayBeStatic
-    def _on_lock_screen(self, event_id, target_id, event_obj):
-        shell__lock_workstation()
 
     def close(self):
         try:

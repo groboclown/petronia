@@ -23,8 +23,12 @@ if __name__ == '__main__':
             'visible': funcs.window__is_visible(hwnd),
         }
         if info['visible']:
+            pos = funcs.window__border_rectangle(hwnd)
+            for key, val in pos.items():
+                info[key] = val
             out.write(("Window Handle {hwnd}, PID {pid.value}\n" +
                        "    exec_path: {exec_filename}\n" +
                        "    module_path: {module_filename}\n" +
                        "    class_name: {class}\n" +
-                       "    title: {title}\n\n").format(**info))
+                       "    title: {title}\n" +
+                       "    @ ({left}x{top}) -> ({right}x{bottom})\n\n").format(**info))
