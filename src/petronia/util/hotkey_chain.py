@@ -60,7 +60,7 @@ class KeyOverride(object):
                         # Note use of user's value "key", rather than internal "k"
                         print("CONFIG ERROR: Simple keys are not allowed to be modifiers: {0}".format(key))
                     elif k in STR_VK_MAP:
-                        print("DEBUG KeyOverride: assigning {0} = `{1}`".format(hex(STR_VK_MAP[k]), action))
+                        # print("DEBUG KeyOverride: assigning {0} = `{1}`".format(hex(STR_VK_MAP[k]), action))
                         new_key_actions[STR_VK_MAP[k]] = action
                     else:
                         # TODO better error / warning
@@ -133,7 +133,7 @@ class HotKeyChain(object):
                 permutation_keys = []
                 _key_permutations(keys[0], 0, [], permutation_keys)
                 for perm in permutation_keys:
-                    print("DEBUG Combo {0} + {1} => {2}".format(perm, keys[1:], command))
+                    # print("DEBUG Combo {0} + {1} => {2}".format(perm, keys[1:], command))
                     combos.append((perm, keys[1:], tuple(command)))
 
         # Change the variable in a single command.
@@ -168,7 +168,7 @@ class HotKeyChain(object):
                             # We have our key
                             command = ac[1]
                             self.reset()
-                            print("DEBUG keys generated command {0}".format(command))
+                            # print("DEBUG keys generated command {0}".format(command))
                             return command
                         next_combos.append(ac)
                 if len(next_combos) > 0:

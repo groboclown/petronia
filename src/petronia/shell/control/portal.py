@@ -76,14 +76,19 @@ class Portal(Tile):
             def this_window_redraw(e, t, o):
                 self._on_window_redraw(e, t, o)
 
+            def this_window_closed(e, t, o):
+                self._on_window_closed(e, t, o)
+
             self._listen(event_ids.WINDOW__FOCUSED, window_cid, this_window_activated)
             self._listen(event_ids.WINDOW__REDRAW, window_cid, this_window_redraw)
+            self._listen(event_ids.WINDOW__CLOSED, window_cid, this_window_closed)
             self.__window_listeners[window_cid] = {
                 event_ids.WINDOW__FOCUSED: this_window_activated,
                 event_ids.WINDOW__REDRAW: this_window_redraw,
             }
             if 'make-focused' in event_obj and event_obj['make-focused']:
                 self._fire(event_ids.PORTAL__SET_ACTIVE, self.cid, {})
+                self._fire(event_ids.TELL_WINDOWS__FOCUS_WINDOW, window_cid, {})
 
     def _on_portal_becomes_active(self, event_id, target_id, event_obj):
         self._on_set_first_window_focused(event_id, target_id, event_obj)
@@ -95,8 +100,18 @@ class Portal(Tile):
                 'portal-active': True,
             })
 
+    # noinspection PyUnusedLocal
     def _on_window_zorder_change(self, event_id, target_id, event_obj):
-        raise NotImplementedError()
+        next_index = 0
+        if self.__top_window_index is not None:
+            next_index = (self.__top_window_index + 1) % len(self.__windows)
+        if 0 <= next_index < len(self.__windows):
+            self.__top_window_index = next_index
+            self._log_verbose("Rotating window to {0}".format(self.__windows[next_index]['cid']))
+            # self._fire(event_ids.ZORDER__SET_WINDOW_ON_TOP, self.__windows[next_index]['cid'], {})
+            self._fire(event_ids.TELL_WINDOWS__FOCUS_WINDOW, self.__windows[self.__top_window_index]['cid'], {})
+        else:
+            self._log_verbose("Could not rotate next window; no windows")
 
     # noinspection PyUnusedLocal
     def _on_set_first_window_focused(self, event_id, target_id, event_obj):
@@ -125,12 +140,13 @@ class Portal(Tile):
             else:
                 self._fire(
                     event_ids.DIRECTION_NEGOTIATION__BEGIN, self.cid, create_direction_negotiation_start_event_obj(
-                    self.cid, event_obj['direction'], PORTAL_TYPE, event_ids.PORTAL__MOVE_WINDOW_TO_DESTINATION,
+                        self.cid, event_obj['direction'], PORTAL_TYPE, event_ids.PORTAL__MOVE_WINDOW_TO_DESTINATION,
                         self.cid, {
                             'window-cid': dest_window_info['cid'],
                             'window-info': dest_window_info,
                         }
-                ))
+                    )
+                )
         else:
             self._log_verbose("Could not move a window from portal {0}, as it has no windows.".format(self.cid))
 
@@ -141,7 +157,7 @@ class Portal(Tile):
 
     # noinspection PyUnusedLocal
     def _on_window_becomes_active(self, event_id, target_id, event_obj):
-        # TODO should lock on the __windows event.
+        # TODO see if we need a thread lock on each of the __windows events.
         window_index = self._get_window_index(target_id)
         if window_index >= 0:
             self.__top_window_index = window_index
@@ -164,6 +180,19 @@ class Portal(Tile):
             'portal-size': self.size,
             'portal-active': self.__active,
         })
+
+    # noinspection PyUnusedLocal
+    def _on_window_closed(self, event_id, target_id, event_obj):
+        window_index = self._get_window_index(target_id)
+        if window_index >= 0:
+            if self.__top_window_index is not None:
+                if 0 <= self.__top_window_index <= len(self.__windows):
+                    if self.__top_window_index == window_index:
+                        self.__top_window_index = (window_index + 1) % len(self.__windows)
+                        # TODO fire change z-order?
+                else:
+                    self.__top_window_index = None
+            del self.__windows[window_index]
 
     # noinspection PyUnusedLocal
     def _on_portal_activated(self, event_id, target_id, event_obj):

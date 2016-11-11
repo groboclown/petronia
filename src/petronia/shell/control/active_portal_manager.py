@@ -58,7 +58,14 @@ class ActivePortalManager(Identifiable, Component):
 
     # noinspection PyUnusedLocal
     def _on_window_zorder_change(self, event_id, target_id, event_obj):
-        direction = event_obj
+        direction = event_obj['direction']
+        active = self._find_active_portal_cid()
+        if active is not None:
+            self._fire(event_ids.ZORDER__CHANGE_TOP_WINDOW, active, {
+                'direction': direction,
+            })
+        else:
+            self._log_verbose("Could not change window z-order; no active portal.")
         # TODO implement
         pass
 
@@ -83,7 +90,8 @@ class ActivePortalManager(Identifiable, Component):
         if active is not None:
             # This is the temporary movement handler until navigation can handle it better.
             self._log_verbose("Moving active window in {0} {1}".format(
-                active, event_obj['direction']))
+                active, event_obj['direction']
+            ))
             direction = event_obj['direction']
             if DIR_NEXT == direction:
                 dir_add = 1

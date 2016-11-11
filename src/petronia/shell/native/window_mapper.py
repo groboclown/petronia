@@ -289,6 +289,7 @@ class WindowMapper(Identifiable, Component):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
             window__activate(hwnd)
+            self._fire_for_window(event_ids.WINDOW__FOCUSED, self.__handle_map[str(hwnd)])
 
     # noinspection PyUnusedLocal
     def _on_set_window_top(self, event_id, target_id, obj):
@@ -296,9 +297,12 @@ class WindowMapper(Identifiable, Component):
             hwnd = self.__cid_to_handle[target_id]
             position = window__border_rectangle(hwnd)
             window__set_position(
-                hwnd, ["top"],
+                hwnd, "top",
                 position['x'], position['y'], position['width'], position['height'],
-                ["show-window"])
+                ["show-window"]
+            )
+        else:
+            self._log_info("Could not set window on top; no such window id {0}".format(target_id))
 
     # noinspection PyUnusedLocal
     def _on_maximize_window(self, event_id, target_id, obj):
