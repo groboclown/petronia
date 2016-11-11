@@ -384,11 +384,11 @@ The "hotkey mode" allows for Petronia to capture a few select keywords out
 of your typing, regardless of which window has focus, to trigger a Petronia
 command.
 
-You specify the command, one per line, in an awkward
-fashion:
+You specify the command as a key to command mapping.  Each command is a list
+in the form `(command name, argument 1, argument 2, ...)`
 
 ```
-key combo => command
+"key-combo": ["command", "arg1"],
 ```
 
 Key combos are strings of key names, connected with a "+" to require the
@@ -397,14 +397,14 @@ keys to be down at once, or "," to string different keystrokes together.
 So, you could have
 
 ```
-alt + f1 => cmd superhelp.exe
+"alt + f1": ["cmd", "superhelp.exe"]
 ```
 
-to run the `superhelp.exe` command when the keys <kbd>Alt</kbd><kbd>F1</kbd>
+to run the `superhelp.exe` application when the keys <kbd>Alt</kbd><kbd>F1</kbd>
 are held down together.
 
 ```
-lshift + twiddle , f12 => win+esc => open-start-menu 
+"lshift + twiddle , f12": ["open-start-menu"] 
 ```
 
 to force the task bar Start Menu to open when you hold down the left
