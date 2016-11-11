@@ -42,12 +42,17 @@ class KeyOverride(object):
             self.set_key_actions(key_commands)
 
     def set_key_actions(self, actions):
+        assert isinstance(actions, dict)
+        # FIXME use a dict instead
+
         # TODO in the future we may allow "shift+left" type keys here.
         # The implementation in key_action would just check the _MODIFIERS
         # state.
         new_key_actions = {}
-        for key_action in actions:
-            key = key_action[0].strip().lower()
+        for key, action in actions.items():
+            assert isinstance(action, list) or isinstance(action, tuple)
+            action = tuple(action)
+            key = key.strip().lower()
             if key in VK_ALIASES:
                 for k in VK_ALIASES[key]:
                     if k in MODIFIERS:
@@ -55,8 +60,8 @@ class KeyOverride(object):
                         # Note use of user's value "key", rather than internal "k"
                         print("CONFIG ERROR: Simple keys are not allowed to be modifiers: {0}".format(key))
                     elif k in STR_VK_MAP:
-                        # print("DEBUG KeyOverride: assigning {0} = `{1}`".format(hex(STR_VK_MAP[k]), key_action[1]))
-                        new_key_actions[STR_VK_MAP[k]] = key_action[1]
+                        print("DEBUG KeyOverride: assigning {0} = `{1}`".format(hex(STR_VK_MAP[k]), action))
+                        new_key_actions[STR_VK_MAP[k]] = action
                     else:
                         # TODO better error / warning
                         print("ERROR IN SETUP: alias {0} not in vk map".format(k))
@@ -64,7 +69,7 @@ class KeyOverride(object):
                 # TODO better error / warning
                 print("CONFIG ERROR: Simple keys are not allowed to be modifiers: {0}".format(key))
             elif key in STR_VK_MAP:
-                new_key_actions[STR_VK_MAP[key]] = key_action[1]
+                new_key_actions[STR_VK_MAP[key]] = action
             else:
                 # TODO better error / warning
                 print("CONFIG ERROR: Simple key not a known key: {0}".format(key))
@@ -113,12 +118,12 @@ class HotKeyChain(object):
             self.set_key_chains(chain_commands)
 
     def set_key_chains(self, chain_commands):
-        assert hasattr(chain_commands, '__iter__')
+        assert isinstance(chain_commands, dict)
 
         combos = []
-        for chain_command in chain_commands:
-            assert len(chain_command) == 2
-            keys = parse_combo_str(chain_command[0])
+        for key_chain, command in chain_commands.items():
+            assert isinstance(command, list) or isinstance(command, tuple)
+            keys = parse_combo_str(key_chain)
             if len(keys) > 0:
                 # We store modifiers a little differently.
                 # Rather than having a list of lists, which must be
@@ -128,8 +133,8 @@ class HotKeyChain(object):
                 permutation_keys = []
                 _key_permutations(keys[0], 0, [], permutation_keys)
                 for perm in permutation_keys:
-                    # print("DEBUG Combo {0} + {1} => {2}".format(perm, keys[1:], chain_command[1]))
-                    combos.append((perm, keys[1:], chain_command[1]))
+                    print("DEBUG Combo {0} + {1} => {2}".format(perm, keys[1:], command))
+                    combos.append((perm, keys[1:], tuple(command)))
 
         # Change the variable in a single command.
         self.__combos = combos
@@ -148,7 +153,7 @@ class HotKeyChain(object):
         :return: IGNORED if the key should be passed through,
             ACTION_PENDING if the key should be blocked from passing to
             another application, but does not complete an action, or
-            a string for the action to run.
+            a list of the action to run.
         """
         if _MODIFIERS == self.__active_modifiers:
             if self.__active_key is None or not _CURRENT_KEY_STATE[self.__active_key]:
@@ -163,6 +168,7 @@ class HotKeyChain(object):
                             # We have our key
                             command = ac[1]
                             self.reset()
+                            print("DEBUG keys generated command {0}".format(command))
                             return command
                         next_combos.append(ac)
                 if len(next_combos) > 0:
@@ -241,7 +247,7 @@ def parse_combo_str(chain_description):
                 print("CONFIG ERROR: Primary key not a modifier {0}".format(key_text))
         else:
             # TODO better error / warning
-            print("CONFIG ERROR: unknown key code {0}".format(key_text))
+            print("CONFIG ERROR: unknown key code [{0}]".format(key_text))
         if len(primary_key) > 0:
             primary_list.append(primary_key)
 

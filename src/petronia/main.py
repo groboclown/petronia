@@ -13,16 +13,18 @@ from petronia.shell.native.windows_hook_event import WindowsHookEvent
 from petronia.shell.native.window_mapper import WindowMapper
 from petronia.script.read_config import read_user_configuration
 from petronia.tests.bus_logger import log_events
+from petronia.script.script_logger import create_stdout_logger
 
 import sys
 
 
 def setup(config_file, layout_name):
-    config = read_user_configuration(config_file)
+    config = read_user_configuration(config_file, create_stdout_logger())
     config.init_options['layout-name'] = layout_name
     config.init_options['config-file'] = config_file
     config.init_options['log-level'] = LEVEL_VERBOSE
     # config.init_options['log-level'] = LEVEL_DEBUG
+
     bus = Bus()
     id_mgr = IdManager(bus)
     registrar = Registrar(bus, id_mgr, config)

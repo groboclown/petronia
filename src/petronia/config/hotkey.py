@@ -29,24 +29,12 @@ class HotKeyConfig(BaseConfig):
         """
         return self.__key_modes
 
-    def parse_hotkey_mode_keys(self, mode, config_lines, block_win_key=False):
+    def parse_hotkey_mode_keys(self, mode, key_mapping, block_win_key=False):
         assert isinstance(mode, str)
-        key_list = []
-        for line in config_lines:
-            line = line.strip()
-            if len(line) > 0 and line.find("=>") > 0:
-                keys, command = line.split("=>")
-                key_list.append((keys.strip(), command.strip()))
-        chain = HotKeyChain(key_list)
+        chain = HotKeyChain(key_mapping)
         chain.block_win_key = block_win_key
         self.__key_modes[mode] = chain
 
-    def parse_simple_mode_keys(self, mode, config_lines):
+    def parse_simple_mode_keys(self, mode, key_mapping):
         assert isinstance(mode, str)
-        key_list = []
-        for line in config_lines:
-            line = line.strip()
-            if len(line) > 0 and line.find("=>") > 0:
-                keys, command = line.split("=>")
-                key_list.append((keys.strip(), command.strip()))
-        self.__key_modes[mode] = KeyOverride(key_list)
+        self.__key_modes[mode] = KeyOverride(key_mapping)

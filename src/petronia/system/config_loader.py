@@ -4,6 +4,7 @@ from . import event_ids
 from .component import Identifiable, Component
 from ..config import ConfigType, Config
 from ..script.read_config import read_user_configuration
+from ..script.script_logger import create_bus_logger
 
 
 # noinspection PyUnusedLocal
@@ -19,7 +20,7 @@ class ConfigLoader(Identifiable, Component, ConfigType):
         self.__config_file = config_file
 
         if config_file is not None:
-            self.__config = read_user_configuration(config_file)
+            self.__config = read_user_configuration(config_file, create_bus_logger(bus))
             assert isinstance(self.__config, Config)
         else:
             self.__config = Config()
@@ -55,7 +56,7 @@ class ConfigLoader(Identifiable, Component, ConfigType):
         if 'config-file' in event_obj:
             new_config_file = event_obj['config-file']
 
-        new_config = read_user_configuration(new_config_file)
+        new_config = read_user_configuration(new_config_file, create_bus_logger(self._bus))
         self.__config_file = new_config_file
         self.__config = new_config
 

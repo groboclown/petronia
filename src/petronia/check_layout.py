@@ -6,6 +6,7 @@ from petronia.system import event_ids
 from petronia.system import target_ids
 from petronia.arch import funcs
 from petronia.script.read_config import read_user_configuration
+from petronia.script.script_logger import create_stdout_logger
 
 import sys
 
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     if len(sys.argv) >= 3:
         layout_name = sys.argv[2]
 
-    config = read_user_configuration(sys.argv[1])
+    config = read_user_configuration(sys.argv[1], create_stdout_logger())
     config.init_options['layout-name'] = layout_name
 
     bus = SingleThreadedBus()

@@ -111,8 +111,8 @@ class WindowsHookEvent(Identifiable, Component):
                 # Mode change actions need to be done here first.
                 # So special handling for mode changes.
                 # print("DEBUG command {0}".format(res))
-                if res.startswith(MODE_CHANGE_COMMAND + " "):
-                    new_mode = res[len(MODE_CHANGE_COMMAND) + 1:].strip()
+                if res[0] == MODE_CHANGE_COMMAND:
+                    new_mode = res[1].strip()
                     if new_mode in self.__key_combos:
                         old_mode = self.__mode
                         self.__mode = new_mode

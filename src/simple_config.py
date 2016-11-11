@@ -17,9 +17,9 @@ def load_config():
     hotkeys = config.HotKeyConfig()
     hotkeys.parse_hotkey_mode_keys(
         config.DEFAULT_MODE,
-        [
-            "win+f4 => quit",
-        ]
+        {
+            "win+f4": ["quit"],
+        }
     )
 
     return config.Config(
