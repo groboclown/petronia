@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Petronia by groboclown</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Petronia</h1>
+          <h2>A Python Window Tiler for Windows</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/groboclown/petronia/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/groboclown/petronia/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/groboclown/petronia" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a id="petronia-a-python-windows-tiling-window-manager" class="anchor" href="#petronia-a-python-windows-tiling-window-manager" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Petronia: A Python Windows Tiling Window Manager</h1>
+
+<h4>
+<a id="or-how-we-removed-useless-space-from-our-windows-and-used-all-that-extra-screen-space-to-do-important-things" class="anchor" href="#or-how-we-removed-useless-space-from-our-windows-and-used-all-that-extra-screen-space-to-do-important-things" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Or: How We Removed Useless Space From Our Windows and Used All That Extra Screen Space To Do Important Things</h4>
+
+<p><a href="http://www.youtube.com/watch?feature=player_embedded&amp;v=SRBJnFcBuqI"><img src="http://img.youtube.com/vi/SRBJnFcBuqI/0.jpg" alt="Introduction to Petronia" width="240" height="180" border="10"></a></p>
+
+<h4>
+<a id="manage-your-windows-as-tiles" class="anchor" href="#manage-your-windows-as-tiles" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Manage Your Windows as Tiles</h4>
+
+<p><a href="https://en.wikipedia.org/wiki/Tiling_window_manager">Tiles</a> allow you
+to divide up your monitors into distinct areas for your applications.</p>
+
+<p>Petronia can carve up your screen into a variety of
+rectangular shapes, while still accommodating floating windows for the
+windows that work best in them, or overlapping full-screen windows.</p>
+
+<p>Petronia also allows for different tile layouts per monitor layout, so
+your laptop can look good by itself or docked with 3 additional monitors.</p>
+
+<p>Really, it's up to you on how to setup your screen.</p>
+
+<h4>
+<a id="easily-move-windows-between-tiles" class="anchor" href="#easily-move-windows-between-tiles" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Easily Move Windows Between Tiles</h4>
+
+<p>Petronia gives you control.  With easy key strokes, you can move a window
+between different tiles.</p>
+
+<p>You can setup your keys however you like.  You can have a keystroke to
+enter a window movement mode, or use hotkeys.</p>
+
+<p>You can also prevent Windows from using the <kbd>❖ Win</kbd> key and
+use it for whatever you like.</p>
+
+<h4>
+<a id="strip-off-useless-borders-to-see-more-of-whats-important" class="anchor" href="#strip-off-useless-borders-to-see-more-of-whats-important" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Strip off Useless Borders to See More of What's Important</h4>
+
+<p>With a tile layout, and the availability of keys to perform the same actions,
+the title bar and resize borders are useless wastes of space.  Remove them and
+see more of what's actually important.</p>
+
+<p><img src="../master/docs/imgs/intellij-chrome-win8.1.png?raw=true" alt="Windows 8.1 Chrome"></p>
+
+<p><em>Windows 8.1 - Look at all that wasted screen space</em></p>
+
+<p><img src="../master/docs/imgs/intellij-dechromed.png?raw=true" alt="Without Chrome"></p>
+
+<p><em>Windows 8.1 stripped of all the chrome - Oh mi gorsh I can see so much more of my work!</em></p>
+
+<h2>
+<a id="current-state-of-the-software" class="anchor" href="#current-state-of-the-software" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Current State of the Software</h2>
+
+<p>This program is very Alpha.  You run the program in a command shell,
+which stays open and spews out logging information.  You configure the
+software by writing Python code that sets up the configuration.</p>
+
+<p>Additionally, this was written against 64-bit Windows 8.1.  I'm not sure if
+it will work with other versions.  The Windows interfacing code has an
+abstraction layer for working with different bit-ness and different versions,
+but those haven't been widely tested.</p>
+
+<h2>
+<a id="running" class="anchor" href="#running" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running</h2>
+
+<p>You'll need to ensure you're running Python 3.5 or higher.  This has been
+tested on the python.org release version 3.5.2.  You'll need to install the
+proper version of Python for your system.  If you're running a 64-bit OS,
+then use the 64-bit Python.  If you are running a 32-bit OS, then use the
+32-bit Python.</p>
+
+<p>Then, download the source.  You'll need to configure the setup for your
+computer; the example is <code>user_test_config.py</code>.  You can name the file
+whatever you want, but it should live in the <code>manager/src</code> directory.</p>
+
+<p>Once you have your configuration setup, you just run in a cmd prompt:</p>
+
+<div class="highlight highlight-source-batchfile"><pre><span class="pl-k">&gt;</span> <span class="pl-k">set</span> <span class="pl-k">Path</span>=(python 3.5.2 directory);<span class="pl-smi">%Path%</span>
+<span class="pl-k">&gt;</span> <span class="pl-k">cd</span> (petronia <span class="pl-k">dir</span>)\manager\src
+<span class="pl-k">&gt;</span> python -u -m petronia.<span class="pl-k">cmd</span> my_config_file.py</pre></div>
+
+<p>Press <kbd>↵ Enter</kbd> in the command window to stop the program.</p>
+
+<p><em>So bleeding edge!</em></p>
+
+<p>See the <a href="docs/user-getting-started.md">Getting Started Guide</a> for details
+on how to run and setup your Petronia environment.</p>
+        </section>
+
+        <footer>
+          Petronia is maintained by <a href="https://github.com/groboclown">groboclown</a><br>
+          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
