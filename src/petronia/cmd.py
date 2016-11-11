@@ -8,7 +8,7 @@ import sys
 
 
 if __name__ == '__main__':
-    from . import main
+    from petronia import main
     bus = main.main_setup()
 
     sys.stdin.read(1)
