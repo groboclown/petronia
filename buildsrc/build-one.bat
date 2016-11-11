@@ -1,8 +1,14 @@
 @echo off
 setlocal
+if M%1M == MM goto error
+goto run
 
-rem Note that "pyinstaller.exe" must be in the Path.
-rem Usually, you'll find it in your Python directory, under Scripts.
+:error
+echo Must specify the Python installation to use as argument 1.
+goto end
+
+:run
+set Path=%1;%1\Scripts;%Path%
 
 set HERE=%~dp0
 cd %HERE%\..
@@ -19,4 +25,5 @@ for %%i in (check_layout cmd detect_apps detect_keys detect_monitors main) do (
 
 python buildsrc/bundle.py buildsrc/work/dist
 
+:end
 endlocal

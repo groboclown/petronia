@@ -9,14 +9,15 @@ assert isinstance(exe_name, str), "exe_name is not a string"
 assert isinstance(use_cli, bool), "use_cli is not a boolean"
 
 ARCH = sys.version.lower().find(' 64 bit ') > 0 and 'x64' or 'x86'
-arch = '-' + ARCH
-dist = exe_name + arch
+# dist = exe_name + '-' + ARCH
+dist = exe_name
 
 block_cipher = None
 
 scripts = [basedir + '/src/petronia/' + script_name + '.py']
 data_files = [
     (basedir + '/README.md', '.'),
+    (basedir + '/LICENSE', '.'),
     (basedir + '/docs', 'docs'),
     (basedir + '/src/no_chrome_config.py', 'example-configs'),
     (basedir + '/src/user_test_config.py', 'example-configs'),

@@ -8,6 +8,7 @@ if __name__ == '__main__':
     # in UTF-8
     out = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
+    invisible_handles = {}
     hwnd_list = funcs.window__find_handles()
     for hwnd in hwnd_list:
         module_filename = funcs.window__get_module_filename(hwnd)
@@ -32,3 +33,13 @@ if __name__ == '__main__':
                        "    class_name: {class}\n" +
                        "    title: {title}\n" +
                        "    @ ({left}x{top}) -> ({right}x{bottom})\n\n").format(**info))
+        else:
+            if info['pid'].value not in invisible_handles:
+                invisible_handles[info['pid'].value] = (info['exec_filename'], [])
+            invisible_handles[info['pid'].value][1].append(str(hwnd))
+
+    # for pid, x in invisible_handles.items():
+    #     filename, handles = x
+    #     out.write("PID {0}, {3} handles :: {1}\n".format(pid, filename, ", ".join(handles), len(handles)))
+
+    out.flush()

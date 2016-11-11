@@ -79,13 +79,16 @@ if __name__ == '__main__':
     os.makedirs(__out_dir)
     for __name in os.listdir(__dist_dir):
         __full_name = os.path.join(__dist_dir, __name)
-        if __name.endswith('-' + ARCH) and os.path.isdir(__full_name):
+        if __name != ARCH and os.path.isdir(__full_name):
             print("Adding {0}".format(__name))
             copy_into(__full_name, __out_dir, '.')
 
     # print("Bundling {0} into {1}".format(__out_dir, os.path.join(__dist_dir, '..', 'petronia-' + ARCH + '.zip')))
     print("Bundling zip")
-    __zipf = zipfile.ZipFile(os.path.join(__dist_dir, '..', 'petronia-' + ARCH + '.zip'), 'w', zipfile.ZIP_DEFLATED)
+    __zip_name = os.path.join(__dist_dir, '..', 'petronia-' + ARCH + '.zip')
+    if os.path.exists(__zip_name):
+        os.unlink(__zip_name)
+    __zipf = zipfile.ZipFile(__zip_name, 'w', zipfile.ZIP_DEFLATED)
     __dirs = [(__out_dir, '')]
     while len(__dirs) > 0:
         __root, __path = __dirs.pop()
