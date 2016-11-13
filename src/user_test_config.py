@@ -66,6 +66,9 @@ def load_config():
         # HKEY_CURRENT_USER\Software\Microsoft\Office\(version)\Options\Reminders
         config.ApplicationChromeConfig(is_managed_chrome=False, is_tiled=False, app_matchers=[
             config.AppMatcher(class_name_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_path='outlook.exe'),
+
+            # This is an invisible application that queries think is actually a visible application.
+            config.AppMatcher(class_name='MSO_BORDEREFFECT_WINDOW_CLASS', title='', exec_path='outlook.exe'),
         ]),
 
         # General non-chromed apps.  These ones appear on the default screen.

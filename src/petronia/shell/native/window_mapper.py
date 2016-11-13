@@ -251,7 +251,7 @@ class WindowMapper(Identifiable, Component):
         key = str(hwnd)
         if key in self.__handle_map:
             info = self.__handle_map[key]
-            # TODO do something
+            # TODO do something?  Don't think there's anything to do here.
 
     # noinspection PyUnusedLocal
     def _on_window_replaced(self, event_id, target_id, obj):
@@ -260,6 +260,9 @@ class WindowMapper(Identifiable, Component):
         if key in self.__handle_map:
             info = self.__handle_map[key]
             # TODO do something
+            # Here, it looks like this means one handle is replaced
+            # with a different handle.  This should swap out the
+            # internal hwnd info object.
 
     # noinspection PyUnusedLocal
     def _on_window_flash(self, event_id, target_id, obj):
@@ -281,28 +284,29 @@ class WindowMapper(Identifiable, Component):
                     hwnd, None, obj['x'], obj['y'], obj['width'], obj['height'],
                     ['frame-changed', 'draw-frame', 'async-window-pos']
                 )
-            if 'make-focused' in obj:
+            if 'make-focused' in obj and obj['make-focused']:
                 window__activate(hwnd)
 
     # noinspection PyUnusedLocal
     def _on_set_window_focus(self, event_id, target_id, obj):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
-            window__activate(hwnd)
-            self._fire_for_window(event_ids.WINDOW__FOCUSED, self.__handle_map[str(hwnd)])
+
+            # TODO if the call fails, then we should send a signal that the call failed
+            # due to the window not being active.  This should happen for all the
+            # native calls.
+            if window__activate(hwnd):
+                self._fire_for_window(event_ids.WINDOW__FOCUSED, self.__handle_map[str(hwnd)])
+            else:
+                self._log_info("Attempted to focus on a window that isn't responsive ({0} / {1})".format(
+                    target_id, hwnd))
+                self._on_window_destroyed(None, None, {'target_hwnd': hwnd})
+        else:
+            self._log_info("Could not run {0}; no such window id {1}".format(event_id, target_id))
 
     # noinspection PyUnusedLocal
     def _on_set_window_top(self, event_id, target_id, obj):
-        if target_id in self.__cid_to_handle:
-            hwnd = self.__cid_to_handle[target_id]
-            position = window__border_rectangle(hwnd)
-            window__set_position(
-                hwnd, "top",
-                position['x'], position['y'], position['width'], position['height'],
-                ["show-window"]
-            )
-        else:
-            self._log_info("Could not set window on top; no such window id {0}".format(target_id))
+        self._on_set_window_focus(event_id, target_id, obj)
 
     # noinspection PyUnusedLocal
     def _on_maximize_window(self, event_id, target_id, obj):
@@ -312,7 +316,10 @@ class WindowMapper(Identifiable, Component):
             hwnd = window__get_active_window()
 
         if hwnd:
-            window__maximize(hwnd)
+            if not window__maximize(hwnd):
+                self._log_info("Attempted to focus on a window that isn't responsive ({0} / {1})".format(
+                    target_id, hwnd))
+                self._on_window_destroyed(None, None, {'target_hwnd': hwnd})
 
     # noinspection PyUnusedLocal
     def _on_minimize_window(self, event_id, target_id, obj):
@@ -325,7 +332,10 @@ class WindowMapper(Identifiable, Component):
 
         if hwnd is not None:
             # print("DEBUG minimizing handle " + hwnd)
-            window__minimize(hwnd)
+            if not window__minimize(hwnd):
+                self._log_info("Attempted to focus on a window that isn't responsive ({0} / {1})".format(
+                    target_id, hwnd))
+                self._on_window_destroyed(None, None, {'target_hwnd': hwnd})
         # else:
         #     print("DEBUG nothing to minimize")
 
@@ -364,7 +374,7 @@ class WindowMapper(Identifiable, Component):
     def _on_resend_window_created_events(self, event_id, target_id, obj):
         self._log_debug("Resending window create events.")
         for info in self.__handle_map.values():
-            if self.__config.applications.is_tiled(info):
+            if self.is_tile_managed(info):
                 self._fire_for_window(event_ids.WINDOW__CREATED, info)
 
     def _fire_for_window(self, event_id, info):

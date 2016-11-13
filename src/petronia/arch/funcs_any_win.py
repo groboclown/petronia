@@ -251,7 +251,9 @@ def window__border_rectangle(hwnd):
         'left', 'right', 'top', 'bottom'
     """
     rect = wintypes.RECT()
-    windll.user32.GetWindowRect(hwnd, byref(rect))
+    res = windll.user32.GetWindowRect(hwnd, byref(rect))
+    if res == 0:
+        raise WinError()
     return _rect_to_dict(rect)
 
 
@@ -264,7 +266,9 @@ def window__client_rectangle(hwnd):
     :return: the rectangle structure.
     """
     client_rect = wintypes.RECT()
-    windll.user32.GetClientRect(hwnd, byref(client_rect))
+    res = windll.user32.GetClientRect(hwnd, byref(client_rect))
+    if res == 0:
+        raise WinError()
     return _rect_to_dict(client_rect)
 
 
@@ -277,7 +281,6 @@ def window__move_resize(hwnd, x, y, width, height, repaint=True):
 
     # check that it worked correctly
     if not ret:
-        # TODO real exception
         raise WinError()
 
 
@@ -327,7 +330,8 @@ def window__send_message(hwnd, key, arg1, arg2):
 
 
 def window__post_message(hwnd, key, arg1, arg2):
-    windll.user32.PostMessageW(hwnd, key, arg1, arg2)
+    res = windll.user32.PostMessageW(hwnd, key, arg1, arg2)
+    return res != 0
 
 
 def window__close(hwnd):
@@ -335,11 +339,13 @@ def window__close(hwnd):
     # Code modified from http://msdn.microsoft.com/msdnmag/issues/02/08/CQA/
 
     # Give the "must close" message to the window
-    window__post_message(hwnd, WM_CLOSE, 0, 0)
+    res = window__post_message(hwnd, WM_CLOSE, 0, 0)
+    return res != 0
 
 
 def window__maximize(hwnd):
-    windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
+    res = windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
+    return res != 0
 
 
 def window__minimize(hwnd):
@@ -479,7 +485,8 @@ def window__set_position(hwnd, hwnd_after_zorder, x, y, width, height, flags):
         else:
             # TODO better error
             print("Unknown SWP set position flag {0}".format(flag))
-    SetWindowPos(hwnd, zorder, x, y, width, height, uflags)
+    res = SetWindowPos(hwnd, zorder, x, y, width, height, uflags)
+    return res != 0
 
 
 def window__set_layered_attributes(hwnd, r, g, b, a):
@@ -503,8 +510,17 @@ def window__activate(hwnd):
     current_hwnd = windll.user32.GetForegroundWindow()
     current_thread_id = windll.kernel32.GetCurrentThreadId()
     thread_process_id = windll.user32.GetWindowThreadProcessId(current_hwnd, None)
-    windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
-    windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE)
+    res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
+    if res == 0:
+        # TODO better logging
+        print("WARN: could not attach thread input to thread {0}".format(thread_process_id))
+        return True
+    res = windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE)
+    if res == 0:
+        return False
+    # At this point, the window hwnd is valid, so we don't need to fail out
+    # if the results are non-zero.  Some of these will not succeed due to
+    # attributes of the window, rather than the window not existing.
     windll.user32.SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE)
     windll.user32.SetForegroundWindow(hwnd)
     windll.user32.AttachThreadInput(thread_process_id, current_thread_id, False)

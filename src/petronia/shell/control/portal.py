@@ -107,9 +107,8 @@ class Portal(Tile):
             next_index = (self.__top_window_index + 1) % len(self.__windows)
         if 0 <= next_index < len(self.__windows):
             self.__top_window_index = next_index
-            self._log_verbose("Rotating window to {0}".format(self.__windows[next_index]['cid']))
-            # self._fire(event_ids.ZORDER__SET_WINDOW_ON_TOP, self.__windows[next_index]['cid'], {})
-            self._fire(event_ids.TELL_WINDOWS__FOCUS_WINDOW, self.__windows[self.__top_window_index]['cid'], {})
+            self._log_debug("Rotating window to {0}".format(self.__windows[next_index]))
+            self._fire(event_ids.ZORDER__SET_WINDOW_ON_TOP, self.__windows[next_index]['cid'], {})
         else:
             self._log_verbose("Could not rotate next window; no windows")
 
@@ -169,7 +168,8 @@ class Portal(Tile):
                     'portal-active': True,
                 })
             return
-        self._log_info("Portal {0} listened to 'window becomes active' for window {1}, but it isn't owned".format(
+        # Warning, because this indicates a possible internal bug.
+        self._log_warn("Portal {0} listened to 'window becomes active' for window {1}, but it isn't owned".format(
             self.cid, target_id
         ))
 
