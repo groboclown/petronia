@@ -108,6 +108,12 @@ layouts_by_display = config.DisplayWorkGroupsConfig(groups=[
 To understand your monitor layout, for use in the configuration, you can run:
 
 ```cmd
+> detect-monitors
+```
+
+Or with the source distribution:
+
+```cmd
 > python -m petronia.detect_monitors
 ```
 
@@ -223,6 +229,12 @@ the screens based on the layout definition it finds for your monitors,
 you can run:
 
 ```cmd
+> check-layout (configuration file name) (layout name)
+```
+
+Or with the source distribution:
+
+```cmd
 > python -m petronia.check_layout (configuration file name) (layout name)
 ```
 
@@ -239,6 +251,12 @@ or if assigned to a portal.  The Application Configuration allows you to set
 up this association.
 
 To check how Petronia recognizes your applications, you can run
+
+```cmd
+> detect-apps
+```
+
+Or with the source distribution:
 
 ```cmd
 > python -m petronia.detect_apps
@@ -302,6 +320,12 @@ To find the class name, module path, and executable path, for all visible
 windows, run:
 
 ```cmd
+> detect-apps
+```
+
+Or with the source distribution:
+
+```cmd
 > python -m petronia.detect_apps
 ```
 
@@ -357,7 +381,13 @@ keyboard shortcuts.  The hotkey configurations are *modal*, meaning that
 you can have multiple keyboard configurations, and switch between them.
 
 To better understand how Petronia maps your key stokes, you can run
- 
+
+```cmd
+> detect-keys
+```
+
+Or with the source distribution:
+
 ```cmd
 > python -m petronia.detect_keys
 ```
@@ -478,8 +508,7 @@ component = config.ComponentConfig(singletons=[
     render_active_portal_factory
 ])
 
-return config.Config(
-    component=component)
+ret = config.Config(component=component)
 ```
 
 The two inputs to the `ComponentConfig` are:

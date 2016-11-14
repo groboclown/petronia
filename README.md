@@ -2,6 +2,19 @@
 
 #### Or: How We Removed Useless Space From Our Windows and Used All That Extra Screen Space To Do Important Things 
 
+## v1.1 Is Out!
+
+* [petronia-1.1-x64.zip](https://github.com/groboclown/petronia/releases/download/v1.1/petronia-1.1-x64.zip)
+    (12 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy 64-bit executable.
+    **For x64 Windows Computers Only**
+* [petronia-1.1-x86.zip](https://github.com/groboclown/petronia/releases/download/v1.1/petronia-1.1-x86.zip)
+    (11.4 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy executable.
+    **For 32-bit and 64-bit Windows Computers**
+* [petronia-1.1-src.zip](https://github.com/groboclown/petronia/archive/v1.1.zip)
+    The source distribution, for users who want to see what's happening, and to use their
+    own installed version of Python.
+
+
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=SRBJnFcBuqI" target="_blank"><img src="http://img.youtube.com/vi/SRBJnFcBuqI/0.jpg" alt="Introduction to Petronia" width="240" height="180" border="10" /></a>
 
 #### Manage Your Windows as Tiles
@@ -58,6 +71,30 @@ but those haven't been widely tested.
 
 ## Running
 
+You have two ways to run Petronia, either from source, or from a pre-bundled
+executable.
+
+See the [Getting Started Guide](docs/user-getting-started.md) for details
+on how to run and setup your Petronia environment.
+
+### I Don't Like Source Code
+
+[Download the latest release](https://github.com/groboclown/petronia/releases)
+for your platform (64-bit or 32-bit) and uncompress it to a directory on your
+computer using a tool like 7-zip, or WinZip, or unzip.
+
+From a command-prompt, you can run:
+
+```cmd
+> petronia example-configs\user_test_config.py
+```
+
+Or, drag a configuration file on top of the `petronia.exe` file.  Press
+<kbd>&#x2756; Win</kbd><kbd>F4</kbd> to stop the program.
+
+
+### I Like Pain
+
 You'll need to ensure you're running Python 3.5 or higher.  This has been
 tested on the python.org release version 3.5.2.  You'll need to install the
 proper version of Python for your system.  If you're running a 64-bit OS,
@@ -79,6 +116,3 @@ Once you have your configuration setup, you just run in a cmd prompt:
 Press <kbd>&crarr; Enter</kbd> in the command window to stop the program.
 
 *So bleeding edge!*
-
-See the [Getting Started Guide](docs/user-getting-started.md) for details
-on how to run and setup your Petronia environment.
