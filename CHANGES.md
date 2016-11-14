@@ -9,7 +9,13 @@
 ### Details
 
 * Bug fixes
-    * When a window is destroyed, the event is now passed to all the components (#4)
+    * When a window is destroyed, the event is now passed to all the
+        components (#4)
+    * `render_active_portal` now draws the windows a bit more accurately,
+        without rendering refresh glitches.
+    * Changing window focus in the current portal to previous
+        (`switch-top-window previous`) now correctly moves to the previous
+        window.
 
 
 ## :: v1.1 ::

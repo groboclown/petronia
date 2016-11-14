@@ -1,6 +1,6 @@
 
 from .tile import Tile
-from ..navigation import PORTAL_TYPE, create_direction_negotiation_start_event_obj
+from ..navigation import PORTAL_TYPE, create_direction_negotiation_start_event_obj, DIR_PREVIOUS
 from ...system import event_ids
 from ...system import target_ids
 
@@ -110,7 +110,10 @@ class Portal(Tile):
     def _on_window_zorder_change(self, event_id, target_id, event_obj):
         next_index = 0
         if self.__top_window_index is not None:
-            next_index = (self.__top_window_index + 1) % len(self.__windows)
+            dir_change = 1
+            if 'direction' in event_obj and event_obj['direction'] == DIR_PREVIOUS:
+                dir_change = -1
+            next_index = abs((self.__top_window_index + dir_change) % len(self.__windows))
         if 0 <= next_index < len(self.__windows):
             self.__top_window_index = next_index
             self._log_debug("Rotating window to {0}".format(self.__windows[next_index]))
@@ -211,6 +214,7 @@ class Portal(Tile):
                     'portal-active': False,
                 })
 
+    # noinspection PyUnusedLocal
     def _on_window_flashing(self, event_id, target_id, event_obj):
         window_index = self._get_window_index(target_id)
         if window_index >= 0:

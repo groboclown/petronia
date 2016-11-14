@@ -67,9 +67,41 @@ class RenderActivePortal(Component):
 
 
 def _draw_border(size, border):
+    # if 'status' in border:
+
     if border['width'] >= 0:
-        rect = {
-            'left': size['x'], 'right': size['x'] + size['width'],
-            'top': size['y'], 'bottom': size['y'] + size['height']
-        }
-        window__draw_border_outline(rect, border['color'], border['width'])
+        # Drawing a border around the window causes all kinds of refresh
+        # glitches.  So instead, we'll draw each side of the border.
+        # This is 4x slower, though.
+        # rect = {
+        #     'left': size['x'], 'right': size['x'] + size['width'],
+        #     'top': size['y'], 'bottom': size['y'] + size['height']
+        # }
+        # window__draw_border_outline(rect, border['color'], border['width'])
+        border_width = border['width']
+        margin = min(border['width'] // 2, 1)
+        border_width = margin * 2
+        rect_list = [
+            # Left bar
+            {
+                'left': size['x'], 'right': size['x'] + margin,
+                'top': size['y'], 'bottom': size['y'] + size['height']
+            },
+            # Right bar
+            {
+                'left': size['x'] + size['width'] - margin, 'right': size['x'] + size['width'],
+                'top': size['y'], 'bottom': size['y'] + size['height']
+            },
+            # Top bar
+            {
+                'left': size['x'], 'right': size['x'] + size['width'],
+                'top': size['y'], 'bottom': size['y'] + margin
+            },
+            # Bottom bar
+            {
+                'left': size['x'], 'right': size['x'] + size['width'],
+                'top': size['y'] + size['height'] - margin, 'bottom': size['y'] + size['height']
+            },
+        ]
+        for rect in rect_list:
+            window__draw_border_outline(rect, border['color'], border_width)
