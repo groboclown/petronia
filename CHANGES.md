@@ -1,5 +1,17 @@
 # Petronia Change History
 
+## :: v1.2 ::
+
+### Overview
+
+* Bug fixes
+
+### Details
+
+* Bug fixes
+    * When a window is destroyed, the event is now passed to all the components (#4)
+
+
 ## :: v1.1 ::
 
 ### Overview
