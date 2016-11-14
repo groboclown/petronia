@@ -186,6 +186,7 @@ PORTAL__SET_ACTIVE = "Set Active Portal" + EVENT_THREAD__NOTICE
 PORTAL__DEACTIVATED = "Portal Is No Longer Active" + EVENT_THREAD__NOTICE
 PORTAL__ACTIVATED = "Portal Is Active" + EVENT_THREAD__NOTICE
 PORTAL__REDRAW = "Portal Area Redraw" + EVENT_THREAD__NOTICE
+PORTAL__FLASHING = "Portal Window Flashing" + EVENT_THREAD__NOTICE
 
 
 # ---------------------------------------------------------------------------

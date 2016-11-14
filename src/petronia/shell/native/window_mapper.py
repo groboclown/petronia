@@ -133,7 +133,7 @@ class WindowMapper(Identifiable, Component):
             return None
         # TODO only manage windows that the user owns.
         # At the moment, the username_domain call returns empty strings.  This is
-        # probably a bug in the underlying winapi calls.
+        # probably a bug in the underlying winapi calling functions.
         # if username_domain != _CURRENT_USER_DOMAIN:
         #     print(" - ignoring {0} from other user {1}@{2}".format(pid, username_domain[0], username_domain[1]))
         class_name = window__get_class_name(hwnd)
@@ -168,7 +168,7 @@ class WindowMapper(Identifiable, Component):
             self.__cid_to_handle[cid] = hwnd
             self._log_debug("Registered {0} ({1}) ({2}) ({3}) as {4}".format(
                 hex(hwnd), module_filename, exec_filename, pid, cid))
-            if self.is_tile_managed(info):
+            if self._is_tile_managed(info):
                 self._fire_for_window(event_ids.WINDOW__CREATED, info)
             return info
         return None
@@ -180,7 +180,7 @@ class WindowMapper(Identifiable, Component):
             and not self.__config.shell.matches_shell_window(window_info)
         )
 
-    def is_tile_managed(self, window_info):
+    def _is_tile_managed(self, window_info):
         return (
             window_info['visible']
             and self.__config.applications.is_tiled(window_info)
@@ -240,10 +240,7 @@ class WindowMapper(Identifiable, Component):
     # noinspection PyUnusedLocal
     def _on_window_forced_end(self, event_id, target_id, obj):
         hwnd = obj['target_hwnd']
-        key = str(hwnd)
-        if key in self.__handle_map:
-            info = self.__handle_map[key]
-            # TODO do something
+        self._on_window_destroyed(event_id, target_id, obj)
 
     # noinspection PyUnusedLocal
     def _on_window_replacing(self, event_id, target_id, obj):
@@ -262,7 +259,9 @@ class WindowMapper(Identifiable, Component):
             # TODO do something
             # Here, it looks like this means one handle is replaced
             # with a different handle.  This should swap out the
-            # internal hwnd info object.
+            # internal hwnd info object.  Looks like we need more
+            # information - the 2 handles, the original and the
+            # new one.
 
     # noinspection PyUnusedLocal
     def _on_window_flash(self, event_id, target_id, obj):
@@ -280,21 +279,20 @@ class WindowMapper(Identifiable, Component):
                 # print("DEBUG setting window {0} to ({1}, {2}) @ ({3}, {4})  {5}".format(
                 #     target_id, obj['width'], obj['height'], obj['x'], obj['y'], obj
                 # ))
-                window__set_position(
-                    hwnd, None, obj['x'], obj['y'], obj['width'], obj['height'],
-                    ['frame-changed', 'draw-frame', 'async-window-pos']
-                )
+                if not window__set_position(
+                            hwnd, None, obj['x'], obj['y'], obj['width'], obj['height'],
+                            ['frame-changed', 'draw-frame', 'async-window-pos']
+                        ):
+                    self._on_window_destroyed(event_id, target_id, {'target_hwnd': hwnd})
+                    return
             if 'make-focused' in obj and obj['make-focused']:
-                window__activate(hwnd)
+                if not window__activate(hwnd):
+                    self._on_window_destroyed(event_id, target_id, {'target_hwnd': hwnd})
 
     # noinspection PyUnusedLocal
     def _on_set_window_focus(self, event_id, target_id, obj):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
-
-            # TODO if the call fails, then we should send a signal that the call failed
-            # due to the window not being active.  This should happen for all the
-            # native calls.
             if window__activate(hwnd):
                 self._fire_for_window(event_ids.WINDOW__FOCUSED, self.__handle_map[str(hwnd)])
             else:
@@ -374,7 +372,7 @@ class WindowMapper(Identifiable, Component):
     def _on_resend_window_created_events(self, event_id, target_id, obj):
         self._log_debug("Resending window create events.")
         for info in self.__handle_map.values():
-            if self.is_tile_managed(info):
+            if self._is_tile_managed(info):
                 self._fire_for_window(event_ids.WINDOW__CREATED, info)
 
     def _fire_for_window(self, event_id, info):

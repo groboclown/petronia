@@ -79,12 +79,18 @@ class Portal(Tile):
             def this_window_closed(e, t, o):
                 self._on_window_closed(e, t, o)
 
+            def this_window_flashing(e, t, o):
+                self._on_window_flashing(e, t, o)
+
             self._listen(event_ids.WINDOW__FOCUSED, window_cid, this_window_activated)
             self._listen(event_ids.WINDOW__REDRAW, window_cid, this_window_redraw)
             self._listen(event_ids.WINDOW__CLOSED, window_cid, this_window_closed)
+            self._listen(event_ids.WINDOW__FLASHING, window_cid, this_window_flashing)
             self.__window_listeners[window_cid] = {
                 event_ids.WINDOW__FOCUSED: this_window_activated,
                 event_ids.WINDOW__REDRAW: this_window_redraw,
+                event_ids.WINDOW__CLOSED: this_window_closed,
+                event_ids.WINDOW__FLASHING: this_window_flashing
             }
             if 'make-focused' in event_obj and event_obj['make-focused']:
                 self._fire(event_ids.PORTAL__SET_ACTIVE, self.cid, {})
@@ -204,6 +210,15 @@ class Portal(Tile):
                     'portal-size': self.size,
                     'portal-active': False,
                 })
+
+    def _on_window_flashing(self, event_id, target_id, event_obj):
+        window_index = self._get_window_index(target_id)
+        if window_index >= 0:
+            self._fire(event_ids.PORTAL__FLASHING, self.cid, {
+                'portal-cid': self.cid,
+                'portal-size': self.size,
+                'portal-active': self.__active,
+            })
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
         # The parent passed down the request to "discover" the next location (it could
