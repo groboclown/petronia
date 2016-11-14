@@ -17,6 +17,7 @@ block_cipher = None
 scripts = [basedir + '/src/petronia/' + script_name + '.py']
 data_files = [
     (basedir + '/README.md', '.'),
+    (basedir + '/CHANGES.md', '.'),
     (basedir + '/LICENSE', '.'),
     (basedir + '/docs', 'docs'),
     (basedir + '/src/no_chrome_config.py', 'example-configs'),
@@ -33,6 +34,7 @@ extra_imports = [
     'petronia.arch.funcs_winXP',
     'petronia.arch.funcs_x64_win',
     'petronia.arch.funcs_x86_win',
+    'petronia.shell.view.render_active_portal',
 ]
 
 a = Analysis(scripts,

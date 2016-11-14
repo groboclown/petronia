@@ -21,6 +21,8 @@
         Use the `["switch-top-window", "previous"]` and
         `["switch-top-window", "next"]` commands.
 * Added documentation for the Component configuration.
+    * Included note about the `render_active_portal`.
+    * `render_active_portal` now available from the executable distribution.
 * Added "flashing" capabilities to the `render_active_portal` plugin.
     * When a window indicates that it should "flash", the
         `render_active_portal` plugin will flash the border color of the
