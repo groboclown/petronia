@@ -68,6 +68,10 @@ you're used to.  Instead, it gives you some control over your window layout.
     to the *next* [portal](user-configuration.md#splits-and-portals).
  * <kbd>&#x2756; Win</kbd><kbd>page down</kbd> Move the currently active
     window to the *previous* [portal](user-configuration.md#splits-and-portals).
+ * <kbd>&#x2756; Win</kbd><kbd>,/&lt;</kbd> Flip to the previous window in the
+    current portal.
+ * <kbd>&#x2756; Win</kbd><kbd>./&gt;</kbd> Flip to the next window in the
+    current portal.
  * <kbd>&#x2756; Win</kbd><kbd>Tab</kbd> Minimize the currently active window. 
  * <kbd>&#x2756; Win</kbd><kbd>Launch App 1</kbd> Start a command prompt
     window.  This is usually the extra media button that looks like a

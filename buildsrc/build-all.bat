@@ -3,6 +3,8 @@ setlocal
 
 set _H=%~dp0
 
+del %_H%\work\petronia*.zip > NUL 2>&1
+
 :start
 if M%1M == MM goto end
 echo Generating builds for %1

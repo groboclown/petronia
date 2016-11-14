@@ -113,6 +113,9 @@ def load_config():
             "win+pgup": ["move-window-to-other-portal", "next"],
             "win+pgdn": ["move-window-to-other-portal", "previous"],
 
+            "win+<": ["switch-top-window", "previous"],
+            "win+>": ["switch-top-window", "next"],
+
             # A set of quick keys to swap between portals.  Hold down
             # win+shift+(number key) to assign a portal to that number, and
             # win+(number key) to jump to the top window in that portal.
