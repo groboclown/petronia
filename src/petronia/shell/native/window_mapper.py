@@ -379,12 +379,21 @@ class WindowMapper(Identifiable, Component):
         # Only fire for visible windows
         if info['visible']:
             hwnd = info['hwnd']
+            try:
+                title = window__get_title(hwnd)
+                rect = window__border_rectangle(hwnd)
+                visibility = window__get_visibility_states(hwnd)
+            except OSError:
+                # Window is gone now (#4)
+                title = ""
+                rect = {'x': 0, 'y': 0, 'width': 0, 'height': 0, 'top': 0, 'bottom': 0, 'left': 0, 'right': 0}
+                visibility = {}
             full_info = {
                 # Some things we load every time.
                 'cid': info['cid'],
-                'title': window__get_title(hwnd),
-                'border': window__border_rectangle(hwnd),
-                'visibility': window__get_visibility_states(hwnd),
+                'title': title,
+                'border': rect,
+                'visibility': visibility,
 
                 # Others are static
                 'hwnd': hwnd,
