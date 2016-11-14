@@ -14,3 +14,4 @@
 * [Architecture](dev-architecture.md)
 * [To Do List](dev-todo.md)
 * [Adding Commands](dev-adding-commands.md)
+* [Building a Distribution](dev-distribution.md)

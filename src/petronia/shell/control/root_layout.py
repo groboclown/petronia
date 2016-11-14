@@ -44,10 +44,13 @@ class RootLayout(Layout):
         self._listen(event_ids.CONFIG__UPDATE, target_ids.ANY, self._on_config_update)
 
     def _on_resolution_changed(self, event_id, target_id, event_obj):
-        self._log_verbose("Monitor resolution changed")
-        with self.__layout_lock:
-            self.__monitors = event_obj['monitors']
-            self._on_workflow_layout_switch(event_id, target_id, {'layout-name': self.__layout_name})
+        # Only trigger the resolution change logic if the monitor configuration
+        # is different than the previous one used.
+        if self.__monitors != event_obj['monitors']:
+            self._log_verbose("Monitor resolution changed")
+            with self.__layout_lock:
+                self.__monitors = event_obj['monitors']
+                self._on_workflow_layout_switch(event_id, target_id, {'layout-name': self.__layout_name})
 
     # noinspection PyUnusedLocal
     def _on_config_update(self, event_id, target_id, event_obj):

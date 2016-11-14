@@ -54,8 +54,6 @@ key.  It's about as simple as you can get.
 
 There are several sections of configuration that you can configure.
 
-* [Component Configuration](#component-configuration) - Defines which
-    Petronia components will be active.
 * [Layout Configuration](#layout-configuration) - How the screen is split up
     for different monitors.
 * [Chrome Configuration](#chrome-configuration) - How the windows are
@@ -66,17 +64,8 @@ There are several sections of configuration that you can configure.
 * [Application Configuration](#application-configuration) - Application
     specific configuration, to select how different windows work with the
     chrome and layout configurations.
-
-
-
-### Component Configuration
-
-Setting up the component configuration allows for selecting individual parts
-of the Petronia system to activate.  This is only loaded once, for the initial
-configuration file at start time.
-
-*At the moment there is nothing to be done here.*  This will eventually allow
-for pluggable behaviors.
+* [Component Configuration](#component-configuration) - Defines which
+    Petronia components will be active.
 
 
 ### Layout Configuration
@@ -471,3 +460,35 @@ managed by Chrome, you can dictate how their chrome will appear.
   (sometimes) resize actions.
 * **has_resize_border** `True` or `False`, to remove the fat resize border.
 
+
+### Component Configuration
+
+Setting up the component configuration allows for selecting individual parts
+of the Petronia system to activate.  This is only loaded once, for the initial
+configuration file at start time.
+
+This is how you can 'plug' in new capabilities into Petronia.  For example,
+you can have some color outlining the portals:
+
+```python
+from petronia import config
+from petronia.shell.view.render_active_portal import render_active_portal_factory
+
+component = config.ComponentConfig(singletons=[
+    render_active_portal_factory
+])
+
+return config.Config(
+    component=component)
+```
+
+The two inputs to the `ComponentConfig` are:
+
+* `singletons` - Components that listen to events and add some behavior as
+    things happen within the Petronia system.
+* `extensions` - Additional objects which can be created on the fly, such
+    as new layout types.
+
+There currently isn't much to do with the component configuration.  The goal
+with the components is to allow for a point of entry for additional
+functionality, for for adding in non-standard functionality. 

@@ -61,7 +61,9 @@ class DisplayWorkGroupsConfig(BaseConfig):
                 for m_index in range(len(monitors)):
                     layouts.append(LayoutConfig(str(m_index), "split-layout", ORIENTATION_VERTICAL, []))
                 return WorkGroupConfig({"default": layouts})
+            assert isinstance(default_workgroup, WorkGroupConfig)
             return default_workgroup
+        assert isinstance(best_match, WorkGroupConfig)
         return best_match
 
 

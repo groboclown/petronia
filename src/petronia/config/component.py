@@ -9,6 +9,8 @@ class ComponentConfig(BaseConfig):
     """
     Registers all the different parts of the system to load.  Only runs
     once at startup time (cannot be reloaded).
+
+    TODO allow for singletons to register new commands easily.
     """
     def __init__(self, singletons=None, extensions=None):
         """
