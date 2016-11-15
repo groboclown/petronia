@@ -43,7 +43,7 @@ def process__get_executable_filename(thread_pid):
         if res <= 0:
             # raise ctypes.WinError()
             return None
-        return filename.value[:res]
+        return str(filename.value[:res])
     finally:
         windll.kernel32.CloseHandle(hproc)
 

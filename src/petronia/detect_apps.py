@@ -14,6 +14,7 @@ if __name__ == '__main__':
         module_filename = funcs.window__get_module_filename(hwnd)
         pid = funcs.window__get_process_id(hwnd)
         exec_filename = funcs.process__get_executable_filename(pid)
+        username, domain = funcs.process__get_username_domain_for_pid(pid)
         info = {
             'hwnd': hwnd,
             'title': funcs.window__get_title(hwnd),
@@ -22,6 +23,8 @@ if __name__ == '__main__':
             'exec_filename': exec_filename,
             'pid': pid,
             'visible': funcs.window__is_visible(hwnd),
+            'username': username,
+            'domain': domain,
         }
         if info['visible']:
             pos = funcs.window__border_rectangle(hwnd)
@@ -32,6 +35,7 @@ if __name__ == '__main__':
                        "    module_path: {module_filename}\n" +
                        "    class_name: {class}\n" +
                        "    title: {title}\n" +
+                       "    Owner: {domain}\\{username}\n" +
                        "    @ ({left}x{top}) -> ({right}x{bottom})\n\n").format(**info))
         else:
             if info['pid'].value not in invisible_handles:

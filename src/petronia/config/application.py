@@ -200,7 +200,7 @@ class AppMatcher(BaseConfig):
                     regex = r'.*?\\' + regex + '$'
                 else:
                     regex = '^' + regex + '$'
-                self.re_matchers[name] = re.compile(regex, re.IGNORECASE)
+                self.re_matchers[name] = re.compile(str(regex), re.IGNORECASE)
             elif regex is not None:
                 if isinstance(regex, str):
                     regex = re.compile(regex, re.IGNORECASE)
@@ -215,6 +215,9 @@ class AppMatcher(BaseConfig):
         # Default to not knowing about this window
         ret = None
         for key, value in window_info.items():
+            if value is None:
+                print("ERROR: 'none' value for {0}".format(key))
+                continue
             if key in self.re_matchers:
                 if ret is None:
                     ret = self.re_matchers[key].match(value) is not None

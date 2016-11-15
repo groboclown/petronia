@@ -11,7 +11,9 @@ MAX_CLASS_NAME_LENGTH = 4096  # c_int, just an arbitrarily big buffer
 MAX_FILENAME_LENGTH = 4096  # c_int, just an arbitrarily big buffer
 
 PROCESS_QUERY_INFORMATION = 0x400  # c_int
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 PROCESS_ALL_ACCESS = (0xF0000 | 0x100000 | 0xFFF)  # c_long
+READ_CONTROL = 0x20000
 PROCESS_VM_READ = 0x10  # c_int
 STILL_ACTIVE = 259  # c_int
 PROCESS_NAME_NATIVE = 1  # c_int
@@ -692,3 +694,10 @@ DT_TOP = 0
 DT_VCENTER = 4
 DT_WORDBREAK = 16
 DT_INTERNAL = 4096
+
+
+# https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
+
+# https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382(v=vs.85).aspx
+ERROR_ACCESS_DENIED = 5
+ERROR_INSUFFICIENT_BUFFER = 122

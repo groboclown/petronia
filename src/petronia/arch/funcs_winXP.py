@@ -96,7 +96,9 @@ def process__get_executable_filename(thread_pid):
                 buffer_index_count = 1024
                 count_allocated_space = wintypes.DWORD()
                 hmod_list = (wintypes.HMODULE * buffer_index_count)()
-                res = EnumProcessModules(hproc.value, hmod_list, wintypes.DWORD(c_sizeof(hmod_list)), byref(count_allocated_space))
+                res = EnumProcessModules(
+                    hproc.value, hmod_list, wintypes.DWORD(c_sizeof(hmod_list)), byref(count_allocated_space)
+                )
                 if res == 0:
                     # Error; ignore
                     continue
@@ -104,7 +106,7 @@ def process__get_executable_filename(thread_pid):
                     mod_name = create_unicode_buffer(MAX_FILENAME_LENGTH + 1)
                     res = GetModuleBaseName(hproc, hmod_list[j], mod_name, MAX_FILENAME_LENGTH + 1)
                     if res != 0:
-                        return mod_name.value[:res]
+                        return str(mod_name.value[:res])
             finally:
                 windll.kernel32.CloseHandle(hproc)
     return None

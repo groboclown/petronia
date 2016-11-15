@@ -48,6 +48,9 @@ class WindowMapper(Identifiable, Component):
             try:
                 self._init_window(hwnd)
             except BaseException as e:
+                # FIXME DEBUG
+                import traceback
+                traceback.print_exception(e, e, e)
                 self._log_error("WindowMapper failed to initialize window {0}".format(hwnd), e)
         self._log_verbose("===== Finished existing window registration =====")
 
@@ -122,6 +125,7 @@ class WindowMapper(Identifiable, Component):
         pid = window__get_process_id(hwnd)
         if _CURRENT_PROCESS_ID == pid:
             return None
+        class_name = window__get_class_name(hwnd)
         try:
             username_domain = process__get_username_domain_for_pid(pid)
             self._log_debug("window {0}, pid {1}, owned by [{2}@{3}]".format(
@@ -129,14 +133,16 @@ class WindowMapper(Identifiable, Component):
         except OSError as e:
             # Most probably an access problem.  We don't want to manage programs
             # that we can't access.
-            self._log_debug("username/domain problem; ignoring window {0}, pid {1}".format(hwnd, pid), e)
+            self._log_debug("username/domain read problem for window {0}, pid {1}, class {2}".format(
+                hwnd, pid, class_name), e)
+            username_domain = ("[aborted]", "[aborted]")
+            # return None
+        # Only manage windows that the user owns.
+        if username_domain != _CURRENT_USER_DOMAIN:
+            self._log_debug("ignoring window with pid {0}, class {1} from other user {2}@{3}".format(
+                pid, class_name, username_domain[0], username_domain[1])
+            )
             return None
-        # TODO only manage windows that the user owns.
-        # At the moment, the username_domain call returns empty strings.  This is
-        # probably a bug in the underlying winapi calling functions.
-        # if username_domain != _CURRENT_USER_DOMAIN:
-        #     print(" - ignoring {0} from other user {1}@{2}".format(pid, username_domain[0], username_domain[1]))
-        class_name = window__get_class_name(hwnd)
         if class_name is None or class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
             self._log_debug("Ignoring self-managed window with class {0}".format(class_name))
             return None
@@ -147,17 +153,21 @@ class WindowMapper(Identifiable, Component):
             module_filename = window__get_module_filename(hwnd)
         except OSError as e:
             self._log_debug("Ignoring problem from window__get_module_filename", e)
+        if module_filename is None:
+            module_filename = ''
         exec_filename = ""
         try:
             exec_filename = process__get_executable_filename(pid)
         except OSError as e:
             self._log_debug("Ignoring problem from process__get_executable_filename", e)
+        if exec_filename is None:
+            exec_filename = ''
         visible = window__is_visible(hwnd)
         if visible:
             info = {
                 'cid': cid,
                 'hwnd': hwnd,
-                'class': window__get_class_name(hwnd),
+                'class': class_name,
                 'module_filename': module_filename,
                 'exec_filename': exec_filename,
                 'pid': pid,

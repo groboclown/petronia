@@ -16,6 +16,10 @@
     * Changing window focus in the current portal to previous
         (`switch-top-window previous`) now correctly moves to the previous
         window.
+    * Fixed issues around finding windows that aren't owned by the
+        user.  Now, all visible windows should be managed that are only owned
+        by the current window.  This also fixes problems with adding certain
+        applications that were incorrectly recognized as not owned.
 
 
 ## :: v1.1 ::
