@@ -430,7 +430,7 @@ class LOGBRUSH(Structure):
     ]
 
 
-def window__draw_border_outline(rect, color, width, line_style=PS_SOLID, fill_style=BS_NULL):
+def window__draw_border_outline(rect, color, width, line_style=PS_SOLID, fill_style=BS_NULL, parent_hwnd=None):
     """
     Draws a border on the screen.  Does not need a window context.
 
@@ -440,6 +440,7 @@ def window__draw_border_outline(rect, color, width, line_style=PS_SOLID, fill_st
     :param color: RBG integer (0xRRGGBB)
     :param width:
     :param line_style:
+    :param parent_hwnd: handle of the parent window, if any.
     :return:
     """
     color &= 0xffffff
@@ -457,12 +458,28 @@ def window__draw_border_outline(rect, color, width, line_style=PS_SOLID, fill_st
         # BS_NULL so that the fill is empty
         brush_def.lbStyle = fill_style
         brush_def.lbHatch = HS_DIAGCROSS
+        brush_def.lbColor = color
         brush_handle = windll.gdi32.CreateBrushIndirect(byref(brush_def))
 
         # Create a device context to draw on
         dc_handle = windll.gdi32.CreateDCW("DISPLAY", None, None, None)
         windll.gdi32.SelectObject(dc_handle, brush_handle)
         windll.gdi32.SelectObject(dc_handle, pen_handle)
+
+        # FIXME EXPERIMENTAL CODE
+        # This doesn't work for rendering a border, because the window will clip
+        # at its border, which means that it won't include the outside, where we want
+        # to draw.
+        # if parent_hwnd is not None:
+        #     parent_hdc = windll.user32.GetDC(parent_hwnd)
+        #     if parent_hdc is not None:
+        #         try:
+        #             h_region = wintypes.HANDLE()
+        #             windll.gdi32.GetClipRgn(parent_hdc, h_region)
+        #             windll.gdi32.SelectClipRgn(dc_handle, h_region)
+        #         finally:
+        #             windll.user32.ReleaseDC(parent_hdc)
+        # FIXME EXPERIMENTAL CODE
 
         windll.gdi32.Rectangle(dc_handle, rect['left'], rect['top'], rect['right'], rect['bottom'])
     finally:

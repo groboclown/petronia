@@ -13,16 +13,24 @@ class ChromeConfig(BaseConfig):
         self.border_color = border_color
         self.scrollbar_width = 0
         self.scrollbar_height = 0
-        self.has_title = False
-        self.has_resize_border = False
+        self.has_title = True
+        self.has_resize_border = True
         self.portal_chrome_border = {
-            'color': 0x404040, 'width': 2,  # Placeholders
+            'color': 0x404040,
+
+            # Used by the portal to figure out how to shrink the
+            # window within the portal
             'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
         }
         self.portal_chrome_active_border = {
-            'color': 0x808000, 'width': 4,  # Placeholders
+            'color': 0x808000,
+
+            # Used by the portal to figure out how to shrink the
+            # window within the portal
             'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
         }
+        self.flash_count = 3
+        self.flash_wait_seconds = 1.0
 
     def get_system_window_settings(self):
         # see shell__set_window_metrics

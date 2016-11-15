@@ -104,6 +104,7 @@ class Portal(Tile):
                 'portal-cid': self.cid,
                 'portal-size': self.size,
                 'portal-active': True,
+                'parent-hwnd': self._get_active_hwnd(),
             })
 
     # noinspection PyUnusedLocal
@@ -175,6 +176,7 @@ class Portal(Tile):
                     'portal-cid': self.cid,
                     'portal-size': self.size,
                     'portal-active': True,
+                    'parent-hwnd': self._get_active_hwnd(),
                 })
             return
         # Warning, because this indicates a possible internal bug.
@@ -188,6 +190,7 @@ class Portal(Tile):
             'portal-cid': self.cid,
             'portal-size': self.size,
             'portal-active': self.__active,
+            'parent-hwnd': self._get_active_hwnd(),
         })
 
     # noinspection PyUnusedLocal
@@ -212,6 +215,7 @@ class Portal(Tile):
                     'portal-cid': self.cid,
                     'portal-size': self.size,
                     'portal-active': False,
+                    'parent-hwnd': self._get_active_hwnd(),
                 })
 
     # noinspection PyUnusedLocal
@@ -222,6 +226,7 @@ class Portal(Tile):
                 'portal-cid': self.cid,
                 'portal-size': self.size,
                 'portal-active': self.__active,
+                'parent-hwnd': self._get_active_hwnd(),
             })
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
@@ -274,3 +279,11 @@ class Portal(Tile):
             'y': self.size['y'] + border['top'],
             'height': self.size['height'] - border['top'] - border['bottom'],
         }
+
+    def _get_active_hwnd(self):
+        if self.__top_window_index is not None and 0 <= self.__top_window_index < len(self.__windows):
+            return self.__windows[self.__top_window_index]['hwnd']
+        elif len(self.__windows) > 0:
+            return self.__windows[0]['hwnd']
+        else:
+            return None

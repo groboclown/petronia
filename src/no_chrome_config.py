@@ -32,8 +32,6 @@ def load_config():
     chrome.scrollbar_height = 4
     chrome.border_width = 0
     chrome.border_padding = 0
-    chrome.portal_chrome_border['width'] = 0
-    chrome.portal_chrome_active_border['width'] = 0
 
     # Need to be able to stop the program.
     hotkeys = config.HotKeyConfig()
