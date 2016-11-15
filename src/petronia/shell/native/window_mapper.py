@@ -142,6 +142,10 @@ class WindowMapper(Identifiable, Component):
             self._log_debug("ignoring window with pid {0}, class {1} from other user {2}@{3}".format(
                 pid, class_name, username_domain[0], username_domain[1])
             )
+            if class_name == 'PuTTY':
+                print("PUTTY ignoring window; detected {0}\\{1}, have {2}\\{3}".format(
+                    username_domain[1], username_domain[0], _CURRENT_USER_DOMAIN[1], _CURRENT_USER_DOMAIN[0]
+                ))
             return None
         if class_name is None or class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
             self._log_debug("Ignoring self-managed window with class {0}".format(class_name))

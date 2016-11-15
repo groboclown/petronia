@@ -67,7 +67,6 @@ def load_functions(environ, func_map):
     func_map['process__get_exit_code'] = process__get_exit_code
     func_map['process__get_window_state'] = process__get_window_state
     func_map['process__get_current_pid'] = process__get_current_pid
-    func_map['process__get_username_domain_for_pid'] = process__get_username_domain_for_pid
     func_map['process__get_current_username_domain'] = process__get_current_username_domain
 
 
@@ -1374,82 +1373,6 @@ def process__get_window_state(thread_pid):
 
 def process__get_current_pid():
     return windll.kernel32.GetCurrentProcessId()
-
-
-def process__get_username_domain_for_pid(thread_pid):
-    """
-
-    :param thread_pid:
-    :return: the tuple (username, domain) for the user that owns the pid.
-    """
-    OpenProcessToken = windll.advapi32.OpenProcessToken
-    OpenProcessToken.argtypes = [wintypes.HANDLE, wintypes.DWORD, POINTER(wintypes.HANDLE)]
-    OpenProcessToken.restype = wintypes.BOOL
-    GetTokenInformation = windll.advapi32.GetTokenInformation
-    LookupAccountSidW = windll.advapi32.LookupAccountSidW
-    LookupAccountSidW.argtypes = [
-        wintypes.LPCWSTR, wintypes.LPVOID,
-        wintypes.LPCWSTR, POINTER(wintypes.DWORD),
-        wintypes.LPCWSTR, POINTER(wintypes.DWORD),
-        POINTER(wintypes.DWORD)
-    ]
-    LookupAccountSidW.restype = wintypes.BOOL
-
-    # TODO WinXP does not support PROCESS_QUERY_LIMITED_INFORMATION
-    # This needs to have a special Windows 8 vs. other implementation.
-    # Win 8 should use the more limited query.  However, for our purposes,
-    # we really care about whether the window is owned by the current user
-    # or not, so we don't really need to bother with windows we can't query.
-    hproc = windll.kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, False, thread_pid)
-    if hproc == 0:
-        if GetLastError() == ERROR_ACCESS_DENIED:
-            # Don't raise a problem in this situation.  Instead, return unique information.
-            return "[denied]", "[denied]"
-        raise WinError()
-    try:
-        access_token = wintypes.HANDLE()
-        res = OpenProcessToken(hproc, wintypes.DWORD(TOKEN_QUERY), byref(access_token))
-        if res == 0 or access_token is None:
-            raise WinError()
-        try:
-            length = wintypes.DWORD(0)
-
-            if GetTokenInformation(access_token, TOKEN_INFORMATION__TOKEN_USER, None, 0, byref(length)) == 0:
-                if GetLastError() != ERROR_INSUFFICIENT_BUFFER:
-                    raise WinError()
-                sid_info = (wintypes.BYTE * length.value)()
-                if sid_info is None:
-                    raise WinError()
-                sid_info = c_cast(sid_info, POINTER(wintypes.LPVOID))
-            else:
-                sid_info = POINTER(wintypes.LPVOID)()
-            if GetTokenInformation(access_token, TOKEN_INFORMATION__TOKEN_USER, sid_info, length, byref(length)) == 0:
-                raise WinError()
-
-            # The "sid_info" is a pointer to a structure, but the only thing we care about
-            # is the first value in the structure (index 0), which is itself a pointer to a SID structure.
-            # sid_ptr = c_cast(sid_info, POINTER(wintypes.LPVOID))[0]
-            # print("Type of sid ptr: {0}".format(type(sid_ptr)))
-            sid_ptr = sid_info[0]
-
-            username = create_unicode_buffer(MAX_USERNAME_LENGTH + 1)
-            username_size = wintypes.DWORD(MAX_USERNAME_LENGTH)
-            domain = create_unicode_buffer(MAX_USERNAME_LENGTH + 1)
-            domain_size = wintypes.DWORD(MAX_USERNAME_LENGTH)
-            sid_name_type = wintypes.DWORD()
-
-            res = LookupAccountSidW(
-                None, sid_ptr, username, byref(username_size),
-                domain, byref(domain_size), byref(sid_name_type))
-            if res == 0:
-                raise WinError()
-
-            # return username.value[0:username_size], domain.value[0:domain_size]
-            return username.value, domain.value
-        finally:
-            windll.kernel32.CloseHandle(access_token)
-    finally:
-        windll.kernel32.CloseHandle(hproc)
 
 
 def process__get_current_username_domain():

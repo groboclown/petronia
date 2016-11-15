@@ -4,15 +4,20 @@
 
 ### Overview
 
+* Chrome config no longer uses border 'width' attribute.
 * Bug fixes
 
 ### Details
 
+* Chrome config no longer uses border 'width' attribute.
+    * The 'width' attribute on the Chrome configuration borders was always
+        intended as a placeholder.  Now, it's not needed, and has been
+        removed.
 * Bug fixes
     * When a window is destroyed, the event is now passed to all the
         components (#4)
     * `render_active_portal` now draws the windows a bit more accurately,
-        without rendering refresh glitches.
+        without rendering refresh glitches.  It's still not good.
     * Changing window focus in the current portal to previous
         (`switch-top-window previous`) now correctly moves to the previous
         window.
