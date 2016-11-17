@@ -14,7 +14,6 @@
     The source distribution, for users who want to see what's happening, and to use their
     own installed version of Python.
 
-
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=SRBJnFcBuqI" target="_blank"><img src="http://img.youtube.com/vi/SRBJnFcBuqI/0.jpg" alt="Introduction to Petronia" width="240" height="180" border="10" /></a>
 
 #### Manage Your Windows as Tiles
