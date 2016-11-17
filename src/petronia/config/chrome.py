@@ -19,14 +19,18 @@ class ChromeConfig(BaseConfig):
             'color': 0x404040,
 
             # Used by the portal to figure out how to shrink the
-            # window within the portal
+            # window within the portal.  Eventually, the
+            # shell or other component will set this to match its
+            # own rendering.
             'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
         }
         self.portal_chrome_active_border = {
             'color': 0x808000,
 
             # Used by the portal to figure out how to shrink the
-            # window within the portal
+            # window within the portal.  Eventually, the
+            # shell or other component will set this to match its
+            # own rendering.
             'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
         }
         self.flash_count = 3

@@ -9,7 +9,7 @@ from ...arch.funcs import (
 
 class ShellExplorer(ShellType):
     """
-    A component interface to
+    A component interface for the Windows shell.
 
     """
     def __init__(self, bus, config):
