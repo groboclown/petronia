@@ -2,15 +2,15 @@
 
 #### Or: How We Removed Useless Space From Our Windows and Used All That Extra Screen Space To Do Important Things 
 
-## v1.1 Is Out!
+## Hot Dog v1.2 Is Out!
 
-* [petronia-1.1-x64.zip](https://github.com/groboclown/petronia/releases/download/v1.1/petronia-1.1-x64.zip)
+* [petronia-1.2-x64.zip](https://github.com/groboclown/petronia/releases/download/v1.2/petronia-1.2-x64.zip)
     (12 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy 64-bit executable.
     **For x64 Windows Computers Only**
-* [petronia-1.1-x86.zip](https://github.com/groboclown/petronia/releases/download/v1.1/petronia-1.1-x86.zip)
+* [petronia-1.2-x86.zip](https://github.com/groboclown/petronia/releases/download/v1.2/petronia-1.2-x86.zip)
     (11.4 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy executable.
     **For 32-bit and 64-bit Windows Computers**
-* [petronia-1.1-src.zip](https://github.com/groboclown/petronia/archive/v1.1.zip)
+* [petronia-1.2-src.zip](https://github.com/groboclown/petronia/archive/v1.2.zip)
     The source distribution, for users who want to see what's happening, and to use their
     own installed version of Python.
 
