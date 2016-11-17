@@ -171,9 +171,6 @@ class LayoutConfig(BaseConfig):
         self.child_splits = child_splits
         self.is_main_layout_sibling = name == 'main'
 
-        # Until we get it working cleanly...
-        self.include_initial_windows = True
-
 
 class ChildSplitConfig(BaseConfig):
     """
