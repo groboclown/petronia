@@ -34,6 +34,7 @@ class Portal(Tile):
         self.__window_listeners = {}
         self.__top_window_index = None
         self.__active = False
+        self.__last_flashing_window_cid = None
 
         self._listen(event_ids.PORTAL__MOVE_WINDOW_HERE, target_ids.ANY, self._on_move_window_here)
         self._listen(event_ids.ZORDER__CHANGE_TOP_WINDOW, cid, self._on_window_zorder_change)
@@ -42,6 +43,8 @@ class Portal(Tile):
         self._listen(event_ids.PORTAL__MOVE_WINDOW_TO_DESTINATION, cid, self._on_move_window_to_destination)
         self._listen(event_ids.PORTAL__SET_ACTIVE, cid, self._on_portal_becomes_active)
         self._listen(event_ids.PORTAL__ACTIVATED, target_ids.ANY, self._on_portal_activated)
+        self._listen(event_ids.WINDOW__FLASHING, target_ids.ANY, self._on_any_window_flashing)
+        self._listen(event_ids.FOCUS__SWITCH_TO_LAST_FLASHING_WINDOW, target_ids.ANY, self._on_switch_flashing_window)
 
     # noinspection PyUnusedLocal
     def _on_move_window_here(self, event_id, target_id, event_obj):
@@ -110,7 +113,8 @@ class Portal(Tile):
     # noinspection PyUnusedLocal
     def _on_window_zorder_change(self, event_id, target_id, event_obj):
         next_index = 0
-        if self.__top_window_index is not None:
+        # test for > 0 to prevent a modulo by 0 error.
+        if self.__top_window_index is not None and len(self.__windows) > 0:
             dir_change = 1
             if 'direction' in event_obj and event_obj['direction'] == DIR_PREVIOUS:
                 dir_change = -1
@@ -121,6 +125,15 @@ class Portal(Tile):
             self._fire(event_ids.ZORDER__SET_WINDOW_ON_TOP, self.__windows[next_index]['cid'], {})
         else:
             self._log_verbose("Could not rotate next window; no windows")
+
+    # noinspection PyUnusedLocal
+    def _on_switch_flashing_window(self, event_id, target_id, event_obj):
+        if self.__last_flashing_window_cid is not None:
+            window_index = self._get_window_index(self.__last_flashing_window_cid)
+            if 0 <= window_index < len(self.__windows):
+                self.__top_window_index = window_index
+                self._log_debug("Switching to last flashing window {0}".format(self.__windows[window_index]))
+                self._fire(event_ids.ZORDER__SET_WINDOW_ON_TOP, self.__last_flashing_window_cid, {})
 
     # noinspection PyUnusedLocal
     def _on_set_first_window_focused(self, event_id, target_id, event_obj):
@@ -204,6 +217,10 @@ class Portal(Tile):
                         # TODO fire change z-order?
                 else:
                     self.__top_window_index = None
+            if target_id in self.__window_listeners:
+                for key, listener in self.__window_listeners[target_id].items():
+                    self._remove_listener(key, target_id, listener)
+                del self.__window_listeners[target_id]
             del self.__windows[window_index]
 
     # noinspection PyUnusedLocal
@@ -220,6 +237,16 @@ class Portal(Tile):
 
     # noinspection PyUnusedLocal
     def _on_window_flashing(self, event_id, target_id, event_obj):
+        """
+        For an owned window flashing.  Specifically used to trigger
+        an event indicating that this portal contains a flashing
+        window.
+
+        :param event_id:
+        :param target_id:
+        :param event_obj:
+        :return:
+        """
         window_index = self._get_window_index(target_id)
         if window_index >= 0:
             self._fire(event_ids.PORTAL__FLASHING, self.cid, {
@@ -228,6 +255,23 @@ class Portal(Tile):
                 'portal-active': self.__active,
                 'parent-hwnd': self._get_active_hwnd(),
             })
+
+    # noinspection PyUnusedLocal
+    def _on_any_window_flashing(self, event_id, target_id, event_obj):
+        """
+        For any window flashing.  Used to track which portal, and which
+        window within that portal, was last reported as flashing.
+
+        :param event_id:
+        :param target_id:
+        :param event_obj:
+        :return:
+        """
+        window_index = self._get_window_index(target_id)
+        if window_index >= 0:
+            self.__last_flashing_window_cid = target_id
+        else:
+            self.__last_flashing_window_cid = None
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
         # The parent passed down the request to "discover" the next location (it could

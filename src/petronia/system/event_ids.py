@@ -142,6 +142,7 @@ LAYOUT__REMOVE_OBJECT = "Remove Object" + EVENT_THREAD__NOW
 LAYOUT__ROOT_LAYOUT_CREATE = "Root Layout Create" + EVENT_THREAD__NOTICE
 LAYOUT__ADD_WINDOW = "Add Top-Level Window" + EVENT_THREAD__NOTICE
 LAYOUT__RESEND_WINDOW_CREATED_EVENTS = "Resend Window Created Events" + EVENT_THREAD__NOTICE
+LAYOUT__WINDOW_PUT_OUTSIDE_MANAGEMENT = "Window not owned by tile management" + EVENT_THREAD__NOTICE
 
 
 # ---------------------------------------------------------------------------
@@ -151,7 +152,7 @@ FOCUS__MOVE = "Active Portal Move" + EVENT_THREAD__USER_REQUEST
 FOCUS__PORTAL_ALIAS = "Portal Focus By Alias" + EVENT_THREAD__NOTICE  # technically EVENT_THREAD__USER_REQUEST
 FOCUS__MAKE_OWNED_PORTAL_ACTIVE = "Make Portal Owning Window Active" + EVENT_THREAD__USER_REQUEST
 FOCUS__SET_FIRST_WINDOW_FOCUSED = "Portal Focus First Window" + EVENT_THREAD__NOTICE
-
+FOCUS__SWITCH_TO_LAST_FLASHING_WINDOW = "Make Last Flashing Window Focused" + EVENT_THREAD__USER_REQUEST
 
 # ---------------------------------------------------------------------------
 # Layout Selection Events

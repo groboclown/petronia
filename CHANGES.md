@@ -1,5 +1,25 @@
 # Petronia Change History
 
+## :: v1.3 ::
+
+### Overview
+
+* Added new user command: `focus-last-flashing-window`
+* Windows not owned by tiling management can now receive commands.
+* Bug Fixes
+
+### Details
+
+* Added new user command: `focus-last-flashing-window`
+    * You can now bind a key that will raise the most recently "flashing"
+        window to the top, and give it focus.
+* Windows not owned by tiling management can now receive commands.
+    * Added ability to send some user commands to windows not in the tiling
+        management.
+* Bug fixes
+    * Portals now correctly remove listeners for closed windows.
+
+
 ## :: v1.2 ::
 
 ### Overview

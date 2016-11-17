@@ -33,3 +33,5 @@ LAYOUT_MANAGEMENT_CONTROLLER = "Layout Management Controller"
 CONFIGURATION_LOADER = "Configuration Loader"
 
 SHELL = "OS Shell"
+
+UNOWNED_WINDOW_PORTAL = "Portal for Unowned Windows"

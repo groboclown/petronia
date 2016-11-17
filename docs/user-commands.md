@@ -95,6 +95,16 @@ configurability than the standard Windows <kbd>&#x2756; Win</kbd><kbd>1</kbd>
 
 
 
+### `focus-last-flashing-window `
+
+**Arguments**: None
+
+Make the last window that "flashed" (blinked in the task bar) focused and on top
+of the other windows.  This works on windows which are managed and not managed by
+the tiling system.
+
+
+
 ### `move-window-to-other-portal (direction)`
 
 **Arguments**: 
@@ -236,5 +246,8 @@ For example, to run a command prompt with fancy colors and start it in the
 root of the file system when you press <kbd>F1</kbd>, use:
 
 ```
-'f1 => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\'
+'f1 => cmd cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \'
 ```
+
+
+

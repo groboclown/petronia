@@ -12,6 +12,7 @@ def create_all_commands():
         create_switch_layout(),
         create_create_current_portal_alias(),
         create_focus_portal_by_alias(),
+        create_focus_last_flashing_window(),
         create_move_window_to_other_portal(),
         create_change_layout_management_selection_shape(),create_join_selected_layout(),
         create_split(),
@@ -52,6 +53,10 @@ def create_create_current_portal_alias():
 
 def create_focus_portal_by_alias():
     return Command("focus-portal-by-alias", command_helper.focus_portal_by_alias)
+
+
+def create_focus_last_flashing_window():
+    return Command("focus-last-flashing-window", command_helper.focus_last_flashing_window)
 
 
 def create_move_window_to_other_portal():

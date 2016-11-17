@@ -184,6 +184,15 @@ class WindowMapper(Identifiable, Component):
                 hex(hwnd), module_filename, exec_filename, pid, cid))
             if self._is_tile_managed(info):
                 self._fire_for_window(event_ids.WINDOW__CREATED, info)
+            else:
+                self._fire(
+                    event_ids.LAYOUT__WINDOW_PUT_OUTSIDE_MANAGEMENT,
+                    target_ids.UNOWNED_WINDOW_PORTAL,
+                    {
+                        'window-cid': cid,
+                        'window-info': self._create_window_info(info)
+                    }
+                )
             return info
         return None
 
@@ -392,6 +401,15 @@ class WindowMapper(Identifiable, Component):
     def _fire_for_window(self, event_id, info):
         # Only fire for visible windows
         if info['visible']:
+            full_info = self._create_window_info(info)
+            self._fire(event_id, info['cid'], {
+                'window-cid': info['cid'],
+                'window-info': full_info,
+            })
+
+    @staticmethod
+    def _create_window_info(info):
+        if info['visible']:
             hwnd = info['hwnd']
             try:
                 title = window__get_title(hwnd)
@@ -417,10 +435,8 @@ class WindowMapper(Identifiable, Component):
                 'pid': info['pid'],
                 'visible': info['visible'],
             }
-            self._fire(event_id, info['cid'], {
-                'window-cid': info['cid'],
-                'window-info': full_info,
-            })
+            return full_info
+        return info
 
 
 def _restore_window_state(hwnd, size, style):

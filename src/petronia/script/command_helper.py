@@ -108,6 +108,18 @@ def focus_portal_by_alias(bus, alias_name):
     bus.fire(event_ids.FOCUS__PORTAL_ALIAS, target_ids.ACTIVE_PORTAL_MANAGER, {'alias': alias_name})
 
 
+def focus_last_flashing_window(bus):
+    """
+    Make the last window that "flashed" (blinked in the task bar) focused and on top
+    of the other windows.  This works on windows which are managed and not managed by
+    the tiling system.
+
+    :param bus:
+    :return:
+    """
+    bus.fire(event_ids.FOCUS__SWITCH_TO_LAST_FLASHING_WINDOW, target_ids.BROADCAST, {})
+
+
 def move_window_to_other_portal(bus, direction):
     """
     Moves the currently active window into another portal adjacent to its current
