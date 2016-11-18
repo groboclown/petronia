@@ -35,6 +35,6 @@ class HotKeyConfig(BaseConfig):
         chain.block_win_key = block_win_key
         self.__key_modes[mode] = chain
 
-    def parse_simple_mode_keys(self, mode, key_mapping):
+    def parse_exclusive_mode_keys(self, mode, key_mapping):
         assert isinstance(mode, str)
         self.__key_modes[mode] = KeyOverride(key_mapping)

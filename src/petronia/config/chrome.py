@@ -4,25 +4,13 @@ from .base_config import BaseConfig
 
 class ChromeConfig(BaseConfig):
     """
-    Controls the "chrome" around the windows.
+    Controls the "chrome" around the windows.  This is now only used by portals
+    to understand how much space they need to leave the windows around the edges.
     """
-    def __init__(self, border_width=4, border_color=0xff0000):
+    def __init__(self):
         super()
-        self.border_width = border_width
-        self.border_padding = 0
-        self.border_color = border_color
-        self.scrollbar_width = 0
-        self.scrollbar_height = 0
-        self.has_title = True
-        self.has_resize_border = True
-        self.portal_chrome_border = {
-            # Used by the portal to figure out how to shrink the
-            # window within the portal.  Eventually, the
-            # shell or other component will set this to match its
-            # own rendering.
-            'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
-        }
-        self.portal_chrome_active_border = {
+
+        self.__portal_chrome_border = {
             # Used by the portal to figure out how to shrink the
             # window within the portal.  Eventually, the
             # shell or other component will set this to match its
@@ -32,42 +20,12 @@ class ChromeConfig(BaseConfig):
         self.flash_count = 3
         self.flash_wait_seconds = 1.0
 
-    def get_system_window_settings(self):
-        # see shell__set_window_metrics
-        ret = {}
-        if self.border_width > 0:
-            ret['border-width'] = self.border_width
-        if self.border_padding >= 0:
-            ret['padded-border-width'] = self.border_padding
-        if self.scrollbar_width > 0:
-            ret['scroll-width'] = self.scrollbar_width
-        if self.scrollbar_height > 0:
-            ret['scroll-height'] = self.scrollbar_height
-        # All other chrome is ignored for this call
-        return ret
+    def set_border(self, top, bottom, left, right):
+        self.__portal_chrome_border['top'] = int(top)
+        self.__portal_chrome_border['bottom'] = int(bottom)
+        self.__portal_chrome_border['left'] = int(left)
+        self.__portal_chrome_border['right'] = int(right)
 
     @property
-    def remove_decoration(self):
-        """
-
-        :return: True if the windows should not have wide borders or title bars with the
-            controls (system menu, minimize, maximize, restore).
-        """
-        return not self.has_title
-
-    @property
-    def remove_resize_border(self):
-        """
-
-        :return: True if the window borders should not be resizable.
-        """
-        return not self.has_resize_border
-
-    @property
-    def show_taskbar_with_start_menu(self):
-        """
-
-        :return: True if the task bar is shown whenever the user requests the start menu to be shown;
-            False if default OS behavior is used.
-        """
-        return True
+    def portal_chrome_border(self):
+        return dict(self.__portal_chrome_border)

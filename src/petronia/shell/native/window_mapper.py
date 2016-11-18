@@ -48,9 +48,6 @@ class WindowMapper(Identifiable, Component):
             try:
                 self._init_window(hwnd)
             except BaseException as e:
-                # FIXME DEBUG
-                import traceback
-                traceback.print_exception(e, e, e)
                 self._log_error("WindowMapper failed to initialize window {0}".format(hwnd), e)
         self._log_verbose("===== Finished existing window registration =====")
 
@@ -88,9 +85,6 @@ class WindowMapper(Identifiable, Component):
         self._listen(event_ids.LAYOUT__RESEND_WINDOW_CREATED_EVENTS, target_ids.ANY,
                      self._on_resend_window_created_events)
 
-        # Setup Chrome
-        shell__set_window_metrics(config.chrome.get_system_window_settings())
-
     def close(self):
         try:
             for hwnd, state in self.__hwnd_restore_state.items():
@@ -101,7 +95,9 @@ class WindowMapper(Identifiable, Component):
     def _setup_window_style(self, info):
         if 'title' not in info:
             info['title'] = window__get_title(info['hwnd'])
-        if self._is_chrome_managed(info):
+        is_managed, remove_border, remove_title = self._get_managed_chrome_details(info)
+        if is_managed:
+            print("DEBUG managed border {0}, title {1} for {2}".format(remove_border, remove_title, info))
             hwnd = info['hwnd']
             orig_size = window__border_rectangle(hwnd)
             orig_style = window__get_style(hwnd)
@@ -109,10 +105,10 @@ class WindowMapper(Identifiable, Component):
             # Always, always restore window state at exit.  This ensures it.
             atexit.register(_restore_window_state, hwnd, orig_size, orig_style)
             style_data = {}
-            if self.__config.chrome.remove_decoration:
+            if remove_title:
                 style_data['border'] = False
                 style_data['dialog-frame'] = False
-            if self.__config.chrome.remove_resize_border:
+            if remove_border:
                 style_data['size-border'] = False
             if len(style_data) > 0:
                 try:
@@ -196,12 +192,19 @@ class WindowMapper(Identifiable, Component):
             return info
         return None
 
-    def _is_chrome_managed(self, window_info):
-        return (
-            window_info['visible']
-            and self.__config.applications.is_managed_chrome(window_info)
-            and not self.__config.shell.matches_shell_window(window_info)
-        )
+    def _get_managed_chrome_details(self, window_info):
+        """
+
+        :param window_info:
+        :return: (should be managed chrome, remove border?, remove title?)
+        """
+        if window_info['visible'] and not self.__config.shell.matches_shell_window(window_info):
+            has_title = self.__config.applications.has_title(window_info)
+            has_border = self.__config.applications.has_border(window_info)
+            print("DEBUG window managed as border {0} title {1}: {2}".format(has_border, has_title, window_info))
+            return not (has_title and has_border), not has_border, not has_title
+        print("DEBUG window not visible or is shell: {0}".format(window_info))
+        return False, False, False
 
     def _is_tile_managed(self, window_info):
         return (

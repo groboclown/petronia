@@ -1,0 +1,322 @@
+{
+  "version": 1,
+  "workgroups": [
+    {
+      "name": "laptop-screen",
+      "display": [
+        {
+          "width": 1366,
+          "height": 768
+        }
+      ],
+
+      "layouts": {
+        "default": [
+          {
+            "type": "horizontal split",
+            "children": [
+              {
+                "name": "main",
+                "type": "portal",
+                "size": 0
+              },
+              {
+                "name": "left",
+                "type": "portal",
+                "size": 1
+              },
+              {
+                "type": "vertical split",
+                "size": 1,
+                "children": [
+                  {
+                    "name": "right-top",
+                    "type": "portal",
+                    "size": 5
+                  },
+                  {
+                    "name": "right-bottom",
+                    "type": "portal",
+                    "size": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "2-monitors, docked",
+      "display": [
+        {
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "width": 1280,
+          "height": 1024
+        }
+      ],
+
+      "layouts": {
+        "default": [
+          {
+            "type": "horizontal split",
+            "children": [
+              {
+                "name": "web",
+                "type": "portal",
+                "size": 3
+              },
+              {
+                "type": "vertical split",
+                "size": 2,
+                "children": [
+                  {
+                    "name": "irc",
+                    "type": "portal",
+                    "size": 3
+                  },
+                  {
+                    "name": "log",
+                    "type": "portal",
+                    "size": 1
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "horizontal split",
+            "children": [
+              {
+                "name": "main",
+                "type": "portal",
+                "size": 0
+              },
+              {
+                "name": "left",
+                "type": "portal",
+                "size": 3
+              },
+              {
+                "name": "right",
+                "type": "portal",
+                "size": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "remote desktop 1024x768",
+      "display": [
+        {
+          "width": 1024,
+          "height": 768
+        }
+      ],
+      "layouts": {
+        "default": [
+          {
+            "type": "horizontal split",
+            "children": [
+              {
+                "name": "main",
+                "type": "portal",
+                "size": 3
+              },
+              {
+                "type": "vertical split",
+                "size": 2,
+                "children": [
+                  {
+                    "name": "right-top",
+                    "type": "portal",
+                    "size": 3
+                  },
+                  {
+                    "name": "right-bottom",
+                    "type": "portal",
+                    "size": 2
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+
+  "application-setup": {
+    "defaults": {
+      "display": "+tiled -title -border"
+    },
+    "applications": [
+      {
+        "display": "+border +title -tiled",
+        "matchers": [
+          {
+            "class-name-re": "#\\d+",
+            "title-re": "\\d+ reminder\\(s\\)",
+            "exec-path": "outlook.exe"
+          },
+          {
+            "class-name": "MSO_BORDEREFFECT_WINDOW_CLASS",
+            "exec-path": "outlook.exe"
+          }
+        ]
+      },
+      {
+        "has-title": true,
+        "has-border": false,
+        "is-tiled": true,
+        "matchers": [
+          {
+            "exec-path": "firefox.exe"
+          },
+          {
+            "exec-path": "chrome.exe"
+          },
+          {
+            "exec-path": "explorer.exe"
+          },
+          {
+            "exec-path": "outlook.exe"
+          }
+        ]
+      },
+      {
+        "location": [
+          "left"
+        ],
+        "matchers": [
+          {
+            "exec-path": "firefox.exe"
+          },
+          {
+            "exec-path": "chrome.exe"
+          },
+          {
+            "exec-path": "outlook.exe"
+          }
+        ]
+      }
+    ]
+  },
+  
+  
+  "keysets": {
+    "default": {
+      "type": "hotkey",
+      "options": {
+        "block-win-key": true
+      },
+      "commands": {
+        "win+~": ["change mode", "simple-windows-mode"],
+        "win+f11": ["change mode", "resize-window-mode"],
+
+        "win+alt+up": ["move-window-to-other-portal", "north"],
+        "win+alt+down": ["move-window-to-other-portal", "south"],
+        "win+alt+left": ["move-window-to-other-portal", "west"],
+        "win+alt+right": ["move-window-to-other-portal", "east"],
+        "win+alt+pgup": ["move-window-to-other-portal", "next"],
+        "win+alt+pgdn": ["move-window-to-other-portal", "previous"],
+
+        "win+<": ["switch-top-window", "previous"],
+        "win+>": ["switch-top-window", "next"],
+
+        "win+up": ["move-focus", "north"],
+        "win+down": ["move-focus", "south"],
+        "win+left": ["move-focus", "west"],
+        "win+right": ["move-focus", "east"],
+        "win+pgup": ["move-focus", "previous"],
+        "win+pgdn": ["move-focus", "next"],
+
+        "win+shift+1": ["create-current-portal-alias", "P1"],
+        "win+shift+2": ["create-current-portal-alias", "P2"],
+        "win+shift+3": ["create-current-portal-alias", "P3"],
+        "win+shift+4": ["create-current-portal-alias", "P4"],
+        "win+shift+5": ["create-current-portal-alias", "P5"],
+        "win+shift+6": ["create-current-portal-alias", "P6"],
+        "win+shift+7": ["create-current-portal-alias", "P7"],
+        "win+shift+8": ["create-current-portal-alias", "P8"],
+        "win+shift+9": ["create-current-portal-alias", "P9"],
+        "win+shift+0": ["create-current-portal-alias", "P0"],
+        "win+1": ["focus-portal-by-alias", "P1"],
+        "win+2": ["focus-portal-by-alias", "P2"],
+        "win+3": ["focus-portal-by-alias", "P3"],
+        "win+4": ["focus-portal-by-alias", "P4"],
+        "win+5": ["focus-portal-by-alias", "P5"],
+        "win+6": ["focus-portal-by-alias", "P6"],
+        "win+7": ["focus-portal-by-alias", "P7"],
+        "win+8": ["focus-portal-by-alias", "P8"],
+        "win+9": ["focus-portal-by-alias", "P9"],
+        "win+0": ["focus-portal-by-alias", "P0"],
+
+        "win+tab": ["focus-last-flashing-window"],
+
+        "win+l": ["lock-screen"],
+
+        "win+launch-app1": ["cmd", "cmd.exe /c start cmd.exe"],
+
+        "win+p": ["cmd", "cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\"],
+
+        "win+e": ["cmd", "explorer.exe c:\\"],
+
+        "win+f4": ["quit"],
+
+        "win+alt+f2": ["load-config"],
+
+        "win+esc": ["open-start-menu"]
+      }
+    },
+
+    "simple-windows-mode": {
+      "type": "hotkey",
+      "commands": {
+        "win+~": ["change mode", "default"]
+      }
+    },
+
+    "resize-window-mode": {
+      "type": "exclusive",
+      "commands": {
+        "esc": ["change mode", "default"],
+        "enter": ["change mode", "default"],
+        "up": ["resize", 0, -16],
+        "down": ["resize", 0, 16],
+        "left": ["resize", -16, 0],
+        "right": ["resize", 16, 0],
+        "j": ["resize", 0, -1],
+        "k": ["resize", 0, 1],
+        "h": ["resize", -1, 0],
+        "l": ["resize", 1, 0],
+
+        "separator": ["change mode", "default"],
+        "numpad8": ["resize", 0, -4],
+        "numpad2": ["resize", 0, 4],
+        "numpad4": ["resize", -4, 0],
+        "numpad6": ["resize", 4, 0],
+        "add": ["resize", 4, 4],
+        "subtract": ["resize", -4, -4]
+      }
+    }
+  },
+
+
+  "chrome": {
+    "border-width": 0,
+    "border-padding": 0,
+    "border-color": "#404040",
+    "scrollbar-width": 4,
+    "scrollbar-height": 4,
+    "has-title": false,
+    "has-resize-border": true,
+    "flash-count": 3,
+    "flash-wait-seconds": 0.5
+  }
+}

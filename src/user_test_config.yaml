@@ -1,0 +1,296 @@
+---
+version: 1
+workgroups:
+# Work group 1: a single screen 1366x768
+- name: laptop-screen
+  display:
+  - width: 1366
+    height: 768
+  layouts:
+    # Just one layout defined:
+    #  +--------------+-----+
+    #  |              |     |
+    #  |              |     |
+    #  |              |     |
+    #  |              +-----+
+    #  |              |     |
+    #  +--------------+-----+
+    # If multiple layouts are defined, you can add a hot key to
+    # swap between them.
+    # Note that the portal "name" is an alias for the portal,
+    # and you can assign initial portals to windows, or hot keys
+    # that quickly move focus to the aliased portal.
+    default:
+    - type: horizontal split
+      children:
+      - name: main
+        type: portal
+        # With a size "0", this portal takes up the
+        # entire parent split size, which in this case
+        # is the entire monitor.  It overlaps all the
+        # other splits and portals in the parent.
+        size: 0
+      - name: left
+        type: portal
+        size: 1
+      - type: vertical split
+        size: 1
+        children:
+        - name: right-top
+          type: portal
+          size: 5
+        - name: right-bottom
+          type: portal
+          size: 1
+# Work group 2: 2 monitors
+- name: 2-monitors, docked
+  display:
+  - width: 1920
+    height: 1080
+  - width: 1280
+    height: 1024
+  layouts:
+    # Just 1 layout, but it has two children,
+    # one per monitor.
+    default:
+    # Monitor A:
+    #  +--------------+-----+
+    #  |              |     |
+    #  |              |     |
+    #  |              |     |
+    #  |              +-----+
+    #  |              |     |
+    #  +--------------+-----+
+    - type: horizontal split
+      children:
+      - name: web
+        type: portal
+        size: 3
+      - type: vertical split
+        size: 2
+        children:
+        - name: irc
+          type: portal
+          size: 3
+        - name: log
+          type: portal
+          size: 1
+    # Monitor B:
+    #  +--------------+-----+
+    #  |              |     |
+    #  |              |     |
+    #  |              |     |
+    #  |              |     |
+    #  |              |     |
+    #  +--------------+-----+
+    - type: horizontal split
+      children:
+      - name: main
+        type: portal
+        size: 0
+      - name: left
+        type: portal
+        size: 3
+      - name: right
+        type: portal
+        size: 5
+# Workgroup: a single monitor at 1024x768.
+- name: remote desktop 1024x768
+  display:
+  - width: 1024
+    height: 768
+  layouts:
+    #  +--------------+-----+
+    #  |              |     |
+    #  |              |     |
+    #  |              |     |
+    #  |              +-----+
+    #  |              |     |
+    #  +--------------+-----+
+    default:
+    - type: horizontal split
+      children:
+      - name: main
+        type: portal
+        size: 3
+      - type: vertical split
+        size: 2
+        children:
+        - name: right-top
+          type: portal
+          size: 3
+        - name: right-bottom
+          type: portal
+          size: 2
+application-setup:
+  defaults:
+    display: "-title +border +tiled"
+  applications:
+  # Apps that should not belong to the tiling, because it messes up the
+  # display.  These come before the general non-chromed apps, because it
+  # they both include a matching entry, but this one contains a more
+  # precise entry.
+
+  # If you end up missing an application that should have gone here, and
+  # now the dialog is always in a super-size, you'll have to poke around
+  # to figure out how to fix it.  For example, the reminder dialog below
+  # can be restored to its default size and position by removing the
+  # registry key
+  # HKEY_CURRENT_USER\Software\Microsoft\Office\(version)\Options\Reminders
+  - display: "+border +title -tiled"
+    matchers:
+
+    # The "reminder" dialog for Outlook.  Because these regular expressions
+    # contain funky characters, they need to be quoted.  Because they're
+    # quoted, it needs to escape special characters.  Therefore, two
+    # backslashes equal 1 real backslash.
+    - class-name-re: "#\\d+"
+      title-re: "\\d+ reminder\\(s\\)"
+      exec-path: outlook.exe
+
+    # An invisible window that Petronia mistakes for a visible window.
+    - class-name: MSO_BORDEREFFECT_WINDOW_CLASS
+      exec-path: outlook.exe
+
+  # Applications that are tiled, but use standard Windows chroming, because
+  # they do tricky things with the title bar.
+  - has-title: true
+    has-border: true
+    is-tiled: true
+    matchers:
+    - exec-path: firefox.exe
+    - exec-path: chrome.exe
+    - exec-path: explorer.exe
+    - exec-path: outlook.exe
+  - location: [left]
+    matchers:
+    - exec-path: firefox.exe
+    - exec-path: chrome.exe
+    - exec-path: outlook.exe
+keysets:
+  default:
+    type: hotkey
+    options:
+      block-win-key: true
+    commands:
+      # Switch to the alternate input modes
+      "win+~": ['change mode', 'simple-windows-mode']
+      win+f11: ['change mode', 'resize-window-mode']
+
+      # Move windows to other portals using the arrow keys.
+      # This isn't configured to use numpad keys.
+      win+alt+up: ['move-window-to-other-portal', 'north']
+      win+alt+down: ['move-window-to-other-portal', 'south']
+      win+alt+left: ['move-window-to-other-portal', 'west']
+      win+alt+right: ['move-window-to-other-portal', 'east']
+
+      # "next" and "previous" window movement bypasses how layouts
+      # think about directions, and just moves in order through the
+      # portals.
+      win+alt+pgup: ['move-window-to-other-portal', 'next']
+      win+alt+pgdn: ['move-window-to-other-portal', 'previous']
+
+      # Flip between windows within the currently focused portal
+      win+<: ['switch-top-window', 'previous']
+      win+>: ['switch-top-window', 'next']
+
+      # Change focused portal to an adjacent portal
+      win+up: ['move-focus', 'north']
+      win+down: ['move-focus', 'south']
+      win+left: ['move-focus', 'west']
+      win+right: ['move-focus', 'east']
+      win+pgup: ['move-focus', 'previous']
+      win+pgdn: ['move-focus', 'next']
+
+      # A set of quick keys to swap between portals.  Hold down
+      # win+shift+(number key) to assign a portal to that number, and
+      # win+(number key) to jump to the top window in that portal.
+      win+shift+1: [create-current-portal-alias, P1]
+      win+shift+2: [create-current-portal-alias, P2]
+      win+shift+3: [create-current-portal-alias, P3]
+      win+shift+4: [create-current-portal-alias, P4]
+      win+shift+5: [create-current-portal-alias, P5]
+      win+shift+6: [create-current-portal-alias, P6]
+      win+shift+7: [create-current-portal-alias, P7]
+      win+shift+8: [create-current-portal-alias, P8]
+      win+shift+9: [create-current-portal-alias, P9]
+      win+shift+0: [create-current-portal-alias, P0]
+      win+1: [focus-portal-by-alias, P1]
+      win+2: [focus-portal-by-alias, P2]
+      win+3: [focus-portal-by-alias, P3]
+      win+4: [focus-portal-by-alias, P4]
+      win+5: [focus-portal-by-alias, P5]
+      win+6: [focus-portal-by-alias, P6]
+      win+7: [focus-portal-by-alias, P7]
+      win+8: [focus-portal-by-alias, P8]
+      win+9: [focus-portal-by-alias, P9]
+      win+0: [focus-portal-by-alias, P0]
+
+      # Bring to front, and give focus, to the most recently flashing window.
+      win+tab: [focus-last-flashing-window]
+
+      # Redefine the Windows lock screen keystroke.
+      # This doesn't actually do anything, because Windows reads in
+      # the Win+L key combination before anything can interrupt it.
+      win+l: [lock-screen]
+
+      # Launch a CMD.exe command prompt in a stand alone window.
+      win+launch-app1:
+      - cmd
+      - cmd.exe /c start cmd.exe
+
+      # Launch a CMD with nice colors and an initial directory.
+      # Note that in a yaml file, one backslash is enough.
+      win+p:
+      - cmd
+      - cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \
+
+      # Launch a Windows Explorer window on the C: drive.
+      # This shadows the real "win+e" in Windows, because
+      # the windows key is blocked from normal usage.
+      win+e:
+      - cmd
+      - explorer.exe c:\
+
+      # Quit Petronia
+      win+f4: [quit]
+
+      # Reload the current configuration file.
+      win+alt+f2: [load-config]
+
+      # Because the windows key is blocked from normal usage,
+      # the "win+esc" is the new functionality to show the start
+      # menu.
+      win+esc: [open-start-menu]
+
+  # Just use Windows without any special parsing.  The windows key acts as Windows intends.
+  # Well, "Win+~" will switch you back to the default mode.
+  simple-windows-mode:
+    type: hotkey
+    commands:
+      win+~: [change mode, default]
+
+  # "exclusive mode" is exclusive mode for this application. It sucks in all
+  # input.  This is useful for an operation that controls how Petronia
+  # works, such as manipulating the layout.
+  # Note that the mouse will still work as normal.
+  resize-window-mode:
+    type: exclusive
+    commands:
+      esc: [change mode, default]
+      enter: [change mode, default]
+      up: [resize, 0, -16]
+      down: [resize, 0, 16]
+      left: [resize, -16, 0]
+      right: [resize, 16, 0]
+      j: [resize, 0, -1]
+      k: [resize, 0, 1]
+      h: [resize, -1, 0]
+      l: [resize, 1, 0]
+      separator: [change mode, default]
+      numpad8: [resize, 0, -4]
+      numpad2: [resize, 0, 4]
+      numpad4: [resize, -4, 0]
+      numpad6: [resize, 4, 0]
+      add: [resize, 4, 4]
+      subtract: [resize, -4, -4]

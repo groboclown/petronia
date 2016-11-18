@@ -1,21 +1,37 @@
 # Petronia Change History
 
-## :: v1.3 ::
+## :: v2.0 ::
 
 ### Overview
 
+* Configuration now allowed as json files!
 * Added new user command: `focus-last-flashing-window`
-* Removed 'color' property from the chrome border.
+* Switched from `parse_simple_mode` to `parse_exclusive_mode`
+* Chrome configuration backwards-incompatible changes
 * Windows not owned by tiling management can now receive commands.
 * Bug Fixes
 
 ### Details
 
+* Configuration now allowed as yaml and json files!
+    * You can write your configuration files as yaml or json files now.
+    * Updated example to include a yaml and json version.
 * Added new user command: `focus-last-flashing-window`
     * You can now bind a key that will raise the most recently "flashing"
         window to the top, and give it focus.
-* Removed 'color' property from the chrome border.
-    * This will be handled by classes that manage portal borders themselves.
+* Switched from `parse_simple_mode` to `parse_exclusive_mode`
+    * Exclusive mode more explicitly describes the purpose of the mode.
+* Chrome configuration backwards-incompatible changes
+    * The "chrome" configuration was mostly placeholders for future
+        functionality.  Now that more of the design is in place, this is
+        now a holder for other components to reference.
+        Configurations don't use it anymore.
+    * Removed 'color' property from the chrome border.
+    * Borders are set by the classes that manage portal borders themselves.
+    * Moved the decoration of windows into the application settings, to allow
+        for more flexibility on a per-application basis.
+    * Application setup now has `default_has_border` and `default_has_title`,
+        replacing the original `default_is_managed_chrome`
 * Windows not owned by tiling management can now receive commands.
     * Added ability to send some user commands to windows not in the tiling
         management.

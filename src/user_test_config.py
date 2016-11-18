@@ -52,69 +52,83 @@ def load_config():
         })
     }])
 
-    applications = config.ApplicationListConfig([
-        # Apps that should not  belong to the tiling, because it messes up the
-        # display.  These come before the general non-chromed apps, because it
-        # they both include a matching entry, but this one contains a more
-        # precise entry.
+    applications = config.ApplicationListConfig(
+        default_is_tiled=True,
+        default_has_border=False,
+        default_has_title=False,
+        app_configs=[
+            # Apps that should not  belong to the tiling, because it messes up the
+            # display.  These come before the general non-chromed apps, because it
+            # they both include a matching entry, but this one contains a more
+            # precise entry.
 
-        # If you end up missing an application that should have gone here, and
-        # now the dialog is always in a super-size, you'll have to poke around
-        # to figure out how to fix it.  For example, the reminder dialog below
-        # can be restored to its default size and position by removing the
-        # registry key
-        # HKEY_CURRENT_USER\Software\Microsoft\Office\(version)\Options\Reminders
-        config.ApplicationChromeConfig(is_managed_chrome=False, is_tiled=False, app_matchers=[
-            config.AppMatcher(class_name_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_path='outlook.exe'),
+            # If you end up missing an application that should have gone here, and
+            # now the dialog is always in a super-size, you'll have to poke around
+            # to figure out how to fix it.  For example, the reminder dialog below
+            # can be restored to its default size and position by removing the
+            # registry key
+            # HKEY_CURRENT_USER\Software\Microsoft\Office\(version)\Options\Reminders
+            config.ApplicationChromeConfig(has_title=True, has_border=True, is_tiled=False, app_matchers=[
+                config.AppMatcher(class_name_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_path='outlook.exe'),
 
-            # This is an invisible application that queries think is actually a visible application.
-            config.AppMatcher(class_name='MSO_BORDEREFFECT_WINDOW_CLASS', title='', exec_path='outlook.exe'),
-        ]),
+                # This is an invisible application that queries think is actually a visible application.
+                config.AppMatcher(class_name='MSO_BORDEREFFECT_WINDOW_CLASS', title='', exec_path='outlook.exe'),
+            ]),
 
-        # General non-chromed apps.  These ones appear on the default screen.
-        config.ApplicationChromeConfig(is_managed_chrome=False, is_tiled=True, app_matchers=[
-            config.AppMatcher(exec_path='firefox.exe'),
-            config.AppMatcher(exec_path='chrome.exe'),
-            config.AppMatcher(exec_path='explorer.exe'),
-            config.AppMatcher(exec_path='outlook.exe'),
-        ]),
-
-        # If there is enough space, these go to the big side panel.
-        # If that isn't in the workgroup, then these are put int the
-        # default layout.
-        config.ApplicationPositionConfig(
-            portal_names=['left'],
-            app_matchers=[
+            # General non-chromed apps.  These ones appear on the default screen.
+            config.ApplicationChromeConfig(has_title=True, has_border=True, is_tiled=True, app_matchers=[
                 config.AppMatcher(exec_path='firefox.exe'),
                 config.AppMatcher(exec_path='chrome.exe'),
                 config.AppMatcher(exec_path='explorer.exe'),
                 config.AppMatcher(exec_path='outlook.exe'),
-            ]
-        ),
-    ])
+            ]),
+
+            # If there is enough space, these go to the big side panel.
+            # If that isn't in the workgroup, then these are put int the
+            # default layout.
+            config.ApplicationPositionConfig(
+                portal_names=['left'],
+                app_matchers=[
+                    config.AppMatcher(exec_path='firefox.exe'),
+                    config.AppMatcher(exec_path='chrome.exe'),
+                    config.AppMatcher(exec_path='explorer.exe'),
+                    config.AppMatcher(exec_path='outlook.exe'),
+                ]
+            ),
+        ])
 
     # See petronia.util.hotkey_chain for the key names.
     hotkeys = config.HotKeyConfig()
     hotkeys.parse_hotkey_mode_keys(
         config.DEFAULT_MODE,
         {
-            # Mode tests
             "win+~": [config.MODE_CHANGE_COMMAND, "simple-windows-mode"],
             "win+f11": [config.MODE_CHANGE_COMMAND, "resize-window-mode"],
 
-            "win+up": ["move-window-to-other-portal", "north"],
-            "win+down": ["move-window-to-other-portal", "south"],
-            "win+left": ["move-window-to-other-portal", "west"],
-            "win+right": ["move-window-to-other-portal", "east"],
+            # Move windows to other portals using the arrow keys.
+            # This isn't configured to use numpad keys.
+            "win+alt+up": ["move-window-to-other-portal", "north"],
+            "win+alt+down": ["move-window-to-other-portal", "south"],
+            "win+alt+left": ["move-window-to-other-portal", "west"],
+            "win+alt+right": ["move-window-to-other-portal", "east"],
 
             # "next" and "previous" window movement bypasses how layouts
             # think about directions, and just moves in order through the
             # portals.
-            "win+pgup": ["move-window-to-other-portal", "next"],
-            "win+pgdn": ["move-window-to-other-portal", "previous"],
+            "win+alt+pgup": ["move-window-to-other-portal", "next"],
+            "win+alt+pgdn": ["move-window-to-other-portal", "previous"],
 
+            # Flip between windows within the currently focused portal
             "win+<": ["switch-top-window", "previous"],
             "win+>": ["switch-top-window", "next"],
+
+            # Change focused portal to an adjacent portal
+            "win+up": ["move-focus", "north"],
+            "win+down": ["move-focus", "south"],
+            "win+left": ["move-focus", "west"],
+            "win+right": ["move-focus", "east"],
+            "win+pgup": ["move-focus", "previous"],
+            "win+pgdn": ["move-focus", "next"],
 
             # A set of quick keys to swap between portals.  Hold down
             # win+shift+(number key) to assign a portal to that number, and
@@ -157,6 +171,8 @@ def load_config():
             # real backslash.
             "win+p": ["cmd", "cmd.exe /c start cmd.exe /E:ON /V:ON /T:17 /K cd \\"],
 
+            "win+n": ["cmd", '"c:\\Program Files (x86)\\Notepad++\\notepad++"'],
+
             # Replace the old "win+e" to open an explorer window.
             "win+e": ["cmd", "explorer.exe c:\\"],
 
@@ -169,23 +185,27 @@ def load_config():
             # gives you a way to still open the start menu.
             "win+esc": ["open-start-menu"],
         },
-        block_win_key=True  # block the windows key, because we remapped it to win+esc
-        # False
+
+        # Block the windows key, because we remapped it to win+esc.
+        # Note that this disables the standard windows hot keys, except
+        # for a few critical ones (like win+L, which always works).
+        block_win_key=True
     )
 
     # Just use Windows without any special parsing.  The windows key acts as Windows intends.
+    # Well, "Win+~" will switch you back to the default mode.
     hotkeys.parse_hotkey_mode_keys(
         "simple-windows-mode",
         {
             "win+~": [config.MODE_CHANGE_COMMAND, config.DEFAULT_MODE],
-        },
-        block_win_key=False
+        }
+        # By default, the windows key is not blocked.
     )
 
-    # "simple mode" is exclusive mode for this application. It sucks in all
+    # "exclusive mode" is exclusive mode for this application. It sucks in all
     # input.  This is useful for an operation that controls how Petronia
     # works, such as manipulating the layout.
-    hotkeys.parse_simple_mode_keys(
+    hotkeys.parse_exclusive_mode_keys(
         "resize-window-mode",
         {
             "esc": [config.MODE_CHANGE_COMMAND, config.DEFAULT_MODE],
@@ -210,19 +230,7 @@ def load_config():
         }
     )
 
-    chrome = config.ChromeConfig()
-    chrome.has_title = False
-    chrome.portal_chrome_border = {
-        'color': 0x404040, 'width': 0,  # 0 width means that it's not drawn.
-        'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
-    }
-    chrome.portal_chrome_active_border = {
-        'color': 0x808000, 'width': 0,  # 0 width means that it's not drawn.
-        'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
-    }
-
     return config.Config(
         workgroups=layouts_by_display,
         applications=applications,
-        hotkeys=hotkeys,
-        chrome=chrome)
+        hotkeys=hotkeys)

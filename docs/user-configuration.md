@@ -5,6 +5,9 @@ You configure Petronia through a Python script that provides a
 object.  It's not simple, and you need to know a bit about programming.  But,
 oh, *the power!*
 
+With Petronia 2.0, you can also write your configuration as a json
+file.
+
 
 ## The Example Configurations
 
@@ -446,9 +449,9 @@ can't be overridden or disabled.  This includes
 <kbd>&#x2756; Win</kbd><kbd>L</kbd> (lock screen).
 
 
-#### `parse_simple_mode_keys`
+#### `parse_exclusive_mode_keys`
 
-With the simple mode, Petronia captures all your Windows input.  This allows
+With the exclusive mode, Petronia captures all your Windows input.  This allows
 you to have a mode that doesn't require you to hold down a key the whole time.
 This will become more useful when the layout management mode is implemented.
 
@@ -502,6 +505,8 @@ you can have some color outlining the portals:
 
 ```python
 from petronia import config
+
+# Just an example - this component doesn't exist
 from petronia.shell.view.render_active_portal import render_active_portal_factory
 
 component = config.ComponentConfig(singletons=[

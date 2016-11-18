@@ -7,13 +7,21 @@ import re
 
 
 class AbstractApplicationConfig(BaseConfig):
-    def is_managed_chrome(self, window_info):
+    def has_title(self, window_info):
         """
 
         :param window_info:
-        :return: True if the window should be "managed" by the system, in terms of
-            look-and-feel of the application.  None if the configuration has no information
-            about  this window.
+        :return: True if the title bar should be kept on the window, or False if it should be removed, or
+            None if the configuration has no information about this window.
+        """
+        raise NotImplementedError()
+
+    def has_border(self, window_info):
+        """
+
+        :param window_info:
+        :return: True if the resize border should be kept on the window, or False if it should be removed, or
+            None if the configuration has no information about this window.
         """
         raise NotImplementedError()
 
@@ -41,28 +49,39 @@ class AbstractApplicationConfig(BaseConfig):
 
 
 class ApplicationListConfig(AbstractApplicationConfig):
-    def __init__(self, app_configs, default_is_tiled=True, default_is_managed_chrome=True):
+    def __init__(self, app_configs, default_is_tiled=True, default_has_border=True, default_has_title=True):
         assert isinstance(app_configs, list) or isinstance(app_configs, tuple)
         super()
         for app in app_configs:
             assert isinstance(app, AbstractApplicationConfig)
         self.__app_configs = app_configs
         self.default_is_tiled = default_is_tiled
-        self.default_is_managed_chrome = default_is_managed_chrome
+        self.default_has_border = default_has_border
+        self.default_has_title = default_has_title
 
     def is_tiled(self, window_info):
         for app in self.__app_configs:
+            assert isinstance(app, AbstractApplicationConfig)
             res = app.is_tiled(window_info)
             if res is not None:
                 return res
         return self.default_is_tiled
 
-    def is_managed_chrome(self, window_info):
+    def has_title(self, window_info):
         for app in self.__app_configs:
-            res = app.is_managed_chrome(window_info)
+            assert isinstance(app, AbstractApplicationConfig)
+            res = app.has_title(window_info)
             if res is not None:
                 return res
-        return self.default_is_managed_chrome
+        return self.default_has_title
+
+    def has_border(self, window_info):
+        for app in self.__app_configs:
+            assert isinstance(app, AbstractApplicationConfig)
+            res = app.has_border(window_info)
+            if res is not None:
+                return res
+        return self.default_has_border
 
     def get_best_portal_match(self, portal_aliases, window_info):
         for app in self.__app_configs:
@@ -77,8 +96,10 @@ class ApplicationChromeConfig(AbstractApplicationConfig):
     Matches any number of applications (through the matcher regex), and associates
     it with one or more panels.
     """
+
     def __init__(self,
-                 is_managed_chrome=True,
+                 has_border=True,
+                 has_title=True,
                  is_tiled=True,
                  app_matchers=None):
         super()
@@ -89,21 +110,21 @@ class ApplicationChromeConfig(AbstractApplicationConfig):
         for matcher in app_matchers:
             assert isinstance(matcher, AppMatcher)
 
-        self.__is_managed_chrome = is_managed_chrome
+        self.__has_border = has_border
+        self.__has_title = has_title
         self.__is_tiled = is_tiled
         self.__app_matchers = app_matchers
 
-    def is_managed_chrome(self, window_info):
-        """
-
-        :param window_info:
-        :return: True if the window should be "managed" by the system, in terms of
-            look-and-feel of the application.
-        """
+    def has_border(self, window_info):
         for matcher in self.__app_matchers:
             if matcher.matches(window_info):
-                # print("DEBUG Matched managed chrome: {0}".format(window_info))
-                return self.__is_managed_chrome
+                return self.__has_border
+        return None
+
+    def has_title(self, window_info):
+        for matcher in self.__app_matchers:
+            if matcher.matches(window_info):
+                return self.__has_title
         return None
 
     def is_tiled(self, window_info):
@@ -121,6 +142,7 @@ class ApplicationPositionConfig(AbstractApplicationConfig):
     Matches any number of applications (through the matcher regex), and associates
     it with one or more panels.
     """
+
     def __init__(self, portal_names, app_matchers):
         if not isinstance(app_matchers, list) and not isinstance(app_matchers, tuple):
             assert isinstance(app_matchers, AppMatcher)
@@ -138,7 +160,10 @@ class ApplicationPositionConfig(AbstractApplicationConfig):
             assert hasattr(name, 'match') and callable(name.match)
             self.__portal_matchers.append(name)
 
-    def is_managed_chrome(self, window_info):
+    def has_border(self, window_info):
+        return None
+
+    def has_title(self, window_info):
         return None
 
     def is_tiled(self, window_info):
@@ -228,3 +253,6 @@ class AppMatcher(BaseConfig):
         if ret:
             return self.match_returns
         return not self.match_returns
+
+    def __repr__(self):
+        return "AppMatcher({0})".format(repr(self.re_matchers))

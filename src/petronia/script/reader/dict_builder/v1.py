@@ -40,9 +40,10 @@ def load_config(section, d, logger):
 
         'application-setup': {
             'defaults': {
-                'is-chromed': true,
+                'has-title': true,
+                'has-border': true,
                 'is-tiled': false,
-                'display': '+chromed -tiled',
+                'display': '+title +border -tiled',
             },
             'applications': [
                 {
@@ -61,9 +62,10 @@ def load_config(section, d, logger):
                         }
                     ],
 
-                    'is-chromed': true,
+                    'has-title': false,
+                    'has-border': true,
                     'is-tiled': false,
-                    'display': '+chromed -tiled',
+                    'display': '-title +border -tiled',
                     'location': [ 'portal 1', 'portal 2', ... ]
                 }, ...
             ]
@@ -87,18 +89,6 @@ def load_config(section, d, logger):
                 }
             }, ...
         },
-
-        'chrome': { // all optional
-            'border-width': 1,
-            'border-padding': 1,
-            'border-color': '#ff00dd',
-            'scrollbar-width': 4,
-            'scrollbar-height': 4,
-            'has-title': false,
-            'has-resize-border': true,
-            'flash-count': 3,
-            'flash-wait-seconds': 0.5,
-        }
     }
     ```
 
@@ -122,11 +112,6 @@ def load_config(section, d, logger):
     else:
         hotkeys = None
 
-    if 'chrome' in d:
-        chrome = _load_chrome([*section, 'chrome'], d['chrome'])
-    else:
-        chrome = None
-
     # Not configurable yet
     commands = config.CommandConfig()
     component = config.ComponentConfig()
@@ -137,15 +122,11 @@ def load_config(section, d, logger):
         applications=applications,
         hotkeys=hotkeys,
         commands=commands,
-        chrome=chrome,
         component=component,
         shell=shell
     )
 
-    def loader():
-        return conf
-
-    return loader
+    return conf
 
 
 # ----------------------------------------------------------------------------
@@ -310,7 +291,7 @@ def _load_layout_list(section, layout_list, logger, as_child_splits):
         category, orientation = _LAYOUT_TYPES[p_type]
         child_splits = None
         if 'children' in part:
-            kids = _key_as_dict(sec, part, 'children', False)
+            kids = _key_as_list(sec, part, 'children', False)
             if kids is not None:
                 child_splits = _load_layout_list([*sec, 'children'], kids, logger, True)
         layout_def = config.LayoutConfig(name, category, orientation, child_splits)
@@ -332,9 +313,10 @@ def _load_application_setup(section, d):
     """
     'application-setup': {
         'defaults': {
-            'is-chromed': true,
+            'has-title': true,
+            'has-border': true,
             'is-tiled': false,
-            'display': '+chromed -tiled',
+            'display': '+title +border -tiled',
         },
         'applications': [
             {
@@ -353,9 +335,10 @@ def _load_application_setup(section, d):
                     }
                 ],
 
-                'is-chromed': true,
+                'has-title': true,
+                'has-border': true,
                 'is-tiled': false,
-                'display': '+chromed -tiled',
+                'display': '+title +border -tiled',
                 'location': [ 'portal 1', 'portal 2', ... ]
             }, ...
         ]
@@ -365,16 +348,9 @@ def _load_application_setup(section, d):
     :param d:
     :return:
     """
-    d = _ensure_list(section, d, False)
+    d = _ensure_dict(section, d, False)
 
-    default_is_tiled = True
-    default_is_managed_chrome = True
-    defaults = _key_as_dict(section, d, 'defaults')
-    if defaults is not None:
-        is_managed_chrome, is_tiled, was_set = _parse_app_display([*section, 'defaults'], defaults)
-        if was_set:
-            default_is_managed_chrome = is_managed_chrome
-            default_is_tiled = is_tiled
+    defaults = _parse_app_display([*section, 'defaults'], _key_as_dict(section, d, 'defaults'))
 
     app_configs = []
     applications = _key_as_list(section, d, 'applications', False)
@@ -382,10 +358,13 @@ def _load_application_setup(section, d):
         sec = [*section, str(li)]
         app = _ensure_dict(sec, applications[li], False)
         matchers = _load_application_matchers([*sec, 'matchers'], _key_as_list(sec, app, 'matchers', False))
-        is_chromed, is_tiled, was_set = _parse_app_display(sec, app)
-        if was_set:
+        display = _parse_app_display(sec, app)
+        assert isinstance(display, AppDisplay)
+        if display.was_set:
             app_configs.append(config.ApplicationChromeConfig(
-                is_managed_chrome=is_chromed, is_tiled=is_tiled, app_matchers=matchers))
+                has_border=display.has_border,
+                has_title=display.has_title,
+                is_tiled=display.is_tiled, app_matchers=matchers))
         locations = _key_as_list(sec, app, 'location')
         if locations is not None:
             for ll in range(len(locations)):
@@ -394,57 +373,66 @@ def _load_application_setup(section, d):
 
     return config.ApplicationListConfig(
         app_configs,
-        default_is_tiled=default_is_tiled,
-        default_is_managed_chrome=default_is_managed_chrome)
+        default_is_tiled=defaults.is_tiled,
+        default_has_border=defaults.has_border,
+        default_has_title=defaults.has_title)
+
+
+class AppDisplay(object):
+    def __init__(self, is_tiled=None, has_border=None, has_title=None):
+        self.is_tiled = is_tiled
+        self.has_border = has_border
+        self.has_title = has_title
+
+    @property
+    def was_set(self):
+        return not (self.is_tiled is None and self.has_border is None and self.has_title is None)
 
 
 def _parse_app_display(section, d):
-    is_chromed = False
-    is_tiled = False
-    was_set = False
-    if 'is-chromed' in d:
-        if not isinstance(d['is-chromed'], bool):
-            raise ConfigLoadException([*section, 'is-chromed'], 'must be boolean')
-        is_chromed = d['is-chromed']
-        was_set = True
-    if 'is-tiled' in d:
-        if not isinstance(d['is-tiled'], bool):
-            raise ConfigLoadException([*section, 'is-tiled'], 'must be boolean')
-        is_chromed = d['is-tiled']
-        was_set = True
+    ret = AppDisplay()
+    if d is None:
+        return ret
+    ret.has_title = _key_as_bool(section, d, 'has-title')
+    ret.has_border = _key_as_bool(section, d, 'has-border')
+    ret.is_tiled = _key_as_bool(section, d, 'is-tiled')
 
-    if 'display' in d:
-        display = d['display']
-        if not isinstance(display, str):
-            raise ConfigLoadException([*section, 'display'], 'must be string')
+    display = _key_as_str(section, d, 'display')
+    if display is not None:
         for p in display.strip().lower().split():
-            if p == '+chromed':
-                is_chromed = True
-                was_set = True
-            elif p == '-chromed':
-                is_chromed = False
-                was_set = True
-            elif p == '+tiled':
-                is_tiled = True
-                was_set = True
-            elif p == '-tiled':
-                is_tiled = False
-                was_set = True
-    return is_chromed, is_tiled, was_set
+            if p[0] == '+':
+                val = True
+            elif p[0] == '-':
+                val = False
+            else:
+                raise ConfigLoadException(
+                    [*section, 'display'], 'each item must start with "+" or "-" (display is `{0}`)'.format(display))
+            p = p[1:]
+            if p == 'title':
+                ret.has_title = val
+            elif p == 'border':
+                ret.has_border = val
+            elif p == 'tiled':
+                ret.is_tiled = val
+            else:
+                raise ConfigLoadException([*section, 'display'], 'unknown item `{0}` in display `{1}`'.format(
+                    p, display
+                ))
+    return ret
 
 
 def _load_application_matchers(section, d):
     """
     'matchers': [
         {   // all of these are optional
-            'exec_path': 'blah',
-            'exec_path_re': 'blah',
-            'class_name': 'blah',
-            'class_name_re': 'blah',
+            'exec-path': 'blah',
+            'exec-path-re': 'blah',
+            'class-name': 'blah',
+            'class-name-re': 'blah',
             'title': 'blah',
-            'title_re': 'blah',
-            'module_path': 'blah',
-            'module_path_re': 'blah',
+            'title-re': 'blah',
+            'module-path': 'blah',
+            'module-path-re': 'blah',
 
             'matches': true // optional, defaults to true
         }
@@ -465,13 +453,13 @@ def _load_application_matchers(section, d):
         ret.append(config.AppMatcher(
             match_returns=matches,
             title=_key_as_str(sec, matcher, 'title'),
-            title_re=_key_as_str(sec, matcher, 'title_re'),
-            module_path=_key_as_str(sec, matcher, 'module_path'),
-            module_path_re=_key_as_str(sec, matcher, 'module_path_re'),
-            exec_path=_key_as_str(sec, matcher, 'exec_path'),
-            exec_path_re=_key_as_str(sec, matcher, 'exec_path_re'),
-            class_name=_key_as_str(sec, matcher, 'class_name'),
-            class_name_re=_key_as_str(sec, matcher, 'class_name_re'),
+            title_re=_key_as_str(sec, matcher, 'title-re'),
+            module_path=_key_as_str(sec, matcher, 'module-path'),
+            module_path_re=_key_as_str(sec, matcher, 'module-path-re'),
+            exec_path=_key_as_str(sec, matcher, 'exec-path'),
+            exec_path_re=_key_as_str(sec, matcher, 'exec-path-re'),
+            class_name=_key_as_str(sec, matcher, 'class-name'),
+            class_name_re=_key_as_str(sec, matcher, 'class-name-re'),
         ))
     return ret
 
@@ -522,77 +510,9 @@ def _load_hotkeys(section, d):
             block_win_key = block_win_key is None and False or block_win_key
             ret.parse_hotkey_mode_keys(mode_id, _key_as_dict(sec, mode, 'commands', False), block_win_key=block_win_key)
         elif mode_type == 'exclusive':
-            ret.parse_simple_mode_keys(mode_id, _key_as_dict(sec, mode, 'commands', False))
+            ret.parse_exclusive_mode_keys(mode_id, _key_as_dict(sec, mode, 'commands', False))
         else:
             raise ConfigLoadException(sec, '"type" must be one of [hotkey, exclusive], found `{0}`'.format(mode_type))
-
-    return ret
-
-
-# ----------------------------------------------------------------------------
-# Chrome
-
-def _load_chrome(section, d):
-    """
-    'chrome': { // all optional
-        'border-width': 1,
-        'border-padding': 1,
-        'border-color': '#ff00dd',
-        'scrollbar-width': 4,
-        'scrollbar-height': 4,
-        'has-title': false,
-        'has-resize-border': true,
-        'flash-count': 3,
-        'flash-wait-seconds': 0.5,
-    }
-
-    :param section:
-    :param d:
-    :return:
-    """
-    ret = config.ChromeConfig()
-
-    d = _ensure_dict(section, d)
-    if d is None:
-        return ret
-
-    border_width = _key_as_int(section, d, 'border-width')
-    if border_width is not None:
-        ret.border_width = border_width
-
-    border_padding = _key_as_int(section, d, 'border-padding')
-    if border_padding is not None:
-        ret.border_padding = border_padding
-
-    border_color = _key_as_int(section, d, 'border-color')
-    if border_color is not None:
-        ret.border_color = border_color
-
-    scrollbar_width = _key_as_int(section, d, 'scrollbar-width')
-    if scrollbar_width is not None:
-        ret.scrollbar_width = scrollbar_width
-
-    scrollbar_height = _key_as_int(section, d, 'scrollbar-height')
-    if scrollbar_width is not None:
-        ret.scrollbar_height = scrollbar_height
-
-    has_title = _key_as_bool(section, d, 'has-title')
-    if has_title is not None:
-        ret.has_title = has_title
-
-    has_resize_border = _key_as_bool(section, d, 'has-resize-border')
-    if has_resize_border is not None:
-        ret.has_resize_border = has_resize_border
-
-    flash_count = _key_as_int(section, d, 'flash-count')
-    if flash_count is not None:
-        ret.flash_count = flash_count
-
-    flash_wait_seconds = _key_as_float(section, d, 'flash-wait-seconds')
-    if flash_wait_seconds is not None:
-        ret.flash_wait_seconds = flash_wait_seconds
-
-    # Border definition is updated by the border object.
 
     return ret
 
@@ -603,7 +523,7 @@ def _load_chrome(section, d):
 
 def _key_as_bool(sec, d, k, allow_none=True):
     if k in d:
-        return _ensure_bool([*sec, k], d, allow_none)
+        return _ensure_bool([*sec, k], d[k], allow_none)
     if allow_none:
         return None
     raise ConfigLoadException([*sec, k], 'must be bool')
@@ -623,12 +543,12 @@ def _ensure_bool(sec, v, allow_none=True):
         raise ConfigLoadException(sec, 'must be bool, found `{0}`'.format(v))
     if isinstance(v, bool):
         return v
-    raise ConfigLoadException(sec, 'must be bool, found {0}'.format(type(v)))
+    raise ConfigLoadException(sec, 'must be bool, found {0} ({1})'.format(type(v), v))
 
 
 def _key_as_str(sec, d, k, allow_none=True):
     if k in d:
-        return _ensure_str([*sec, k], d, allow_none)
+        return _ensure_str([*sec, k], d[k], allow_none)
     if allow_none:
         return None
     raise ConfigLoadException([*sec, k], 'must be string')
@@ -640,7 +560,7 @@ def _ensure_str(sec, v, allow_none=True):
             return True
         raise ConfigLoadException(sec, 'must be string, found None')
     if not isinstance(v, str):
-        raise ConfigLoadException(sec, 'must be string, found {0}'.format(type(v)))
+        raise ConfigLoadException(sec, 'must be string, found {0} ({1})'.format(type(v), v))
     return v
 
 
@@ -658,7 +578,7 @@ def _ensure_dict(sec, d, allow_none=True):
             return True
         raise ConfigLoadException(sec, 'must be dictionary, found None')
     if not isinstance(d, dict):
-        raise ConfigLoadException(sec, 'must be dictionary, found {0}'.format(type(d)))
+        raise ConfigLoadException(sec, 'must be dictionary, found {0} ({1})'.format(type(d), d))
     return d
 
 
@@ -676,9 +596,9 @@ def _ensure_list(sec, v, allow_none=True):
             return None
         raise ConfigLoadException(sec, 'must be list, found None')
     if v is None or isinstance(v, str) or isinstance(v, dict):
-        raise ConfigLoadException(sec, 'must be list, found {0}'.format(type(v)))
+        raise ConfigLoadException(sec, 'must be list, found {0} ({1})'.format(type(v), v))
     if not hasattr(v, '__iter__') or not callable(getattr(v, '__iter__')):
-        raise ConfigLoadException(sec, 'must be list, found {0}'.format(type(v)))
+        raise ConfigLoadException(sec, 'must be list, found {0} ({1})'.format(type(v), v))
     return v
 
 
@@ -700,7 +620,7 @@ def _ensure_int(sec, v, allow_none=True):
             return int(v.strip()[1:], 16)
         return int(v)
     except ValueError:
-        raise ConfigLoadException(sec, 'must be int, found {0}'.format(type(v)))
+        raise ConfigLoadException(sec, 'must be int, found {0} ({1})'.format(type(v), v))
 
 
 def _key_as_float(sec, d, k, allow_none=True):
@@ -719,4 +639,4 @@ def _ensure_float(sec, v, allow_none=True):
     try:
         return float(v)
     except ValueError:
-        raise ConfigLoadException(sec, 'must be float, found {0}'.format(type(v)))
+        raise ConfigLoadException(sec, 'must be float, found {0} ({1})'.format(type(v), v))

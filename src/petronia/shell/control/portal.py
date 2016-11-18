@@ -315,8 +315,6 @@ class Portal(Tile):
 
     def _get_window_rect(self):
         border = self.config.chrome.portal_chrome_border
-        if self.__active:
-            border = self.config.chrome.portal_chrome_active_border
         return {
             'x': self.size['x'] + border['left'],
             'width': self.size['width'] - border['left'] - border['right'],

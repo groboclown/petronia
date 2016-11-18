@@ -4,6 +4,7 @@ from ...arch.funcs import (
     shell__open_start_menu, shell__lock_workstation,
     monitor__find_monitors, window__send_message,
     shell__get_task_bar_window_handles, window__border_rectangle,
+    shell__set_window_metrics
 )
 
 
@@ -14,10 +15,15 @@ class ShellExplorer(ShellType):
     """
     def __init__(self, bus, config):
         ShellType.__init__(self, bus, config)
+        from ...config import WindowsShellConfig
+        assert isinstance(config.shell, WindowsShellConfig)
+
+        # Setup Chrome
+        shell__set_window_metrics(config.shell.get_system_window_settings())
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def _on_open_start_menu(self, event_id, target_id, event_obj):
-        shell__open_start_menu(self._config.chrome.show_taskbar_with_start_menu)
+        shell__open_start_menu(self._config.shell.show_taskbar_with_start_menu)
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def _on_lock_screen(self, event_id, target_id, event_obj):
