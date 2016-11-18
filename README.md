@@ -33,7 +33,8 @@ Really, it's up to you on how to setup your screen.
 #### Easily Move Windows Between Tiles
 
 Petronia gives you control.  With easy key strokes, you can move a window
-between different tiles.
+between different tiles.  You can flip between windows within a tile.
+You can change to a window within another tile.  *So many options!*
 
 You can setup your keys however you like.  You can have a keystroke to
 enter a window movement mode, or use hotkeys.
