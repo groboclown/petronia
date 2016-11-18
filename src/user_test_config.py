@@ -140,8 +140,8 @@ def load_config():
             "win+9": ["focus-portal-by-alias", "P9"],
             "win+0": ["focus-portal-by-alias", "P0"],
 
-            # Minimize the currently focused window.
-            "win+tab": ["minimize"],
+            # Bring to front, and give focus, to the most recently flashing window.
+            "win+tab": ["focus-last-flashing-window"],
 
             # Redefine the Windows lock screen keystroke.
             # This doesn't actually do anything, because Windows reads in

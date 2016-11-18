@@ -16,8 +16,6 @@ class ChromeConfig(BaseConfig):
         self.has_title = True
         self.has_resize_border = True
         self.portal_chrome_border = {
-            'color': 0x404040,
-
             # Used by the portal to figure out how to shrink the
             # window within the portal.  Eventually, the
             # shell or other component will set this to match its
@@ -25,8 +23,6 @@ class ChromeConfig(BaseConfig):
             'top': 0, 'bottom': 0, 'left': 0, 'right': 0,
         }
         self.portal_chrome_active_border = {
-            'color': 0x808000,
-
             # Used by the portal to figure out how to shrink the
             # window within the portal.  Eventually, the
             # shell or other component will set this to match its

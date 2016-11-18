@@ -15,7 +15,7 @@ def read_user_configuration(config_file, logger):
     :rtype: Config
     """
 
-    config_module = reader.parse_confg(config_file, logger)
+    config_module = reader.parse_config(config_file, logger)
     if config_module is None:
         # Errors already reported
         config = None

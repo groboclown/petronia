@@ -3,4 +3,6 @@
 .idea/*
 buildsrc/work/*
 *personal_config.py
+*personal_config.json
+*personal_config.yaml
 tmp/*

@@ -5,6 +5,7 @@
 ### Overview
 
 * Added new user command: `focus-last-flashing-window`
+* Removed 'color' property from the chrome border.
 * Windows not owned by tiling management can now receive commands.
 * Bug Fixes
 
@@ -13,6 +14,8 @@
 * Added new user command: `focus-last-flashing-window`
     * You can now bind a key that will raise the most recently "flashing"
         window to the top, and give it focus.
+* Removed 'color' property from the chrome border.
+    * This will be handled by classes that manage portal borders themselves.
 * Windows not owned by tiling management can now receive commands.
     * Added ability to send some user commands to windows not in the tiling
         management.
