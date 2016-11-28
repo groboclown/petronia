@@ -14,10 +14,19 @@ def portal_chrome_factory(bus, config, id_manager):
 
 
 class _PortalGuiWindow(GuiWindow):
-    def __init__(self, portal_id, bus, pos_x, pos_y, width, height):
-        GuiWindow.__init__(self, 'chrome-' + portal_id, bus, 'chrome-' + portal_id, portal_id, {
-            'x': pos_x, 'y': pos_y, 'width': width, 'height': height, 'padding': 0,
+    def __init__(self, portal_id, bus, pos_x, pos_y, width, height, manager):
+        self._portal_x = pos_x
+        self._portal_y = pos_y
+        self._portal_width = width
+        self._portal_height = height
+
+        left, right, top, bottom = manager.get_chrome_size(pos_x, pos_y, width, height)
+
+        GuiWindow.__init__(self, 'chrome-' + portal_id, bus, 'chrome-' + portal_id, None, {
+            'left': left, 'right': right, 'top': top, 'bottom': bottom, 'padding': 0,
         }, has_border=False, is_transparent_bg=True, is_always_on_top=False)
+
+        self._manager = manager
 
         # Make configuration better
         self.color_1 = 0
@@ -25,6 +34,21 @@ class _PortalGuiWindow(GuiWindow):
         self.width = 4
         self.flash_time = 1.2
         self.flash_count = 3
+
+        self._listen(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.ANY, self._on_border_size_change)
+
+    def set_portal_size(self, pos_x, pos_y, width, height):
+        self._portal_x = pos_x
+        self._portal_y = pos_y
+        self._portal_width = width
+        self._portal_height = height
+
+        left, right, top, bottom = self._manager.get_chrome_size(pos_x, pos_y, width, height)
+        self.move_resize(left, top, right - left, bottom - top)
+
+    # noinspection PyUnusedLocal
+    def _on_border_size_change(self, event_id, target_id, event_obj):
+        self.set_portal_size(self._portal_x, self._portal_y, self._portal_width, self._portal_height)
 
     def _on_paint(self, hwnd, hdc, width, height):
         self._draw_rect(hdc, 0, 0, width, height, self.color_1)
@@ -99,40 +123,63 @@ class PortalChromeManager(Identifiable, Component):
         self._listen(event_ids.PORTAL__DEACTIVATED, target_ids.ANY, self._on_portal_deactivated)
 
         self._config = config
-        self.__border = {
-            'active_color1': 0x0070f0,
-            'active_color2': 0x003878,
-            'inactive_color1': 0x808080,
-            'inactive_color2': 0x404040,
-            'left': 2,
-            'right': 2,
-            'top': 2,
-            'bottom': 6
-        }
+        self._active_color1 = 0x0070f0
+        self._active_color2 = 0x003878
+        self._inactive_color1 = 0x808080
+        self._inactive_color2 = 0x404040
+        self._position = 'bottom'
+        self._width = 10
         self.update_border()
 
-    def update_border(self, active_color=None, inactive_color=None, left=None, right=None, top=None, bottom=None):
+    def get_chrome_size(self, pos_x, pos_y, width, height):
+        """
+
+        :param pos_x:
+        :param pos_y:
+        :param width:
+        :param height:
+        :return: (left, right, top, bottom)
+        """
+        if self._position == 'left':
+            return pos_x, pos_x + self._width, pos_y, pos_y + height
+        elif self._position == 'right':
+            return pos_x + width - self._width, pos_x + width, pos_y, pos_y + height
+        elif self._position == 'top':
+            return pos_x, pos_x + width, pos_y, pos_y + self._width
+        elif self._position == 'bottom':
+            return pos_x, pos_x + width, pos_y + height - self._width, pos_y + self._width
+        raise ValueError('position {0}'.format(self._position))
+
+    def update_border(self, active_color=None, inactive_color=None, position=None, width=None):
         if active_color is not None:
-            self.__border['active_color1'] = int(active_color)
-            self.__border['active_color2'] = _darken_color(active_color)
+            self._active_color1 = int(active_color)
+            self._active_color2 = _darken_color(active_color)
         if inactive_color is not None:
-            self.__border['inactive_color1'] = int(inactive_color)
-            self.__border['inactive_color2'] = _darken_color(inactive_color)
-        if left is not None:
-            self.__border['left'] = int(left)
-        if right is not None:
-            self.__border['right'] = int(right)
-        if top is not None:
-            self.__border['top'] = int(top)
-        if bottom is not None:
-            self.__border['bottom'] = int(bottom)
-        self._config.chrome.set_border(
-            left=self.__border['left'],
-            right=self.__border['right'],
-            top=self.__border['top'],
-            bottom=self.__border['bottom']
-        )
-        self._fire(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.BROADCAST, self._config.chrome.portal_chrome_border)
+            self._inactive_color1 = int(inactive_color)
+            self._inactive_color2 = _darken_color(inactive_color)
+        if position is not None:
+            assert position in ['left', 'right', 'top', 'bottom']
+            self._position = position
+        if width is not None:
+            assert width > 0
+            self._width = int(width)
+        print("DEBUG using chrome `{0}`".format(self._position))
+        if self._position == 'left':
+            self._config.chrome.set_border(left=self._width, right=0, top=0, bottom=0)
+        elif self._position == 'right':
+            self._config.chrome.set_border(left=0, right=self._width, top=0, bottom=0)
+        elif self._position == 'top':
+            self._config.chrome.set_border(left=0, right=0, top=self._width, bottom=0)
+        elif self._position == 'bottom':
+            self._config.chrome.set_border(left=0, right=0, top=0, bottom=self._width)
+        self._fire(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.BROADCAST, {
+            'left': self._config.chrome.portal_chrome_border['left'],
+            'right': self._config.chrome.portal_chrome_border['right'],
+            'top': self._config.chrome.portal_chrome_border['top'],
+            'bottom': self._config.chrome.portal_chrome_border['bottom'],
+            'width': self._width,
+            'position': self._position,
+        })
 
     def close(self):
         super().close()
@@ -159,13 +206,13 @@ class PortalChromeManager(Identifiable, Component):
 
             gui = self.__portal_map[target_id]['gui']
             if gui is None:
-                gui = _PortalGuiWindow(target_id, self._bus, pos_x, pos_y, width, height)
-                gui.color_1 = self.__border['inactive_color1']
-                gui.color_2 = self.__border['inactive_color2']
+                gui = _PortalGuiWindow(target_id, self._bus, pos_x, pos_y, width, height, self)
+                gui.color_1 = self._inactive_color1
+                gui.color_2 = self._inactive_color2
                 # TODO setup flash
                 self.__portal_map[target_id]['gui'] = gui
             else:
-                gui.move_resize(pos_x, pos_y, width, height)
+                gui.set_portal_size(pos_x, pos_y, width, height)
             gui.draw()
 
     def _on_portal_flashing(self, event_id, target_id, event_obj):
@@ -187,16 +234,18 @@ class PortalChromeManager(Identifiable, Component):
 
         if portal_cid in self.__portal_map:
             gui = self.__portal_map[target_id]['gui']
-            if gui is not None:
-                gui.color_1 = self.__border['active_color1']
-                gui.color_2 = self.__border['active_color2']
+            pos_x = portal_size['x']
+            pos_y = portal_size['y']
+            width = portal_size['width']
+            height = portal_size['height']
+            if gui is None:
+                gui = _PortalGuiWindow(target_id, self._bus, pos_x, pos_y, width, height, self)
+                # TODO setup flash
+                self.__portal_map[target_id]['gui'] = gui
 
-                pos_x = portal_size['x']
-                pos_y = portal_size['y']
-                width = portal_size['width']
-                height = portal_size['height']
-
-                gui.move_resize(pos_x, pos_y, width, height, True)
+            gui.color_1 = self._active_color1
+            gui.color_2 = self._active_color2
+            gui.move_resize(pos_x, pos_y, width, height, True)
 
     def _on_portal_deactivated(self, event_id, target_id, event_obj):
         portal_cid = target_id
@@ -207,6 +256,7 @@ class PortalChromeManager(Identifiable, Component):
         if portal_cid in self.__portal_map:
             gui = self.__portal_map[target_id]['gui']
             if gui is not None:
-                gui.color_1 = self.__border['inactive_color1']
-                gui.color_2 = self.__border['inactive_color2']
+                print("DEBUG deactivated portal {0} chrome".format(portal_id))
+                gui.color_1 = self._inactive_color1
+                gui.color_2 = self._inactive_color2
                 gui.draw()

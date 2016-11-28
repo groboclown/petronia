@@ -47,6 +47,7 @@ class GuiWindow(Identifiable, Component):
         self.__is_always_on_top = is_always_on_top
 
         def do_paint(hwnd, hdc):
+            print("DEBUG: on paint callback")
             window_size = window__client_rectangle(hwnd)
             self._on_paint(hwnd, hdc, window_size['width'], window_size['height'])
 
@@ -157,6 +158,9 @@ class GuiWindow(Identifiable, Component):
         window__do_draw(self.__hwnd, do_paint)
 
     def move_resize(self, pos_x, pos_y, width, height, force_on_top=False):
+        if self.__hwnd is None:
+            # Nothing to do yet.
+            return
         if self.__is_always_on_top:
             print(" - set position")
             window__set_position(
@@ -222,6 +226,10 @@ def _parse_window_pos_details(pos, hwnd, hfont):
     pos_y = 'y' in pos and pos['y'] or 0
     width = 'width' in pos and pos['width'] or 100
     height = 'height' in pos and pos['height'] or 100
+    if 'left' in pos:
+        pos_x = pos['left']
+    if 'top' in pos:
+        pos_y = pos['top']
 
     padding = 'padding' in pos and pos['padding'] or 4
 
@@ -249,6 +257,11 @@ def _parse_window_pos_details(pos, hwnd, hfont):
             pos_x = monitors[monitor_index]['right'] - width - padding
         elif 'left' in relative:
             pos_x = monitors[monitor_index]['left'] + padding
+
+    if 'right' in pos:
+        width = pos['right'] - pos_x
+    if 'bottom' in pos:
+        height = pos['bottom'] - pos_y
 
     # print("DEBUG translated {0} into ({1},{2}) {3}x{4}".format(
     #     pos, pos_x, pos_y, width, height

@@ -622,6 +622,16 @@ def window__create_display_window(
     if not class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
         class_name = PETRONIA_CREATED_WINDOW__CLASS_PREFIX + class_name
 
+    if title is None:
+        title = ""
+        app_icon = None
+        small_icon = None
+        cursor_icon = None
+    else:
+        app_icon = windll.user32.LoadIconW(None, IDI_APPLICATION)
+        small_icon = windll.user32.LoadIconW(None, IDI_APPLICATION)
+        cursor_icon = windll.user32.LoadCursorW(None, IDC_ARROW)
+
     # A persistent pointer to a handler.  Must be persisted so it isn't
     # removed when we exit this method.
     window_proc = WNDPROCTYPE(message_handler)
@@ -634,12 +644,12 @@ def window__create_display_window(
     window_class.cbClsExtra = 0
     window_class.cbWndExtra = 0
     window_class.hInstance = hinst
-    window_class.hIcon = windll.user32.LoadIconW(None, IDI_APPLICATION)
-    window_class.hCursor = windll.user32.LoadCursorW(None, IDC_ARROW)
+    window_class.hIcon = app_icon
+    window_class.hCursor = cursor_icon
     window_class.hBrush = COLOR_WINDOW + 1
     window_class.lpszMenuName = 0
     window_class.lpszClassName = class_name
-    window_class.hIconSm = windll.user32.LoadIconW(None, IDI_APPLICATION)
+    window_class.hIconSm = small_icon
 
     if not RegisterClassExW(byref(window_class)):
         raise WinError()
@@ -648,13 +658,10 @@ def window__create_display_window(
     for flag in style_flags:
         if flag in WS_STYLE_BIT_MAP:
             style |= WS_STYLE_BIT_MAP[flag]
-    print("DEBUG creating window with style {0} (default shown is {1})".format(
-        hex(style), hex(WS_OVERLAPPEDWINDOW)
-    ))
 
     hwnd = CreateWindowExW(
         WS_EX_CLIENTEDGE, class_name, title,
-        style,  # WS_OVERLAPPEDWINDOW,
+        style,
         CW_USEDEFAULT, CW_USEDEFAULT,
         240, 120,
         None,  # HWND_DESKTOP,
