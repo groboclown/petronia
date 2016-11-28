@@ -56,6 +56,64 @@ def shell__open_start_menu(show_taskbar):
     taskbar_pid = wintypes.DWORD()
     windll.user32.GetWindowThreadProcessId(taskbar_hwnd, byref(taskbar_pid))
     
+    triggered_start = [False]
+    
+    # Find the "Start" button in the taskbar.
+    def child_window_callback(hwnd, lparam):
+        class_buff = create_unicode_buffer(256)
+        length = windll.user32.GetClassNameW(hwnd, class_buff, 256)
+        if length <= 0:
+            class_buff = None
+        else:
+            class_buff = class_buff.value[:length]
+        length = windll.user32.GetWindowTextLengthW(hwnd)
+        if length > 0:
+            title_buff = create_unicode_buffer(length + 1)
+            windll.user32.GetWindowTextW(hwnd, title_buff, length + 1)
+            print("DEBUG - Inspecting {0} | {2} = {1}".format(hwnd, title_buff.value, class_buff))
+            if title_buff.value == "Start":
+                # Found the window
+                print("DEBUG sending Click message")
+                
+                # Attach our thread input to the start button, so we can send it a message.
+                current_thread_id = windll.kernel32.GetCurrentThreadId()
+                thread_process_id = windll.user32.GetWindowThreadProcessId(hwnd, None)
+                m_res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
+                m_res = windll.user32.SendMessageW(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, 0)
+                if m_res == 0:
+                    # Don't look anymore
+                    triggered_start[0] = True
+                    return False
+                else:
+                    try:
+                        print("<<ERROR pressing start button>>")
+                        raise WinError()
+                    except OSError:
+                        import traceback
+                        traceback.print_exc()
+        return True
+        
+    callback_type = CFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    callback_ptr = callback_type(child_window_callback)
+    print("DEBUG Iterating over windows for taskbar pid {0}".format(taskbar_pid.value))
+    windll.user32.EnumChildWindows(taskbar_hwnd, callback_ptr, 0)
+
+    # if not triggered_start[0]:
+    #     raise OSError("Could not find start button")
+
+
+def shell__open_start_menu_bad(show_taskbar):
+    # Find the task bar window
+    taskbar_hwnd = windll.user32.FindWindowW("Shell_TrayWnd", None)
+    if taskbar_hwnd is None or 0 == taskbar_hwnd:
+        raise WinError()
+    taskbar_size = wintypes.RECT()
+    windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
+
+    # Find the process ID of the taskbar window.
+    taskbar_pid = wintypes.DWORD()
+    windll.user32.GetWindowThreadProcessId(taskbar_hwnd, byref(taskbar_pid))
+    
     # Find the child window that has a "Start" class name.
     
     # TODO this is all wrong below here for Windows 10.
@@ -65,12 +123,18 @@ def shell__open_start_menu(show_taskbar):
 
     # noinspection PyUnusedLocal
     def thread_window_callback(hwnd, lparam):
+        class_buff = create_unicode_buffer(256)
+        length = windll.user32.GetClassNameW(hwnd, class_buff, 256)
+        if length <= 0:
+            class_buff = None
+        else:
+            class_buff = class_buff.value[:length]
         length = windll.user32.GetWindowTextLengthW(hwnd)
         if length > 0:
-            buff = create_unicode_buffer(length + 1)
-            windll.user32.GetWindowTextW(hwnd, buff, length + 1)
-            print("DEBUG - Inspecting {0} = {1}".format(hwnd, buff.value))
-            if buff.value == "Start":
+            title_buff = create_unicode_buffer(length + 1)
+            windll.user32.GetWindowTextW(hwnd, title_buff, length + 1)
+            print("DEBUG - Inspecting {0} | {2} = {1}".format(hwnd, title_buff.value, class_buff))
+            if title_buff.value == "Start":
                 # Found the window
                 print("DEBUG sending Click message")
                 m_res = windll.user32.SendMessageW(hwnd, BM_CLICK, 0, 0)
@@ -85,7 +149,7 @@ def shell__open_start_menu(show_taskbar):
                     except OSError:
                         import traceback
                         traceback.print_exc()
-            if buff.value == "Start menu":
+            if title_buff.value == "Start menu":
                 triggered_start[0] = True
                 if windll.user32.IsWindowVisible(hwnd):
                     p = WINDOWPLACEMENT()
@@ -151,7 +215,7 @@ def shell__open_start_menu(show_taskbar):
 
                 return False
         else:
-            print("DEBUG - Inspecting {0} => no title, ignoring".format(hwnd))
+            print("DEBUG - Inspecting {0} | {1} => no title, ignoring".format(hwnd, class_buff))
         return True
 
     # Find the threads for the process ID
@@ -182,7 +246,7 @@ def shell__open_start_menu(show_taskbar):
     callback_type = CFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
     callback_ptr = callback_type(thread_window_callback)
     for thread_id in thread_ids:
-        print("DEBUG Iterating over windows for thread {0} in pid {1}".format(thread_id, taskbar_pid))
+        print("DEBUG Iterating over windows for thread {0} in pid {1}".format(thread_id, taskbar_pid.value))
         windll.user32.EnumThreadWindows(thread_id, callback_ptr, 0)
         if triggered_start[0]:
             return

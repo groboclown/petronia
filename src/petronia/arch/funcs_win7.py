@@ -4,6 +4,7 @@ Windows 7 functions
 
 import ctypes
 from ctypes import windll, wintypes, byref, POINTER, WinError, create_unicode_buffer, GetLastError
+from ctypes import sizeof as c_sizeof
 from .windows_constants import *
 
 
@@ -22,6 +23,7 @@ def load_all_functions(func_map):
 
 def load_kernel_functions(func_map):
     func_map['process__get_executable_filename'] = process__get_executable_filename
+    func_map['process__get_all_pids'] = process__get_all_pids
 
 
 def process__get_executable_filename(thread_pid):
@@ -69,3 +71,16 @@ def process__get_executable_filename(thread_pid):
 #     res = windll.user32.SendMessageW(start_hwnd, BM_CLICK, 0, 0)
 #     if res == 0:
 #         raise WinError()
+
+
+def process__get_all_pids():
+    process_buff = (wintypes.DWORD * 2048)()
+    process_size = wintypes.DWORD()
+    res = windll.psapi.EnumProcesses(process_buff, c_sizeof(process_buff), byref(process_size))
+    if res != 0:
+        raise WinError()
+    count = process_size / c_sizeof(wintypes.DWORD)
+    ret = []
+    for i in range(count):
+        ret.append(process_buff[i])
+    return ret

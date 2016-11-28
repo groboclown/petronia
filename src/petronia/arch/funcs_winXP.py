@@ -24,6 +24,7 @@ def load_psapi_functions(func_map):
     func_map['process__get_executable_filename'] = process__get_executable_filename
     func_map['process__get_all_service_information'] = process__get_all_service_information
     func_map['process__get_username_domain_for_pid'] = process__get_username_domain_for_pid
+    func_map['process__get_all_pids'] = process__get_all_pids
 
 
 def load_info_functions(func_map):
@@ -525,3 +526,16 @@ def shell__open_start_menu():
 
     # Send a click message to the button
     windll.user32.SendMessageW(start_hwnd, BM_CLICK, 0, 0)
+
+
+def process__get_all_pids():
+    process_buff = (wintypes.DWORD * 2048)()
+    process_size = wintypes.DWORD()
+    res = windll.psapi.EnumProcesses(process_buff, c_sizeof(process_buff), byref(process_size))
+    if res != 0:
+        raise WinError()
+    count = process_size / c_sizeof(wintypes.DWORD)
+    ret = []
+    for i in range(count):
+        ret.append(process_buff[i])
+    return ret

@@ -117,6 +117,7 @@ WM_SETTINGCHANGE = 0x1a
 WM_PAINT = 15
 WM_SETFONT = 48
 WM_SETREDRAW = 11
+WM_LBUTTONDOWN = 0x0201
 
 WM_MESSAGE_NAMES = {
     'keydown': WM_KEYDOWN,
@@ -132,6 +133,10 @@ WM_MESSAGE_NAMES = {
     'setfont': WM_SETFONT,
     'setredraw': WM_SETREDRAW,
 }
+
+
+# https://msdn.microsoft.com/en-us/library/windows/desktop/ms645607(v=vs.85).aspx
+MK_LBUTTON = 0x0001
 
 
 CS_BYTEALIGNCLIENT = 4096
