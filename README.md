@@ -71,7 +71,7 @@ but those haven't been widely tested.
 
 ## Running
 
-You have two ways to run Petronia, either from source, or from a pre-bundled
+You have two ways to ru.n Petronia, either from source, or from a pre-bundled
 executable.
 
 See the [Getting Started Guide](docs/user-getting-started.md) for details

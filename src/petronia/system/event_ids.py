@@ -188,6 +188,10 @@ PORTAL__DEACTIVATED = "Portal Is No Longer Active" + EVENT_THREAD__NOTICE
 PORTAL__ACTIVATED = "Portal Is Active" + EVENT_THREAD__NOTICE
 PORTAL__REDRAW = "Portal Area Redraw" + EVENT_THREAD__NOTICE
 PORTAL__FLASHING = "Portal Window Flashing" + EVENT_THREAD__NOTICE
+PORTAL__CHANGE_BORDER_SIZE = "Portal Border Size Changed" + EVENT_THREAD__NOTICE
+PORTAL__CREATED = "New Portal Created" + EVENT_THREAD__NOTICE
+PORTAL__DESTROYED = "Portal Destroyed" + EVENT_THREAD__NOTICE
+
 
 
 # ---------------------------------------------------------------------------

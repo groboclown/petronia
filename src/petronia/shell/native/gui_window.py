@@ -19,6 +19,7 @@ from ...arch.funcs import (
     window__get_font_for_description,
     window__get_text_size,
     monitor__find_monitors,
+    paint__draw_rect,
     paint__draw_text,
     paint__draw_outline_text,
     shell__create_global_message_handler,
@@ -33,7 +34,8 @@ class GuiWindow(Identifiable, Component):
     """
     def __init__(self, cid, bus, class_name, title, position_details,
                  font=None,
-                 is_invisible=False,
+                 has_border=True,
+                 is_transparent_bg=False,
                  is_always_on_top=False):
         Component.__init__(self, bus)
         Identifiable.__init__(self, cid)
@@ -42,6 +44,7 @@ class GuiWindow(Identifiable, Component):
         self.__removing = False
         self.__hwnd = None
         self.__hfont = None
+        self.__is_always_on_top = is_always_on_top
 
         def do_paint(hwnd, hdc):
             window_size = window__client_rectangle(hwnd)
@@ -63,13 +66,17 @@ class GuiWindow(Identifiable, Component):
             # WS_EX_OVERLAPPEDWINDOW
             'window-edge': True, 'client-edge': True
         }
-        if is_invisible:
+        if is_transparent_bg:
             style_flags.add('popup')
+            ex_style_flags['layered'] = True
+        if not has_border:
             style_flags.remove('border')
             style_flags.remove('dialog-frame')
             style_flags.remove('size-border')
             style_flags.remove('maximize-button')
-            ex_style_flags['layered'] = True
+            style_flags.remove('minimize-button')
+            style_flags.add('popup')
+            style_flags.add('visible')
         if is_always_on_top:
             ex_style_flags['topmost'] = True
 
@@ -78,9 +85,11 @@ class GuiWindow(Identifiable, Component):
             self.close()
 
         def message_pumper():
+            print("DEBUG message pumper enter")
             # These MUST be in the same thread!
             message_callback_handler = shell__create_global_message_handler(self.__message_id_callbacks)
             self.__hwnd = window__create_display_window(class_name, title, message_callback_handler, style_flags)
+            print(" - hwnd = {0}".format(self.__hwnd))
 
             # TODO fix the set_layered_attributes call
             # if is_invisible:
@@ -91,17 +100,22 @@ class GuiWindow(Identifiable, Component):
             pos_x, pos_y, width, height = _parse_window_pos_details(position_details, self.__hwnd, self.__hfont)
 
             if is_always_on_top:
+                print(" - set position")
                 window__set_position(
                     self.__hwnd, 'topmost',
                     pos_x, pos_y, width, height,
                     ['no-activate'])
             else:
+                print(" - move resize")
                 window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
 
+            print("set style")
             window__set_style(self.__hwnd, ex_style_flags)
 
+            print("pump messages")
             shell__pump_messages(on_exit_callback)
 
+            print("quit")
             self.__has_quit = True
 
         pump_thread = threading.Thread(
@@ -142,6 +156,22 @@ class GuiWindow(Identifiable, Component):
             self._on_paint(hwnd, hdc, window_size['width'], window_size['height'])
         window__do_draw(self.__hwnd, do_paint)
 
+    def move_resize(self, pos_x, pos_y, width, height, force_on_top=False):
+        if self.__is_always_on_top:
+            print(" - set position")
+            window__set_position(
+                self.__hwnd, 'topmost',
+                pos_x, pos_y, width, height,
+                ['no-activate'])
+        elif force_on_top:
+            window__set_position(
+                self.__hwnd, 'top',
+                pos_x, pos_y, width, height,
+                ['no-activate'])
+        else:
+            print(" - move resize")
+            window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
+
     def _on_paint(self, hwnd, hdc, width, height):
         pass
 
@@ -157,6 +187,10 @@ class GuiWindow(Identifiable, Component):
         """
         hfont = window__get_font_for_description(font_desc, hwnd=hwnd, base_hdc=hdc)
         return window__get_text_size(hfont, text, hwnd=hwnd, base_hdc=hdc)
+
+    @staticmethod
+    def _draw_rect(hdc, pos_x, pos_y, width, height, color):
+        paint__draw_rect(hdc, pos_x, pos_y, width, height, color)
 
     @staticmethod
     def _draw_text(hdc, text, font_desc, pos_x, pos_y, width, height, fg_color, bg_color):

@@ -39,6 +39,7 @@ class Portal(Tile):
         self._listen(event_ids.PORTAL__MOVE_WINDOW_HERE, target_ids.ANY, self._on_move_window_here)
         self._listen(event_ids.ZORDER__CHANGE_TOP_WINDOW, cid, self._on_window_zorder_change)
         self._listen(event_ids.FOCUS__SET_FIRST_WINDOW_FOCUSED, cid, self._on_set_first_window_focused)
+        self._listen(event_ids.PORTAL__CHANGE_BORDER_SIZE, cid, self._on_portal_border_size_changed)
         self._listen(event_ids.PORTAL__MOVE_WINDOW_TO_OTHER_PORTAL, cid, self._on_move_window_to_other_portal)
         self._listen(event_ids.PORTAL__MOVE_WINDOW_TO_DESTINATION, cid, self._on_move_window_to_destination)
         self._listen(event_ids.PORTAL__SET_ACTIVE, cid, self._on_portal_becomes_active)
@@ -98,6 +99,10 @@ class Portal(Tile):
             if 'make-focused' in event_obj and event_obj['make-focused']:
                 self._fire(event_ids.PORTAL__SET_ACTIVE, self.cid, {})
                 self._fire(event_ids.TELL_WINDOWS__FOCUS_WINDOW, window_cid, {})
+
+    # noinspection PyUnusedLocal
+    def _on_portal_border_size_changed(self, event_id, target_id, event_obj):
+        self._do_layout()
 
     def _on_portal_becomes_active(self, event_id, target_id, event_obj):
         self._on_set_first_window_focused(event_id, target_id, event_obj)

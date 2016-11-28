@@ -24,6 +24,7 @@ def load_psapi_functions(func_map):
     func_map['process__get_executable_filename'] = process__get_executable_filename
     func_map['process__get_all_service_information'] = process__get_all_service_information
     func_map['process__get_username_domain_for_pid'] = process__get_username_domain_for_pid
+    func_map['process__get_current_username_domain'] = process__get_current_username_domain
 
 
 def load_info_functions(func_map):
@@ -184,6 +185,11 @@ def process__get_username_domain_for_pid(thread_pid):
             windll.kernel32.CloseHandle(access_token)
     finally:
         windll.kernel32.CloseHandle(hproc)
+
+
+def process__get_current_username_domain():
+    # Just the username is easy (GetUserName), but the domain takes more work.
+    return process__get_username_domain_for_pid(windll.kernel32.GetCurrentProcessId())
 
 
 def process__load_all_process_details():
