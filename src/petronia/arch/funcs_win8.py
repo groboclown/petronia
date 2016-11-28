@@ -17,6 +17,7 @@ def load_all_functions(func_map):
     from .funcs_win7 import load_all_functions as w7_load
     w7_load(func_map)
     func_map['process__get_username_domain_for_pid'] = process__get_username_domain_for_pid
+    func_map['process__get_current_username_domain'] = process__get_current_username_domain
 
 
 def shell__open_start_menu():
@@ -93,3 +94,8 @@ def process__get_username_domain_for_pid(thread_pid):
             windll.kernel32.CloseHandle(access_token)
     finally:
         windll.kernel32.CloseHandle(hproc)
+
+
+def process__get_current_username_domain():
+    # Just the username is easy (GetUserName), but the domain takes more work.
+    return process__get_username_domain_for_pid(windll.kernel32.GetCurrentProcessId())

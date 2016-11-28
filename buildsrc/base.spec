@@ -21,8 +21,10 @@ data_files = [
     (basedir + '/LICENSE', '.'),
     (basedir + '/docs', 'docs'),
     (basedir + '/src/no_chrome_config.py', 'example-configs'),
-    (basedir + '/src/user_test_config.py', 'example-configs'),
     (basedir + '/src/simple_config.py', 'example-configs'),
+    (basedir + '/src/user_test_config.py', 'example-configs'),
+    (basedir + '/src/user_test_config.json', 'example-configs'),
+    (basedir + '/src/user_test_config.yaml', 'example-configs'),
 ]
 
 extra_imports = [
@@ -34,7 +36,7 @@ extra_imports = [
     'petronia.arch.funcs_winXP',
     'petronia.arch.funcs_x64_win',
     'petronia.arch.funcs_x86_win',
-    'petronia.shell.view.render_active_portal',
+    'petronia.shell.view.portal_chrome',
 ]
 
 a = Analysis(scripts,

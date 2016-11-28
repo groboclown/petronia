@@ -51,6 +51,7 @@ def load_functions(environ, func_map):
     func_map['window__get_text_size'] = window__get_text_size
     func_map['window__do_paint'] = window__do_paint
     func_map['window__do_draw'] = window__do_draw
+    func_map['paint__draw_rect'] = paint__draw_rect
     func_map['paint__draw_text'] = paint__draw_text
     func_map['paint__draw_outline_text'] = paint__draw_outline_text
     func_map['shell__get_task_bar_window_handles'] = shell__get_task_bar_window_handles
@@ -67,7 +68,6 @@ def load_functions(environ, func_map):
     func_map['process__get_exit_code'] = process__get_exit_code
     func_map['process__get_window_state'] = process__get_window_state
     func_map['process__get_current_pid'] = process__get_current_pid
-    func_map['process__get_current_username_domain'] = process__get_current_username_domain
 
 
 GetModuleHandleW = windll.kernel32.GetModuleHandleW
@@ -619,16 +619,6 @@ def window__create_display_window(
         title,
         message_handler,
         style_flags):
-    """
-    Create a viewable window, to do stuff to it.
-
-    :param class_name:
-    :param message_handler: the handler procedure created by shell__create_global_message_handler
-    :param title: defaults to the class name
-    :param style_flags: list of strings within WS_STYLE_BIT_MAP
-    :return: hwnd
-    """
-
     if not class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
         class_name = PETRONIA_CREATED_WINDOW__CLASS_PREFIX + class_name
 
@@ -639,17 +629,17 @@ def window__create_display_window(
 
     window_class = WNDCLASSEX()
     window_class.cbSize = c_sizeof(WNDCLASSEX)
-    window_class.style = CS_DBLCLKS
+    window_class.style = 0
     window_class.lpfnWndProc = window_proc
     window_class.cbClsExtra = 0
     window_class.cbWndExtra = 0
     window_class.hInstance = hinst
-    window_class.hIcon = 0
-    window_class.hCursor = 0
-    window_class.hBrush = 0
+    window_class.hIcon = windll.user32.LoadIconW(None, IDI_APPLICATION)
+    window_class.hCursor = windll.user32.LoadCursorW(None, IDC_ARROW)
+    window_class.hBrush = COLOR_WINDOW + 1
     window_class.lpszMenuName = 0
     window_class.lpszClassName = class_name
-    window_class.hIconSm = 0
+    window_class.hIconSm = windll.user32.LoadIconW(None, IDI_APPLICATION)
 
     if not RegisterClassExW(byref(window_class)):
         raise WinError()
@@ -658,15 +648,22 @@ def window__create_display_window(
     for flag in style_flags:
         if flag in WS_STYLE_BIT_MAP:
             style |= WS_STYLE_BIT_MAP[flag]
+    print("DEBUG creating window with style {0} (default shown is {1})".format(
+        hex(style), hex(WS_OVERLAPPEDWINDOW)
+    ))
 
     hwnd = CreateWindowExW(
-        0, class_name, title,
-        style, 0, 0, 10, 10,
+        WS_EX_CLIENTEDGE, class_name, title,
+        style,  # WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        240, 120,
         None,  # HWND_DESKTOP,
         None, hinst, None
     )
     if hwnd is None or hwnd == 0:
         raise WinError()
+    windll.user32.ShowWindow(hwnd, SW_SHOWNORMAL)
+    windll.user32.UpdateWindow(hwnd)
 
     _CALLBACK_POINTERS[hwnd] = window_proc
     return hwnd
@@ -821,6 +818,22 @@ def window__do_draw(hwnd, paint_callback):
         paint_callback(hwnd, hdc)
     finally:
         windll.user32.ReleaseDC(hdc)
+
+
+def paint__draw_rect(hdc, pos_x, pos_y, width, height, color):
+    rect = wintypes.RECT()
+    rect.left = pos_x
+    rect.top = pos_y
+    rect.right = pos_x + width
+    rect.bottom = pos_y + height
+    fill_rgb = wintypes.RGB((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff)
+    fill_brush = None
+    try:
+        fill_brush = windll.gdi32.CreateSolidBrush(fill_rgb)
+        windll.user32.FillRect(hdc, byref(rect), fill_brush)
+    finally:
+        if fill_brush is not None:
+            _delete_gdi_object(fill_brush)
 
 
 def paint__draw_text(hdc, hfont, text, pos_x, pos_y, width, height, fg_color, bg_color):
@@ -1149,13 +1162,19 @@ def shell__create_global_message_handler(message_id_callbacks):
     assert isinstance(message_id_callbacks, dict)
 
     def handler(hwnd, message, wparam, lparam):
+        # print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
         if message in message_id_callbacks:
             ret = message_id_callbacks[message](hwnd, message, wparam, lparam)
             return ret or 0
+        elif message == WM_CLOSE:
+            windll.user32.DestroyWindow(hwnd)
+            return 0
+        elif message == WM_DESTROY:
+            windll.user32.PostQuitMessage(0)
+            return 0
         else:
             return DefWindowProcW(hwnd, message, wparam, lparam)
 
-    message_id_callbacks[WM_DESTROY] = lambda m: windll.user32.PostQuitMessage(0)
     return handler
 
 
@@ -1373,8 +1392,3 @@ def process__get_window_state(thread_pid):
 
 def process__get_current_pid():
     return windll.kernel32.GetCurrentProcessId()
-
-
-def process__get_current_username_domain():
-    # Just the username is easy (GetUserName), but the domain takes more work.
-    return process__get_username_domain_for_pid(process__get_current_pid())

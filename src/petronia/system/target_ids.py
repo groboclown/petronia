@@ -35,3 +35,5 @@ CONFIGURATION_LOADER = "Configuration Loader"
 SHELL = "OS Shell"
 
 UNOWNED_WINDOW_PORTAL = "Portal for Unowned Windows"
+
+PORTAL_CHROME_MANAGER = "Portal Chrome Manager"
