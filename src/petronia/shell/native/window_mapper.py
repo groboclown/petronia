@@ -97,7 +97,7 @@ class WindowMapper(Identifiable, Component):
             info['title'] = window__get_title(info['hwnd'])
         is_managed, remove_border, remove_title = self._get_managed_chrome_details(info)
         if is_managed:
-            print("DEBUG managed border {0}, title {1} for {2}".format(remove_border, remove_title, info))
+            # print("DEBUG managed border {0}, title {1} for {2}".format(remove_border, remove_title, info))
             hwnd = info['hwnd']
             orig_size = window__border_rectangle(hwnd)
             orig_style = window__get_style(hwnd)
@@ -201,9 +201,9 @@ class WindowMapper(Identifiable, Component):
         if window_info['visible'] and not self.__config.shell.matches_shell_window(window_info):
             has_title = self.__config.applications.has_title(window_info)
             has_border = self.__config.applications.has_border(window_info)
-            print("DEBUG window managed as border {0} title {1}: {2}".format(has_border, has_title, window_info))
+            # print("DEBUG window managed as border {0} title {1}: {2}".format(has_border, has_title, window_info))
             return not (has_title and has_border), not has_border, not has_title
-        print("DEBUG window not visible or is shell: {0}".format(window_info))
+        # print("DEBUG window not visible or is shell: {0}".format(window_info))
         return False, False, False
 
     def _is_tile_managed(self, window_info):
