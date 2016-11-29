@@ -35,6 +35,7 @@ class _PortalGuiWindow(GuiWindow):
         }, has_border=False, is_transparent_bg=True, is_always_on_top=False)
 
         self._listen(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.ANY, self._on_border_size_change)
+        self._listen(event_ids.LAYOUT__SET_RECTANGLE, portal_id, self._on_portal_size_change)
 
     def set_portal_size(self, pos_x, pos_y, width, height):
         self._portal_x = pos_x
@@ -44,6 +45,15 @@ class _PortalGuiWindow(GuiWindow):
 
         left, right, top, bottom = self._manager.get_chrome_size(pos_x, pos_y, width, height)
         self.move_resize(left, top, right - left, bottom - top)
+
+    # noinspection PyUnusedLocal
+    def _on_portal_size_change(self, event_id, target_id, event_obj):
+        self.set_portal_size(
+            pos_x=event_obj['x'],
+            pos_y=event_obj['y'],
+            width=event_obj['width'],
+            height=event_obj['height']
+        )
 
     # noinspection PyUnusedLocal
     def _on_border_size_change(self, event_id, target_id, event_obj):
@@ -255,7 +265,7 @@ class PortalChromeManager(Identifiable, Component):
         if portal_cid in self.__portal_map:
             gui = self.__portal_map[target_id]['gui']
             if gui is not None:
-                print("DEBUG deactivated portal {0} chrome".format(portal_id))
+                print("DEBUG deactivated portal {0} chrome".format(portal_cid))
                 gui.color_1 = self._inactive_color1
                 gui.color_2 = self._inactive_color2
                 gui.draw()
