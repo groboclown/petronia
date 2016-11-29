@@ -90,7 +90,6 @@ class GuiWindow(Identifiable, Component):
             # These MUST be in the same thread!
             message_callback_handler = shell__create_global_message_handler(self.__message_id_callbacks)
             self.__hwnd = window__create_display_window(class_name, title, message_callback_handler, style_flags)
-            print(" - hwnd = {0}".format(self.__hwnd))
 
             # TODO fix the set_layered_attributes call
             # if is_invisible:
@@ -99,24 +98,21 @@ class GuiWindow(Identifiable, Component):
             if font is not None:
                 self.__hfont = window__get_font_for_description(font, hwnd=self.__hwnd)
             pos_x, pos_y, width, height = _parse_window_pos_details(position_details, self.__hwnd, self.__hfont)
+            print("DEBUG setting window to ({0}, {1}) :: {2}x{3}".format(pos_x, pos_y, width, height))
 
             if is_always_on_top:
-                print(" - set position")
                 window__set_position(
                     self.__hwnd, 'topmost',
                     pos_x, pos_y, width, height,
                     ['no-activate'])
             else:
-                print(" - move resize")
                 window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
 
-            print("set style")
             window__set_style(self.__hwnd, ex_style_flags)
 
-            print("pump messages")
             shell__pump_messages(on_exit_callback)
 
-            print("quit")
+            print("window quit")
             self.__has_quit = True
 
         pump_thread = threading.Thread(
@@ -161,8 +157,10 @@ class GuiWindow(Identifiable, Component):
         if self.__hwnd is None:
             # Nothing to do yet.
             return
+        print(" - set window position to ({0}, {1}) :: {2}x{3}".format(
+            pos_x, pos_y, width, height
+        ))
         if self.__is_always_on_top:
-            print(" - set position")
             window__set_position(
                 self.__hwnd, 'topmost',
                 pos_x, pos_y, width, height,
@@ -173,7 +171,6 @@ class GuiWindow(Identifiable, Component):
                 pos_x, pos_y, width, height,
                 ['no-activate'])
         else:
-            print(" - move resize")
             window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
 
     def _on_paint(self, hwnd, hdc, width, height):
@@ -263,7 +260,7 @@ def _parse_window_pos_details(pos, hwnd, hfont):
     if 'bottom' in pos:
         height = pos['bottom'] - pos_y
 
-    # print("DEBUG translated {0} into ({1},{2}) {3}x{4}".format(
-    #     pos, pos_x, pos_y, width, height
-    # ))
+    print("DEBUG translated {0} into ({1},{2}) {3}x{4}".format(
+        pos, pos_x, pos_y, width, height
+    ))
     return pos_x, pos_y, width, height

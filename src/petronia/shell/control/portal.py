@@ -320,6 +320,7 @@ class Portal(Tile):
 
     def _get_window_rect(self):
         border = self.config.chrome.portal_chrome_border
+        print("Adjusting portal border size by {0}".format(border))
         return {
             'x': self.size['x'] + border['left'],
             'width': self.size['width'] - border['left'] - border['right'],

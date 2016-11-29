@@ -20,12 +20,6 @@ class _PortalGuiWindow(GuiWindow):
         self._portal_width = width
         self._portal_height = height
 
-        left, right, top, bottom = manager.get_chrome_size(pos_x, pos_y, width, height)
-
-        GuiWindow.__init__(self, 'chrome-' + portal_id, bus, 'chrome-' + portal_id, None, {
-            'left': left, 'right': right, 'top': top, 'bottom': bottom, 'padding': 0,
-        }, has_border=False, is_transparent_bg=True, is_always_on_top=False)
-
         self._manager = manager
 
         # Make configuration better
@@ -34,6 +28,11 @@ class _PortalGuiWindow(GuiWindow):
         self.width = 4
         self.flash_time = 1.2
         self.flash_count = 3
+
+        left, right, top, bottom = manager.get_chrome_size(pos_x, pos_y, width, height)
+        GuiWindow.__init__(self, 'chrome-' + portal_id, bus, 'chrome-' + portal_id, None, {
+            'left': left, 'right': right, 'top': top, 'bottom': bottom, 'padding': 0,
+        }, has_border=False, is_transparent_bg=True, is_always_on_top=False)
 
         self._listen(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.ANY, self._on_border_size_change)
 
