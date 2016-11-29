@@ -59,7 +59,7 @@ def window__set_style(hwnd, style_update):
             ex_bits |= mask
     if ex_style_update:
         SetLastError(0)
-        print("DEBUG Setting Window Ex Style to {0}".format(hex(ex_bits)))
+        # print("DEBUG Setting Window Ex Style to {0}".format(hex(ex_bits)))
         res = SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex_bits)
         if res == 0 or GetLastError() != 0:
             raise WinError()
