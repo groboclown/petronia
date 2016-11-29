@@ -1,10 +1,40 @@
 # Petronia Change History
 
+
+## :: v2.1 ::
+
+### Overview
+
+* `render_active_portal` is finally gone.
+* Updated documentation to reference the yaml files.
+* Added component configuration in dictionary-based configuration files.
+* Added `portal_chrome` component.
+* Bug fixes.
+
+### Details
+
+* `render_active_portal` is finally gone.
+    * It's been removed.  You can't use it anymore.  Use the `portal_chrome`
+        instead.
+* Updated documentation to reference the yaml files.
+    * Documentation has been rearranged to make the yaml config file format
+        front and center.
+    * Included more example configurations.
+* Added component configuration in dictionary-based configuration files.
+    * Dictionary-based config files (json, yaml) can now specify the
+        configuration and setup for components.
+    * Started the path for allowing external components.
+* Added `portal_chrome` component.
+    * Shows the active and inactive portals.
+* Bug fixes.
+    * So many bugs.  Actually, they just weren't tracked well.
+
+
 ## :: v2.0 ::
 
 ### Overview
 
-* Configuration now allowed as json files!
+* Configuration now allowed as yaml and json files!
 * Added new user command: `focus-last-flashing-window`
 * Switched from `parse_simple_mode` to `parse_exclusive_mode`
 * Chrome configuration backwards-incompatible changes

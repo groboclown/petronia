@@ -97,6 +97,8 @@ class Portal(Tile):
                 event_ids.WINDOW__FLASHING: this_window_flashing
             }
             if 'make-focused' in event_obj and event_obj['make-focused']:
+                window_index = self._get_window_index(window_cid)
+                self.__top_window_index = window_index
                 self._fire(event_ids.PORTAL__SET_ACTIVE, self.cid, {})
                 self._fire(event_ids.TELL_WINDOWS__FOCUS_WINDOW, window_cid, {})
 
