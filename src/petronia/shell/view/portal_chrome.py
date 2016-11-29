@@ -22,6 +22,8 @@ class _PortalGuiWindow(GuiWindow):
 
         self._manager = manager
 
+        self._is_active = False
+
         # Make configuration better
         self.color_1 = 0
         self.color_2 = 0
@@ -49,7 +51,8 @@ class _PortalGuiWindow(GuiWindow):
         self._portal_height = height
 
         left, right, top, bottom = self._manager.get_chrome_size(pos_x, pos_y, width, height)
-        self.move_resize(left, top, right - left, bottom - top)
+        # If the portal is active, then bring the chrome to the top, otherwise, leave it as-is.
+        self.move_resize(left, top, right - left, bottom - top, self._is_active)
 
     def _on_paint(self, hwnd, hdc, width, height):
         self._draw_rect(hdc, 0, 0, width, height, self.color_1)
@@ -69,6 +72,7 @@ class _PortalGuiWindow(GuiWindow):
             self._draw_rect(hdc, 0, 0, width, self.accent_width, self.color_2)
             self._draw_rect(hdc, 0, height - self.accent_width, width, self.accent_width, self.color_2)
 
+    # noinspection PyUnusedLocal
     def _on_portal_removed(self, event_id, target_id, event_obj):
         # TODO is this the right call?
         self.close()
@@ -112,6 +116,7 @@ class _PortalGuiWindow(GuiWindow):
     # noinspection PyUnusedLocal
     def _on_portal_activated(self, event_id, target_id, event_obj):
         self._log_verbose("Activating chrome portal")
+        self._is_active = True
         portal_size = event_obj['portal-size']
         portal_active = event_obj['portal-active']
         parent_hwnd = event_obj['parent-hwnd']
@@ -122,12 +127,13 @@ class _PortalGuiWindow(GuiWindow):
         height = portal_size['height']
 
         self.color_1, self.color_2 = self._manager.active_colors
-        self.move_resize(pos_x, pos_y, width, height, True)
+        self.set_portal_size(pos_x, pos_y, width, height)
         self.draw()
 
     # noinspection PyUnusedLocal
     def _on_portal_deactivated(self, event_id, target_id, event_obj):
         self._log_verbose("Deactivating chrome portal")
+        self._is_active = False
         portal_size = event_obj['portal-size']
         portal_active = event_obj['portal-active']
         parent_hwnd = event_obj['parent-hwnd']
@@ -138,7 +144,7 @@ class _PortalGuiWindow(GuiWindow):
         height = portal_size['height']
 
         self.color_1, self.color_2 = self._manager.inactive_colors
-        self.move_resize(pos_x, pos_y, width, height, True)
+        self.set_portal_size(pos_x, pos_y, width, height)
         self.draw()
 
 

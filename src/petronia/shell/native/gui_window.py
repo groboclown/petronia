@@ -181,7 +181,7 @@ class GuiWindow(Identifiable, Component):
         elif force_on_top:
             window__set_position(
                 self.__hwnd,
-                'top',
+                'topmost',  # 'top',
                 pos_x, pos_y, width, height,
                 ['no-activate'])
         else:
