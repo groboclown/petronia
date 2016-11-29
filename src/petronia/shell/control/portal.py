@@ -108,7 +108,7 @@ class Portal(Tile):
         self._on_set_first_window_focused(event_id, target_id, event_obj)
         if not self.__active:
             self.__active = True
-            self._fire(event_ids.PORTAL__ACTIVATED, target_ids.BROADCAST, {
+            self._fire(event_ids.PORTAL__ACTIVATED, self.cid, {
                 'portal-cid': self.cid,
                 'portal-size': self.size,
                 'portal-active': True,
@@ -190,7 +190,7 @@ class Portal(Tile):
             self.__top_window_index = window_index
             if not self.__active:
                 self.__active = True
-                self._fire(event_ids.PORTAL__ACTIVATED, target_ids.BROADCAST, {
+                self._fire(event_ids.PORTAL__ACTIVATED, self.cid, {
                     'portal-cid': self.cid,
                     'portal-size': self.size,
                     'portal-active': True,
@@ -233,7 +233,7 @@ class Portal(Tile):
         if event_obj['portal-cid'] != self.cid:
             if self.__active:
                 self.__active = False
-                self._fire(event_ids.PORTAL__DEACTIVATED, target_ids.BROADCAST, {
+                self._fire(event_ids.PORTAL__DEACTIVATED, self.cid, {
                     'portal-cid': self.cid,
                     'portal-size': self.size,
                     'portal-active': False,
