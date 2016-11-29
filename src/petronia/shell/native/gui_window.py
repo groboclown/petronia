@@ -46,6 +46,13 @@ class GuiWindow(Identifiable, Component):
         self.__hfont = None
         self.__is_always_on_top = is_always_on_top
 
+        # Because of multi-threading issues, a resize may come in after initial creation
+        self.__size_set = False
+        self.__pos_x = None
+        self.__pos_y = None
+        self.__width = None
+        self.__height = None
+
         def do_paint(hwnd, hdc):
             print("DEBUG: on paint callback")
             window_size = window__client_rectangle(hwnd)
@@ -97,16 +104,19 @@ class GuiWindow(Identifiable, Component):
 
             if font is not None:
                 self.__hfont = window__get_font_for_description(font, hwnd=self.__hwnd)
-            pos_x, pos_y, width, height = _parse_window_pos_details(position_details, self.__hwnd, self.__hfont)
-            print("DEBUG setting window to ({0}, {1}) :: {2}x{3}".format(pos_x, pos_y, width, height))
+            if not self.__size_set:
+                self.__pos_x, self.__pos_y, self.__width, self.__height = _parse_window_pos_details(
+                    position_details, self.__hwnd, self.__hfont)
+            print("DEBUG setting window to ({0}, {1}) :: {2}x{3}".format(
+                self.__pos_x, self.__pos_y, self.__width, self.__height))
 
             if is_always_on_top:
                 window__set_position(
                     self.__hwnd, 'topmost',
-                    pos_x, pos_y, width, height,
+                    self.__pos_x, self.__pos_y, self.__width, self.__height,
                     ['no-activate'])
             else:
-                window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
+                window__move_resize(self.__hwnd, self.__pos_x, self.__pos_y, self.__width, self.__height, False)
 
             window__set_style(self.__hwnd, ex_style_flags)
 
@@ -154,12 +164,15 @@ class GuiWindow(Identifiable, Component):
         window__do_draw(self.__hwnd, do_paint)
 
     def move_resize(self, pos_x, pos_y, width, height, force_on_top=False):
+        self.__pos_x = pos_x
+        self.__pos_y = pos_y
+        self.__width = width
+        self.__height = height
+        self.__size_set = True
+
         if self.__hwnd is None:
             # Nothing to do yet.
             return
-        print(" - set window position to ({0}, {1}) :: {2}x{3}".format(
-            pos_x, pos_y, width, height
-        ))
         if self.__is_always_on_top:
             window__set_position(
                 self.__hwnd, 'topmost',
@@ -167,7 +180,8 @@ class GuiWindow(Identifiable, Component):
                 ['no-activate'])
         elif force_on_top:
             window__set_position(
-                self.__hwnd, 'top',
+                self.__hwnd,
+                'top',
                 pos_x, pos_y, width, height,
                 ['no-activate'])
         else:

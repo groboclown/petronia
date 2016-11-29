@@ -526,11 +526,13 @@ def window__activate(hwnd):
     current_hwnd = windll.user32.GetForegroundWindow()
     current_thread_id = windll.kernel32.GetCurrentThreadId()
     thread_process_id = windll.user32.GetWindowThreadProcessId(current_hwnd, None)
-    res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
-    if res == 0:
-        # TODO better logging
-        print("WARN: could not attach thread input to thread {0}".format(thread_process_id))
-        return True
+    if thread_process_id != current_thread_id:
+        res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
+        # ERROR_INVALID_PARAMETER means that the two threads are already attached.
+        if res == 0 and GetLastError() != ERROR_INVALID_PARAMETER:
+            # TODO better logging
+            print("WARN: could not attach thread input to thread {0} ({1})".format(thread_process_id, GetLastError()))
+            return True
     res = windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE)
     if res == 0:
         return False

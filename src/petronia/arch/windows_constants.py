@@ -766,4 +766,5 @@ IDC_SIZE = 32640
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382(v=vs.85).aspx
 ERROR_ACCESS_DENIED = 5
+ERROR_INVALID_PARAMETER = 87
 ERROR_INSUFFICIENT_BUFFER = 122

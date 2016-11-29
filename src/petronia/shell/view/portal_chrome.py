@@ -25,7 +25,7 @@ class _PortalGuiWindow(GuiWindow):
         # Make configuration better
         self.color_1 = 0
         self.color_2 = 0
-        self.width = 4
+        self.accent_width = 64
         self.flash_time = 1.2
         self.flash_count = 3
 
@@ -35,7 +35,12 @@ class _PortalGuiWindow(GuiWindow):
         }, has_border=False, is_transparent_bg=True, is_always_on_top=False)
 
         self._listen(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.ANY, self._on_border_size_change)
+
+        self._listen(event_ids.PORTAL__DESTROYED, portal_id, self._on_portal_removed)
         self._listen(event_ids.LAYOUT__SET_RECTANGLE, portal_id, self._on_portal_size_change)
+        self._listen(event_ids.PORTAL__FLASHING, portal_id, self._on_portal_flashing)
+        self._listen(event_ids.PORTAL__ACTIVATED, portal_id, self._on_portal_activated)
+        self._listen(event_ids.PORTAL__DEACTIVATED, portal_id, self._on_portal_deactivated)
 
     def set_portal_size(self, pos_x, pos_y, width, height):
         self._portal_x = pos_x
@@ -45,6 +50,28 @@ class _PortalGuiWindow(GuiWindow):
 
         left, right, top, bottom = self._manager.get_chrome_size(pos_x, pos_y, width, height)
         self.move_resize(left, top, right - left, bottom - top)
+
+    def _on_paint(self, hwnd, hdc, width, height):
+        self._draw_rect(hdc, 0, 0, width, height, self.color_1)
+        if width >= self.accent_width * 3:
+            if height >= self.accent_width * 3:
+                # 4 corners of color
+                self._draw_rect(hdc, 0, 0, self.accent_width, self.accent_width, self.color_2)
+                self._draw_rect(hdc, width - self.accent_width, 0, self.accent_width, self.accent_width, self.color_2)
+                self._draw_rect(hdc, 0, height - self.accent_width, self.accent_width, self.accent_width, self.color_2)
+                self._draw_rect(hdc, width - self.accent_width, height - self.accent_width, self.accent_width, self.accent_width, self.color_2)
+            else:
+                # Vertical bars of color
+                self._draw_rect(hdc, 0, 0, self.accent_width, height, self.color_2)
+                self._draw_rect(hdc, width - self.accent_width, 0, self.accent_width, height, self.color_2)
+        elif height >= self.accent_width * 3:
+            # Horizontal bars of color
+            self._draw_rect(hdc, 0, 0, width, self.accent_width, self.color_2)
+            self._draw_rect(hdc, 0, height - self.accent_width, width, self.accent_width, self.color_2)
+
+    def _on_portal_removed(self, event_id, target_id, event_obj):
+        # TODO is this the right call?
+        self.close()
 
     # noinspection PyUnusedLocal
     def _on_portal_size_change(self, event_id, target_id, event_obj):
@@ -59,25 +86,8 @@ class _PortalGuiWindow(GuiWindow):
     def _on_border_size_change(self, event_id, target_id, event_obj):
         self.set_portal_size(self._portal_x, self._portal_y, self._portal_width, self._portal_height)
 
-    def _on_paint(self, hwnd, hdc, width, height):
-        self._draw_rect(hdc, 0, 0, width, height, self.color_1)
-        if width >= self.width * 3:
-            if height >= self.width * 3:
-                # 4 corners of color
-                self._draw_rect(hdc, 0, 0, self.width, self.width, self.color_2)
-                self._draw_rect(hdc, width - self.width, 0, self.width, self.width, self.color_2)
-                self._draw_rect(hdc, 0, height - self.width, self.width, self.width, self.color_2)
-                self._draw_rect(hdc, width - self.width, height - self.width, self.width, self.width, self.color_2)
-            else:
-                # Vertical bars of color
-                self._draw_rect(hdc, 0, 0, self.width, height, self.color_2)
-                self._draw_rect(hdc, width - self.width, 0, self.width, height, self.color_2)
-        elif height >= self.width * 3:
-            # Horizontal bars of color
-            self._draw_rect(hdc, 0, 0, width, self.width, self.color_2)
-            self._draw_rect(hdc, 0, height - self.width, width, self.width, self.color_2)
-
-    def flash_window(self):
+    # noinspection PyUnusedLocal
+    def _on_portal_flashing(self, event_id, target_id, event_obj):
         color_c1 = self.color_1
         color_c2 = self.color_2
         color_f1 = _brighten_color(self.color_1)
@@ -87,17 +97,49 @@ class _PortalGuiWindow(GuiWindow):
             for i in range(self.flash_count):
                 self.color_1 = color_f1
                 self.color_2 = color_f2
-                self.draw_now()
+                self.draw()
                 time.sleep(self.flash_time)
                 self.color_1 = color_c1
                 self.color_2 = color_c2
-                self.draw_now()
+                self.draw()
                 time.sleep(self.flash_time)
 
         threading.Thread(
             target=flash,
             daemon=True
         ).start()
+
+    # noinspection PyUnusedLocal
+    def _on_portal_activated(self, event_id, target_id, event_obj):
+        self._log_verbose("Activating chrome portal")
+        portal_size = event_obj['portal-size']
+        portal_active = event_obj['portal-active']
+        parent_hwnd = event_obj['parent-hwnd']
+
+        pos_x = portal_size['x']
+        pos_y = portal_size['y']
+        width = portal_size['width']
+        height = portal_size['height']
+
+        self.color_1, self.color_2 = self._manager.active_colors
+        self.move_resize(pos_x, pos_y, width, height, True)
+        self.draw()
+
+    # noinspection PyUnusedLocal
+    def _on_portal_deactivated(self, event_id, target_id, event_obj):
+        self._log_verbose("Deactivating chrome portal")
+        portal_size = event_obj['portal-size']
+        portal_active = event_obj['portal-active']
+        parent_hwnd = event_obj['parent-hwnd']
+
+        pos_x = portal_size['x']
+        pos_y = portal_size['y']
+        width = portal_size['width']
+        height = portal_size['height']
+
+        self.color_1, self.color_2 = self._manager.inactive_colors
+        self.move_resize(pos_x, pos_y, width, height, True)
+        self.draw()
 
 
 def _brighten_color(c):
@@ -127,9 +169,6 @@ class PortalChromeManager(Identifiable, Component):
         self._listen(event_ids.PORTAL__CREATED, target_ids.ANY, self._on_portal_registered)
         self._listen(event_ids.PORTAL__DESTROYED, target_ids.ANY, self._on_portal_removed)
         self._listen(event_ids.LAYOUT__SET_RECTANGLE, target_ids.ANY, self._on_portal_resized)
-        self._listen(event_ids.PORTAL__FLASHING, target_ids.ANY, self._on_portal_flashing)
-        self._listen(event_ids.PORTAL__ACTIVATED, target_ids.ANY, self._on_portal_activated)
-        self._listen(event_ids.PORTAL__DEACTIVATED, target_ids.ANY, self._on_portal_deactivated)
 
         self._config = config
         self._active_color1 = 0x0070f0
@@ -139,6 +178,14 @@ class PortalChromeManager(Identifiable, Component):
         self._position = 'bottom'
         self._width = 10
         self.update_border()
+
+    @property
+    def active_colors(self):
+        return self._active_color1, self._active_color2
+
+    @property
+    def inactive_colors(self):
+        return self._inactive_color1, self._inactive_color2
 
     def get_chrome_size(self, pos_x, pos_y, width, height):
         """
@@ -156,7 +203,7 @@ class PortalChromeManager(Identifiable, Component):
         elif self._position == 'top':
             return pos_x, pos_x + width, pos_y, pos_y + self._width
         elif self._position == 'bottom':
-            return pos_x, pos_x + width, pos_y + height - self._width, pos_y + self._width
+            return pos_x, pos_x + width, pos_y + height - self._width, pos_y + height
         raise ValueError('position {0}'.format(self._position))
 
     def update_border(self, active_color=None, inactive_color=None, position=None, width=None):
@@ -172,7 +219,6 @@ class PortalChromeManager(Identifiable, Component):
         if width is not None:
             assert width > 0
             self._width = int(width)
-        print("DEBUG using chrome `{0}`".format(self._position))
         if self._position == 'left':
             self._config.chrome.set_border(left=self._width, right=0, top=0, bottom=0)
         elif self._position == 'right':
@@ -200,10 +246,6 @@ class PortalChromeManager(Identifiable, Component):
 
     def _on_portal_removed(self, event_id, target_id, event_obj):
         if target_id in self.__portal_map:
-            gui = self.__portal_map[target_id]['gui']
-            if gui is not None:
-                # TODO is this the right call?
-                gui.close()
             del self.__portal_map[target_id]
 
     def _on_portal_resized(self, event_id, target_id, event_obj):
@@ -220,52 +262,3 @@ class PortalChromeManager(Identifiable, Component):
                 gui.color_2 = self._inactive_color2
                 # TODO setup flash
                 self.__portal_map[target_id]['gui'] = gui
-            else:
-                gui.set_portal_size(pos_x, pos_y, width, height)
-            gui.draw()
-
-    def _on_portal_flashing(self, event_id, target_id, event_obj):
-        portal_cid = target_id
-        portal_size = event_obj['portal-size']
-        portal_active = event_obj['portal-active']
-        parent_hwnd = event_obj['parent-hwnd']
-
-        if portal_cid in self.__portal_map:
-            gui = self.__portal_map[target_id]['gui']
-            if gui is not None:
-                gui.flash_window()
-
-    def _on_portal_activated(self, event_id, target_id, event_obj):
-        portal_cid = target_id
-        portal_size = event_obj['portal-size']
-        portal_active = event_obj['portal-active']
-        parent_hwnd = event_obj['parent-hwnd']
-
-        if portal_cid in self.__portal_map:
-            gui = self.__portal_map[target_id]['gui']
-            pos_x = portal_size['x']
-            pos_y = portal_size['y']
-            width = portal_size['width']
-            height = portal_size['height']
-            if gui is None:
-                gui = _PortalGuiWindow(target_id, self._bus, pos_x, pos_y, width, height, self)
-                # TODO setup flash
-                self.__portal_map[target_id]['gui'] = gui
-
-            gui.color_1 = self._active_color1
-            gui.color_2 = self._active_color2
-            gui.move_resize(pos_x, pos_y, width, height, True)
-
-    def _on_portal_deactivated(self, event_id, target_id, event_obj):
-        portal_cid = target_id
-        portal_size = event_obj['portal-size']
-        portal_active = event_obj['portal-active']
-        parent_hwnd = event_obj['parent-hwnd']
-
-        if portal_cid in self.__portal_map:
-            gui = self.__portal_map[target_id]['gui']
-            if gui is not None:
-                print("DEBUG deactivated portal {0} chrome".format(portal_cid))
-                gui.color_1 = self._inactive_color1
-                gui.color_2 = self._inactive_color2
-                gui.draw()
