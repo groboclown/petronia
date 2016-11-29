@@ -54,24 +54,29 @@ see more of what's actually important.
 
 ![Without Chrome](../master/docs/imgs/intellij-dechromed.png?raw=true)
 
-*Windows 8.1 stripped of all the chrome - Oh mi gorsh I can see so much more of my work!*
+*Windows 8.1 stripped of all the chrome - Oh mi gorsh I can see so much more
+of my work!*
 
 
 ## Current State of the Software
 
-This program is very Alpha.  You run the program in a command shell,
-which stays open and spews out logging information.  You configure the
-software by writing Python code that sets up the configuration.
+The code is in a good working order, if you're running in a tested
+environment.
 
-Additionally, this was written against 64-bit Windows 8.1.  I'm not sure if
-it will work with other versions.  The Windows interfacing code has an
-abstraction layer for working with different bit-ness and different versions,
-but those haven't been widely tested.
+This was written against 64-bit Windows 8.1, with some limited testing on
+64-bit Windows 10.  I'm not sure if it will work with other versions.  The
+Windows interfacing code allows for working with different
+bit-ness and different versions, but those haven't been tested.
+
+If you find issues with your environment, please
+[file a bug](https://github.com/groboclown/petronia/issues), and be sure to
+include which version of Windows you're using, and whether it's 32-bit or
+64-bit.
 
 
 ## Running
 
-You have two ways to ru.n Petronia, either from source, or from a pre-bundled
+You have two ways to run Petronia, either from source, or from a pre-bundled
 executable.
 
 See the [Getting Started Guide](docs/user-getting-started.md) for details

@@ -1,43 +1,37 @@
 # User Guide: Getting Started with Petronia
 
-Petronia is in an early stage of development, and thus is filled with all
-kinds of warts and broken bones.  However, it still provides a magic that
-allows for a streamlined Windows experience.
-
 
 ## Find the Stuff
 
 First thing, you need to get the stuff that allows you to run Petronia.
 
 1. Make sure you're running Windows.  Petronia is for Windows.
-2. Download the [python.org](https://python.org) Python v3.5 distribution
-    appropriate for your computer (64-bit or 32-bit).
-3. Download the Petronia source.  Yeah, we're cookin' with gas here.
-    Get it from gitub.
-    [Clone the repo](https://github.com/groboclown/petronia), or just
-    [download it](https://github.com/groboclown/petronia/archive/master.zip).
+2. [Download the latest version of Petronia](https://github.com/groboclown/petronia/releases)
+    for your computer.
+     * Use the x64 version if you're running a 64-bit Windows.
+     * Use the x86 version if you're running a 32-bit or 64-bit Windows.
+        **Use this one if you're not sure.**
 
 
 ## Install the Stuff
 
-Put all the program things in the program places.
+Unzip the distribution into a place on your hard drive.
 
 
 ## Run the Stuff
 
-Start up a command prompt.  If you don't know what this is, then you're
-probably going to get in over your head later.
+Start up a command prompt.  You can do this through a bunch of ways, but
+probably the easiest is <kbd>&#x2756; Win</kbd><kbd>r</kbd> to open the
+**Run** dialog, type in `cmd` in the text field, and click **OK**.
 
-From a command prompt, add the installed Python 3.5 to your path (if it's not
-already there), and run the main program from the `src` directory.
- 
+Then, in the command prompt, enter:
+
 ```cmd
-> set Path=(python directory);%Path%
 > cd (petronia directory)\src
-> python -u -m petronia.cmd user_test_config.py
+> petronia-cli example-configs\user_test_config.yaml
 ```
 
-The `user_test_config.py` argument tells Petronia where to find your
+The `user_test_config.yaml` argument tells Petronia where to find your
 configuration file.
 
 Press <kbd>&crarr; Enter</kbd> in the command prompt to stop it.
@@ -50,24 +44,28 @@ computer's monitor resolution to what's in the configuration.  It then
 shoved all your precious program windows into the first region.  It probably
 also stripped off the borders and title bars, as well.  If things didn't
 go well, then you're stuck staring at a Python stack trace.  *So it goes.
-Those who are Great open bugs.  Those who are Strong fix it.   The Best do
-both.*
+Those who are Great [open bugs](https://github.com/groboclown/petronia/issues).
+Those who are Strong fix it.   The Best send push requests with the fixes.*
 
-You'll also notice that your trusty <kbd>win</kbd> key now doesn't work how
-you're used to.  Instead, it gives you some control over your window layout.
+You'll also notice that your trusty <kbd>&#x2756; Win</kbd> key now doesn't
+work how you're used to.  Instead, it gives you some control over your window
+layout.
 
- * <kbd>&#x2756; Win</kbd><kbd>up arrow</kbd> Move the currently active
+ * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&uarr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *north* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>down arrow</kbd> Move the currently active
+ * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&darr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *south* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>left arrow</kbd> Move the currently active
+ * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&larr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *west* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>right arrow</kbd> Move the currently active
+ * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&rarr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *east* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>page up</kbd> Move the currently active window
+ * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>Page Up</kbd> - Move the currently active window
     to the *next* [portal](user-configuration.md#splits-and-portals).
- * <kbd>&#x2756; Win</kbd><kbd>page down</kbd> Move the currently active
+ * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>Page Down</kbd> - Move the currently active
     window to the *previous* [portal](user-configuration.md#splits-and-portals).
+ * <kbd>&#x2756; Win</kbd> plus one of <kbd>&uarr;</kbd>, <kbd>&darr;</kbd>,
+    <kbd>&larr;</kbd>, <kbd>&rarr;</kbd><kbd>Page Up</kbd> or <kbd>Page Down</kbd> 
+    changes the focused portal to another one adjacent to the currently active portal.
  * <kbd>&#x2756; Win</kbd><kbd>,/&lt;</kbd> Flip to the previous window in the
     current portal.
  * <kbd>&#x2756; Win</kbd><kbd>./&gt;</kbd> Flip to the next window in the
@@ -97,9 +95,9 @@ you're used to.  Instead, it gives you some control over your window layout.
  * <kbd>&#x2756; Win</kbd><kbd>E</kbd> Start Windows Explorer to browse
     your files.
  * <kbd>&#x2756; Win</kbd><kbd>F4</kbd> This is supposed to quit Petronia.
-    If you started it with `python -m petronia.cmd`, this will partially stop
+    If you started it with `petronia-cli`, this will partially stop
     the application, but it won't fully terminate.  If you instead ran
-    `python -m petronia.main`, then this should stop the application.
+    `petronia`, then this should stop the application.
 
 If you press <kbd>&#x2756; Win</kbd><kbd>~</kbd>, the keyboard shortcuts will
 switch over to the Windows Classic mode.  Here, you can use the Windows keys
@@ -128,10 +126,10 @@ and restart it for each update.  *There is a secret mojo sauce that allows
 you to reload the configuration on the fly, but you'll have to either edit
 the current file, or tell the configuration file about the other file.*
 
-Additionally, you can switch to the experimental `main` executable:
+Additionally, you can switch to the standard executable:
 
 ```cmd
-> python -u -m petronia.main user_test_config.py
+> petronia user_test_config.yaml
 ```
 
 In this mode, you can simply press <kbd>&#x2756; Win</kbd><kbd>F4</kbd>
