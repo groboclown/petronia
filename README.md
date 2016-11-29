@@ -8,7 +8,7 @@
     (12.3 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy 64-bit executable.
     **For x64 Windows Computers Only**
 * [petronia-2.1-x86.zip](https://github.com/groboclown/petronia/releases/download/v2.1/petronia-2.1-x86.zip)
-    (11.6 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy executable.
+    (11.7 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy executable.
     **For 32-bit and 64-bit Windows Computers**
 * [petronia-2.1-src.zip](https://github.com/groboclown/petronia/archive/v2.1.zip) (< 1 MB)
     The source distribution, for users who want to see what's happening, and to use their
