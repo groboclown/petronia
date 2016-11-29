@@ -86,7 +86,7 @@ computer using a tool like 7-zip, or WinZip, or unzip.
 From a command-prompt, you can run:
 
 ```cmd
-> petronia example-configs\user_test_config.py
+> petronia example-configs\user_test_config.yaml
 ```
 
 Or, drag a configuration file on top of the `petronia.exe` file.  Press

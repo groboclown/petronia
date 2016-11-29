@@ -30,6 +30,10 @@ the task bar may not show itself.
 
 Especially handy if you've disabled Windows from processing the Windows key.
 
+*HUGE WARNING* Currently, this command doesn't work right for Windows 8 and
+Windows 10 users.  If you have the StarDock "Start8" tool running, though,
+it will correctly open the start menu.
+
 
 
 ### `move-focus (direction)`

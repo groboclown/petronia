@@ -25,6 +25,8 @@ data_files = [
     (basedir + '/src/user_test_config.py', 'example-configs'),
     (basedir + '/src/user_test_config.json', 'example-configs'),
     (basedir + '/src/user_test_config.yaml', 'example-configs'),
+    (basedir + '/src/no_border_config.yaml', 'example-configs'),
+    (basedir + '/src/border_config.yaml', 'example-configs'),
 ]
 
 extra_imports = [

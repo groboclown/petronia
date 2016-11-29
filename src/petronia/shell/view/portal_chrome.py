@@ -8,9 +8,25 @@ import time
 
 
 # noinspection PyUnusedLocal
-def portal_chrome_factory(bus, config, id_manager):
+def portal_chrome_factory(bus, config, id_manager, component_settings):
     if config.uses_layout:
-        PortalChromeManager(bus, config)
+        mgr = PortalChromeManager(bus, config)
+        position = 'position' in component_settings and component_settings['position'] or None
+        width = 'width' in component_settings and component_settings['width'] or None
+        active_color = _color_as_int(
+            'active-color' in component_settings and component_settings['active-color'] or None)
+        inactive_color = _color_as_int(
+            'inactive-color' in component_settings and component_settings['inactive-color'] or None)
+        mgr.update_border(active_color=active_color, inactive_color=inactive_color, position=position, width=width)
+
+
+def _color_as_int(c):
+    if c is None:
+        return None
+    if isinstance(c, str):
+        if c[0] == '#':
+            return int(c[1:], 16)
+    return int(c)
 
 
 class _PortalGuiWindow(GuiWindow):
@@ -28,13 +44,11 @@ class _PortalGuiWindow(GuiWindow):
         self.color_1 = 0
         self.color_2 = 0
         self.accent_width = 64
-        self.flash_time = 1.2
-        self.flash_count = 3
 
         left, right, top, bottom = manager.get_chrome_size(pos_x, pos_y, width, height)
         GuiWindow.__init__(self, 'chrome-' + portal_id, bus, 'chrome-' + portal_id, None, {
             'left': left, 'right': right, 'top': top, 'bottom': bottom, 'padding': 0,
-        }, has_border=False, is_transparent_bg=True, is_always_on_top=False)
+        }, has_border=False, is_transparent_bg=True, is_always_on_top=False, is_on_taskbar=False)
 
         self._listen(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.ANY, self._on_border_size_change)
 
@@ -98,15 +112,15 @@ class _PortalGuiWindow(GuiWindow):
         color_f2 = _brighten_color(self.color_2)
 
         def flash():
-            for i in range(self.flash_count):
+            for i in range(self._manager.flash_count):
                 self.color_1 = color_f1
                 self.color_2 = color_f2
                 self.draw()
-                time.sleep(self.flash_time)
+                time.sleep(self._manager.flash_time)
                 self.color_1 = color_c1
                 self.color_2 = color_c2
                 self.draw()
-                time.sleep(self.flash_time)
+                time.sleep(self._manager.flash_time)
 
         threading.Thread(
             target=flash,
@@ -183,6 +197,8 @@ class PortalChromeManager(Identifiable, Component):
         self._inactive_color2 = 0x404040
         self._position = 'bottom'
         self._width = 10
+        self.flash_time = 1.2
+        self.flash_count = 3
         self.update_border()
 
     @property

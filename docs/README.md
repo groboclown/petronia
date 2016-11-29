@@ -1,7 +1,10 @@
 # Words for Users
 
 * [Getting Started](user-getting-started.md)
-* [Configuration Guide](user-configuration.md)
+* Configuration:
+    * [Configuration Guide](user-configuration.md)
+    * [Configuration Through Python](user-configuration-py.md)
+    * [Extensible Components](user-components.md)
 * Commands:
     * [Hotkey Commands](user-commands.md)
     * [Custom Commands](user-custom-commands.md)

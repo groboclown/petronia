@@ -36,7 +36,8 @@ class GuiWindow(Identifiable, Component):
                  font=None,
                  has_border=True,
                  is_transparent_bg=False,
-                 is_always_on_top=False):
+                 is_always_on_top=False,
+                 is_on_taskbar=True):
         Component.__init__(self, bus)
         Identifiable.__init__(self, cid)
 
@@ -54,7 +55,6 @@ class GuiWindow(Identifiable, Component):
         self.__height = None
 
         def do_paint(hwnd, hdc):
-            print("DEBUG: on paint callback")
             window_size = window__client_rectangle(hwnd)
             self._on_paint(hwnd, hdc, window_size['width'], window_size['height'])
 
@@ -72,11 +72,12 @@ class GuiWindow(Identifiable, Component):
         }
         ex_style_flags = {
             # WS_EX_OVERLAPPEDWINDOW
-            'window-edge': True, 'client-edge': True
+            'window-edge': True, 'client-edge': True, 'tool-window': False
         }
         if is_transparent_bg:
             style_flags.add('popup')
             ex_style_flags['layered'] = True
+            ex_style_flags['transparent'] = True
         if not has_border:
             style_flags.remove('border')
             style_flags.remove('dialog-frame')
@@ -85,15 +86,18 @@ class GuiWindow(Identifiable, Component):
             style_flags.remove('minimize-button')
             style_flags.add('popup')
             style_flags.add('visible')
+            ex_style_flags['window-edge'] = False
+            ex_style_flags['client-edge'] = False
         if is_always_on_top:
             ex_style_flags['topmost'] = True
+        if not is_on_taskbar:
+            ex_style_flags['tool-window'] = True
 
         def on_exit_callback():
             self.__has_quit = True
             self.close()
 
         def message_pumper():
-            print("DEBUG message pumper enter")
             # These MUST be in the same thread!
             message_callback_handler = shell__create_global_message_handler(self.__message_id_callbacks)
             self.__hwnd = window__create_display_window(class_name, title, message_callback_handler, style_flags)
@@ -107,8 +111,6 @@ class GuiWindow(Identifiable, Component):
             if not self.__size_set:
                 self.__pos_x, self.__pos_y, self.__width, self.__height = _parse_window_pos_details(
                     position_details, self.__hwnd, self.__hfont)
-            print("DEBUG setting window to ({0}, {1}) :: {2}x{3}".format(
-                self.__pos_x, self.__pos_y, self.__width, self.__height))
 
             if is_always_on_top:
                 window__set_position(
@@ -274,7 +276,4 @@ def _parse_window_pos_details(pos, hwnd, hfont):
     if 'bottom' in pos:
         height = pos['bottom'] - pos_y
 
-    print("DEBUG translated {0} into ({1},{2}) {3}x{4}".format(
-        pos, pos_x, pos_y, width, height
-    ))
     return pos_x, pos_y, width, height

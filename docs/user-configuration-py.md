@@ -1,20 +1,20 @@
-# Configuration
+# Configuration via Python
 
-You can configure Petronia through json or yaml files.  This document
-walks you through the yaml configuration, but it's straightforward to
-do the same thing in json.
+You can configure Petronia through a Python script that provides a
+`load_config()` function, which in turn creates a `petronia.config.Config`
+object.  It's not simple, and you need to know a bit about programming.  But,
+oh, *the power!*
 
-If you really want control, you can [write the configuration in
-Python](user-configuration-py.md).
+With Petronia 2.0, you can also write your configuration as a json
+file.
 
 
 ## The Example Configurations
 
-### `border_config.yaml`
+### `user_test_config.py`
 
-To get you started, take a gander at a configuration file that sets up
-your windows without titles, but with borders:
-[border_config.yaml](../src/border_config.yaml).  This guy sets
+To get you started, take a gander at the example config file,
+[user_test_config.py](../src/user_test_config.py).  This guy sets
 up the configuration in several parts, the [layout](#layout-configuration),
 the [applications](#application-configuration), the
 [hotkeys](#hotkey-configuration), and the [chrome](#chrome-configuration).
@@ -37,25 +37,25 @@ The chrome config defines what to do when an application has been selected
 for a strip down.  You can give it a border, or select if you want the
 title bars removed.
 
-### `no_border_config.yaml`
+### `no_chrome_config.py`
 
-The [no_border_config.yaml](../src/no_border_config.yaml) is very similar to
-the [border_config.yaml](#border_configyaml) file, but with borders stripped
-off of most windows.  To compensate for this, each portal has a "status"
-bar at the bottom to indicate whether it's ative or not.
+The [no_chrome_config.py](../src/no_chrome_config.py) shows an example
+where all you care about is removing the nasty Chrome off select windows.  You
+still have full access to all the native Windows commands.
+
+Of specific interest to this configuration is how it detects applications for
+exclusion from the chrome stripping.
+
+### `simple_config.py`
+
+The [simple_config.py](../src/simple_config.py) provides an extremely simple, but
+not too useful, configuration that strips off the chrome and registers a quit
+key.  It's about as simple as you can get.
 
 
 ## Configuration Parts
 
-At the start of your configuration file, you need to describe which
-configuration version it's written for.  At the moment, the only supported
-version is "1":
-
-```yaml
-version: 1
-```
-
-After that, there are several sections of configuration that you can configure.
+There are several sections of configuration that you can configure.
 
 * [Layout Configuration](#layout-configuration) - How the screen is split up
     for different monitors.
@@ -67,6 +67,8 @@ After that, there are several sections of configuration that you can configure.
 * [Application Configuration](#application-configuration) - Application
     specific configuration, to select how different windows work with the
     chrome and layout configurations.
+* [Component Configuration](#component-configuration) - Defines which
+    Petronia components will be active.
 
 
 ### Layout Configuration
@@ -75,37 +77,32 @@ Layouts are defined per monitor configuration.  Normally, you'd want one
 top-level layout per monitor, but if you need more control, you can use a
 single layout to cover all your screens - *but don't expect it to be nice.*
 
-Layouts are defined within a [work group](#work-group-layouts), so that each
-[monitor setup](#monitors) can have its own set of layouts.
+Layouts are contained in a `DisplayWorkGroupsConfig`.  This allows you to
+define a [work group](#work-group-layouts) for each [monitor setup](#monitors).
 
-```yaml
-workgroups:
+```python
+from petronia import config
 
-# Work group 1: two screen
-- name: two screens
-  display:
-  - width: 1024
-    height: 768
-  - width: 1024
-    height: 768
-  layouts:
-    default:
-    # First monitor is split into two parts:
-    # +-----------+---+
-    # |           |   |
-    # |           |   |
-    # |           |   |
-    # +-----------+---+
-    - type: horizontal split
-      children:
-      - name: browsers
-        type: portal
-        size: 3
-      - name: chat
-        type: portal
-        size: 1
-    # The second monitor has just one portal for the whole screen.
-    - type: portal
+layouts_by_display = config.DisplayWorkGroupsConfig(groups=[
+    # First monitor group
+    {
+        # Monitors; optional if you use the same monitor setup and resolution everywhere.
+        'monitors': [config.MonitorResConfig(1024, 768), config.MonitorResConfig(4096, 1024)],
+        'workgroup': config.WorkGroupConfig({
+            # The layout to use at startup.
+            'default': [
+                # First layout is assigned to first monitor
+                config.LayoutConfig('primary', 'split-layout', config.ORIENTATION_HORIZONTAL, [
+                    config.ChildSplitConfig(2, config.LayoutConfig('main', 'portal', None, None)),
+                    config.ChildSplitConfig(1, config.LayoutConfig('main-right', 'portal', None, None)),
+                ]),
+                
+                # Second layout is assigned to second monitor
+                config.LayoutConfig('secondary', 'portal', None, None),
+            ]
+        })
+    },
+])
 ```
 
 
@@ -175,57 +172,44 @@ the end nodes of the layout tree, and can't be split.
 
 You define a layout section like:
 
-```yaml
-    # First monitor is split into two parts:
-    # +-----------+
-    # |           |
-    # |           |
-    # +-----------+
-    # |           |
-    # +-----------+
-    - type: vertical split
-      children:
-      - name: top
-        type: portal
-        size: 2
-      - name: bottom
-        type: portal
-        size: 1
+```python
+from petronia import config
+
+layout = config.LayoutConfig('right', 'split-layout', config.ORIENTATION_VERTICAL, [
+    config.ChildSplitConfig(5, config.LayoutConfig('top', 'portal', None, None)),
+    config.ChildSplitConfig(1, config.LayoutConfig('bottom', 'portal', None, None)),
+])
 ```
 
-This defines the layout as a "split-layout", which
+This gives the layout the name "right", defines it as a "split-layout", which
 splits the region from top-to-bottom (vertically).  It then defines 2 child
-splits, the first with a size 2 defined as a portal, and the second as a
-size 1 portal.  Because there are two children, with their sizes totalling 3,
-the first portal will take up 2/3 of the space, and the second 1/3.
+splits, the first with a size 5 defined as a portal, and the second as a
+size 1 portal.  Because there are two children, with their sizes totalling 6,
+the first portal will take up 5/6 of the space, and the second 1/6.
 
-You can define a layout as a "vertical split", a "horizontal split", or a
-"portal".  You can give a name to any split, but it only has a meaning
-when used with portals.
+The two split types are `config.ORIENTATION_VERTIAL` for a top-to-bottom
+splitting of windows, and `config.ORIENTATION_HORIZONTAL` for a left-to-right
+splitting of windows.
 
 ![1.2-1-1 Split](../../master/docs/imgs/split1.png?raw=true)
 
 In this example, the top level is split 3 columns, and the left-hand
 side is split into two vertical slices.
 
-```yaml
-    - type: vertical split
-      children:
-      - type: horizontal split
-        size: 1
-        children:
-        - name: left-top - region 1
-          size: 1
-          type: portal
-        - name: left-bottom - region 2
-          size: 3
-          type: portal
-      - name: middle - region 3
-        type: portal
-        size: 1
-      - name: right - region 4
-        type: portal
-        size: 1
+```python
+from petronia import config
+
+layout = config.LayoutConfig('screen', 'split-layout', config.ORIENTATION_VERTICAL, [
+    config.ChildSplitConfig(1, config.LayoutConfig('left-parent', 'split-layout', config.ORIENTATION_HORIZONTAL, [
+        # 1/4 of the left-hand side
+        config.ChildSplitConfig(1, config.LayoutConfig('left-top: region 1', 'portal', None, None)),
+        
+        # 3/4 of the left-hand side
+        config.ChildSplitConfig(3, config.LayoutConfig('left-bottom: region 2', 'portal', None, None)),
+    ])),
+    config.ChildSplitConfig(1, config.LayoutConfig('middle: region 3', 'portal', None, None)),
+    config.ChildSplitConfig(1, config.LayoutConfig('right: region 4', 'portal', None, None)),
+])
 ```
 
 
@@ -284,34 +268,23 @@ Or with the source distribution:
 This will list out each visible window for the running applications, and give
 you valuable insight into how to distinguish it from other windows.
 
-```yaml
-application-setup:
-  defaults:
-    display: "-title +border +tiled"
-  applications:
-  - display: "+title +border -tiled"
-    matchers:
-    # yaml syntax: need to escape the "\"
-    - class-name-re: "#\\d+"
-      title-re: "\\d+ reminder\\(s\\)"
-      exec-path: outlook.exe
+```python
+from petronia import config
+
+applications = config.ApplicationListConfig([
+    config.ApplicationChromeConfig(has_border=True, has_title=True, is_tiled=False, app_matchers=[
+        config.AppMatcher(class_name_re=r'#\d+', title_re=r'\d+ reminder\(s\)', exec_path='outlook.exe'),
+    ])
+])
 ```
 
 This registers a single *chrome configuration*, which defines how Petronia
 will act upon the matching application window.  In this case, the
-`is_matched_chrome` value is `False`, so it won't have the title bar
-and resize borders be affected by the
-[chrome configuration](#chrome-configuration).  Additionally, `tiled` is
-set to `false` (by having a "-"), so it also will not be managed within the
+`has_border` and `has_title` values are `True`, so it will have the normal
+Windows title bar and resize borders.  Additionally, `is_tiled` is
+set to `False`, so it will not be managed within the
 [portal layouts](#splits-and-portals), and won't react to portal movement
 key actions.
-
-
-
-#### Default Values
-
-The default values in the `defaults` section sets up the display settings
-for all applications that are not matched in the `applications` section.
 
 
 #### Matching an Application Window
@@ -321,44 +294,65 @@ define whether a given application window matches the configuration.
 
 With an app matcher, you can define the following attributes:
 
-* `match-returns`: By default, the matcher will report itself as a match.
+* `match_returns`: By default, the matcher will report itself as a match.
     If, instead, you want to explicitly omit the matched application, set
     this value to `False`.
 * `title`: A string that matches the application window's title, ignoring
     capitalization.
-* `title-re`: A Python regular expression that matches the application
-    window's title.
-* `module-path`: The path of the module that controls the window.
+* `title_re`: A Python regular expression that matches the application
+    window's title.  Can either be a proper compiled (`re.compile`)
+    regular expression, or a string of the regular expression.
+* `module_path`: The path of the module that controls the window.
     You can specify "MyModule.dll", and it will match for any module
     that has the "MyModule.dll" file, regardless of its path.
-* `module-path-re`: A Python regular expression version of the
+* `module_path_re`: A Python regular expression (string or re) version of the
     path of the module that controls the window.
-* `exec-path`: The path of the executable that created the window.
+* `exec_path`: The path of the executable that created the window.
     You can specify "MyCommand.exe", and it will match for any executable
     that has the "MyCommand.exe" file, regardless of its path.
-* `exec-path-re`: A Python regular expression of the path of
+* `exec_path_re`: A Python regular expression (string or re) of the path of
     the executable that created the window.
-* `class-name`: The specific class name of the window.  Each window generally
+* `class_name`: The specific class name of the window.  Each window generally
     has its own class name, so you can distinguish different windows that
     came from the same executable.
-* `class-name-re`: A Python regular expression of the
-    `class-name`.
+* `class_name_re`: A Python regular expression (string or re) of the
+    `class_name`.
+
+To find the class name, module path, and executable path, for all visible
+windows, run:
+
+```cmd
+> detect-apps
+```
+
+Or with the source distribution:
+
+```cmd
+> python -m petronia.detect_apps
+```
 
 
 #### Configuring for Chrome and Position
 
 In the examples above, the configuration controls how some application
-works with the window decoration and inclusion in the tiling system.
+works with the window decoration and inclusion in the tiling system through
+the `config.ApplicationChromeConfig`.
 
 Additionally, you can control in which portal a window should be placed
-at layout load time.
+at layout load time with `config.ApplicationPositionConfig`.
 
-```yaml
-  - location: [left, main]
-    matchers:
-    - exec-path: firefox.exe
-    - exec-path: chrome.exe
-    - exec-path: outlook.exe
+```python
+from petronia import config
+
+config.ApplicationPositionConfig(
+    portal_names=['left', 'main'],
+    app_matchers=[
+        config.AppMatcher(exec_path='firefox.exe'),
+        config.AppMatcher(exec_path='chrome.exe'),
+        config.AppMatcher(exec_path='explorer.exe'),
+        config.AppMatcher(exec_path='outlook.exe'),
+    ]
+)
 ```
 
 In this position configuration, the list of matched windows will be placed
@@ -405,31 +399,9 @@ reference it in your configuration.  Press <kbd>&crarr; Enter</kbd> to
 stop the application.
 
 
-#### Modal Configurations
+#### `parse_hotkey_mode_keys`
 
-The key actions allow for switching between keyboard modes.  The initial
-keyboard mode is the `default` mode.  You can assign a keystroke combination
-to switch to a different mode, which allows for switching between completely
-different keyboard hotkeys on the fly.
-
-```yaml
-keysets:
-  default:
-    type: hotkey
-    options:
-      block-win-key: false
-    commands:
-      # Switch to the alternate input modes
-      "win+~": ['change mode', 'prevent-input']
-  prevent-input:
-    type: exclusive
-    commands:
-      "enter": ['change mode', 'default']
-```
-
-##### Keyset Type `hotkey`
-
-The "hotkey" modes allows for Petronia to capture a few select keywords out
+The "hotkey mode" allows for Petronia to capture a few select keywords out
 of your typing, regardless of which window has focus, to trigger a Petronia
 command.
 
@@ -461,19 +433,10 @@ to force the task bar Start Menu to open when you hold down the left
 <kbd>F12</kbd> key.
 
 
-###### Preventing Windows From Using the Windows Key
+##### Preventing Windows From Using the Windows Key
 
 In the hotkey mode, you can tell Petronia to have Windows ignore the
-<kbd>&#x2756; Win</kbd> key:
-
-```yaml
-  ignore-win-key-mode:
-    type: hotkey
-    options:
-      block-win-key: true
-```
-
-This means tapping <kbd>&#x2756; Win</kbd>
+<kbd>&#x2756; Win</kbd> key.  This means tapping <kbd>&#x2756; Win</kbd>
 won't trigger the start menu to pop up.  It also means that a few of the
 nice [Windows key shortcuts](https://en.wikipedia.org/wiki/Windows_key),
 like <kbd>&#x2756; Win</kbd><kbd>R</kbd> to open the run dialog, are not
@@ -484,12 +447,8 @@ Note that a few key sequences will always be recognized by Windows, and
 can't be overridden or disabled.  This includes
 <kbd>&#x2756; Win</kbd><kbd>L</kbd> (lock screen).
 
-Also note that, as of this writing, the command to bring up the start
-menu (`open-start-menu`) does not work on standard Windows 8 and Windows 10
-computers.
 
-
-##### Keyset type: `exclusive`
+#### `parse_exclusive_mode_keys`
 
 With the exclusive mode, Petronia captures all your Windows input.  This allows
 you to have a mode that doesn't require you to hold down a key the whole time.
@@ -505,6 +464,35 @@ combo keys like <kbd>&#x21e7; Shift</kbd><kbd>F1</kbd> or
 <kbd>&#x2732; Ctrl</kbd><kbd>&#x1f507; Mute</kbd>.
 
 
+### Chrome Configuration
+
+You can configure the general setup for each application, as well as some
+global configuration options, in the `ChromeConfig`.
+
+#### Global Settings
+
+These settings affect all applications running in the system.
+
+* **border_width** Width of the grabbable resize border.
+* **border_padding** Space between the application area and the resize border.
+  *Windows Visa and above only.*
+* **scrollbar_width** Width for vertical scrollbars.
+* **scrollbar_height** Height for horizontal scrollbars.
+
+
+#### Per Application Settings
+
+For the [applications](#application-configuration) that opt-in to being
+managed by Chrome, you can dictate how their chrome will appear.
+
+* **has_title** `True` or `False`, to strip off the title bar and its
+  buttons.  Note that even with this removed, you can still open the system
+  menu for the window by pressing <kbd>Alt</kbd><kbd>Space</kbd>.  This
+  gives you quick access to the minimize, maximize, restore, close, and
+  (sometimes) resize actions.
+* **has_resize_border** `True` or `False`, to remove the fat resize border.
+
+
 ### Component Configuration
 
 Setting up the component configuration allows for selecting individual parts
@@ -512,27 +500,27 @@ of the Petronia system to activate.  This is only loaded once, for the initial
 configuration file at start time.
 
 This is how you can 'plug' in new capabilities into Petronia.  For example,
-you can have some color on a border of the portals:
+you can have some color outlining the portals:
 
-```yaml
-components:
-  singletons:
-    # In order to indicate which portal is focused, we add a bit of chrome to the
-    # bottom of each portal that has a color when active.
-    - factory: petronia.components.portal_chrome
-      settings:
-        position: bottom
-        width: 12
-        active-color: '#0070f0'
-        inactive-color: '#404060'
+```python
+from petronia import config
+
+from petronia.components import portal_chrome
+
+component = config.ComponentConfig(singletons=[
+    portal_chrome.get_factory({'active-color': 0x408040, 'inactive-color': 0x002000})
+])
+
+ret = config.Config(component=component)
 ```
 
-The two inputs to the `components` are:
+The two inputs to the `ComponentConfig` are:
 
 * `singletons` - Components that listen to events and add some behavior as
     things happen within the Petronia system.
 * `extensions` - Additional objects which can be created on the fly, such
     as new layout types.
 
-The goal with the components is to allow for a point of entry for additional
+There currently isn't much to do with the component configuration.  The goal
+with the components is to allow for a point of entry for additional
 functionality, for for adding in non-standard functionality. 

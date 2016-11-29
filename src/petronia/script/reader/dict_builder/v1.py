@@ -1,6 +1,7 @@
 
 from .... import config
 from .exceptions import ConfigLoadException
+from importlib import import_module
 
 
 def load_config(section, d, logger):
@@ -89,6 +90,19 @@ def load_config(section, d, logger):
                 }
             }, ...
         },
+
+        'components': {
+            'singletons': [
+                {
+                    'factory': 'petronia.components.portal_chrome',
+                    'settings': {
+                        'key': 'value'
+                    }
+                }
+            ],
+            'extensions': [
+            ]
+        }
     }
     ```
 
@@ -112,9 +126,14 @@ def load_config(section, d, logger):
     else:
         hotkeys = None
 
+    singletons = None
+    extensions = None
+    if 'components' in d:
+        singletons, extensions = _load_components([*section, 'components'], d['components'])
+    component = config.ComponentConfig(singletons=singletons, extensions=extensions)
+
     # Not configurable yet
     commands = config.CommandConfig()
-    component = config.ComponentConfig()
     shell = config.WindowsShellConfig()
 
     conf = config.Config(
@@ -515,6 +534,75 @@ def _load_hotkeys(section, d):
             raise ConfigLoadException(sec, '"type" must be one of [hotkey, exclusive], found `{0}`'.format(mode_type))
 
     return ret
+
+
+# ----------------------------------------------------------------------------
+def _load_components(section, d):
+    """
+    'components': {
+        'singletons': [
+            {
+                'factory': 'petronia.components.portal_chrome',
+                'settings': {
+                    'key': 'value'
+                }
+            }
+        ],
+        'extensions': {
+            'type_a': {
+                'factory': 'petronia.components.my_component',
+                'settings': {
+                    'key': 'value'
+                }
+            }
+        }
+    }
+
+    :param section:
+    :param d:
+    :return:
+    """
+    singletons = None
+    if 'singletons' in d:
+        singletons = _load_singleton_components([*section, 'singletons'], _key_as_list(section, d, 'singletons', False))
+
+    extensions = None
+    if 'extensions' in d:
+        extensions = _load_extension_components([*section, 'extensions'], _key_as_dict(section, d, 'extensions', False))
+
+    return singletons, extensions
+
+
+def _load_singleton_components(section, singletons):
+    ret = []
+    for i in range(len(singletons)):
+        ret.append(_load_component_factory([*section, str(i)], singletons[i]))
+    return ret
+
+
+def _load_extension_components(section, extensions):
+    ret = {}
+    for k, desc in extensions.items():
+        _ensure_str(section, k, False)
+        ret[k] = _load_component_factory([*section, k], desc)
+    return ret
+
+
+def _load_component_factory(section, desc):
+    factory_module_name = _key_as_str(section, desc, 'factory', False)
+    settings = _key_as_dict(section, desc, 'settings')
+    try:
+        factory_module = import_module(factory_module_name)
+        if not hasattr(factory_module, 'get_factory') or not callable(getattr(factory_module, 'get_factory')):
+            raise ConfigLoadException([*section, 'factory'], 'invalid factory module {0}: {1}'.format(
+                factory_module_name, 'does not provide function `get_factory`'
+            ))
+        return getattr(factory_module, 'get_factory')(settings)
+    except ImportError as e:
+        raise ConfigLoadException([*section, 'factory'], 'could not import module {0}: {1}'.format(
+            factory_module_name, repr(e)
+        ))
+
 
 
 # ----------------------------------------------------------------------------

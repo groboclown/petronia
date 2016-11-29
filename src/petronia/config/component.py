@@ -27,7 +27,7 @@ class ComponentConfig(BaseConfig):
 
         self.__extensions = dict(get_base_extension_factories())
         if extensions is not None:
-            for category, factory in extensions:
+            for category, factory in extensions.items():
                 assert isinstance(category, str)
                 assert callable(factory)
                 self.__extensions[category] = factory
