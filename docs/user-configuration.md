@@ -176,7 +176,6 @@ the end nodes of the layout tree, and can't be split.
 You define a layout section like:
 
 ```yaml
-    # First monitor is split into two parts:
     # +-----------+
     # |           |
     # |           |
@@ -316,7 +315,7 @@ for all applications that are not matched in the `applications` section.
 
 #### Matching an Application Window
 
-An application configuration relies upon a `config.AppMatcher` instance to
+An application configuration relies upon a matcher to
 define whether a given application window matches the configuration.
 
 With an app matcher, you can define the following attributes:

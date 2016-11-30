@@ -19,6 +19,8 @@ def portal_factory(cid, arguments, bus, id_manager, config):
     ret = Portal(cid, bus, config, id_manager, parent_cid)
     if 'layout-def' in arguments:
         layout_def = arguments['layout-def']
+        ret.snap_horizontal = layout_def.snap_horizontal
+        ret.snap_vertical = layout_def.snap_vertical
         bus.fire(event_ids.PORTAL__CREATE_ALIAS, target_ids.ACTIVE_PORTAL_MANAGER, {
              'alias': layout_def.name,
              'portal-cid': cid,
@@ -35,6 +37,8 @@ class Portal(Tile):
         self.__top_window_index = None
         self.__active = False
         self.__last_flashing_window_cid = None
+        self.snap_vertical = None
+        self.snap_horizontal = None
 
         self._listen(event_ids.PORTAL__MOVE_WINDOW_HERE, target_ids.ANY, self._on_move_window_here)
         self._listen(event_ids.ZORDER__CHANGE_TOP_WINDOW, cid, self._on_window_zorder_change)
@@ -72,6 +76,8 @@ class Portal(Tile):
             self.__windows.append(window_info)
             window_rect = self._get_window_rect()
             window_rect['make-focused'] = 'make-focused' in event_obj and event_obj['make-focused'] or False
+            window_rect['v-snap'] = self.snap_vertical
+            window_rect['h-snap'] = self.snap_horizontal
             self._fire(event_ids.LAYOUT__SET_RECTANGLE, window_cid, window_rect)
 
             def this_window_activated(e, t, o):

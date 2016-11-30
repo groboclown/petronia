@@ -30,18 +30,22 @@ workgroups:
         # is the entire monitor.  It overlaps all the
         # other splits and portals in the parent.
         size: 0
+        snap: top left
       - name: left
         type: portal
         size: 1
+        snap: bottom left
       - type: vertical split
         size: 1
         children:
         - name: right-top
           type: portal
           size: 5
+          snap: bottom right
         - name: right-bottom
           type: portal
           size: 1
+          snap: bottom right
 # Work group 2: 2 monitors
 - name: 2-monitors, docked
   display:
@@ -66,15 +70,18 @@ workgroups:
       - name: web
         type: portal
         size: 3
+        snap: bottom left
       - type: vertical split
         size: 2
         children:
         - name: irc
           type: portal
           size: 3
+          snap: top right
         - name: log
           type: portal
           size: 1
+          snap: bottom right
     # Monitor B:
     #  +--------------+-----+
     #  |              |     |
@@ -88,12 +95,15 @@ workgroups:
       - name: main
         type: portal
         size: 0
+        snap: top left
       - name: left
         type: portal
         size: 3
+        snap: bottom left
       - name: right
         type: portal
         size: 5
+        snap: bottom right
 # Workgroup: a single monitor at 1024x768.
 - name: remote desktop 1024x768
   display:
@@ -113,15 +123,18 @@ workgroups:
       - name: main
         type: portal
         size: 3
+        snap: bottom left
       - type: vertical split
         size: 2
         children:
         - name: right-top
           type: portal
           size: 3
+          snap: top right
         - name: right-bottom
           type: portal
           size: 2
+          snap: bottom right
 application-setup:
   defaults:
     display: "-title -border +tiled"
@@ -137,7 +150,7 @@ application-setup:
   # can be restored to its default size and position by removing the
   # registry key
   # HKEY_CURRENT_USER\Software\Microsoft\Office\(version)\Options\Reminders
-  - display: "+border +title -tiled"
+  - display: "+border +title +tiled -resize"
     matchers:
 
     # The "reminder" dialog for Outlook.  Because these regular expressions

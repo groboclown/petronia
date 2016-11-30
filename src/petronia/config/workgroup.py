@@ -169,6 +169,8 @@ class LayoutConfig(BaseConfig):
         self.id = str(name)
         self.orientation = orientation
         self.child_splits = child_splits
+        self.snap_vertical = None
+        self.snap_horizontal = None
         self.is_main_layout_sibling = name == 'main'
 
 

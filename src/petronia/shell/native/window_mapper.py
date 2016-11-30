@@ -301,16 +301,22 @@ class WindowMapper(Identifiable, Component):
     def _on_window_move_resize(self, event_id, target_id, obj):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
+            info = None
+            resize = True
+            if str(hwnd) in self.__handle_map:
+                info = self._create_window_info(self.__handle_map[str(hwnd)])
             if 'x' in obj and 'y' in obj and 'height' in obj and 'width' in obj:
-                # print("DEBUG setting window {0} to ({1}, {2}) @ ({3}, {4})  {5}".format(
-                #     target_id, obj['width'], obj['height'], obj['x'], obj['y'], obj
-                # ))
-                if not window__set_position(
-                            hwnd, None, obj['x'], obj['y'], obj['width'], obj['height'],
-                            ['frame-changed', 'draw-frame', 'async-window-pos']
+                # Move and resize the window and possibly make it on top
+                # of all the other windows.
+                if not _move_resize_window(
+                            hwnd, info, self.__config,
+                            int(obj['x']), int(obj['y']), int(obj['width']), int(obj['height']),
+                            obj
                         ):
                     self._on_window_destroyed(event_id, target_id, {'target_hwnd': hwnd})
-                    return
+                return
+
+            # Could not move or resize, so just send it to the top if necessary.
             if 'make-focused' in obj and obj['make-focused']:
                 if not window__activate(hwnd):
                     self._on_window_destroyed(event_id, target_id, {'target_hwnd': hwnd})
@@ -455,3 +461,55 @@ def _restore_window_state(hwnd, size, style):
             ["frame-changed", "no-zorder", "async-window-pos"])
     except OSError:
         pass
+
+
+def _move_resize_window(hwnd, window_info, config, pos_x, pos_y, width, height, options):
+    do_resize = window_info is None or config.applications.is_resizable(window_info)
+
+    # Because we check the final size of the window, we don't use "async"
+    flags = ['frame-changed', 'draw-frame']
+    if not do_resize:
+        print("DEBUG do not resize window (info is {0})".format(window_info is None and 'None' or 'set'))
+        flags.append("no-size")
+        flags.append('async-window-pos')
+
+    z_order = None
+    if 'make-focused' in options and options['make-focused']:
+        z_order = 'topmost'
+    if do_resize:
+        if not window__set_position(hwnd, z_order, pos_x, pos_y, width, height, flags):
+            return False
+
+    final_size = window__border_rectangle(hwnd)
+    if not do_resize or final_size['width'] != width or final_size['height'] != height:
+        print("DEBUG requested size {0}x{1}, found {2}x{3}".format(
+            width, height, final_size['width'], final_size['height']))
+
+        # The window could not be inserted into the portal at the expected size.
+        # Put the window in according to the position options.
+        v = ('v-snap' in options and options['v-snap'] or 'top').strip().lower()
+        h = ('h-snap' in options and options['h-snap'] or 'left').strip().lower()
+        if v == 'bottom':
+            y = pos_y + height - final_size['height']
+        elif v == 'center':
+            y = pos_y + (height // 2) - (final_size['height'] // 2)
+        else:
+            y = pos_y
+        if h == 'right':
+            x = pos_x + width - final_size['width']
+        elif h == 'center':
+            x = pos_x + (width // 2) - (final_size['width'] // 2)
+        else:
+            x = pos_x
+
+        flags.append("no-size")
+        flags.append('async-window-pos')
+
+        print("DEBUG could not fit window into portal, moving it instead to ({0},{1})".format(x, y))
+        if not window__set_position(hwnd, z_order, x, y, 0, 0, flags):
+            return False
+
+    # if 'make-focused' in obj and obj['make-focused']:
+    #     if not window__activate(hwnd):
+    #         return False
+    return True

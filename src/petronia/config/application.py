@@ -34,6 +34,14 @@ class AbstractApplicationConfig(BaseConfig):
         """
         raise NotImplementedError()
 
+    def is_resizable(self, window_info):
+        """
+
+        :param window_info:
+        :return: True if the window should be resized when put into a portal.
+        """
+        raise NotImplementedError()
+
     def get_best_portal_match(self, portal_aliases, window_info):
         """
 
@@ -49,15 +57,17 @@ class AbstractApplicationConfig(BaseConfig):
 
 
 class ApplicationListConfig(AbstractApplicationConfig):
-    def __init__(self, app_configs, default_is_tiled=True, default_has_border=True, default_has_title=True):
+    def __init__(self, app_configs, default_is_tiled=True, default_has_border=True,
+                 default_has_title=True, default_is_resizable=True):
         assert isinstance(app_configs, list) or isinstance(app_configs, tuple)
         super()
         for app in app_configs:
             assert isinstance(app, AbstractApplicationConfig)
         self.__app_configs = app_configs
-        self.default_is_tiled = default_is_tiled
-        self.default_has_border = default_has_border
-        self.default_has_title = default_has_title
+        self.default_is_tiled = default_is_tiled is None and True or default_is_tiled
+        self.default_has_border = default_has_border is None and True or default_has_border
+        self.default_has_title = default_has_title is None and True or default_has_title
+        self.default_is_resizable = default_is_resizable is None and True or default_is_resizable
 
     def is_tiled(self, window_info):
         for app in self.__app_configs:
@@ -83,6 +93,14 @@ class ApplicationListConfig(AbstractApplicationConfig):
                 return res
         return self.default_has_border
 
+    def is_resizable(self, window_info):
+        for app in self.__app_configs:
+            assert isinstance(app, AbstractApplicationConfig)
+            res = app.is_resizable(window_info)
+            if res is not None:
+                return res
+        return self.default_is_resizable
+
     def get_best_portal_match(self, portal_aliases, window_info):
         for app in self.__app_configs:
             res = app.get_best_portal_match(portal_aliases, window_info)
@@ -101,6 +119,7 @@ class ApplicationChromeConfig(AbstractApplicationConfig):
                  has_border=True,
                  has_title=True,
                  is_tiled=True,
+                 is_resizable=True,
                  app_matchers=None):
         super()
         if app_matchers is None:
@@ -113,6 +132,7 @@ class ApplicationChromeConfig(AbstractApplicationConfig):
         self.__has_border = has_border
         self.__has_title = has_title
         self.__is_tiled = is_tiled
+        self.__is_resizable = is_resizable
         self.__app_matchers = app_matchers
 
     def has_border(self, window_info):
@@ -131,6 +151,12 @@ class ApplicationChromeConfig(AbstractApplicationConfig):
         for matcher in self.__app_matchers:
             if matcher.matches(window_info):
                 return self.__is_tiled
+        return None
+
+    def is_resizable(self, window_info):
+        for matcher in self.__app_matchers:
+            if matcher.matches(window_info):
+                return self.__is_resizable
         return None
 
     def get_best_portal_match(self, portal_aliases, window_info):
@@ -167,6 +193,9 @@ class ApplicationPositionConfig(AbstractApplicationConfig):
         return None
 
     def is_tiled(self, window_info):
+        return None
+
+    def is_resizable(self, window_info):
         return None
 
     def get_best_portal_match(self, portal_aliases, window_info):

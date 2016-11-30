@@ -64,7 +64,7 @@ configuration file as `f1` to `f24`.
 | <kbd>Esc</kbd> | `esc`, `escape` |
 | <kbd>Space bar</kbd> | `space` |
 | <kbd>PgUp</kbd>, <kbd>Page Up</kbd> | `pgup`, `pageup`, `prior` |
-| <kbd>PgDn</kbd>, <kbd>Page Down</kbd | `pgdn`, `pagedown`, `next` |
+| <kbd>PgDn</kbd>, <kbd>Page Down</kbd> | `pgdn`, `pagedown`, `next` |
 | <kbd>End</kbd> | `end` |
 | <kbd>Home</kbd> | `home` |
 | <kbd>Print Screen/SysRq</kbd> | `snapshot` |

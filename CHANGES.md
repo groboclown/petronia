@@ -4,10 +4,25 @@
 
 ### Overview
 
+* Added "resizable" flag for applications.
+* Added "snap" option to portals.
+* Documentation improvements.
 * Bug fixes.
 
 ### Details
 
+* Added "resizable" flag for applications.
+    * Applications can set a "resizable" flag (defaults to on), to specify
+        whether the matching window should be resized to fit into the
+        portal.  Before, the matching window would have to be excluded from
+        tiling control in order to not be resized.
+* Added "snap" option to portals.
+    * Windows that do not fully fit within a portal are now "snapped" into
+        a relative position within the portal.  By default (and the original
+        behavior), the window snaps to the top-left corner of a portal.  Now
+        it can be positioned relative to any corner or side.
+* Documentation improvements.
+    * Cleaning up to better reflect the current version.
 * Bug fixes.
     * Well, none yet.
 

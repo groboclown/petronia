@@ -276,6 +276,21 @@ _LAYOUT_TYPES = {
     'portal': ('portal', None)
 }
 
+_SNAP_TYPES = {
+    'right': ('right', 'center'),
+    'left': ('left', 'center'),
+    'top': ('center', 'top'),
+    'bottom': ('center', 'bottom'),
+    'top left': ('left', 'top'),
+    'bottom left': ('left', 'bottom'),
+    'top right': ('right', 'top'),
+    'bottom right': ('right', 'bottom'),
+    'center left': ('left', 'center'),
+    'center right': ('right', 'center'),
+    'top center': ('center', 'top'),
+    'bottom center': ('center', 'bottom'),
+}
+
 
 def _load_layout_list(section, layout_list, logger, as_child_splits):
     """
@@ -313,7 +328,18 @@ def _load_layout_list(section, layout_list, logger, as_child_splits):
             kids = _key_as_list(sec, part, 'children', False)
             if kids is not None:
                 child_splits = _load_layout_list([*sec, 'children'], kids, logger, True)
+
         layout_def = config.LayoutConfig(name, category, orientation, child_splits)
+
+        snap = _key_as_str(sec, part, 'snap')
+        if snap is not None:
+            snap = snap.strip().lower()
+            if snap not in _SNAP_TYPES:
+                raise ConfigLoadException([*sec, 'snap'], 'must be one of {0}, found {1}'.format(
+                    _SNAP_TYPES.keys(), snap
+                ))
+            layout_def.snap_horizontal, layout_def.snap_vertical = _SNAP_TYPES[snap]
+
         if as_child_splits:
             size = _key_as_int(sec, part, 'size')
             if size is None:
@@ -383,7 +409,9 @@ def _load_application_setup(section, d):
             app_configs.append(config.ApplicationChromeConfig(
                 has_border=display.has_border,
                 has_title=display.has_title,
-                is_tiled=display.is_tiled, app_matchers=matchers))
+                is_tiled=display.is_tiled,
+                is_resizable=display.is_resizable,
+                app_matchers=matchers))
         locations = _key_as_list(sec, app, 'location')
         if locations is not None:
             for ll in range(len(locations)):
@@ -394,18 +422,25 @@ def _load_application_setup(section, d):
         app_configs,
         default_is_tiled=defaults.is_tiled,
         default_has_border=defaults.has_border,
-        default_has_title=defaults.has_title)
+        default_has_title=defaults.has_title,
+        default_is_resizable=defaults.is_resizable)
 
 
 class AppDisplay(object):
-    def __init__(self, is_tiled=None, has_border=None, has_title=None):
+    def __init__(self, is_tiled=None, has_border=None, has_title=None, is_resizable=None):
         self.is_tiled = is_tiled
         self.has_border = has_border
         self.has_title = has_title
+        self.is_resizable = is_resizable
 
     @property
     def was_set(self):
-        return not (self.is_tiled is None and self.has_border is None and self.has_title is None)
+        return not (
+            self.is_tiled is None
+            and self.has_border is None
+            and self.has_title is None
+            and self.is_resizable is None
+        )
 
 
 def _parse_app_display(section, d):
@@ -415,6 +450,7 @@ def _parse_app_display(section, d):
     ret.has_title = _key_as_bool(section, d, 'has-title')
     ret.has_border = _key_as_bool(section, d, 'has-border')
     ret.is_tiled = _key_as_bool(section, d, 'is-tiled')
+    ret.is_resizable = _key_as_bool(section, d, 'resizable')
 
     display = _key_as_str(section, d, 'display')
     if display is not None:
@@ -433,6 +469,8 @@ def _parse_app_display(section, d):
                 ret.has_border = val
             elif p == 'tiled':
                 ret.is_tiled = val
+            elif p == 'resize' or p == 'resizable':
+                ret.is_resizable = val
             else:
                 raise ConfigLoadException([*section, 'display'], 'unknown item `{0}` in display `{1}`'.format(
                     p, display
@@ -602,7 +640,6 @@ def _load_component_factory(section, desc):
         raise ConfigLoadException([*section, 'factory'], 'could not import module {0}: {1}'.format(
             factory_module_name, repr(e)
         ))
-
 
 
 # ----------------------------------------------------------------------------
