@@ -24,7 +24,7 @@
 * Documentation improvements.
     * Cleaning up to better reflect the current version.
 * Bug fixes.
-    * Well, none yet.
+    * Fix portal chrome from staying on top of overlay windows.
 
 
 ## :: v2.1 ::

@@ -187,7 +187,12 @@ class GuiWindow(Identifiable, Component):
                 pos_x, pos_y, width, height,
                 ['no-activate'])
         else:
-            window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
+            # window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
+            window__set_position(
+                self.__hwnd,
+                'no-topmost',  # 'top',
+                pos_x, pos_y, width, height,
+                ['no-activate'])
 
     def _on_paint(self, hwnd, hdc, width, height):
         pass
