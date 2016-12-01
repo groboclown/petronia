@@ -48,7 +48,7 @@ class _PortalGuiWindow(GuiWindow):
         left, right, top, bottom = manager.get_chrome_size(pos_x, pos_y, width, height)
         GuiWindow.__init__(self, 'chrome-' + portal_id, bus, 'chrome-' + portal_id, None, {
             'left': left, 'right': right, 'top': top, 'bottom': bottom, 'padding': 0,
-        }, has_border=False, is_transparent_bg=True, is_always_on_top=False, is_on_taskbar=False)
+        }, has_border=False, is_always_on_top=False, is_on_taskbar=False)
 
         self._listen(event_ids.PORTAL__CHANGE_BORDER_SIZE, target_ids.ANY, self._on_border_size_change)
 
@@ -76,7 +76,8 @@ class _PortalGuiWindow(GuiWindow):
                 self._draw_rect(hdc, 0, 0, self.accent_width, self.accent_width, self.color_2)
                 self._draw_rect(hdc, width - self.accent_width, 0, self.accent_width, self.accent_width, self.color_2)
                 self._draw_rect(hdc, 0, height - self.accent_width, self.accent_width, self.accent_width, self.color_2)
-                self._draw_rect(hdc, width - self.accent_width, height - self.accent_width, self.accent_width, self.accent_width, self.color_2)
+                self._draw_rect(hdc, width - self.accent_width, height - self.accent_width, self.accent_width,
+                                self.accent_width, self.color_2)
             else:
                 # Vertical bars of color
                 self._draw_rect(hdc, 0, 0, self.accent_width, height, self.color_2)
@@ -261,15 +262,18 @@ class PortalChromeManager(Identifiable, Component):
     def close(self):
         super().close()
 
+    # noinspection PyUnusedLocal
     def _on_portal_registered(self, event_id, target_id, event_obj):
         if target_id not in self.__portal_map:
             self.__portal_map[target_id] = {'gui': None}
             # Wait for a size call before creating the GUI.
 
+    # noinspection PyUnusedLocal
     def _on_portal_removed(self, event_id, target_id, event_obj):
         if target_id in self.__portal_map:
             del self.__portal_map[target_id]
 
+    # noinspection PyUnusedLocal
     def _on_portal_resized(self, event_id, target_id, event_obj):
         if target_id in self.__portal_map:
             pos_x = event_obj['x']

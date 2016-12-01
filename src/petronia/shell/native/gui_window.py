@@ -5,6 +5,7 @@ from ...system.component import Component, Identifiable
 from ...arch import windows_constants
 from ...arch.funcs import (
     window__create_display_window,
+    window__create_borderless_window,
     window__client_rectangle,
     window__set_layered_attributes,
     window__set_position,
@@ -35,7 +36,6 @@ class GuiWindow(Identifiable, Component):
     def __init__(self, cid, bus, class_name, title, position_details,
                  font=None,
                  has_border=True,
-                 is_transparent_bg=False,
                  is_always_on_top=False,
                  is_on_taskbar=True):
         Component.__init__(self, bus)
@@ -62,49 +62,26 @@ class GuiWindow(Identifiable, Component):
         def paint(hwnd, message, wparam, lparam):
             window__do_paint(hwnd, do_paint)
 
-        self.__message_id_callbacks = {
-            windows_constants.WM_PAINT: paint
-        }
-
-        style_flags = {
-            # WS_OVERLAPPEDWINDOW
-            'border', 'dialog-frame', 'sysmenu-button', 'size-border', 'minimize-button', 'maximize-button'
-        }
-        ex_style_flags = {
-            # WS_EX_OVERLAPPEDWINDOW
-            'window-edge': True, 'client-edge': True, 'tool-window': False
-        }
-        if is_transparent_bg:
-            style_flags.add('popup')
-            ex_style_flags['layered'] = True
-            ex_style_flags['transparent'] = True
-        if not has_border:
-            style_flags.remove('border')
-            style_flags.remove('dialog-frame')
-            style_flags.remove('size-border')
-            style_flags.remove('maximize-button')
-            style_flags.remove('minimize-button')
-            style_flags.add('popup')
-            style_flags.add('visible')
-            ex_style_flags['window-edge'] = False
-            ex_style_flags['client-edge'] = False
-        if is_always_on_top:
-            ex_style_flags['topmost'] = True
-        if not is_on_taskbar:
-            ex_style_flags['tool-window'] = True
-
         def on_exit_callback():
             self.__has_quit = True
             self.close()
 
+        self.__message_id_callbacks = {
+            windows_constants.WM_PAINT: paint,
+        }
+
         def message_pumper():
             # These MUST be in the same thread!
             message_callback_handler = shell__create_global_message_handler(self.__message_id_callbacks)
-            self.__hwnd = window__create_display_window(class_name, title, message_callback_handler, style_flags)
 
-            # TODO fix the set_layered_attributes call
-            # if is_invisible:
-            #     window__set_layered_attributes(self.__hwnd, 0, 0, 0, 0)
+            if has_border:
+                self.__hwnd = window__create_display_window(class_name, title, message_callback_handler, {
+                    'border', 'dialog-frame', 'sysmenu-button', 'size-border', 'minimize-button', 'maximize-button'
+                })
+            else:
+                self.__hwnd = window__create_borderless_window(
+                    class_name, title, message_callback_handler, self.__message_id_callbacks,
+                    show_on_taskbar=is_on_taskbar, always_on_top=is_always_on_top)
 
             if font is not None:
                 self.__hfont = window__get_font_for_description(font, hwnd=self.__hwnd)
@@ -112,6 +89,9 @@ class GuiWindow(Identifiable, Component):
                 self.__pos_x, self.__pos_y, self.__width, self.__height = _parse_window_pos_details(
                     position_details, self.__hwnd, self.__hfont)
 
+            print("DEBUG moving window to ({0},{1}) :: {2}x{3}".format(
+                self.__pos_x, self.__pos_y, self.__width, self.__height
+            ))
             if is_always_on_top:
                 window__set_position(
                     self.__hwnd, 'topmost',
@@ -119,8 +99,6 @@ class GuiWindow(Identifiable, Component):
                     ['no-activate'])
             else:
                 window__move_resize(self.__hwnd, self.__pos_x, self.__pos_y, self.__width, self.__height, False)
-
-            window__set_style(self.__hwnd, ex_style_flags)
 
             shell__pump_messages(on_exit_callback)
 

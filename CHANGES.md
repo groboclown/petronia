@@ -21,10 +21,13 @@
         a relative position within the portal.  By default (and the original
         behavior), the window snaps to the top-left corner of a portal.  Now
         it can be positioned relative to any corner or side.
+    * Not really working yet.
 * Documentation improvements.
     * Cleaning up to better reflect the current version.
 * Bug fixes.
     * Fix portal chrome from staying on top of overlay windows.
+    * Improved portal chrome to not have the annoying white border in
+        Windows 8. (#6)
 
 
 ## :: v2.1 ::

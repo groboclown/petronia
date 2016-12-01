@@ -28,6 +28,7 @@ def load_all_functions(func_map):
     func_map['shell__set_window_metrics'] = shell__set_window_metrics
     func_map['shell__set_border_size'] = shell__set_border_size
     func_map['shell__open_start_menu'] = shell__open_start_menu
+    func_map['window__create_borderless_window'] = create_window__create_borderless_window(func_map)
 
 
 def shell__find_notification_icons(func_map):
@@ -494,3 +495,70 @@ def shell__open_start_menu(show_taskbar):
             return
 
     raise OSError("Could not find start button")
+
+
+# https://msdn.microsoft.com/en-us/library/windows/desktop/bb773244(v=vs.85).aspx
+class MARGINS(Structure):
+    _fields_ = [
+        ("cxLeftWidth", c_int),
+        ("cxRightWidth", c_int),
+        ("cyTopHeight", c_int),
+        ("cyBottomHeight", c_int),
+    ]
+
+
+def create_window__create_borderless_window(func_map):
+    # Use an inner window, so that we can use the func_map for accessing other functions
+    # that are OS specific.
+
+    # Call out to the answer:
+    # http://stackoverflow.com/questions/39731497/create-window-without-titlebar-with-resizable-border-and-without-bogus-6px-whit/39735058
+
+    # However, the WM_CREATE just doesn't work right - it causes windows to
+    # be automatically closed, even when 0 is explicitly returned.
+
+    style_flags = ['popup', 'visible']
+
+    def window__create_borderless_window(class_name, title, message_handler, callback_map,
+                                         show_on_taskbar=True, always_on_top=False):
+        margins = MARGINS()
+        margins.cxLeftWidth = 0
+        margins.cxRightWidth = 0
+        margins.cyTopHeight = 0
+        margins.cyBottomHeight = 0
+
+        ex_style_flags = {
+            'layered': True,
+            'transparent': True,
+            'window-edge': False,
+            'client-edge': False,
+            'topmost': always_on_top,
+            'tool-window': not show_on_taskbar,
+        }
+
+        def hit_test(hwnd, msg, wparam, lparam):
+            # We don't have a border, so don't worry about
+            # border cursor checks.
+            # pt = wintypes.POINT()
+
+            # x in low word, y in the high word
+            # pt.x = wintypes.DWORD(lparam & 0xffff)
+            # pt.y = wintypes.DWORD((lparam >> 16) & 0xffff)
+            # windll.user32.ScreenToClient(hwnd, byref(pt))
+
+            # rc = wintypes.RECT()
+            # windll.user32.GetClientRect(hwnd, byref(rc))
+            return HTCLIENT
+
+        callback_map[WM_NCACTIVATE] = lambda hwnd, msg, wparam, lparam: 0
+        callback_map[WM_NCCALCSIZE] = lambda hwnd, msg, wparam, lparam: lparam == 0 and 0 or False
+        callback_map[WM_NCHITTEST] = hit_test
+
+        hwnd = func_map['window__create_display_window'](class_name, title, message_handler, style_flags)
+
+        func_map['window__set_style'](hwnd, ex_style_flags)
+        windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, byref(margins))
+
+        return hwnd
+
+    return window__create_borderless_window

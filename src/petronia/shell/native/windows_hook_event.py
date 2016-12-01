@@ -54,10 +54,12 @@ class WindowsHookEvent(Identifiable, Component):
         # noinspection PyUnusedLocal
         def shell_callback(hwnd, message, wparam, lparam):
             self._shell_message(hwnd, wparam, lparam)
+            return 0
 
         # noinspection PyUnusedLocal
         def shell_display_change(hwnd, message, wparam, lparam):
             self._on_display_change()
+            return 0
 
         message_id_callbacks = {
             windows_constants.WM_DISPLAYCHANGE: shell_display_change,

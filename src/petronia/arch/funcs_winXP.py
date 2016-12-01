@@ -2,12 +2,14 @@
 Windows XP functions
 """
 
-from ctypes import (windll, wintypes, byref, Structure, c_int, WinError, WinDLL,
-                    create_unicode_buffer, c_wchar_p, GetLastError, POINTER)
+from ctypes import (windll, wintypes, byref, Structure, c_int, c_uint, WinError, WinDLL,
+                    create_unicode_buffer, c_wchar_p, GetLastError, Structure,
+                    POINTER, WINFUNCTYPE)
 from ctypes import sizeof as c_sizeof
 from ctypes import cast as c_cast
 from .windows_constants import *
 import atexit
+
 
 
 def load_functions(environ, func_map):
@@ -18,6 +20,7 @@ def load_functions(environ, func_map):
         load_psapi_functions(func_map)
         load_info_functions(func_map)
         load_taskbar_functions(func_map)
+        load_window_functions(func_map)
 
 
 def load_psapi_functions(func_map):
@@ -37,6 +40,10 @@ def load_info_functions(func_map):
 
 def load_taskbar_functions(func_map):
     func_map['shell__open_start_menu'] = shell__open_start_menu
+
+
+def load_window_functions(func_map):
+    func_map['window__create_borderless_window'] = create_window__create_borderless_window(func_map)
 
 
 def shell__find_notification_icons(func_map):
@@ -545,3 +552,28 @@ def process__get_all_pids():
     for i in range(count):
         ret.append(process_buff[i])
     return ret
+
+
+def create_window__create_borderless_window(func_map):
+    style_flags = ['popup', 'visible']
+
+    # Note that WM_CREATE just doesn't work.  Any attempt to use it,
+    # even when explicitly returning 0, just causes the windows to be
+    # destroyed.
+
+    def window__create_borderless_window(class_name, title, message_handler, callback_map,
+                                         show_on_taskbar=True, always_on_top=False):
+        ex_style_flags = {
+            'layered': True,
+            'transparent': True,
+            'window-edge': False,
+            'client-edge': False,
+            'topmost': always_on_top,
+            'tool-window': not show_on_taskbar,
+        }
+
+        hwnd = func_map['window__create_display_window'](class_name, title, message_handler, style_flags)
+        func_map['window__set_style'](hwnd, ex_style_flags)
+        return hwnd
+
+    return window__create_borderless_window

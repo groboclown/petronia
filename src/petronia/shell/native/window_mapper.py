@@ -226,11 +226,12 @@ class WindowMapper(Identifiable, Component):
         if key in self.__handle_map:
             info = self.__handle_map[key]
             self._fire_for_window(event_ids.WINDOW__CLOSED, info)
-            del self.__handle_map[key]
-            del self.__cid_to_handle[info['cid']]
+            # This can cause a double delete.
+            if key in self.__handle_map:
+                del self.__handle_map[key]
+            if info['cid'] in self.__cid_to_handle:
+                del self.__cid_to_handle[info['cid']]
             if hwnd in self.__hwnd_restore_state:
-                # FIXME this handle is different types depending on the call.
-                # Need to unify these correctly, so we don't have this "if" statement.
                 del self.__hwnd_restore_state[hwnd]
 
     # noinspection PyUnusedLocal

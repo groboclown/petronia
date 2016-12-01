@@ -1174,15 +1174,16 @@ def shell__create_global_message_handler(message_id_callbacks):
         # print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
         if message in message_id_callbacks:
             ret = message_id_callbacks[message](hwnd, message, wparam, lparam)
-            return ret or 0
+            if ret is not False:
+                return ret or 0
+            # False return code means run the standard DefWindowProc.
         elif message == WM_CLOSE:
             windll.user32.DestroyWindow(hwnd)
             return 0
         elif message == WM_DESTROY:
             windll.user32.PostQuitMessage(0)
             return 0
-        else:
-            return DefWindowProcW(hwnd, message, wparam, lparam)
+        return DefWindowProcW(hwnd, message, wparam, lparam)
 
     return handler
 
