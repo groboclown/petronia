@@ -29,6 +29,7 @@
     * Fix portal chrome from staying on top of overlay windows.
     * Improved portal chrome to not have the annoying white border in
         Windows 8. (#6)
+    * Portal chrome windows no longer shows up on the task bar.
     * Correctly associated portals to their aliases.  This information wasn't
         being passed to the portal factory before.
 

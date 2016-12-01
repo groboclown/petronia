@@ -555,7 +555,6 @@ def process__get_all_pids():
 
 
 def create_window__create_borderless_window(func_map):
-    style_flags = ['popup', 'visible']
 
     # Note that WM_CREATE just doesn't work.  Any attempt to use it,
     # even when explicitly returning 0, just causes the windows to be
@@ -563,17 +562,15 @@ def create_window__create_borderless_window(func_map):
 
     def window__create_borderless_window(class_name, title, message_handler, callback_map,
                                          show_on_taskbar=True, always_on_top=False):
-        ex_style_flags = {
-            'layered': True,
-            'transparent': True,
-            'window-edge': False,
-            'client-edge': False,
-            'topmost': always_on_top,
-            'tool-window': not show_on_taskbar,
+        style_flags = {
+            'popup', 'visible', 'layered', 'transparent'
         }
+        if always_on_top:
+            style_flags.add('topmost')
+        if not show_on_taskbar:
+            style_flags.add('tool-window')
 
         hwnd = func_map['window__create_display_window'](class_name, title, message_handler, style_flags)
-        func_map['window__set_style'](hwnd, ex_style_flags)
         return hwnd
 
     return window__create_borderless_window

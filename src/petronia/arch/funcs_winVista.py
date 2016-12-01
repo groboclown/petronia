@@ -517,8 +517,6 @@ def create_window__create_borderless_window(func_map):
     # However, the WM_CREATE just doesn't work right - it causes windows to
     # be automatically closed, even when 0 is explicitly returned.
 
-    style_flags = ['popup', 'visible']
-
     def window__create_borderless_window(class_name, title, message_handler, callback_map,
                                          show_on_taskbar=True, always_on_top=False):
         margins = MARGINS()
@@ -527,14 +525,15 @@ def create_window__create_borderless_window(func_map):
         margins.cyTopHeight = 0
         margins.cyBottomHeight = 0
 
-        ex_style_flags = {
-            'layered': True,
-            'transparent': True,
-            'window-edge': False,
-            'client-edge': False,
-            'topmost': always_on_top,
-            'tool-window': not show_on_taskbar,
+        style_flags = {
+            'popup', 'visible',
+            # 'layered',   This causes the windows to not show up.
+            'transparent'
         }
+        if always_on_top:
+            style_flags.add('topmost')
+        if not show_on_taskbar:
+            style_flags.add('tool-window')
 
         def hit_test(hwnd, msg, wparam, lparam):
             # We don't have a border, so don't worry about
@@ -555,9 +554,7 @@ def create_window__create_borderless_window(func_map):
         callback_map[WM_NCHITTEST] = hit_test
 
         hwnd = func_map['window__create_display_window'](class_name, title, message_handler, style_flags)
-
-        func_map['window__set_style'](hwnd, ex_style_flags)
-        windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, byref(margins))
+        # windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, byref(margins))
 
         return hwnd
 

@@ -656,13 +656,18 @@ def window__create_display_window(
     if not RegisterClassExW(byref(window_class)):
         raise WinError()
 
+    ex_style = 0
+    for flag in style_flags:
+        if flag in WS_EX_STYLE_BIT_MAP:
+            ex_style |= WS_EX_STYLE_BIT_MAP[flag]
     style = 0
     for flag in style_flags:
         if flag in WS_STYLE_BIT_MAP:
             style |= WS_STYLE_BIT_MAP[flag]
 
+    print("DEBUG create window ex style {0} style {1}".format(hex(ex_style), hex(style)))
     hwnd = CreateWindowExW(
-        WS_EX_CLIENTEDGE, class_name, title,
+        ex_style, class_name, title,
         style,
         CW_USEDEFAULT, CW_USEDEFAULT,
         240, 120,
