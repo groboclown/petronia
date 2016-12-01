@@ -69,9 +69,9 @@ class RootLayout(Layout):
         with self.__layout_lock:
             self.__layout_name = event_obj['layout-name']
             if self._has_children:
-                self._log_verbose("Delaying workflow layout switch - need to clear out children first")
+                self._log_debug("Delaying workflow layout switch - need to clear out children first")
                 for child_cid in self._child_cids:
-                    self._log_verbose("Requesting removal of child {0}".format(child_cid))
+                    self._log_debug("Requesting removal of child {0}".format(child_cid))
                     self._fire(event_ids.LAYOUT__REMOVE_OBJECT, child_cid, {
                         'window-parent': target_ids.TOP_LAYOUT,
                     })
@@ -147,7 +147,7 @@ class RootLayout(Layout):
             self._fire(event_ids.LAYOUT__RESEND_WINDOW_CREATED_EVENTS, target_ids.WINDOW_MAPPER, {})
 
     def _on_last_child_removed(self):
-        self._log_verbose("Last root child removed; going on to create the layout.")
+        self._log_debug("Last root child removed; going on to create the layout.")
         self._on_root_create_layout(None, None, None)
 
     def _on_direction_negotiation_discover(self, event_id, target_id, event_obj):
@@ -177,7 +177,7 @@ class RootLayout(Layout):
 
         # Rotate through the child indicies
         next_child_index = (previous_child_index + index_change + self._child_count) % self._child_count
-        self._log_verbose("Root rotating movement from index {0} to {1}".format(previous_child_index, next_child_index))
+        self._log_debug("Root rotating movement from index {0} to {1}".format(previous_child_index, next_child_index))
 
         return self._fire_negotiation_descend(self._child_cids[next_child_index], event_obj)
 
@@ -197,4 +197,4 @@ class RootLayout(Layout):
         # Very special layout operation.
         # In fact, it's so special (very monitor specific), that we don't
         # actually do anything.
-        self._log_verbose("RootLayout ignoring do_layout request")
+        self._log_debug("RootLayout ignoring do_layout request")

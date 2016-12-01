@@ -130,7 +130,7 @@ class _PortalGuiWindow(GuiWindow):
 
     # noinspection PyUnusedLocal
     def _on_portal_activated(self, event_id, target_id, event_obj):
-        self._log_verbose("Activating chrome portal")
+        self._log_debug("Activating chrome portal")
         self._is_active = True
         portal_size = event_obj['portal-size']
         portal_active = event_obj['portal-active']
@@ -147,7 +147,7 @@ class _PortalGuiWindow(GuiWindow):
 
     # noinspection PyUnusedLocal
     def _on_portal_deactivated(self, event_id, target_id, event_obj):
-        self._log_verbose("Deactivating chrome portal")
+        self._log_debug("Deactivating chrome portal")
         self._is_active = False
         portal_size = event_obj['portal-size']
         portal_active = event_obj['portal-active']
