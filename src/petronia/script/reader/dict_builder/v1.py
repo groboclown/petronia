@@ -281,6 +281,7 @@ _SNAP_TYPES = {
     'left': ('left', 'center'),
     'top': ('center', 'top'),
     'bottom': ('center', 'bottom'),
+    'center': ('center', 'center'),
     'top left': ('left', 'top'),
     'bottom left': ('left', 'bottom'),
     'top right': ('right', 'top'),

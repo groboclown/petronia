@@ -16,7 +16,7 @@ class Layout(Tile):
         """
         Tile.__init__(self, cid, bus, config, id_manager, parent_cid)
 
-    def _add_child_portal(self, size, events):
+    def _add_child_portal(self, size, layout_def, events):
         """
         Add a portal child.
 
@@ -24,7 +24,7 @@ class Layout(Tile):
         :param events:
         :return:
         """
-        return self.__add_child_obj(PORTAL_TYPE, {}, size, events)
+        return self.__add_child_obj(PORTAL_TYPE, layout_def, size, events)
 
     def _add_child_layout(self, layout_def, size, events):
         """
@@ -36,14 +36,13 @@ class Layout(Tile):
         :return:
         """
         assert isinstance(layout_def, LayoutConfig)
+        return self.__add_child_obj(layout_def.category, layout_def, size, events)
+
+    def __add_child_obj(self, category, layout_def, size, events):
+        assert layout_def is None or isinstance(layout_def, LayoutConfig)
         arguments = {
             'layout-def': layout_def,
         }
-        child_cid = self.__add_child_obj(layout_def.category, arguments, size, events)
-        self._set_child_data(child_cid, 'layout-def', layout_def)
-        return child_cid
-
-    def __add_child_obj(self, category, arguments, size, events):
         if size is not None:
             events.append({
                 'event-id': event_ids.LAYOUT__SET_RECTANGLE,
@@ -54,6 +53,7 @@ class Layout(Tile):
             })
         child_cid = self._create_child(category, arguments, self._create_child_listeners(category), events)
         self._set_child_data(child_cid, 'type', category)
+        self._set_child_data(child_cid, 'layout-def', layout_def)
         return child_cid
 
     def _get_child_layout(self, child_cid):

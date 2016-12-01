@@ -16,18 +16,21 @@
         whether the matching window should be resized to fit into the
         portal.  Before, the matching window would have to be excluded from
         tiling control in order to not be resized.
+    * Updated "no_border_config" and "border_config" to use the flag.
 * Added "snap" option to portals.
     * Windows that do not fully fit within a portal are now "snapped" into
         a relative position within the portal.  By default (and the original
         behavior), the window snaps to the top-left corner of a portal.  Now
         it can be positioned relative to any corner or side.
-    * Not really working yet.
+    * Updated "no_border_config" and "border_config" to use the flag.
 * Documentation improvements.
     * Cleaning up to better reflect the current version.
 * Bug fixes.
     * Fix portal chrome from staying on top of overlay windows.
     * Improved portal chrome to not have the annoying white border in
         Windows 8. (#6)
+    * Correctly associated portals to their aliases.  This information wasn't
+        being passed to the portal factory before.
 
 
 ## :: v2.1 ::

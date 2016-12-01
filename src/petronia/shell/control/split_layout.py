@@ -63,7 +63,7 @@ class SplitLayout(Layout):
             if split is None:
                 split = ChildSplitConfig(1, None)
             if split.layout_def is None or PORTAL_CATEGORY == split.layout_def.category:
-                child_cid = self._add_child_portal(_RAW_SIZE, [])
+                child_cid = self._add_child_portal(_RAW_SIZE, split.layout_def, [])
                 self._log_debug("Split {0} ({1}) child {2} assigned to portal {3}".format(
                     self.cid, layout_config.name, self._child_count, child_cid
                 ))

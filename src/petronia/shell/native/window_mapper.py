@@ -20,6 +20,7 @@ from ...arch.funcs import (
     window__get_class_name, window__is_visible, window__set_position,
     window__activate, window__get_title, window__get_visibility_states,
     window__get_active_window, window__maximize, window__minimize, window__move_resize,
+    window__restore,
     process__get_current_pid, process__get_username_domain_for_pid,
     shell__set_window_metrics
 )
@@ -326,6 +327,15 @@ class WindowMapper(Identifiable, Component):
     def _on_set_window_focus(self, event_id, target_id, obj):
         if target_id in self.__cid_to_handle:
             hwnd = self.__cid_to_handle[target_id]
+
+            info = self.__handle_map[str(hwnd)]
+            info = self._create_window_info(info)
+            self._log_debug("Making window active: {0}".format(info))
+
+            if not 'restored' in info['visibility']:
+                # Whether the window is maximized or restored, change it.
+                window__restore(hwnd)
+
             if window__activate(hwnd):
                 self._fire_for_window(event_ids.WINDOW__FOCUSED, self.__handle_map[str(hwnd)])
             else:
@@ -470,7 +480,7 @@ def _move_resize_window(hwnd, window_info, config, pos_x, pos_y, width, height, 
     # Because we check the final size of the window, we don't use "async"
     flags = ['frame-changed', 'draw-frame']
     if not do_resize:
-        print("DEBUG do not resize window (info is {0})".format(window_info is None and 'None' or 'set'))
+        # print("DEBUG do not resize window (info is {0})".format(window_info is None and 'None' or 'set'))
         flags.append("no-size")
         flags.append('async-window-pos')
 
@@ -481,10 +491,14 @@ def _move_resize_window(hwnd, window_info, config, pos_x, pos_y, width, height, 
         if not window__set_position(hwnd, z_order, pos_x, pos_y, width, height, flags):
             return False
 
-    final_size = window__border_rectangle(hwnd)
+    try:
+        final_size = window__border_rectangle(hwnd)
+    except OSError:
+        return False
+
     if not do_resize or final_size['width'] != width or final_size['height'] != height:
-        print("DEBUG requested size {0}x{1}, found {2}x{3}".format(
-            width, height, final_size['width'], final_size['height']))
+        # print("DEBUG requested size {0}x{1}, found {2}x{3}".format(
+        #     width, height, final_size['width'], final_size['height']))
 
         # The window could not be inserted into the portal at the expected size.
         # Put the window in according to the position options.
@@ -506,7 +520,7 @@ def _move_resize_window(hwnd, window_info, config, pos_x, pos_y, width, height, 
         flags.append("no-size")
         flags.append('async-window-pos')
 
-        print("DEBUG could not fit window into portal, moving it instead to ({0},{1})".format(x, y))
+        # print("DEBUG could not fit window into portal, snapping {2} {3} at ({0},{1})".format(x, y, v, h))
         if not window__set_position(hwnd, z_order, x, y, 0, 0, flags):
             return False
 

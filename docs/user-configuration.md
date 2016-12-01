@@ -224,6 +224,7 @@ side is split into two vertical slices.
         size: 1
       - name: right - region 4
         type: portal
+        snap: bottom right
         size: 1
 ```
 
@@ -238,6 +239,31 @@ normally want to keep minimized.
 
 If you set a size "0" portal within a top-level layout, It acts as an
 alternative to maximizing applications.
+
+
+#### Snap Alignment for Portals
+
+Portals can also define how windows are positioned within them.  Normally,
+windows are resized to fit exactly within the portal.  However, some windows
+do not size themselves exactly (such as console windows, which set their size
+based on the font size), and some windows may be prevented from being
+resized (by disabling the [resize](#display-values) functionality).  In these
+cases, the window does not fit as expected, and can be *aligned* within the
+portal.
+
+You can specify the alignment along the vertical and horizontal sides with
+the `snap` layout attribute.  This value is a human readable string that
+declares the alignment.
+
+Examples:
+
+* *top left* (the default alignment): Position the window such that its top
+    left corner is flush with the top left corner of the portal. 
+* *bottom right*: The window's bottom right corner is flush with the bottom
+    right corner of the portal.
+* *right*: The window's right edge is against the portal's right edge, and
+    is centered vertically.
+* *center*: The window is positioned in the middle of the portal.
 
 
 #### Testing Your Layout
@@ -298,13 +324,32 @@ application-setup:
 
 This registers a single *chrome configuration*, which defines how Petronia
 will act upon the matching application window.  In this case, the
-`is_matched_chrome` value is `False`, so it won't have the title bar
-and resize borders be affected by the
-[chrome configuration](#chrome-configuration).  Additionally, `tiled` is
-set to `false` (by having a "-"), so it also will not be managed within the
-[portal layouts](#splits-and-portals), and won't react to portal movement
-key actions.
+`title` value is disabled, so it won't have the title bar, the `border` value
+is enabled, so the resize borders appear.  `tiled` is disabled, so it also
+will not be managed within the [portal layouts](#splits-and-portals), and
+won't react to portal movement key actions.
 
+
+#### Display Values
+
+The display values can either be expressed as a enabled/disabled set of values
+in a string (the *display string*), or as a dictionary of boolean (`true` or
+`false`) values.
+
+```yaml
+  - display: "+title -border +tiled -resize"
+  - has-title: true
+    has-border: true
+    is-tiled: true
+    resizable: false
+```
+
+| Display String Key | Dictionary Key | Meaning |
+| ------------------ | -------------- | ------- |
+| `title`            | `has-title`    | Enable or disable the title bar and related buttons from the top of the window. |
+| `border`           | `has-border`   | Enable or disable the resize border surrounding the window. |
+| `tiled`            | `is-tiled`     | Enabled means that the window is included in the tile management; Disabled means that the window is not moved or swapped through the tile actions. |
+| `resize`           | `resizable`    | Enabled means that the window is resized when put into a tile; Disabled means that the window is kept the same size. |
 
 
 #### Default Values

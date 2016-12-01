@@ -89,9 +89,9 @@ class GuiWindow(Identifiable, Component):
                 self.__pos_x, self.__pos_y, self.__width, self.__height = _parse_window_pos_details(
                     position_details, self.__hwnd, self.__hfont)
 
-            print("DEBUG moving window to ({0},{1}) :: {2}x{3}".format(
-                self.__pos_x, self.__pos_y, self.__width, self.__height
-            ))
+            # print("DEBUG moving window to ({0},{1}) :: {2}x{3}".format(
+            #     self.__pos_x, self.__pos_y, self.__width, self.__height
+            # ))
             if is_always_on_top:
                 window__set_position(
                     self.__hwnd, 'topmost',

@@ -137,7 +137,7 @@ application-setup:
   # can be restored to its default size and position by removing the
   # registry key
   # HKEY_CURRENT_USER\Software\Microsoft\Office\(version)\Options\Reminders
-  - display: "+border +title -tiled"
+  - display: "+border +title +tiled -resize"
     matchers:
 
     # The "reminder" dialog for Outlook.  Because these regular expressions
@@ -148,7 +148,11 @@ application-setup:
       title-re: "\\d+ reminder\\(s\\)"
       exec-path: outlook.exe
 
-    # An invisible window that Petronia mistakes for a visible window.
+  # Invisible windows that Petronia mistakes for a visible window.
+  # Keep these out of the tiling, so that "move to next window in portal"
+  # doesn't mistake this as a usable window.
+  - display: "+border +title -tiled -resize"
+    matchers:
     - class-name: MSO_BORDEREFFECT_WINDOW_CLASS
       exec-path: outlook.exe
 
