@@ -51,50 +51,50 @@ You'll also notice that your trusty <kbd>&#x2756; Win</kbd> key now doesn't
 work how you're used to.  Instead, it gives you some control over your window
 layout.
 
- * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&uarr;</kbd> - Move the currently active
+* <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&uarr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *north* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&darr;</kbd> - Move the currently active
+* <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&darr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *south* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&larr;</kbd> - Move the currently active
+* <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&larr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *west* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&rarr;</kbd> - Move the currently active
+* <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>&rarr;</kbd> - Move the currently active
     window to the [portal](user-configuration.md#splits-and-portals) *east* of where it's at now.
- * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>Page Up</kbd> - Move the currently active window
+* <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>Page Up</kbd> - Move the currently active window
     to the *next* [portal](user-configuration.md#splits-and-portals).
- * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>Page Down</kbd> - Move the currently active
+* <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>Page Down</kbd> - Move the currently active
     window to the *previous* [portal](user-configuration.md#splits-and-portals).
- * <kbd>&#x2756; Win</kbd> plus one of <kbd>&uarr;</kbd>, <kbd>&darr;</kbd>,
+* <kbd>&#x2756; Win</kbd> plus one of <kbd>&uarr;</kbd>, <kbd>&darr;</kbd>,
     <kbd>&larr;</kbd>, <kbd>&rarr;</kbd><kbd>Page Up</kbd> or <kbd>Page Down</kbd> 
     changes the focused portal to another one adjacent to the currently active portal.
- * <kbd>&#x2756; Win</kbd><kbd>,/&lt;</kbd> Flip to the previous window in the
+* <kbd>&#x2756; Win</kbd><kbd>,/&lt;</kbd> Flip to the previous window in the
     current portal.
- * <kbd>&#x2756; Win</kbd><kbd>./&gt;</kbd> Flip to the next window in the
+* <kbd>&#x2756; Win</kbd><kbd>./&gt;</kbd> Flip to the next window in the
     current portal.
- * <kbd>&#x2756; Win</kbd><kbd>Tab</kbd> Minimize the currently active window. 
- * <kbd>&#x2756; Win</kbd><kbd>Launch App 1</kbd> Start a command prompt
+* <kbd>&#x2756; Win</kbd><kbd>Tab &#x21b9;</kbd> Switch to the last flashing window. 
+* <kbd>&#x2756; Win</kbd><kbd>Launch App 1</kbd> Start a command prompt
     window.  This is usually the extra media button that looks like a
     computer.
- * <kbd>&#x2756; Win</kbd><kbd>Esc</kbd> Open up the Windows start menu.
+* <kbd>&#x2756; Win</kbd><kbd>Esc</kbd> Open up the Windows start menu.
     Since the Windows key has been preempted, this explicit remapping of the
     functionality becomes necessary.
- * <kbd>&#x2756; Win</kbd><kbd>~</kbd> Switch over to Windows Classic mode.
- * <kbd>&#x2756; Win</kbd><kbd>F11</kbd> Switch to Resize Mode.  This allows
+* <kbd>&#x2756; Win</kbd><kbd>~</kbd> Switch over to Windows Classic mode.
+* <kbd>&#x2756; Win</kbd><kbd>F11</kbd> Switch to Resize Mode.  This allows
     you to resize the active window using the keyboard.  Press
     <kbd>Esc</kbd> to return to the default hotkey mode.
- * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>F2</kbd> Reload the current
+* <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>F2</kbd> Reload the current
     configuration file.
- * <kbd>&#x2756; Win</kbd><kbd>&#x21e7; Shift</kbd><kbd>0-9</kbd> Save the
+* <kbd>&#x2756; Win</kbd><kbd>&#x21e7; Shift</kbd><kbd>0-9</kbd> Save the
     current [portal](user-configuration.md#splits-and-portals) as associated
     with this number key, for quick re-focusing.
- * <kbd>&#x2756; Win</kbd><kbd>0-9</kbd> Focus on the top window in the
+* <kbd>&#x2756; Win</kbd><kbd>0-9</kbd> Focus on the top window in the
     [portal](user-configuration.md#splits-and-portals) that was previously
     saved with the
     <kbd>&#x2756; Win</kbd><kbd>&#x21e7; Shift</kbd><kbd>0-9</kbd> hotkey.
- * <kbd>&#x2756; Win</kbd><kbd>P</kbd> Start up a new command prompt with a
+* <kbd>&#x2756; Win</kbd><kbd>P</kbd> Start up a new command prompt with a
     blue background, white text, and in the root directory.
- * <kbd>&#x2756; Win</kbd><kbd>E</kbd> Start Windows Explorer to browse
+* <kbd>&#x2756; Win</kbd><kbd>E</kbd> Start Windows Explorer to browse
     your files.
- * <kbd>&#x2756; Win</kbd><kbd>F4</kbd> This is supposed to quit Petronia.
+* <kbd>&#x2756; Win</kbd><kbd>F4</kbd> This is supposed to quit Petronia.
     If you started it with `petronia-cli`, this will partially stop
     the application, but it won't fully terminate.  If you instead ran
     `petronia`, then this should stop the application.
