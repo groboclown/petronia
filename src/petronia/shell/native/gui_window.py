@@ -14,6 +14,7 @@ from ...arch.funcs import (
     window__get_font_for_description,
     window__move_resize,
     window__send_message,
+    window__post_message,
     window__repaint,
     window__do_paint,
     window__do_draw,
@@ -125,7 +126,8 @@ class GuiWindow(Identifiable, Component):
             self.__removing = True
             if not self.__has_quit:
                 self._log_verbose("Sending quit message to window {0} / {1}".format(self.cid, self.__hwnd))
-                window__send_message(self.__hwnd, windows_constants.WM_QUIT, 0, 0)
+                # window__send_message(self.__hwnd, windows_constants.WM_QUIT, 0, 0)
+                window__post_message(self.__hwnd, windows_constants.WM_CLOSE, 0, 0)
         finally:
             super().close()
 

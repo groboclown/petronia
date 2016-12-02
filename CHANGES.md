@@ -1,6 +1,6 @@
 # Petronia Change History
 
-## :: v2.3 ::
+## :: v2.2.1 ::
 
 ### Overview
 
@@ -9,7 +9,8 @@
 ### Details
 
 * Bug fixes.
-    * Well, actually, none yet.
+    * Portal chrome now correctly closes the chrome bits on
+        a layout change.
 
 
 ## :: v2.2 ::
