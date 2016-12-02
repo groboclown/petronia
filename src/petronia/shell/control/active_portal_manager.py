@@ -89,7 +89,7 @@ class ActivePortalManager(Identifiable, Component):
         active = self._find_active_portal_cid()
         if active is not None:
             # This is the temporary movement handler until navigation can handle it better.
-            self._log_verbose("Moving active window in {0} {1}".format(
+            self._log_debug("Moving active window in {0} {1}".format(
                 active, event_obj['direction']
             ))
             direction = event_obj['direction']

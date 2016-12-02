@@ -325,10 +325,14 @@ def window__wait_gui_thread_idle(hwnd):
 
 
 def window__send_message(hwnd, key, arg1, arg2):
+    if _attach_message_queue_to_thread(hwnd):
+        return True
     return windll.user32.SendMessageW(hwnd, key, arg1, arg2)
 
 
 def window__post_message(hwnd, key, arg1, arg2):
+    if _attach_message_queue_to_thread(hwnd):
+        return True
     res = windll.user32.PostMessageW(hwnd, key, arg1, arg2)
     return res != 0
 
@@ -540,8 +544,8 @@ def window__activate(hwnd):
     # if the results are non-zero.  Some of these will not succeed due to
     # attributes of the window, rather than the window not existing.
     windll.user32.SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE)
-    windll.user32.SetForegroundWindow(hwnd)
     windll.user32.AttachThreadInput(thread_process_id, current_thread_id, False)
+    windll.user32.SetForegroundWindow(hwnd)
     windll.user32.SetFocus(hwnd)
     windll.user32.SetActiveWindow(hwnd)
     return True
@@ -1406,3 +1410,17 @@ def process__get_window_state(thread_pid):
 
 def process__get_current_pid():
     return windll.kernel32.GetCurrentProcessId()
+
+
+def _attach_message_queue_to_thread(current_hwnd):
+    current_thread_id = windll.kernel32.GetCurrentThreadId()
+    thread_process_id = windll.user32.GetWindowThreadProcessId(current_hwnd, None)
+    if thread_process_id != current_thread_id:
+        res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
+        # ERROR_INVALID_PARAMETER means that the two threads are already attached.
+        if res == 0 and GetLastError() != ERROR_INVALID_PARAMETER:
+            # TODO better logging
+            print("WARN: could not attach thread input to thread {0} ({1})".format(thread_process_id, GetLastError()))
+            return True
+    windll.user32.AttachThreadInput(thread_process_id, current_thread_id, False)
+    return False

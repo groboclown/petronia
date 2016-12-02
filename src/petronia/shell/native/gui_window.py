@@ -102,7 +102,7 @@ class GuiWindow(Identifiable, Component):
 
             shell__pump_messages(on_exit_callback)
 
-            print("window quit")
+            self._log_info("Window {0} quit".format(self.cid))
             self.__has_quit = True
 
         pump_thread = threading.Thread(
@@ -124,6 +124,7 @@ class GuiWindow(Identifiable, Component):
         try:
             self.__removing = True
             if not self.__has_quit:
+                self._log_verbose("Sending quit message to window {0} / {1}".format(self.cid, self.__hwnd))
                 window__send_message(self.__hwnd, windows_constants.WM_QUIT, 0, 0)
         finally:
             super().close()

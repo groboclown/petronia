@@ -1,5 +1,29 @@
 
-## Custom Commands
+# Custom Commands
+
+The hotkeys allow for running commands, but these commands are limited to
+the built-in set of commands provided by Petronia.  However, it is possible
+to write your own commands.
+
+Additional commands are added to the configuration, and can be referenced
+by the hotkey configuration like any other built-in command.
+
+
+## Adding Commands through Plugins
+
+If you're using the [components](user-components.md), you can add in a
+singleton component that registers new commands.
+
+The plugins themselves would add in the command to the configuration object
+passed to the `get_factory` function, as `config.commands.add_command(cmd)`.
+
+
+## Adding Commands through the Python Configuration
+
+*TODO* This is described below, but needs to be restructured.
+
+
+## Writing Commands
 
 The *command* configuration object (`CommandConfig`) allows for registering
 custom commands.  Each command must be a `petronia.script.command.Command`
@@ -24,10 +48,10 @@ base_config.add_command(Command('set-log-level', change_log_level))
 Then you can write a hotkey definition:
 
 ```
-alt + shift + f1 => set-log-level debug
+"alt + shift + f1": ['set-log-level', 'debug']
 ```
 
-If you're writing a command that interacts with the interworkings of Petronia,
+If you're writing a command that interacts with the inner workings of Petronia,
 then you'll have to send signals through the event bus.
 
 If you really want to get funky, you can reach into the bowels of the winapi

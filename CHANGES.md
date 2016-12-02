@@ -7,6 +7,8 @@
 * Added "resizable" flag for applications.
 * Added "snap" option to portals.
 * detect-monitors command now supports different output formats.
+* Added user extensions directory support.
+* Changed how you specify the layout argument at the command line.
 * Documentation improvements.
 * Bug fixes.
 
@@ -28,6 +30,18 @@
     * Run with "-f (format)" to output in a different format.
     * Supported formats are: `yaml`, `json`, and `py`.
     * Format now defaults to `yaml` instead of python.
+* Added user extensions directory support.
+    * You can either use the `%PETRONIA_USER_DIR%` environment variable, or
+        the `-e` command-line argument, to specify where Petronia should look
+        for user extensions.  This allows for adding in components to your
+        configuration.
+* Changed how you specify the layout argument at the command line.
+    * It used to be that the layout name was the optional second argument.  Now,
+        you must specify it with the `-l` or `--layout` argument.
+    * The check-layout command is unchanged.
+    * Command-line parsing for cmd and main now use argparse to grant the
+        ability to have more complex arguments.  Unfortunately, this lead to
+        the backwards incompatibility with the layout name.
 * Documentation improvements.
     * Cleaning up to better reflect the current version.
 * Bug fixes.

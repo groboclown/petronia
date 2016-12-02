@@ -89,6 +89,7 @@ class _PortalGuiWindow(GuiWindow):
 
     # noinspection PyUnusedLocal
     def _on_portal_removed(self, event_id, target_id, event_obj):
+        self._log_info("Removing portal chrome {0}".format(self.cid))
         # TODO is this the right call?
         self.close()
 
@@ -107,21 +108,21 @@ class _PortalGuiWindow(GuiWindow):
 
     # noinspection PyUnusedLocal
     def _on_portal_flashing(self, event_id, target_id, event_obj):
+        self._log_verbose("Flashing portal chrome {0}".format(self.cid))
         color_c1 = self.color_1
         color_c2 = self.color_2
         color_f1 = _brighten_color(self.color_1)
         color_f2 = _brighten_color(self.color_2)
 
         def flash():
-            for i in range(self._manager.flash_count):
-                self.color_1 = color_f1
-                self.color_2 = color_f2
-                self.draw()
-                time.sleep(self._manager.flash_time)
-                self.color_1 = color_c1
-                self.color_2 = color_c2
-                self.draw()
-                time.sleep(self._manager.flash_time)
+            # Just flash once.  Windows will send a message if another flash is required.
+            self.color_1 = color_f1
+            self.color_2 = color_f2
+            self.draw()
+            time.sleep(self._manager.flash_time)
+            self.color_1 = color_c1
+            self.color_2 = color_c2
+            self.draw()
 
         threading.Thread(
             target=flash,

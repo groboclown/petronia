@@ -14,8 +14,11 @@ from petronia.shell.native.window_mapper import WindowMapper
 from petronia.script.read_config import read_user_configuration
 from petronia.tests.bus_logger import log_events
 from petronia.script.script_logger import create_stdout_logger
+from petronia.version import VERSION
 
 import sys
+import os
+import argparse
 
 
 def setup(config_file, layout_name):
@@ -40,15 +43,51 @@ def setup(config_file, layout_name):
 
 
 def main_setup():
-    if len(sys.argv) <= 1:
-        print("Usage: arg 1: the user configuration file")
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.description = "Window tiling manager for Windows."
+    parser.add_argument(
+        "configfile",
+        help="Configuration file for setting up the display.  Supported formats are: yaml, json, and py.")
+    parser.add_argument(
+        "-l", "--layout",
+        required=False,
+        help="Initial layout.  If not given, the layout named `default' is used.")
+    parser.add_argument(
+        "-v", "--version",
+        help="Show the version and quit.",
+        action="store_true"
+    )
+    parser.add_argument(
+        "-e", "--extensions",
+        help="Directory where the user extensions are stored.  Defaults to environment variable %%PETRONIA_USER_DIR%%"
+    )
 
-    layout_name = None
-    if len(sys.argv) >= 3:
-        layout_name = sys.argv[2]
+    # argparse doesn't allow for the "-v" by itself.
+    for arg in sys.argv[1:]:
+        if arg == '-v' or arg == '--version':
+            parser.exit(message="Petronia v{0}\nRunning Python {1}".format(VERSION, sys.version))
 
-    setup(sys.argv[1], layout_name)
+    args = parser.parse_args()
+
+    if args.version:
+        parser.exit(message="Petronia v{0}\nRunning Python {1}".format(VERSION, sys.version))
+
+    if args.extensions:
+        if os.path.isdir(args.extensions):
+            sys.path.append(args.extensions)
+        else:
+            print("User extensions directory ({0}) does not exist. Skipping.".format(args.extensions))
+    elif 'PETRONIA_USER_DIR' in os.environ:
+        if os.path.isdir(os.environ['PETRONIA_USER_DIR']):
+            sys.path.append(os.environ['PETRONIA_USER_DIR'])
+        else:
+            print("User extensions directory from environment ({0}) does not exist.  Skipping.".format(
+                os.environ['PETRONIA_USER_DIR']))
+
+    if not args.configfile or not os.path.isfile(args.configfile):
+        parser.error("Missing configuration file.  Use `-h' to see the full usage.")
+
+    setup(args.configfile, args.layout)
 
 
 if __name__ == '__main__':

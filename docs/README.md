@@ -1,6 +1,7 @@
 # Words for Users
 
 * [Getting Started](user-getting-started.md)
+* [Guide to Executables](user-execs.md)
 * Configuration:
     * [Configuration Guide](user-configuration.md)
     * [Configuration Through Python](user-configuration-py.md)
