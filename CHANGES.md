@@ -37,6 +37,8 @@
     * Portal chrome windows no longer shows up on the task bar.
     * Correctly associated portals to their aliases.  This information wasn't
         being passed to the portal factory before.
+    * Hide the "KeyboardInterrupt" exception from users when running the
+        detect-keys command, because this is an expected action.
 
 
 ## :: v2.1 ::

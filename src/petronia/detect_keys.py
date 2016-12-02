@@ -58,7 +58,11 @@ if __name__ == '__main__':
     # Hide stdin user input.
     # Otherwise, the keys are echoed out, and we see duplicate
     # values.
-    while True:
-        getpass.getpass("")
+    try:
+        while True:
+            getpass.getpass("")
+    except KeyboardInterrupt:
+        # Swallow the exception
+        pass
 
     sys.exit()
