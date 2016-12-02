@@ -6,6 +6,7 @@
 
 * Added "resizable" flag for applications.
 * Added "snap" option to portals.
+* detect-monitors command now supports different output formats.
 * Documentation improvements.
 * Bug fixes.
 
@@ -23,6 +24,10 @@
         behavior), the window snaps to the top-left corner of a portal.  Now
         it can be positioned relative to any corner or side.
     * Updated "no_border_config" and "border_config" to use the flag.
+* detect-monitors command now supports different output formats.
+    * Run with "-f (format)" to output in a different format.
+    * Supported formats are: `yaml`, `json`, and `py`.
+    * Format now defaults to `yaml` instead of python.
 * Documentation improvements.
     * Cleaning up to better reflect the current version.
 * Bug fixes.
