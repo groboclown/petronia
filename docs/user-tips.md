@@ -25,10 +25,10 @@ Instead, you can use a combination of the commands
 and [focus-portal-by-alias](user-commands.md#focus-portal-by-alias-alias_name)
 with 2 different aliases.
 
-# Switch to Window A
-# Press the hotkey for `create-current-portal-alias windowA`
-# Switch to Window B
-# Press the hotkey for `create-current-portal-alias windowB`
+1. Switch to Window A
+2. Press the hotkey for `create-current-portal-alias windowA`
+3. Switch to Window B
+4. Press the hotkey for `create-current-portal-alias windowB`
 
 From that point, you can use the hotkeys setup for
 `focus-portal-by-alias windowA` and `focus-portal-by-alias windowB` to swap
