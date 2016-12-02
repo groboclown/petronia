@@ -50,7 +50,7 @@ if __name__ == '__main__':
         __monitor = __monitors[__index]
         __lines.append(FORMATS[__format][1].format(
             b='{', e='}',
-            index=__index,
+            index=__index + 1,
             top=__monitor['top'],
             bottom=__monitor['bottom'],
             left=__monitor['left'],

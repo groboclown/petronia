@@ -665,7 +665,6 @@ def window__create_display_window(
         if flag in WS_STYLE_BIT_MAP:
             style |= WS_STYLE_BIT_MAP[flag]
 
-    print("DEBUG create window ex style {0} style {1}".format(hex(ex_style), hex(style)))
     hwnd = CreateWindowExW(
         ex_style, class_name, title,
         style,

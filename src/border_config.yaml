@@ -166,6 +166,13 @@ application-setup:
     - exec-path: chrome.exe
     - exec-path: explorer.exe
     - exec-path: outlook.exe
+
+  # cmd and powershell require a border and title, otherwise it displays all funky.
+  - display: "+border +title +tiled +resize"
+    matchers:
+    - exec-path: cmd.exe
+    - exec-path: powershell.cmd
+
   - location: [left]
     matchers:
     - exec-path: firefox.exe

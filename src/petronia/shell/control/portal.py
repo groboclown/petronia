@@ -21,7 +21,6 @@ def portal_factory(cid, arguments, bus, id_manager, config):
         layout_def = arguments['layout-def']
         ret.snap_horizontal = layout_def.snap_horizontal
         ret.snap_vertical = layout_def.snap_vertical
-        print("DEBUG setting portal {0} to snap {1} {2}".format(layout_def.name, ret.snap_vertical, ret.snap_horizontal))
         bus.fire(event_ids.PORTAL__CREATE_ALIAS, target_ids.ACTIVE_PORTAL_MANAGER, {
              'alias': layout_def.name,
              'portal-cid': cid,

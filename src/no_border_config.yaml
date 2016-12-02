@@ -180,10 +180,11 @@ application-setup:
     - exec-path: explorer.exe
     - exec-path: outlook.exe
 
-  # cmd requires a border, otherwise it displays all funky.
-  - display: "+border -title +tiled"
+  # cmd and powershell require a border and title, otherwise it displays all funky.
+  - display: "+border +title +tiled +resize"
     matchers:
     - exec-path: cmd.exe
+    - exec-path: powershell.cmd
 
   # Set some locations for applications
   - location: [left]
