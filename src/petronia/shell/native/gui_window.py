@@ -61,7 +61,11 @@ class GuiWindow(Identifiable, Component):
 
         # noinspection PyUnusedLocal
         def paint(hwnd, message, wparam, lparam):
-            window__do_paint(hwnd, do_paint)
+            try:
+                window__do_paint(hwnd, do_paint)
+            except OSError:
+                # This usually means that the window is no longer available.
+                self.close()
 
         def on_exit_callback():
             self.__has_quit = True
@@ -90,9 +94,6 @@ class GuiWindow(Identifiable, Component):
                 self.__pos_x, self.__pos_y, self.__width, self.__height = _parse_window_pos_details(
                     position_details, self.__hwnd, self.__hfont)
 
-            # print("DEBUG moving window to ({0},{1}) :: {2}x{3}".format(
-            #     self.__pos_x, self.__pos_y, self.__width, self.__height
-            # ))
             if is_always_on_top:
                 window__set_position(
                     self.__hwnd, 'topmost',
@@ -103,7 +104,7 @@ class GuiWindow(Identifiable, Component):
 
             shell__pump_messages(on_exit_callback)
 
-            self._log_info("Window {0} quit".format(self.cid))
+            self._log_verbose("Window {0} quit".format(self.cid))
             self.__has_quit = True
 
         pump_thread = threading.Thread(
@@ -125,7 +126,7 @@ class GuiWindow(Identifiable, Component):
         try:
             self.__removing = True
             if not self.__has_quit:
-                self._log_verbose("Sending quit message to window {0} / {1}".format(self.cid, self.__hwnd))
+                self._log_debug("Sending quit message to window {0} / {1}".format(self.cid, self.__hwnd))
                 # window__send_message(self.__hwnd, windows_constants.WM_QUIT, 0, 0)
                 window__post_message(self.__hwnd, windows_constants.WM_CLOSE, 0, 0)
         finally:
@@ -138,13 +139,21 @@ class GuiWindow(Identifiable, Component):
 
     def draw(self):
         if not self.__has_quit:
-            window__repaint(self.__hwnd)
+            try:
+                window__repaint(self.__hwnd)
+            except OSError:
+                # This usually means that the window is no longer available.
+                self.close()
 
     def draw_now(self):
         def do_paint(hwnd, hdc):
             window_size = window__client_rectangle(hwnd)
             self._on_paint(hwnd, hdc, window_size['width'], window_size['height'])
-        window__do_draw(self.__hwnd, do_paint)
+        try:
+            window__do_draw(self.__hwnd, do_paint)
+        except OSError:
+            # This usually means that the window is no longer available.
+            self.close()
 
     def move_resize(self, pos_x, pos_y, width, height, force_on_top=False):
         self.__pos_x = pos_x
@@ -176,6 +185,7 @@ class GuiWindow(Identifiable, Component):
                 ['no-activate'])
 
     def _on_paint(self, hwnd, hdc, width, height):
+        # Overridden by instances to draw the window themselves.
         pass
 
     @staticmethod

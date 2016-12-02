@@ -154,7 +154,7 @@ class Portal(Tile):
     def _on_set_first_window_focused(self, event_id, target_id, event_obj):
         # Make our top window activated
         if len(self.__windows) <= 0:
-            self._log_info("Cannot activate window in portal {0}: no registered windows".format(self.cid))
+            self._log_verbose("Cannot activate window in portal {0}: no registered windows".format(self.cid))
             return
 
         if self.__top_window_index is None or self.__top_window_index >= len(self.__windows):
