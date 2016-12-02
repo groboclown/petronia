@@ -42,7 +42,7 @@ title bars removed.
 The [no_border_config.yaml](../src/no_border_config.yaml) is very similar to
 the [border_config.yaml](#border_configyaml) file, but with borders stripped
 off of most windows.  To compensate for this, each portal has a "status"
-bar at the bottom to indicate whether it's ative or not.
+bar at the bottom to indicate whether it's active or not.
 
 
 ## Configuration Parts
