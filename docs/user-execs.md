@@ -11,7 +11,7 @@ how to use them.
 Window tiling manager for Windows.
 
 The `petronia-cli` is identical to `petronia`, but runs as a terminal program,
-for easier monitoring.  Additionally, you need to press <kbd>&crarrow; Enter</kbd> in
+for easier monitoring.  Additionally, you need to press <kbd>&crarr; Enter</kbd> in
 the console window to end the program.
 
 **Positional arguments:**
