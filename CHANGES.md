@@ -10,7 +10,7 @@
 
 * Bug fixes.
     * Portal chrome now correctly closes the chrome bits on
-        a layout change.
+        a layout change. (#8)
 
 
 ## :: v2.2 ::
