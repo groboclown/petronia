@@ -1,5 +1,17 @@
 # Petronia Change History
 
+## :: v2.3 ::
+
+### Overview
+
+* Bug fixes.
+
+### Details
+
+* Bug fixes.
+    * Well, actually, none yet.
+
+
 ## :: v2.2 ::
 
 ### Overview
