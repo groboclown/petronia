@@ -32,6 +32,10 @@ def open_start_menu(bus):
 
     Especially handy if you've disabled Windows from processing the Windows key.
 
+    *HUGE WARNING* Currently, this command doesn't work right for Windows 8 and
+    Windows 10 users. If you have the StarDock "Start8" tool running, though, it
+    will correctly open the start menu.
+
     :param bus:
     """
     bus.fire(event_ids.TELL_WINDOWS__OPEN_START_MENU, target_ids.WINDOWS_HOOKS, {})
@@ -54,9 +58,6 @@ def switch_top_window(bus, direction):
     """
     Switch which window in the currently active portal (the one with the "portal
     focus") is on top.
-
-    *Not implemented yet.*  The code for this is at `active_portal_manager.py`,
-    in the `_on_window_zorder_change` method.
 
     :param bus:
     :param direction: one of `north`, `south`, `east`, `west`, `next`, `previous`

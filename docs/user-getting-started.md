@@ -21,7 +21,7 @@ Unzip the distribution into a place on your hard drive.
 ## Run the Stuff
 
 Start up a command prompt.  You can do this through a bunch of ways, but
-probably the easiest is <kbd>&#x2756; Win</kbd><kbd>r</kbd> to open the
+probably the easiest is <kbd>&#x2756; Win</kbd><kbd>R</kbd> to open the
 **Run** dialog, type in `cmd` in the text field, and click **OK**.
 
 Then, in the command prompt, enter:
@@ -64,7 +64,7 @@ layout.
 * <kbd>&#x2756; Win</kbd><kbd>Alt</kbd><kbd>Page Down</kbd> - Move the currently active
     window to the *previous* [portal](user-configuration.md#splits-and-portals).
 * <kbd>&#x2756; Win</kbd> plus one of <kbd>&uarr;</kbd>, <kbd>&darr;</kbd>,
-    <kbd>&larr;</kbd>, <kbd>&rarr;</kbd><kbd>Page Up</kbd> or <kbd>Page Down</kbd> 
+    <kbd>&larr;</kbd>, <kbd>&rarr;</kbd>, <kbd>Page Up</kbd>, or <kbd>Page Down</kbd>
     changes the focused portal to another one adjacent to the currently active portal.
 * <kbd>&#x2756; Win</kbd><kbd>,/&lt;</kbd> Flip to the previous window in the
     current portal.

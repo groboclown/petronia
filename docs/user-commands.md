@@ -57,9 +57,6 @@ currently focused portal.  The focused portal can be setup through the
 Switch which window in the currently active portal (the one with the "portal
 focus") is on top.
 
-*Not implemented yet.*  The code for this is at `active_portal_manager.py`,
-in the `_on_window_zorder_change` method.
-
 
 
 ### `switch-layout (layout_name)`
