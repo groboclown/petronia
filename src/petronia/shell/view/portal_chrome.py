@@ -43,6 +43,10 @@ class _PortalGuiWindow(GuiWindow):
         # Make configuration better
         self.color_1 = 0
         self.color_2 = 0
+        self.color_1f = 0x202020
+        self.color_2f = 0x202020
+        self._flashing = False
+        self._use_flash_color = False
         self.accent_width = 64
 
         left, right, top, bottom = manager.get_chrome_size(pos_x, pos_y, width, height)
@@ -69,23 +73,29 @@ class _PortalGuiWindow(GuiWindow):
         self.move_resize(left, top, right - left, bottom - top, self._is_active)
 
     def _on_paint(self, hwnd, hdc, width, height):
-        self._draw_rect(hdc, 0, 0, width, height, self.color_1)
+        c1 = self.color_1
+        c2 = self.color_2
+        if self._use_flash_color:
+            c1 = self.color_1f
+            c2 = self.color_2f
+        self._log_debug("Using colors #{0} #{1}".format(hex(c1), hex(c2)))
+        self._draw_rect(hdc, 0, 0, width, height, c1)
         if width >= self.accent_width * 3:
             if height >= self.accent_width * 3:
                 # 4 corners of color
-                self._draw_rect(hdc, 0, 0, self.accent_width, self.accent_width, self.color_2)
-                self._draw_rect(hdc, width - self.accent_width, 0, self.accent_width, self.accent_width, self.color_2)
-                self._draw_rect(hdc, 0, height - self.accent_width, self.accent_width, self.accent_width, self.color_2)
+                self._draw_rect(hdc, 0, 0, self.accent_width, self.accent_width, c2)
+                self._draw_rect(hdc, width - self.accent_width, 0, self.accent_width, self.accent_width, c2)
+                self._draw_rect(hdc, 0, height - self.accent_width, self.accent_width, self.accent_width, c2)
                 self._draw_rect(hdc, width - self.accent_width, height - self.accent_width, self.accent_width,
-                                self.accent_width, self.color_2)
+                                self.accent_width, c2)
             else:
                 # Vertical bars of color
-                self._draw_rect(hdc, 0, 0, self.accent_width, height, self.color_2)
-                self._draw_rect(hdc, width - self.accent_width, 0, self.accent_width, height, self.color_2)
+                self._draw_rect(hdc, 0, 0, self.accent_width, height, c2)
+                self._draw_rect(hdc, width - self.accent_width, 0, self.accent_width, height, c2)
         elif height >= self.accent_width * 3:
             # Horizontal bars of color
-            self._draw_rect(hdc, 0, 0, width, self.accent_width, self.color_2)
-            self._draw_rect(hdc, 0, height - self.accent_width, width, self.accent_width, self.color_2)
+            self._draw_rect(hdc, 0, 0, width, self.accent_width, c2)
+            self._draw_rect(hdc, 0, height - self.accent_width, width, self.accent_width, c2)
 
     # noinspection PyUnusedLocal
     def _on_portal_removed(self, event_id, target_id, event_obj):
@@ -108,21 +118,19 @@ class _PortalGuiWindow(GuiWindow):
 
     # noinspection PyUnusedLocal
     def _on_portal_flashing(self, event_id, target_id, event_obj):
-        self._log_verbose("Flashing portal chrome {0}".format(self.cid))
-        color_c1 = self.color_1
-        color_c2 = self.color_2
-        color_f1 = _brighten_color(self.color_1)
-        color_f2 = _brighten_color(self.color_2)
+        self._log_debug("Flashing portal chrome {0}".format(self.cid))
 
         def flash():
             # Just flash once.  Windows will send a message if another flash is required.
-            self.color_1 = color_f1
-            self.color_2 = color_f2
+            if self._flashing:
+                return
+            self._flashing = True
+            self._use_flash_color = True
             self.draw()
             time.sleep(self._manager.flash_time)
-            self.color_1 = color_c1
-            self.color_2 = color_c2
+            self._use_flash_color = False
             self.draw()
+            self._flashing = False
 
         threading.Thread(
             target=flash,
@@ -143,6 +151,8 @@ class _PortalGuiWindow(GuiWindow):
         height = portal_size['height']
 
         self.color_1, self.color_2 = self._manager.active_colors
+        self.color_1f = _brighten_color(self.color_1)
+        self.color_2f = _brighten_color(self.color_2)
         self.set_portal_size(pos_x, pos_y, width, height)
         self.draw()
 
@@ -160,6 +170,8 @@ class _PortalGuiWindow(GuiWindow):
         height = portal_size['height']
 
         self.color_1, self.color_2 = self._manager.inactive_colors
+        self.color_1f = _brighten_color(self.color_1)
+        self.color_2f = _brighten_color(self.color_2)
         self.set_portal_size(pos_x, pos_y, width, height)
         self.draw()
 
@@ -169,7 +181,7 @@ def _brighten_color(c):
     r = (c >> 16) & 0xff
     g = (c >> 8) & 0xff
     b = c & 0xff
-    return ((max(0xff, r << 1) << 16) & 0xff0000) | ((max(0xff, g << 1) << 8) & 0xff00) | (max(0xff, b << 1) & 0xff)
+    return ((min(0xff, r << 1) << 16) & 0xff0000) | ((min(0xff, g << 1) << 8) & 0xff00) | (min(0xff, b << 1) & 0xff)
 
 
 def _darken_color(c):
@@ -199,8 +211,8 @@ class PortalChromeManager(Identifiable, Component):
         self._inactive_color2 = 0x404040
         self._position = 'bottom'
         self._width = 10
-        self.flash_time = 1.2
-        self.flash_count = 3
+        self.flash_time = 0.8
+        self.flash_count = 3  # FIXME remove
         self.update_border()
 
     @property
@@ -287,5 +299,7 @@ class PortalChromeManager(Identifiable, Component):
                 gui = _PortalGuiWindow(target_id, self._bus, pos_x, pos_y, width, height, self)
                 gui.color_1 = self._inactive_color1
                 gui.color_2 = self._inactive_color2
+                gui.color_1f = _brighten_color(self._inactive_color1)
+                gui.color_2f = _brighten_color(self._inactive_color2)
                 # TODO setup flash
                 self.__portal_map[target_id]['gui'] = gui
