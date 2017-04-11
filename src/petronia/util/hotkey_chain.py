@@ -9,14 +9,21 @@ _CURRENT_KEY_STATE = [False] * _MAX_VK_KEY
 _MODIFIERS = set()
 
 
-def on_key_hook(vk_code, is_down):
+def on_key_hook(vk_code, is_down, special_modifier_state = None):
     """
     Module-wide storage for the current key state.
 
     :param vk_code:
     :param is_down:
+    :param special_modifier_state: map of vcodes to the up/down state
+        (True == is_down, False == !is_down).  This is part of the
+        windows key state / locked desktop work-around.
     :return: True if it's a recognized key, False if it isn't known.
     """
+    if special_modifier_state is not None:
+        for k, v in special_modifier_state.items():
+            if k != vk_code and k in _MODIFIER_KEYS:
+                _CURRENT_KEY_STATE[k] = v
     if 0 <= vk_code <= _MAX_VK_KEY:
         _CURRENT_KEY_STATE[vk_code] = is_down
         if vk_code in _MODIFIER_KEYS:
@@ -621,3 +628,8 @@ for __k in MODIFIERS:
     _MODIFIER_KEYS.add(STR_VK_MAP[__k])
 
 _WIN_KEYS = [STR_VK_MAP['lwin'], STR_VK_MAP['rwin']]
+
+
+SPECIAL_MODIFIER_CHECK_VKEY_CODES = (
+    STR_VK_MAP['lwin'], STR_VK_MAP['rwin']
+)

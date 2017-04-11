@@ -12,12 +12,16 @@ from ...arch.funcs import (
     shell__keyboard_hook, shell__shell_hook, shell__pump_messages, shell__unhook,
     shell__create_global_message_handler, shell__register_window_hook,
     shell__open_start_menu, shell__inject_scancode, shell__lock_workstation,
+    shell__is_key_pressed,
     window__create_message_window, monitor__find_monitors, window__send_message,
     SHELL__CANCEL_CALLBACK_CHAIN
 )
 from ...arch import windows_constants
 from ...config import Config, DEFAULT_MODE, MODE_CHANGE_COMMAND
-from ...util.hotkey_chain import on_key_hook, ACTION_PENDING, IGNORED, STR_VK_MAP
+from ...util.hotkey_chain import (
+    on_key_hook, ACTION_PENDING, IGNORED,
+    STR_VK_MAP, SPECIAL_MODIFIER_CHECK_VKEY_CODES
+)
 import threading
 
 # for the bits of Windows compatiblity that oozed out of funcs
@@ -105,7 +109,15 @@ class WindowsHookEvent(Identifiable, Component):
         self.__mode_keys = mode_chains[self.__mode]
 
     def _modal_hotkey(self, vk_code, is_down):
-        if on_key_hook(vk_code, is_down):
+        # HAAAACK
+        # Due to issues when the user locks the desktop, the windows key
+        # release hook can get lost.  Because of that, we need to test if
+        # the windows key is up or down, and send that to the hook.
+        specials = {}
+        for special_code in SPECIAL_MODIFIER_CHECK_VKEY_CODES:
+            specials[special_code] = shell__is_key_pressed(special_code)
+        
+        if on_key_hook(vk_code, is_down, specials):
             res = self.__key_combos[self.__mode].key_action(vk_code, is_down)
             if res == IGNORED:
                 return None

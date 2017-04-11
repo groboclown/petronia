@@ -55,6 +55,7 @@ def load_functions(environ, func_map):
     func_map['paint__draw_text'] = paint__draw_text
     func_map['paint__draw_outline_text'] = paint__draw_outline_text
     func_map['shell__get_task_bar_window_handles'] = shell__get_task_bar_window_handles
+    func_map['shell__is_key_pressed'] = shell__is_key_pressed
     func_map['shell__keyboard_hook'] = shell__keyboard_hook
     func_map['shell__shell_hook'] = shell__shell_hook
     func_map['shell__register_window_hook'] = shell__register_window_hook
@@ -946,6 +947,12 @@ def shell__get_task_bar_window_handles():
             ret.append(hwnd)
 
     return ret
+
+
+def shell__is_key_pressed(vkey):
+    state = windll.user32.GetAsyncKeyState(vkey)
+    return state != 0
+
 
 SHELL__CANCEL_CALLBACK_CHAIN = "Cancel"
 
