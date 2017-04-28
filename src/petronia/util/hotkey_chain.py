@@ -23,6 +23,13 @@ def on_key_hook(vk_code, is_down, special_modifier_state = None):
     if special_modifier_state is not None:
         for k, v in special_modifier_state.items():
             if k != vk_code and k in _MODIFIER_KEYS:
+                if _CURRENT_KEY_STATE[k] != v:
+                    print("DEBUG modifier {0} does not match inner state.".format(k))
+                    if k in _MODIFIER_KEYS:
+                        if is_down:
+                            _MODIFIERS.add(k)
+                        else:
+                            _MODIFIERS.remove(k)
                 _CURRENT_KEY_STATE[k] = v
     if 0 <= vk_code <= _MAX_VK_KEY:
         _CURRENT_KEY_STATE[vk_code] = is_down
