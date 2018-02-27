@@ -329,7 +329,7 @@ class WindowMapper(Identifiable, Component):
             hwnd = self.__cid_to_handle[target_id]
 
             if not str(hwnd) in self.__handle_map:
-                self._log_error("Attempting to set focus on unknown handle {0}".format(info))
+                self._log_error("Attempting to set focus on unknown handle {0}".format(hwnd))
                 return
             info = self.__handle_map[str(hwnd)]
             info = self._create_window_info(info)
