@@ -42,15 +42,13 @@ def setup(config_file, layout_name):
     return bus
 
 
-def main_setup():
+def main_setup(args=None):
+    if args is None:
+        args = sys.argv
     parser = argparse.ArgumentParser()
     parser.description = "Window tiling manager for Windows."
     parser.add_argument(
-        "configfile",
-        help="Configuration file for setting up the display.  Supported formats are: yaml, json, and py.")
-    parser.add_argument(
         "-l", "--layout",
-        required=False,
         help="Initial layout.  If not given, the layout named `default' is used.")
     parser.add_argument(
         "-v", "--version",
@@ -61,9 +59,12 @@ def main_setup():
         "-e", "--extensions",
         help="Directory where the user extensions are stored.  Defaults to environment variable %%PETRONIA_USER_DIR%%"
     )
+    parser.add_argument(
+        "configfile",
+        help="Configuration file for setting up the display.  Supported formats are: yaml, json, and py.")
 
     # argparse doesn't allow for the "-v" by itself.
-    for arg in sys.argv[1:]:
+    for arg in args[1:]:
         if arg == '-v' or arg == '--version':
             parser.exit(message="Petronia v{0}\nRunning Python {1}".format(VERSION, sys.version))
 
@@ -91,4 +92,4 @@ def main_setup():
 
 
 if __name__ == '__main__':
-    main_setup()
+    main_setup(sys.argv)

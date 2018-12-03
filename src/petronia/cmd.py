@@ -6,12 +6,21 @@ from petronia.util import worker_thread
 
 import sys
 
-
-if __name__ == '__main__':
+def start(arguments=None):
     from petronia import main
-    bus = main.main_setup()
+    bus = main.main_setup(arguments)
 
-    sys.stdin.read(1)
 
+def stop():
     worker_thread.stop_all_threads()
     sys.exit(0)
+
+
+def start_wait_stop(arguments):
+    start(arguments)
+    sys.stdin.read(1)
+    stop()
+
+
+if __name__ == '__main__':
+    start_wait_stop(sys.argv)
