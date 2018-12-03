@@ -4,7 +4,7 @@ Windows functions for any architecture.
 
 
 from ctypes import wintypes, byref, windll, WinDLL
-from ctypes import CFUNCTYPE, POINTER, c_int, c_uint, c_void_p, c_long, c_ulong, c_ulonglong, c_bool, c_char
+from ctypes import CFUNCTYPE, POINTER, c_int, c_uint, c_void_p, c_long, c_ulong, c_ulonglong, c_bool, c_char, c_int64
 from ctypes import WINFUNCTYPE, create_unicode_buffer, Structure, WinError, GetLastError
 from ctypes import sizeof as c_sizeof
 from ctypes import cast as c_cast
@@ -12,6 +12,7 @@ from .windows_constants import *
 import atexit
 import sys
 import traceback
+import platform
 
 
 # noinspection PyUnusedLocal
@@ -70,6 +71,8 @@ def load_functions(environ, func_map):
     func_map['process__get_window_state'] = process__get_window_state
     func_map['process__get_current_pid'] = process__get_current_pid
 
+# These functions are all generic, but the result type is very bit specific.
+LRESULT = c_int64 if platform.architecture()[0] == "64bit" else c_long
 
 GetModuleHandleW = windll.kernel32.GetModuleHandleW
 GetModuleHandleW.restype = wintypes.HMODULE
@@ -110,6 +113,11 @@ RegisterWindowMessageW.restype = c_uint
 RegisterClassExW = windll.user32.RegisterClassExW
 
 CreateWindowExW = windll.user32.CreateWindowExW
+CreateWindowExW.argtypes = [wintypes.DWORD, wintypes.LPCWSTR, wintypes.LPCWSTR,
+    wintypes.DWORD, c_int, c_int, c_int, c_int, wintypes.HWND, wintypes.HMENU,
+    wintypes.HINSTANCE, wintypes.LPVOID]
+RegisterWindowMessageW.restype = wintypes.HWND
+
 
 DefWindowProcW = windll.user32.DefWindowProcW
 DefWindowProcW.argtypes = [wintypes.HWND, c_uint, wintypes.WPARAM, wintypes.LPARAM]
@@ -125,7 +133,7 @@ SetForegroundWindow = windll.user32.SetForegroundWindow
 SetLayeredWindowAttributes = windll.user32.SetLayeredWindowAttributes
 SetLayeredWindowAttributes.argtypes = [wintypes.HWND, wintypes.COLORREF, wintypes.BYTE, wintypes.DWORD]
 
-WNDPROCTYPE = WINFUNCTYPE(c_int, wintypes.HWND, c_uint, wintypes.WPARAM, wintypes.LPARAM)
+WNDPROCTYPE = WINFUNCTYPE(LRESULT, wintypes.HWND, c_uint, wintypes.WPARAM, wintypes.LPARAM)
 
 
 def window__find_handles():

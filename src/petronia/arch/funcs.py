@@ -21,6 +21,9 @@ def __load_functions(modules):
 
     # Ensure we're on Windows
     assert 'windows' in platform.system().lower()
+    
+    # Set up environment settings to make inspection of the current
+    # platform easy for function modules to check.
     void_ptr_bits = struct.calcsize('P') * 8
     winver = sys.getwindowsversion()
     environ = {
@@ -50,11 +53,14 @@ def __load_functions(modules):
     return ret
 
 
+# Defines the list of modules that contains platform specific functions.
+# They are loaded in a specific order to overwrite previous, less-specific
+# versions of the functions.
 __FUNCTIONS = __load_functions([
     "petronia.arch.funcs_x86_win",
     "petronia.arch.funcs_x64_win",
 
-    # any_win must ALWAYS be after the bit ones.
+    # any_win must ALWAYS be after the bit ones, because of dependencies.
     "petronia.arch.funcs_any_win",
 
     # OS-specific come after the architecture ones
@@ -66,6 +72,8 @@ __FUNCTIONS = __load_functions([
 
 ])
 
+# Special code that loads those final, platform-specific functions into
+# the current module namespace.
 __current_module = importlib.import_module(__name__)
 for __k, __v in __FUNCTIONS.items():
     setattr(__current_module, __k, __v)
