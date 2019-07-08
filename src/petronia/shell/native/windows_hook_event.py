@@ -124,7 +124,7 @@ class WindowsHookEvent(Identifiable, Component):
             if res != ACTION_PENDING:
                 # Mode change actions need to be done here first.
                 # So special handling for mode changes.
-                # print("DEBUG command {0}".format(res))
+                self._log_debug("Running command {0}".format(res))
                 if res[0] == MODE_CHANGE_COMMAND:
                     new_mode = res[1].strip()
                     if new_mode in self.__key_combos:

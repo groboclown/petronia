@@ -25,8 +25,8 @@ def setup(config_file, layout_name):
     config = read_user_configuration(config_file, create_stdout_logger())
     config.init_options['layout-name'] = layout_name
     config.init_options['config-file'] = config_file
-    config.init_options['log-level'] = LEVEL_VERBOSE
-    # config.init_options['log-level'] = LEVEL_DEBUG
+    # config.init_options['log-level'] = LEVEL_VERBOSE
+    config.init_options['log-level'] = LEVEL_DEBUG
 
     bus = Bus()
     id_mgr = IdManager(bus)
