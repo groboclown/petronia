@@ -4,9 +4,6 @@ from ...system import target_ids
 from ...system.component import Component
 from ...config import Config
 
-# oozing of Windows functions
-from ...arch import funcs
-
 
 class RenderSelectedPanels(Component):
     """

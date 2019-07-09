@@ -2,6 +2,10 @@
 
 #### Or: How We Retrained Windows To Be Useful
 
+## Version 3 In Development!
+
+Because you didn't ask for it!
+
 ## Version 2.2 Is Out!
 
 * [petronia-2.2-x64.zip](https://github.com/groboclown/petronia/releases/download/v2.2/petronia-2.2-x64.zip)

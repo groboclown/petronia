@@ -2,8 +2,8 @@
 from ...system import event_ids
 from ...system import target_ids
 from ...system.component import Component, Identifiable
-from ...arch import windows_constants
-from ...arch.funcs import (
+from ...arch.windows import windows_constants
+from ...arch.windows.funcs import (
     window__create_display_window,
     window__create_borderless_window,
     window__client_rectangle,

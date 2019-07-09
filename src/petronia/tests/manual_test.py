@@ -2,7 +2,7 @@
 import sys
 import codecs
 import time
-from petronia.arch import funcs
+from petronia.arch.windows import funcs
 
 def _rect_str(rect):
     return "({left},{top}) -> ({right},{bottom})".format(**rect)

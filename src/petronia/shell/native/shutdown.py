@@ -1,7 +1,7 @@
 
 from ...util import worker_thread
-from ...arch import funcs
-from ...arch.windows_constants import *
+from ...arch.windows import funcs
+from ...arch.windows.windows_constants import *
 import time
 import threading
 import sys

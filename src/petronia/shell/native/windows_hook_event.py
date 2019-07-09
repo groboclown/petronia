@@ -8,7 +8,7 @@ This needs to be one of the last events to
 from ...system import event_ids
 from ...system import target_ids
 from ...system.component import Component, Identifiable
-from ...arch.funcs import (
+from ...arch.windows.funcs import (
     shell__keyboard_hook, shell__shell_hook, shell__pump_messages, shell__unhook,
     shell__create_global_message_handler, shell__register_window_hook,
     shell__open_start_menu, shell__inject_scancode, shell__lock_workstation,
@@ -16,7 +16,7 @@ from ...arch.funcs import (
     window__create_message_window, monitor__find_monitors, window__send_message,
     SHELL__CANCEL_CALLBACK_CHAIN
 )
-from ...arch import windows_constants
+from ...arch.windows import windows_constants
 from ...config import Config, DEFAULT_MODE, MODE_CHANGE_COMMAND
 from ...util.hotkey_chain import (
     on_key_hook, ACTION_PENDING, IGNORED,

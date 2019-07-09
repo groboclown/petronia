@@ -14,4 +14,4 @@ class Marshalable(object):
         :return: code to generate the corresponding object.
             Each line of code is an item in a set.
         """
-        raise NotImplemented()
+        raise NotImplementedError()

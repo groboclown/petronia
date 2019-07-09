@@ -57,18 +57,18 @@ def __load_functions(modules):
 # They are loaded in a specific order to overwrite previous, less-specific
 # versions of the functions.
 __FUNCTIONS = __load_functions([
-    "petronia.arch.funcs_x86_win",
-    "petronia.arch.funcs_x64_win",
+    "petronia.arch.windows.funcs_x86_win",
+    "petronia.arch.windows.funcs_x64_win",
 
     # any_win must ALWAYS be after the bit ones, because of dependencies.
-    "petronia.arch.funcs_any_win",
+    "petronia.arch.windows.funcs_any_win",
 
     # OS-specific come after the architecture ones
-    "petronia.arch.funcs_winXP",
-    "petronia.arch.funcs_winVista",
-    "petronia.arch.funcs_win7",
-    "petronia.arch.funcs_win8",
-    "petronia.arch.funcs_win10",
+    "petronia.arch.windows.funcs_winXP",
+    "petronia.arch.windows.funcs_winVista",
+    "petronia.arch.windows.funcs_win7",
+    "petronia.arch.windows.funcs_win8",
+    "petronia.arch.windows.funcs_win10",
 
 ])
 

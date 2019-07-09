@@ -12,8 +12,8 @@ from ...system import target_ids
 from ...system.component import Component, Identifiable
 from ...system.id_manager import IdManager
 from ...config import Config
-from ...arch.windows_constants import PETRONIA_CREATED_WINDOW__CLASS_PREFIX
-from ...arch.funcs import (
+from ...arch.windows.windows_constants import PETRONIA_CREATED_WINDOW__CLASS_PREFIX
+from ...arch.windows.funcs import (
     window__find_handles, window__get_style, window__set_style, window__border_rectangle,
     window__redraw, window__get_process_id, process__get_username_domain_for_pid,
     window__get_module_filename, process__get_executable_filename,
