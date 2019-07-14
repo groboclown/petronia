@@ -29,6 +29,9 @@ Wherever possible, the interactions between the OS and the user side should be a
 
 The layout functionality, for portals, chrome, keyboard commands, and "most" command scripts, should be cross-platform.
 
+## Code Safety
+
+The code should be written defensively to protect against mistakes or attacks.
 
 # Architecture
 
@@ -37,5 +40,3 @@ The layout functionality, for portals, chrome, keyboard commands, and "most" com
 All platform specific code is in the [arch](src/petronia3/arch) source directory.  Each supported platform is in the top level directory, and must conform to the spec laid out by the [generic](src/petronia3/arch/generic) tree.
 
 The platform acts as the main program.  It knows how to start up, shut down, and mingle itself into the running OS to do what needs to be done.  The platform calls out to the rest of the Petronia system on operating system events.
-
-

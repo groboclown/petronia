@@ -4,10 +4,13 @@ Many readers can hold the lock XOR one and only one writer.
 Source: https://majid.info/blog/a-reader-writer-lock-for-python/
 License: public domain.
 """
+from typing import Optional
 import threading
+from ..errors import PetroniaLockTimeoutError
 
-version = """$Id: rwlock.py,v 1.1 2004/12/22 22:32:00 majid Exp $"""
+# version = """$Id: rwlock.py,v 1.1 2004/12/22 22:32:00 majid Exp $"""
 
+DEFAULT_TIMEOUT = 30
 
 class RWLock:
     """
@@ -15,67 +18,76 @@ class RWLock:
     simultaneously, XOR one writer. Write locks have priority over reads to
     prevent write starvation.
     """
-    def __init__(self):
-        self.rwlock = 0
-        self.writers_waiting = 0
-        self.monitor = threading.Lock()
-        self.readers_ok = threading.Condition(self.monitor)
-        self.writers_ok = threading.Condition(self.monitor)
 
-    def acquire_read(self):
+    __timeout: float
+
+    def __init__(self, timeout: Optional[float] = DEFAULT_TIMEOUT) -> None:
+        self.__rwlock = 0
+        self.__writers_waiting = 0
+        self.__monitor = threading.Lock()
+        self.__readers_ok = threading.Condition(self.__monitor)
+        self.__writers_ok = threading.Condition(self.__monitor)
+        self.__timeout = timeout or DEFAULT_TIMEOUT
+
+    def acquire_read(self) -> None:
         """Acquire a read lock. Several threads can hold this typeof lock.
         It is exclusive with write locks."""
-        self.monitor.acquire()
-        while self.rwlock < 0 or self.writers_waiting:
-            self.readers_ok.wait()
-        self.rwlock += 1
-        self.monitor.release()
+        if not self.__monitor.acquire(timeout=self.__timeout):
+            raise PetroniaLockTimeoutError()
+        while self.__rwlock < 0 or self.__writers_waiting:
+            self.__readers_ok.wait()
+        self.__rwlock += 1
+        self.__monitor.release()
 
-    def acquire_write(self):
+    def acquire_write(self) -> None:
         """Acquire a write lock. Only one thread can hold this lock, and
         only when no read locks are also held."""
-        self.monitor.acquire()
-        while self.rwlock != 0:
-            self.writers_waiting += 1
-            self.writers_ok.wait()
-            self.writers_waiting -= 1
-        self.rwlock = -1
-        self.monitor.release()
+        if not self.__monitor.acquire(timeout=self.__timeout):
+            raise PetroniaLockTimeoutError()
+        while self.__rwlock != 0:
+            self.__writers_waiting += 1
+            self.__writers_ok.wait()
+            self.__writers_waiting -= 1
+        self.__rwlock = -1
+        self.__monitor.release()
 
-    def promote(self):
+    def promote(self) -> None:
         """Promote an already-acquired read lock to a write lock
         WARNING: it is very easy to deadlock with this method"""
-        self.monitor.acquire()
-        self.rwlock -= 1
-        while self.rwlock != 0:
-            self.writers_waiting += 1
-            self.writers_ok.wait()
-            self.writers_waiting -= 1
-        self.rwlock = -1
-        self.monitor.release()
+        if not self.__monitor.acquire(timeout=self.__timeout):
+            raise PetroniaLockTimeoutError()
+        self.__rwlock -= 1
+        while self.__rwlock != 0:
+            self.__writers_waiting += 1
+            self.__writers_ok.wait()
+            self.__writers_waiting -= 1
+        self.__rwlock = -1
+        self.__monitor.release()
 
-    def demote(self):
+    def demote(self) -> None:
         """Demote an already-acquired write lock to a read lock"""
-        self.monitor.acquire()
-        self.rwlock = 1
-        self.readers_ok.notifyAll()
-        self.monitor.release()
+        if not self.__monitor.acquire(timeout=self.__timeout):
+            raise PetroniaLockTimeoutError()
+        self.__rwlock = 1
+        self.__readers_ok.notifyAll()
+        self.__monitor.release()
 
-    def release(self):
+    def release(self) -> None:
         """Release a lock, whether read or write."""
-        self.monitor.acquire()
-        if self.rwlock < 0:
-            self.rwlock = 0
+        if not self.__monitor.acquire(timeout=self.__timeout):
+            raise PetroniaLockTimeoutError()
+        if self.__rwlock < 0:
+            self.__rwlock = 0
         else:
-            self.rwlock -= 1
-        wake_writers = self.writers_waiting and self.rwlock == 0
-        wake_readers = self.writers_waiting == 0
-        self.monitor.release()
+            self.__rwlock -= 1
+        wake_writers = self.__writers_waiting and self.__rwlock == 0
+        wake_readers = self.__writers_waiting == 0
+        self.__monitor.release()
         if wake_writers:
-            self.writers_ok.acquire()
-            self.writers_ok.notify()
-            self.writers_ok.release()
+            self.__writers_ok.acquire()
+            self.__writers_ok.notify()
+            self.__writers_ok.release()
         elif wake_readers:
-            self.readers_ok.acquire()
-            self.readers_ok.notifyAll()
-            self.readers_ok.release()
+            self.__readers_ok.acquire()
+            self.__readers_ok.notifyAll()
+            self.__readers_ok.release()

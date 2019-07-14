@@ -14,6 +14,10 @@
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
     "python.linting.pylintEnabled": true,
+    "python.linting.mypyEnabled": false,
+    "python.linting.mypyArgs": [
+    //    "--config-file", "${workspaceFolder}/src/mypy.ini"
+    ],
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true
 }

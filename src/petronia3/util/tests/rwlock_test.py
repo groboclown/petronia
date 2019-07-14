@@ -1,14 +1,23 @@
 
+# type: ignore
+
+"""
+Unit tests for RWLock
+"""
+
 import unittest
 import time
 import threading
+from typing import List
 
-from rwlock import RWLock
+from ..rwlock import RWLock
 
 class RWLockTest(unittest.TestCase):
-
-    def test_integration(self):
-        state = ThreadState()
+    """
+    All RWLock tests
+    """
+    def test_integration(self) -> None:
+        state: ThreadState = ThreadState()
         Reader('1', state).start()
         Reader('2', state).start()
         Writer('1', state).start()
@@ -50,31 +59,35 @@ class RWLockTest(unittest.TestCase):
 
 TIMEOUT = 5
 
-class ThreadState(object):
-    def __init__(self):
+class ThreadState:
+    """Keeps track of thread state, for easier waiting."""
+
+    encounter_state: List[str]
+
+    def __init__(self) -> None:
         self.rwl = RWLock()
         self.encounter_state = []
         self.current_state = 'init'
-    
-    def point(self, state):
+
+    def point(self, state: str) -> None:
         self.encounter_state.append(state)
-    
-    def wait_for(self, name, expected_state: str):
+
+    def wait_for(self, name: str, expected_state: str) -> None:
         timeout = time.perf_counter() + TIMEOUT
         while time.perf_counter() < timeout and expected_state not in self.encounter_state:
             time.sleep(0.001)
         if expected_state not in self.encounter_state:
             raise Exception('{0} did not reach {1}, currently at {2}'.format(name, expected_state, self.encounter_state))
-    
+
 
 
 class Reader(threading.Thread):
-    def __init__(self, name, state: ThreadState):
-        threading.Thread.__init__(self)
+    def __init__(self, name: str, state: ThreadState) -> None:
+        threading.Thread.__init__(self) # type: ignore
         self.state = state
         self.name = name
 
-    def run(self):
+    def run(self) -> None:
         self.state.wait_for('Reader', 'ready-reader-start-' + self.name)
         self.state.point('reader-start-' + self.name)
         self.state.rwl.acquire_read()
@@ -85,12 +98,12 @@ class Reader(threading.Thread):
         self.state.point('reader-release-' + self.name)
 
 class Writer(threading.Thread):
-    def __init__(self, name, state: ThreadState):
-        threading.Thread.__init__(self)
+    def __init__(self, name: str, state: ThreadState) -> None:
+        threading.Thread.__init__(self) # type: ignore
         self.state = state
         self.name = name
 
-    def run(self):
+    def run(self) -> None:
         self.state.wait_for('Writer', 'ready-writer-start-' + self.name)
         self.state.point('writer-start-' + self.name)
         self.state.rwl.acquire_write()
@@ -101,12 +114,12 @@ class Writer(threading.Thread):
         self.state.point('writer-release-' + self.name)
 
 class ReaderWriter(threading.Thread):
-    def __init__(self, state: ThreadState):
-        threading.Thread.__init__(self)
+    def __init__(self, state: ThreadState) -> None:
+        threading.Thread.__init__(self) # type: ignore
         self.state = state
 
-    def run(self):
-        self.state.wait_for('ready-rw-start')
+    def run(self) -> None:
+        self.state.wait_for('ReaderWriter', 'ready-rw-start')
         self.state.point('rw-start')
         self.state.rwl.acquire_read()
         self.state.point('rw-acquire-read')
@@ -119,11 +132,11 @@ class ReaderWriter(threading.Thread):
         self.state.point('rw-release')
 
 class WriterReader(threading.Thread):
-    def __init__(self, state: ThreadState):
-        threading.Thread.__init__(self)
+    def __init__(self, state: ThreadState) -> None:
+        threading.Thread.__init__(self) # type: ignore
         self.state = state
 
-    def run(self):
+    def run(self) -> None:
         self.state.wait_for('WriterReader', 'ready-wr-start')
         self.state.point('wr-start')
         self.state.rwl.acquire_write()
@@ -135,6 +148,3 @@ class WriterReader(threading.Thread):
         self.state.point('wr-stop')
         self.state.rwl.release()
         self.state.point('wr-release')
-
-if __name__ == '__main__':
-    unittest.main()
