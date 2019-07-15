@@ -1,5 +1,7 @@
 
-# mypy: no-disallow-any-explicit
+# mypy: allow-any-explicit
+# mypy: allow-untyped-defs
+# mypy: allow-any-expr
 
 """
 Consistent validation checks.  These are runtime debug checks to ensure the
@@ -67,7 +69,7 @@ def assert_format(
     if ASSERTION_ENABLED and not condition:
         raise PetroniaInvalidState(
             src, validation_problem,
-            format_str.format(*vargs, **kvargs) # type: ignore
+            format_str.format(*vargs, **kvargs)
         )
 
 def assert_call(
@@ -83,7 +85,7 @@ def assert_call(
     if ASSERTION_ENABLED and not condition():
         raise PetroniaInvalidState(
             src, validation_problem,
-            format_str.format(*vargs, **kvargs) # type: ignore
+            format_str.format(*vargs, **kvargs)
         )
 
 def assert_all(
@@ -116,7 +118,7 @@ def assert_all(
                     raise PetroniaInvalidState(
                         src,
                         validation_problem,
-                        reason.format(*vargs, **kvargs) # type: ignore
+                        reason.format(*vargs, **kvargs)
                     )
 
 def assert_all_calls(
@@ -134,7 +136,7 @@ def assert_all_calls(
                 if not cond():
                     raise PetroniaInvalidState(src, validation_problem, None)
             else:
-                if not cond[0](): # type: ignore
+                if not cond[0]():
                     reason = 'failed check'
                     vargs: Sequence[Any] = EMPTY_LIST
                     kvargs: Dict[str, Any] = EMPTY_DICT
@@ -151,7 +153,7 @@ def assert_all_calls(
                     raise PetroniaInvalidState(
                         src,
                         validation_problem,
-                        reason.format(*vargs, **kvargs) # type: ignore
+                        reason.format(*vargs, **kvargs)
                     )
 
 def assert_has_signature(
@@ -165,46 +167,54 @@ def assert_has_signature(
     Ensure the callable has the given signature.
     """
     if ASSERTION_ENABLED:
-        if isinstance(fcn, LambdaType): # type: ignore
-            # lambdas get a pass.
+        if isinstance(fcn, LambdaType):
+            # lambdas can't have annotations, but they don't get a free pass.
+            sig = signature(fcn)
+            assert_format(
+                len(sig.parameters) == len(argument_types),
+                src,
+                validation_problem,
+                'must have {0} arguments, found {1}',
+                len(argument_types),
+                sig.parameters
+            )
             return
         assert_format(
-            callable(fcn), # type: ignore
+            callable(fcn),
             src,
             validation_problem,
             'function must be callable, found {0}',
-            fcn # type: ignore
+            fcn
         )
-        sig = signature(fcn) # type: ignore
+        sig = signature(fcn)
         assert_format(
-            sig.return_annotation == return_type, # type: ignore
+            sig.return_annotation == return_type,
             src,
             validation_problem,
             'function must have {0} return type, found {1}',
-            return_type, # type: ignore
-            fcn # type: ignore
+            return_type,
+            fcn
         )
         ordered_argument_names = tuple(sig.parameters)
         assert_format(
-            len(ordered_argument_names) == len(argument_types), # type: ignore
+            len(ordered_argument_names) == len(argument_types),
             src,
             validation_problem,
             'must have {0} arguments, found {1}',
-            len(argument_types), # type: ignore
+            len(argument_types),
             sig.parameters
         )
-        for idx in range(len(argument_types)): # type: ignore
-            arg_type = argument_types[idx] # type: ignore
+        for idx in range(len(argument_types)):
+            arg_type = argument_types[idx]
             arg_name = ordered_argument_names[idx]
             param = sig.parameters[arg_name]
-            param_type = param.annotation # type: ignore
+            param_type = param.annotation
             assert_format(
-                #issubclass(param_type, arg_type), # type: ignore
-                param_type == arg_type, # type: ignore
+                param_type == arg_type,
                 src,
                 validation_problem,
                 'argument {0} must be {1}, found {2}',
                 idx + 1,
-                arg_type, # type: ignore
-                param_type # type: ignore
+                arg_type,
+                param_type
             )
