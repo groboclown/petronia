@@ -15,7 +15,7 @@ These are split into two groups:
 from .global_state import is_assertion_enabled
 from .assertions import (
     assert_all,
-    assert_format,
+    assert_formatted,
     assert_state,
     assert_all_calls,
     assert_call,

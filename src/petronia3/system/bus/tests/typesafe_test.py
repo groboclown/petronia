@@ -23,7 +23,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
         queue = BasicQueuer(self)
         bus = EventBus(queue)
         typesafe = TypeSafeEventBus(bus, evtr)
-        typesafe.add_listener('simple', TARGET_WILDCARD, BasicListener('1', queue))
+        typesafe.add_listener(TARGET_WILDCARD, lambda x: ('simple', x,), BasicListener('1', queue))
 
     def test_listen_not_registered(self):
         """Attempt to add_listener() on not-registered event id"""
@@ -32,7 +32,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
         bus = EventBus(queue)
         typesafe = TypeSafeEventBus(bus, evtr)
         try:
-            typesafe.add_listener('not-registered', TARGET_WILDCARD, BasicListener('1', queue))
+            typesafe.add_listener(TARGET_WILDCARD, lambda x: ('not-registered', x,), BasicListener('1', queue))
             self.fail('Did not raise error')
         except PetroniaInvalidState as err:
             self.assertEqual(

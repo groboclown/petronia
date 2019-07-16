@@ -7,11 +7,15 @@ from typing import Tuple, List, Optional, Sequence
 from ..bus import (
     EventBus,
     EventId,
-    ParticipantId,
     QueuePriority,
 
     EVENT_WILDCARD, TARGET_WILDCARD,
     QUEUE_EVENT_NOW, QUEUE_EVENT_NORMAL, QUEUE_EVENT_IO,
+)
+from ...participant import (
+    create_singleton_identity,
+    ParticipantId,
+    NOT_PARTICIPANT,
 )
 
 
@@ -48,7 +52,7 @@ class BasicQueuer(_BaseBasicQueuer):
             args: Tuple[EventId, ParticipantId, object]
     ) -> None:
         for listener in listeners:
-            self.__call_in = (when, '', EventId(''), ParticipantId(0), object())
+            self.__call_in = (when, '', EventId(''), NOT_PARTICIPANT, object())
             listener(args[0], args[1], args[2])
             assert len(self.__call_in) == 5
             self.call_order.append(self.__call_in)
@@ -73,7 +77,7 @@ class BasicQueuer(_BaseBasicQueuer):
             self,
             when: str,
             listener_id_list: List[str],
-            event_id: str, target_id: int, event_obj: object
+            event_id: str, target_id: str, event_obj: object
     ) -> None:
         """Check that only the given event on the given listeners is called."""
         self.assert_length(len(listener_id_list))
@@ -106,40 +110,40 @@ class EventBusTest(unittest.TestCase):
         queue = BasicQueuer(self)
         bus = EventBus(queue) # type: ignore
 
-        bus.add_listener(EventId('e1'), ParticipantId(1), BasicListener('1', queue))
-        bus.add_listener(EventId('e1'), ParticipantId(2), BasicListener('2', queue))
-        bus.add_listener(EventId('e2'), ParticipantId(1), BasicListener('3', queue))
+        bus.add_listener(EventId('e1'), create_singleton_identity('1'), BasicListener('1', queue))
+        bus.add_listener(EventId('e1'), create_singleton_identity('2'), BasicListener('2', queue))
+        bus.add_listener(EventId('e2'), create_singleton_identity('1'), BasicListener('3', queue))
         bus.add_listener(EventId('e1'), TARGET_WILDCARD, BasicListener('4', queue))
-        bus.add_listener(EVENT_WILDCARD, ParticipantId(1), BasicListener('5', queue))
+        bus.add_listener(EVENT_WILDCARD, create_singleton_identity('1'), BasicListener('5', queue))
         bus.add_listener(EVENT_WILDCARD, TARGET_WILDCARD, BasicListener('6', queue))
 
         evt = object()
-        bus.trigger(QUEUE_EVENT_NORMAL, EventId('e1'), ParticipantId(1), evt)
+        bus.trigger(QUEUE_EVENT_NORMAL, EventId('e1'), create_singleton_identity('1'), evt)
         queue.assert_called_only(
             QUEUE_EVENT_NORMAL,
             ['1', '4', '5', '6'],
-            'e1', 1, evt
+            'e1', '1', evt
         )
 
-        bus.trigger(QUEUE_EVENT_IO, EventId('e1'), ParticipantId(2), evt)
+        bus.trigger(QUEUE_EVENT_IO, EventId('e1'), create_singleton_identity('2'), evt)
         queue.assert_called_only(
             QUEUE_EVENT_IO,
             ['2', '4' ,'6'],
-            'e1', 2, evt
+            'e1', '2', evt
         )
 
-        bus.trigger(QUEUE_EVENT_NOW, EventId('e2'), ParticipantId(1), evt)
+        bus.trigger(QUEUE_EVENT_NOW, EventId('e2'), create_singleton_identity('1'), evt)
         queue.assert_called_only(
             QUEUE_EVENT_NOW,
             ['3', '5', '6'],
-            'e2', 1, evt
+            'e2', '1', evt
         )
 
-        bus.trigger(QUEUE_EVENT_NORMAL, EventId('e2'), ParticipantId(2), evt)
+        bus.trigger(QUEUE_EVENT_NORMAL, EventId('e2'), create_singleton_identity('2'), evt)
         queue.assert_called_only(
             QUEUE_EVENT_NORMAL,
             ['6'],
-            'e2', 2, evt
+            'e2', '2', evt
         )
 
         bus.trigger(QUEUE_EVENT_NORMAL, EventId('e1'), TARGET_WILDCARD, evt)
@@ -149,11 +153,11 @@ class EventBusTest(unittest.TestCase):
             'e1', TARGET_WILDCARD, evt
         )
 
-        bus.trigger(QUEUE_EVENT_NORMAL, EVENT_WILDCARD, ParticipantId(1), evt)
+        bus.trigger(QUEUE_EVENT_NORMAL, EVENT_WILDCARD, create_singleton_identity('1'), evt)
         queue.assert_called_only(
             QUEUE_EVENT_NORMAL,
             ['5', '6'],
-            EVENT_WILDCARD, 1, evt
+            EVENT_WILDCARD, '1', evt
         )
         bus.trigger(QUEUE_EVENT_NORMAL, EVENT_WILDCARD, TARGET_WILDCARD, evt)
         queue.assert_called_only(
@@ -166,5 +170,5 @@ class EventBusTest(unittest.TestCase):
         """Test correct behavior when no listeners are registered on the bus."""
         queue = BasicQueuer(self)
         bus = EventBus(queue) # type: ignore
-        bus.trigger(QUEUE_EVENT_NORMAL, EventId('e1'), ParticipantId(1), object())
+        bus.trigger(QUEUE_EVENT_NORMAL, EventId('e1'), create_singleton_identity('1'), object())
         queue.assert_length(0)

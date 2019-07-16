@@ -44,27 +44,44 @@ All components must belong to a *category*, which is a named factory for compone
 
 ### Singleton
 
+A *singleton* is a participant category which can exist at most once in the system.  Singletons do not have factories
+
+
+### Logging
+
+Due to performance issues around logging, it lives outside the event bus as a global setting.  Some logs can be sent to the event bus (such as errors), but this is a configuration on top of the logging infrastructure.
+
 
 ## Components
 
-### Event Bus
+### Event Bus (Singleton)
 
 The event bus handles communication between components to maintain loose coupling.  It is the most critical component of the system.  Its behavior must be well understood.
 
 The event bus is the only part of the system allowed to store references to objects outside itself.  Unfortunately, because it is critical to getting everything to talk to other system parts, it must be shared between parts.
 
-#### Event Bus Sharing
 
-To better control memory usage, system parts are given a proxy object to the event bus.  This controls basic lifecycle usage of the bus.
-
-* Event firing is done through the proxy.
-* Event listener registration is done through the proxy.
-* Deregistration is handled through events calling out to the component
-
-### State Store
+### State Store (Singleton)
 
 Some aspects of the system are a global state that rarely updates.  For example, the screen resolution.  These states need to be made available to all participants of the system, but due to the loose coupling, the state itself cannot be put into an accessible place.  Likewise, participants may need to be aware of updates to those states.
 
 The state store solves this problem by having a two-phase approach to state storage.  A participant announces the request to store an updated state, which the state store then uses to
 
-The state store has an interesting global data problem.  Specifically, how to make the initial state of a value available to a new listener.  The state store does this by listening to events for new event listeners of the state store itself, and sends out state updated events when they are added.  This means there can be multiple state update events 
+The state store has an interesting global data problem.  Specifically, how to make the initial state of a value available to a new listener.  The state store does this by listening to events for new event listeners of the state store itself, and sends out state updated events when they are added.  This means there can be multiple state update events
+
+
+### Registrar (Singleton)
+
+
+### Timer (Singleton)
+
+A global timer (or "heartbeat")
+
+
+## Helpers
+
+### Parent
+
+Maintains a parent-child relationship through the dispose request events.  If the parent is disposed, then all children are given dispose messages, and the parent will not finish disposing itself until all its children are disposed.
+
+### Listener Set

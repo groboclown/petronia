@@ -3,15 +3,20 @@
 EventBus interaction for the global state.
 """
 
-from typing import Type, Sequence, Optional, Generic
+from typing import Type, Sequence, Optional, Generic, List
 from ..bus import (
     EventRegistry, EventId,
     TypeSafeEventBus, TypeSafeEventCallback,
+    EventListenerAddedEvent,
+    ListenerSetup, as_listener_added_listener,
+    ListenerId,
     QUEUE_EVENT_NORMAL,
     TARGET_WILDCARD,
-    NOT_LISTENER,
 )
-from ..participant import ParticipantId
+from ..participant import (
+    ParticipantId,
+    NOT_PARTICIPANT,
+)
 from .store import StateStore
 from ...util.memory import T
 
@@ -27,8 +32,6 @@ class StateStoreUpdateRequestEvent(Generic[T]):
     __slots__ = ('_state_id', '_state', '_state_type')
 
     def __init__(self, state_id: ParticipantId, state_type: Type[T], state: T) -> None:
-        StateStore.validate_state_id(state_id)
-        assert isinstance(state_type, type) # type: ignore
         self._state_id = state_id
         self._state = state
         self._state_type = state_type
@@ -95,17 +98,19 @@ def register_events(reg: EventRegistry) -> None:
         EVENT_ID_UPDATE_STATE_REQUEST,
         QUEUE_EVENT_NORMAL,
         StateStoreUpdateRequestEvent,
-        StateStoreUpdateRequestEvent(ParticipantId(-1), object, object()) # type: ignore
+        StateStoreUpdateRequestEvent(NOT_PARTICIPANT, object, object()) # type: ignore
     )
     reg.register(
         EVENT_ID_UPDATED_STATE,
         QUEUE_EVENT_NORMAL,
         StateStoreUpdatedEvent,
-        StateStoreUpdatedEvent(ParticipantId(-1), object, object(), object()) # type: ignore
+        StateStoreUpdatedEvent(NOT_PARTICIPANT, object, object(), object()) # type: ignore
     )
 
 
-def set_state(bus: TypeSafeEventBus, state_id: ParticipantId, state_type: Type[T], state: T) -> None:
+def set_state(
+        bus: TypeSafeEventBus, state_id: ParticipantId, state_type: Type[T], state: T
+) -> None:
     """
     Send a state update notice to the state store.
 
@@ -119,38 +124,35 @@ def set_state(bus: TypeSafeEventBus, state_id: ParticipantId, state_type: Type[T
     )
 
 
-def add_state_change_listener(
-        bus: TypeSafeEventBus,
-        state_id: ParticipantId,
-        callback: TypeSafeEventCallback[StateStoreUpdatedEvent[T]]
-) -> None:
+def as_state_change_listener(
+        callback: TypeSafeEventCallback[StateStoreUpdatedEvent[T]],
+) -> ListenerSetup[StateStoreUpdatedEvent[T]]:
     """
-    Registers an event listener that fires when the given state is updated.
-
-    It will not be called until an update
-
-    For each state, a specific version of this should be used instead that
-    sets the state_id, state_type and uses correct typing on the state object.
+    Creates the event listener setup for use with add_listener.
     """
-    bus.add_listener(EVENT_ID_UPDATED_STATE, state_id, callback) # type: ignore
+    return (EVENT_ID_UPDATED_STATE, callback,)
 
 
 class BusAwareStateStore:
     """
     A StateStore that correctly interacts with the EventBus.
     """
-    __slots__ = ('__bus', '__store', '__deregister_master')
+    __slots__ = ('__bus', '__store', '_listeners',)
+    _listeners: List[ListenerId]
+
     def __init__(self, bus: TypeSafeEventBus) -> None:
         self.__bus = bus
         self.__store = StateStore()
-
-        self.__deregister_master = bus.add_listener(
-            EVENT_ID_UPDATE_STATE_REQUEST, TARGET_WILDCARD,
-            self._on_update_request
-        )
-        # TODO add a listener to the event bus to listen on listeners added.
-        # If a listener is added that listens to state changes, call it immediately
-        # if that state object is in our store.
+        self._listeners = [
+            bus.add_listener(
+                TARGET_WILDCARD,
+                _as_update_state_request_listener,
+                self._on_update_request
+            ),
+            bus.add_listener(
+                TARGET_WILDCARD, as_listener_added_listener, self._on_listener_added
+            )
+        ]
 
     def get_state_type(self, state_id: ParticipantId) -> Optional[Type[type]]:
         """Returns the state type for the given state ID, or None if it isn't registered."""
@@ -168,13 +170,13 @@ class BusAwareStateStore:
 
     def dispose(self) -> None:
         """Shut-down call.  Can be safely called again."""
-        if self.__deregister_master:
-            self.__bus.deregister(EVENT_ID_UPDATE_STATE_REQUEST, self.__deregister_master)
-            self.__deregister_master = NOT_LISTENER
+        for listener_id in self._listeners:
+            self.__bus.remove_listener(listener_id)
+        self._listeners.clear()
 
     def _on_update_request(
             self,
-            eid: str, tid: str, # pylint: disable=unused-argument
+            eid: EventId, tid: ParticipantId, # pylint: disable=unused-argument
             event: StateStoreUpdateRequestEvent[T]
     ) -> None:
         old_state = self.__store.set_state(
@@ -184,3 +186,22 @@ class BusAwareStateStore:
         self.__bus.trigger(EVENT_ID_UPDATED_STATE, event.state_id, StateStoreUpdatedEvent(
             event.state_id, event.state_type, event.state, old_state
         ))
+
+    def _on_listener_added(
+            self,
+            eid: EventId, tid: ParticipantId, # pylint: disable=unused-argument
+            event: EventListenerAddedEvent
+    ) -> None:
+        if event.event_id == EVENT_ID_UPDATED_STATE and tid in self.__store:
+            # Rebroadcast the state.
+            state = self.__store.get_state(tid)
+            state_type = self.__store.get_state_type(tid)
+            if state and state_type:
+                self.__bus.trigger(EVENT_ID_UPDATED_STATE, tid, StateStoreUpdatedEvent(
+                    tid, state_type, state, state
+                ))
+
+def _as_update_state_request_listener(
+        callback: TypeSafeEventCallback[StateStoreUpdateRequestEvent[T]]
+) -> ListenerSetup[StateStoreUpdateRequestEvent[T]]:
+    return (EVENT_ID_UPDATE_STATE_REQUEST, callback,)

@@ -2,9 +2,16 @@
 """
 The Event Bus implementation.
 """
-from typing import Callable, List, Dict, Tuple, Sequence, NewType
-from ..participant import ParticipantId, is_valid_participant_identity
-from ...validation import assert_format, assert_all, assert_has_signature
+from typing import Callable, List, Dict, Tuple, Sequence, NewType, Union
+from ..participant import (
+    ParticipantId,
+    ComponentId,
+    SingletonId,
+
+    is_valid_participant_identity,
+    create_singleton_identity,
+)
+from ...validation import assert_formatted, assert_all, assert_has_signature
 from ...util.rwlock import RWLock
 
 
@@ -18,7 +25,7 @@ QueueFunction = Callable[
 ListenerId = NewType('ListenerId', int)
 
 EVENT_WILDCARD = EventId('*')
-TARGET_WILDCARD = ParticipantId(-1)
+TARGET_WILDCARD = create_singleton_identity('*')
 
 NOT_LISTENER = ListenerId(0)
 
@@ -94,14 +101,18 @@ class EventBus:
 
         :param event_id str: event to listen to.
         :param target_id str: target of the event to listen to.
-        :param callback callable: a function that takes as arguments (event_id, target_id, event_object)
-            and is called when a matching event is triggered.  If the listener is registered to a wildcard,
+        :param callback callable: a function that takes as arguments
+            (event_id, target_id, event_object)
+            and is called when a matching event is triggered.  If the listener
+            is registered to a wildcard,
             the real event or target ID is passed as argument.
         :return ListenerId: a unique identifier for the listener.
         """
-        if event_id != EVENT_WILDCARD:
+        # "is not" rather than "!=" because everything should use the
+        # wildcard reference, and not make a copy.
+        if event_id is not EVENT_WILDCARD:
             EventBus.assert_event_id(event_id)
-        if target_id != TARGET_WILDCARD:
+        if target_id is not TARGET_WILDCARD:
             EventBus.assert_target_id(target_id)
         EventBus.assert_event_callback(callback)
 
@@ -120,7 +131,12 @@ class EventBus:
 
         return listener_id
 
-    def trigger(self, when: QueuePriority, event_id: EventId, target_id: ParticipantId, event_obj: object) -> None:
+    def trigger(
+            self,
+            when: QueuePriority,
+            event_id: EventId, target_id: ParticipantId,
+            event_obj: object
+    ) -> None:
         """
         Run each of the registered listeners for the event according to the priority of the
         `when` parameter.  The queue function will determine the actual time of the
@@ -142,7 +158,7 @@ class EventBus:
             for evt in events:
                 if evt in self.__listener_reg:
                     for lid in self.__listener_reg[evt]:
-                        assert_format(
+                        assert_formatted(
                             lid in self.__listener_ids,
                             'EventBus',
                             'Fire event found invalid internal state',
@@ -159,7 +175,7 @@ class EventBus:
             (event_id, target_id, event_obj)
         )
 
-    def deregister(self, listener_id: ListenerId) -> bool:
+    def remove_listener(self, listener_id: ListenerId) -> bool:
         """
         Remove the listener from receiving events, and remove references
         to the listener callback.
@@ -173,7 +189,7 @@ class EventBus:
         # deregister the listener, then promote to a write lock and remove it.
         self.__lock.acquire_write()
         try:
-            assert_format(
+            assert_formatted(
                 listener_id in self.__listener_ids,
                 'EventBus',
                 'deregistration state issue',
@@ -194,7 +210,7 @@ class EventBus:
                     return True
             # If we reached this point, then there was a problem with our internal
             # state maintenance.
-            assert_format(
+            assert_formatted(
                 False,
                 'EventBus',
                 'deregistration state issue',
@@ -220,7 +236,7 @@ class EventBus:
     @staticmethod
     def assert_target_id(target_id: ParticipantId) -> None:
         """Validate the target id correctness.  For debug-mode only."""
-        assert_format(
+        assert_formatted(
             is_valid_participant_identity(target_id),
 
             'EventBus',
@@ -239,10 +255,17 @@ class EventBus:
             callback,
             None,
             EventId,
-            ParticipantId,
+
+            # Limitation of mypy - cannot use Union alias in a runtime
+            # context.  This is the work-around, which stinks.
+            #ParticipantId,
+            Union[ComponentId, SingletonId],
+
             object,
         )
 
     @staticmethod
     def _join_ids(event_id: EventId, target_id: ParticipantId) -> str:
-        return str(event_id) + '>' + str(target_id)
+        # "repr" may not be performant.  May need to reconsider this,
+        # as it is called for *every* event.
+        return str(event_id) + '>' + repr(target_id)

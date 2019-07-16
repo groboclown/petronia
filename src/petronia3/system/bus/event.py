@@ -11,7 +11,7 @@ from .bus import (
     QUEUE_EVENT_TYPES,
 )
 from ..participant import ParticipantId
-from ...validation import assert_format, assert_all
+from ...validation import assert_formatted, assert_all
 from ...util.memory import T
 from ...util import optional_key
 
@@ -99,7 +99,9 @@ class EventRegistry:
             return self._types[event_id].priority
         return None
 
-    def validate_event(self, event_id: EventId, target_id: ParticipantId, event_object: object) -> None:
+    def validate_event(
+            self, event_id: EventId, target_id: ParticipantId, event_object: object
+    ) -> None:
         """Validates that the event object is of the correct event id type."""
 
         assert_all(
@@ -126,7 +128,7 @@ class EventRegistry:
 
     def validate_has(self, event_id: EventId) -> None:
         """Validates that the event id is correctly registered."""
-        assert_format(
+        assert_formatted(
             event_id == EVENT_WILDCARD or event_id in self._types,
             'EventRegistry',
             'event validation',

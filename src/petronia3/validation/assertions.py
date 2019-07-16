@@ -56,7 +56,7 @@ def assert_state(
     if ASSERTION_ENABLED and not condition:
         raise PetroniaInvalidState(src, validation_problem, details)
 
-def assert_format(
+def assert_formatted(
         condition: bool,
         src: str, validation_problem: str,
         format_str: str,
@@ -170,7 +170,7 @@ def assert_has_signature(
         if isinstance(fcn, LambdaType):
             # lambdas can't have annotations, but they don't get a free pass.
             sig = signature(fcn)
-            assert_format(
+            assert_formatted(
                 len(sig.parameters) == len(argument_types),
                 src,
                 validation_problem,
@@ -179,7 +179,7 @@ def assert_has_signature(
                 sig.parameters
             )
             return
-        assert_format(
+        assert_formatted(
             callable(fcn),
             src,
             validation_problem,
@@ -187,7 +187,7 @@ def assert_has_signature(
             fcn
         )
         sig = signature(fcn)
-        assert_format(
+        assert_formatted(
             sig.return_annotation == return_type,
             src,
             validation_problem,
@@ -196,7 +196,7 @@ def assert_has_signature(
             fcn
         )
         ordered_argument_names = tuple(sig.parameters)
-        assert_format(
+        assert_formatted(
             len(ordered_argument_names) == len(argument_types),
             src,
             validation_problem,
@@ -204,12 +204,12 @@ def assert_has_signature(
             len(argument_types),
             sig.parameters
         )
-        for idx in range(len(argument_types)):
+        for idx in range(len(argument_types)): # pylint: disable=consider-using-enumerate
             arg_type = argument_types[idx]
             arg_name = ordered_argument_names[idx]
             param = sig.parameters[arg_name]
             param_type = param.annotation
-            assert_format(
+            assert_formatted(
                 param_type == arg_type,
                 src,
                 validation_problem,

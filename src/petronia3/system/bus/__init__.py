@@ -26,4 +26,8 @@ from .event import (
 from .typesafe import (
     TypeSafeEventBus,
     TypeSafeEventCallback,
+    EventListenerAddedEvent,
+    ListenerRegistrator,
+    ListenerSetup,
+    as_listener_added_listener,
 )

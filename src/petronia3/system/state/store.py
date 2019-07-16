@@ -5,7 +5,7 @@ Type-safe storage of multiple states.
 
 from typing import Dict, Sequence, Optional, Type
 from ..participant import ParticipantId, is_valid_participant_identity
-from ...validation import assert_format
+from ...validation import assert_formatted
 from ...util.memory import T
 
 class StateStore:
@@ -33,7 +33,7 @@ class StateStore:
         assert isinstance(new_state, state_type)
         old_state: Optional[T] = None
         if state_id in self.__state_types:
-            assert_format(
+            assert_formatted(
                 self.__state_types[state_id] == state_type,
                 'StateStore',
                 'Setting the state must match the original type',
@@ -68,7 +68,7 @@ class StateStore:
     def validate_state_id(state_id: ParticipantId) -> None:
         """Ensure the state_id conforms to the standard."""
 
-        assert_format(
+        assert_formatted(
             is_valid_participant_identity(state_id),
 
             'StateStore',
