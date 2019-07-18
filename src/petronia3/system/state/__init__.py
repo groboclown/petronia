@@ -4,5 +4,7 @@ The state data store.  State created by the system is stored here, for easy quer
 changes must be made through the event bus.
 """
 
-from . import bus
-from .bus import set_state
+from .events import (
+    set_state,
+    as_state_change_listener,
+)

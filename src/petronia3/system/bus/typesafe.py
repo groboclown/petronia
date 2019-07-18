@@ -4,61 +4,19 @@ Type-safe event bus.
 Includes firing events on event listener adding.
 """
 
-from typing import Callable, Tuple
-from .bus import (
+from .event_bus import (
     EventBus, EventCallback, EventId, ListenerId,
     TARGET_WILDCARD,
-    QUEUE_EVENT_NORMAL,
 )
-from ..participant import ParticipantId, NOT_PARTICIPANT
-from .event import EventRegistry
+from .event_registry import EventRegistry
+from .typesafe_types import ListenerRegistrator, TypeSafeEventCallback
+from .typesafe_events import (
+    EventListenerAddedEvent,
+    EVENT_ID_EVENT_LISTENER_ADDED,
+)
+from ..participant import ParticipantId
 from ...util.memory import T
 
-TypeSafeEventCallback = Callable[[EventId, ParticipantId, T], None]
-ListenerSetup = Tuple[EventId, TypeSafeEventCallback[T]]
-ListenerRegistrator = Callable[[TypeSafeEventCallback[T]], ListenerSetup[T]]
-
-
-EVENT_ID_EVENT_LISTENER_ADDED = EventId('event-bus listener-add')
-
-
-class EventListenerAddedEvent:
-    """
-    Information about the added event listener.
-
-    There is no event triggered for removing an event listener.
-    """
-    __slots__ = ('_event_id', '_target_id',)
-    def __init__(self, event_id: EventId, target_id: ParticipantId) -> None:
-        self._event_id = event_id
-        self._target_id = target_id
-
-    @property
-    def event_id(self) -> EventId:
-        """The event_id listened to."""
-        return self._event_id
-
-    @property
-    def target_id(self) -> ParticipantId:
-        """The target_id listened to."""
-        return self._target_id
-
-
-def register_events(evtr: EventRegistry) -> None:
-    """
-    Register the type-safe bus events.
-    """
-    evtr.register(
-        EVENT_ID_EVENT_LISTENER_ADDED, QUEUE_EVENT_NORMAL,
-        EventListenerAddedEvent, EventListenerAddedEvent(EventId('event'), NOT_PARTICIPANT)
-    )
-
-
-def as_listener_added_listener(
-        callback: TypeSafeEventCallback[EventListenerAddedEvent]
-) -> ListenerSetup[EventListenerAddedEvent]:
-    """A ListenerRegistrator type."""
-    return (EVENT_ID_EVENT_LISTENER_ADDED, callback,)
 
 
 class TypeSafeEventBus:

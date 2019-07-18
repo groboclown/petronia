@@ -3,7 +3,7 @@
 Worker Threads
 """
 
-from typing import List, Optional, Any, Dict, Callable
+from typing import List, Optional, Any, Dict, Callable, Sequence
 import threading
 import queue
 import traceback
@@ -27,11 +27,11 @@ ErrorHandler = Callable[[str, BaseException], None]
 
 class _WorkAction:
     """Small holder for worker actions."""
-    __slots__ = ('opr', 'vargs', 'kvargs')
+    __slots__ = ('opr', 'vargs', 'kvargs',)
     def __init__(
             self,
             opr: Optional[Callable],
-            vargs: List[Any], kvargs: Dict[str, Any]
+            vargs: Sequence[Any], kvargs: Dict[str, Any]
     ) -> None:
         self.opr = opr
         self.vargs = vargs
@@ -51,11 +51,12 @@ class WorkerThread:
     The worker thread class.  Creating a worker thread automatically registers it
     to the global set of threads.
     """
+    __slots__ = ('__thread', '__cid', '_error_handler', '__state', '__state_lock', '_q')
 
     # Should be subscript [_WorkAction], but this causes a runtime error
     # ('type' object is not subscriptable)
-    __q: queue.Queue # type: ignore
-    __error_handler: ErrorHandler
+    _q: queue.Queue # type: ignore
+    _error_handler: ErrorHandler
 
     def __init__(
             self,
@@ -64,24 +65,24 @@ class WorkerThread:
     ) -> None:
         assert error_handler is None or callable(error_handler)
         self.__thread = threading.Thread(
-            target=lambda: self._run(), # pylint: disable=unnecessary-lambda
+            target=self._run,
             daemon=daemon
         )
         self.__cid = cid
         self.__thread.name = "Worker {0}".format(cid)
 
         # ignored type: see mypy #708
-        self.__error_handler = error_handler or default_error_handler # type: ignore
+        self._error_handler = error_handler or default_error_handler # type: ignore
 
         self.__state = 0
-        self.__q = queue.Queue()
+        self._q = queue.Queue()
         self.__state_lock = RWLock()
         self.__thread.start()
 
     def queue(
             self,
             callback: Callable, # type: ignore
-            vargs: Optional[List[Any]] = None, kargs: Optional[Dict[str, Any]] = None
+            vargs: Optional[Sequence[Any]] = None, kargs: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Adds an item to the end of the worker's queue.  It does not inspect the state of the
@@ -90,7 +91,7 @@ class WorkerThread:
         :param callback Function: callable function, invoked when the worker gets to it.
         """
         assert callable(callback)
-        self.__q.put_nowait(_WorkAction(
+        self._q.put_nowait(_WorkAction(
             callback, vargs or EMPTY_LIST, kargs or EMPTY_DICT
         ))
 
@@ -108,7 +109,7 @@ class WorkerThread:
         Sends a signal to the worker thread to stop running after the queue is finished.
         Any additional items added to the queue after this point will be silently ignored.
         """
-        self.__q.put_nowait(_STOP_ACTION)
+        self._q.put_nowait(_STOP_ACTION)
 
     def close(self) -> None:
         """
@@ -121,13 +122,13 @@ class WorkerThread:
                 self.__state_lock.promote()
                 self.__state = 2
                 # Force the queue to wake up
-                self.__q.put_nowait(_NOOP_ACTION)
+                self._q.put_nowait(_NOOP_ACTION)
         finally:
             self.__state_lock.release()
 
     def _run(self) -> None:
         total = 0
-        _RUNNING_THREAD_QUEUES.append(self.__q)
+        _RUNNING_THREAD_QUEUES.append(self._q)
         try:
             self.__state_lock.acquire_read()
             try:
@@ -146,19 +147,19 @@ class WorkerThread:
                         break
                 finally:
                     self.__state_lock.release()
-                action: _WorkAction = self.__q.get()
+                action: _WorkAction = self._q.get()
                 try:
                     total += 1
                     if not action.run():
                         self.close()
                 except BaseException as err: # pylint: disable=broad-except
                     # See mypy #702
-                    self.__error_handler(self.__cid, err) # type: ignore
+                    self._error_handler(self.__cid, err) # type: ignore
         finally:
             # No lock on this, because it's not a read then write.
             self.__state = 3
-            if self.__q in _RUNNING_THREAD_QUEUES:
-                _RUNNING_THREAD_QUEUES.remove(self.__q)
+            if self._q in _RUNNING_THREAD_QUEUES:
+                _RUNNING_THREAD_QUEUES.remove(self._q)
 
 
 def default_error_handler(cid: str, err: BaseException) -> None:

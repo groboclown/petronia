@@ -3,7 +3,7 @@
 API supporting the event bus.
 """
 
-from .bus import (
+from .event_bus import (
     # Force an explicit request to use the raw event bus.
     # EventBus,
 
@@ -19,15 +19,21 @@ from .bus import (
     EVENT_WILDCARD,
     TARGET_WILDCARD,
 )
-from .event import (
+from .event_registry import (
     EventRegistry,
     EventId,
 )
-from .typesafe import (
-    TypeSafeEventBus,
+from .typesafe_types import (
     TypeSafeEventCallback,
-    EventListenerAddedEvent,
     ListenerRegistrator,
     ListenerSetup,
+)
+from .typesafe import (
+    TypeSafeEventBus,
+)
+from .events import (
+    register_event,
+    
+    EventListenerAddedEvent,
     as_listener_added_listener,
 )

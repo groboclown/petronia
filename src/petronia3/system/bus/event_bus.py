@@ -3,7 +3,7 @@
 The Event Bus implementation.
 """
 from typing import Callable, List, Dict, Tuple, Sequence, NewType, Union
-from ..participant import (
+from ..participant.identity import (
     ParticipantId,
     ComponentId,
     SingletonId,
@@ -11,6 +11,7 @@ from ..participant import (
     is_valid_participant_identity,
     create_singleton_identity,
 )
+from ..logging import log, TRACE, DEBUG
 from ...validation import assert_formatted, assert_all, assert_has_signature
 from ...util.rwlock import RWLock
 
@@ -108,6 +109,11 @@ class EventBus:
             the real event or target ID is passed as argument.
         :return ListenerId: a unique identifier for the listener.
         """
+        log(
+            TRACE, EventBus,
+            'attempting to add listener of event "{0}" for target "{1}"', event_id, target_id
+        )
+
         # "is not" rather than "!=" because everything should use the
         # wildcard reference, and not make a copy.
         if event_id is not EVENT_WILDCARD:
@@ -129,6 +135,13 @@ class EventBus:
         finally:
             self.__lock.release()
 
+        log(
+            DEBUG, EventBus,
+            'added listener of event "{0}" for target "{1}" with listener id "{2}"',
+            event_id, target_id, listener_id
+        )
+
+
         return listener_id
 
     def trigger(
@@ -142,6 +155,15 @@ class EventBus:
         `when` parameter.  The queue function will determine the actual time of the
         listener invocation.
         """
+        # This method is HIGHLY PERFORMANCE SENSITIVE.
+        # Be super careful with this method.
+
+        log(
+            TRACE, EventBus,
+            'attempting to trigger priority "{0}" event "{1}" target "{2}" with "{3}"',
+            when, event_id, target_id, event_obj
+        )
+
         assert when in QUEUE_EVENT_TYPES
         EventBus.assert_event_id(event_id)
         EventBus.assert_target_id(target_id)
@@ -174,6 +196,12 @@ class EventBus:
             listeners,
             (event_id, target_id, event_obj)
         )
+        log(
+            TRACE, EventBus,
+            'queued priority "{0}" event "{1}" target "{2}" with "{3}"',
+            when, event_id, target_id, event_obj
+        )
+
 
     def remove_listener(self, listener_id: ListenerId) -> bool:
         """

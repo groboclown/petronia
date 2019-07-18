@@ -61,16 +61,25 @@ The event bus handles communication between components to maintain loose couplin
 The event bus is the only part of the system allowed to store references to objects outside itself.  Unfortunately, because it is critical to getting everything to talk to other system parts, it must be shared between parts.
 
 
+### Participants (All Non-Critical Components)
+
+All non-critical participants of the system need to register themselves to the event bus for basic lifecycle management.
+
+
 ### State Store (Singleton)
 
 Some aspects of the system are a global state that rarely updates.  For example, the screen resolution.  These states need to be made available to all participants of the system, but due to the loose coupling, the state itself cannot be put into an accessible place.  Likewise, participants may need to be aware of updates to those states.
 
-The state store solves this problem by having a two-phase approach to state storage.  A participant announces the request to store an updated state, which the state store then uses to
+The state store solves this problem by having a two-phase approach to state storage.  A participant announces the request to store an updated state, which the state store then uses to update the state storage, and, upon successful saving, it creates a "store update" event.
 
-The state store has an interesting global data problem.  Specifically, how to make the initial state of a value available to a new listener.  The state store does this by listening to events for new event listeners of the state store itself, and sends out state updated events when they are added.  This means there can be multiple state update events
+If a component uses storage for itself, it should listen to storage updates to make internal state changes, and only publish updates to the state store rather than making them directly.
+
+The state store has an interesting global data problem.  Specifically, how to make the initial state of a value available to a new listener.  The state store does this by listening to events for new event listeners of the state store itself, and sends out state updated events when they are added.  This means state update events can happen when no actual state change has occurred.
 
 
 ### Registrar (Singleton)
+
+The registrar maintains a set of component categories, and creates new components on demand.
 
 
 ### Timer (Singleton)
@@ -78,10 +87,8 @@ The state store has an interesting global data problem.  Specifically, how to ma
 A global timer (or "heartbeat")
 
 
-## Helpers
+## Configuration
 
-### Parent
+Configuration in Petronia is much more than some files.  It takes advantage of the state storage mechanism and applies readers and persistence on top of it.  Each component can make itself configuration aware by adding a state store object (will need to be a singleton) and listen for changes to it, and send events for its own changes to the configuration.
 
-Maintains a parent-child relationship through the dispose request events.  If the parent is disposed, then all children are given dispose messages, and the parent will not finish disposing itself until all its children are disposed.
-
-### Listener Set
+The configuration system will load the configuration files from the user and system appropriate places (which is very platform dependent), and create state update events.  Additional state update listeners write the state back to disk according to the setup.  Some configuration parts may only define an initial setup, and any further changes are never persisted, other parts may have write only if explicitly told to do so, and others may write to disk on every update.

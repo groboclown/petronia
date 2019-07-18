@@ -4,12 +4,11 @@ Unit tests for event.py
 """
 
 import unittest
-from ..event import (
-    EventRegistry
-)
-from ..typesafe import TypeSafeEventBus, register_events
-from ..bus import EventBus, TARGET_WILDCARD, QUEUE_EVENT_NORMAL
-from .bus_test import BasicQueuer, BasicListener
+from ..event_registry import EventRegistry
+from ..typesafe import TypeSafeEventBus
+from ..bootstrap import register_event_registry_events
+from ..event_bus import EventBus, TARGET_WILDCARD, QUEUE_EVENT_NORMAL
+from ....util.tests.test_helper import BasicListener, BasicQueuer
 from ....errors import PetroniaInvalidState
 
 
@@ -18,10 +17,10 @@ class TypeSafeEventBusTest(unittest.TestCase):
     def test_simple(self):
         """Simple use case."""
         evtr = EventRegistry()
-        register_events(evtr)
+        register_event_registry_events(evtr)
         evtr.register('simple', QUEUE_EVENT_NORMAL, EventSimple, EventSimple())
         queue = BasicQueuer(self)
-        bus = EventBus(queue)
+        bus = EventBus(queue.pure_queuer)
         typesafe = TypeSafeEventBus(bus, evtr)
         typesafe.add_listener(TARGET_WILDCARD, lambda x: ('simple', x,), BasicListener('1', queue))
 
@@ -29,7 +28,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
         """Attempt to add_listener() on not-registered event id"""
         evtr = EventRegistry()
         queue = BasicQueuer(self)
-        bus = EventBus(queue)
+        bus = EventBus(queue.pure_queuer)
         typesafe = TypeSafeEventBus(bus, evtr)
         try:
             typesafe.add_listener(TARGET_WILDCARD, lambda x: ('not-registered', x,), BasicListener('1', queue))
@@ -44,7 +43,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
         """Trigger an event that isn't registered."""
         evtr = EventRegistry()
         queue = BasicQueuer(self)
-        bus = EventBus(queue)
+        bus = EventBus(queue.pure_queuer)
         typesafe = TypeSafeEventBus(bus, evtr)
         try:
             typesafe.trigger('not-registered', 'tgt', EventSimple())

@@ -3,7 +3,7 @@ Event helpers.
 """
 
 from typing import Dict, Type, Optional, Iterable
-from .bus import (
+from .event_bus import (
     EventBus,
     EventId,
     QueuePriority,
@@ -11,6 +11,7 @@ from .bus import (
     QUEUE_EVENT_TYPES,
 )
 from ..participant import ParticipantId
+from ..logging import log, TRACE, DEBUG
 from ...validation import assert_formatted, assert_all
 from ...util.memory import T
 from ...util import optional_key
@@ -53,6 +54,7 @@ class EventRegistry:
         members should be made read-only to prevent mis-behaving listeners from
         changing event data.
         """
+        log(TRACE, EventRegistry, 'registering {0} as {1}', event_id, event_class)
         EventBus.assert_event_id(event_id)
         assert_all(
             'EventRegistry',
@@ -83,6 +85,7 @@ class EventRegistry:
             )
         )
         self._types[event_id] = _EventTypeInfo(event_class, priority)
+        log(DEBUG, EventRegistry, 'registered event {0} as type {1}', event_id, event_class)
 
     def has_event_id(self, event_id: EventId) -> bool:
         """Returns True if the event_id is properly registered, otherwise False."""

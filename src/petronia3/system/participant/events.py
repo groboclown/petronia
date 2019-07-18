@@ -8,7 +8,7 @@ from ..bus import (
     EventId, ListenerSetup,
     TARGET_WILDCARD,
 )
-from ..participant import (
+from .identity import (
     ParticipantId,
 )
 from ...validation import (
@@ -17,6 +17,7 @@ from ...validation import (
 
 EVENT_ID_REQUEST_DISPOSE = EventId('participant request-dispose')
 EVENT_ID_DISPOSE_COMPLETE = EventId('participant dispose-complete')
+
 
 class RequestDisposeEvent:
     """
@@ -60,12 +61,17 @@ def as_request_dispose_listener(
 def send_request_dispose_event(bus: TypeSafeEventBus, to_dispose_id: ParticipantId) -> None:
     """Reqest that a participant be disposed."""
     assert_formatted(
-        to_dispose_id != TARGET_WILDCARD,
+        # I think MyPy marks to_dispose_id as Any because of the way it's used in the equality statement.
+        to_dispose_id != TARGET_WILDCARD, # type: ignore
         'RequestDisposeEvent',
         'disposed ID cannot be a wildcard',
         'requested {0}', to_dispose_id
     )
-    bus.trigger(EVENT_ID_REQUEST_DISPOSE, to_dispose_id, RequestDisposeEvent(to_dispose_id))
+    bus.trigger(
+        EVENT_ID_REQUEST_DISPOSE,
+        to_dispose_id, # type: ignore
+        RequestDisposeEvent(to_dispose_id) # type: ignore
+    )
 
 
 def as_dispose_complete_listener(
@@ -78,9 +84,13 @@ def as_dispose_complete_listener(
 def send_dispose_complete_event(bus: TypeSafeEventBus, disposed_id: ParticipantId) -> None:
     """Notify listeners that a participant was disposed."""
     assert_formatted(
-        disposed_id != TARGET_WILDCARD,
+        disposed_id != TARGET_WILDCARD, # type: ignore
         'RequestDisposeEvent',
         'disposed ID cannot be a wildcard',
         'requested {0}', disposed_id
     )
-    bus.trigger(EVENT_ID_DISPOSE_COMPLETE, disposed_id, DisposeCompleteEvent(disposed_id))
+    bus.trigger(
+        EVENT_ID_DISPOSE_COMPLETE,
+        disposed_id, # type: ignore
+        DisposeCompleteEvent(disposed_id) # type: ignore
+    )

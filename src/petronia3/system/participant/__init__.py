@@ -17,3 +17,14 @@ from .identity import (
     create_component_identity,
     create_singleton_identity,
 )
+
+# These are not explicitly exported,
+# because of inter-depndencies with the event bus.
+#from .events import (
+#    RequestDisposeEvent,
+#    DisposeCompleteEvent,
+#    as_request_dispose_listener,
+#    as_dispose_complete_listener,
+#    send_dispose_complete_event,
+#    send_request_dispose_event,
+#)

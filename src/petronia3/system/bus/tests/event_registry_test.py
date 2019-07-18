@@ -4,10 +4,10 @@ Unit tests for event.py
 """
 
 import unittest
-from ..event import (
+from ..event_registry import (
     EventRegistry
 )
-from ..bus import QUEUE_EVENT_NORMAL
+from ..event_bus import QUEUE_EVENT_NORMAL
 from ....errors import PetroniaInvalidState
 
 

@@ -5,12 +5,8 @@ Helpers for parent-child relationships.
 
 from typing import Dict, Callable, Optional, Sequence
 from threading import Lock
-from ..bus import (
-    EventId,
-    TypeSafeEventBus,
-    ListenerId,
-)
-from .dispose import (
+from .identity import ParticipantId
+from .events import (
     RequestDisposeEvent,
     DisposeCompleteEvent,
     as_request_dispose_listener,
@@ -18,9 +14,18 @@ from .dispose import (
     send_dispose_complete_event,
     send_request_dispose_event,
 )
-from ..participant import (
-    ParticipantId,
+from ..bus import (
+    EventId,
+    TypeSafeEventBus,
+    ListenerId,
 )
+from ..registrar import (
+    send_request_new_category_instance,
+    ComponentCreatedEvent,
+    as_component_created_listener,
+)
+from ...util.memory import T
+
 
 class Parent:
     """
@@ -35,9 +40,13 @@ class Parent:
 
     # child ID -> dispose completed listener ID
     _children: Dict[ParticipantId, ListenerId]
+    _dispose_listener: Optional[ListenerId]
+    _child_created_listener: Optional[ListenerId]
+    
     __slots__ = (
         '_children', '_bus', '_on_dispose', '_dispose_listener', '_id',
-        '_disposed', '__lock', '_on_child_disposed'
+        '_disposed', '__lock', '_on_child_disposed',
+        '_child_created_listener',
     )
 
     def __init__(
@@ -53,6 +62,9 @@ class Parent:
         self._dispose_listener = bus.add_listener(
             my_id, as_request_dispose_listener, self.__on_request_dispose_self
         )
+        self._child_created_listener = bus.add_listener(
+            my_id, as_component_created_listener, self.__on_child_created
+        )
         self.__lock = Lock()
         self._disposed = 0
 
@@ -66,8 +78,21 @@ class Parent:
         """All the child IDs registered and not disposed."""
         return tuple(self._children.keys())
 
-    def add_child(self, child_id: ParticipantId) -> None:
-        """Add a child dependency."""
+    def create_child(self, category: str, construct_obj: T) -> None:
+        """
+        Begins the request chain to create a child in the given category.
+
+        Currently, there is no tracking between this request and the generated child.
+        """
+        send_request_new_category_instance(
+            self._bus, category, construct_obj, self._id, 0
+        )
+
+    def __on_child_created(
+            self,
+            eid: EventId, tid: ParticipantId, event: ComponentCreatedEvent # pylint: disable=unused-argument
+    ) -> None:
+        child_id = event.created_id
         with self.__lock:
             if child_id not in self._children:
                 self._children[child_id] = self._bus.add_listener(
@@ -112,6 +137,12 @@ class Parent:
             try:
                 if self._on_dispose:
                     self._on_dispose()
+                if self._dispose_listener:
+                    self._bus.remove_listener(self._dispose_listener)
+                    self._dispose_listener = None
+                if self._child_created_listener:
+                    self._bus.remove_listener(self._child_created_listener)
+                    self._child_created_listener = None
             finally:
                 self._disposed = 2
                 send_dispose_complete_event(self._bus, self._id)
