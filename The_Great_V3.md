@@ -2,7 +2,7 @@
 
 Petronia Version 3 is a rewrite to attempt to support multiple operating systems.  We'll start with Windows 10 and Linux X-based UI.
 
-This will build on some of the lessons learned.
+This will build on some of the lessons learned from the previous versions.
 
 
 # Goals
@@ -33,6 +33,10 @@ The layout functionality, for portals, chrome, keyboard commands, and "most" com
 
 The code should be written defensively to protect against mistakes or attacks.
 
+## Flexibility
+
+The system needs to be flexible.  By making component parts interchangeable and replaceable, the core system can grow and change without breaking other components.  End-users can swap out functionality to suit their needs.
+
 # Architecture
 
 ## Platform-Specific
@@ -40,3 +44,53 @@ The code should be written defensively to protect against mistakes or attacks.
 All platform specific code is in the [arch](src/petronia3/arch) source directory.  Each supported platform is in the top level directory, and must conform to the spec laid out by the [generic](src/petronia3/arch/generic) tree.
 
 The platform acts as the main program.  It knows how to start up, shut down, and mingle itself into the running OS to do what needs to be done.  The platform calls out to the rest of the Petronia system on operating system events.
+
+# TODO
+
+The current to-do list.
+
+## Really Basic Infrastructure Work
+
+* extensions.extensions needs a lot of work.
+    * should include tracking of dependent extensions.  This should aid in component upgrades.  This means components should have versions, version dependencies, and a target ID for disposing.
+    * move metadata (version, extension name, what it implements / is api for) into a manifest file.  Include a catalog directory.
+    * add multiple versions of extensions inside extension zips.  These are the zip directories.  They have a specific file name.
+    * the "path" loader, as opposed to the zip loader, should only be used for development mode extensions.
+    * add PGP and checksum to zip loader.
+* clean up event and target names to match the module patterns.
+* change event registration to enforce the `serialize` and `deserialize` static methods.
+* Implement secure module.  It should allow different implementations to check the PGP signature.  Implementations can be swapped out whenever, because enforcing a "only once" policy is silly due to the limitations in securing python.  [OpenPGP-Python](https://github.com/singpolyma/OpenPGP-Python) looks promising, but doesn't provide an easy way to access the GPG key store, and depends on several other libraries that most likely require compilation.  [`python-gnupg`](https://pythonhosted.org/python-gnupg/) may be the easiest and safest - it relies upon the `gnupg` program to do everything, it's one file, and is under the BSD-3 clause license.  [openpgp-python](https://github.com/diafygi/openpgp-python) and [python-pgp](https://github.com/mitchellrj/python-pgp) are 100% python, but are under the GPL.  Probably just want to go with [pycrypto](https://github.com/dlitz/pycrypto), as it's under the public domain, but it requires compilation sadface.  To [verify a PKCS#5 v1.5 signature in Python](https://stackoverflow.com/a/19551810/4580538) / PyCrypto, use:
+    ```python
+    from Crypto.PublicKey import RSA
+    from Crypto.Signature import PKCS1_v1_5
+    from Crypto.Hash import SHA
+
+    rsa_key = RSA.importKey(open(verification_key_file, "rb").read())
+    verifier = PKCS1_v1_5.new(rsa_key)
+    h = SHA.new(data_to_verify)
+    if verifier.verify(h, signature_received_with_the_data):
+        print "OK"
+    else:
+        print "Invalid"
+    ```
+    Probably would have two parts - a file-based one (for extensions) and one for in-memory signatures (for events).
+* localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
+    * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
+      ```python
+      locale.setlocale(locale.LC_ALL, loc)
+      language = gettext.translation('petronia', languages=[lang])
+      language.install()
+      ```
+    * That same component publishes a state of the available locales and translations.
+    * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
+    * Need to figure out how extensions publish translations.  They probably use `(mymodule).__file__` to find its install location, and get the directory from there.
+* configuration from a file.  Need standards for configuration events (generic format?).  Need INI file reader and writer.  Configuration usage also needs to be standardized.  External storage backed configuration requires a specific configuration object that is generic.  This kind of configuration is more akin to "persistent state", which would allow for saving off session information.
+* program startup bootstrapping.  Needs to boot up the core system, then load the current platform as an extension.
+* basic definition of platform responsibilities.
+* create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
+* module helpers (`ext_help` for now).  Things like:
+    * event listener thread safety.  With event listeners running in any number of threads, developers must take care to make sure their code is thread safe.  Some simple helpers can make life so much easier.
+        * "with self.lock" is pretty simple.  Could add a "@locked" annotation.  No, this is too complicated.
+        * event chaining with promise-like API.
+    * design simplified event chain management for extensions, since events are so critical and everywhere.  It seems like it'll become a state machine.
+* eventually, write the cross-process event listener and the other side's event sending.  This will require turning events into serialized form, keeping a cache of event classes (which uses the event registration events).

@@ -2,9 +2,10 @@
 """Unit tests for event bus stuff"""
 
 import unittest
+import traceback
 from typing import Tuple, List, Optional, Sequence, Any
 
-from ...system.bus.event_bus import (
+from ...system.bus import (
     EventId,
     QueuePriority,
     EventCallback,
@@ -123,7 +124,7 @@ _LOG_NAMES = {
 class EnabledLogs:
     __log_ids: List[LogHandlerId]
 
-    def __init__(self, level: LogLevel) -> None:
+    def __init__(self, level: LogLevel = TRACE) -> None:
         self.__level = level
         self.__log_ids = []
 
@@ -133,10 +134,12 @@ class EnabledLogs:
             add_log_handler(self.__level, '', self._log_it)
         )
 
-    def __exit__(self, type: Any, value: Any, traceback: Any) -> None:
+    def __exit__(self, type_arg: Any, value: Any, etraceback: Any) -> None:
         for lhid in self.__log_ids:
             remove_log_handler(lhid)
         self.__log_ids = []
 
-    def _log_it(self, level: LogLevel, src: str, msg: str) -> None:
+    def _log_it(self, level: LogLevel, src: str, msg: str, err: Optional[BaseException]) -> None:
         print("[{0}] {1:20}: {2}".format(_LOG_NAMES[level], src, msg))
+        if err:
+            traceback.print_exception(err.__class__, err, err.__traceback__)

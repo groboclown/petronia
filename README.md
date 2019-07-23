@@ -4,7 +4,7 @@
 
 ## Version 3 In Development!
 
-Because you didn't ask for it!
+[Because you didn't ask for it!](The_Great_V3.md)
 
 ## Version 2.2 Is Out!
 

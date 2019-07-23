@@ -1,5 +1,6 @@
 """
-Basic operations
+Basic operations.  These are fundamental actions in Python that make the code
+much cleaner.
 """
 
 from typing import Dict, Optional

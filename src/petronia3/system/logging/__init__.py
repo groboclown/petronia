@@ -1,26 +1,6 @@
 
 """
-Basic logging infrastructure.
+Basic logging API
 """
 
-from .level import (
-    LogLevel,
-    TRACE,
-    DEBUG,
-    VERBOSE,
-    INFO,
-    NOTICE,
-    WARN,
-    DEPRECATED,
-    ERROR,
-    FATAL,
-)
-from .handler import (
-    LogHandler,
-    LogHandlerId,
-)
-from .log import (
-    log,
-    add_log_handler,
-    remove_log_handler,
-)
+from .api import *

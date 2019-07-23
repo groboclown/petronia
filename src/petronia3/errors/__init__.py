@@ -9,3 +9,11 @@ from .internal import (
     PetroniaInternalError,
     PetroniaInvalidState,
 )
+from .extensions import (
+    PetroniaExtensionError,
+    PetroniaExtensionNotFound,
+    PetroniaExtensionNotFound,
+    PetroniaInvalidExtension,
+    PetroniaCyclicExtensionDependency,
+    PetroniaExtensionInitializationError,
+)
