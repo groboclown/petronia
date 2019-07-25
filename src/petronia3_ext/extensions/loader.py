@@ -10,17 +10,17 @@ import importlib.util
 import importlib.machinery
 from types import ModuleType
 from typing import List, Callable
-from ..api.state import ExtensionConfiguration, ExtensionState
-from ....system.bus import EventBus
-from ....system.logging import log, logerr, DEBUG, INFO, ERROR
-from ....errors import (
+from petronia3.extensions.extensions.api import ExtensionConfiguration, ExtensionState
+from petronia3.system.bus import EventBus
+from petronia3.system.logging import log, logerr, DEBUG, INFO, ERROR
+from petronia3.errors import (
     PetroniaInternalError,
     PetroniaExtensionNotFound,
     PetroniaInvalidExtension,
     PetroniaCyclicExtensionDependency,
     PetroniaExtensionInitializationError,
 )
-from ....util.memory import EMPTY_TUPLE
+from petronia3.util.memory import EMPTY_TUPLE
 
 ModuleLoadedCallback = Callable[[str], None]
 

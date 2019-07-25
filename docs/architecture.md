@@ -175,6 +175,14 @@ Extension modules must provide the function `start_extension` which takes a sing
 
 Normally, a module will also declare a `MODULE_ID` singleton ID constant that is used for lifecycle events for the module.  This should match the extension name, to avoid possible name collisions.
 
+For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the json above, but with the additional required information:
+
+```json
+{
+    "name": "extension.name",
+    "version": [ 1, 0, 0 ],
+}
+```
 
 #### State Store (Singleton)
 

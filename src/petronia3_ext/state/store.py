@@ -5,10 +5,10 @@ Type-safe storage of multiple states.
 
 from typing import Dict, Sequence, Optional, Type
 from threading import Lock
-from ..api.validate import validate_state_id
-from ....system.participant import ParticipantId
-from ....validation import assert_formatted, assert_all
-from ....util.memory import T
+from petronia3.extensions.state.api.validate import validate_state_id
+from petronia3.system.participant import ParticipantId
+from petronia3.validation import assert_formatted, assert_all
+from petronia3.util.memory import T
 
 class StateStore:
     """

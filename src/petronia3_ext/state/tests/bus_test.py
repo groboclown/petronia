@@ -1,14 +1,12 @@
 
 import unittest
-from ..bootstrap import bootstrap_state_store
-from ...bus import EventRegistry, TypeSafeEventBus
-from ...bus.event_bus import EventBus
-from ...bus.bootstrap import (
+from petronia3.system.logging import TRACE, log
+from petronia3.util.tests.test_helper import BasicQueuer, EnabledLogs
+from petronia3_root.bootstrap import (
     register_event_registry_events,
     add_event_registry_listener,
 )
-from ...logging import TRACE, log
-from ....util.tests.test_helper import BasicQueuer, EnabledLogs
+from ..bootstrap import bootstrap_state_store
 
 class BusTest(unittest.TestCase):
     def test_register_events(self):

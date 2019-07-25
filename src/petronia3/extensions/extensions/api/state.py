@@ -3,53 +3,37 @@
 State of the extension manager.
 """
 
-from typing import Sequence, Optional
+from typing import Sequence, Tuple, Optional
 from ....system.bus import (
     EventBus, EventCallback, ListenerSetup, ListenerId
 )
 from ....system.participant import create_singleton_identity
-from ...state import set_state, StateStoreUpdatedEvent, as_state_change_listener
+from ...state import StateStoreUpdatedEvent, as_state_change_listener
 from ....util.memory import EMPTY_TUPLE
 
 CONFIGURATION_EXTENSION_LOADER = create_singleton_identity('extension-config')
 
-class ExtensionConfiguration:
-    """
-    All the configured state information
-    """
-    __slots__ = ('_zip_dirs', '_paths')
-    _zip_dirs: Sequence[str]
-    _paths: Sequence[str]
-
-    def __init__(
-            self,
-            zip_dirs: Optional[Sequence[str]] = None,
-            paths: Optional[Sequence[str]] = None
-    ) -> None:
-        self._zip_dirs = tuple(zip_dirs or EMPTY_TUPLE) # type: ignore
-        self._paths = tuple(paths or EMPTY_TUPLE) # type: ignore
-
-    @property
-    def zip_dirs(self) -> Sequence[str]:
-        """Directories that contain zip files to be inspected for extensions.
-        These directories are not checked recursively."""
-        return self._zip_dirs
-
-    @property
-    def paths(self) -> Sequence[str]:
-        """List of paths to search for extensions.  These are checked after zips
-        in the `zip_dirs`."""
-        return self._paths
-
-
-def set_extension_loader_configuration(
-        bus: EventBus, config: ExtensionConfiguration
-) -> None:
-    """Convenience function to set the loader configuration."""
-    set_state(bus, CONFIGURATION_EXTENSION_LOADER, ExtensionConfiguration, config)
-
 
 STATE_EXTENSION_LOADER = create_singleton_identity('extension-state')
+
+
+class LoadedExtension:
+    """
+    Information about a loaded extension.
+    """
+    __slots__ = ('_name', '_version',)
+    def __init__(self, name: str, version: Tuple[int, int, int]) -> None:
+        self._name = name
+        self._version = version
+
+    @property
+    def name(self) -> str:
+        return self.name
+
+    @property
+    def version(self) -> Tuple[int, int, int]:
+        return self._version
+
 
 class ExtensionState:
     """
@@ -57,13 +41,13 @@ class ExtensionState:
     participants may want to know.
     """
     __slots__ = ('_loaded_extensions',)
-    _loaded_extensions: Sequence[str]
+    _loaded_extensions: Sequence[LoadedExtension]
 
-    def __init__(self, extensions: Optional[Sequence[str]] = None) -> None:
+    def __init__(self, extensions: Optional[Sequence[LoadedExtension]] = None) -> None:
         self._loaded_extensions = tuple(extensions or EMPTY_TUPLE) # type: ignore
 
     @property
-    def loaded_extensions(self) -> Sequence[str]:
+    def loaded_extensions(self) -> Sequence[LoadedExtension]:
         """
         All extension names loaded.
         """

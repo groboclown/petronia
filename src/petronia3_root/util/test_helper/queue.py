@@ -4,17 +4,16 @@
 import unittest
 import traceback
 from typing import Tuple, List, Optional, Sequence, Any
-
-from ...system.bus import (
+from petronia3.system.bus import (
     EventId,
     QueuePriority,
     EventCallback,
 )
-from ...system.participant import (
+from petronia3.system.participant import (
     ParticipantId,
     NOT_PARTICIPANT,
 )
-from ...system.logging import (
+from petronia3.system.logging import (
     TRACE, DEBUG, VERBOSE, INFO, NOTICE, WARN, DEPRECATED, ERROR, FATAL,
     LogHandlerId,
     LogLevel,

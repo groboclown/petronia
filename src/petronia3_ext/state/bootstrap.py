@@ -3,27 +3,27 @@
 EventBus interaction for the global state.
 """
 
-from ..api.events import (
+from petronia3.extensions.state.api.events import (
     EVENT_ID_UPDATE_STATE_REQUEST,
     StateStoreUpdateRequestEvent,
 
     EVENT_ID_UPDATED_STATE,
     StateStoreUpdatedEvent,
 )
-from ....system.bus import (
+from petronia3.system.bus import (
     EventId,
     EventBus, EventCallback,
     EventListenerAddedEvent,
     ListenerSetup, as_listener_added_listener,
     TARGET_WILDCARD,
 )
-from ....system.participant import (
+from petronia3.system.participant import (
     ParticipantId,
     create_singleton_identity,
 )
+from petronia3.ext_help.module_bootstrap import create_module_listener_helper
+from petronia3.util.memory import T
 from .store import StateStore
-from ....ext_help.module_bootstrap import create_module_listener_helper
-from ....util.memory import T
 
 
 MODULE_ID = create_singleton_identity('core.state.impl')

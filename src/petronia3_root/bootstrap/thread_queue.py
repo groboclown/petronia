@@ -1,11 +1,15 @@
 
+# mypy: allow-any-expr
+# mypy: allow-any-explicit
+# mypy: allow-any-generics
+
 """
 Core thread queue handler.
 """
 
-from typing import Sequence, Tuple, List
+from typing import Sequence, Tuple, List, Any
 from threading import Lock
-from ..system.bus.event_bus import (
+from petronia3.system.bus import (
     QUEUE_EVENT_IO,
     QUEUE_EVENT_NORMAL,
     QUEUE_EVENT_NOW,
@@ -14,16 +18,16 @@ from ..system.bus.event_bus import (
     EventId,
     EventCallback,
 )
-from ..system.participant import (
+from petronia3.system.participant import (
     ParticipantId,
 )
-from ..system.logging import (
+from petronia3.system.logging import (
     log,
     ERROR,
 )
-from ..util import WorkerThread
+from petronia3.util import WorkerThread
 
-_EventRequest = Tuple[EventCallback, Tuple[EventId, ParticipantId, object]]
+_EventRequest = Tuple[EventCallback[Any], Tuple[EventId, ParticipantId, object]]
 
 class CoreActionHandler:
     """

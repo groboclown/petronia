@@ -6,10 +6,22 @@ Sets up the timer.
 import time
 import threading
 from typing import Optional, Callable, Sequence
-from .events import (
+from petronia3.extensions.timer.api.events import (
     EVENT_ID_TIMER, GLOBAL_TIMER_EVENT,
     TARGET_TIMER,
     TimerEvent,
+)
+from petronia3.system.logging import log, NOTICE
+from petronia3.system.bus import (
+    EventBus,
+    EventId,
+    register_event,
+    QUEUE_EVENT_NORMAL,
+)
+from petronia3.system.participant import ParticipantId
+from petronia3.extensions.state import (
+    as_state_change_listener,
+    StateStoreUpdatedEvent,
 )
 from .config import (
     TARGET_TIMER_CONFIG,
@@ -17,24 +29,11 @@ from .config import (
     TimerConfig,
     set_timer_config
 )
-from ....system.logging import log, NOTICE
-from ....system.bus import (
-    TypeSafeEventBus,
-    EventId,
-    register_event,
-    QUEUE_EVENT_NORMAL,
-)
-from ....system.participant import ParticipantId
-from ....system.state import (
-    as_state_change_listener,
-    StateStoreUpdatedEvent,
-)
 
 
 EXTENSION_DEPENDENCIES: Sequence[str] = tuple()
 
-
-def start_extension(bus: TypeSafeEventBus) -> None:
+def start_extension(bus: EventBus) -> None:
     """
     Get the timer started.
 
@@ -69,7 +68,7 @@ class BusTimer:
     __slots__ = ('_config', '_bus', '_running', '_thread', 'sleeper', 'mk_thread')
     _thread: Optional[threading.Thread]
 
-    def __init__(self, bus: TypeSafeEventBus, config: TimerConfig):
+    def __init__(self, bus: EventBus, config: TimerConfig):
         self._running = False
         self._config = config
         self._bus = bus

@@ -17,3 +17,8 @@ from .extensions import (
     PetroniaCyclicExtensionDependency,
     PetroniaExtensionInitializationError,
 )
+from .env import (
+    PetroniaEnvironmentError,
+    PetroniaFileSystemError,
+    PetroniaFileError,
+)
