@@ -3,7 +3,7 @@
 
 import unittest
 
-from petronia3.util.tests.test_helper import BasicListener, BasicQueuer
+from petronia3_root.util.test_helper import BasicListener, BasicQueuer
 from petronia3.system.participant import (
     create_singleton_identity,
 )
@@ -11,7 +11,7 @@ from petronia3.system.bus import (
     EventId,
 
     EVENT_WILDCARD, TARGET_WILDCARD,
-    QUEUE_EVENT_NOW, QUEUE_EVENT_NORMAL, QUEUE_EVENT_IO,
+    QUEUE_EVENT_HIGH, QUEUE_EVENT_NORMAL, QUEUE_EVENT_IO,
 )
 from ..basic_event_bus import (
     BasicEventBus,
@@ -64,9 +64,9 @@ class EventBusTest(unittest.TestCase):
             'e1', '2', evt
         )
 
-        bus.trigger(QUEUE_EVENT_NOW, EventId('e2'), create_singleton_identity('1'), evt)
+        bus.trigger(QUEUE_EVENT_HIGH, EventId('e2'), create_singleton_identity('1'), evt)
         queue.assert_called_only(
-            QUEUE_EVENT_NOW,
+            QUEUE_EVENT_HIGH,
             ['3', '5', '6'],
             'e2', '1', evt
         )

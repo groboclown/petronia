@@ -35,7 +35,7 @@ def bootstrap_state_store(bus: EventBus) -> None:
     store = _BusAwareStateStore(bus)
     # ListenerIds are not persisted, because this is a singleton
     # that is never disposed.
-    helper.listen(
+    helper.listen( # type: ignore
         TARGET_WILDCARD,
         _as_update_state_request_listener,
         store.on_update_request

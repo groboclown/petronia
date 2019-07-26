@@ -12,7 +12,7 @@ from threading import Lock
 from petronia3.system.bus import (
     QUEUE_EVENT_IO,
     QUEUE_EVENT_NORMAL,
-    QUEUE_EVENT_NOW,
+    QUEUE_EVENT_HIGH,
 
     QueuePriority,
     EventId,
@@ -25,6 +25,7 @@ from petronia3.system.logging import (
     log,
     ERROR,
 )
+from petronia3.system.events.api.bus import EVENT_ID_REGISTER_EVENT
 from petronia3.util import WorkerThread
 
 _EventRequest = Tuple[EventCallback[Any], Tuple[EventId, ParticipantId, object]]
@@ -80,6 +81,10 @@ class CoreActionHandler:
         Handle adding a listener request to the thread pool.
         """
         with self.__lock:
+            if arguments[0] == EVENT_ID_REGISTER_EVENT:
+                # Special case. This absolutely must be done right now.
+                for listener in listeners:
+                    self._run_handler((listener, arguments,))
             if priority == QUEUE_EVENT_IO:
                 # Run each listener in its own thread.
                 for listener in listeners:
@@ -90,7 +95,7 @@ class CoreActionHandler:
                 for listener in listeners:
                     self._main_events.append((listener, arguments,))
                 self._main_thread.queue(self._main_handler)
-            elif priority == QUEUE_EVENT_NOW:
+            elif priority == QUEUE_EVENT_HIGH:
                 for listener in listeners:
                     self._priority_events.append((listener, arguments,))
                 self._main_thread.queue(self._main_handler)
@@ -115,4 +120,10 @@ class CoreActionHandler:
                     hand = self._main_events[0]
                     del self._main_events[0]
             if hand:
-                hand[0](hand[1][0], hand[1][1], hand[1][2])
+                self._run_handler(hand)
+
+    def _run_handler(self, req: _EventRequest) -> None:
+        try:
+            req[0](req[1][0], req[1][1], req[1][2])
+        except BaseException as err: # pylint: disable=broad-except
+            self._error_handler('Failed running {0}'.format(req[1]), err)

@@ -35,15 +35,16 @@ class CoreExtensionLoader(ExtensionLoader):
             version: ExtensionVersion
     ) -> Optional[DiscoveredExtension]:
         # Ignore the "only_secure", because core extensions are always
-        # marked as secure.
+        # marked as secure (can be run in a context that has wide permissions).
         mod_spec = self._load_spec(name)
         if mod_spec is not None:
             # If this returns "None", then there's something wrong
             # with Petronia.
-            return get_extension_from_module_spec(name, version, mod_spec, None)
+            # ... and core extensions are always secure ...
+            return get_extension_from_module_spec(name, (True, version,), mod_spec, None)
         return None
 
-    def _load_spec(self, name) -> Optional[ModuleSpec]:
+    def _load_spec(self, name: str) -> Optional[ModuleSpec]:
         if name.startswith('core.'):
             formal_name = 'petronia3.extensions.' + name[5:]
         elif name.startswith('default.'):

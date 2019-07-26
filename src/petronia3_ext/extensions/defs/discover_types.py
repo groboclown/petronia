@@ -1,10 +1,13 @@
 
+# mypy: allow-any-expr
+# mypy: allow-any-explicit
+# mypy: allow-any-generics
+
 """
 Type definitions for loaders.
 """
 
-import numbers
-from typing import Tuple, Sequence, Dict, Any, Callable, Optional
+from typing import Tuple, Sequence, Dict, Any, Callable, Optional, Union
 from petronia3.errors import PetroniaInvalidExtension
 from petronia3.system.bus import EventBus
 from petronia3.util.op import (
@@ -12,13 +15,14 @@ from petronia3.util.op import (
     optional_list_key,
     optional_typed_key,
 )
+from petronia3.extensions.extensions.api import (
+    ExtensionVersion,
+)
 from petronia3.util.memory import EMPTY_TUPLE
-
-# major, minor, micro
-ExtensionVersion = Tuple[int, int, int]
 
 # is secure?, version
 SecureExtensionVersion = Tuple[bool, ExtensionVersion]
+NO_VERSIONS: Tuple[SecureExtensionVersion] = EMPTY_TUPLE # type: ignore
 
 MAX_DEWEY_VERSION = 999999999
 ANY_VERSION: ExtensionVersion = (-1, -1, -1,)
@@ -70,7 +74,7 @@ class ExtensionCompatibility:
         """optional maximum version at which this is no longer compatible"""
         return self._below
 
-    def is_compatible(self, version: ExtensionVersion) -> bool:
+    def is_compatible_with(self, version: ExtensionVersion) -> bool:
         """
         Does this compatibility description allow for the input
         version to be a match?
@@ -83,7 +87,7 @@ class ExtensionCompatibility:
             return False
         # else it's a match on min.
 
-        if self._below:
+        if self._below and self._below != ANY_VERSION:
             if compare_version(self._below, version) >= 0:
                 # the "must be below" version is equal or higher than
                 # the checked version.
@@ -103,34 +107,33 @@ class DiscoveredExtension:
     Raises PetroniaInvalidExtension if the json_def is invalid.
     """
     __slots__ = (
-        '__name', '_version',
+        '__name', '__version',
         '__is_impl', '__is_api',
         '_depends', '_implements',
         '__description', '_authors',
         '__homepage', '__license',
         '__loader',
     )
-    _version: ExtensionVersion
     _depends: Sequence[ExtensionCompatibility]
     _implements: Optional[ExtensionCompatibility]
     _authors: Sequence[str]
 
     def __init__(
             self,
-            name: str, version: ExtensionVersion,
+            name: str, version: SecureExtensionVersion,
             json_def: Dict[str, Any],
             loader: ModuleLoader
     ) -> None:
         self.__name = name
-        self._version = version
+        self.__version = version
         self.__loader = loader
         self.__license = optional_typed_key(json_def, 'license', str)
         self.__homepage = optional_typed_key(json_def, 'homepage', str)
-        self._authors = optional_list_key(json_def, 'authors', str)
+        self._authors = optional_list_key(json_def, 'authors', str) or EMPTY_TUPLE
         self.__description = optional_typed_key(json_def, 'description', str)
         depends = []
         raw_depends = optional_key(json_def, 'depends')
-        if not (isinstance(raw_depends, list) or isinstance(raw_depends, tuple)):
+        if not isinstance(raw_depends, (list, tuple)):
             raise PetroniaInvalidExtension(
                 name,
                 EMPTY_TUPLE,
@@ -174,7 +177,15 @@ class DiscoveredExtension:
 
     @property
     def version(self) -> ExtensionVersion:
-        return self._version
+        return self.__version[1]
+
+    @property
+    def secure_version(self) -> SecureExtensionVersion:
+        return self.__version
+
+    @property
+    def is_secure(self) -> bool:
+        return self.__version[0]
 
     @property
     def is_implementation(self) -> bool:
@@ -216,15 +227,16 @@ def _parse_extension_compatibility(ext_name: str, raw: Dict[str, Any]) -> Extens
             ext_name, [],
             'invalid "extension" value in compatibility expression'
         )
-    minimum1 = optional_list_key(raw, 'minimum', numbers.Real)
-    below1 = optional_list_key(raw, 'below', numbers.Real)
+    minimum1: Optional[Sequence[Union[int, float]]] = optional_list_key(raw, 'minimum', Union[int, float])
+    below1: Optional[Sequence[Union[int, float]]] = optional_list_key(raw, 'below', Union[int, float])
     if minimum1 and len(minimum1) == 3:
-        minimum = (int(minimum1[0]), int(minimum1[1]), int(minimum1[2]),)
+        minimum = (int(1 * minimum1[0]), int(1 * minimum1[1]), int(1 * minimum1[2]),)
     else:
         raise PetroniaInvalidExtension(
             ext_name, [],
             'invalid "minimum" value in compatibility expression'
         )
+    below: Optional[ExtensionVersion] = None
     if below1:
         if len(below1) == 3:
             below = (int(below1[0]), int(below1[1]), int(below1[2]),)
@@ -233,6 +245,4 @@ def _parse_extension_compatibility(ext_name: str, raw: Dict[str, Any]) -> Extens
                 ext_name, [],
                 'invalid "below" value in compatibility expression'
             )
-    else:
-        below = None
     return ExtensionCompatibility(name, minimum, below)

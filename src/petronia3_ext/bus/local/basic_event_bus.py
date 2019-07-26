@@ -2,12 +2,9 @@
 """
 The Event Bus implementation.
 """
-from typing import Callable, List, Dict, Tuple, Sequence, Union
+from typing import Callable, List, Dict, Tuple, Sequence
 from petronia3.system.participant import (
     ParticipantId,
-    ComponentId,
-    SingletonId,
-
     is_valid_participant_identity,
 )
 from petronia3.system.bus import (
@@ -24,6 +21,10 @@ from petronia3.util.rwlock import RWLock
 
 BasicEventCallbackArguments = Tuple[EventId, ParticipantId, object]
 BasicEventCallback = Callable[[EventId, ParticipantId, object], None]
+
+# The QueueFunction must take very special care with events of type
+# EVENT_ID_REGISTER_EVENT - these must be invoked in the current thread,
+# otherwise things can go very wrong.
 QueueFunction = Callable[
     [QueuePriority, Sequence[BasicEventCallback], BasicEventCallbackArguments],
     None
@@ -276,8 +277,7 @@ class BasicEventBus:
 
             # Limitation of mypy - cannot use Union alias in a runtime
             # context.  This is the work-around, which stinks.
-            #ParticipantId,
-            Union[ComponentId, SingletonId],
+            ParticipantId, # type: ignore
 
             object,
         )

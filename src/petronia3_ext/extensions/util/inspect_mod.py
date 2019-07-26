@@ -1,4 +1,8 @@
 
+# This is dealing with introspection of unknown things.
+# mypy: allow-any-expr
+# mypy: allow-any-generics
+
 """
 Inspect a module for compliance with the API requirements.
 """
@@ -26,7 +30,7 @@ def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
             get_module_loader,
             'module {0} is not runnable extension; '
             'provided `start_extension` is not a function, but {1}',
-            mod.name,
+            mod.__name__,
             starter
         )
         return None
@@ -37,7 +41,7 @@ def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
             get_module_loader,
             'module {0} is not runnable extension; '
             'provided `start_extension` must have signature `(bus: EventBus) -> None`, found {1}',
-            mod.name,
+            mod.__name__,
             sig
         )
         return None
@@ -48,7 +52,7 @@ def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
             get_module_loader,
             'module {0} is not runnable extension; '
             'provided `start_extension` must have signature `(bus: EventBus) -> None`, found {1}',
-            mod.name,
+            mod.__name__,
             sig
         )
         return None
@@ -61,14 +65,14 @@ def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
             get_module_loader,
             'module {0} is not runnable extension; '
             'provided `start_extension` must have signature `(bus: EventBus) -> None`, found {1}',
-            mod.name,
+            mod.__name__,
             sig
         )
         return None
-    return starter
+    return starter # type: ignore
 
 
-def get_internal_module_metadata(mod: ModuleType) -> Optional[Dict[str, Any]]:
+def get_internal_module_metadata(mod: ModuleType) -> Optional[Dict[str, Any]]: # type: ignore
     """
     Get the internally defined metadata for the module.
     """

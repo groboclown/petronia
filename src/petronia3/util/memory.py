@@ -5,7 +5,7 @@ Memory-based helpers.
 Used to either profile memory or help reduce memory.
 """
 
-from typing import TypeVar
+from typing import TypeVar, Tuple
 
 
 # singleton empty collections.  DO NOT MODIFY THEM.
@@ -13,6 +13,8 @@ from typing import TypeVar
 EMPTY_DICT = dict() # type: ignore
 EMPTY_LIST = list() # type: ignore
 EMPTY_TUPLE = tuple() # type: ignore
+
+STRING_EMPTY_TUPLE: Tuple[str] = EMPTY_TUPLE # type: ignore
 
 # For generics
 T = TypeVar('T') # pylint: disable=invalid-name

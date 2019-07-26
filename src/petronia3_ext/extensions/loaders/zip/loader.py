@@ -10,12 +10,12 @@ import zipimport
 import datetime
 import importlib.util
 import importlib.machinery
-from typing import Sequence, List, Dict, Optional, Tuple
-from petronia3.validation import assert_all
+from typing import Sequence, List, Optional, Tuple
 from petronia3.system.logging import (
     log, WARN,
 )
 from petronia3.util.op import in_or
+from petronia3.util.memory import STRING_EMPTY_TUPLE
 from .checksum import (
     check_file_hashes,
     get_mismatched_hashes,
@@ -36,7 +36,6 @@ from ...defs import (
     ExtensionStorageCache,
     ANY_VERSION,
 )
-from ...util.spec import get_extension_from_module_spec
 
 
 class ZipExtensionLoader(ExtensionLoader):
@@ -66,7 +65,7 @@ class ZipExtensionLoader(ExtensionLoader):
     def find_versions(self, name: str) -> Sequence[SecureExtensionVersion]:
         # filename pattern is "name-1.2.3.zip"
         find_prefix = name + '-'
-        ret: List[ExtensionVersion] = []
+        ret: List[SecureExtensionVersion] = []
         for path in self._paths:
             if not os.path.isdir(path):
                 continue
@@ -188,7 +187,7 @@ def _get_cached_data_for(
     if cache.has_cache_for(entry_name):
         cached = cache.get_cached_data(entry_name)
         if _is_same(filename, cached):
-            return cached
+            return cached or STRING_EMPTY_TUPLE
         # otherwise refresh the cache.
     evinfo = _get_filename_extension_version(filename)
     if evinfo is None:
@@ -265,7 +264,7 @@ def _get_cached_data_for(
         md3_256=in_or(actual_hashes, HASH_SHA3_256, ''),
         signed=signed,
         valid=True,
-        json_metadata=metadata,
+        json_metadata=metadata or '',
         checked_date=now
     )
 
@@ -278,11 +277,13 @@ def _load_cached_extension(
     # it in a remote process, or load it in memory.
     raise NotImplementedError()
 
-def _is_same(filename: str, cached: Sequence[str]) -> bool:
+def _is_same(filename: str, cached: Optional[Sequence[str]]) -> bool:
     """
     Is the current extension file `filename` still the same as the cached version?
     This is a quick check on the checksums.
     """
+    if not cached:
+        return False
     if not _is_cached_valid_format(cached):
         return False
 
@@ -292,7 +293,7 @@ def _is_same(filename: str, cached: Sequence[str]) -> bool:
 
 def _get_cached_version(cached: Sequence[str]) -> SecureExtensionVersion:
     """Assumes "cached" is a valid formatted cached sequence."""
-    secure = cached[_CHI_SIGNED] = "t"
+    secure = cached[_CHI_SIGNED] == "t"
     ver0 = int(cached[_CHI_VERSION_0])
     ver1 = int(cached[_CHI_VERSION_1])
     ver2 = int(cached[_CHI_VERSION_2])

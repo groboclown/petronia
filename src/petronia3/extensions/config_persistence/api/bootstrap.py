@@ -15,7 +15,8 @@ from ....system.bus import (
 )
 from ....system.participant import NOT_PARTICIPANT
 
-def bootstrap_config(bus: EventBus) -> None:
+def bootstrap_config_api(bus: EventBus) -> None:
+    """Bootstrap all the necessary bits for this extension."""
     register_event(
         bus,
         EVENT_ID_PERSIST_CONFIGURATION,

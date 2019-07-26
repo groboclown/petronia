@@ -94,3 +94,5 @@ The current to-do list.
         * event chaining with promise-like API.
     * design simplified event chain management for extensions, since events are so critical and everywhere.  It seems like it'll become a state machine.
 * eventually, write the cross-process event listener and the other side's event sending.  This will require turning events into serialized form, keeping a cache of event classes (which uses the event registration events).
+* add proper zip support in the extension module loader.
+    * requires adding tree of version inspection.  See `ext_finder.py` for the missing functionality.

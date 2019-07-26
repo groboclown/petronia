@@ -51,35 +51,35 @@ class RegisterEventEvent(Generic[T]):
     """
     A request to add an event to the registration.
     """
-    __slots__ = ('__event_id', '__priority', '__event_class', '__example',)
+    __slots__ = ('_event_id', '_priority', '_event_class', '_example',)
     def __init__(
             self, event_id: EventId, priority: QueuePriority,
             event_class: Type[T], example: T
     ) -> None:
-        self.__event_id = event_id
-        self.__priority = priority
-        self.__event_class = event_class
-        self.__example = example
+        self._event_id = event_id
+        self._priority = priority
+        self._event_class = event_class
+        self._example = example
 
     @property
     def event_id(self) -> EventId:
         """The event_id"""
-        return self.__event_id
+        return self._event_id
 
     @property
     def priority(self) -> QueuePriority:
         """The event priority"""
-        return self.__priority
+        return self._priority
 
     @property
     def event_class(self) -> Type[T]:
         """The class of the event objects."""
-        return self.__event_class
+        return self._event_class
 
     @property
     def example(self) -> T:
         """An example of the event class."""
-        return self.__example
+        return self._example
 
 
 def as_listener_added_listener(
@@ -93,7 +93,18 @@ def register_event(
         bus: EventBus, event_id: EventId, priority: QueuePriority,
         event_class: Type[T], example: T
 ) -> None:
+    """
+    Requests the registration of a new event ID into the event bus.
+    Until this is called, events of this ID will be rejected because it is
+    not registered.
+    """
     bus.trigger(
         EVENT_ID_REGISTER_EVENT, TARGET_EVENT_REGISTRY,
         RegisterEventEvent(event_id, priority, event_class, example)
     )
+
+def as_register_event_listener(
+        callback: EventCallback[RegisterEventEvent[T]]
+) -> ListenerSetup[RegisterEventEvent[T]]:
+    """A ListenerRegistraror type"""
+    return (EVENT_ID_REGISTER_EVENT, callback,)

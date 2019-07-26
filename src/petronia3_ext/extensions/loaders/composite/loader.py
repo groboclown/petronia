@@ -25,7 +25,7 @@ class CompositeExtensionLoader(ExtensionLoader):
         self._proxies = proxies
 
     def find_versions(self, name: str) -> Sequence[SecureExtensionVersion]:
-        ret: Set[ExtensionVersion] = set()
+        ret: Set[SecureExtensionVersion] = set()
         for proxy in self._proxies:
             ret = ret.union(proxy.find_versions(name))
         return tuple(ret)
@@ -37,7 +37,7 @@ class CompositeExtensionLoader(ExtensionLoader):
             version: ExtensionVersion
     ) -> Optional[DiscoveredExtension]:
         for proxy in self._proxies:
-            ret = proxy.find_extension(name, only_secure, version)
+            ret = proxy.find_extension(only_secure, name, version)
             if ret:
                 return ret
         return None

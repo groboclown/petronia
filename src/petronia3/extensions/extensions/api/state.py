@@ -3,7 +3,8 @@
 State of the extension manager.
 """
 
-from typing import Sequence, Tuple, Optional
+from typing import Sequence, Iterable, Optional
+from .defs import LoadedExtension
 from ....system.bus import (
     EventBus, EventCallback, ListenerSetup, ListenerId
 )
@@ -17,24 +18,6 @@ CONFIGURATION_EXTENSION_LOADER = create_singleton_identity('extension-config')
 STATE_EXTENSION_LOADER = create_singleton_identity('extension-state')
 
 
-class LoadedExtension:
-    """
-    Information about a loaded extension.
-    """
-    __slots__ = ('_name', '_version',)
-    def __init__(self, name: str, version: Tuple[int, int, int]) -> None:
-        self._name = name
-        self._version = version
-
-    @property
-    def name(self) -> str:
-        return self.name
-
-    @property
-    def version(self) -> Tuple[int, int, int]:
-        return self._version
-
-
 class ExtensionState:
     """
     All the transitive state information that other
@@ -43,7 +26,7 @@ class ExtensionState:
     __slots__ = ('_loaded_extensions',)
     _loaded_extensions: Sequence[LoadedExtension]
 
-    def __init__(self, extensions: Optional[Sequence[LoadedExtension]] = None) -> None:
+    def __init__(self, extensions: Optional[Iterable[LoadedExtension]] = None) -> None:
         self._loaded_extensions = tuple(extensions or EMPTY_TUPLE) # type: ignore
 
     @property

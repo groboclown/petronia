@@ -1,10 +1,14 @@
 
+"""
+Tests for the timer impl extension
+"""
+
 import unittest
 import threading
 from typing import List, Callable
 from petronia3_root.bootstrap.core import create_core_system
 from petronia3.extensions.state.api.events import EVENT_ID_UPDATED_STATE, StateStoreUpdatedEvent
-from petronia3.util.tests.test_helper import BasicQueuer, BasicListener
+from petronia3_root.util.test_helper import BasicQueuer, BasicListener
 from ..config import TimerConfig, TARGET_TIMER_CONFIG
 from ..bootstrap import BusTimer
 

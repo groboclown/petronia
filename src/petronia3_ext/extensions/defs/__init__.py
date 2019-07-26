@@ -3,9 +3,12 @@
 Internal stuff for the loaders.
 """
 
+from petronia3.extensions.extensions.api import (
+    ExtensionVersion,
+    LoadedExtension,
+)
 from .discover_types import (
     DiscoveredExtension,
-    ExtensionVersion,
     SecureExtensionVersion,
     ExtensionCompatibility,
     ModuleLoader,
@@ -16,6 +19,7 @@ from .discover_types import (
     ANY_VERSION_SEQ,
     SECURE_ANY_VERSION_SEQ,
     INSECURE_ANY_VERSION_SEQ,
+    NO_VERSIONS,
 )
 from .loader_types import (
     ExtensionLoader,

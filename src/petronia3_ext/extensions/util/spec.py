@@ -1,4 +1,9 @@
 
+# This is dealing with introspection of unknown things.
+# mypy: allow-any-expr
+# mypy: allow-any-explicit
+# mypy: allow-any-generics
+
 """
 Loads module information from a module specification.
 """
@@ -20,13 +25,13 @@ from .inspect_mod import (
 )
 from ..defs import (
     DiscoveredExtension,
-    ExtensionVersion,
+    SecureExtensionVersion,
 )
 
 
 def get_extension_from_module_spec(
         extension: str,
-        version: ExtensionVersion,
+        version: SecureExtensionVersion,
         mod_spec: importlib.machinery.ModuleSpec,
         description: Optional[Dict[str, Any]]
 ) -> Optional[DiscoveredExtension]:

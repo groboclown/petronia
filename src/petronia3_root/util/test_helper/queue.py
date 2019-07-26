@@ -2,8 +2,7 @@
 """Unit tests for event bus stuff"""
 
 import unittest
-import traceback
-from typing import Tuple, List, Optional, Sequence, Any
+from typing import Tuple, List, Optional, Sequence
 from petronia3.system.bus import (
     EventId,
     QueuePriority,
@@ -14,17 +13,16 @@ from petronia3.system.participant import (
     NOT_PARTICIPANT,
 )
 from petronia3.system.logging import (
-    TRACE, DEBUG, VERBOSE, INFO, NOTICE, WARN, DEPRECATED, ERROR, FATAL,
-    LogHandlerId,
-    LogLevel,
+    INFO,
     log,
-    add_log_handler,
-    remove_log_handler,
 )
+from petronia3.util.memory import T
 
 
 class _BaseBasicQueuer:
-    def listener_call_in(self, name: str, event_id: EventId, target_id: ParticipantId, event_obj: object) -> None:
+    def listener_call_in(
+            self, name: str, event_id: EventId, target_id: ParticipantId, event_obj: object
+    ) -> None:
         raise NotImplementedError()
 
 
@@ -52,8 +50,8 @@ class BasicQueuer(_BaseBasicQueuer):
     def pure_queuer(
             self,
             when: QueuePriority,
-            listeners: Sequence[EventCallback],
-            args: Tuple[EventId, ParticipantId, object]
+            listeners: Sequence[EventCallback[T]],
+            args: Tuple[EventId, ParticipantId, T]
     ) -> None:
         log(INFO, BasicQueuer, 'firing {0} listeners for {1}', len(listeners), args)
         for listener in listeners:
@@ -69,7 +67,9 @@ class BasicQueuer(_BaseBasicQueuer):
                 listener(args[0], args[1], args[2])
                 self.call_order.append((when, str(listener), args[0], args[1], args[2]))
 
-    def listener_call_in(self, name: str, event_id: EventId, target_id: ParticipantId, event_obj: object) -> None:
+    def listener_call_in(
+            self, name: str, event_id: EventId, target_id: ParticipantId, event_obj: object
+    ) -> None:
         """
         Called by the BasicListener.
         """
@@ -107,38 +107,3 @@ class BasicQueuer(_BaseBasicQueuer):
     def clear(self) -> None:
         """Reset the call order list"""
         self.call_order = []
-
-_LOG_NAMES = {
-    TRACE:   'TRACE',
-    DEBUG:   'DEBUG',
-    VERBOSE: 'VERBO',
-    INFO:    ' INFO',
-    NOTICE:  'NOTIC',
-    WARN:    ' WARN',
-    DEPRECATED: 'DEPRC',
-    ERROR:   'ERROR',
-    FATAL:   'FATAL',
-}
-
-class EnabledLogs:
-    __log_ids: List[LogHandlerId]
-
-    def __init__(self, level: LogLevel = TRACE) -> None:
-        self.__level = level
-        self.__log_ids = []
-
-
-    def __enter__(self) -> None:
-        self.__log_ids.append(
-            add_log_handler(self.__level, '', self._log_it)
-        )
-
-    def __exit__(self, type_arg: Any, value: Any, etraceback: Any) -> None:
-        for lhid in self.__log_ids:
-            remove_log_handler(lhid)
-        self.__log_ids = []
-
-    def _log_it(self, level: LogLevel, src: str, msg: str, err: Optional[BaseException]) -> None:
-        print("[{0}] {1:20}: {2}".format(_LOG_NAMES[level], src, msg))
-        if err:
-            traceback.print_exception(err.__class__, err, err.__traceback__)

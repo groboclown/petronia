@@ -50,7 +50,7 @@ def start_extension(bus: EventBus) -> None:
     # Set the "active" to false, so that it can start itself up.
     config = TimerConfig(DEFAULT_INTERVAL, False)
     timer = BusTimer(bus, config)
-    bus.add_listener(
+    bus.add_listener( # type: ignore
         TARGET_TIMER_CONFIG,
         as_state_change_listener,
         timer.on_config_change

@@ -1,4 +1,8 @@
 
+# mypy: allow-any-expr
+# mypy: allow-any-explicit
+# mypy: allow-any-generics
+
 """
 Read the JSON metadata from the zip file.
 """
@@ -8,7 +12,7 @@ import json
 from typing import Dict, Optional, Any
 from petronia3.system.bus import EventBus
 from petronia3.errors import PetroniaExtensionError, PetroniaInternalError
-from ...defs import DiscoveredExtension, ANY_VERSION
+from ...defs import DiscoveredExtension, INSECURE_ANY_VERSION
 
 METADATA_FILENAME = 'manifest.json'
 MAXIMUM_FILE_LENGTH = 1024 * 1024 # 1 mb
@@ -27,7 +31,7 @@ def read_zipfile_metadata_contents(zip_filename: str) -> Optional[str]:
             if info.is_dir() or info.file_size > MAXIMUM_FILE_LENGTH:
                 return None
             with zipf.open(info) as inp:
-                return inp.read()
+                return inp.read().decode('utf-8')
         except KeyError:
             return None
 
@@ -48,7 +52,7 @@ def is_metadata_valid(metadata: str) -> Optional[Dict[str, Any]]:
         # an error.
         DiscoveredExtension(
             'test',
-            ANY_VERSION,
+            INSECURE_ANY_VERSION,
             value,
             _never_call_module_loader
         )

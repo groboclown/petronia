@@ -87,7 +87,7 @@ class DirectoryExtensionCache(ExtensionStorageCache):
     def _save_index(self) -> None:
         index_file = os.path.join(self.__dir, 'index.json')
         with open(index_file, 'w') as out:
-            json.dump(out, self._indicies)
+            json.dump(self._indicies, out)
 
     @staticmethod
     def _load_index(cache_dir: str) -> Dict[str, str]:
@@ -95,8 +95,8 @@ class DirectoryExtensionCache(ExtensionStorageCache):
         ret: Dict[str, str] = {}
         if os.path.isfile(index_file):
             with open(index_file, 'r') as inp:
-                contents = json.load(inp)
-            if isinstance(contents, dict):
+                contents = json.load(inp) # type: ignore
+            if isinstance(contents, dict): # type: ignore
                 for key, val in contents.items():
                     if isinstance(key, str) and isinstance(key, val):
                         ret[key] = val
@@ -144,7 +144,7 @@ class FileExtensionCache(ExtensionStorageCache):
 
     def _save_cache(self) -> None:
         with open(self.__index, 'w') as out:
-            json.dump(out, self._data)
+            json.dump(self._data, out)
 
     @staticmethod
     def _load_data(fname: str) -> Dict[str, Sequence[str]]:
@@ -153,13 +153,13 @@ class FileExtensionCache(ExtensionStorageCache):
             # Note the "exists" here.  In this way, we check that
             # it's a file (and not a directory or pipe or something else)
             with open(fname, 'r') as inp:
-                contents = json.load(inp)
-            FileExtensionCache._parsed_contents(contents, data)
+                contents = json.load(inp) # type: ignore
+            FileExtensionCache._parsed_contents(contents, data) # type: ignore
         return data
 
     @staticmethod
-    def _parsed_contents(contents: Any, data: Dict[str, Sequence[str]]) -> None:
-        if isinstance(contents, dict):
+    def _parsed_contents(contents: Any, data: Dict[str, Sequence[str]]) -> None: # type: ignore
+        if isinstance(contents, dict): # type: ignore
             for key, seqval in contents.items():
                 if isinstance(key, str) and (isinstance(seqval, list) or isinstance(seqval, tuple)):
                     dval: List[str] = []

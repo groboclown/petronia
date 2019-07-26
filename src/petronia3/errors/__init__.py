@@ -12,10 +12,10 @@ from .internal import (
 from .extensions import (
     PetroniaExtensionError,
     PetroniaExtensionNotFound,
-    PetroniaExtensionNotFound,
     PetroniaInvalidExtension,
     PetroniaCyclicExtensionDependency,
     PetroniaExtensionInitializationError,
+    PetroniaNoCompatibleExtensionFound,
 )
 from .env import (
     PetroniaEnvironmentError,

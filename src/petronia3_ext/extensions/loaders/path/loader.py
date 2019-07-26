@@ -17,6 +17,7 @@ from ...defs import (
     SecureExtensionVersion,
     SECURE_ANY_VERSION_SEQ,
     INSECURE_ANY_VERSION_SEQ,
+    NO_VERSIONS,
 )
 from ...util.spec import get_extension_from_module_spec
 from ...sandbox import SandboxPermission, create_sandbox_module_loader
@@ -61,7 +62,7 @@ class PathExtensionLoader(ExtensionLoader):
                 if self.__secure:
                     return SECURE_ANY_VERSION_SEQ
                 return INSECURE_ANY_VERSION_SEQ
-            return EMPTY_TUPLE
+            return NO_VERSIONS
         else:
             # Not 100% guaranteed to mean the extension exists, but it's
             # "good enough" for now.
@@ -69,7 +70,7 @@ class PathExtensionLoader(ExtensionLoader):
             for path in self._paths:
                 if os.path.isfile(os.path.join(path, expect_file)):
                     return INSECURE_ANY_VERSION_SEQ
-            return EMPTY_TUPLE
+            return NO_VERSIONS
 
 
     def find_extension(
@@ -87,6 +88,8 @@ class PathExtensionLoader(ExtensionLoader):
             mod_spec = self.__finder.find_spec(fullname=name, path=self._paths)
             if mod_spec is None:
                 return None
-            return get_extension_from_module_spec(name, version, mod_spec, None)
+            return get_extension_from_module_spec(name, (True, version,), mod_spec, None)
 
-        return create_sandbox_module_loader(self._paths, self._permissions)
+        loader = create_sandbox_module_loader(self._paths, self._permissions)
+        # Need to figure out how to find the extension metadata in this situation.
+        raise NotImplementedError()

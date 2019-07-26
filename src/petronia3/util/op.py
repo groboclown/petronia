@@ -35,11 +35,12 @@ def optional_list_key(con: Dict[K, V], key: K, oftype: Optional[Type[T]] = None)
                     return None
         return val
     if not isinstance(val, str) and hasattr(type(val), '__iter__'):
+        # val is iterable.
         if oftype:
-            for one in val:
+            for one in val: # type: ignore
                 if not isinstance(one, oftype):
                     return None
-        return tuple(val)
+        return tuple(val) # type: ignore
     return None
 
 def optional_typed_key(con: Dict[K, V], key: K, oftype: Type[T]) -> Optional[T]:

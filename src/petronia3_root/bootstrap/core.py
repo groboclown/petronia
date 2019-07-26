@@ -8,6 +8,7 @@ listeners.  No other extensions are added to the system.
 from petronia3.system.bus import (
     EventBus
 )
+
 from petronia3_ext.bus.local.basic_event_bus import QueueFunction
 from petronia3_ext.bus.local.bootstrap import bootstrap_event_bus
 
@@ -20,7 +21,11 @@ def create_core_system(queuer: QueueFunction) -> EventBus:
     specific parts can be loaded.
     """
 
+    # Setup the event bus and its registration stuff.
     bus = bootstrap_event_bus(queuer)
+
+    # Add in the core extension API.
+
 
     # Note: logging does not need any bootstrapping into the singletons,
     # because the core logging system lives outside the events.

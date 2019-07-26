@@ -14,11 +14,7 @@ from ....system.bus import (
     QUEUE_EVENT_NORMAL,
 )
 
-
-EXTENSION_DEPENDENCIES: Sequence[str] = tuple()
-
-
-def start_extension(bus: EventBus) -> None:
+def bootstrap_timer_api(bus: EventBus) -> None:
     """
     Get the timer started.
 

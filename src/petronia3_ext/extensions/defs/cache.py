@@ -17,7 +17,7 @@ class ExtensionStorageCache:
         """
         raise NotImplementedError()
 
-    def get_sub_cache(self, sub_name: str) -> self:
+    def get_sub_cache(self, sub_name: str) -> 'ExtensionStorageCache':
         """
         Creates a sub-cache, in case the loader delegates to another
         loader.

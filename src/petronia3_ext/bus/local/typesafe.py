@@ -14,11 +14,15 @@ from petronia3.system.bus import (
 )
 from petronia3.system.events import (
     EventListenerAddedEvent,
+)
+from petronia3.system.events.api.bus import (
     EVENT_ID_EVENT_LISTENER_ADDED,
 )
 from petronia3.system.participant import (
     ParticipantId,
     ComponentId,
+)
+from petronia3.system.participant.api.component import (
     create_component_identity_from_unique_id,
 )
 from petronia3.errors import PetroniaLockTimeoutError
@@ -46,7 +50,8 @@ class TypeSafeEventBus(EventBus):
 
     def add_listener(
             self,
-            target_id: ParticipantId, listener_setup: ListenerRegistrator,
+            target_id: ParticipantId,
+            listener_setup: ListenerRegistrator[T],
             listener: EventCallback[T]
     ) -> ListenerId:
         """
@@ -56,9 +61,17 @@ class TypeSafeEventBus(EventBus):
         """
         event_id, listener = listener_setup(listener)
         self.__reg.validate_has(event_id)
-        callback = lambda eid, tid, eo: self.__listener_callback(
-            eid, tid, eo, listener
-        ) # type: ignore
+        # swapping between typed T and any generic object.
+        # Really, the Event* stuff should take a generic that is of type object.
+        callback: EventCallback[object] = lambda eid, tid, eo: (
+            self.__listener_callback( # type: ignore
+                eid, tid,
+                eo, # type: ignore
+                listener # type: ignore
+            ))
+        #def callback(eid: EventId, tid: ParticipantId, event_obj: T) -> None:
+        #    self.__listener_callback(eid, tid, event_obj, listener)
+
         ret = self.__bus.add_listener(
             event_id,
             target_id,

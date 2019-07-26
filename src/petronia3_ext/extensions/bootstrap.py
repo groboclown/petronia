@@ -3,135 +3,119 @@
 Add the extensions into the system.
 """
 
-from typing import Sequence, Set
-from .loader import (
-    load_extension,
+from typing import Sequence, Set, Optional
+from petronia3.extensions.extensions.api import (
+    ExtensionLoadedEvent,
+    ExtensionState,
+    LoadedExtension,
 )
-from ..api.events import (
+from petronia3.extensions.extensions.api.events import (
     TARGET_EXTENSION_LOADER,
     EVENT_ID_EXTENSION_LOADED,
-    ExtensionLoadedEvent,
     EVENT_ID_REQUEST_LOAD_EXTENSION,
     RequestLoadExtensionEvent,
 )
-from ..api.state import (
-    CONFIGURATION_EXTENSION_LOADER,
-    ExtensionConfiguration,
-
+from petronia3.extensions.extensions.api.state import (
     STATE_EXTENSION_LOADER,
-    ExtensionState,
-    as_extension_state_listener,
 )
-from ...state import (
-    StateStoreUpdatedEvent,
-    as_state_change_listener,
+from petronia3.extensions.state.api import (
     set_state,
 )
-from ....system.bus import (
+from petronia3.system.bus import (
     EventBus,
     EventId,
     EventCallback,
     ListenerSetup,
-    ListenerId,
-    register_event,
-    QUEUE_EVENT_IO,
-    QUEUE_EVENT_NORMAL,
 )
-from ....system.participant import (
+from petronia3.system.participant import (
     ParticipantId
 )
+from petronia3.errors import PetroniaExtensionNotFound
+from .defs import (
+    ExtensionLoader,
+    ExtensionCompatibility,
+)
+from .ext_loader import (
+    load_additional_extension,
+    load_extensions,
+)
 
-def bootstrap_extension_loader(bus: EventBus) -> None:
+def bootstrap_extension_loader(
+        bus: EventBus,
+        initial_extensions: Sequence[ExtensionCompatibility],
+        initial_only_secure: bool,
+        loader: ExtensionLoader
+) -> None:
     """
-    Adds the extension loader into the bus.
+    Adds the extension loader into the bus.  Because the extensions loader has
+    very specific, immutable security concerns, it must be loaded at boot time
+    with configuration state.
     """
-    register_event(
-        bus,
-        EVENT_ID_REQUEST_LOAD_EXTENSION,
-        # extension loading must happen in the I/O threads, because
-        # it reads that information.
-        QUEUE_EVENT_IO,
-        RequestLoadExtensionEvent,
-        RequestLoadExtensionEvent('x')
-    )
-    register_event(
-        bus,
-        EVENT_ID_EXTENSION_LOADED,
-        QUEUE_EVENT_NORMAL,
-        ExtensionLoadedEvent,
-        ExtensionLoadedEvent('x', [])
-    )
 
-    loader = _ExtensionStatefulLoader(bus, ExtensionState(), ExtensionConfiguration())
-    bus.add_listener(
-        CONFIGURATION_EXTENSION_LOADER,
-        _as_configuration_loaded_listener,
-        loader.on_extension_config_change
+    # TODO error reporting / checking?
+    loaded = load_extensions(
+        initial_extensions, loader, bus, initial_only_secure
     )
-    bus.add_listener(
-        STATE_EXTENSION_LOADER,
-        as_extension_state_listener,
-        loader.on_extension_state_change
-    )
+    extloader = _ExtensionStatefulLoader(bus, ExtensionState(loaded), loader)
     bus.add_listener(
         TARGET_EXTENSION_LOADER,
         _as_request_load_extension_listener,
-        loader.on_extension_load_request
+        extloader.on_extension_load_request
     )
+
+    # TODO if the system supports disposing extensions, then this needs to
+    # listen to the dispose event and remove it from the state.
+
 
 
 class _ExtensionStatefulLoader:
-    __slots__ = ('__bus', '__state', '__config', '_loaded')
-    _loaded = Set[str]
+    __slots__ = ('__bus', '__state', '__loader', '_loaded')
+    _loaded: Set[LoadedExtension]
     def __init__(
             self,
             bus: EventBus,
             state: ExtensionState,
-            config: ExtensionConfiguration
+            loader: ExtensionLoader,
     ) -> None:
         self.__bus = bus
         self.__state = state
-        self.__config = config
+        self.__loader = loader
         self._loaded = set(state.loaded_extensions)
 
     def on_extension_load_request(
             self,
-            event_id: EventId,
-            target_id: ParticipantId,
+            event_id: EventId, target_id: ParticipantId, # pylint: disable=unused-argument
             event_object: RequestLoadExtensionEvent
     ) -> None:
-        deps = load_extension(
+        """on the event happening."""
+        for ext in self._loaded:
+            if  event_object.extension_name == ext.name:
+                # Already loaded the extension.  Nothing to do.
+                return
+        # TODO error reporting / checking?
+        deps = load_additional_extension(
             event_object.extension_name,
+            self.__loader,
             self.__bus,
-            self.__config,
-            self.__state
+            self._loaded
         )
+        loaded: Optional[LoadedExtension] = None
+        for found in deps:
+            if found.name == event_object.extension_name:
+                loaded = found
+        if not loaded:
+            # TODO error reporting?
+            raise PetroniaExtensionNotFound(
+                event_object.extension_name,
+                map(lambda x: x.name, deps) # type: ignore
+            )
         _send_extension_loaded_event(
             self.__bus,
-            event_object.extension_name,
+            loaded,
             deps
         )
         self._loaded = self._loaded.union(deps)
         if self._loaded != self.__state.loaded_extensions:
-            _send_extension_state_change(self.__bus, ExtensionState(self._loaded))
-
-    def on_extension_config_change(
-            self,
-            event_id: EventId,
-            target_id: ParticipantId,
-            event_object: StateStoreUpdatedEvent[ExtensionConfiguration]
-    ) -> None:
-        self.__config = event_object.state
-
-    def on_extension_state_change(
-            self,
-            event_id: EventId,
-            target_id: ParticipantId,
-            event_object: StateStoreUpdatedEvent[ExtensionState]
-    ) -> None:
-        self.__state = event_object.state
-        self._loaded = self._loaded.union(event_object.state.loaded_extensions)
-        if self._loaded != event_object.loaded_extensions:
             _send_extension_state_change(self.__bus, ExtensionState(self._loaded))
 
 
@@ -143,27 +127,12 @@ def _as_request_load_extension_listener(
 
 def _send_extension_loaded_event(
         bus: EventBus,
-        extension_name: str,
-        loaded_dependencies: Sequence[str]
+        extension: LoadedExtension,
+        loaded_dependencies: Sequence[LoadedExtension]
 ) -> None:
     bus.trigger(
         EVENT_ID_EXTENSION_LOADED, TARGET_EXTENSION_LOADER,
-        ExtensionLoadedEvent(extension_name, loaded_dependencies)
-    )
-
-def _as_configuration_loaded_listener(
-        callback: EventCallback[StateStoreUpdatedEvent[ExtensionConfiguration]]
-) -> ListenerSetup[StateStoreUpdatedEvent[ExtensionConfiguration]]:
-    return as_state_change_listener(callback)
-
-def _add_configuration_loaded_listener(
-        bus: EventBus,
-        callback: EventCallback[StateStoreUpdatedEvent[ExtensionConfiguration]]
-) -> ListenerId:
-    return bus.add_listener(
-        CONFIGURATION_EXTENSION_LOADER,
-        _as_configuration_loaded_listener,
-        callback
+        ExtensionLoadedEvent(extension, loaded_dependencies)
     )
 
 def _send_extension_state_change(

@@ -5,22 +5,26 @@ Unit tests for the extension loader.
 
 import unittest
 # from petronia3.system.bus import EventBus
-from petronia3.extensions.extensions import ExtensionState, ExtensionConfiguration
-from petronia3.util.tests.test_helper import BasicQueuer, EnabledLogs
+from petronia3.extensions.extensions import ExtensionState
+from petronia3_root.util.test_helper import BasicQueuer, EnabledLogs
 from petronia3_root.bootstrap.core import create_core_system
-from ..loader import load_extension
+from ..loaders.core import CoreExtensionLoader
+from ..defs import LoadedExtension
+from ..ext_loader import load_additional_extension, load_extensions
 
 
 class ExtensionManagerTest(unittest.TestCase):
-    def test_load_core(self):
+    def test_load_additional_core(self):
         """Test loading a core module."""
         queuer = BasicQueuer(self)
         bus = create_core_system(queuer.pure_queuer)
-        orig_state = ExtensionState(['x'])
-        config = ExtensionConfiguration()
+        ext1 = LoadedExtension('x', True, (1, 0, 0,))
         with EnabledLogs():
-            new_state = load_extension('core.timer', bus, config, orig_state)
+            loader = CoreExtensionLoader()
+            new_state = load_additional_extension(
+                'core.timer.api',
+                loader, bus, [ext1])
         self.assertEqual(
-            new_state.loaded_extensions,
-            ('x', 'core.timer',)
+            new_state,
+            (ext1, LoadedExtension('core.timer.api', True, (1, 0, 0,)),)
         )

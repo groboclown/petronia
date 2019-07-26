@@ -1,4 +1,8 @@
 
+"""
+General checksum / hash digest functions.
+"""
+
 import os
 import hashlib
 from typing import Tuple, Sequence, List, Dict
@@ -23,7 +27,10 @@ def load_hashes(
     """
     Load the size and hash hex digests for the given file.
     """
-    hashes: List['hashlib._HASH'] = []
+
+    # See https://github.com/python/typeshed/issues/2928
+    hashes: List['hashlib._hashlib._HASH'] = [] # type: ignore
+
     for name in hash_algorithm_names:
         hashes.append(hashlib.new(name))
     size = 0
@@ -31,12 +38,12 @@ def load_hashes(
         data = inp.read(_BUFFER_SIZE)
         for hashf in hashes:
             hashf.update(data)
-        size += len(size)
+        size += len(data)
     digests: Dict[str, str] = {}
     for idx in range(len(hash_algorithm_names)):
         hash_name = hash_algorithm_names[idx]
         hashf = hashes[idx]
-        digests[hash_name] = hashf.hexdigest()
+        digests[hash_name] = hashf.hexdigest() # type: ignore
     return (size, digests)
 
 FileHashResult = Tuple[int, Dict[str, str], Dict[str, str]]

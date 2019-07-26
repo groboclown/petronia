@@ -32,7 +32,7 @@ from ...internal.bus_types import (
 from ...internal.bus_constants import (
     QUEUE_EVENT_IO,
     QUEUE_EVENT_NORMAL,
-    QUEUE_EVENT_NOW,
+    QUEUE_EVENT_HIGH,
 )
 from ...internal.identity_types import NOT_PARTICIPANT
 from ....util.memory import T
@@ -53,7 +53,7 @@ def bootstrap_core_events() -> Sequence[EventDefinition[Any]]: # type: ignore
         ),
         (
             EVENT_ID_REGISTER_EVENT,
-            QUEUE_EVENT_NOW,
+            QUEUE_EVENT_HIGH,
             RegisterEventEvent,
             RegisterEventEvent(
                 EVENT_ID_DISPOSE_COMPLETE, QUEUE_EVENT_IO,
