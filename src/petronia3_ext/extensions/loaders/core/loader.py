@@ -6,6 +6,9 @@ Loads the core extensions.
 import importlib.util
 from importlib.machinery import ModuleSpec
 from typing import Sequence, Optional
+from petronia3.system.logging import (
+    DEBUG, log,
+)
 from ...defs import (
     DiscoveredExtension,
     ExtensionLoader,
@@ -41,7 +44,9 @@ class CoreExtensionLoader(ExtensionLoader):
             # If this returns "None", then there's something wrong
             # with Petronia.
             # ... and core extensions are always secure ...
+            log(DEBUG, CoreExtensionLoader, "Loading core extension {0} -> {1}", name, mod_spec.name)
             return get_extension_from_module_spec(name, (True, version,), mod_spec, None)
+        log(DEBUG, CoreExtensionLoader, "Not a core extension: {0}", name)
         return None
 
     def _load_spec(self, name: str) -> Optional[ModuleSpec]:

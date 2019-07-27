@@ -4,19 +4,9 @@ Bootstraps singletons and event registration.
 """
 
 from petronia3.system.bus import (
-    EventId, EventBus,
-    EventCallback, ListenerSetup,
-)
-from petronia3.system.participant import (
-    ParticipantId,
-)
-from petronia3.system.events.api.bus import (
-    TARGET_EVENT_REGISTRY,
-    EVENT_ID_REGISTER_EVENT,
-    RegisterEventEvent,
+    EventBus,
 )
 from petronia3.system.events.api.bootstrap import bootstrap_core_events
-from petronia3.util.memory import T
 from .basic_event_bus import (
     BasicEventBus, QueueFunction,
 )
@@ -39,7 +29,8 @@ def bootstrap_event_bus(queuer: QueueFunction) -> EventBus:
 
     ret = TypeSafeEventBus(bus, evtr)
 
-    add_event_registry_listener(ret, evtr)
+    # The event registry does not need a listener for the register event
+    # event, because it has a backdoor in the TypeSafeEventBus.
 
     return ret
 
@@ -53,38 +44,4 @@ def register_event_registry_events(evtr: EventRegistry) -> None:
             priority,
             event_class, # type: ignore
             event_example # type: ignore
-        )
-
-
-def add_event_registry_listener(bus: TypeSafeEventBus, evtr: EventRegistry) -> None:
-    """For internal use and test support."""
-    # Ignore the listener ID.  This listener is tightly coupled with the event bus,
-    # and must stay around as long as the event bus is around.
-    bus.add_listener(
-        TARGET_EVENT_REGISTRY,
-        _as_register_event_listener, # type: ignore
-        _EventRegistryListener(evtr)
-    )
-
-
-
-def _as_register_event_listener(
-        callback: EventCallback[RegisterEventEvent[T]]
-) -> ListenerSetup[RegisterEventEvent[T]]:
-    return (EVENT_ID_REGISTER_EVENT, callback,)
-
-
-class _EventRegistryListener:
-    __slots__ = ('reg',)
-    def __init__(self, reg: EventRegistry) -> None:
-        self.reg = reg
-
-    def __call__(
-            self,
-            eid: EventId,
-            tid: ParticipantId,
-            evt: RegisterEventEvent[T] # pylint: disable=unused-argument
-    ) -> None:
-        self.reg.register(
-            evt.event_id, evt.priority, evt.event_class, evt.example
         )

@@ -35,18 +35,18 @@ Of importance is the choice of `N` and `P`.  `N` is the current extension, and `
 3. If `H` is empty, then we're done searching - if `C` contains all the direct child extension names of the root node, then there is a match; otherwise no compatible search could be made.
 4. Pop the top item from `H` and assign the popped values to `C` (map), and `A` (remaining children groups).
 5. If `C'` is not null, then assign `C` to `C'` (not a copy!), then set `C'` to null.
-6. If `C` does not have all the direct dependencies of the root node, then there were conflicts and the dependency description will not work.
-7. If `A` is empty, then this node was successfully searched.  Set `C'` to `C` (not a copy!) and go back to 3.
-8. Remove a group from `A` and assign it to `N`.
-9. Set `P` to the list of versions in `N`.
-10. If `P` is empty, then no version could be selected, and this is an invalid path.  Go back to 3.
-11. Use `f` to remove an item from `P` and assign it to `Q`.
-12. If there is a `N` in `C` with the same version as `Q`, then it's already been added to the list, so go back to 7.
-13. If there is an `N` in `C` with a different version than `Q`, then it's a conflict.  Go back to 10.
-14. We now have a choice for `N`.  Set `N` in `C` with version `Q`.  Go back to 2.
+6. If `A` is empty, then this node was successfully searched.  Set `C'` to `C` (not a copy!) and go back to 3.
+7. Remove a group from `A` and assign it to `N`.
+8. Set `P` to the list of versions in `N`.
+9. If `P` is empty, then no version could be selected, and this is an invalid path.  Go back to 3.
+10. Use `f` to remove an item from `P` and assign it to `Q`.
+11. If there is a `N` in `C` with the same version as `Q`, then it's already been added to the list, so go back to 6.
+12. If there is an `N` in `C` with a different version than `Q`, then it's a conflict.  Go back to 9.
+13. We now have a choice for `N`.  Set `N` in `C` with version `Q`.  Go back to 2.
 
 Worst-case scenario, this looks like *O(n<sup>n</sup>)* if it's a fully connected graph.  It has some big memory hogs, too (lots of copies of a dictionary and a deep stack up to *n * (n - 1)* in size).  However, because this has an early search for best choice, it doesn't need to find all the solutions, just the first one.  That means this returns a local maxima rather than one with a higher count of "better" versions; that is, this chooses the highest early, when taking a lower version might cause more later versions to be higher.  This situation in a real world is less likely.
 
+This algorithm does not create a topological sorted return value.  There's a good chance that it could be added.
 
 ## Other Ideas
 

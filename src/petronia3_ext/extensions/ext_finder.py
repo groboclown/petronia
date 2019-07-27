@@ -2,31 +2,7 @@
 """
 Finds the extension and its dependencies.
 
-This is a kind of
-[Constraint Satisfaction Problem](https://en.wikipedia.org/wiki/Constraint_satisfaction_problem)
-
-For this discussion, I'll call extensions by a capital letter, with a version
-number beside it.  Version ranges in Petronia only allow for an absolute
-minimum and an optional open maximum, but for this discussion I'll refer to
-exact values in the form `A[0,1,2]` to mean either A0, A1, or A2 as acceptable
-choices.
-
-The usual case is a simple directed acyclic graph, where extension A depends
-on extension B and so on.  The difficulty comes with supporting a range of
-versions, and different versions have conflicting requirements.
-
-Here's an example of the complexity.
-
-* A1 depends on B[1,2] and C[1,2]
-* B1 depends on D[1,2]
-* B2 depends on D2 and E1
-* C1 depends on D1
-* C2 depends on D2 and E2
-
-A1 cannot depend on both B2 and C2 at the same time, because they conflict on
-E1 and E2.  So the algorithm can choose either B1+C1+D1 or B1+C2+D2+E2.  The
-algorithm will prefer higher versions over lower versions.  However, there are
-situations where no choice is overall "higher" than others.
+The details of this are in the document folder.
 """
 
 from typing import Sequence, List, Tuple, Dict, Set, Union, Optional, Iterable
@@ -69,6 +45,8 @@ class DependencyCache:
         if name not in self.versions:
             self.versions[name] = []
             for version in self.loader.find_versions(name):
+                assert isinstance(version[0], bool), name
+                assert isinstance(version[1], tuple), name
                 if not self.only_secure or version[0]:
                     self.versions[name].append(version)
         return tuple(self.versions[name])
@@ -152,6 +130,10 @@ class DependencyTree:
         self.ext = ext
         self.deps = deps
 
+_ExtensionVersion = Tuple[str, SecureExtensionVersion]
+_VersionMap = Dict[str, SecureExtensionVersion]
+_AllowedVersionsMap = Dict[str, Set[SecureExtensionVersion]]
+
 
 def find_extensions(
         extensions: Iterable[ExtensionCompatibility],
@@ -166,181 +148,132 @@ def find_extensions(
     be excluded after calling here.
     """
 
-    # The request asks to find the highest version of each dependency,
-    # but only for the necessary dependencies.  This requires searching
-    # a web of dependencies to first find the ones that work, then
-    # to find the highest version of those.
-
-    # This requires a recursive check into each dependency to find its
-    # versions and each of those's dependencies.  Dependencies with
-    # no versions are culled from the tree of possibilities.
-
-    # Because zip support (and thus versioning) isn't supported yet,
-    # any extension with more than one version causes an error.  Once zips are
-    # supported, this will need to be properly implemented.
-
-    compatible_versions: Dict[str, Set[SecureExtensionVersion]] = {}
-    web: DependencyWeb = {}
     cache = DependencyCache(loader, only_secure)
 
-    # Depth-first search
-    visiting: Set[str] = set()
-    visited: Set[str] = set()
-    stack: List[Tuple[int, str]] = []
+    # 1. Set `H` to an empty stack. Set `C` to an empty map which will map an extension
+    #    name to a version.  Set `A` to the children groups of the root node (each group is the
+    #    collection of versions to choose for a single extension).  Set `C'` to a null value.
 
-    for ext in extensions:
-        trees = _find_compatible_trees(ext, web, cache)
-        compatible_versions[ext.name] = set(trees.keys())
-        stack.append((0, ext.name,))
-
-    # At this point, the web is fully formed for the extent that
-    # we care about the input extension compatibility list.
-
+    match: _VersionMap = {}
     order: List[str] = []
 
-    # The "compatible_verions" list maintains the list of current
-    # compatible versions that are left available.  If any entry is
-    # both in the order list and empty in the compatible_versions,
-    # then there is a conflict.  This is NOT CORRECT BEHAVIOR FOR ZIPS
-    # because one combination of versions may not work while another
-    # combination does.  The "compatible_versions" ONLY WORKS for
-    # combination of sub-tree children, not as a global tree thing.
+    # C'
+    override_match: Optional[_VersionMap] = None
+    override_order: List[str] = []
 
-    while stack:
-        # "visit" method.
-        state, ext_name = stack.pop()
-        if state == 0:
-            if ext_name in visited:
+    # H - stack entry: #0 == A, #1 == C
+    # 2. Push a copy of `C` and `A` onto the stack `H`.
+    search_stack: List[Tuple[_AllowedVersionsMap, _VersionMap, List[str]]] = [
+        (_find_all_compatible(cache, extensions), dict(match), list(order),)
+    ]
+
+    # 3. If `H` is empty, then we're done searching
+    while search_stack:
+        # 4. Pop the top item from `H` and assign the popped values to `C`
+        # (map), and `A` (remaining children groups).
+        remaining_groups, match, order = search_stack.pop()
+
+        # 5. If `C'` is not null, then assign `C` to `C'` (not a copy!), then
+        # set `C'` to null.
+        if override_match is not None:
+            match = override_match
+            override_match = None
+            order = override_order
+            override_order = []
+
+        # (6 + 7 implies a loop over the remaining groups)
+        # 7. Remove a group from `A` and assign it to `N`.
+        # 8. Set `P` to the list of versions in `N`.
+        loop_groups = dict(remaining_groups)
+        for group_extension, group_versions in loop_groups.items():
+            # 7. Remove a group from `A` and assign it to `N`.
+            del remaining_groups[group_extension]
+
+            # (9 + 10 implies a loop over group versions)
+            loop_group_continue = False
+            loop_group_break = False
+            while group_versions:
+                # 10. Use `f` to remove an item from `P` and assign it to `Q`.
+                highest = _find_highest_version(group_versions, only_secure)
+                if highest:
+                    group_versions.remove(highest)
+                else:
+                    # 9. If `P` is empty, then no version could be selected, and this is
+                    # an invalid path.  Go back to 3.
+                    loop_group_break = True
+                    break
+
+                if group_extension in match:
+                    # 11. If there is a `N` in `C` with the same version as
+                    # `Q`, then it's already been added to the list, so go
+                    # back to 6.
+                    if match[group_extension] == highest:
+                        # GOTO 6...
+                        loop_group_continue = True
+                        break
+
+                    # 12. If there is an `N` in `C` with a different version
+                    # than `Q`, then it's a conflict.  Go back to 9.
+                else:
+                    # 13. We now have a choice for `N`.  Set `N` in `C` with version `Q`.  Go back to 2.
+                    match[group_extension] = highest
+                    order.insert(0, group_extension)
+                    search_stack.append((
+                        _find_dependency_compatiblity(cache, group_extension, highest),
+                        dict(match),
+                        list(order),
+                    ))
+                    loop_group_break = True
+                    break
+
+            # (11 ... go back to 6)
+            if loop_group_continue:
                 continue
-            if ext_name in visiting:
-                raise PetroniaCyclicExtensionDependency(
-                    ext_name,
-                    tuple(visiting),
-                    STRING_EMPTY_TUPLE
-                )
-            visiting.add(ext_name)
 
-            # Perform the primary visit operation
+            # (13 ... go back to 2)
+            if loop_group_break:
+                break
 
-            # Yeah, this isn't right.
-            if ext_name not in compatible_versions:
-                compatible_versions[ext_name] = set(web[ext_name].keys())
-            elif ext_name in web:
-                compatible_versions[ext_name].intersection_update(web[ext_name].keys())
+        # 6. If `A` is empty, then this node was successfully searched.
+        # Set `C'` to `C` (not a copy!) and go back to 3.
+        override_match = match
+        override_order = order
 
-            # Visit outself again, in the second half, after
-            # visiting all the children.
-            stack.append((1, ext_name,))
+    # (3...) if `C` contains all the direct child extension names of the root node,
+    # then there is a match; otherwise no compatible search could be made.
+    matched_names = set(match.keys())
+    required_names = set(map(lambda x: x.name, extensions)) # type: ignore
+    found_required_names = required_names.intersection(matched_names)
+    if found_required_names != required_names:
+        # TODO may need a different exception.
+        raise PetroniaNoCompatibleExtensionFound(
+            ', '.join(required_names.difference(found_required_names)),
+            found_required_names
+        )
 
-            # Visit all the children.
-            ext_found = False
-            for version, tree in web[ext_name].items():
-                if version in compatible_versions[ext_name]:
-                    ext_found = True
-                    for dep_name in tree.deps.keys():
-                        stack.append((0, dep_name,))
-            if not ext_found:
-                raise PetroniaNoCompatibleExtensionFound(
-                    ext_name,
-                    tuple(visiting.union(visited))
-                )
-        elif state == 1:
-            # Finished visiting node.
-            visiting.remove(ext_name)
-            visited.add(ext_name)
-            order.insert(0, ext_name)
-
+    # match is now the right list of dependencies and versions...
+    # and order is in reverse order.
     order.reverse()
     ret: List[DiscoveredExtension] = []
-    for ext_name in order:
-        highest = _find_highest_version(compatible_versions[ext_name], only_secure)
-        if not highest:
-            raise PetroniaNoCompatibleExtensionFound(
-                ext_name,
-                tuple(visited)
-            )
-        disc = cache.get_discovered_version(ext_name, highest)
-        if not disc:
-            raise PetroniaNoCompatibleExtensionFound(
-                ext_name,
-                tuple(visited)
-            )
+    for name in order:
+        disc = cache.get_discovered_version(name, match[name])
+        assert disc is not None
         ret.append(disc)
-
     return ret
 
 
-def _find_compatible_trees(
-        compat: ExtensionCompatibility,
-        complete_web: DependencyWeb,
-        cache: DependencyCache
-) -> Dict[SecureExtensionVersion, DependencyTree]:
-    ret: Dict[SecureExtensionVersion, DependencyTree] = {}
-    for dep in cache.get_compatible_versions_for(compat):
-        disc = cache.get_discovered_version(compat.name, dep)
-        if disc:
-            ret[dep] = _find_dependency_tree(disc, complete_web, cache)
+def _find_all_compatible(
+        cache: DependencyCache,
+        compats: Iterable[ExtensionCompatibility]
+) -> _AllowedVersionsMap:
+    ret: _AllowedVersionsMap = {}
+    for compat in compats:
+        ret[compat.name] = set(cache.get_compatible_versions_for(compat))
     return ret
-
-
-def _find_dependency_tree(
-        extension: DiscoveredExtension,
-        complete_web: DependencyWeb,
-        cache: DependencyCache
-) -> DependencyTree:
-    """
-    Find the complete tree of dependencies.  This will fill up the
-    `complete_web` structure as it searches.  It returns a dependency
-    tree for each valid compatible version.
-
-    Any discovered cycles will raise the corresponding error.
-    """
-    visiting: Set[Tuple[str, SecureExtensionVersion]] = set()
-    stack: List[Tuple[int, DiscoveredExtension]] = [(0, extension,)]
-
-    while stack:
-        state, next_ext = stack.pop()
-        if state == 0:
-            # Load up the children after the current node.
-            stack.append((1, next_ext,))
-            for child in next_ext.depends_on:
-                found = False
-                for dep in cache.get_compatible_versions_for(child):
-                    disc = cache.get_discovered_version(child.name, dep)
-                    if disc:
-                        vtg = (child.name, dep,)
-                        if vtg in visiting:
-                            raise PetroniaCyclicExtensionDependency(
-                                child.name,
-                                map(lambda x: x[0], visiting), # type: ignore
-                                STRING_EMPTY_TUPLE
-                            )
-                        visiting.add(vtg)
-                        found = True
-                        stack.append((0, disc))
-                if not found:
-                    raise PetroniaExtensionNotFound(
-                        child.name,
-                        STRING_EMPTY_TUPLE
-                    )
-        elif state == 1:
-            vtg = (next_ext.name, next_ext.secure_version,)
-            visiting.remove(vtg)
-            deps: DependencyWeb = {}
-            for child in next_ext.depends_on:
-                for dep in cache.get_compatible_versions_for(child):
-                    if child.name not in deps:
-                        deps[child.name] = {}
-                    deps[child.name][dep] = complete_web[child.name][dep]
-            if next_ext.name not in complete_web:
-                complete_web[next_ext.name] = {}
-            complete_web[next_ext.name][next_ext.secure_version] = DependencyTree(next_ext, deps)
-
-    return complete_web[extension.name][extension.secure_version]
 
 
 def _find_highest_version(
-        versions: Union[Sequence[SecureExtensionVersion], Set[SecureExtensionVersion]],
+        versions: Iterable[SecureExtensionVersion],
         only_secure: bool
 ) -> Optional[SecureExtensionVersion]:
     highest: Optional[SecureExtensionVersion] = None
@@ -353,3 +286,20 @@ def _find_highest_version(
             elif compare_version(ver[1], highest[1]) > 0:
                 highest = ver
     return highest
+
+def _find_dependency_compatiblity(
+        cache: DependencyCache,
+        name: str,
+        version: SecureExtensionVersion
+) -> _AllowedVersionsMap:
+    disc = cache.get_discovered_version(name, version)
+    if disc is None:
+        raise PetroniaExtensionNotFound(name, [])
+    assert disc is not None, "{0} {1}".format(name, version)
+    ret = _find_all_compatible(cache, disc.depends_on)
+    if disc.implements:
+        ret[disc.implements.name] = set(cache.get_compatible_versions_for(disc.implements))
+    return ret
+
+def _deep_copy(inp: _VersionMap) -> _VersionMap:
+    return dict(inp)

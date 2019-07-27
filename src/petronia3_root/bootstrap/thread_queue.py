@@ -25,7 +25,6 @@ from petronia3.system.logging import (
     log,
     ERROR,
 )
-from petronia3.system.events.api.bus import EVENT_ID_REGISTER_EVENT
 from petronia3.util import WorkerThread
 
 _EventRequest = Tuple[EventCallback[Any], Tuple[EventId, ParticipantId, object]]
@@ -81,10 +80,6 @@ class CoreActionHandler:
         Handle adding a listener request to the thread pool.
         """
         with self.__lock:
-            if arguments[0] == EVENT_ID_REGISTER_EVENT:
-                # Special case. This absolutely must be done right now.
-                for listener in listeners:
-                    self._run_handler((listener, arguments,))
             if priority == QUEUE_EVENT_IO:
                 # Run each listener in its own thread.
                 for listener in listeners:

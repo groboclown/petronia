@@ -7,7 +7,7 @@
 Type definitions for loaders.
 """
 
-from typing import Tuple, Sequence, Dict, Any, Callable, Optional, Union
+from typing import Tuple, Sequence, Dict, Any, Callable, Optional, Union, Iterable
 from petronia3.errors import PetroniaInvalidExtension
 from petronia3.system.bus import EventBus
 from petronia3.util.op import (
@@ -133,11 +133,13 @@ class DiscoveredExtension:
         self.__description = optional_typed_key(json_def, 'description', str)
         depends = []
         raw_depends = optional_key(json_def, 'depends')
-        if not isinstance(raw_depends, (list, tuple)):
+        if not isinstance(raw_depends, Iterable):
             raise PetroniaInvalidExtension(
                 name,
                 EMPTY_TUPLE,
-                '"depends" not defined as an array in extension definition'
+                '"depends" not defined as an array in extension definition, found {0}'.format(
+                    type(raw_depends)
+                )
             )
         for dep in raw_depends:
             if isinstance(dep, dict):

@@ -8,9 +8,16 @@ import unittest
 from petronia3.extensions.extensions import ExtensionState
 from petronia3_root.util.test_helper import BasicQueuer, EnabledLogs
 from petronia3_root.bootstrap.core import create_core_system
-from ..loaders.core import CoreExtensionLoader
 from ..defs import LoadedExtension
-from ..ext_loader import load_additional_extension, load_extensions
+from ..loaders.core import CoreExtensionLoader
+from ..loaders.composite import CompositeExtensionLoader
+from ..ext_loader import (
+    load_additional_extension, load_extensions
+)
+from .mocks import (
+    mk_disc,
+    MockLoader,
+)
 
 
 class ExtensionManagerTest(unittest.TestCase):
@@ -18,9 +25,14 @@ class ExtensionManagerTest(unittest.TestCase):
         """Test loading a core module."""
         queuer = BasicQueuer(self)
         bus = create_core_system(queuer.pure_queuer)
+
         ext1 = LoadedExtension('x', True, (1, 0, 0,))
+        disc1 = mk_disc('x', (True, ext1.version), [])
+        disc2 = mk_disc('y', (False, (1, 2, 3,),), [])
+        loader1 = MockLoader(disc1, disc2)
+        loader2 = CoreExtensionLoader()
+        loader = CompositeExtensionLoader([loader1, loader2])
         with EnabledLogs():
-            loader = CoreExtensionLoader()
             new_state = load_additional_extension(
                 'core.timer.api',
                 loader, bus, [ext1])

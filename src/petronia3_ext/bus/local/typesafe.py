@@ -63,14 +63,13 @@ class TypeSafeEventBus(EventBus):
         self.__reg.validate_has(event_id)
         # swapping between typed T and any generic object.
         # Really, the Event* stuff should take a generic that is of type object.
+        # But even that isn't right.  Look, it's complicated.  Don't judge me.
         callback: EventCallback[object] = lambda eid, tid, eo: (
             self.__listener_callback( # type: ignore
                 eid, tid,
                 eo, # type: ignore
                 listener # type: ignore
             ))
-        #def callback(eid: EventId, tid: ParticipantId, event_obj: T) -> None:
-        #    self.__listener_callback(eid, tid, event_obj, listener)
 
         ret = self.__bus.add_listener(
             event_id,
@@ -99,7 +98,9 @@ class TypeSafeEventBus(EventBus):
         Triggers an event to fire.  The event priority is based upon the
         event id registration.
         """
-        self.__reg.validate_event(event_id, target_id, event_obj)
+        # Use the "on trigger" version, so that the registry can hook into
+        # early listening of register event events.
+        self.__reg.validate_event_on_trigger(event_id, target_id, event_obj)
         priority = self.__reg.get_event_id_priority(event_id)
         assert priority
         self.__bus.trigger(priority, event_id, target_id, event_obj)

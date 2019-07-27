@@ -14,6 +14,10 @@ from petronia3.system.participant import ParticipantId
 from petronia3.system.logging import (
     log, TRACE, DEBUG,
 )
+from petronia3.system.events.api.bus import (
+    EVENT_ID_REGISTER_EVENT,
+    RegisterEventEvent,
+)
 from petronia3.util import optional_key
 from petronia3.util.memory import T
 from petronia3.validation import (
@@ -108,6 +112,25 @@ class EventRegistry:
         if event_id in self._types:
             return self._types[event_id].priority
         return None
+
+    def validate_event_on_trigger(
+            self, event_id: EventId, target_id: ParticipantId, event_object: object
+    ) -> None:
+        """Validates that the event object is of the correct event id type when
+        a trigger happened.  This is also a backdoor for the registry to notice
+        when a event register event is created and to act upon it immediately.
+        In this way, the event registry doesn't need a direct listener.
+        Additionally, the event must be registered immediately, and not on a
+        thread later on.  It also makes invalid registration have immediate
+        feedback."""
+        self.validate_event(event_id, target_id, event_object)
+        if event_id == EVENT_ID_REGISTER_EVENT and isinstance(event_object, RegisterEventEvent):
+            self.register(
+                event_object.event_id,
+                event_object.priority,
+                event_object.event_class,
+                event_object.example
+            )
 
     def validate_event(
             self, event_id: EventId, target_id: ParticipantId, event_object: object

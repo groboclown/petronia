@@ -51,12 +51,6 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
-* extensions.extensions needs a lot of work.
-    * should include tracking of dependent extensions.  This should aid in component upgrades.  This means components should have versions, version dependencies, and a target ID for disposing.
-    * move metadata (version, extension name, what it implements / is api for) into a manifest file.  Include a catalog directory.
-    * add multiple versions of extensions inside extension zips.  These are the zip directories.  They have a specific file name.
-    * the "path" loader, as opposed to the zip loader, should only be used for development mode extensions.
-    * add PGP and checksum to zip loader.
 * clean up event and target names to match the module patterns.
 * change event registration to enforce the `serialize` and `deserialize` static methods.
 * Implement secure module.  It should allow different implementations to check the PGP signature.  Implementations can be swapped out whenever, because enforcing a "only once" policy is silly due to the limitations in securing python.  [OpenPGP-Python](https://github.com/singpolyma/OpenPGP-Python) looks promising, but doesn't provide an easy way to access the GPG key store, and depends on several other libraries that most likely require compilation.  [`python-gnupg`](https://pythonhosted.org/python-gnupg/) may be the easiest and safest - it relies upon the `gnupg` program to do everything, it's one file, and is under the BSD-3 clause license.  [openpgp-python](https://github.com/diafygi/openpgp-python) and [python-pgp](https://github.com/mitchellrj/python-pgp) are 100% python, but are under the GPL.  Probably just want to go with [pycrypto](https://github.com/dlitz/pycrypto), as it's under the public domain, but it requires compilation sadface.  To [verify a PKCS#5 v1.5 signature in Python](https://stackoverflow.com/a/19551810/4580538) / PyCrypto, use:
@@ -86,6 +80,10 @@ The current to-do list.
     * Need to figure out how extensions publish translations.  They probably use `(mymodule).__file__` to find its install location, and get the directory from there.
 * configuration from a file.  Need standards for configuration events (generic format?).  Need INI file reader and writer.  Configuration usage also needs to be standardized.  External storage backed configuration requires a specific configuration object that is generic.  This kind of configuration is more akin to "persistent state", which would allow for saving off session information.
 * program startup bootstrapping.  Needs to boot up the core system, then load the current platform as an extension.
+* extensions.extensions
+    * Extensions need a target ID for disposing.  Should this be required?
+    * add PGP and checksum to zip loader.
+    * zip loader needs to actually load stuff.
 * basic definition of platform responsibilities.
 * create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
 * module helpers (`ext_help` for now).  Things like:
