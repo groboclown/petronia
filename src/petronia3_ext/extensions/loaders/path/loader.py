@@ -9,6 +9,7 @@ import importlib
 import importlib.util
 import importlib.machinery
 from typing import Sequence, List, Optional
+from petronia3.system.security import SandboxPermission
 from petronia3.util.memory import EMPTY_TUPLE
 from ...defs import (
     DiscoveredExtension,
@@ -20,7 +21,7 @@ from ...defs import (
     NO_VERSIONS,
 )
 from ...util.spec import get_extension_from_module_spec
-from ...sandbox import SandboxPermission, create_sandbox_module_loader
+from ...sandbox import create_sandbox_module_loader
 
 
 class PathExtensionLoader(ExtensionLoader):

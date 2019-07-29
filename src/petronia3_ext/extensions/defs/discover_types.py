@@ -17,15 +17,13 @@ from petronia3.util.op import (
 )
 from petronia3.extensions.extensions.api import (
     ExtensionVersion,
+    ANY_VERSION,
 )
 from petronia3.util.memory import EMPTY_TUPLE
 
 # is secure?, version
 SecureExtensionVersion = Tuple[bool, ExtensionVersion]
 NO_VERSIONS: Tuple[SecureExtensionVersion] = EMPTY_TUPLE # type: ignore
-
-MAX_DEWEY_VERSION = 999999999
-ANY_VERSION: ExtensionVersion = (-1, -1, -1,)
 SECURE_ANY_VERSION: SecureExtensionVersion = (True, ANY_VERSION,)
 INSECURE_ANY_VERSION: SecureExtensionVersion = (False, ANY_VERSION,)
 ANY_VERSION_SEQ: Tuple[ExtensionVersion] = (ANY_VERSION,)
@@ -58,6 +56,11 @@ class ExtensionCompatibility:
         self.__name = name
         self._min = minimum
         self._below = below
+
+    def __repr__(self) -> str:
+        return "ExtensionCompatibility({0}, {1}, {2}".format(
+            repr(self.__name), repr(self._min), repr(self._below)
+        )
 
     @property
     def name(self) -> str:
@@ -220,6 +223,11 @@ class DiscoveredExtension:
     @property
     def license(self) -> Optional[str]:
         return self.__license
+
+    def __repr__(self) -> str:
+        return "DiscoveredExtension(name={0}, version={1})".format(
+            self.name, self.secure_version
+        )
 
 
 def _parse_extension_compatibility(ext_name: str, raw: Dict[str, Any]) -> ExtensionCompatibility:

@@ -12,7 +12,7 @@ from ....system.bus import (
 from ....system.participant import ParticipantId
 from ....util.memory import T
 
-EVENT_ID_UPDATE_STATE_REQUEST = EventId('state-store request-update')
+EVENT_ID_UPDATE_STATE_REQUEST = EventId('core.state.api request-update')
 
 
 class StateStoreUpdateRequestEvent(Generic[T]):
@@ -44,7 +44,7 @@ class StateStoreUpdateRequestEvent(Generic[T]):
         return self._state_type
 
 
-EVENT_ID_UPDATED_STATE = EventId('state-store updated')
+EVENT_ID_UPDATED_STATE = EventId('core.state.api updated')
 
 class StateStoreUpdatedEvent(Generic[T]):
     """Reports that a state value was successfully updated."""

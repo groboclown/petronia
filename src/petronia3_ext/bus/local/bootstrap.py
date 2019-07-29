@@ -25,7 +25,7 @@ def bootstrap_event_bus(queuer: QueueFunction) -> EventBus:
     # In order for the event registry to not be passed around to everything, the registration
     # is handled through the bus event.  This means, though, that the registration listener
     # must be set up before anything else.
-    register_event_registry_events(evtr)
+    register_core_events(evtr)
 
     ret = TypeSafeEventBus(bus, evtr)
 
@@ -35,7 +35,7 @@ def bootstrap_event_bus(queuer: QueueFunction) -> EventBus:
     return ret
 
 
-def register_event_registry_events(evtr: EventRegistry) -> None:
+def register_core_events(evtr: EventRegistry) -> None:
     """For internal use and test support."""
     core_events = bootstrap_core_events() # type: ignore
     for event_id, priority, event_class, event_example in core_events: # type: ignore

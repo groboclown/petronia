@@ -5,6 +5,9 @@ Loads the extension.
 
 from typing import Sequence, List, Iterable, Collection
 from petronia3.system.bus import EventBus
+from petronia3.system.logging import (
+    INFO, log
+)
 from petronia3.errors import (
     PetroniaExtensionError,
     PetroniaExtensionInitializationError,
@@ -35,12 +38,18 @@ def load_additional_extension(
     for ext in loaded:
         compat.append(ExtensionCompatibility(ext.name, ext.version, None))
     to_load = find_extensions(compat, loader, False)
+    loaded_names = set(map(lambda x: x.name, loaded)) # type: ignore
     ret: List[LoadedExtension] = []
     for disc in to_load:
-        if disc.name in loaded:
+        if disc.name in loaded_names:
             # Already loaded
             continue
         try:
+            log(
+                INFO, load_additional_extension,
+                "Loading extension {0} v{1}",
+                disc.name, disc.version
+            )
             disc.module_loader(bus)
             ret.append(LoadedExtension(
                 disc.name, disc.is_secure, disc.version
@@ -72,6 +81,11 @@ def load_extensions(
     ret: List[LoadedExtension] = []
     for ext in to_load:
         try:
+            log(
+                INFO, load_extensions,
+                "Loading extension {0} v{1}",
+                ext.name, ext.version
+            )
             ext.module_loader(bus)
             ret.append(LoadedExtension(
                 ext.name, ext.is_secure, ext.version

@@ -3,7 +3,6 @@
 Sets up the timer.
 """
 
-from typing import Sequence
 from .events import (
     EVENT_ID_TIMER, GLOBAL_TIMER_EVENT,
     TimerEvent,
@@ -11,6 +10,7 @@ from .events import (
 from ....system.bus import (
     EventBus,
     register_event,
+    ExtensionMetadataStruct,
     QUEUE_EVENT_NORMAL,
 )
 
@@ -28,3 +28,10 @@ def bootstrap_timer_api(bus: EventBus) -> None:
         TimerEvent,
         GLOBAL_TIMER_EVENT
     )
+
+
+EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "type": "api",
+    "depends": [],
+    "authors": ["Petronia"],
+}

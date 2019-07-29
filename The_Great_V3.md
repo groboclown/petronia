@@ -51,8 +51,17 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
-* clean up event and target names to match the module patterns.
-* change event registration to enforce the `serialize` and `deserialize` static methods.
+* basic definition of platform responsibilities.
+* localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
+    * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
+      ```python
+      locale.setlocale(locale.LC_ALL, loc)
+      language = gettext.translation('petronia', languages=[lang])
+      language.install()
+      ```
+    * That same component publishes a state of the available locales and translations.
+    * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
+    * Need to figure out how extensions publish translations.  They probably use `(mymodule).__file__` to find its install location, and get the directory from there.
 * Implement secure module.  It should allow different implementations to check the PGP signature.  Implementations can be swapped out whenever, because enforcing a "only once" policy is silly due to the limitations in securing python.  [OpenPGP-Python](https://github.com/singpolyma/OpenPGP-Python) looks promising, but doesn't provide an easy way to access the GPG key store, and depends on several other libraries that most likely require compilation.  [`python-gnupg`](https://pythonhosted.org/python-gnupg/) may be the easiest and safest - it relies upon the `gnupg` program to do everything, it's one file, and is under the BSD-3 clause license.  [openpgp-python](https://github.com/diafygi/openpgp-python) and [python-pgp](https://github.com/mitchellrj/python-pgp) are 100% python, but are under the GPL.  Probably just want to go with [pycrypto](https://github.com/dlitz/pycrypto), as it's under the public domain, but it requires compilation sadface.  To [verify a PKCS#5 v1.5 signature in Python](https://stackoverflow.com/a/19551810/4580538) / PyCrypto, use:
     ```python
     from Crypto.PublicKey import RSA
@@ -68,23 +77,7 @@ The current to-do list.
         print "Invalid"
     ```
     Probably would have two parts - a file-based one (for extensions) and one for in-memory signatures (for events).
-* localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
-    * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
-      ```python
-      locale.setlocale(locale.LC_ALL, loc)
-      language = gettext.translation('petronia', languages=[lang])
-      language.install()
-      ```
-    * That same component publishes a state of the available locales and translations.
-    * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
-    * Need to figure out how extensions publish translations.  They probably use `(mymodule).__file__` to find its install location, and get the directory from there.
 * configuration from a file.  Need standards for configuration events (generic format?).  Need INI file reader and writer.  Configuration usage also needs to be standardized.  External storage backed configuration requires a specific configuration object that is generic.  This kind of configuration is more akin to "persistent state", which would allow for saving off session information.
-* program startup bootstrapping.  Needs to boot up the core system, then load the current platform as an extension.
-* extensions.extensions
-    * Extensions need a target ID for disposing.  Should this be required?
-    * add PGP and checksum to zip loader.
-    * zip loader needs to actually load stuff.
-* basic definition of platform responsibilities.
 * create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
 * module helpers (`ext_help` for now).  Things like:
     * event listener thread safety.  With event listeners running in any number of threads, developers must take care to make sure their code is thread safe.  Some simple helpers can make life so much easier.
@@ -93,4 +86,4 @@ The current to-do list.
     * design simplified event chain management for extensions, since events are so critical and everywhere.  It seems like it'll become a state machine.
 * eventually, write the cross-process event listener and the other side's event sending.  This will require turning events into serialized form, keeping a cache of event classes (which uses the event registration events).
 * add proper zip support in the extension module loader.
-    * requires adding tree of version inspection.  See `ext_finder.py` for the missing functionality.
+    * add PGP and checksum to zip loader.

@@ -11,6 +11,7 @@ from .events import (
 from ....system.bus import (
     EventBus,
     register_event,
+    ExtensionMetadataStruct,
     QUEUE_EVENT_IO,
 )
 from ....system.participant import NOT_PARTICIPANT
@@ -24,3 +25,9 @@ def bootstrap_config_api(bus: EventBus) -> None:
         PersistConfigurationEvent,
         PersistConfigurationEvent(NOT_PARTICIPANT)
     )
+
+EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "type": "api",
+    "depends": [],
+    "authors": ["Petronia"],
+}

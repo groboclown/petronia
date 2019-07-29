@@ -1,33 +1,42 @@
 
 """
-Setup the barest core system needed by Petronia.  This involves assigning the
-event bus implementation, then registering the core Petronia events and event
-listeners.  No other extensions are added to the system.
+Load all the core petronia API modules.
 """
 
-from petronia3.system.bus import (
-    EventBus
+from typing import Sequence, List
+from petronia3.system.bus import EventBus
+from petronia3.errors import PetroniaExtensionNotFound
+from petronia3.extensions.extensions import (
+    ANY_VERSION,
+    LoadedExtension,
+)
+from petronia3.util.memory import EMPTY_TUPLE
+from petronia3_ext.extensions.loaders import CoreExtensionLoader
+
+_ORDERED_CORE_EXTENSIONS = (
+    'core.state.api',
+    'core.extensions.api',
+    'core.config_persistence.api',
+    'core.timer.api',
+    'core.platform.api',
 )
 
-from petronia3_ext.bus.local.basic_event_bus import QueueFunction
-from petronia3_ext.bus.local.bootstrap import bootstrap_event_bus
-
-def create_core_system(queuer: QueueFunction) -> EventBus:
+def load_core_extensions(
+        bus: EventBus
+) -> Sequence[LoadedExtension]:
     """
-    Create the core Petronia system, wired up to the event bus,
-    to create a minimal working environment.
-
-    After this setup, the additional configuration and platform
-    specific parts can be loaded.
+    Load the usual required core modules.  This must be the first set of
+    extensions loaded by the system.
     """
-
-    # Setup the event bus and its registration stuff.
-    bus = bootstrap_event_bus(queuer)
-
-    # Add in the core extension API.
-
-
-    # Note: logging does not need any bootstrapping into the singletons,
-    # because the core logging system lives outside the events.
-
-    return bus
+    loader = CoreExtensionLoader()
+    ret: List[LoadedExtension] = []
+    for name in _ORDERED_CORE_EXTENSIONS:
+        disc = loader.find_extension(True, name, ANY_VERSION)
+        if not disc:
+            raise PetroniaExtensionNotFound(
+                name,
+                EMPTY_TUPLE # type: ignore
+            )
+        disc.module_loader(bus)
+        ret.append(LoadedExtension(name, disc.is_secure, disc.version))
+    return tuple(ret)

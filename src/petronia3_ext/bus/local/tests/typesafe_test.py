@@ -10,7 +10,7 @@ from petronia3_root.util.test_helper import BasicListener, BasicQueuer
 from ..event_registry import EventRegistry
 from ..basic_event_bus import BasicEventBus
 from ..typesafe import TypeSafeEventBus
-from ..bootstrap import register_event_registry_events
+from ..bootstrap import register_core_events
 
 
 class TypeSafeEventBusTest(unittest.TestCase):
@@ -18,7 +18,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
     def test_simple(self):
         """Simple use case."""
         evtr = EventRegistry()
-        register_event_registry_events(evtr)
+        register_core_events(evtr)
         evtr.register('simple', QUEUE_EVENT_NORMAL, EventSimple, EventSimple())
         queue = BasicQueuer(self)
         bus = BasicEventBus(queue.pure_queuer)
@@ -28,7 +28,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
     def test_listen_not_registered(self):
         """Attempt to add_listener() on not-registered event id"""
         evtr = EventRegistry()
-        register_event_registry_events(evtr)
+        register_core_events(evtr)
         queue = BasicQueuer(self)
         bus = BasicEventBus(queue.pure_queuer)
         typesafe = TypeSafeEventBus(bus, evtr)
@@ -44,7 +44,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
     def test_trigger_not_registered(self):
         """Trigger an event that isn't registered."""
         evtr = EventRegistry()
-        register_event_registry_events(evtr)
+        register_core_events(evtr)
         queue = BasicQueuer(self)
         bus = BasicEventBus(queue.pure_queuer)
         typesafe = TypeSafeEventBus(bus, evtr)

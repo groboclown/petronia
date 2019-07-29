@@ -13,6 +13,7 @@ from .events import (
 from ....system.bus import (
     register_event,
     EventBus,
+    ExtensionMetadataStruct,
     QUEUE_EVENT_NORMAL,
 )
 from ....system.participant import (
@@ -40,3 +41,9 @@ def bootstrap_state_store_api(bus: EventBus) -> None:
         StateStoreUpdatedEvent,
         StateStoreUpdatedEvent(NOT_PARTICIPANT, object, object(), object()) # type: ignore
     )
+
+EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "type": "api",
+    "depends": [],
+    "authors": ["Petronia"],
+}

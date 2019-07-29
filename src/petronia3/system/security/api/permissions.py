@@ -3,6 +3,9 @@
 All the allowable permissions that a sandbox can be granted.
 By default, none of the permissions are granted.
 
+A "sandbox" is a process that has limited access according to these
+permissions.
+
 The permissions are of a
 """
 

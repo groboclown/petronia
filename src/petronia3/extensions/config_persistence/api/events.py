@@ -13,7 +13,7 @@ from ....system.bus import (
 
 # User-generated event to trigger writing the configuration to disk, for the
 # parts that are setup to permit writing the current state.
-EVENT_ID_PERSIST_CONFIGURATION = EventId('configuration persist')
+EVENT_ID_PERSIST_CONFIGURATION = EventId('core.config_persistence.api persist')
 
 
 class PersistConfigurationEvent:

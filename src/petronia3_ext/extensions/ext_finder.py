@@ -11,7 +11,9 @@ from petronia3.errors import (
     PetroniaCyclicExtensionDependency,
     PetroniaNoCompatibleExtensionFound,
 )
-from petronia3.util.memory import STRING_EMPTY_TUPLE
+from petronia3.system.logging import (
+    TRACE, DEBUG, log
+)
 from .defs import (
     SecureExtensionVersion,
     ExtensionLoader,
@@ -117,19 +119,6 @@ class DependencyCache:
         return None
 
 
-# This web has inter-depdencies crossing, which isn't right.  See the
-# notes below.  That is to say, THIS STRUCTURE DOESN'T WORK.
-DependencyWeb = Dict[str, Dict[SecureExtensionVersion, 'DependencyTree']]
-
-class DependencyTree:
-    """
-    The tree of dependent versions for an extension.
-    """
-    __slots__ = ('ext', 'deps',)
-    def __init__(self, ext: DiscoveredExtension, deps: DependencyWeb) -> None:
-        self.ext = ext
-        self.deps = deps
-
 _ExtensionVersion = Tuple[str, SecureExtensionVersion]
 _VersionMap = Dict[str, SecureExtensionVersion]
 _AllowedVersionsMap = Dict[str, Set[SecureExtensionVersion]]
@@ -147,6 +136,13 @@ def find_extensions(
     This does not do any checking for already loaded extensions.  Those must
     be excluded after calling here.
     """
+
+    log(
+        DEBUG,
+        find_extensions,
+        "Finding extension dependencies for {0}",
+        extensions
+    )
 
     cache = DependencyCache(loader, only_secure)
 
@@ -173,6 +169,16 @@ def find_extensions(
         # (map), and `A` (remaining children groups).
         remaining_groups, match, order = search_stack.pop()
 
+        log(
+            TRACE,
+            find_extensions,
+            "Start search loop iteration\n"
+            " - remaining groups: {0}\n"
+            " - current match: {1}\n"
+            " - load order: {2}",
+            remaining_groups, match, order
+        )
+
         # 5. If `C'` is not null, then assign `C` to `C'` (not a copy!), then
         # set `C'` to null.
         if override_match is not None:
@@ -180,14 +186,26 @@ def find_extensions(
             override_match = None
             order = override_order
             override_order = []
+            log(
+                TRACE,
+                find_extensions,
+                " - override with match {0}; order {1}",
+                match, order
+            )
 
         # (6 + 7 implies a loop over the remaining groups)
         # 7. Remove a group from `A` and assign it to `N`.
         # 8. Set `P` to the list of versions in `N`.
+        log(TRACE, find_extensions, "Looping over groups.")
         loop_groups = dict(remaining_groups)
         for group_extension, group_versions in loop_groups.items():
             # 7. Remove a group from `A` and assign it to `N`.
             del remaining_groups[group_extension]
+            log(
+                TRACE, find_extensions,
+                "Trying group {0} versions {1}",
+                group_extension, group_versions
+            )
 
             # (9 + 10 implies a loop over group versions)
             loop_group_continue = False
@@ -197,9 +215,15 @@ def find_extensions(
                 highest = _find_highest_version(group_versions, only_secure)
                 if highest:
                     group_versions.remove(highest)
+                    log(
+                        TRACE, find_extensions,
+                        "Trying next highest vesrion {0}",
+                        highest
+                    )
                 else:
                     # 9. If `P` is empty, then no version could be selected, and this is
                     # an invalid path.  Go back to 3.
+                    log(TRACE, find_extensions, "No more versions to try.")
                     loop_group_break = True
                     break
 
@@ -207,19 +231,31 @@ def find_extensions(
                     # 11. If there is a `N` in `C` with the same version as
                     # `Q`, then it's already been added to the list, so go
                     # back to 6.
-                    if match[group_extension] == highest:
+                    if _match_version_is(match[group_extension], highest):
                         # GOTO 6...
+                        log(TRACE, find_extensions, "Already added this to our match list.")
                         loop_group_continue = True
                         break
 
                     # 12. If there is an `N` in `C` with a different version
                     # than `Q`, then it's a conflict.  Go back to 9.
+                    log(TRACE, find_extensions, "Metch conflict.  Trying another one.")
                 else:
-                    # 13. We now have a choice for `N`.  Set `N` in `C` with version `Q`.  Go back to 2.
+                    # 13. We now have a choice for `N`.  Set `N` in `C` with
+                    # version `Q`.  Go back to 2.
+                    log(
+                        TRACE, find_extensions,
+                        "Going to try {0} at version {1}",
+                        group_extension, highest
+                    )
                     match[group_extension] = highest
                     order.insert(0, group_extension)
+                    new_remaining_groups = _find_dependency_compatiblity(
+                        cache, group_extension, highest
+                    )
+                    new_remaining_groups.update(remaining_groups)
                     search_stack.append((
-                        _find_dependency_compatiblity(cache, group_extension, highest),
+                        new_remaining_groups,
                         dict(match),
                         list(order),
                     ))
@@ -244,6 +280,14 @@ def find_extensions(
     matched_names = set(match.keys())
     required_names = set(map(lambda x: x.name, extensions)) # type: ignore
     found_required_names = required_names.intersection(matched_names)
+    log(
+        TRACE, find_extensions,
+        "Completed search.\n"
+        " - Matched: {0}\n"
+        " - Required to load: {1}\n"
+        " - Found required: {2}",
+        match, extensions, found_required_names
+    )
     if found_required_names != required_names:
         # TODO may need a different exception.
         raise PetroniaNoCompatibleExtensionFound(
@@ -259,6 +303,7 @@ def find_extensions(
         disc = cache.get_discovered_version(name, match[name])
         assert disc is not None
         ret.append(disc)
+    log(DEBUG, find_extensions, "Final load order: {0}", ret)
     return ret
 
 
@@ -303,3 +348,10 @@ def _find_dependency_compatiblity(
 
 def _deep_copy(inp: _VersionMap) -> _VersionMap:
     return dict(inp)
+
+def _match_version_is(match_version: SecureExtensionVersion, highest: SecureExtensionVersion) -> bool:
+    if SECURE_ANY_VERSION in (match_version, highest):
+        return True
+    if INSECURE_ANY_VERSION in (match_version, highest):
+        return True
+    return match_version == highest

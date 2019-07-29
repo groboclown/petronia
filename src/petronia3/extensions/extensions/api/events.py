@@ -8,9 +8,9 @@ from .defs import LoadedExtension
 from ....system.bus import EventId, EventBus, ListenerSetup, EventCallback
 from ....system.participant import create_singleton_identity
 
-TARGET_EXTENSION_LOADER = create_singleton_identity('extension-loader')
+TARGET_EXTENSION_LOADER = create_singleton_identity('core.extensions.api')
 
-EVENT_ID_EXTENSION_LOADED = EventId('extension-loader loaded')
+EVENT_ID_EXTENSION_LOADED = EventId('core.extensions.api loaded')
 
 class ExtensionLoadedEvent:
     """
@@ -44,7 +44,7 @@ def as_extension_loaded_listener(
     return (EVENT_ID_EXTENSION_LOADED, callback,)
 
 
-EVENT_ID_REQUEST_LOAD_EXTENSION = EventId('extension-loader request-load')
+EVENT_ID_REQUEST_LOAD_EXTENSION = EventId('core.extensions.api request-load')
 
 class RequestLoadExtensionEvent:
     """

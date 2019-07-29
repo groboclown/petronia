@@ -1,10 +1,10 @@
 
 import unittest
 from petronia3.system.logging import TRACE, log
-from petronia3.extensions.state.api.bootstrap import bootstrap_state_store_api
 from petronia3_root.util.test_helper import (
     BasicQueuer, EnabledLogs,
-    create_core_system,
+    bootstrap_event_bus,
+    load_core_extensions,
 )
 from ..bootstrap import bootstrap_state_store
 
@@ -15,6 +15,6 @@ class BusTest(unittest.TestCase):
 
             # Setup
             queue = BasicQueuer(self)
-            bus = create_core_system(queue.pure_queuer)
-            bootstrap_state_store_api(bus)
+            bus = bootstrap_event_bus(queue.pure_queuer)
+            load_core_extensions(bus)
             bootstrap_state_store(bus)

@@ -14,6 +14,7 @@ from typing import Sequence, List, Optional, Tuple
 from petronia3.system.logging import (
     log, WARN,
 )
+from petronia3.system.security import SandboxPermission
 from petronia3.util.op import in_or
 from petronia3.util.memory import STRING_EMPTY_TUPLE
 from .checksum import (
@@ -43,13 +44,18 @@ class ZipExtensionLoader(ExtensionLoader):
     Loads zip files from directories.  Inspects the internals of the zips for
     the package properties, and checks the encryption and hash code of the
     files.  The directories are not recursively inspected.
+
+    If permissions is non-None, then the paths are considered insecure, and
+    run in a sandbox with only the granted permissions.  If permissions is
+    None, then the paths are considered to be secure, and are run in-memory
+    with the current extension loader.
     """
-    __slots__ = ('_finders', '_cache', '_allow_secure')
+    __slots__ = ('_finders', '_cache', '_allow_secure', '_permissions')
 
     def __init__(
             self,
             cache: ExtensionStorageCache, paths: Sequence[str],
-            allows_secure: bool
+            permissions: Optional[Sequence[SandboxPermission]]
     ) -> None:
         """
         :param allows_secure bool: If True, then the extensions can be marked
@@ -60,7 +66,10 @@ class ZipExtensionLoader(ExtensionLoader):
         self._cache = cache
         # Allow directories to be created after the fact.
         self._paths = tuple(paths)
-        self._allow_secure = allows_secure
+        self._allow_secure = permissions is None
+
+        # TODO use the permissions
+        self._permissions = permissions
 
     def find_versions(self, name: str) -> Sequence[SecureExtensionVersion]:
         # filename pattern is "name-1.2.3.zip"
@@ -275,6 +284,7 @@ def _load_cached_extension(
     # module into memory yet.  Instead, just load the metadata.  The
     # returned object will perform the right invocation to optionally run
     # it in a remote process, or load it in memory.
+    # It will also need the snadbox permissions.
     raise NotImplementedError()
 
 def _is_same(filename: str, cached: Optional[Sequence[str]]) -> bool:

@@ -28,3 +28,15 @@ class PetroniaFileError(PetroniaFileSystemError):
     def __init__(self, filename: str, msg: str) -> None:
         PetroniaFileSystemError.__init__(self, '{0}: {1}'.format(filename, msg))
 
+
+class PetroniaPlatformNotSupported(PetroniaEnvironmentError):
+    """
+    Petronia doesn't support this OS + processor combination.
+    """
+    def __init__(self, name: str) -> None:
+        PetroniaEnvironmentError.__init__(
+            self,
+            ('Petronia does not support {0}.  '
+            'Please reach out to the Petronia team if you want to help '
+            'supporting your platform.').format(name)
+        )

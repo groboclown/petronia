@@ -21,4 +21,10 @@ from .env import (
     PetroniaEnvironmentError,
     PetroniaFileSystemError,
     PetroniaFileError,
+    PetroniaPlatformNotSupported,
+)
+from .serial import (
+    PetroniaSerializationError,
+    PetroniaValueNotSerializable,
+    PetroniaSerializationFormatError,
 )

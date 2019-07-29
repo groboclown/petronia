@@ -8,7 +8,7 @@ from ....system.participant import (
 )
 
 
-TARGET_TIMER_CONFIG = create_singleton_identity('global-timer config')
+TARGET_TIMER_CONFIG = create_singleton_identity('core.timer.api config')
 
 DEFAULT_INTERVAL = 1.2
 

@@ -3,7 +3,7 @@
 Type definitions for the event bus.
 """
 
-from typing import Callable, Tuple, NewType
+from typing import Callable, Tuple, NewType, Union, Sequence, Dict
 from .identity_types import ParticipantId, ComponentId
 from ...util.memory import T
 
@@ -15,6 +15,13 @@ EventCallback = Callable[[EventId, ParticipantId, T], None]
 ListenerSetup = Tuple[EventId, EventCallback[T]]
 ListenerRegistrator = Callable[[EventCallback[T]], ListenerSetup[T]]
 
+ExtensionCompatibilityStruct = Dict[str, Union[
+    str, Tuple[Union[int, float], Union[int, float], Union[int, float]]
+]]
+ExtensionMetadataStruct = Dict[str, Union[
+    str, Sequence[str],
+    ExtensionCompatibilityStruct, Sequence[ExtensionCompatibilityStruct]
+]]
 
 class EventBus:
     """

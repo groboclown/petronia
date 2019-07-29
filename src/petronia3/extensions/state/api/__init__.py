@@ -12,4 +12,4 @@ from .events import (
 
 from .bootstrap import bootstrap_state_store_api as start_extension
 from .bootstrap import STATE_STORE_MODULE_ID as MODULE_ID
-# No dependencies.
+from .bootstrap import EXTENSION_METADATA

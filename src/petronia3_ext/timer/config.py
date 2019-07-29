@@ -5,21 +5,24 @@ Timer configuration.
 
 from petronia3.system.bus import EventBus
 from petronia3.system.participant import create_singleton_identity
+from petronia3.extensions.state.api import set_state
 
 TARGET_TIMER_CONFIG = create_singleton_identity('core.timer.impl config')
 DEFAULT_INTERVAL = 1.2
 
 class TimerConfig:
+    __slots__ = ('_interval_seconds', '_active')
     def __init__(self, interval_seconds: float, active: bool) -> None:
-        raise NotImplementedError()
+        self._interval_seconds = interval_seconds
+        self._active = active
 
     @property
     def active(self) -> bool:
-        raise NotImplementedError()
+        return self._active
 
     @property
     def interval_seconds(self) -> float:
-        raise NotImplementedError()
+        return self._interval_seconds
 
 def set_timer_config(bus: EventBus, config: TimerConfig) -> None:
-    raise NotImplementedError()
+    set_state(bus, TARGET_TIMER_CONFIG, TimerConfig, config)

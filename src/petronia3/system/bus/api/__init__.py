@@ -9,6 +9,10 @@ from ...internal.bus_types import (
     EventId, ListenerId,
     ListenerRegistrator, ListenerSetup,
     QueuePriority,
+
+    # These probably should move to some other module.
+    ExtensionCompatibilityStruct,
+    ExtensionMetadataStruct,
 )
 from ...internal.bus_constants import (
     EVENT_WILDCARD, TARGET_WILDCARD,

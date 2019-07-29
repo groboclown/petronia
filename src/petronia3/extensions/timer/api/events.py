@@ -10,9 +10,9 @@ from ....system.bus import (
     EventCallback, ListenerSetup, EventId,
 )
 
-TARGET_TIMER = create_singleton_identity('global-timer')
+TARGET_TIMER = create_singleton_identity('core.timer.api')
 
-EVENT_ID_TIMER = EventId('timer tick')
+EVENT_ID_TIMER = EventId('core.timer.api tick')
 
 class TimerEvent:
     """

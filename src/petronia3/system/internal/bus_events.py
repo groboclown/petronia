@@ -16,8 +16,8 @@ from .identity_types import (
 from ...util.memory import T
 
 
-TARGET_EVENT_BUS = create_singleton_identity('event-bus')
-TARGET_EVENT_REGISTRY = create_singleton_identity('event-registry')
+TARGET_EVENT_BUS = create_singleton_identity('core.bus.api')
+TARGET_EVENT_REGISTRY = create_singleton_identity('core.bus.event-registry')
 
 EVENT_ID_EVENT_LISTENER_ADDED = EventId('event-bus listener-add')
 

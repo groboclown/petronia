@@ -6,8 +6,10 @@ Tests for the timer impl extension
 import unittest
 import threading
 from typing import List, Callable
-from petronia3_root.bootstrap.core import create_core_system
+from petronia3_root.bootstrap.bus import bootstrap_event_bus
+from petronia3.extensions.timer.api.bootstrap import bootstrap_timer_api
 from petronia3.extensions.state.api.events import EVENT_ID_UPDATED_STATE, StateStoreUpdatedEvent
+from petronia3.extensions.state.api.bootstrap import bootstrap_state_store_api
 from petronia3_root.util.test_helper import BasicQueuer, BasicListener
 from ..config import TimerConfig, TARGET_TIMER_CONFIG
 from ..bootstrap import BusTimer
@@ -19,7 +21,9 @@ class TimerTest(unittest.TestCase):
         Test out the function that runs in the thread.
         """
         queuer = BasicQueuer(self)
-        bus = create_core_system(queuer.pure_queuer)
+        bus = bootstrap_event_bus(queuer.pure_queuer)
+        bootstrap_state_store_api(bus)
+        bootstrap_timer_api(bus)
         timer = BusTimer(bus, TimerConfig(1.0, True))
         timer.mk_thread = mk_thread
         sleeper = SleepFunc(2, timer)
@@ -31,9 +35,13 @@ class TimerTest(unittest.TestCase):
 
         self.assertFalse(timer.is_running)
         self.assertEqual(
-            sleeper.sleep_times,
-            [1.0, 1.0]
+            len(sleeper.sleep_times),
+            2
         )
+        # This can return anywhere between 0 and 1, depending upon the speed
+        # of the thread execution.
+        self.assertLessEqual(sleeper.sleep_times[0], 1.0)
+        self.assertLessEqual(sleeper.sleep_times[1], 1.0)
 
 
 def mk_thread(callback: Callable[[], None]) -> threading.Thread:
@@ -56,7 +64,7 @@ class SleepFunc:
         """Mock for the thread to sleep a while."""
         self.sleep_times.append(secs)
         self.call_count += 1
-        if self.call_count > self.max_sleep_calls:
+        if self.call_count >= self.max_sleep_calls:
             self.timer.on_config_change(
                 EVENT_ID_UPDATED_STATE,
                 TARGET_TIMER_CONFIG,

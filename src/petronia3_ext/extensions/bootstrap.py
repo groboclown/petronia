@@ -3,7 +3,7 @@
 Add the extensions into the system.
 """
 
-from typing import Sequence, Set, Optional
+from typing import Sequence, Set, Iterable, Optional
 from petronia3.extensions.extensions.api import (
     ExtensionLoadedEvent,
     ExtensionState,
@@ -42,7 +42,7 @@ from .ext_loader import (
 
 def bootstrap_extension_loader(
         bus: EventBus,
-        initial_extensions: Sequence[ExtensionCompatibility],
+        preloaded_extensions: Iterable[LoadedExtension],
         initial_only_secure: bool,
         loader: ExtensionLoader
 ) -> None:
@@ -52,11 +52,7 @@ def bootstrap_extension_loader(
     with configuration state.
     """
 
-    # TODO error reporting / checking?
-    loaded = load_extensions(
-        initial_extensions, loader, bus, initial_only_secure
-    )
-    extloader = _ExtensionStatefulLoader(bus, ExtensionState(loaded), loader)
+    extloader = _ExtensionStatefulLoader(bus, ExtensionState(preloaded_extensions), loader)
     bus.add_listener(
         TARGET_EXTENSION_LOADER,
         _as_request_load_extension_listener,

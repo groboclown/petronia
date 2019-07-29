@@ -5,7 +5,7 @@ Module loader implementations that run a module in a sandbox environment.
 
 from typing import Sequence
 from petronia3.system.bus import EventBus
-from .permissions import SandboxPermission
+from petronia3.system.security import SandboxPermission
 from ..defs import ModuleLoader
 
 def create_sandbox_module_loader(

@@ -47,6 +47,20 @@ The system supports adding a trust layer between an event generator and the even
 
 Due to the inability to truly lock down Python extensions in-memory, this only has impact when dealing with remote events.
 
+### Super Secure Petronia
+
+With the extension execution in a separate process, this enables Petronia to be able to run in a highly secure environment.
+
+The main process would need enough permission to be able to start processes that have all the permissions they need, but it would only be in charge of:
+
+* Finding platform-specific information about the install, to know where to look for configuration files and extensions.
+* Loading the most basic parts of the configuration, enough to know the basic deployment landscape.
+* Launch sub-processes by permission grouping.  Platform UI manipulation would be in one process, execution child process would be in another, and so on.
+
+This web of processes would listen on a local network port (could even be SSL with a once-per-load time self-signed certificate) for events.  The locally running event bus would translate "added listener" to include the listener's port number before sending it to all other processes.
+
+This setup is a long term goal, but should be kept in mind when writing extensions and the core system.
+
 ## System Parts
 
 ### Core
@@ -59,7 +73,7 @@ Everything that wants to interact with the Petronia system needs an identifier. 
 
 These identifiers can cover a wide range of life cycle types, from lasting forever to being a one-off thing.  It can include the global state of a component separate from the component or be the component itself.
 
-The nature of the singleton identifiers means that construction of them is done through the global function.  Components, though, require a synchronization across the system to properly ensure unique identifiers.  To allow for flexibility in the construction of these identifiers, it's abstracted out into the event bus, because the implementations of both will usually be linked (remote busses will need synchronization across all busses).  Singleton names and categories should be namespaced according to the extension's module name, to avoid collisions.
+The nature of the singleton identifiers means that construction of them is done through the global function.  Components, though, require a synchronization across the system to properly ensure unique identifiers.  To allow for flexibility in the construction of these identifiers, it's abstracted out into the event bus, because the implementations of both will usually be linked (remote busses will need synchronization across all busses).  Singleton names and categories should be name spaced according to the extension's module name, to avoid collisions.
 
 #### Logging
 
@@ -175,7 +189,7 @@ Extension modules must provide the function `start_extension` which takes a sing
 
 Normally, a module will also declare a `MODULE_ID` singleton ID constant that is used for lifecycle events for the module.  This should match the extension name, to avoid possible name collisions.
 
-For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the json above, but with the additional required information:
+For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the JSON above, but with the additional required information:
 
 ```json
 {

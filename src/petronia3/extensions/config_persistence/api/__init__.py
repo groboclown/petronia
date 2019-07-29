@@ -9,3 +9,6 @@ from .persist_types import (
     PersistentConfigurationState,
     PersistType,
 )
+
+from .bootstrap import bootstrap_config_api as start_extension
+from .bootstrap import EXTENSION_METADATA
