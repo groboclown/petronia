@@ -9,6 +9,7 @@ from petronia3.extensions.extensions import (
     ExtensionState,
     ANY_VERSION,
 )
+from petronia3.system.logging import ERROR
 from petronia3_root.util.test_helper import BasicQueuer, EnabledLogs
 from petronia3_root.bootstrap.bus import bootstrap_event_bus
 from ..defs import LoadedExtension
@@ -35,7 +36,7 @@ class ExtensionManagerTest(unittest.TestCase):
         loader1 = MockLoader(disc1, disc2)
         loader2 = CoreExtensionLoader()
         loader = CompositeExtensionLoader([loader1, loader2])
-        with EnabledLogs():
+        with EnabledLogs(ERROR):
             new_state = load_additional_extension(
                 'core.timer.api',
                 loader, bus, [ext1])

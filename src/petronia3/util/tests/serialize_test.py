@@ -1,6 +1,9 @@
 
 import unittest
 from typing import Optional
+from ...errors import (
+    PetroniaSerializationFormatError
+)
 from ..serial.converter import (
     serialize_to_json,
     deserialize_from_json,
@@ -24,31 +27,50 @@ class TestCreateInstance(unittest.TestCase):
         self.assertEqual(val.v2, 2)
 
     def test_invalid_no_module(self) -> None:
-        create_instance('object', {})
+        try:
+            create_instance('object', {})
+            self.fail('did not raise error')
+        except PetroniaSerializationFormatError:
+            pass
 
     def test_invalid_too_many_args(self) -> None:
-        create_instance(__name__ + '.SimpleInstance', { 'x': 1 })
+        try:
+            create_instance(__name__ + '.SimpleInstance', { 'x': 1 })
+            self.fail('did not raise right error')
+        except TypeError:
+            pass
 
     def test_invalid_too_few_args(self) -> None:
-        create_instance(__name__ + '.WithArguments', { 'v2': 1 })
+        try:
+            create_instance(__name__ + '.WithArguments', { 'v2': 1 })
+            self.fail('did not raise right error')
+        except TypeError:
+            pass
 
     def test_invalid_wrong_args(self) -> None:
-        create_instance(__name__ + '.WithArguments', { 'x': 1 })
+        try:
+            create_instance(__name__ + '.WithArguments', { 'x': 1 })
+            self.fail('did not throw right error')
+        except TypeError:
+            pass
 
 
 class TestSerialize(unittest.TestCase):
     def test_reserialize_int(self) -> None:
         serialized = serialize_to_json(1)
+        # print("serialized 1 to {0}".format(serialized))
         back = deserialize_from_json(serialized)
         self.assertEqual(back, 1)
 
     def test_reserialize_simple(self) -> None:
         serialized = serialize_to_json(SimpleInstance())
+        # print("serialized SimpleInstance to {0}".format(serialized))
         back = deserialize_from_json(serialized)
         self.assertIsInstance(back, SimpleInstance)
 
     def test_reserialize_args(self) -> None:
         serialized = serialize_to_json(WithArguments('x', 2))
+        # print("serialized WithArguments to {0}".format(serialized))
         back = deserialize_from_json(serialized)
         self.assertIsInstance(back, WithArguments)
         self.assertEqual(back.v1, 'x')
@@ -59,6 +81,7 @@ class TestSerialize(unittest.TestCase):
         r2 = Recursive(1, r1, r1)
         r3 = Recursive(2, r1, r2)
         serialized = serialize_to_json(r3)
+        # print("serialized recursive to {0}".format(serialized))
         back = deserialize_from_json(serialized)
         self.assertIsInstance(back, Recursive)
         self.assertEqual(back.v, 2)

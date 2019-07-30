@@ -57,7 +57,7 @@ class LoadedExtension:
     @no_type_check
     def __eq__(self, other: Any) -> bool:
         if hasattr(other, '__class__') and other.__class__ == self.__class__:
-            print("checking {0} against {1}".format(self, other))
+            # print("checking {0} against {1}".format(self, other))
             return (
                 other.name == self.__name and
                 other.is_secure == self.__secure and
