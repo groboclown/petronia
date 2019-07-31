@@ -12,10 +12,7 @@ from ....system.bus import (
 
 def bootstrap_platform_api(bus: EventBus) -> None:
     """
-    Get the timer started.
-
-    There should only ever be one timer.  It is global, and should never be
-    disabled.
+    Register all the events.
     """
     pass
 

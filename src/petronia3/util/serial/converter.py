@@ -199,6 +199,7 @@ def deserialize_value(
             retdict[key] = val
         seen[value_id] = retdict
         return retdict
+
     if value_type == _LIST_TYPE:
         if (
                 _VALUE_LIST_KEY not in vtype or
@@ -208,8 +209,13 @@ def deserialize_value(
         retlist: List[Any] = []
         for val in vtype[_VALUE_LIST_KEY]:
             retlist.append(deserialize_value(val, refs, seen))
-        seen[value_id] = retlist
-        return retlist
+        # For memory purposes, make sure this is a tuple.
+        # This also allows the various internal types, like ComponentId,
+        # work correctly.
+        rettuple = tuple(retlist)
+        seen[value_id] = rettuple
+        return rettuple
+
     if value_type == _INTERNAL_CLASS_TYPE:
         args: Dict[str, Any] = {}
         if (

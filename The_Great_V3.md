@@ -87,3 +87,4 @@ The current to-do list.
 * eventually, write the cross-process event listener and the other side's event sending.  This will require turning events into serialized form, keeping a cache of event classes (which uses the event registration events).
 * add proper zip support in the extension module loader.
     * add PGP and checksum to zip loader.
+* should module loading limit just one implementation of each API?  That doesn't seem right, as some extensions may need to be split up to handle pieces of an API across multiple permissions.

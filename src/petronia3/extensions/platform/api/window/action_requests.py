@@ -1,13 +1,10 @@
 
 """
-Native window interactions.
+Native window interactions.  The target for these events is the window
+component ID.
 """
 
 from .....system.bus import EventId
-from .....system.participant import (
-    create_singleton_identity,
-    ComponentId,
-)
 
 
 EVENT_ID_MOVE_NATIVE_WINDOW = EventId('core.platform.api move-native-window')
@@ -17,22 +14,16 @@ class MoveNativeWindowEvent:
     Request to move or resize a window.  A value of < 0 means that it
     shouldn't change.
     """
-    __slots__ = ('__x', '__y', '__w', '__h', '__id',)
+    __slots__ = ('__x', '__y', '__w', '__h',)
 
     def __init__(
             self,
-            window_id: ComponentId,
             new_x: int, new_y: int, new_width: int, new_height: int
     ) -> None:
-        self.__id = window_id
         self.__x = new_x
         self.__y = new_y
         self.__w = new_width
         self.__h = new_height
-
-    @property
-    def window_id(self) -> ComponentId:
-        return self.__id
 
     @property
     def new_x(self) -> int:
@@ -60,17 +51,29 @@ class FocusNativeWindowEvent:
     may ignore the raise-to-top value.
     """
 
-    __slots__ = ('__id', '__raise',)
+    __slots__ = ('__raise',)
 
-    def __init__(self, window_id: ComponentId, raise_to_top: bool) -> None:
-        self.__id = window_id
+    def __init__(self, raise_to_top: bool) -> None:
         self.__raise = raise_to_top
-
-    @property
-    def window_id(self) -> ComponentId:
-        return self.__id
 
     @property
     def raise_to_top(self) -> bool:
         return self.__raise
-        
+
+
+
+EVENT_ID_CLOSE_NATIVE_WINDOW = EventId('core.platform.api close-native-window')
+
+class CloseNativeWindowEvent:
+    """
+    Send a request to close a window.
+    """
+
+    __slots__ = ('__force',)
+
+    def __init__(self, force: bool) -> None:
+        self.__force = force
+
+    @property
+    def force(self) -> bool:
+        return self.__force
