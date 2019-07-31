@@ -101,6 +101,11 @@ class EventLinkRunner(Generic[T]):
         self._data.handlers.append(send_runner(event_id, to_target, event_obj))
         return self
 
+    @property
+    def and_also(self) -> 'EventLinkRunner[T]':
+        """syntactic sugar."""
+        return self
+
     def then(self) -> 'EventLinkWait':
         """Wait for another event after this one."""
         return EventLinkWait(self._chains, self._data)
@@ -141,7 +146,7 @@ class EventLinkPrep(Generic[T]):
         event to occur."""
         return EventLinkWait(self._chains, self._data)
 
-    def then_handle(self) -> EventLinkRunner[T]:
+    def then_handle_with(self) -> EventLinkRunner[T]:
         """Start handling the event."""
         return EventLinkRunner(self._chains, self._data)
 
@@ -150,11 +155,11 @@ class EventLinkWait:
     """
     Start of a new chain, or waiting for more events.
     """
-    __slots__ = ('__chains', '__prev_data', '__timeout', '_next')
+    __slots__ = ('_chains', '__prev_data', '__timeout', '_next')
 
     def __init__(self, chains: MappedEvents, prev_data: Optional[LinkHandlerData[V]]) -> None:
         """Internal use only.  Do not call directly."""
-        self.__chains = chains
+        self._chains = chains
         self.__prev_data = prev_data
         self.__timeout = -1.0
 
@@ -177,7 +182,7 @@ class EventLinkWait:
         next part of the link.
         """
         next_link = self._setup_next(event_like)
-        return EventLinkPrep(self.__chains, next_link)
+        return EventLinkPrep(self._chains, next_link)
 
     def _setup_next(
             self,
@@ -190,7 +195,7 @@ class EventLinkWait:
         else:
             details = event_like
 
-        next_link = self.__chains.create_next_handler_data(details)
+        next_link = self._chains.create_next_handler_data(details)
         if self.__prev_data:
             self.__prev_data.next_link_id = next_link.link_id
         return next_link
@@ -200,12 +205,11 @@ class EventLinkStart(EventLinkWait):
     """
     Start of a new chain.
     """
-    __slots__ = ('__chain', '__link', '__total_timeout', '__first')
+    __slots__ = ('__total_timeout', '__first')
 
-    def __init__(self, chain: MappedEvents, first: ValueHolder[LinkHandlerData[V]]) -> None:
+    def __init__(self, chains: MappedEvents, first: ValueHolder[LinkHandlerData[V]]) -> None:
         """Internal use only.  Do not call directly."""
-        EventLinkWait.__init__(self, chain, None)
-        self.__chain = chain
+        EventLinkWait.__init__(self, chains, None)
         self.__total_timeout = -1.0
         self.__first = first
 
@@ -231,4 +235,4 @@ class EventLinkStart(EventLinkWait):
         assert not self.__first.value
         next_link = self._setup_next(event_like)
         self.__first.value = next_link
-        return EventLinkPrep(self.__chains, next_link)
+        return EventLinkPrep(self._chains, next_link)

@@ -70,7 +70,7 @@ class LinkHandlerData(Generic[T]):
         'timeout', 'link_id', 'next_link_id',
         'event_registrator', 'event_target_id', 'event_matchers',
         'event_extractors', 'generated_ints', 'generated_ids',
-        'handlers', 'event_id', 'timeout',
+        'handlers', 'event_id', 'timeout_seconds',
     )
     event_target_id: Optional[ParticipantId]
     event_matchers: Sequence[EventMatcher[T]]
@@ -186,7 +186,7 @@ class MappedEvents:
         with self.__lock:
             assert self._handlers[handler.link_id] is handler
             assert handler.is_valid
-            if not self._event_chain_start[handler.event_id]:
+            if handler.event_id not in self._event_chain_start:
                 self._event_chain_start[handler.event_id] = set()
             self._event_chain_start[handler.event_id].add(handler.link_id)
 

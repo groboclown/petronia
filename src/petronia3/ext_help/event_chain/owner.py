@@ -60,7 +60,7 @@ class EventChainManager:
         """
         chains = self._chain_starts
         mapping = self._mapping
-        if not chains or not mapping:
+        if chains is None or mapping is None:
             # TODO better exception
             raise Exception('already setup chain')
         first: ValueHolder[LinkHandlerData[object]] = ValueHolder(None)
@@ -73,7 +73,7 @@ class EventChainManager:
         """
         chains = self._chain_starts
         mapping = self._mapping
-        if chains is None or not mapping:
+        if chains is None or mapping is None:
             raise Exception('already setup chains')
         if not chains:
             return
