@@ -13,6 +13,10 @@ from ....system.bus import (
     ExtensionMetadataStruct,
     QUEUE_EVENT_NORMAL,
 )
+from ....extensions.extensions.api import (
+    ANY_VERSION,
+)
+
 
 def bootstrap_timer_api(bus: EventBus) -> None:
     """
@@ -32,6 +36,11 @@ def bootstrap_timer_api(bus: EventBus) -> None:
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     "type": "api",
-    "depends": [],
+    "depends": [
+        {
+            "name": "core.shutdown.api",
+            "minimum": ANY_VERSION,
+        }
+    ],
     "authors": ["Petronia"],
 }

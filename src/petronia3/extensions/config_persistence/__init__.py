@@ -13,5 +13,3 @@ component (backwards of states).
 This configuration extension handles the different ways to read state and
 persist it back.  Passing the configuration is done through the state system.
 """
-
-from .api import *

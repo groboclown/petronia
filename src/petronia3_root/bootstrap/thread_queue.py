@@ -24,12 +24,19 @@ from petronia3.system.participant import (
 from petronia3.system.logging import (
     log,
     ERROR,
+    VERBOSE,
 )
 from petronia3.util import WorkerThread
+from petronia3_ext.bus.local.bus_queue import (
+    BusQueueManager,
+    BasicEventCallback,
+    BasicEventCallbackArguments,
+)
 
 _EventRequest = Tuple[EventCallback[Any], Tuple[EventId, ParticipantId, object]]
 
-class CoreActionHandler:
+
+class CoreActionHandler(BusQueueManager):
     """
     Uses a collection of worker threads to handle the requests.
     All non-io events are handled in the same event queue.  The
@@ -42,7 +49,7 @@ class CoreActionHandler:
     __slots__ = (
         '_io_threads', '_main_thread',
         '_main_events', '_priority_events',
-        '__lock', '__next_io_thread'
+        '__lock', '__next_io_thread', '__count',
     )
     _io_threads: List[WorkerThread]
     _main_events: List[_EventRequest]
@@ -59,22 +66,28 @@ class CoreActionHandler:
         self._main_events = []
         self._priority_events = []
         self.__next_io_thread = 0
+        self.__count = 0
         self.__lock = Lock()
 
-    def stop(self, timeout: float = 100) -> None:
+    def current_event_count(self) -> int:
+        """Number of events queued to run or actively running."""
+        with self.__lock:
+            return self.__count
+
+    def stop(self, timeout_seconds: float = 120) -> None:
         """Stop all running threads."""
         self._main_thread.complete()
         for thread in self._io_threads:
             thread.complete()
-        self._main_thread.join(timeout)
+        self._main_thread.join(timeout_seconds)
         for thread in self._io_threads:
-            thread.join(timeout)
+            thread.join(timeout_seconds)
 
-    def queuer(
+    def queue_function(
             self,
             priority: QueuePriority,
-            listeners: Sequence[EventCallback],
-            arguments: Tuple[EventId, ParticipantId, object]
+            listeners: Sequence[BasicEventCallback],
+            arguments: BasicEventCallbackArguments
     ) -> None:
         """
         Handle adding a listener request to the thread pool.
@@ -83,17 +96,24 @@ class CoreActionHandler:
             if priority == QUEUE_EVENT_IO:
                 # Run each listener in its own thread.
                 for listener in listeners:
+                    self.__count += 1
                     thread_index = self.__next_io_thread
                     self.__next_io_thread = (self.__next_io_thread + 1) % len(self._io_threads)
                     self._io_threads[thread_index].queue(listener, arguments)
             elif priority == QUEUE_EVENT_NORMAL:
                 for listener in listeners:
+                    self.__count += 1
                     self._main_events.append((listener, arguments,))
                 self._main_thread.queue(self._main_handler)
             elif priority == QUEUE_EVENT_HIGH:
                 for listener in listeners:
+                    self.__count += 1
                     self._priority_events.append((listener, arguments,))
                 self._main_thread.queue(self._main_handler)
+            log(
+                VERBOSE, CoreActionHandler,
+                'Active event count: {0}', self.__count
+            )
 
     def _error_handler(self, msg: str, err: BaseException) -> None:
         log(ERROR, 'EventQueue', msg + ': {0}', err)
@@ -122,3 +142,9 @@ class CoreActionHandler:
             req[0](req[1][0], req[1][1], req[1][2])
         except BaseException as err: # pylint: disable=broad-except
             self._error_handler('Failed running {0}'.format(req[1]), err)
+        with self.__lock:
+            self.__count -= 1
+            log(
+                VERBOSE, CoreActionHandler,
+                'Active event count: {0}', self.__count
+            )

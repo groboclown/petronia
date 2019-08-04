@@ -14,8 +14,9 @@ from ...internal.bus_types import (
 from ....util.memory import T
 
 
-EVENT_ID_REQUEST_NEW_COMPONENT = EventId('registrar request-new-component')
-EVENT_ID_COMPONENT_CREATED = EventId('registrar component-created')
+# Note: not "core".
+EVENT_ID_REQUEST_NEW_COMPONENT = EventId('petronia.registrar request-new-component')
+EVENT_ID_COMPONENT_CREATED = EventId('petronia.registrar component-created')
 
 
 class RequestNewComponentEvent(Generic[T]):

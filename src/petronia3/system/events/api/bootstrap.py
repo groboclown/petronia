@@ -26,6 +26,13 @@ from .component_events import (
     EVENT_ID_REQUEST_NEW_COMPONENT,
     RequestNewComponentEvent,
 )
+from .system_events import (
+    EVENT_ID_SYSTEM_STARTED,
+    SystemStartedEvent,
+
+    EVENT_ID_SYSTEM_HALTED,
+    SystemHaltedEvent,
+)
 from ...internal.bus_types import (
     EventId, QueuePriority
 )
@@ -83,5 +90,17 @@ def bootstrap_core_events() -> Sequence[EventDefinition[Any]]: # type: ignore
             QUEUE_EVENT_NORMAL,
             RequestNewComponentEvent,
             RequestNewComponentEvent(object(), NOT_PARTICIPANT, 1),
+        ),
+        (
+            EVENT_ID_SYSTEM_STARTED,
+            QUEUE_EVENT_NORMAL,
+            SystemStartedEvent,
+            SystemStartedEvent(),
+        ),
+        (
+            EVENT_ID_SYSTEM_HALTED,
+            QUEUE_EVENT_NORMAL,
+            SystemHaltedEvent,
+            SystemHaltedEvent()
         ),
     )

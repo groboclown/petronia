@@ -227,3 +227,28 @@ The platform must define a series of integration pieces to allow the system to s
 A global timer (or "heartbeat") that generates an event at a configurable interval.  This allows for a user-defined global time to trigger things to run.
 
 Components that rely on the timer should allow configuration to set how often to run based on the number of timer heartbeats (e.g. once every two heartbeats).
+
+
+## System Lifecycle
+
+The standard Petronia lifecycle is:
+
+1. The end user launches Petronia.  Normally, this is something equivalent to `python -m petronia_boot`
+1. Pre-boot.  The main function discovers basic information about the current environment.
+    * boot main method.
+    * platform pre-boot implementations.
+1. Boot.  The platform and core systems are started.
+    * core extensions.
+    * other fundamental extensions determined by the boot function.
+    * extensions specified by user configuration and platform.
+1. Event `SystemStartedEvent` sent.
+1. System is under normal operation.
+1. A component in the system sends a `RequestSystemShutdownEvent`.
+1. A shutdown implementation extension takes over the UI and begins shutdown.
+    1. Sends a `SystemShutdownEvent` when just before the UI switch.
+    1. This is the equivalent under Windows of the "Shutting down" initial screen, where the end user can force programs to quit, or cancel the shutdown.
+    1. Components need to register themselves to listen to this shutdown event, and begin termination.
+    1. If the user wants to cancel the shutdown, then the interaction aspect sends a `RequestCancelSystemShutdownEvent`.
+    1. If the shutdown extension cancels the shutdown, then when the system is returned to a normal operation state, it sends a `SystemShutdownCancelledEvent`.
+    1. When the shutdown implementation detects the applications and extensions have sufficiently stopped, it sends a `SystemHaltEvent`.  This must be a secure message.
+1. When the Petronia kernel detects the `SystemHaltEvent`, the event bus is terminated, remaining threads are stopped, and the process exits.

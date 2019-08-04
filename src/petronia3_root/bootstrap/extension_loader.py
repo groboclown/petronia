@@ -7,7 +7,7 @@ import os
 from typing import List, Tuple, Iterable, Optional
 from petronia3.system.bus import EventBus
 from petronia3.system.security import SandboxPermission
-from petronia3.extensions.extensions import LoadedExtension
+from petronia3.extensions.extensions.api import LoadedExtension
 from petronia3.extensions.platform.preboot import DiscoveryData
 from petronia3_ext.extensions.bootstrap import bootstrap_extension_loader as _bootstrap_extension_loader
 from petronia3_ext.extensions.create_loader import create_extension_loader as _mk_ext_loader

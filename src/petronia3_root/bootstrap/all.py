@@ -5,7 +5,7 @@ The complete bootstrap algorithm.
 
 from typing import Sequence
 from petronia3.system.bus import EventBus
-from petronia3.extensions.extensions import (
+from petronia3.extensions.extensions.api import (
     send_request_load_extension_event
 )
 from .args import UserArguments
@@ -15,19 +15,11 @@ from .platform import (
     get_platform_discovery_function,
     run_platform_main,
 )
-from .bus import (
-    create_bus,
-)
-from .core import (
-    load_core_extensions,
-)
-from .thread_queue import (
-    CoreActionHandler,
-)
-from .extension_loader import (
-    bootstrap_extension_extension,
-)
-
+from .bus import create_bus
+from .core import load_core_extensions
+from .managed_queue import create_managed_queue
+from .extension_loader import bootstrap_extension_extension
+from .halt import bootstrap_halt
 
 def bootstrap_petronia(args: UserArguments) -> EventBus:
     """
@@ -39,10 +31,9 @@ def bootstrap_petronia(args: UserArguments) -> EventBus:
         platform_module = get_base_platform_module()
     data = get_platform_discovery_function(platform_module)()
 
-    # TODO allow the user or platform to change the queuer implementation?
-    queue = CoreActionHandler(data.io_thread_count)
+    queue = create_managed_queue(data.event_queue_model)
 
-    bus = create_bus(queue.queuer) # type: ignore
+    bus = create_bus(queue.queue_function)
     preloaded_extensions = load_core_extensions(bus)
 
     # TODO allow the user or platform to change the extension implementation?
@@ -54,7 +45,8 @@ def bootstrap_petronia(args: UserArguments) -> EventBus:
     for name in data.platform_extensions:
         send_request_load_extension_event(bus, name)
 
-    # TODO add the queuer's stop to the event listener?
+    # TODO make timeout configurable.
+    bootstrap_halt(bus, queue, 120.0)
 
     return bus
 

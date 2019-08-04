@@ -17,8 +17,9 @@ from ...validation import (
     assert_formatted,
 )
 
-EVENT_ID_REQUEST_DISPOSE = EventId('participant request-dispose')
-EVENT_ID_DISPOSE_COMPLETE = EventId('participant dispose-complete')
+# Note: not "core".
+EVENT_ID_REQUEST_DISPOSE = EventId('petronia.participant request-dispose')
+EVENT_ID_DISPOSE_COMPLETE = EventId('petronia.participant dispose-complete')
 
 
 class RequestDisposeEvent:

@@ -20,4 +20,5 @@ from .discovery import (
     RunSystemFunction,
     RUN_SYSTEM_FUNCTION_NAME,
     PREBOOT_MODULE_NAME,
+    EventQueueModel,
 )

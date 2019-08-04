@@ -9,7 +9,7 @@ from ....system.bus import (
     EventBus, EventCallback, ListenerSetup, ListenerId
 )
 from ....system.participant import create_singleton_identity
-from ...state import StateStoreUpdatedEvent, as_state_change_listener
+from ...state.api import StateStoreUpdatedEvent, as_state_change_listener
 from ....util.memory import EMPTY_TUPLE
 
 CONFIGURATION_EXTENSION_LOADER = create_singleton_identity('extension-config')

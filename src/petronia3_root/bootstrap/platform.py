@@ -32,6 +32,7 @@ def get_base_platform_module() -> ModuleType:
 
 
 def get_user_platform_module(name: str) -> ModuleType:
+    """Get the module defined by the user as the preboot platform."""
     return importlib.import_module(name)
 
 

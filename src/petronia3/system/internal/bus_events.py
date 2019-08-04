@@ -16,10 +16,11 @@ from .identity_types import (
 from ...util.memory import T
 
 
-TARGET_EVENT_BUS = create_singleton_identity('core.bus.api')
-TARGET_EVENT_REGISTRY = create_singleton_identity('core.bus.event-registry')
+# Note: not "core".
+TARGET_EVENT_BUS = create_singleton_identity('petronia.bus.api')
+TARGET_EVENT_REGISTRY = create_singleton_identity('petronia.bus.event-registry')
 
-EVENT_ID_EVENT_LISTENER_ADDED = EventId('event-bus listener-add')
+EVENT_ID_EVENT_LISTENER_ADDED = EventId('petronia.bus.event-registry listener-add')
 
 
 class EventListenerAddedEvent:
@@ -44,7 +45,7 @@ class EventListenerAddedEvent:
         return self._target_id
 
 
-EVENT_ID_REGISTER_EVENT = EventId('event-registry register-event')
+EVENT_ID_REGISTER_EVENT = EventId('petronia.bus.event-registry register-event')
 
 
 class RegisterEventEvent(Generic[T]):

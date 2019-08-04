@@ -6,7 +6,7 @@ Load all the core petronia API modules.
 from typing import Sequence, List
 from petronia3.system.bus import EventBus
 from petronia3.errors import PetroniaExtensionNotFound
-from petronia3.extensions.extensions import (
+from petronia3.extensions.extensions.api import (
     ANY_VERSION,
     LoadedExtension,
 )
@@ -14,6 +14,7 @@ from petronia3.util.memory import EMPTY_TUPLE
 from petronia3_ext.extensions.loaders import CoreExtensionLoader
 
 _ORDERED_CORE_EXTENSIONS = (
+    'core.shutdown.api',
     'core.state.api',
     'core.extensions.api',
     'core.config_persistence.api',

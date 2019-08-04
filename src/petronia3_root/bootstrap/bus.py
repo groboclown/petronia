@@ -12,6 +12,7 @@ from petronia3.system.bus import (
 from petronia3_ext.bus.local.basic_event_bus import QueueFunction
 from petronia3_ext.bus.local.bootstrap import bootstrap_event_bus
 
+
 def create_bus(queuer: QueueFunction) -> EventBus:
     """
     Create the core Petronia system, wired up to the event bus,

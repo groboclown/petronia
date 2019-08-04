@@ -5,7 +5,7 @@ Unit tests for the extension loader.
 
 import unittest
 # from petronia3.system.bus import EventBus
-from petronia3.extensions.extensions import (
+from petronia3.extensions.extensions.api import (
     ExtensionState,
     ANY_VERSION,
 )
