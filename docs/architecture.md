@@ -166,12 +166,22 @@ The extension zip file must contain a `manifest.json` file that defines informat
 
     // If type is "impl", then these MUST be provided.
     // If type is "api", then these MUST NOT be provided.
-    "implements": {
+    // Note that an extension can implement multiple APIs.
+    "implements": [{
         // API name that this implements.
         "extension": "that.extension",
         "minimum": [ 1, 0, 0 ], // minimum API compatible version; required
         "below": [ 2 ] // API must be a version below this; optional
-    },
+    }],
+
+    // If type is "api", then this MUST be provided.
+    // If type is "impl", then this MUST NOT be provided.
+    "defaults": [{
+        // Ordered list of default implementations for this API.
+        "extension": "my.extension.api",
+        "minimum": [ 9, 100, 4 ],
+        "below": [ 4, 0, 0 ]
+    }]
 
     // Optional information
     "description": "A long description for this extension.",

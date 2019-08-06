@@ -51,19 +51,11 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
+* API extensions should be able to specify a default implementation, so that an extension that requires an API, but the end-user didn't specify the one to use, can be correctly loaded.
+* Implementations can implement more than one API.
+* APIs that do not have implementations (they provide a way things can work, and multiple things can use it) must be allowed, so that any extension that claims to implement it is rejected.
+* add capability of the extension loader to force any API loaded to also have exactly one implementation also loaded.
 * add proper extension definitions to `petronia_ext` modules.
-* move boot into its own top-level module?
-* basic definition of platform responsibilities.
-* move those different root modules under `petronia`:
-    * petronia3.system.(bus/events/participant/security) -> petronia.system.api.*
-    * petronia3.system.logging -> petronia.system.logging
-    * petronia3.ext_help -> petronia.helpers
-    * petronia3.extensions -> petronia.core
-    * petronia3.errors -> petronia.system.errors
-    * petronia3.util -> petronia.system.util
-    * petronia3.validation -> petronia.system.validation
-    * petronia3_root -> petronia.boot
-    * petronia3_ext -> petronia.defimpl
 * localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
     * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
       ```python
@@ -74,6 +66,9 @@ The current to-do list.
     * That same component publishes a state of the available locales and translations.
     * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
     * Need to figure out how extensions publish translations.  They probably use `(mymodule).__file__` to find its install location, and get the directory from there.
+* timer helper should include an implementation that uses the time event.
+* basic definition of platform responsibilities.
+* Create theme extension API that is a layer on top of the platform.  It provides better components that are themed.  With this, make sure the platform stuff isn't themed and is as low-level as possible.
 * Implement secure module.  It should allow different implementations to check the PGP signature.  Implementations can be swapped out whenever, because enforcing a "only once" policy is silly due to the limitations in securing python.  [OpenPGP-Python](https://github.com/singpolyma/OpenPGP-Python) looks promising, but doesn't provide an easy way to access the GPG key store, and depends on several other libraries that most likely require compilation.  [`python-gnupg`](https://pythonhosted.org/python-gnupg/) may be the easiest and safest - it relies upon the `gnupg` program to do everything, it's one file, and is under the BSD-3 clause license.  [openpgp-python](https://github.com/diafygi/openpgp-python) and [python-pgp](https://github.com/mitchellrj/python-pgp) are 100% python, but are under the GPL.  Probably just want to go with [pycrypto](https://github.com/dlitz/pycrypto), as it's under the public domain, but it requires compilation sadface.  To [verify a PKCS#5 v1.5 signature in Python](https://stackoverflow.com/a/19551810/4580538) / PyCrypto, use:
     ```python
     from Crypto.PublicKey import RSA
@@ -96,12 +91,7 @@ The current to-do list.
     * event chaining with promise-like API. **Implemented, needs tests.**
     * shutdown handling.  Include shutdown in the listeners.
 * Document extension patterns.
-* eventually, write the cross-process event listener and the other side's event sending.  This will require turning events into serialized form, keeping a cache of event classes (which uses the event registration events).
 * add proper zip support in the extension module loader.
     * add PGP and checksum to zip loader.
-* add capability of the extension loader to force any API loaded to also have exactly one implementation also loaded.
-    * Some extensions may need to be split up to handle pieces of an API across multiple permissions.  However, this seems like the right approach.
-    * APIs that do not have implementations (they provide a way things can work, and multiple things can use it) must be allowed, so that any extension that claims to implement it is rejected.
-    * API extensions should be able to specify a default implementation, so that an extension that requires an API, but the end-user didn't specify the one to use, can be correctly loaded.
 * Add the external execution w/ event bus code.
     * The local end that launches the process and marshals state across the wire must keep track of which events are listened to by the process.  This acts for two purposes - one, that only the necessary events are passed across the wire, and two, if the process dies, then the launcher can deregister those event listeners correctly.
