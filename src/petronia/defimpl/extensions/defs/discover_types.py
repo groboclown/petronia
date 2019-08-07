@@ -167,7 +167,6 @@ class DiscoveredExtension:
                 if isinstance(dep, dict):
                     defaults.append(_parse_extension_compatibility(name, dep))
             self._defaults = tuple(defaults)
-
         elif ext_type == 'impl':
             self.__is_impl = True
             self.__is_api = False
@@ -184,6 +183,11 @@ class DiscoveredExtension:
                 if isinstance(dep, dict):
                     implements.append(_parse_extension_compatibility(name, dep))
             self._implements = tuple(implements)
+        elif ext_type == 'standalone':
+            self.__is_api = False
+            self.__is_impl = False
+            self._defaults = ()
+            self._implements = ()
         else:
             raise PetroniaInvalidExtension(
                 name,

@@ -11,6 +11,9 @@ from .component_events import (
 
     EVENT_ID_REQUEST_NEW_COMPONENT,
     RequestNewComponentEvent,
+
+    EVENT_ID_COMPONENT_CREATION_FAILED,
+    ComponentCreationFailedEvent,
 )
 from .system_events import (
     EVENT_ID_SYSTEM_STARTED,
@@ -88,6 +91,12 @@ def bootstrap_core_events() -> Sequence[EventDefinition[Any]]: # type: ignore
             QUEUE_EVENT_NORMAL,
             ComponentCreatedEvent,
             ComponentCreatedEvent(NOT_PARTICIPANT, 1),
+        ),
+        (
+            EVENT_ID_COMPONENT_CREATION_FAILED,
+            QUEUE_EVENT_NORMAL,
+            ComponentCreationFailedEvent,
+            ComponentCreationFailedEvent('x', 1, 'x', {}),
         ),
         (
             EVENT_ID_REQUEST_NEW_COMPONENT,

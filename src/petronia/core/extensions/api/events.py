@@ -74,4 +74,8 @@ class RequestLoadExtensionEvent:
 
 def send_request_load_extension_event(bus: EventBus, name: str) -> None:
     """Generate an event to request the loading of an extension."""
-    bus.trigger(EVENT_ID_REQUEST_LOAD_EXTENSION, TARGET_EXTENSION_LOADER, RequestLoadExtensionEvent(name))
+    bus.trigger(
+        EVENT_ID_REQUEST_LOAD_EXTENSION,
+        TARGET_EXTENSION_LOADER,
+        RequestLoadExtensionEvent(name)
+    )

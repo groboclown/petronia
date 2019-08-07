@@ -51,8 +51,6 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
-* API extensions should be able to specify a default implementation, so that an extension that requires an API, but the end-user didn't specify the one to use, can be correctly loaded.
-* Implementations can implement more than one API.
 * APIs that do not have implementations (they provide a way things can work, and multiple things can use it) must be allowed, so that any extension that claims to implement it is rejected.
 * add capability of the extension loader to force any API loaded to also have exactly one implementation also loaded.
 * add proper extension definitions to `petronia_ext` modules.

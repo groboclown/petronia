@@ -5,7 +5,7 @@ Memory-based helpers.
 Used to either profile memory or help reduce memory.
 """
 
-from typing import TypeVar, Tuple, Generic, Optional
+from typing import TypeVar, Tuple, Generic, Optional, Dict
 
 
 # singleton empty collections.  DO NOT MODIFY THEM.
@@ -21,6 +21,7 @@ T = TypeVar('T') # pylint: disable=invalid-name
 K = TypeVar('K') # pylint: disable=invalid-name
 V = TypeVar('V') # pylint: disable=invalid-name
 
+
 class ValueHolder(Generic[T]):
     """Holds a piece of data tha can be delayed in its setup until later.
     Used for passing to a child object that can assign the value at some
@@ -29,3 +30,17 @@ class ValueHolder(Generic[T]):
 
     def __init__(self, val: Optional[T]) -> None:
         self.value = val
+
+
+class ReadOnlyDict(Dict[K, V]):
+    """A read-only dictionary."""
+    def __readonly__(self, *args, **kwargs): # type: ignore
+        raise RuntimeError("Cannot modify ReadOnlyDict")
+    __setitem__ = __readonly__ # type: ignore
+    __delitem__ = __readonly__ # type: ignore
+    pop = __readonly__ # type: ignore
+    popitem = __readonly__ # type: ignore
+    clear = __readonly__ # type: ignore
+    update = __readonly__ # type: ignore
+    setdefault = __readonly__ # type: ignore
+    del __readonly__

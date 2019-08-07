@@ -29,6 +29,9 @@ from .component_events import (
     RequestNewComponentEvent,
     as_request_new_component_listener,
     send_request_new_component,
+
+    ComponentCreationFailedEvent,
+    as_component_creation_failed_listener,
 )
 from .participant_events import (
     ParticipantStartedEvent,

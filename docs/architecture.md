@@ -63,9 +63,11 @@ This setup is a long term goal, but should be kept in mind when writing extensio
 
 ## System Parts
 
-### Core
+### Base and Core
 
-The "core" parts (put under the `petronia3.system` module) provide the global, top-level core parts of Petronia that allows it to work.  Everything else is an extension.
+The "base" parts (put under the `petronia.base` module) provide the global, top-level core parts of Petronia that allows it to work.  Everything else is an extension.
+
+The "core" parts are extensions that are expected to always be active for most extensions.  They are separated out, because the Petronia system could theoretically operate without them.
 
 #### Identifiable Participants
 
@@ -81,11 +83,11 @@ Logging is a global function made as flat and simple as possible.  It allows for
 
 Thus, logging is highly configurable, allowing many different kinds of systems to integrate into it.
 
-#### Event Bus and Core Events
+#### Event Bus and Base Events
 
 The heart of Petronia.  It allows an extreme amount of loose coupling and extensibility by sending messages between components using only the identifier and a message.
 
-Unlike the other core parts of the system, the event bus is passed between callers, rather than being a global variable.
+Unlike the other base and core parts of the system, the event bus is passed between callers, rather than being a global variable.
 
 The event bus incorporates several components:
 
@@ -100,11 +102,13 @@ The event bus' standard events are:
 * A request to remove a participant from the system.  All non-core participants must be aware of this message.
 * A notification when a participant completed its removal.  All non-core participants must send this message when completed removal.
 
-Events run through the event bus can be one of several priorities.  These indicate a suggestion for when the event should run in relation to other events.  There is never a requirement that events run in the current thread or process, and instead events should be always thought of as running outside the thread of execution from the source that triggered it.
+Events run through the event bus can be one of several priorities.  These indicate a suggestion for when the event should run in relation to other events.  There is never a requirement that events run in the current thread or process, and instead events should be always thought of as running outside the thread of execution from the source that triggered it.  Likewise, there isn't a ordering to the events, as the event bus can make decisions about when to run them.
 
-* NOW - the event should run as soon as possible, before other events of a lower priority.  Event listeners for NOW priority events should not run long operations, and instead delegate those to other events.
+* HIGH - the event should run as soon as possible, before other events of a lower priority.  Event listeners for HIGH priority events should not run long operations, and instead delegate those to other events.
 * NORMAL - the standard event processing priority.  Event listeners should not run long-blocking operations.
-* IO - dedicated for long running, possibly blocking operations, such as reading from a network for file.
+* IO - dedicated for long running, possibly blocking operations, such as reading from a network for file.  These almost always run in a thread separate from the others to prevent locking the event threads.
+
+A special exception should be made for the `register event` action, because this must be handled before any other event to avoid a race condition where an event is registered, then delayed in a separate thread to run after the next event.
 
 #### Events
 
@@ -154,7 +158,7 @@ The extension zip file must contain a `manifest.json` file that defines informat
 {
     // Required information
 
-    "type": "impl", // must be "api" or "impl"
+    "type": "impl", // must be "api" or "impl" or "standalone"
     "depends": [
         // dependencies are ONLY for API.
         {
@@ -165,7 +169,7 @@ The extension zip file must contain a `manifest.json` file that defines informat
     ],
 
     // If type is "impl", then these MUST be provided.
-    // If type is "api", then these MUST NOT be provided.
+    // If type is "api" or "standalone", then these MUST NOT be provided.
     // Note that an extension can implement multiple APIs.
     "implements": [{
         // API name that this implements.
@@ -175,13 +179,21 @@ The extension zip file must contain a `manifest.json` file that defines informat
     }],
 
     // If type is "api", then this MUST be provided.
-    // If type is "impl", then this MUST NOT be provided.
+    // If type is "impl" or "standalone", then this MUST NOT be provided.
     "defaults": [{
         // Ordered list of default implementations for this API.
         "extension": "my.extension.api",
         "minimum": [ 9, 100, 4 ],
         "below": [ 4, 0, 0 ]
-    }]
+    }],
+
+    // Non-zip distributions MUST provide these.
+    // For zip distributed extensions, the extension name and version are
+    // implicit in the zip file name.  This means creating the distribution
+    // file doesn't need to modify the contents of this file, and these
+    // values are ignored.
+    "name": "extension.name",
+    "version": [ 100, 2, 0 ],
 
     // Optional information
     "description": "A long description for this extension.",
@@ -189,9 +201,6 @@ The extension zip file must contain a `manifest.json` file that defines informat
     "homepage": "https://my.url/home/page",
     "license": "MIT"
 
-    // Note that the extension name and version are implicit in the
-    // zip file name.  This means creating the distribution file doesn't need
-    // to modify the contents of this file.
 }
 ```
 
@@ -199,14 +208,7 @@ Extension modules must provide the function `start_extension` which takes a sing
 
 Normally, a module will also declare a `MODULE_ID` singleton ID constant that is used for lifecycle events for the module.  This should match the extension name, to avoid possible name collisions.
 
-For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the JSON above, but with the additional required information:
-
-```json
-{
-    "name": "extension.name",
-    "version": [ 1, 0, 0 ],
-}
-```
+For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the JSON above.
 
 #### State Store (Singleton)
 
@@ -260,5 +262,28 @@ The standard Petronia lifecycle is:
     1. Components need to register themselves to listen to this shutdown event, and begin termination.
     1. If the user wants to cancel the shutdown, then the interaction aspect sends a `RequestCancelSystemShutdownEvent`.
     1. If the shutdown extension cancels the shutdown, then when the system is returned to a normal operation state, it sends a `SystemShutdownCancelledEvent`.
+    1. When the system has sufficiently finished the user part of the shutdown process and cancellation can no longer happen, the shutdown plugin sends `SystemShutdownFinalizeEvent`.
     1. When the shutdown implementation detects the applications and extensions have sufficiently stopped, it sends a `SystemHaltEvent`.  This must be a secure message.
-1. When the Petronia kernel detects the `SystemHaltEvent`, the event bus is terminated, remaining threads are stopped, and the process exits.
+1. When the Petronia kernel detects the `SystemHaltEvent`, the event bus is terminated, remaining threads are stopped, and the process exits.  Don't expect to have a plugin listen to that event and do something.
+
+This assumes that the `shutdown` extension is installed by the boot system.
+
+
+## Component Lifecycle
+
+Because Petronia is loosely coupled, new components are created through the owning extension's factory, and events are generated to request the creation and to inform about the creation.
+
+1. Source that desires the new component generates `RequestNewComponentEvent`.
+    * Target ID is the extension factory ID that owns creating the component.
+    * The callback target ID is an ID that the source listens to.
+    * The request ID is a number that the source uses to distinguish this component creation request from others.
+1. The extension factory attempts to create the component.
+    * If the component can't be created, then a `ComponentCreationFailedEvent` is sent to the callback target ID of the request, with the request ID and error information.  Life cycle ends here.
+    * If the component was created, then a `ComponentCreatedEvent` is sent to the callback target ID of the request with the request ID and the ID of the component that was created.  Life cycle continues.
+1. If the component is aware of configuration, it will register itself to the configuration state, which will cause the state extension to send out the configuration.
+1. When the component finishes initializing itself, it sends `ParticipantStartedEvent` with its own component ID.
+1. At some future point, something may desire the component to be disposed.  That starts the disposal process.
+1. The participant wanting to dispose the component send `RequestDisposeEvent` to the component ID.
+1. The component removes any registered event bus listeners, and performs additional tear-down actions, then sends `DisposeCompleteEvent` to indicate that it completed the tear-down process.
+1. The component may be involved in the user shutdown process, in which case it needs to listen to `SystemShutdownEvent` and `SystemShutdownCancelledEvent`, and handle those correctly.
+1. The component listens to `SystemShutdownFinalizeEvent` to tear itself down.  It will send out the correct `DisposeCompleteEvent` events when it removes itself.

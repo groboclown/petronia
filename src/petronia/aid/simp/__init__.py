@@ -31,6 +31,10 @@ from ...base.events import (
 
     RequestDisposeEvent,
     as_request_dispose_listener,
+
+    ParticipantStartedEvent,
+    as_participant_started_listener,
+    send_participant_started_event,
 )
 
 from ...base.events.component_events import (
@@ -41,6 +45,10 @@ from ...base.events.component_events import (
     ComponentCreatedEvent,
     as_component_created_listener,
     send_component_created_event,
+
+    ComponentCreationFailedEvent,
+    as_component_creation_failed_listener,
+    send_component_creation_failed_event,
 )
 
 from ...base.logging import *
