@@ -3,9 +3,10 @@
 Low-level UI text description.
 """
 
-from typing import Iterable, Tuple, Sequence
+from typing import Iterable, Tuple
 from .color import Color
 from .units import FontQUnit
+from .alignment import TextBiDi
 
 class TextDisplay:
     """
@@ -14,7 +15,7 @@ class TextDisplay:
     __slots__ = (
         '__size', '__font',
         '__weight', '__italic', '__underline',
-        '__color', '__bidi', '__baseline',
+        '__color', '__baseline', '__base_dir',
     )
 
     def __init__(
@@ -26,7 +27,7 @@ class TextDisplay:
             underline: int,
             color: Color,
             baseline: FontQUnit,
-            bidi: bool
+            base_direction: TextBiDi
     ) -> None:
         assert size > 0
         self.__size = size
@@ -41,7 +42,7 @@ class TextDisplay:
         assert color
         self.__color = color
         self.__baseline = baseline
-        self.__bidi = bidi
+        self.__base_dir = base_direction
 
     @property
     def size(self) -> int:
@@ -86,64 +87,14 @@ class TextDisplay:
         return self.__baseline
 
     @property
-    def bidi(self) -> bool:
-        """Is the text bi-directional?  If true, then the text can be shown
-        either left-to-right or right-to-left, depending on the user locale.
-        Examples of non-bi-directional text are numbers."""
-        return self.__bidi
+    def base_direction(self) -> TextBiDi:
+        """Initial BiDi direction to start rendering this fragment.  Each
+        fragment has its own BiDi initial direction for rendering.  The
+        renderer does not keep track of cross-fragment direction switches."""
+        return self.__base_dir
 
 
-# left-to-right
-TEXT_ORIENTATION_LTR = 'l'
-
-# right-to-left, bidi
-TEXT_ORIENTATION_RTL = 'r'
-
-# top-to-bottom, no rotation
-TEXT_ORIENTATION_TTB = 't'
-
-# left-to-right, with the text rotated and aligned at the top of the screen.
-TEXT_ORIENTATION_LTR_ROTATE_TOP = 'lt'
-
-# left-to-right, with the text rotated and aligned at the bottom of the screen.
-TEXT_ORIENTATION_LTR_ROTATE_BOTTOM = 'lb'
-
-# right-to-left, with the text rotated and aligned at the top of the screen.
-TEXT_ORIENTATION_RTL_ROTATE_TOP = 'rt'
-
-# right-to-left, with the text rotated and aligned at the bottom of the screen.
-TEXT_ORIENTATION_RTL_ROTATE_BOTTOM = 'rb'
-
-TEXT_ORIENTATIONS = (
-    TEXT_ORIENTATION_LTR,
-    TEXT_ORIENTATION_RTL,
-    TEXT_ORIENTATION_TTB,
-    TEXT_ORIENTATION_LTR_ROTATE_TOP,
-    TEXT_ORIENTATION_LTR_ROTATE_BOTTOM,
-    TEXT_ORIENTATION_RTL_ROTATE_TOP,
-    TEXT_ORIENTATION_RTL_ROTATE_BOTTOM,
-)
-
+# The text to display, and how to display it.
 TextFragment = Tuple[str, TextDisplay]
 
-
-class Text:
-    """
-    A full bit of text to display.
-    """
-    __slots__ = ('__orientation', '__fragments',)
-
-    def __init__(self, orientation: str, fragments: Iterable[TextFragment]) -> None:
-        assert orientation in TEXT_ORIENTATIONS
-        self.__orientation = orientation
-        self.__fragments = tuple(fragments)
-
-    @property
-    def orientation(self) -> str:
-        """Direction to draw the text."""
-        return self.__orientation
-
-    @property
-    def fragments(self) -> Sequence[TextFragment]:
-        """Bits of text to show."""
-        return self.__fragments
+Text = Iterable[TextFragment]

@@ -15,11 +15,14 @@ def never_called_module_loader(bus: EventBus) -> None:
 def mk_disc(
         name: str, version: SecureExtensionVersion,
         depends: Iterable[ExtensionCompatibility],
-        implements: Optional[ExtensionCompatibility] = None
+        implements: Optional[ExtensionCompatibility] = None,
+        stand_alone: Optional[bool] = None
 ) -> DiscoveredExtension:
     etype = "api"
     if implements:
         etype = "impl"
+    elif stand_alone:
+        etype = 'standalone'
     json_data = {
         "type": etype,
         "depends": map(compat_to_dict, depends),

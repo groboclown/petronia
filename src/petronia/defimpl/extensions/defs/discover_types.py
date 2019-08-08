@@ -237,6 +237,13 @@ class DiscoveredExtension:
         return self.__is_api
 
     @property
+    def is_standalone(self) -> bool:
+        """
+        Is this an extension that is neither an API nor an implementation of an API?
+        """
+        return not self.__is_api and not self.__is_impl
+
+    @property
     def depends_on(self) -> Sequence[ExtensionCompatibility]:
         """
         List of extensions that must be loaded before this one.

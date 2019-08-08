@@ -135,6 +135,113 @@ def find_extensions(
     This does not do any checking for already loaded extensions.  Those must
     be excluded after calling here.
     """
+    cache = DependencyCache(loader, only_secure)
+    ext_list = _find_extensions_internal(extensions, only_secure, cache)
+    count = 0
+    while count < 10:
+        next_list = _find_missing_defaults(ext_list, only_secure, cache)
+        if next_list is None:
+            return ext_list
+        ext_list = next_list
+        count += 1
+    # FIXME new exception
+    raise Exception(
+        'Dependency inclusion is too hard.  Left off with {0}'.format(
+            ', '.join(
+                [ext.name for ext in ext_list]
+            )
+        )
+    )
+
+
+def _find_missing_defaults(
+        extensions: Iterable[DiscoveredExtension],
+        only_secure: bool,
+        cache: DependencyCache
+) -> Optional[Sequence[DiscoveredExtension]]:
+    """
+    Scans the extensions (loaded through `find_extensions`) for the API
+    extensions and checks those against the implementation extensions.
+    Any API that does not have an implementation will have its default
+    implementation loaded.
+
+    If there were no changes to the list of extensions, it returns null.
+    """
+    apis: Dict[str, DiscoveredExtension] = {}
+    impls: Dict[str, DiscoveredExtension] = {}
+    loaded_ext_names: Set[str] = set()
+    for ext in extensions:
+        loaded_ext_names.add(ext.name)
+        if ext.is_api:
+            if ext.name in apis:
+                # FIXME different exception
+                raise Exception(
+                    'registered to API extensions? {0} and {1}'.format(
+                        ext,
+                        apis[ext.name]
+                    )
+                )
+            apis[ext.name] = ext
+        elif ext.is_implementation:
+            for compat in ext.implements:
+                if compat.name in impls:
+                    # FIXME different exception
+                    raise Exception(
+                        'Multiple implementations of {0}: {1} and {2}'.format(
+                            compat.name,
+                            ext.name,
+                            impls[compat.name].name
+                        )
+                    )
+                impls[compat.name] = ext
+    expected_apis = set(apis.keys())
+    implemented_apis = set(impls.keys())
+    implemented_unknown_apis = implemented_apis.difference(expected_apis)
+    assert not implemented_unknown_apis
+    not_implemented_apis = expected_apis.difference(implemented_apis)
+    if not not_implemented_apis:
+        # Nothing additional to load!
+        return None
+    to_load: List[ExtensionCompatibility] = []
+    for ni_api in [apis[name] for name in not_implemented_apis]:
+        found = False
+        for apidef in ni_api.defaults:
+            compatible_exts = cache.get_compatible_versions_for(apidef)
+            if compatible_exts:
+                # There are >= 1 versions for this default extension, so add
+                # it to the list of additional loads.
+                log(
+                    DEBUG, _find_missing_defaults,
+                    'Adding extension {0} to default implement {1}',
+                    apidef.name,
+                    ni_api.name
+                )
+                to_load.append(apidef)
+                found = True
+                break
+        if not found:
+            # FIXME change exception
+            raise Exception('No extension found that implements {0}'.format(
+                ni_api.name
+            ))
+    addl = _find_extensions_internal(to_load, only_secure, cache)
+    # Return the new list with the new ones appended to the end.
+    ret = list(extensions)
+    for ext in addl:
+        if ext.name not in loaded_ext_names:
+            loaded_ext_names.add(ext.name)
+            ret.append(ext)
+    return ret
+
+
+def _find_extensions_internal(
+        extensions: Iterable[ExtensionCompatibility],
+        only_secure: bool,
+        cache: DependencyCache
+) -> Sequence[DiscoveredExtension]:
+    """
+    Performs the actual extension loading check.
+    """
 
     log(
         DEBUG,
@@ -142,8 +249,6 @@ def find_extensions(
         "Finding extension dependencies for {0}",
         extensions
     )
-
-    cache = DependencyCache(loader, only_secure)
 
     # 1. Set `H` to an empty stack. Set `C` to an empty map which will map an extension
     #    name to a version.  Set `A` to the children groups of the root node (each group is the

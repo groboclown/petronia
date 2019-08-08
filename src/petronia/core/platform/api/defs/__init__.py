@@ -13,15 +13,11 @@ from .text import (
     TextFragment,
     TextDisplay,
     Text,
-
-    TEXT_ORIENTATION_LTR,
-    TEXT_ORIENTATION_RTL,
-    TEXT_ORIENTATION_TTB,
-    TEXT_ORIENTATION_LTR_ROTATE_TOP,
-    TEXT_ORIENTATION_LTR_ROTATE_BOTTOM,
-    TEXT_ORIENTATION_RTL_ROTATE_TOP,
-    TEXT_ORIENTATION_RTL_ROTATE_BOTTOM,
-    TEXT_ORIENTATIONS,
+)
+from .image import (
+    Image,
+    ImageLocation,
+    ImageRaw,
 )
 from .units import (
     FontQUnit,
@@ -44,4 +40,27 @@ from .units import (
     SCREEN_AREA_W,
     SCREEN_AREA_HEIGHT,
     SCREEN_AREA_H,
+)
+from .alignment import (
+    TextBiDi,
+    TEXT_BIDI_LTR,
+    TEXT_BIDI_RTL,
+
+    TextRotation,
+    TEXT_ROTATE_HORIZ,
+    TEXT_ROTATE_90_CLOCKWISE,
+    TEXT_ROTATE_90_COUNTER_CLOCKWISE,
+    TEXT_ROTATE_ALL,
+
+    TextAlignment,
+    TEXT_ALIGN_UPPER_LEFT,
+    TEXT_ALIGN_UPPER_RIGHT,
+    TEXT_ALIGN_BOTTOM_LEFT,
+    TEXT_ALIGN_BOTTOM_RIGHT,
+    TEXT_ALIGN_CENTER_LEFT,
+    TEXT_ALIGN_CENTER_RIGHT,
+    TEXT_ALIGN_UPPER_CENTER,
+    TEXT_ALIGN_BOTTOM_CENTER,
+    TEXT_ALIGN_CENTER_CENTER,
+    TEXT_ALIGN_ALL,
 )

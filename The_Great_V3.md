@@ -92,3 +92,12 @@ The current to-do list.
     * add PGP and checksum to zip loader.
 * Add the external execution w/ event bus code.
     * The local end that launches the process and marshals state across the wire must keep track of which events are listened to by the process.  This acts for two purposes - one, that only the necessary events are passed across the wire, and two, if the process dies, then the launcher can deregister those event listeners correctly.
+
+
+# Platform Implementation Notes
+
+The X side will probably use a combination of:
+
+* *(xcb)[https://xcb.freedesktop.org/]* - basic UI interaction and management.
+* *(pango)[https://pango.gnome.org/]* - BiDi text rendering.
+* *(cairo)[https://www.cairographics.org/]* - graphics rendering, for SVG and drawing Pango glyphs.

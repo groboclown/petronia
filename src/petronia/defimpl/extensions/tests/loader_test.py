@@ -30,8 +30,8 @@ class ExtensionManagerTest(unittest.TestCase):
         bus = bootstrap_event_bus(queuer.pure_queuer)
 
         ext1 = LoadedExtension('x', True, (1, 0, 0,))
-        disc1 = mk_disc('x', (True, ext1.version), [])
-        disc2 = mk_disc('y', (False, (1, 2, 3,),), [])
+        disc1 = mk_disc('x', (True, ext1.version), [], stand_alone=True)
+        disc2 = mk_disc('y', (False, (1, 2, 3,),), [], stand_alone=True)
         loader1 = MockLoader(disc1, disc2)
         loader2 = CoreExtensionLoader()
         loader = CompositeExtensionLoader([loader1, loader2])
