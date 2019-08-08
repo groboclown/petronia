@@ -51,9 +51,8 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
-* APIs that do not have implementations (they provide a way things can work, and multiple things can use it) must be allowed, so that any extension that claims to implement it is rejected.
 * add capability of the extension loader to force any API loaded to also have exactly one implementation also loaded.
-* add proper extension definitions to `petronia_ext` modules.
+* add proper extension definitions to `defimpl` modules.
 * localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
     * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
       ```python

@@ -1,4 +1,0 @@
-
-"""
-Toolbar control.
-"""

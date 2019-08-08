@@ -32,10 +32,16 @@ class ValueHolder(Generic[T]):
         self.value = val
 
 
-class ReadOnlyDict(Dict[K, V]):
+def readonly_dict(inp: Dict[K, V]) -> Dict[K, V]:
+    """Create a (shallow) read-only copy of the dictionary."""
+    return _ReadOnlyDict(inp) # type: ignore
+
+
+class _ReadOnlyDict(Dict[K, V]):
     """A read-only dictionary."""
     def __readonly__(self, *args, **kwargs): # type: ignore
         raise RuntimeError("Cannot modify ReadOnlyDict")
+
     __setitem__ = __readonly__ # type: ignore
     __delitem__ = __readonly__ # type: ignore
     pop = __readonly__ # type: ignore

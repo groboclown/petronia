@@ -1,7 +1,7 @@
 
 import time
-from .....base import EventBus
-from .....core.shutdown.api import send_system_shutdown_request
+from ....base import EventBus
+from ....core.shutdown.api import send_system_shutdown_request
 
 
 def run_petronia(bus: EventBus) -> int:

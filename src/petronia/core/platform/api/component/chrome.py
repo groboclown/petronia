@@ -4,7 +4,7 @@ Decorations around a native window.  This includes a possible title bar.
 """
 
 from typing import Iterable, Optional
-from .defs import RespondsToAction
+from ..defs import RespondsToAction
 from .....base import (
     create_singleton_identity,
     ComponentId,

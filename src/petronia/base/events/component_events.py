@@ -11,7 +11,7 @@ from ..internal_.bus_types import (
     EventBus, EventId, EventCallback,
     ListenerSetup,
 )
-from ..util.memory import T, ReadOnlyDict
+from ..util.memory import T, readonly_dict
 
 
 # Note: not "core".
@@ -136,7 +136,7 @@ class ComponentCreationFailedEvent:
         self.__request_id = request_id
         self.__category = category
         self.__error_msg = error_msg
-        self.__error_values = ReadOnlyDict(error_values)
+        self.__error_values = readonly_dict(error_values)
 
     @property
     def request_id(self) -> int:

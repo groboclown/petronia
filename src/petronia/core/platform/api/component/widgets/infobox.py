@@ -4,7 +4,7 @@ Widgets are added into custom components that support them.
 """
 
 from typing import Iterable, Union, Optional
-from ..defs import RespondsToAction
+from ...defs import RespondsToAction
 from ......errors import PetroniaInternalError
 from ......base import create_singleton_identity
 
@@ -18,8 +18,6 @@ class InfoBoxWidget:
     component.  It can display text and an image, and the data can be updated
     by sending it configuration update events.  This can double as a button
     by adding in "RespondsToAction" for mouse clicks.
-
-    The position of the image and text is up to the theme and locale.
 
     Pass to RequestNewComponentEvent or as part of a widget list.  Also
     pass to the Configuration state event.

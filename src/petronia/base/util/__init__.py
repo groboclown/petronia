@@ -20,4 +20,5 @@ from .memory import (
     T, V, K,
 
     ValueHolder,
+    readonly_dict,
 )

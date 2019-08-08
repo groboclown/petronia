@@ -1,4 +1,4 @@
 
 """
-All the components the platform should support creating.
+Native window states and notifications.
 """

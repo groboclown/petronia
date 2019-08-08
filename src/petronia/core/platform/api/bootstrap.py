@@ -22,7 +22,10 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
     "name": "core.platform.api",
     "version": (1, 0, 0,),
     "type": "api",
-    "depends": [],
+    "depends": [{
+        "extension": "core.state.api",
+        "minimum": ANY_VERSION,
+    }],
     "defaults": [{
         "extension": "default.platform",
         "minimum": ANY_VERSION,
