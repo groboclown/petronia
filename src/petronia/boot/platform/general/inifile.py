@@ -1,10 +1,12 @@
 
 """
-Parsing up the configuration.
+Parsing up the initial configuration.
+
+Note that extension configuration should be handled separately, because that
+requires structured definitions.
 """
 
-from typing import Dict, Iterable, Sequence, Optional, Tuple, Union, overload
-import re
+from typing import Dict, Iterable, Optional, Tuple, Union, overload
 import configparser
 from ....base.util import (
     readonly_dict,
@@ -12,7 +14,7 @@ from ....base.util import (
     EMPTY_TUPLE,
 )
 
-def create_config() -> configparser.ConfigParser:
+def create_ini_config() -> configparser.ConfigParser:
     """
     Standard configuration.
     """
@@ -22,16 +24,16 @@ def create_config() -> configparser.ConfigParser:
     return ret
 
 
-def load_config_from_file(filename: str) -> configparser.ConfigParser:
+def load_ini_config_from_file(filename: str) -> configparser.ConfigParser:
     """Trivial helper."""
-    ret = create_config()
+    ret = create_ini_config()
     ret.read(filename)
     return ret
 
 
-def load_config_from_text(contents: str) -> configparser.ConfigParser:
+def load_ini_config_from_text(contents: str) -> configparser.ConfigParser:
     """Trivial helper."""
-    ret = create_config()
+    ret = create_ini_config()
     ret.read_string(contents)
     return ret
 
@@ -62,7 +64,8 @@ class LayeredConfig:
     def __init__(
             self,
             defaults: Dict[str, Dict[str, str]],
-            configs: Iterable[configparser.ConfigParser]
+            configs: Iterable[configparser.ConfigParser],
+            overlap: bool = False
     ) -> None:
         sections: Dict[str, Dict[str, str]] = {}
         cfgs = list(configs)
@@ -71,9 +74,15 @@ class LayeredConfig:
             for sec in cfg.sections():
                 if sec not in sections:
                     sections[sec] = _extract_options(cfg, sec)
+                elif overlap:
+                    for key, val in _extract_options(cfg, sec).items():
+                        sections[sec][key] = val
         for sec, opts in defaults.items():
             if sec not in sections:
                 sections[sec] = opts
+            elif overlap:
+                for key, val in _extract_options(cfg, sec).items():
+                    sections[sec][key] = val
         self._sections = readonly_dict(sections)
 
     def sections(self) -> Iterable[str]:

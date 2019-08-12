@@ -53,7 +53,7 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
     "type": "api",
     "depends": [],
     "defaults": [{
-        "extension": "default.shutdown",
+        "extension": "default.shutdown.timer",
         "minimum": ANY_VERSION,
     }],
     "authors": ["Petronia"],

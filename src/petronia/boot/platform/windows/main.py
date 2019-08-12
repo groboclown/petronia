@@ -12,5 +12,6 @@ def run_petronia(bus: EventBus) -> int:
             time.sleep(60)
     except KeyboardInterrupt:
         pass
+    print("Shutting down system.")
     send_system_shutdown_request(bus)
     return 0

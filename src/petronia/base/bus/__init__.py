@@ -13,6 +13,7 @@ from ..internal_.bus_types import (
     # These probably should move to some other module.
     ExtensionCompatibilityStruct,
     ExtensionMetadataStruct,
+    ExtensionVersionStruct,
 )
 from ..internal_.bus_constants import (
     EVENT_WILDCARD, TARGET_WILDCARD,

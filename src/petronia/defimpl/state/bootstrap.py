@@ -23,11 +23,26 @@ from ...base.bus import (
 )
 from ...base.util.memory import T
 from ...aid.module_bootstrap import create_module_listener_helper
+from ...aid.bootstrap import (
+    ExtensionMetadataStruct,
+    ANY_VERSION,
+)
 from .store import StateStore
 
 
-MODULE_ID = create_singleton_identity('core.state.impl')
-EXTENSION_DEPENDENCIES = ('core.state.api',)
+MODULE_ID = create_singleton_identity('default.state')
+
+EXTENSION_METADATA: ExtensionMetadataStruct = {
+    'type': 'impl',
+    'implements': [{
+        'extension': 'core.state.api',
+        'version': ANY_VERSION,
+    }],
+    'depends': [],
+    'name': 'default.state',
+    'version': (1, 0, 0,),
+    'authors': ['Petronia'],
+}
 
 def bootstrap_state_store(bus: EventBus) -> None:
     """Register all state store events."""

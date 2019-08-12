@@ -11,7 +11,7 @@ from ...errors import (
     PetroniaNoCompatibleExtensionFound,
 )
 from ...base import (
-    TRACE, DEBUG, log
+    TRACE, DEBUG, VERBOSE, log
 )
 from .defs import (
     SecureExtensionVersion,
@@ -202,8 +202,21 @@ def _find_missing_defaults(
     if not not_implemented_apis:
         # Nothing additional to load!
         return None
+    log(
+        TRACE, _find_missing_defaults,
+        'No implementations for {0} (declared APIs {1}, had implementations {2}, requested {3})',
+        not_implemented_apis,
+        expected_apis,
+        implemented_apis,
+        extensions
+    )
     to_load: List[ExtensionCompatibility] = []
     for ni_api in [apis[name] for name in not_implemented_apis]:
+        log(
+            TRACE, _find_missing_defaults,
+            'Finding default implementation extension for {0}',
+            ni_api.name
+        )
         found = False
         for apidef in ni_api.defaults:
             compatible_exts = cache.get_compatible_versions_for(apidef)
@@ -211,8 +224,8 @@ def _find_missing_defaults(
                 # There are >= 1 versions for this default extension, so add
                 # it to the list of additional loads.
                 log(
-                    DEBUG, _find_missing_defaults,
-                    'Adding extension {0} to default implement {1}',
+                    VERBOSE, find_extensions,
+                    'Adding extension {0} as the default implemention of {1}',
                     apidef.name,
                     ni_api.name
                 )
@@ -321,7 +334,7 @@ def _find_extensions_internal(
                     group_versions.remove(highest)
                     log(
                         TRACE, find_extensions,
-                        "Trying next highest vesrion {0}",
+                        "Trying next highest version {0}",
                         highest
                     )
                 else:

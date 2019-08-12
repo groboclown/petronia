@@ -103,19 +103,21 @@ class ShutdownTimer:
             if self._request_shutdown_listener:
                 # Already setup
                 return
-            self.stop_shutdown_listener()
+            self.__internal_stop_sl()
             self._request_shutdown_listener = self._bus.add_listener(
                 TARGET_ID_SYSTEM, _as_request_shutdown_listener,
                 self.on_shutdown_request
             )
 
+    def __internal_stop_sl(self) -> None:
+        self._active = False
+        if self._any_listener:
+            self._bus.remove_listener(self._any_listener)
+            self._any_listener = None
 
     def stop_shutdown_listener(self) -> None:
         with self._lock:
-            self._active = False
-            if self._any_listener:
-                self._bus.remove_listener(self._any_listener)
-                self._any_listener = None
+            self.__internal_stop_sl()
 
 
     def on_shutdown_request(

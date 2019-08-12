@@ -37,7 +37,13 @@ def bootstrap_extensions_api(bus: EventBus) -> None:
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     "type": "api",
-    "depends": [],
+    "depends": [
+        {
+            # extensions publish a state.
+            "extension": "core.state.api",
+            "minimum": ANY_VERSION,
+        }
+    ],
     "defaults": [{
         "extension": "defimpl.extensions",
         "minimum": ANY_VERSION,

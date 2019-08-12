@@ -29,3 +29,9 @@ class PetroniaSerializationFormatError(PetroniaSerializationError):
     """
     The value was not in the correct serialization format.
     """
+
+
+class PetroniaSerializedCollectionFormatError(PetroniaSerializationError):
+    """
+    The container of serialized values had the wrong format.
+    """

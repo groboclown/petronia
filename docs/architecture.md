@@ -116,9 +116,10 @@ Events are simple objects passed through the event bus.  Events must conform to 
 
 * They use `__slots__`.  Event objects that show signs of anything in the hierarchy not using slots will not be registered.
 * They do not allow `callable` types stored in the data.  This is strictly enforced for events that travel across the process boundary, for security purposes.
-* They provide static methods `serialize` and `deserialize` which generate and accept (respectfully) a simple Python dictionary with simple types, as appropriate for JSON serialization.
+* They allow for serialization through the `petronia.base.util.serial` API.  This API dictates that all public properties can be passed as kvargs to the constructor, and no callable values are serialized.
 * They should be read-only.
-* Events that should not be transmitted across the process boundary should include a `disallow_wire_transfer=True` property on the event instance. *TBD the actual name of the property.*
+* Events that should not be transmitted across the process boundary should include a `disallow_process_transfer=True` property on the event instance.
+
 
 Each event is registered in the system using an event id, which *should* be in the form "extension.name event-activity" to prevent name collisions.
 
@@ -204,9 +205,9 @@ The extension zip file must contain a `manifest.json` file that defines informat
 }
 ```
 
-Extension modules must provide the function `start_extension` which takes a single argument, the `EventBus` instance.  This function must register event types and add listeners as appropriate for the module.  If the module adds event listeners, it must also add an event listener for the `RequestDisposeEvent` event, to allow for the module to be removed.  The `petronia3.ext_help.module_bootstrap` module can help with this.
+Extension modules must provide the function `start_extension` which takes a single argument, the `EventBus` instance.  This function must register event types and add listeners as appropriate for the module.  If the module adds event listeners, it must also add an event listener for the `RequestDisposeEvent` event, to allow for the module to be removed.  The `petronia3.ext_help.module_bootstrap` module can help with this.  Events to dispose the extension will be sent to the module name of the extension.
 
-Normally, a module will also declare a `MODULE_ID` singleton ID constant that is used for lifecycle events for the module.  This should match the extension name, to avoid possible name collisions.
+If an extension allows for configuration setup events, these are sent by the configuration setup extension to a state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.
 
 For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the JSON above.
 
@@ -227,6 +228,9 @@ From the configurable component perspective, configuration is a *push* operation
 Another possible state is a *session*, which is for intermediary states.  For example, a tile split and pixel position could be saved in the session, so the user can resume the previous setup when the UI is restarted.
 
 The configuration system itself defines basic events and usage patterns, and provides some readers.  It is up to the user setup or platform to define the loading of the used files.  Other programs could be written to allow for on-the-fly configuration changes.
+
+If an extension allows for configuration setup events, these are sent by the configuration setup extension to a state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.
+
 
 #### Platform (Singleton)
 

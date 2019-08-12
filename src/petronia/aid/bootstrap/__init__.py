@@ -52,4 +52,6 @@ from ...core.shutdown.api import (
 
     SystemShutdownFinalizeEvent,
     as_system_shutdown_finalize_listener,
+
+    TARGET_ID_SYSTEM_SHUTDOWN,
 )

@@ -58,7 +58,7 @@ class ExtensionCompatibility:
         self._below = below
 
     def __repr__(self) -> str:
-        return "ExtensionCompatibility({0}, {1}, {2}".format(
+        return "ExtensionCompatibility({0}, {1}, {2})".format(
             repr(self.__name), repr(self._min), repr(self._below)
         )
 
@@ -164,8 +164,13 @@ class DiscoveredExtension:
                 )
             defaults: List[ExtensionCompatibility] = []
             for dep in raw_defaults:
-                if isinstance(dep, dict):
-                    defaults.append(_parse_extension_compatibility(name, dep))
+                if not isinstance(dep, dict):
+                    raise PetroniaInvalidExtension(
+                        name,
+                        EMPTY_TUPLE,
+                        '"defaults" must be defined as a list of dictionaries in extension definition'
+                    )
+                defaults.append(_parse_extension_compatibility(name, dep))
             self._defaults = tuple(defaults)
         elif ext_type == 'impl':
             self.__is_impl = True
@@ -176,12 +181,17 @@ class DiscoveredExtension:
                 raise PetroniaInvalidExtension(
                     name,
                     EMPTY_TUPLE,
-                    '"implements" must be defined as a dictionary in extension definition'
+                    '"implements" must be defined as a list of dictionaries in extension definition'
                 )
             implements: List[ExtensionCompatibility] = []
             for dep in impl:
-                if isinstance(dep, dict):
-                    implements.append(_parse_extension_compatibility(name, dep))
+                if not isinstance(dep, dict):
+                    raise PetroniaInvalidExtension(
+                        name,
+                        EMPTY_TUPLE,
+                        '"implements" must be defined as a list of dictionaries in extension definition'
+                    )
+                implements.append(_parse_extension_compatibility(name, dep))
             self._implements = tuple(implements)
         elif ext_type == 'standalone':
             self.__is_api = False
@@ -294,15 +304,14 @@ def _parse_extension_compatibility(ext_name: str, raw: Dict[str, Any]) -> Extens
             ext_name, [],
             'invalid "extension" value in compatibility expression'
         )
-    minimum1: Optional[Sequence[Union[int, float]]] = optional_list_key(raw, 'minimum', (int, float,))
+    min1: Optional[Sequence[Union[int, float]]] = optional_list_key(raw, 'minimum', (int, float,))
     below1: Optional[Sequence[Union[int, float]]] = optional_list_key(raw, 'below', (int, float,))
-    if minimum1 and len(minimum1) == 3:
-        minimum = (int(1 * minimum1[0]), int(1 * minimum1[1]), int(1 * minimum1[2]),)
-    else:
+    if not min1 or len(min1) != 3:
         raise PetroniaInvalidExtension(
             ext_name, [],
-            'invalid "minimum" value in compatibility expression'
+            'invalid "minimum" value in compatibility expression: {0}'.format(min1)
         )
+    minimum = (int(1 * min1[0]), int(1 * min1[1]), int(1 * min1[2]),)
     below: Optional[ExtensionVersion] = None
     if below1:
         if len(below1) == 3:

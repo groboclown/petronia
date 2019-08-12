@@ -7,12 +7,5 @@ extension definitions.  However, the definitions should still be provided
 for proper integration into the extension API.
 """
 
-from .defs import (
-    ExtensionLoader,
-)
-from .loaders import (
-    CompositeExtensionLoader,
-    CoreExtensionLoader,
-    PathExtensionLoader,
-    ZipExtensionLoader,
-)
+# Not renamed, because the extension loader doesn't load itself.
+from .bootstrap import bootstrap_extension_loader

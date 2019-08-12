@@ -3,15 +3,9 @@
 Sets up the timer.
 """
 
-from ...core.timer.api.events import (
-    EVENT_ID_TIMER, GLOBAL_TIMER_EVENT,
-    TimerEvent,
-)
 from ...base.bus import (
     EventBus,
-    register_event,
     ExtensionMetadataStruct,
-    QUEUE_EVENT_NORMAL,
 )
 from ...core.extensions.api import ANY_VERSION
 from ...core.state.api import (
@@ -33,13 +27,6 @@ def start_extension(bus: EventBus) -> None:
     There should only ever be one timer.  It is global, and should never be
     disabled.
     """
-    register_event(
-        bus,
-        EVENT_ID_TIMER,
-        QUEUE_EVENT_NORMAL,
-        TimerEvent,
-        GLOBAL_TIMER_EVENT
-    )
     # Set the "active" to false, so that it can start itself up.
     config = TimerConfig(DEFAULT_INTERVAL, False)
     timer = BusTimer(bus, config)
@@ -53,9 +40,10 @@ def start_extension(bus: EventBus) -> None:
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     'type': 'impl',
-    'implements': {
-        "name": "core.timer.api",
-        "version": ANY_VERSION,
-    },
+    "depends": [],
+    'implements': [{
+        "extension": "core.timer.api",
+        "minimum": ANY_VERSION,
+    }],
     "authors": ["Petronia"],
 }

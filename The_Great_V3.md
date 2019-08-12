@@ -51,7 +51,7 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
-* add capability of the extension loader to force any API loaded to also have exactly one implementation also loaded.
+* file configuration extensions
 * add proper extension definitions to `defimpl` modules.
 * localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
     * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
@@ -60,9 +60,10 @@ The current to-do list.
       language = gettext.translation('petronia', languages=[lang])
       language.install()
       ```
-    * That same component publishes a state of the available locales and translations.
+    * That same component publishes a state of the available locales and languages.
     * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
-    * Need to figure out how extensions publish translations.  They probably use `(mymodule).__file__` to find its install location, and get the directory from there.
+    * Extensions publish translation files by sending an event with the translation contents.  That allows all sandboxes to receive the new translations.
+    * `atoi` and `atof` formatting needs to be supported right.  Configuration files that are exchangeable between users, and that have a well defined format, should have a single expected numeric format.  All end-user input should use the `locale.atoi` and `locale.atof`, which means the above `locale.setlocale` should be used.
 * timer helper should include an implementation that uses the time event.
 * basic definition of platform responsibilities.
 * Create theme extension API that is a layer on top of the platform.  It provides better components that are themed.  With this, make sure the platform stuff isn't themed and is as low-level as possible.
@@ -92,6 +93,20 @@ The current to-do list.
     * add PGP and checksum to zip loader.
 * Add the external execution w/ event bus code.
     * The local end that launches the process and marshals state across the wire must keep track of which events are listened to by the process.  This acts for two purposes - one, that only the necessary events are passed across the wire, and two, if the process dies, then the launcher can deregister those event listeners correctly.
+* Extensions: enforce only one implementation of an API loaded.
+
+
+## Tech Debt
+
+Early development that caused rethinking of how things are done, but that code needs to be revisited to do over again.
+
+* default.extension:
+    * loading needs better error handling.
+* default.state:
+    * use new coding patterns.
+* default.configuration.file:
+    * needs correct locale usage for messages.
+* Unit tests everywhere.
 
 
 # Platform Implementation Notes

@@ -59,8 +59,6 @@ class DiscoveryData:
         self.only_secure = only_secure
         self.event_queue_model = event_queue_model
 
-PREBOOT_MODULE_NAME = 'preboot'
-
 DiscoveryFunction = Callable[[], DiscoveryData]
 
 DISCOVERY_FUNCTION_NAME = 'discover_preboot_data'

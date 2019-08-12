@@ -3,7 +3,7 @@
 Type definitions for the event bus.
 """
 
-from typing import Callable, Tuple, NewType, Union, Sequence, List, Dict
+from typing import Callable, Tuple, NewType, Union, Sequence, Dict
 from .identity_types import ParticipantId, ComponentId
 from ..util.memory import T
 
@@ -15,9 +15,9 @@ EventCallback = Callable[[EventId, ParticipantId, T], None]
 ListenerSetup = Tuple[EventId, EventCallback[T]]
 ListenerRegistrator = Callable[[EventCallback[T]], ListenerSetup[T]]
 
-VersionStruct = Tuple[Union[int, float], Union[int, float], Union[int, float]]
+ExtensionVersionStruct = Tuple[Union[int, float], Union[int, float], Union[int, float]]
 ExtensionCompatibilityStruct = Dict[str, Union[
-    str, VersionStruct
+    str, ExtensionVersionStruct
 ]]
 
 # This is very carefully constructed.  Take care modifying this.
@@ -25,7 +25,7 @@ ExtensionCompatibilityStruct = Dict[str, Union[
 # Union.
 ExtensionMetadataStruct = Dict[str, Union[
     str,
-    VersionStruct,
+    ExtensionVersionStruct,
     ExtensionCompatibilityStruct,
     Sequence[Union[
         str,
@@ -40,7 +40,8 @@ class EventBus:
 
     def add_listener(
             self,
-            target_id: ParticipantId, listener_setup: ListenerRegistrator[T],
+            target_id: ParticipantId,
+            listener_setup: ListenerRegistrator[T],
             listener: EventCallback[T]
     ) -> ListenerId:
         """

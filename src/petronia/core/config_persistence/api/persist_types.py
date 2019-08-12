@@ -1,10 +1,9 @@
 
-
 """
 Definition for components that use a configuration part.
 """
 
-from typing import Dict, Sequence, Union
+from typing import Dict, Iterable, Union
 from ....base.util import T
 
 # Supported persistent types...
@@ -12,21 +11,26 @@ _PrimitivePersistType = Union[str, float, bool, None]
 _GenericPersistType = Union[
     _PrimitivePersistType,
     Dict[str, T],
-    Sequence[T]
+    Iterable[T]
 ]
-
-# Note that there is no recursive structure that allows this
-# to be easily implemented.  However, this puts a maximum
-# cap on the depth, which is fine.
-PersistType = _GenericPersistType[
+# FIXME Any way to make this a tree with cycles?
+PersistType = Dict[str, _GenericPersistType[
     _GenericPersistType[
         _GenericPersistType[
             _GenericPersistType[
-                _GenericPersistType[_PrimitivePersistType]
+                _GenericPersistType[
+                    _GenericPersistType[
+                        _GenericPersistType[
+                            _GenericPersistType[
+                                _PrimitivePersistType
+                            ]
+                        ]
+                    ]
+                ]
             ]
         ]
     ]
-]
+]]
 
 
 class PersistentConfigurationState:

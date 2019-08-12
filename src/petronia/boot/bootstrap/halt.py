@@ -9,7 +9,7 @@ import sys
 from ...base import (
     ParticipantId,
     log,
-    VERBOSE,
+    INFO, DEBUG,
 )
 from ...base.bus import (
     EventBus,
@@ -37,8 +37,9 @@ def bootstrap_halt(bus: EventBus, queue: BusQueueManager, timeout_seconds: float
             target_id: ParticipantId, # pylint: disable=unused-argument
             event_obj: SystemHaltedEvent # pylint: disable=unused-argument
     ) -> None:
+        log(DEBUG, bootstrap_halt, 'Initiating Petronia halt.')
         queue.stop(timeout_seconds)
-        log(VERBOSE, bootstrap_halt, 'Petronia stopped.')
+        log(INFO, bootstrap_halt, 'Petronia stopped.')
         sys.exit(0)
 
 

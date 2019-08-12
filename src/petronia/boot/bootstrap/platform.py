@@ -15,19 +15,18 @@ from ...core.platform.preboot import (
     DiscoveryFunction,
     DISCOVERY_FUNCTION_NAME,
     RUN_SYSTEM_FUNCTION_NAME,
-    PREBOOT_MODULE_NAME,
 )
 
 
-def get_base_platform_module() -> ModuleType:
+def get_platform_module() -> ModuleType:
     """
     Find the module that implements the basic bootstrap implementation.
     """
     plat = sys.platform
     if plat == 'linux' or os.name == 'posix':
-        return importlib.import_module('petronia3_root.platform.posix')
+        return importlib.import_module('petronia.boot.platform.posix')
     if plat == 'win32':
-        return importlib.import_module('petronia3_root.platform.windows')
+        return importlib.import_module('petronia.boot.platform.windows')
     raise PetroniaPlatformNotSupported(plat)
 
 
@@ -36,14 +35,10 @@ def get_user_platform_module(name: str) -> ModuleType:
     return importlib.import_module(name)
 
 
-def get_platform_discovery_function(base_mod: ModuleType) -> DiscoveryFunction:
+def get_platform_discovery_function(mod: ModuleType) -> DiscoveryFunction:
     """
     Get the discovery function for the current base platform.
     """
-    if not hasattr(base_mod, PREBOOT_MODULE_NAME):
-        mod = importlib.import_module(base_mod.__name__ + '.' + PREBOOT_MODULE_NAME)
-    else:
-        mod = getattr(base_mod, PREBOOT_MODULE_NAME)
     if not hasattr(mod, DISCOVERY_FUNCTION_NAME): # type: ignore
         # TODO better error
         raise Exception('preboot platform {0} does not supply {1}'.format(
@@ -61,12 +56,8 @@ def get_platform_discovery_function(base_mod: ModuleType) -> DiscoveryFunction:
     return ret # type: ignore
 
 
-def run_platform_main(bus: EventBus, base_mod: ModuleType) -> int:
+def run_platform_main(bus: EventBus, mod: ModuleType) -> int:
     """Run the platform's run loop."""
-    if not hasattr(base_mod, PREBOOT_MODULE_NAME):
-        mod = importlib.import_module(base_mod.__name__ + '.' + PREBOOT_MODULE_NAME)
-    else:
-        mod = getattr(base_mod, PREBOOT_MODULE_NAME)
     if not hasattr(mod, RUN_SYSTEM_FUNCTION_NAME): # type: ignore
         # TODO better error
         raise Exception('preboot platform {0} does not supply {1}'.format(

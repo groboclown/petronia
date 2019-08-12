@@ -27,4 +27,5 @@ from .serial import (
     PetroniaSerializationError,
     PetroniaValueNotSerializable,
     PetroniaSerializationFormatError,
+    PetroniaSerializedCollectionFormatError,
 )
