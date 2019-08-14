@@ -17,6 +17,8 @@ from ....aid.simp import (
     ComponentId,
     PetroniaLockTimeoutError,
     T,
+    log, logerr,
+    TRACE, ERROR,
 )
 from ....aid.bootstrap import (
     TARGET_WILDCARD,
@@ -129,5 +131,19 @@ class TypeSafeEventBus(EventBus):
             target_id: ParticipantId,
             event_obj: T, callback: EventCallback[T]
     ) -> None:
-        self.__reg.validate_event(event_id, target_id, event_obj)
-        callback(event_id, target_id, event_obj)
+        log(
+            TRACE, TypeSafeEventBus.__listener_callback,
+            'Calling listener {0}: event_id={1}, target_id={2}, event_obj={3}',
+            callback, event_id, target_id, event_obj
+        )
+        try:
+            self.__reg.validate_event(event_id, target_id, event_obj)
+            log(TRACE, TypeSafeEventBus.__listener_callback, 'Valided, now calling callback')
+            callback(event_id, target_id, event_obj)
+            log(TRACE, TypeSafeEventBus.__listener_callback, 'Finished callback')
+        except SystemExit:
+            # Let everything else handle this.
+            raise
+        except BaseException as err:
+            logerr(ERROR, TypeSafeEventBus.__listener_callback, err, 'Callback generated error')
+            raise err

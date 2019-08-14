@@ -12,6 +12,7 @@ from typing import List, Optional, Any, Dict, Callable, Sequence
 import threading
 import queue
 import traceback
+from .. import logging
 from .rwlock import RWLock
 #from ..validation import assert_state
 from .memory import EMPTY_DICT, EMPTY_LIST
@@ -44,6 +45,10 @@ class _WorkAction:
 
     def run(self) -> bool:
         """Run the operation."""
+        logging.log(
+            logging.TRACE, _WorkAction,
+            'running {0}(*{1}, **{2})', self.opr, self.vargs, self.kvargs
+        )
         if self.opr is None: # type: ignore
             return False
         else:
@@ -56,7 +61,10 @@ class WorkerThread:
     The worker thread class.  Creating a worker thread automatically registers it
     to the global set of threads.
     """
-    __slots__ = ('__thread', '__cid', '_error_handler', '__state', '__state_lock', '_q')
+    __slots__ = (
+        '__thread', '__cid', '__state', '__state_lock', '_q',
+        '__kdb_handler', '_error_handler',
+    )
 
     # Should be subscript [_WorkAction], but this causes a runtime error
     # ('type' object is not subscriptable)
@@ -66,9 +74,11 @@ class WorkerThread:
     def __init__(
             self,
             cid: str, daemon: bool = False,
-            error_handler: Optional[ErrorHandler] = None
+            error_handler: Optional[ErrorHandler] = None,
+            kbd_handler: Optional[Callable[[], None]] = None
     ) -> None:
         assert error_handler is None or callable(error_handler)
+        assert kbd_handler is None or callable(kbd_handler)
         self.__thread = threading.Thread(
             target=self._run,
             daemon=daemon
@@ -76,8 +86,11 @@ class WorkerThread:
         self.__cid = cid
         self.__thread.name = "Worker {0}".format(cid)
 
-        # ignored type: see mypy #708
-        self._error_handler = error_handler or default_error_handler # type: ignore
+        if error_handler:
+            self._error_handler = error_handler # type: ignore
+        else:
+            self._error_handler = default_error_handler # type: ignore
+        self.__kdb_handler = kbd_handler
 
         self.__state = 0
         self._q = queue.Queue()
@@ -96,6 +109,10 @@ class WorkerThread:
         :param callback Function: callable function, invoked when the worker gets to it.
         """
         assert callable(callback)
+        logging.log(
+            logging.TRACE, WorkerThread,
+            'Queueing work action #{3} {0}(*{1}, **{2})', callback, vargs, kargs, self._q.qsize()
+        )
         self._q.put_nowait(_WorkAction(
             callback, vargs or EMPTY_LIST, kargs or EMPTY_DICT
         ))
@@ -107,7 +124,8 @@ class WorkerThread:
 
         :param timeout: seconds to timeout waiting for the worker thread to finish.
         """
-        self.__thread.join(timeout)
+        if threading.current_thread() != self.__thread:
+            self.__thread.join(timeout)
 
     def complete(self) -> None:
         """
@@ -145,26 +163,50 @@ class WorkerThread:
                 self.__state_lock.release()
 
             while True:
-                # Check the state at the loop start.
-                self.__state_lock.acquire_read()
                 try:
-                    if self.__state >= 2:
-                        break
-                finally:
-                    self.__state_lock.release()
-                action: _WorkAction = self._q.get()
-                try:
-                    total += 1
-                    if not action.run():
-                        self.close()
-                except BaseException as err: # pylint: disable=broad-except
-                    # See mypy #702
-                    self._error_handler(self.__cid, err) # type: ignore
+                    logging.log(
+                        logging.TRACE, WorkerThread,
+                        'worker thread loop {0}', threading.current_thread()
+                    )
+                    # Check the state at the loop start.
+                    self.__state_lock.acquire_read()
+                    try:
+                        if self.__state >= 2:
+                            break
+                    finally:
+                        self.__state_lock.release()
+                    action: _WorkAction = self._q.get()
+                    try:
+                        total += 1
+                        logging.log(
+                            logging.TRACE, WorkerThread,
+                            'Run action #{0}', total
+                        )
+                        if not action.run():
+                            self.close()
+                    except SystemExit:
+                        # Exit immediately
+                        return
+                    except BaseException as err: # pylint: disable=broad-except
+                        logging.logerr(
+                            logging.TRACE, WorkerThread, err,
+                            'encountered error'
+                        )
+                        # See mypy #702
+                        self._error_handler(self.__cid, err) # type: ignore
+                except KeyboardInterrupt:
+                    if self.__kdb_handler:
+                        self.__kdb_handler()
+                    # Otherwise, ignore.
         finally:
             # No lock on this, because it's not a read then write.
             self.__state = 3
             if self._q in _RUNNING_THREAD_QUEUES:
                 _RUNNING_THREAD_QUEUES.remove(self._q)
+        logging.log(
+            logging.TRACE, WorkerThread,
+            'Exiting worker thread {0}', threading.current_thread()
+        )
 
 
 def default_error_handler(cid: str, err: BaseException) -> None:

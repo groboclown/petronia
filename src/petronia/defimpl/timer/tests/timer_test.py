@@ -6,6 +6,7 @@ Tests for the timer impl extension
 import unittest
 import threading
 from typing import List, Callable
+from ....base import EventBus
 from ....boot.bootstrap.bus import bootstrap_event_bus
 from ....core.timer.api.bootstrap import bootstrap_timer_api
 from ....core.state.api.events import EVENT_ID_UPDATED_STATE, StateStoreUpdatedEvent
@@ -32,7 +33,8 @@ class TimerTest(unittest.TestCase):
 
         # This has the chance of running forever if the sleeper isn't written
         # right.
-        timer.run()
+        while timer.is_config_active():
+            timer.run_in_loop()
 
         self.assertFalse(timer.is_running)
         self.assertEqual(
@@ -45,7 +47,9 @@ class TimerTest(unittest.TestCase):
         self.assertLessEqual(sleeper.sleep_times[1], 1.0)
 
 
-def mk_thread(callback: Callable[[], None]) -> threading.Thread:
+def mk_thread(
+        bus: EventBus, is_alive: Callable[[], bool], callback: Callable[[], None]
+) -> threading.Thread:
     """Mock for creating the thread."""
     raise Exception('should not be called')
 

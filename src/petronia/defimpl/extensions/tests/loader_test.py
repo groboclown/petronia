@@ -14,7 +14,7 @@ from ..defs import LoadedExtension
 from ..loaders.core import CoreExtensionLoader
 from ..loaders.composite import CompositeExtensionLoader
 from ..ext_loader import (
-    load_additional_extension
+    load_additional_extensions
 )
 from .mocks import (
     mk_disc,
@@ -37,8 +37,8 @@ class ExtensionManagerTest(unittest.TestCase):
         loader2 = CoreExtensionLoader()
         loader = CompositeExtensionLoader([loader1, loader2])
         with EnabledLogs(ERROR):
-            new_state = load_additional_extension(
-                'core.timer.api',
+            new_state = load_additional_extensions(
+                ['core.timer.api'],
                 loader, bus, [ext1])
 
         # 'x' is considered an already-loaded extension, so it is

@@ -10,23 +10,26 @@ from ...core.state.api.events import (
     EVENT_ID_UPDATED_STATE,
     StateStoreUpdatedEvent,
 )
-from ...base import (
-    ParticipantId,
-    create_singleton_identity,
-)
-from ...base.bus import (
+from ...aid.simp import (
     EventId,
     EventBus, EventCallback,
-    EventListenerAddedEvent,
-    ListenerSetup, as_listener_added_listener,
-    TARGET_WILDCARD,
+    ParticipantId,
+    T,
+    log,
+    TRACE,
 )
-from ...base.util.memory import T
-from ...aid.module_bootstrap import create_module_listener_helper
 from ...aid.bootstrap import (
+    create_singleton_identity,
+    ListenerSetup,
     ExtensionMetadataStruct,
     ANY_VERSION,
 )
+from ...base.bus import (
+    EventListenerAddedEvent,
+    as_listener_added_listener,
+    TARGET_WILDCARD,
+)
+from ...aid.module_bootstrap import create_module_listener_helper
 from .store import StateStore
 
 
@@ -36,7 +39,7 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
     'type': 'impl',
     'implements': [{
         'extension': 'core.state.api',
-        'version': ANY_VERSION,
+        'minimum': ANY_VERSION,
     }],
     'depends': [],
     'name': 'default.state',
@@ -98,10 +101,19 @@ class _BusAwareStateStore:
         start.
         """
         if event.event_id == EVENT_ID_UPDATED_STATE and tid in self.__store:
+            log(
+                TRACE, _BusAwareStateStore.on_listener_added,
+                'Handling request to listen for an update state {0} event',
+                tid
+            )
             # Rebroadcast the state.
             state = self.__store.get_state(tid)
             state_type = self.__store.get_state_type(tid)
             if state and state_type:
+                log(
+                    TRACE, _BusAwareStateStore.on_listener_added,
+                    'Sending out the current state for {0} {1}', tid, state
+                )
                 self.__bus.trigger(EVENT_ID_UPDATED_STATE, tid, StateStoreUpdatedEvent(
                     tid, state_type, state, state
                 ))

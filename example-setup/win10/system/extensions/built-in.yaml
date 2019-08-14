@@ -1,0 +1,9 @@
+---
+
+# Built-in extension setup.
+
+Timer:
+  extension: default.timer
+  enabled: true
+  properties:
+    interval_seconds: 1.2

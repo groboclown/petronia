@@ -20,4 +20,5 @@ from .discovery import (
     RunSystemFunction,
     RUN_SYSTEM_FUNCTION_NAME,
     EventQueueModel,
+    ExtensionLoaderModel,
 )

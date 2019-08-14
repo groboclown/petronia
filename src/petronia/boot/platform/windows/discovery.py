@@ -6,14 +6,17 @@ Implements the required discovery function.
 from ....core.platform.preboot import (
     DiscoveryData,
     ExtensionPaths,
+    ExtensionLoaderModel,
 )
 from .paths import (
     get_user_paths,
 )
 from ..general import (
     TEMP_DIR_PATH,
+    get_preboot_extension_sets,
 )
 from ...bootstrap.managed_queue import RootEventQueueModel
+
 
 def discover_preboot_data() -> DiscoveryData:
     """
@@ -31,8 +34,11 @@ def discover_preboot_data() -> DiscoveryData:
 
     return DiscoveryData(
         extension_paths,
-        [],
+        get_preboot_extension_sets(),
+        [['default.configuration.file']],
         TEMP_DIR_PATH,
         False,
-        RootEventQueueModel(8)
+        ExtensionLoaderModel('petronia.defimpl.extensions'),
+        RootEventQueueModel(8),
+        user_paths
     )

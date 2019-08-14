@@ -14,6 +14,7 @@ from ....base import (
     EventBus,
     log,
     NOTICE,
+    TRACE,
 )
 from ..defs import ModuleLoader
 
@@ -22,8 +23,15 @@ def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
     Checks if the module is a valid startable type.
     """
     if not hasattr(mod, 'start_extension'):
+        log(
+            NOTICE,
+            get_module_loader,
+            'module {0} does not have a start_extension function',
+            mod.__name__
+        )
         return None
     starter = getattr(mod, 'start_extension')
+    log(TRACE, get_module_loader, 'module starter: {0}', starter)
     if not callable(starter):
         log(
             NOTICE,
@@ -69,6 +77,7 @@ def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
             sig
         )
         return None
+    log(TRACE, get_module_loader, 'module {0} has starter {1}', mod.__name__, starter)
     return starter # type: ignore
 
 

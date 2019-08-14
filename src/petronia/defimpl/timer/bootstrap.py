@@ -35,12 +35,15 @@ def start_extension(bus: EventBus) -> None:
         as_state_change_listener,
         timer.on_config_change
     )
-    set_timer_config(bus, config)
+    set_timer_config(bus, TimerConfig(DEFAULT_INTERVAL, True))
 
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     'type': 'impl',
-    "depends": [],
+    "depends": [{
+        'extension': 'core.state.api',
+        'minimum': ANY_VERSION,
+    }],
     'implements': [{
         "extension": "core.timer.api",
         "minimum": ANY_VERSION,

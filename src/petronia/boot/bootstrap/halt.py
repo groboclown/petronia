@@ -45,9 +45,11 @@ def bootstrap_halt(bus: EventBus, queue: BusQueueManager, timeout_seconds: float
 
     # Cannot deregister this listener, because when it's no longer needed,
     # there will no longer be an event bus to run against.
+    log(DEBUG, bootstrap_halt, 'Adding halt listener')
     bus.add_listener(
         TARGET_ID_SYSTEM, _as_halt_listener, on_halt
     )
+    log(DEBUG, bootstrap_halt, 'Added halt listener')
 
 
 def _as_halt_listener(

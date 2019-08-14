@@ -3,10 +3,10 @@
 Loads the extension.
 """
 
-from typing import Sequence, List, Iterable, Collection
+from typing import Sequence, List, Iterable, Collection, Set
 from ...base import (
     EventBus,
-    INFO, log
+    INFO, TRACE, log
 )
 from ...errors import (
     PetroniaExtensionError,
@@ -22,8 +22,9 @@ from .ext_finder import (
     find_extensions,
 )
 
-def load_additional_extension(
-        extension: str,
+
+def load_additional_extensions(
+        extensions: Iterable[str],
         loader: ExtensionLoader,
         bus: EventBus,
         loaded: Collection[LoadedExtension]
@@ -34,11 +35,14 @@ def load_additional_extension(
 
     Will raise exceptions on load issues.
     """
-    compat = [ExtensionCompatibility(extension, ANY_VERSION, None)]
+    compat: List[ExtensionCompatibility] = []
+    loaded_names: Set[str] = set()
+    for ext_name in extensions:
+        compat.append(ExtensionCompatibility(ext_name, ANY_VERSION, None))
     for ext in loaded:
+        loaded_names.add(ext.name)
         compat.append(ExtensionCompatibility(ext.name, ext.version, None))
     to_load = find_extensions(compat, loader, False)
-    loaded_names = set(map(lambda x: x.name, loaded)) # type: ignore
     ret: List[LoadedExtension] = []
     for disc in to_load:
         if disc.name in loaded_names:
@@ -46,24 +50,29 @@ def load_additional_extension(
             continue
         try:
             log(
-                INFO, load_additional_extension,
+                INFO, load_additional_extensions,
                 "Loading extension {0} v{1}",
                 disc.name, disc.version
+            )
+            log(
+                TRACE, load_additional_extensions,
+                "Extension loader: {0}",
+                disc.module_loader
             )
             disc.module_loader(bus)
             ret.append(LoadedExtension(
                 disc.name, disc.is_secure, disc.version
             ))
+            loaded_names.add(disc.name)
         except PetroniaExtensionError:
             raise
         except BaseException as err: # pylint: disable=broad-except
             raise PetroniaExtensionInitializationError(
                 disc.name,
-                map(lambda x: x.name, ret), # type: ignore
+                [ext.name for ext in ret],
                 err
             )
     return ret
-
 
 
 def load_extensions(

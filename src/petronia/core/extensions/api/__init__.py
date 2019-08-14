@@ -18,6 +18,11 @@ from .events import (
     as_extension_loaded_listener,
     send_request_load_extension_event,
 )
+from .impl_def import (
+    ExtensionLoaderSetup,
+    ExtensionLoaderBootstrapFunction,
+    EXTENSION_LOADER_MODULE_BOOTSTRAP_FUNCTION_NAME,
+)
 
 from .bootstrap import bootstrap_extensions_api as start_extension
 from .bootstrap import EXTENSION_METADATA

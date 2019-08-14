@@ -21,6 +21,9 @@ from .events import (
 
     EVENT_ID_SYSTEM_SHUTDOWN_CANCELLED,
     SystemShutdownCancelledEvent,
+
+    EVENT_ID_SYSTEM_SHUTDOWN_FINALIZE,
+    SystemShutdownFinalizeEvent,
 )
 from ...extensions.api import ANY_VERSION
 
@@ -44,6 +47,10 @@ def bootstrap_shutdown_api(bus: EventBus) -> None:
     register_event(
         bus, EVENT_ID_SYSTEM_SHUTDOWN_CANCELLED, QUEUE_EVENT_NORMAL,
         SystemShutdownCancelledEvent, SystemShutdownCancelledEvent()
+    )
+    register_event(
+        bus, EVENT_ID_SYSTEM_SHUTDOWN_FINALIZE, QUEUE_EVENT_NORMAL,
+        SystemShutdownFinalizeEvent, SystemShutdownFinalizeEvent()
     )
 
 

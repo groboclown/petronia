@@ -22,8 +22,12 @@ _ORDERED_CORE_EXTENSIONS = (
     'core.state.api',
     'core.extensions.api',
     'core.config_persistence.api',
-    'core.timer.api',
-    'core.platform.api',
+
+    # This requires state to be loaded first.
+    # 'core.timer.api',
+
+    # This must be loaded after the initial list of extensions.
+    #'core.platform.api',
 )
 
 def load_core_extensions(

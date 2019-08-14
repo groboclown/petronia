@@ -18,6 +18,8 @@ from ....base import (
     logerr,
     ERROR,
     NOTICE,
+    TRACE,
+    DEBUG,
 )
 from .inspect_mod import (
     get_module_loader,
@@ -42,12 +44,15 @@ def get_extension_from_module_spec(
         raise PetroniaInternalError('`loader` not defined on module specification')
 
     try:
+        log(TRACE, get_extension_from_module_spec, 'Loading {0} from spec', mod_spec)
         mod = importlib.util.module_from_spec(mod_spec)
 
         # MyPy doesn't see the "exec_module" on the loader, but it's there.
+        log(TRACE, get_extension_from_module_spec, 'Initializing module')
         mod_spec.loader.exec_module(mod) # type: ignore
 
         if not description:
+            log(TRACE, get_extension_from_module_spec, 'Finding metadata for module')
             description = get_internal_module_metadata(mod)
             if not description:
                 log(
@@ -57,6 +62,7 @@ def get_extension_from_module_spec(
                     mod
                 )
                 return None
+            log(TRACE, get_extension_from_module_spec, 'Found metadata for module')
 
         loader = get_module_loader(mod)
         if not loader:
@@ -68,6 +74,7 @@ def get_extension_from_module_spec(
             )
             return None
 
+        log(DEBUG, get_extension_from_module_spec, 'Loaded module as extension {0}', extension)
         return DiscoveredExtension(extension, version, description, loader)
     except Exception as err: # pylint: disable=broad-except
         logerr(

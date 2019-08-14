@@ -3,11 +3,14 @@
 Add the extensions into the system.
 """
 
-from typing import Sequence, Set, Iterable, Optional
+from typing import Sequence, Set, List, Tuple, Iterable, Optional
+from ...base.security import SandboxPermission
 from ...core.extensions.api import (
     ExtensionLoadedEvent,
     ExtensionState,
     LoadedExtension,
+    ExtensionLoaderSetup,
+    ANY_VERSION,
 )
 from ...core.extensions.api.events import (
     TARGET_EXTENSION_LOADER,
@@ -25,22 +28,52 @@ from ...base import (
     EventBus,
     EventId,
     EventCallback,
-    ParticipantId
+    ParticipantId,
+    log,
+    DEBUG,
 )
-from ...base.bus import ListenerSetup
+from ...base.bus import (
+    ListenerSetup,
+    ExtensionMetadataStruct,
+)
 from ...errors import PetroniaExtensionNotFound
 from .defs import (
     ExtensionLoader,
 )
+from .create_loader import create_extension_loader
 from .ext_loader import (
-    load_additional_extension,
+    load_additional_extensions,
 )
+
+
+def compatible_start_extension(bus: EventBus) -> None: # pylint: disable=unused-argument
+    """For extension compatibility.  Doesn't do anything."""
+
+
+EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "type": "impl",
+    "implements": [
+        {
+            "extension": "core.extensions.api",
+            "minimum": ANY_VERSION,
+        },
+    ],
+    "depends": [
+        {
+            "extension": "core.state.api",
+            "minimum": ANY_VERSION,
+        }
+    ],
+
+    "name": "default.extensions",
+    "version": (1, 0, 0,),
+    "authors": ["Petronia"],
+}
+
 
 def bootstrap_extension_loader(
         bus: EventBus,
-        preloaded_extensions: Iterable[LoadedExtension],
-        initial_only_secure: bool,
-        loader: ExtensionLoader
+        setup: ExtensionLoaderSetup
 ) -> None:
     """
     Adds the extension loader into the bus.  Because the extensions loader has
@@ -48,7 +81,35 @@ def bootstrap_extension_loader(
     with configuration state.
     """
 
-    extloader = _ExtensionStatefulLoader(bus, ExtensionState(preloaded_extensions), loader)
+    module_dirs: List[Tuple[str, Optional[Iterable[SandboxPermission]]]] = [
+        (secure_path, None,) for secure_path in setup.secure_paths
+    ]
+    module_dirs.extend(setup.sandbox_paths)
+
+    zip_dirs: List[Tuple[str, Optional[Iterable[SandboxPermission]]]] = [
+        (secure_path, None,) for secure_path in setup.secure_zip_dirs
+    ]
+    zip_dirs.extend(setup.sandbox_zip_dirs)
+
+    loader = create_extension_loader(
+        setup.cache_dir,
+        module_dirs,
+        zip_dirs
+    )
+
+    loaded = list(setup.preloaded_extensions)
+    # Add in ourself to the list of preloaded extensions.
+    loaded.append(LoadedExtension('default.extensions', True, (1, 0, 0,)))
+    for extensions in setup.initial_extension_groups:
+        # load_additional_extensions returns newly loaded extensions only
+        log(
+            DEBUG, bootstrap_extension_loader,
+            'Loading extension group {0}, using already loaded extensions {1}',
+            extensions, loaded
+        )
+        loaded.extend(load_additional_extensions(extensions, loader, bus, loaded))
+
+    extloader = _ExtensionStatefulLoader(bus, ExtensionState(setup.preloaded_extensions), loader)
     bus.add_listener(
         TARGET_EXTENSION_LOADER,
         _as_request_load_extension_listener,
@@ -85,8 +146,8 @@ class _ExtensionStatefulLoader:
                 # Already loaded the extension.  Nothing to do.
                 return
         # TODO error reporting / checking?
-        deps = load_additional_extension(
-            event_object.extension_name,
+        deps = load_additional_extensions(
+            (event_object.extension_name,),
             self.__loader,
             self.__bus,
             self._loaded

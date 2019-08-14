@@ -12,3 +12,6 @@ from .inifile import (
 from .tmpdir import (
     TEMP_DIR_PATH
 )
+from .extensions import (
+    get_preboot_extension_sets,
+)

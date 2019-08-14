@@ -24,6 +24,7 @@ from ...base import (
     log,
     ERROR,
     VERBOSE,
+    TRACE,
 )
 from ...base.util import WorkerThread
 from ...defimpl.bus.local.bus_queue import (
@@ -104,11 +105,21 @@ class CoreActionHandler(BusQueueManager):
                 for listener in listeners:
                     self.__count += 1
                     self._main_events.append((listener, arguments,))
+                    log(
+                        TRACE, CoreActionHandler.queue_function,
+                        'Queued listener.  Normal queue size: {0}',
+                        len(self._main_events)
+                    )
                 self._main_thread.queue(self._main_handler)
             elif priority == QUEUE_EVENT_HIGH:
                 for listener in listeners:
                     self.__count += 1
                     self._priority_events.append((listener, arguments,))
+                    log(
+                        TRACE, CoreActionHandler.queue_function,
+                        'Queued listener.  Priority queue size: {0}',
+                        len(self._priority_events)
+                    )
                 self._main_thread.queue(self._main_handler)
             log(
                 VERBOSE, CoreActionHandler,
@@ -126,25 +137,47 @@ class CoreActionHandler(BusQueueManager):
         remaining = True
         while remaining:
             hand = None
+            remaining = False
             with self.__lock:
+                log(
+                    TRACE, CoreActionHandler._main_handler,
+                    'In main handler pull event loop.  Priority events: {0}, regular: {1}',
+                    len(self._priority_events), len(self._main_events)
+                )
                 if self._priority_events:
+                    log(
+                        TRACE, CoreActionHandler._main_handler,
+                        'Pulling priority event'
+                    )
                     hand = self._priority_events[0]
                     del self._priority_events[0]
                     remaining = True
                 elif self._main_events:
+                    log(
+                        TRACE, CoreActionHandler._main_handler,
+                        'Pulling regular event'
+                    )
                     hand = self._main_events[0]
                     del self._main_events[0]
             if hand:
                 self._run_handler(hand)
 
     def _run_handler(self, req: _EventRequest) -> None:
+        log(
+            TRACE, CoreActionHandler._run_handler,
+            'Running event {0}', req
+        )
         try:
             req[0](req[1][0], req[1][1], req[1][2])
+        except SystemExit:
+            # Let everything else handle it.
+            raise
         except BaseException as err: # pylint: disable=broad-except
             self._error_handler('Failed running {0}'.format(req[1]), err)
-        with self.__lock:
-            self.__count -= 1
-            log(
-                VERBOSE, CoreActionHandler,
-                'Active event count: {0}', self.__count
-            )
+        finally:
+            with self.__lock:
+                self.__count -= 1
+                log(
+                    VERBOSE, CoreActionHandler,
+                    'Active event count: {0}', self.__count
+                )

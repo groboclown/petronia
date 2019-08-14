@@ -3,8 +3,10 @@
 The log handler.
 """
 
-import traceback
 from typing import Optional, Set
+import traceback
+import sys
+from threading import Lock
 from ....aid.simp import (
     TRACE, DEBUG, VERBOSE, INFO, NOTICE, WARN, DEPRECATED, ERROR, FATAL,
     LogLevel,
@@ -34,12 +36,19 @@ def standard_log_message(
         src_msg = src + msg
         if src_msg not in _SEEN_DEPRECATED:
             _SEEN_DEPRECATED.add(src_msg)
-            print("DEPRECTATION WARNING: {0} (reported from {1})".format(
+            _print("DEPRECTATION WARNING: {0} (reported from {1})".format(
                 msg, src
             ))
     else:
-        print(_LOG_PREFIX[level] + "{0:20}: ".format(src) + msg)
+        _print(_LOG_PREFIX[level] + "{0:20}: ".format(src) + msg)
     if err:
         traceback.print_exception(err.__class__, err, err.__traceback__)
 
 _SEEN_DEPRECATED: Set[str] = set()
+
+
+_PRINT_LOCK = Lock()
+def _print(msg: str) -> None:
+    with _PRINT_LOCK:
+        sys.stdout.write(msg + '\n')
+        sys.stdout.flush()

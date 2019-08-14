@@ -3,15 +3,19 @@
 Create the extension loader.
 """
 
+from typing import List, Iterable, cast
 import os
-from typing import List, Tuple, Iterable, Optional
+import importlib
 from ...base import EventBus
-from ...base.security import SandboxPermission
-from ...core.extensions.api import LoadedExtension
+from ...core.extensions.api import (
+    LoadedExtension,
+    EXTENSION_LOADER_MODULE_BOOTSTRAP_FUNCTION_NAME,
+    ExtensionLoaderSetup,
+    ExtensionLoaderBootstrapFunction,
+)
 from ...core.platform.preboot import DiscoveryData
-from ...defimpl.extensions.bootstrap import bootstrap_extension_loader as _bootstrap_extension_loader
-from ...defimpl.extensions.create_loader import create_extension_loader as _mk_ext_loader
 from .args import UserArguments
+
 
 def bootstrap_extension_extension(
         bus: EventBus, data: DiscoveryData,
@@ -21,30 +25,28 @@ def bootstrap_extension_extension(
     """
     Create the extension loader and register it to the event bus.
     """
-    local: List[Tuple[str, Optional[Iterable[SandboxPermission]]]] = []
-    zips: List[Tuple[str, Optional[Iterable[SandboxPermission]]]] = []
-    for path in data.ext_paths.secure_paths:
-        local.append((path, None,))
-    for spath in data.ext_paths.sandbox_paths:
-        local.append((spath[0], spath[1],))
-    for path in data.ext_paths.secure_zip_dirs:
-        zips.append((path, None,))
-    for spath in data.ext_paths.sandbox_zip_dirs:
-        zips.append((spath[0], spath[1],))
+    extension_sets: List[Iterable[str]] = list(data.preboot_extensions)
+    extension_sets.append(args.preboot_extensions)
+    extension_sets.extend(data.extension_sets)
+    # Add the already loaded extensions at the end, so that any default
+    # API implementation that hasn't been loaded will be added.
+    extension_sets.append([ext.name for ext in already_loaded_extensions])
     cache_dir = os.path.join(data.temp_dir, 'extension-cache')
     if not os.path.isdir(cache_dir):
         os.mkdir(cache_dir)
-    loader = _mk_ext_loader(
-        cache_dir,
-        local, zips
-    )
-    _bootstrap_extension_loader(
-        bus,
+    setup = ExtensionLoaderSetup(
+        data.ext_paths.secure_paths,
+        data.ext_paths.sandbox_paths,
+        data.ext_paths.secure_zip_dirs,
+        data.ext_paths.sandbox_zip_dirs,
         already_loaded_extensions,
-
-        # If at least one of these require "only secure", then that's the way
-        # it will be.
-        args.only_secure or data.only_secure,
-
-        loader
+        extension_sets,
+        cache_dir
     )
+    # TODO Error checking?
+    module = importlib.import_module(data.extension_loader_module.name)
+    loader_func = cast(
+        ExtensionLoaderBootstrapFunction,
+        getattr(module, EXTENSION_LOADER_MODULE_BOOTSTRAP_FUNCTION_NAME)
+    )
+    loader_func(bus, setup)

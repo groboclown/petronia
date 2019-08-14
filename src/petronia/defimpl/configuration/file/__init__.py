@@ -10,5 +10,5 @@ It is up to the platform to generate the initial state to trigger the
 configuration loading.
 """
 
-from .bootstrap import bootstrap_config_file as setup_extension
+from .bootstrap import bootstrap_config_file as start_extension
 from .bootstrap import EXTENSION_METADATA

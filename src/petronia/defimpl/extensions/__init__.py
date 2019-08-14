@@ -7,5 +7,7 @@ extension definitions.  However, the definitions should still be provided
 for proper integration into the extension API.
 """
 
-# Not renamed, because the extension loader doesn't load itself.
+# Uses the extension loader API for the name, not the extension names.
 from .bootstrap import bootstrap_extension_loader
+from .bootstrap import compatible_start_extension as start_extension
+from .bootstrap import EXTENSION_METADATA

@@ -27,6 +27,7 @@ from ....core.state.api import (
 )
 
 def bootstrap_config_file(bus: EventBus) -> None:
+    """Setup the extension."""
     _StateListener(bus)
 
 

@@ -33,7 +33,7 @@ def find_files(
     requested.
     """
     seen_dirs: Set[str] = set()
-    ret: List[str]
+    ret: List[str] = []
     for path in paths:
         if recurse:
             for dirpath, _, filenames in os.walk(path, followlinks=True):

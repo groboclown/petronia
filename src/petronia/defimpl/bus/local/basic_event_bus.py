@@ -164,12 +164,12 @@ class BasicEventBus:
         BasicEventBus.assert_event_id(event_id)
         BasicEventBus.assert_target_id(target_id)
         # Use a set of event names, in case the event_id or target_id are themselves wildcards.
-        events = set([
+        events = set((
             BasicEventBus._join_ids(event_id, target_id),
             BasicEventBus._join_ids(EVENT_WILDCARD, target_id),
             BasicEventBus._join_ids(event_id, TARGET_WILDCARD),
             BasicEventBus._join_ids(EVENT_WILDCARD, TARGET_WILDCARD),
-        ])
+        ))
         listeners: List[BasicEventCallback] = []
         self.__lock.acquire_read()
         try:
@@ -225,13 +225,20 @@ class BasicEventBus:
                 # At most one registration item contains the listener reference.
                 for register_id, reg_list in self.__listener_reg.items():
                     if listener_id in reg_list:
+                        log(TRACE, BasicEventBus, 'Removed listener {0} from {1} list {2}; remaining listeners: {3}',
+                            listener_id, register_id, reg_list, self.__listener_reg)
                         reg_list.remove(listener_id)
-                    # Because target_id can have a short lifespan, we clean up
-                    # the list to prevent the dictionary from getting huge over a long
-                    # period of time.
-                    if not reg_list:
-                        del self.__listener_reg[register_id]
-                    return True
+                        # Because target_id can have a short lifespan, we clean up
+                        # the list to prevent the dictionary from getting huge over a long
+                        # period of time.
+                        if not reg_list:
+                            del self.__listener_reg[register_id]
+                        log(
+                            TRACE, BasicEventBus,
+                            'De-registered listener id {0} w/ registration id {1}',
+                            listener_id, register_id
+                        )
+                        return True
             # If we reached this point, then there was a problem with our internal
             # state maintenance.
             assert_formatted(
