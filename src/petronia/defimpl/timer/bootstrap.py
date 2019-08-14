@@ -10,12 +10,14 @@ from ...base.bus import (
 from ...core.extensions.api import ANY_VERSION
 from ...core.state.api import (
     as_state_change_listener,
+    StateStoreUpdatedEvent,
 )
+from ...core.state.api.events import EVENT_ID_UPDATED_STATE
 from .config import (
     TARGET_TIMER_CONFIG,
     DEFAULT_INTERVAL,
     TimerConfig,
-    set_timer_config
+    set_timer_config,
 )
 from .timer import BusTimer
 
@@ -35,7 +37,20 @@ def start_extension(bus: EventBus) -> None:
         as_state_change_listener,
         timer.on_config_change
     )
-    set_timer_config(bus, TimerConfig(DEFAULT_INTERVAL, True))
+    # This implicitly requires a state API implementation to be
+    # loaded at boot time.  As the timer is a critical, core component
+    # that everything depends upon, we can't expect the state to be
+    # loaded first.  Therefore, the config is directly set here.
+    # set_timer_config(bus, TimerConfig(DEFAULT_INTERVAL, True))
+    timer.on_config_change(
+        EVENT_ID_UPDATED_STATE,
+        TARGET_TIMER_CONFIG,
+        StateStoreUpdatedEvent(
+            TARGET_TIMER_CONFIG, TimerConfig,
+            TimerConfig(DEFAULT_INTERVAL, True),
+            None
+        )
+    )
 
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {

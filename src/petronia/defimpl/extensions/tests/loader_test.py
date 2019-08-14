@@ -31,6 +31,8 @@ class ExtensionManagerTest(unittest.TestCase):
         bootstrap_state_store_api(bus)
 
         ext1 = LoadedExtension('x', True, (1, 0, 0,))
+        # state api needed here, because it's a dependency of core.timer.api's default.
+        ext2 = LoadedExtension('core.state.api', True, (1, 0, 0,))
         disc1 = mk_disc('x', (True, ext1.version), [], stand_alone=True)
         disc2 = mk_disc('y', (False, (1, 2, 3,),), [], stand_alone=True)
         loader1 = MockLoader(disc1, disc2)
@@ -39,21 +41,20 @@ class ExtensionManagerTest(unittest.TestCase):
         with EnabledLogs(ERROR):
             new_state = load_additional_extensions(
                 ['core.timer.api'],
-                loader, bus, [ext1])
+                loader, bus, [ext1, ext2])
 
         # 'x' is considered an already-loaded extension, so it is
         # not returned by the load call.
         self.maxDiff = None
-        self.assertEqual(len(new_state), 4)
+        self.assertEqual(len(new_state), 5)
 
         # These two must be added, but there is no reason to have one before
         # the other, so their ordering doesn't matter for these two items.
         # Therefore, to make the big assert equal to work, we'll force a
         # swap.
-        if new_state[2].name == 'default.timer':
-            tmp = new_state[2]
-            new_state[2] = new_state[3]
-            new_state[3] = tmp
+        any_order = list(new_state[2:])
+        any_order.sort(key=lambda a: a.name)
+        new_state = new_state[:2] + any_order
 
         self.assertEqual(
             list(new_state),
@@ -66,6 +67,7 @@ class ExtensionManagerTest(unittest.TestCase):
                 # Extension loads the default implementations.
                 # The order here doesn't matter.
                 LoadedExtension('default.shutdown.timer', True, ANY_VERSION),
+                LoadedExtension('default.state', True, ANY_VERSION),
                 LoadedExtension('default.timer', True, ANY_VERSION),
             ]
         )

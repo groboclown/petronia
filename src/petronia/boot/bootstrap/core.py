@@ -18,13 +18,14 @@ from ...core.extensions.api import (
 from ...defimpl.extensions.loaders import CoreExtensionLoader
 
 _ORDERED_CORE_EXTENSIONS = (
+    # The absolute bare minimum stuff necessary to get petronia
+    # loaded.  More than this causes the default implementations
+    # to load, which may need state before boot time.
     'core.shutdown.api',
     'core.state.api',
     'core.extensions.api',
     'core.config_persistence.api',
-
-    # This requires state to be loaded first.
-    # 'core.timer.api',
+    'core.timer.api',
 
     # This must be loaded after the initial list of extensions.
     #'core.platform.api',

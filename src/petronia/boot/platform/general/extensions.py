@@ -24,12 +24,10 @@ from typing import Dict, List, Iterable, Optional
 # A "None" value means use the standard default.  Anything
 # not in the list does not belong in the preboot sequence.
 # see `petronia.boot.bootstrap.core` for the list.
-DEFAULT_PREBOOT_EXTENSIONS_1: Dict[str, Optional[str]] = {
+DEFAULT_PREBOOT_EXTENSIONS: Dict[str, Optional[str]] = {
     'core.state.api': None,
     'core.extensions.api': None,
     'core.config_persistence.api': None,
-}
-DEFAULT_PREBOOT_EXTENSIONS_2: Dict[str, Optional[str]] = {
     'core.shutdown.api': None,
     'core.timer.api': None,
 }
@@ -38,6 +36,5 @@ DEFAULT_PREBOOT_EXTENSIONS_2: Dict[str, Optional[str]] = {
 def get_preboot_extension_sets() -> Iterable[Iterable[str]]:
     # TODO load the defaults from an ini or config file?
     ret: List[Iterable[str]] = []
-    ret.append(DEFAULT_PREBOOT_EXTENSIONS_1.keys())
-    ret.append(DEFAULT_PREBOOT_EXTENSIONS_2.keys())
+    ret.append(DEFAULT_PREBOOT_EXTENSIONS.keys())
     return ret
