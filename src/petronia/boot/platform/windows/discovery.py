@@ -16,6 +16,7 @@ from ..general import (
     get_preboot_extension_sets,
 )
 from ...bootstrap.managed_queue import RootEventQueueModel
+from .autodetect import discover_platform_ext
 
 
 def discover_preboot_data() -> DiscoveryData:
@@ -35,7 +36,10 @@ def discover_preboot_data() -> DiscoveryData:
     return DiscoveryData(
         extension_paths,
         get_preboot_extension_sets(),
-        [['default.configuration.file']],
+        [
+            ['default.configuration.file',],
+            [discover_platform_ext()],
+        ],
         TEMP_DIR_PATH,
         False,
         ExtensionLoaderModel('petronia.defimpl.extensions'),

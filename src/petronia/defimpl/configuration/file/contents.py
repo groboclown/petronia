@@ -13,12 +13,14 @@ import locale
 from ....base.util import (
     optional_key,
     V,
+    EMPTY_DICT,
 )
-from ....core.extensions.api import ANY_VERSION, ExtensionVersion
+from ....core.extensions.api import ExtensionVersion
 from ....core.config_persistence.api import PersistType
 
 
-_CONFIGURATION_ID_FORMAT = '{0}/setup-configuration'
+_DEFAULT_CONFIGURATION_NAME = 'setup-configuration'
+_CONFIGURATION_ID_FORMAT = '{0}/{1}'
 
 class ExtensionConfigurationDetails:
     """
@@ -26,15 +28,13 @@ class ExtensionConfigurationDetails:
     """
     __slots__ = (
         '__src', '__mod', '__state_id', '__state', '__err',
-        '__name', '__version', '__below_version', '__enabled',
+        '__name', '__enabled',
     )
     def __init__(
             self,
             src: str,
             name: str,
-            extension: Optional[str] = None,
-            version: Optional[ExtensionVersion] = None,
-            below_version: Optional[ExtensionVersion] = None,
+            extension_name: Optional[str] = None,
             state_id: Optional[str] = None,
             # FIXME make the error a locale specific string.
             err: Optional[str] = None,
@@ -42,17 +42,16 @@ class ExtensionConfigurationDetails:
             enabled: bool = False
     ) -> None:
         self.__src = src
-        self.__mod = extension
+        self.__mod = extension_name
         self.__state_id = state_id
         self.__err = err
         self.__state = state
         self.__name = name
-        self.__version = version
-        self.__below_version = below_version
         self.__enabled = enabled
 
     # Derived value, so not a property.
     def is_error(self) -> bool:
+        """Does this represent an error during load?"""
         return self.__err is not None
 
     @property
@@ -64,7 +63,7 @@ class ExtensionConfigurationDetails:
         return self.__name
 
     @property
-    def extension(self) -> Optional[str]:
+    def extension_name(self) -> Optional[str]:
         return self.__mod
 
     @property
@@ -76,24 +75,17 @@ class ExtensionConfigurationDetails:
         return self.__state_id
 
     @property
-    def version(self) -> Optional[ExtensionVersion]:
-        return self.__version
-
-    @property
-    def below_version(self) -> Optional[ExtensionVersion]:
-        return self.__below_version
-
-    @property
     def state(self) -> Optional[PersistType]:
         return self.__state
 
     @property
-    def enabled(self) -> bool:
+    def is_enabled(self) -> bool:
         return self.__enabled
 
 
-
-def deserialize_contents(file_contents: Any, source_name: str) -> Sequence[ExtensionConfigurationDetails]:
+def deserialize_contents(
+        file_contents: Any, source_name: str
+) -> Sequence[ExtensionConfigurationDetails]:
     """
     Converts the contents into objects.
 
@@ -133,38 +125,49 @@ def deserialize_contents(file_contents: Any, source_name: str) -> Sequence[Exten
     return ret
 
 
-def decode_value(src: str, key: str, raw: Dict[str, Any]) -> ExtensionConfigurationDetails:
-    extension_name = _safe_key(raw, 'extension', str)
+def decode_value(
+        src: str, key: str, raw: Dict[str, Any]
+) -> ExtensionConfigurationDetails:
+    """
+    Extract out the details of the value.
+    """
+    extension_name = _safe_key(raw, 'extension', str) or _safe_key(raw, 'ext', str)
+    configuration_name = _safe_key(raw, 'config', str) or _DEFAULT_CONFIGURATION_NAME
+    # If "config" is given, then this describes a configuration.
+    # If "extension" and "config" are given, then this is considered to be
+    # a configuration for that extension.
+    # If "config" is not given, then this is the default configuration for the
+    # extension.
+    # If none are given, then this is the default configuration for the
+    # extension named in the key.
     if not extension_name:
-        return ExtensionConfigurationDetails(
-            src, key,
-            # TODO localize
-            err='`extension` key required'
-        )
+        extension_name = key.replace('-', '.')
     raw_enabled = _safe_key(raw, 'enabled', bool)
     if raw_enabled is None:
         enabled = True
     else:
         enabled = raw_enabled
-    raw_version = _safe_key(raw, 'version', (str, Iterable,))
-    if raw_version:
-        version = decode_version(raw_version)
-    else:
-        version = ANY_VERSION
-    raw_below = _safe_key(raw, 'below.version', (str, Iterable,))
-    below: Optional[ExtensionVersion] = None
-    if raw_below:
-        below = decode_version(raw_below)
-    properties = _safe_key(raw, 'properties', dict) or {}
-    # Properties are allowed to be empty, if no configuration is given
 
-    state_id = _CONFIGURATION_ID_FORMAT.format(extension_name)
+    # Version and below.version are currently not used.
+    # Using them will require changes to the extension load request code.
+    # raw_version = _safe_key(raw, 'version', (str, Iterable,))
+    # if raw_version:
+    #     version = decode_version(raw_version)
+    # else:
+    #     version = ANY_VERSION
+    # raw_below = _safe_key(raw, 'below.version', (str, Iterable,))
+    # below: Optional[ExtensionVersion] = None
+    # if raw_below:
+    #     below = decode_version(raw_below)
+
+    # Properties are allowed to be empty, if no configuration is given
+    properties: Dict[str, Any] = _safe_key(raw, 'properties', dict) or EMPTY_DICT
+
+    state_id = _CONFIGURATION_ID_FORMAT.format(extension_name, configuration_name)
     state: PersistType = enforce_persist_type(properties)
     return ExtensionConfigurationDetails(
         src, key,
-        extension=extension_name,
-        version=version,
-        below_version=below,
+        extension_name=extension_name,
         state_id=state_id,
         state=state,
         enabled=enabled
@@ -210,4 +213,4 @@ def decode_version(version: Union[str, Iterable[Any]]) -> Union[str, ExtensionVe
 
 def enforce_persist_type(properties: Dict[str, Any]) -> PersistType:
     # TODO validate, but that means returning a possible error.
-    return properties
+    return cast(PersistType, properties)

@@ -14,7 +14,7 @@ class TextDisplay:
     """
     __slots__ = (
         '__size', '__font',
-        '__weight', '__italic', '__underline',
+        '__weight', '__italic', '__underline', '__strikethrough',
         '__color', '__baseline', '__base_dir',
     )
 
@@ -25,6 +25,7 @@ class TextDisplay:
             weight: int,
             italic: int,
             underline: int,
+            strikethrough: int,
             color: Color,
             baseline: FontQUnit,
             base_direction: TextBiDi
@@ -39,6 +40,8 @@ class TextDisplay:
         self.__italic = italic
         assert underline >= 0
         self.__underline = underline
+        assert strikethrough >= 0
+        self.__strikethrough = strikethrough
         assert color
         self.__color = color
         self.__baseline = baseline
@@ -72,6 +75,12 @@ class TextDisplay:
         """The number of underlines to put on the text.  Some platforms will
         have a maximum number."""
         return self.__underline
+
+    @property
+    def strikethrough(self) -> int:
+        """The number of lines to draw through the text.  Some platforms will
+        have a maximum number."""
+        return self.__strikethrough
 
     @property
     def color(self) -> Color:

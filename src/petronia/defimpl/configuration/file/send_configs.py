@@ -11,7 +11,7 @@ from ....aid.simp import (
 )
 from ....aid.bootstrap import create_singleton_identity
 from ....core.config_persistence.api import PersistType
-
+from ....core.extensions.api import send_request_load_extension_event
 
 def send_config(bus: EventBus, config: ExtensionConfigurationDetails) -> None:
     if config.is_error():
@@ -26,5 +26,12 @@ def send_config(bus: EventBus, config: ExtensionConfigurationDetails) -> None:
         # FIXME do something smart.
         # Send a platform Notification?
         return
-    if config.state_id:
+    if config.state_id and config.is_enabled:
+        # Note: version information is not used.
+        send_request_load_extension_event(bus, config.name)
+
+        # Note that the configuration MUST be a PersistType; without it, it
+        # requires importing the configuration object.  This cannot be done
+        # due to security restraints around the extension.
+
         set_state(bus, create_singleton_identity(config.state_id), PersistType, config.state)

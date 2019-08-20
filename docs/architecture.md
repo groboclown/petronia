@@ -208,7 +208,7 @@ The extension zip file must contain a `manifest.json` file that defines informat
 
 Extension modules must provide the function `start_extension` which takes a single argument, the `EventBus` instance.  This function must register event types and add listeners as appropriate for the module.  If the module adds event listeners, it must also add an event listener for the `RequestDisposeEvent` event, to allow for the module to be removed.  The `petronia3.ext_help.module_bootstrap` module can help with this.  Events to dispose the extension will be sent to the module name of the extension.
 
-If an extension allows for configuration setup events, these are sent by the configuration setup extension to a state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.
+If an extension allows for configuration setup events, these are sent by the configuration setup extension to a default state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.  The extension can listen for additional configurations, all must start with the extension module name + `/`
 
 For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the JSON above.
 
@@ -224,13 +224,13 @@ The state store has an interesting global data problem.  Specifically, how to ma
 
 Configuration in Petronia is much more than some files.  It takes advantage of the state storage mechanism and applies readers and persistence on top of it.  Each component can make itself configuration aware by adding a state store object (will need to be a singleton) and listen for changes to it, and send events for its own changes to the configuration.
 
-From the configurable component perspective, configuration is a *push* operation - the configuration system loads the configuration and sends out the configuration state to the state store.  The configurable component loads a default configuration at startup time, and listens for the configuration state changes.
+From the configurable component perspective, configuration is a *push* operation - the configuration extension loads the configuration and sends out the configuration state to the state store.  The configurable component loads a default configuration at startup time, and listens for the configuration state changes.
 
 Another possible state is a *session*, which is for intermediary states.  For example, a tile split and pixel position could be saved in the session, so the user can resume the previous setup when the UI is restarted.
 
-The configuration system itself defines basic events and usage patterns, and provides some readers.  It is up to the user setup or platform to define the loading of the used files.  Other programs could be written to allow for on-the-fly configuration changes.
-
 If an extension allows for configuration setup events, these are sent by the configuration setup extension to a state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.
+
+The `default.configuration.file` extension loads configuration information from the file system, using a state created by the bootstrap.  Each loaded file is either a `json` or `yaml` file that defines the extensions to load, and how to configure them.
 
 
 #### Platform (Singleton)
@@ -245,8 +245,11 @@ A global timer (or "heartbeat") that generates an event at a configurable interv
 
 Components that rely on the timer should allow configuration to set how often to run based on the number of timer heartbeats (e.g. once every two heartbeats).
 
+## Lifecycle
 
-## System Lifecycle
+Different aspects of the system have their own way of interacting with Petronia.
+
+### System Lifecycle
 
 The standard Petronia lifecycle is:
 
@@ -259,6 +262,9 @@ The standard Petronia lifecycle is:
     * other fundamental extensions determined by the boot function.
     * extensions specified by user configuration and platform.
 1. Event `SystemStartedEvent` sent.
+    * TODO how do we know when to send this?  Will probably require a new extension
+      that listens for created events from the extensions, and when certain ones complete,
+      it sends out that event.
 1. System is under normal operation.
 1. A component in the system sends a `RequestSystemShutdownEvent`.
 1. A shutdown implementation extension takes over the UI and begins shutdown.
@@ -274,7 +280,13 @@ The standard Petronia lifecycle is:
 This assumes that the `shutdown` extension is installed by the boot system.
 
 
-## Component Lifecycle
+### Extension Lifecycle
+
+Non-core extensions have a specific way for integrating into the system.
+
+
+
+### Component Lifecycle
 
 Because Petronia is loosely coupled, new components are created through the owning extension's factory, and events are generated to request the creation and to inform about the creation.
 
@@ -292,3 +304,12 @@ Because Petronia is loosely coupled, new components are created through the owni
 1. The component removes any registered event bus listeners, and performs additional tear-down actions, then sends `DisposeCompleteEvent` to indicate that it completed the tear-down process.
 1. The component may be involved in the user shutdown process, in which case it needs to listen to `SystemShutdownEvent` and `SystemShutdownCancelledEvent`, and handle those correctly.
 1. The component listens to `SystemShutdownFinalizeEvent` to tear itself down.  It will send out the correct `DisposeCompleteEvent` events when it removes itself.
+
+
+## Platform API Implementation Auto-Detection
+
+One aspect of Petronia that needs some figuring out is the auto-detection of the Petronia platform.  The boot-time stuff is fine, but after that, it gets weird.
+
+Windows is easy to detect.  Figuring out the Windows version is straight forward using standard Python tools.
+
+For Linux, there are two separate standards at the moment - Wayland and X11.  This is compounded by Wayland compatibility with X11 protocols.  The work-around here is to force the end-user to select one or the other.
