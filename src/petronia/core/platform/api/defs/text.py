@@ -8,6 +8,7 @@ from .color import Color
 from .units import FontQUnit
 from .alignment import TextBiDi
 
+
 class TextDisplay:
     """
     The lowest level description about how to display text.

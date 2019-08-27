@@ -1,5 +1,11 @@
 # Petronia Change History
 
+## :: v3.0.0 ::
+
+### Overview
+
+Complete rewrite of Petronia.  It now supports multiple platforms.
+
 ## :: v2.2.1 ::
 
 ### Overview

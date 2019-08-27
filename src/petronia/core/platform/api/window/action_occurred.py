@@ -9,7 +9,9 @@ from .....base import (
 )
 
 
-EVENT_ID_WINDOW_CREATED = EventId('core.platform.api native-window-created')
+# ---------------------------------------------------------------------------
+EVENT_ID_NATIVE_WINDOW_CREATED = EventId('core.platform.api native-window-created')
+
 
 class NativeWindowCreatedEvent:
     """
@@ -30,8 +32,9 @@ class NativeWindowCreatedEvent:
         return self.__id
 
 
-
+# ---------------------------------------------------------------------------
 EVENT_ID_NATIVE_WINDOW_CLOSED = EventId('core.platform.api native-window-closed')
+
 
 class NativeWindowClosedEvent:
     """

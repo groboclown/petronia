@@ -3,9 +3,10 @@ Basic operations.  These are fundamental actions in Python that make the code
 much cleaner.
 """
 
-import collections
+import collections.abc
 from typing import Dict, Sequence, Tuple, Union, Optional
 from .memory import K, V, T
+
 
 def in_or(con: Dict[K, V], key: K, default_value: V) -> V:
     """If the key is in the collection, return the value, otherwise return the
@@ -39,7 +40,7 @@ def optional_list_key(
     if key not in con:
         return None
     val = con[key]
-    if isinstance(val, collections.Sequence):
+    if isinstance(val, collections.abc.Sequence):
         if oftype:
             for one in val:
                 if not isinstance(one, oftype):

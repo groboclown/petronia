@@ -17,9 +17,11 @@ from .keymap import (
     VK_ALIASES,
 )
 
+
 class HotkeyFormatErrorMessage:
     """A problem with the format of a hotkey string."""
     __slots__ = ('__hotkey', '__err_msg', '__err_args',)
+
     def __init__(
             self, hotkey: str, err_msg: str,
             *err_args: Union[int, str]
@@ -89,12 +91,12 @@ def create_master_modifier(
     """Creates a primary modifier combination master sequence, such as `super`."""
     return parse_modifier_sequence(master, master)
 
+
 def create_master_mkey(
         modifier_key: str
 ) -> Union[Tuple[Sequence[ModifierKeyCode], StandardKeyCode], HotkeyFormatErrorMessage]:
     """Creates a master modifier key sequence, such as `super+a`."""
     return parse_simple_modified_key(modifier_key, modifier_key)
-
 
 
 def parse_modifier_sequence(

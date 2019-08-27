@@ -1,19 +1,27 @@
 """
-32-bit Windows functions
+64-bit windows functions
 """
 
-from ctypes import wintypes, windll, GetLastError, WinError
-from .windows_constants import *
+from typing import Dict, Union
+from .windows_common import (
+    HWND,
+    windll,
+    WindowsErrorMessage,
+)
+from ..windows_constants import *
+from .supported_functions import (
+    Functions,
+)
 
 
-def load_functions(environ, func_map):
-    if environ['32-bit']:
-        func_map['window__set_style'] = window__set_style
-        func_map['window__has_style'] = window__has_style
-        func_map['window__get_style'] = window__get_style
+def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
+    if environ['64-bit']:
+        func_map.window.set_style = window__set_style
+        func_map.window.has_style = window__has_style
+        func_map.window.get_style = window__get_style
 
 
-def window__set_style(hwnd, style_update):
+def window__set_style(hwnd: HWND, style_update: Dict[str, bool]) -> Union[WindowsErrorMessage, Dict[str, bool]]:
     """
     Update a window's style.  "style_update" is a dictionary of style
     keys that map to either True or False, depending on how the style
@@ -26,7 +34,7 @@ def window__set_style(hwnd, style_update):
     """
     assert isinstance(style_update, dict)
 
-    SetWindowLongW = windll.user32.SetWindowLongW
+    SetWindowLongPtrW = windll.user32.SetWindowLongPtrW
     SetLastError = windll.kernel32.SetLastError
 
     original_style = window__get_style(hwnd)
@@ -43,9 +51,9 @@ def window__set_style(hwnd, style_update):
             std_bits |= mask
     if std_style_update:
         SetLastError(0)
-        res = SetWindowLongW(hwnd, GWL_STYLE, std_bits)
-        if res == 0 or GetLastError() != 0:
-            raise WinError()
+        res = SetWindowLongPtrW(hwnd, GWL_STYLE, std_bits)
+        if res == 0:
+            return WindowsErrorMessage('user32.SetWindowLongPtrW')
 
     ex_style_update = False
     ex_bits = 0
@@ -59,9 +67,10 @@ def window__set_style(hwnd, style_update):
             ex_bits |= mask
     if ex_style_update:
         SetLastError(0)
-        res = SetWindowLongW(hwnd, GWL_EXSTYLE, ex_bits)
-        if res == 0 or GetLastError() != 0:
-            raise WinError()
+        # print("DEBUG Setting Window Ex Style to {0}".format(hex(ex_bits)))
+        res = SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex_bits)
+        if res == 0:
+            return WindowsErrorMessage('user32.SetWindowLongPtrW')
 
     # Sometimes, it only changed some of the values.
     # Double check.
@@ -69,25 +78,25 @@ def window__set_style(hwnd, style_update):
     if expected_style != final_style:
         # raise OSError("Did not fully set style to {0}; found {1}".format(
         #     expected_style, final_style))
-        # print("Did not fully set style to {0}; found {1}".format(
-        #      expected_style, final_style))
+        # print("DEBUG Did not fully set style to {0}; found {1}".format(
+        #     expected_style, final_style))
         pass
 
     return original_style
 
 
-def window__has_style(hwnd_handle, style):
+def window__has_style(hwnd_handle: HWND, style: str) -> bool:
     full_style = window__get_style(hwnd_handle)
     return style in full_style
 
 
-def window__get_style(hwnd_handle):
+def window__get_style(hwnd_handle: HWND) -> Dict[str, bool]:
     ret = {}
-    GetWindowLongW = windll.user32.GetWindowLongW
-    bits = GetWindowLongW(hwnd_handle, GWL_STYLE)
+    GetWindowLongPtrW = windll.user32.GetWindowLongPtrW
+    bits = GetWindowLongPtrW(hwnd_handle, GWL_STYLE)
     for k, mask in WS_STYLE_BIT_MAP.items():
         ret[k] = (bits & mask == mask)
-    bits = GetWindowLongW(hwnd_handle, GWL_EXSTYLE)
+    bits = GetWindowLongPtrW(hwnd_handle, GWL_EXSTYLE)
     for k, mask in WS_EX_STYLE_BIT_MAP.items():
         ret[k] = (bits & mask == mask)
     return ret

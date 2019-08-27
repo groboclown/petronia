@@ -5,9 +5,9 @@
 """
 Windows 10 functions
 """
-
-from typing import Dict, Callable, Any
-
+from ctypes import WinError
+from typing import Dict, Optional
+from typing import cast as t_cast
 from .windows_common import (
     CFUNCTYPE,
     DWORD,
@@ -16,18 +16,22 @@ from .windows_common import (
     BOOL,
     HWND,
     LPARAM,
+    c_long,
 
     POINT,
     RECT,
 
     Structure,
-    WinError,
+    WindowsErrorMessage,
     create_unicode_buffer,
     windll,
     byref,
     c_sizeof,
 )
-from .windows_constants import (
+from .supported_functions import (
+    Functions,
+)
+from ..windows_constants import (
     WM_LBUTTONDOWN,
     MK_LBUTTON,
     BM_CLICK,
@@ -47,15 +51,16 @@ from .windows_constants import (
     INVALID_HANDLE_VALUE,
 )
 
-def load_functions(environ: Dict[str, str], func_map: Dict[str, Callable[..., Any]]) -> None:
+
+def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     if environ['system'].lower() == 'windows' and environ['release'].lower() == '10':
         load_all_functions(func_map)
 
 
-def load_all_functions(func_map: Dict[str, Callable[..., Any]]) -> None:
+def load_all_functions(func_map: Functions) -> None:
     from .funcs_win8 import load_all_functions as w8_load
     w8_load(func_map)
-    func_map['shell__open_start_menu'] = shell__open_start_menu
+    func_map.shell.open_start_menu = shell__open_start_menu
 
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms686735(v=vs.85).aspx
@@ -83,11 +88,11 @@ class WINDOWPLACEMENT(Structure):
     ]
 
 
-def shell__open_start_menu(show_taskbar):
+def shell__open_start_menu(show_taskbar: bool) -> Optional[WindowsErrorMessage]:
     # Find the task bar window
     taskbar_hwnd = windll.user32.FindWindowW("Shell_TrayWnd", None)
     if taskbar_hwnd is None or 0 == taskbar_hwnd:
-        raise WinError()
+        return WindowsErrorMessage('user32.FindWindowW')
     taskbar_size = RECT()
     windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
 
@@ -98,18 +103,18 @@ def shell__open_start_menu(show_taskbar):
     triggered_start = [False]
 
     # Find the "Start" button in the taskbar.
-    def child_window_callback(hwnd, lparam):
-        class_buff = create_unicode_buffer(256)
-        length = windll.user32.GetClassNameW(hwnd, class_buff, 256)
+    def child_window_callback(hwnd: HWND, _: LPARAM) -> bool:
+        class_buffer = create_unicode_buffer(256)
+        length = windll.user32.GetClassNameW(hwnd, class_buffer, 256)
         if length <= 0:
-            class_buff = None
+            class_name = None
         else:
-            class_buff = class_buff.value[:length]
+            class_name = class_buffer.value[:length]
         length = windll.user32.GetWindowTextLengthW(hwnd)
         if length > 0:
             title_buff = create_unicode_buffer(length + 1)
             windll.user32.GetWindowTextW(hwnd, title_buff, length + 1)
-            print("DEBUG - Inspecting {0} | {2} = {1}".format(hwnd, title_buff.value, class_buff))
+            print("DEBUG - Inspecting {0} | {2} = {1}".format(hwnd, title_buff.value, class_name))
             if title_buff.value == "Start":
                 # Found the window
                 print("DEBUG sending Click message")
@@ -118,6 +123,8 @@ def shell__open_start_menu(show_taskbar):
                 current_thread_id = windll.kernel32.GetCurrentThreadId()
                 thread_process_id = windll.user32.GetWindowThreadProcessId(hwnd, None)
                 m_res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
+                if not m_res:
+                    return False
                 m_res = windll.user32.SendMessageW(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, 0)
                 if m_res == 0:
                     # Don't look anymore
@@ -140,8 +147,10 @@ def shell__open_start_menu(show_taskbar):
     # if not triggered_start[0]:
     #     raise OSError("Could not find start button")
 
+    return None
 
-def shell__open_start_menu_bad(show_taskbar):
+
+def shell__open_start_menu_bad(show_taskbar: bool) -> None:
     # Find the task bar window
     taskbar_hwnd = windll.user32.FindWindowW("Shell_TrayWnd", None)
     if taskbar_hwnd is None or 0 == taskbar_hwnd:
@@ -161,18 +170,18 @@ def shell__open_start_menu_bad(show_taskbar):
     triggered_start = [False]
 
     # noinspection PyUnusedLocal
-    def thread_window_callback(hwnd, lparam):
-        class_buff = create_unicode_buffer(256)
-        length = windll.user32.GetClassNameW(hwnd, class_buff, 256)
+    def thread_window_callback(hwnd: HWND, lparam: LPARAM) -> bool:
+        class_buffer = create_unicode_buffer(256)
+        length = windll.user32.GetClassNameW(hwnd, class_buffer, 256)
         if length <= 0:
-            class_buff = None
+            class_name = None
         else:
-            class_buff = class_buff.value[:length]
+            class_name = str(class_buffer.value)[:length]
         length = windll.user32.GetWindowTextLengthW(hwnd)
         if length > 0:
             title_buff = create_unicode_buffer(length + 1)
             windll.user32.GetWindowTextW(hwnd, title_buff, length + 1)
-            print("DEBUG - Inspecting {0} | {2} = {1}".format(hwnd, title_buff.value, class_buff))
+            print("DEBUG - Inspecting {0} | {2} = {1}".format(hwnd, title_buff.value, class_name))
             if title_buff.value == "Start":
                 # Found the window
                 print("DEBUG sending Click message")
@@ -183,6 +192,7 @@ def shell__open_start_menu_bad(show_taskbar):
                     return False
                 else:
                     try:
+                        # Note: WinError only used here for error debugging.
                         print("<<ERROR pressing start button>>")
                         raise WinError()
                     except OSError:
@@ -219,23 +229,30 @@ def shell__open_start_menu_bad(show_taskbar):
                     # The taskbar and the start window rectangles overlap each other.
                     # Adjust the start window to be outside of this.
                     # Remember: the taskbar can be anywhere on the edge of the screen.
-                    new_x = client_rect.left
-                    new_y = client_rect.top
-                    if overlap_rect.left == client_rect.left and overlap_rect.right == client_rect.right:
+                    client_left = client_rect.left.value
+                    client_right = client_rect.right.value
+                    client_top = client_rect.top.value
+                    overlap_left = overlap_rect.left.value
+                    overlap_right = overlap_rect.right.value
+                    overlap_top = overlap_rect.top.value
+                    overlap_bottom = overlap_rect.bottom.value
+                    new_x = client_left
+                    new_y = client_top
+                    if overlap_left == client_left and overlap_right == client_right:
                         # Adjust along the y axis
-                        if overlap_rect.top <= client_rect.top <= overlap_rect.bottom:
+                        if overlap_top <= client_top <= overlap_bottom:
                             # Adjust down
-                            new_y = overlap_rect.bottom
+                            new_y = overlap_bottom
                         else:
                             # Adjust up
-                            new_y = client_rect.top - (overlap_rect.bottom - overlap_rect.top)
+                            new_y = client_top - (overlap_bottom - overlap_top)
                     else:
                         # Adjust along the x axis
-                        if overlap_rect.left <= client_rect.left <= overlap_rect.right:
+                        if overlap_left <= client_left <= overlap_right:
                             # Adjust to the right
-                            new_x = overlap_rect.right
+                            new_x = overlap_right
                         else:
-                            new_x = client_rect.left - (overlap_rect.right - overlap_rect.left)
+                            new_x = client_left - (overlap_right - overlap_left)
                     windll.user32.SetWindowPos(
                         hwnd, None, new_x, new_y,
                         0, 0, SWP_NOSIZE)
@@ -254,7 +271,7 @@ def shell__open_start_menu_bad(show_taskbar):
 
                 return False
         else:
-            print("DEBUG - Inspecting {0} | {1} => no title, ignoring".format(hwnd, class_buff))
+            print("DEBUG - Inspecting {0} | {1} => no title, ignoring".format(hwnd, class_name))
         return True
 
     # Find the threads for the process ID

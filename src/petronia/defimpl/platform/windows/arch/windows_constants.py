@@ -3,6 +3,13 @@
 Constants defined by Windows.
 """
 
+from typing import Dict
+# from typing import cast as t_cast
+from ctypes.wintypes import (
+    UINT, HANDLE, HWND,
+)
+
+# Well, this isn't, but it's global for Petronia <-> Windows interaction.
 PETRONIA_CREATED_WINDOW__CLASS_PREFIX = "Petronia__"
 
 
@@ -25,13 +32,13 @@ MAX_PROCESS_COUNT = 4096  # just something big
 
 MONITORINFOF_PRIMARY = 1  # c_int
 
-HWND_MESSAGE = -3  # ((HWND)(-3))
-HWND_BOTTOM = 1
-HWND_NOTOPMOST = -2
-HWND_TOP = 0
-HWND_TOPMOST = -1
-HWND_DESKTOP = 0
-INVALID_HANDLE_VALUE = -1
+HWND_MESSAGE = HWND(-3)
+HWND_BOTTOM = HWND(1)
+HWND_NOTOPMOST = HWND(-2)
+HWND_TOP = HWND(0)
+HWND_TOPMOST = HWND(-1)
+HWND_DESKTOP = HWND(0)
+INVALID_HANDLE_VALUE = HANDLE(-1)
 
 HWND_ZORDER_MAP = {
     "message": HWND_MESSAGE,
@@ -127,7 +134,7 @@ WM_NCACTIVATE = 0x86
 WM_NCCALCSIZE = 0x83
 WM_NCHITTEST = 0x84
 
-WM_MESSAGE_NAMES = {
+WM_MESSAGE_NAMES: Dict[str, int] = {
     'keydown': WM_KEYDOWN,
     'keyup': WM_KEYUP,
     'syskeydown': WM_SYSKEYDOWN,
@@ -382,6 +389,9 @@ SPI_SETSHOWIMEUI = 0x6f
 SPI_SETSNAPSIZING = 0x8f  # Not supported in Windows 2000/XP/Vista
 SPI_SETWINARRANGING = 0x83  # Not supported in Windows 2000/XP/Vista
 
+SPIF_UPDATEINIFILE = 0x01  # Writes the new system-wide parameter setting to the user profile.
+SPIF_SENDCHANGE = 0x02  # Broadcasts the WM_SETTINGCHANGE message after updating the user profile.
+SPIF_SENDWININICHANGE = 0x02  # Same as SPIF_SENDCHANGE.
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms632600(v=vs.85).aspx
 WS_BORDER = 0x800000
@@ -413,7 +423,7 @@ WS_OVERLAPPEDWINDOW = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME |
 WS_POPUPWINDOW = (WS_POPUP | WS_BORDER | WS_SYSMENU)
 
 # Should not technically be in this file, but it's shared by multiple files.
-WS_STYLE_BIT_MAP = {
+WS_STYLE_BIT_MAP: Dict[str, int] = {
     'border': WS_BORDER,
     'child-window': WS_CHILDWINDOW,
     'clip-children': WS_CLIPCHILDREN,
@@ -466,7 +476,7 @@ WS_EX_OVERLAPPEDWINDOW = (WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE)
 WS_EX_PALETTEWINDOW = (WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST)
 
 # Should not technically be in this file, but it's shared by multiple files.
-WS_EX_STYLE_BIT_MAP = {
+WS_EX_STYLE_BIT_MAP: Dict[str, int] = {
     "double-border": WS_EX_DLGMODALFRAME,
     "no-parent-notify": WS_EX_NOPARENTNOTIFY,
     "topmost": WS_EX_TOPMOST,
@@ -509,7 +519,7 @@ SWP_NOSIZE = 0x0001
 SWP_NOZORDER = 0x0004
 SWP_SHOWWINDOW = 0x0040
 
-SWP_FLAG_MAP = {
+SWP_FLAG_MAP: Dict[str, int] = {
     "async-window-pos": SWP_ASYNCWINDOWPOS,
     "defer-erase": SWP_DEFERERASE,
     "draw-frame": SWP_DRAWFRAME,
@@ -805,3 +815,32 @@ HTZOOM = 9
 ERROR_ACCESS_DENIED = 5
 ERROR_INVALID_PARAMETER = 87
 ERROR_INSUFFICIENT_BUFFER = 122
+
+
+# See https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
+# wparam -> lparam meanings
+HSHELL_WINDOWCREATED = 1  # -> A handle to the window being created.
+HSHELL_WINDOWDESTROYED = 2  # -> A handle to the top-level window being destroyed.
+HSHELL_ACTIVATESHELLWINDOW = 3  # -> Not used.  (shell window focused)
+HSHELL_WINDOWACTIVATED = 4  # -> A handle to the activated window. (window focused)
+HSHELL_GETMINRECT = 5  # -> A pointer to a SHELLHOOKINFO structure. (window minimized)
+HSHELL_REDRAW = 6  # -> A handle to the window that needs to be redrawn.
+HSHELL_TASKMAN = 7  # -> Can be ignored.
+HSHELL_LANGUAGE = 8  # -> ???
+HSHELL_SYSMENU = 9  # -> ???
+HSHELL_ENDTASK = 10  # -> A handle to the window that should be forced to exit.
+HSHELL_ACCESSIBILITYSTATE = 11  # -> ???
+HSHELL_WINDOWREPLACED = 13  # A handle to the window being replaced.
+HSHELL_WINDOWREPLACING = 14  # -> A handle to the window replacing the top-level window.
+HSHELL_MONITORCHANGED = 16  # -> A handle to the window that moved to a different monitor.
+HSHELL_HIGHBIT = 0x8000  # used to augment an existing message
+HSHELL_RUDEAPPACTIVATED = 0x8004  # -> A handle to the activated window; treat as WINDOWACTIVATED.
+HSHELL_FLASH = 0x8006  # -> A handle to the window that needs to be flashed.  One message per flash
+HSHELL_APPCOMMAND = 12  # -> The APPCOMMAND which has been unhandled by the application
+# or other hooks. See WM_APPCOMMAND and use the GET_APPCOMMAND_LPARAM macro to retrieve this parameter.
+# We get shell message "0x35" and "0x36".  Don't know what these are.
+HSHELL_UNKNOWN_35 = 0x35
+HSHELL_UNKNOWN_36 = 0x36
+
+# https://referencesource.microsoft.com/#System.Windows.Forms/winforms/Managed/System/WinForms/NativeMethods.cs,3d19d38cf9b246fa
+CCHDEVICENAME = 32

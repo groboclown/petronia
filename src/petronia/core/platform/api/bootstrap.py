@@ -10,12 +10,20 @@ from ....base.bus import (
     QUEUE_EVENT_NORMAL,
 )
 from ...extensions.api import ANY_VERSION
+from .user_input.bootstrap import (
+    register_user_input_events,
+)
+from .window.bootstrap import (
+    register_window_events,
+)
+
 
 def bootstrap_platform_api(bus: EventBus) -> None:
     """
     Register all the events.
     """
-    pass
+    register_user_input_events(bus)
+    register_window_events(bus)
 
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {

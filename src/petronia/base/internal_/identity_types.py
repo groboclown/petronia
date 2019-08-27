@@ -31,10 +31,12 @@ def create_singleton_identity(category: str) -> SingletonId:
     """
     return SingletonId(category)
 
+
 def create_component_identity_from_unique_id(category: str, unique_id: int) -> ComponentId:
     """Create a component ID based on the inputs.  The caller must guarantee
     uniqueness."""
     return ComponentId((category, unique_id,))
+
 
 def is_valid_participant_identity(pid: ParticipantId) -> bool:
     """Is this a valid participant identity?"""
@@ -43,9 +45,11 @@ def is_valid_participant_identity(pid: ParticipantId) -> bool:
         is_valid_singleton_identity(pid)
     )
 
+
 def is_valid_singleton_identity(pid: ParticipantId) -> bool:
     """Is this a valid participant identity for a singleton to have?"""
     return isinstance(pid, str) and len(pid) > 0
+
 
 def is_valid_component_identity(pid: ParticipantId) -> bool:
     """Is this a valid participant identity for a component to have?"""

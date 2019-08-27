@@ -3,8 +3,9 @@
 Requests to perform an action.
 """
 
+
 class LaunchPetroniaProcess:
     """
-    Launch a Petronia-aware process.  The process will be tied through stdin
-    and stdout to the event bus.
+    Launch a Petronia-aware process.  The process will be tied through a private
+    connection to the event bus.  Could be extra FD, could be a private pipe.
     """

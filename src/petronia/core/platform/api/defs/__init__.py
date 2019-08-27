@@ -40,6 +40,8 @@ from .units import (
     SCREEN_AREA_W,
     SCREEN_AREA_HEIGHT,
     SCREEN_AREA_H,
+
+    ScreenRect,
 )
 from .alignment import (
     TextBiDi,
@@ -63,4 +65,8 @@ from .alignment import (
     TEXT_ALIGN_BOTTOM_CENTER,
     TEXT_ALIGN_CENTER_CENTER,
     TEXT_ALIGN_ALL,
+)
+from .screen import (
+    ScreenHandle,
+    NativeScreenInfo,
 )

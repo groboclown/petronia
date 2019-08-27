@@ -2,51 +2,72 @@
 Windows Vista functions
 """
 
+from typing import Sequence, Tuple, List, Callable, Union, Optional
 import codecs
 import subprocess
 import re
 import atexit
-from ctypes import c_int, wintypes, windll, Structure, WinError, byref, create_unicode_buffer, CFUNCTYPE
+from .windows_common import (
+    c_int,
+    LONG, DWORD, BYTE, CHAR, BOOL, UINT, LRESULT,
+    POINT, RECT, WPARAM, LPARAM, HWND,
+    windll, Structure,
+    byref, create_unicode_buffer,
+    MessageCallback, NativeMessageCallback,
+    WindowsErrorMessage,
+)
+from ctypes import CFUNCTYPE, WinError
 from ctypes import sizeof as c_sizeof
-from .windows_constants import *
+from ..windows_constants import *
+from .supported_functions import (
+    Functions,
+)
+from .window_metrics import WindowMetrics, FontMetrics
 
 
-def load_functions(environ, func_map):
+def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     # TODO also detect Windows Serve r2008
     if environ['system'].lower() == 'windows' and environ['release'].lower() == 'vista':
         load_all_functions(func_map)
 
 
-def load_all_functions(func_map):
+def load_all_functions(func_map: Functions) -> None:
     from .funcs_winXP import load_psapi_functions, load_taskbar_functions
     load_psapi_functions(func_map)
     load_taskbar_functions(func_map)
-    func_map['shell__find_notification_icons'] = shell__find_notification_icons(func_map)
-    func_map['process__load_all_process_details'] = process__load_all_process_details
-    func_map['shell__get_window_metrics'] = shell__get_window_metrics
-    func_map['shell__get_raw_window_metrics'] = shell__get_raw_window_metrics
-    func_map['shell__set_window_metrics'] = shell__set_window_metrics
-    func_map['shell__set_border_size'] = shell__set_border_size
-    func_map['shell__open_start_menu'] = shell__open_start_menu
-    func_map['window__create_borderless_window'] = create_window__create_borderless_window(func_map)
+    func_map.shell.find_notification_icons = create_shell__find_notification_icons(func_map)
+    func_map.process.load_all_process_details = process__load_all_process_details
+    func_map.shell.get_window_metrics = shell__get_window_metrics
+    func_map.shell.set_window_metrics = shell__set_window_metrics
+    func_map.shell.set_border_size = shell__set_border_size
+    func_map.shell.open_start_menu = shell__open_start_menu
+    func_map.window.create_borderless_window = create_window__create_borderless_window(func_map)
 
 
-def shell__find_notification_icons(func_map):
-    find_window_ex = func_map['window__find_handle_for_child_class_title']
-    shell__get_task_bar_window_handles = func_map['shell__get_task_bar_window_handles']
+def create_shell__find_notification_icons(func_map: Functions) -> Optional[Callable[[], Sequence[HWND]]]:
+    if not func_map.window.find_handle_for_child_class_title:
+        return None
+    find_window_ex = func_map.window.find_handle_for_child_class_title
+    if not func_map.shell.get_task_bar_window_handles:
+        return None
+    shell__get_task_bar_window_handles = func_map.shell.get_task_bar_window_handles
 
-    def fw(parent, class_name):
+    def fw(parent: Optional[HWND], class_name: str) -> Optional[HWND]:
+        if not parent:
+            return None
         return find_window_ex(parent, None, class_name, "")
 
-    def f():
-        ret = []
+    def f() -> Sequence[HWND]:
+        ret: List[HWND] = []
         # Only need one handle
         taskbars = shell__get_task_bar_window_handles()
         if len(taskbars) <= 0:
             # TODO proper logging
             print("No taskbars found")
-            return []
+            return ()
         parent_area = fw(fw(taskbars[0], "TrayNotifyWnd"), "SysPager")
+        if not parent_area:
+            return ()
         for title in ['User Promoted Notification Area', 'Overflow Notification Area']:
             handle = find_window_ex(
                 parent_area,
@@ -54,29 +75,31 @@ def shell__find_notification_icons(func_map):
                 "ToolbarWindow32",
                 title
             )
-            if handle is not None:
+            if handle is not None and handle.value is not None and handle not in ret:
                 # TODO get icons
                 ret.append(handle)
         return ret
     return f
 
 
-def process__load_all_process_details():
+def process__load_all_process_details() -> Sequence[Dict[str, str]]:
     """Uses the wmic command, which was introduced in Vista"""
     with subprocess.Popen(['wmic.exe', 'process', 'list'], stdout=subprocess.PIPE) as proc:
-        data = codecs.decode(proc.stdout.read(), 'utf-8')
+        pdata = codecs.decode(proc.stdout.read(), 'utf-8')
     # It looks like most of the lines are split by '\r\r\n', which is weird.
-    lines = re.split(r'\r|\n', data)
+    lines = re.split(r'[\r\n]', pdata)
 
-    def next_line():
+    def next_line() -> Optional[str]:
         line = None
         while len(lines) > 0 and (line is None or len(line.strip()) <= 0):
             line = lines.pop(0)
         return line
 
-    def find_columns(header):
+    def find_columns(header: Optional[str]) -> Dict[str, Tuple[int, int]]:
+        if not header:
+            return {}
         # Format: 'Name     Name        Name     '
-        r = {}
+        r: Dict[str, Tuple[int, int]] = {}
         state = 0
         col_start = 0
         for i in range(len(header)):
@@ -98,10 +121,10 @@ def process__load_all_process_details():
     # Find the column positions, based on the header
     columns = find_columns(next_line())
 
-    ret = []
+    ret: List[Dict[str, str]] = []
     row = next_line()
     while row is not None:
-        data = {}
+        data: Dict[str, str] = {}
         for key, cols in columns.items():
             data[key] = row[cols[0]:cols[1]].strip()
         ret.append(data)
@@ -111,31 +134,31 @@ def process__load_all_process_details():
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
 class LOGFONT(Structure):
-    _fields_ = [
-        ("lfHeight", wintypes.LONG),
-        ("lfWidth", wintypes.LONG),
-        ("lfEscapement", wintypes.LONG),
-        ("lfOrientation", wintypes.LONG),
-        ("lfWeight", wintypes.LONG),
-        ("lfItalic", wintypes.BYTE),
-        ("lfUnderline", wintypes.BYTE),
-        ("lfStrikeOut", wintypes.BYTE),
-        ("lfCharSet", wintypes.BYTE),
-        ("lfOutPrecision", wintypes.BYTE),
-        ("lfClipPrecision", wintypes.BYTE),
-        ("lfQuality", wintypes.BYTE),
-        ("lfPitchAndFamily", wintypes.BYTE),
+    _fields_ = (
+        ("lfHeight", LONG),
+        ("lfWidth", LONG),
+        ("lfEscapement", LONG),
+        ("lfOrientation", LONG),
+        ("lfWeight", LONG),
+        ("lfItalic", BYTE),
+        ("lfUnderline", BYTE),
+        ("lfStrikeOut", BYTE),
+        ("lfCharSet", BYTE),
+        ("lfOutPrecision", BYTE),
+        ("lfClipPrecision", BYTE),
+        ("lfQuality", BYTE),
+        ("lfPitchAndFamily", BYTE),
 
         # Even though we use the W version of the call, we
         # still are expected to use CHAR, not WCHAR here.
-        ("lfFaceName", wintypes.CHAR * LF_FACESIZE),
-    ]
+        ("lfFaceName", CHAR * LF_FACESIZE),
+    )
 
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ff729175(v=vs.85).aspx
 class NONCLIENTMETRICS(Structure):
-    _fields_ = [
-        ("cbSize", wintypes.UINT),
+    _fields_ = (
+        ("cbSize", UINT),
         ("iBorderWidth", c_int),
         ("iScrollWidth", c_int),
         ("iScrollHeight", c_int),
@@ -153,188 +176,175 @@ class NONCLIENTMETRICS(Structure):
 
         # Windows Vista has this extra parameter
         ("iPaddedBorderWidth", c_int)
-    ]
+    )
 
 
-def shell__get_window_metrics():
+def shell__get_window_metrics() -> Union[WindowMetrics, WindowsErrorMessage]:
     metrics = shell__get_raw_window_metrics()
-    return {
-        'border-width': metrics.iBorderWidth,
-        'scroll-width': metrics.iScrollWidth,
-        'scroll-height': metrics.iScrollHeight,
-        'caption-width': metrics.iCaptionWidth,
-        'caption-height': metrics.iCaptionHeight,
-        'caption-font': _font_to_dict(metrics.lfCaptionFont),
-        'sm-caption-width': metrics.iSmCaptionWidth,
-        'sm-caption-height': metrics.iSmCaptionHeight,
-        'sm-caption-font': _font_to_dict(metrics.lfSmCaptionFont),
-        'menu-width': metrics.iMenuWidth,
-        'menu-height': metrics.iMenuHeight,
-        'menu-font': _font_to_dict(metrics.lfMenuFont),
-        'status-font': _font_to_dict(metrics.lfStatusFont),
-        'message-font': _font_to_dict(metrics.lfMessageFont),
-        'padded-border-width': metrics.iPaddedBorderWidth,
-    }
+    if isinstance(metrics, WindowsErrorMessage):
+        return metrics
+    return WindowMetrics(
+        border_width=metrics.iBorderWidth,
+        scroll_width=metrics.iScrollWidth,
+        scroll_height=metrics.iScrollHeight,
+        caption_width=metrics.iCaptionWidth,
+        caption_height=metrics.iCaptionHeight,
+        caption_font=_font_to_dict(metrics.lfCaptionFont),
+        sm_caption_width=metrics.iSmCaptionWidth,
+        sm_caption_height=metrics.iSmCaptionHeight,
+        sm_caption_font=_font_to_dict(metrics.lfSmCaptionFont),
+        menu_width=metrics.iMenuWidth,
+        menu_height=metrics.iMenuHeight,
+        menu_font=_font_to_dict(metrics.lfMenuFont),
+        status_font=_font_to_dict(metrics.lfStatusFont),
+        message_font=_font_to_dict(metrics.lfMessageFont),
+        padded_border_width=metrics.iPaddedBorderWidth
+    )
 
 
-def shell__get_raw_window_metrics():
+def shell__get_raw_window_metrics() -> Union[NONCLIENTMETRICS, WindowsErrorMessage]:
     # First, gather the border
     SystemParametersInfoW = windll.user32.SystemParametersInfoW
     metrics = NONCLIENTMETRICS()
     metrics.cbSize = c_sizeof(NONCLIENTMETRICS)
     res = SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, byref(metrics), 0)
     if res != 0:
-        raise WinError()
+        return WindowsErrorMessage('user32.SystemParametersInfoW')
     return metrics
 
 
-_BASE_OS_METRICS = [None]
+_BASE_OS_METRICS: List[Optional[NONCLIENTMETRICS]] = [None]
 
 
-def shell__set_window_metrics(metrics):
+def shell__set_window_metrics(metrics: WindowMetrics) -> Optional[WindowsErrorMessage]:
+    return inner__set_window_metrics(metrics)
+
+
+def inner__set_window_metrics(metrics: Union[NONCLIENTMETRICS, WindowMetrics]) -> Optional[WindowsErrorMessage]:
     SystemParametersInfoW = windll.user32.SystemParametersInfoW
 
     # Always restore the original user metrics at exit time.
     root_metrics = None
     if _BASE_OS_METRICS[0] is None:
         root_metrics = shell__get_raw_window_metrics()
+        if isinstance(root_metrics, WindowsErrorMessage):
+            return root_metrics
         _BASE_OS_METRICS[0] = root_metrics
         atexit.register(shell__set_window_metrics, root_metrics)
 
-    if isinstance(metrics, dict):
-        m = root_metrics or shell__get_raw_window_metrics()
+    m: NONCLIENTMETRICS
+    if isinstance(metrics, WindowMetrics):
+        mx = root_metrics or shell__get_raw_window_metrics()
+        if isinstance(mx, WindowsErrorMessage):
+            return mx
+        m = mx
         m.cbSize = c_sizeof(NONCLIENTMETRICS)
-        if 'border-width' in metrics:
-            m.iBorderWidth = metrics['border-width']
-        if 'scroll-width' in metrics:
-            m.iScrollWidth = metrics['scroll-width']
-        if 'scroll-height' in metrics:
-            m.iScrollHeight = metrics['scroll-height']
-        if 'caption-width' in metrics:
-            m.iCaptionWidth = metrics['caption-width']
-        if 'caption-height' in metrics:
-            m.iCaptionHeight = metrics['caption-height']
-        if 'caption-font' in metrics:
-            m.lfCaptionFont = _dict_to_font(metrics['caption-font'], m.lfCaptionFont)
-        if 'sm-caption-width' in metrics:
-            m.iSmCaptionWidth = metrics['sm-caption-width']
-        if 'sm-caption-height' in metrics:
-            m.iSmCaptionHeight = metrics['sm-caption-height']
-        if 'sm-caption-font' in metrics:
-            m.lfSmCaptionFont = _dict_to_font(metrics['sm-caption-font'], m.lfSmCaptionFont)
-        if 'menu-width' in metrics:
-            m.iMenuWidth = metrics['menu-width']
-        if 'menu-height' in metrics:
-            m.iMenuHeight = metrics['menu-height']
-        if 'menu-font' in metrics:
-            m.lfMenuFont = _dict_to_font(metrics[''], m.lfMenuFont)
-        if 'status-font' in metrics:
-            m.lfStatusFont = _dict_to_font(metrics['status-font'], m.lfStatusFont)
-        if 'message-font' in metrics:
-            m.lfMessageFont = _dict_to_font(metrics['message-font'], m.lfMessageFont)
-        metrics = m
+        m.iBorderWidth = metrics.border_width
+        m.iScrollWidth = metrics.scroll_width
+        m.iScrollHeight = metrics.scroll_height
+        m.iCaptionWidth = metrics.caption_width
+        m.iCaptionHeight = metrics.caption_height
+        _dict_to_font(metrics.caption_font, m.lfCaptionFont)
+        m.iSmCaptionWidth = metrics.sm_caption_width
+        m.iSmCaptionHeight = metrics.sm_caption_height
+        _dict_to_font(metrics.sm_caption_font, m.lfSmCaptionFont)
+        m.iMenuWidth = metrics.menu_width
+        m.iMenuHeight = metrics.menu_height
+        _dict_to_font(metrics.menu_font, m.lfMenuFont)
+        _dict_to_font(metrics.status_font, m.lfStatusFont)
+        _dict_to_font(metrics.message_font, m.lfMessageFont)
+    else:
+        m = metrics
 
-    assert isinstance(metrics, NONCLIENTMETRICS)
-    metrics.cbSize = c_sizeof(NONCLIENTMETRICS)
+    m.cbSize = c_sizeof(NONCLIENTMETRICS)
     # TODO change 0 to SPIF_SENDCHANGE
-    res = SystemParametersInfoW(SPI_SETNONCLIENTMETRICS, metrics.cbSize, byref(metrics), 0)
+    res = SystemParametersInfoW(SPI_SETNONCLIENTMETRICS, m.cbSize, byref(m), 0)
     if res != 0:
-        raise WinError()
+        return WindowsErrorMessage('user32.SystemParametersInfoW')
+    return None
 
 
-def _dict_to_font(f, ret=None):
-    assert isinstance(f, dict)
+def _dict_to_font(f: FontMetrics, ret: Optional[LOGFONT] = None) -> LOGFONT:
     if ret is None:
         ret = LOGFONT()
-    if 'height' in f:
-        ret.lfHeight = f['height']
-    if 'width' in f:
-        ret.lfWidth = f['width']
-    if 'escapement' in f:
-        ret.lfEscapement = f['escapement']
-    if 'orientation' in f:
-        ret.lfOrientation = f['orientation']
-    if 'weight' in f:
-        ret.lfWeight = f['weight']
-    if 'italic' in f:
-        ret.lfItalic = f['italic']
-    if 'underline' in f:
-        ret.lfUnderline = f['underline']
-    if 'strike-out' in f:
-        ret.lfStrikeOut = f['strike-out']
-    if 'char-set' in f:
-        ret.lfCharSet = f['char-set']
-    if 'out-precision' in f:
-        ret.lfOutPrecision = f['out-precision']
-    if 'clip-precision' in f:
-        ret.lfClipPrecision = f['clip-precision']
-    if 'quality' in f:
-        ret.lfQuality = f['quality']
-    if 'pitch-and-family' in f:
-        ret.lfPitchAndFamily = f['pitch-and-family']
-    if 'face-name' in f:
-        ret.lfFaceName = f['face-name'][:LF_FACESIZE - 1]
+    ret.lfHeight = f.height
+    ret.lfWidth = f.width
+    ret.lfEscapement = f.escapement
+    ret.lfOrientation = f.orientation
+    ret.lfWeight = f.weight
+    ret.lfItalic = f.italic
+    ret.lfUnderline = f.underline
+    ret.lfStrikeOut = f.strikeout
+    ret.lfCharSet = f.charset
+    ret.lfOutPrecision = f.out_precision
+    ret.lfClipPrecision = f.clip_precision
+    ret.lfQuality = f.quality
+    ret.lfPitchAndFamily = f.pitch_and_family
+    if f.face_name:
+        ret.lfFaceName = f.face_name[:LF_FACESIZE - 1]
     return ret
 
 
-def _font_to_dict(f):
+def _font_to_dict(f: LOGFONT) -> FontMetrics:
     assert isinstance(f, LOGFONT)
-    return {
-        'height': f.lfHeight,
-        'width': f.lfWidth,
-        'escapement': f.lfEscapement,
-        'orientation': f.lfOrientation,
-        'weight': f.lfWeight,
-        'italic': f.lfItalic,
-        'underline': f.lfUnderline,
-        'strike-out': f.lfStrikeOut,
-        'char-set': f.lfCharSet,
-        'out-precision': f.lfOutPrecision,
-        'clip-precision': f.lfClipPrecision,
-        'quality': f.lfQuality,
-        'pitch-and-family': f.lfPitchAndFamily,
-        'face-name': f.lfFaceName,
-    }
+    return FontMetrics(
+        height=f.lfHeight,
+        width=f.lfWidth,
+        escapement=f.lfEscapement,
+        orientation=f.lfOrientation,
+        weight=f.lfWeight,
+        italic=f.lfItalic,
+        underline=f.lfUnderline,
+        strikeout=f.lfStrikeOut,
+        charset=f.lfCharSet,
+        out_precision=f.lfOutPrecision,
+        clip_precision=f.lfClipPrecision,
+        quality=f.lfQuality,
+        pitch_and_family=f.lfPitchAndFamily,
+        face_name=f.lfFaceName,
+    )
 
 
-def shell__set_border_size(border_width, border_padding):
+def shell__set_border_size(border_width: int, border_padding: int) -> Optional[WindowsErrorMessage]:
     metrics = shell__get_raw_window_metrics()
+    if isinstance(metrics, WindowsErrorMessage):
+        return metrics
     metrics.iBorderWidth = border_width
     metrics.iPaddedBorderWidth = border_padding
-    shell__set_window_metrics(metrics)
+    return inner__set_window_metrics(metrics)
 
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms686735(v=vs.85).aspx
 class THREADENTRY32(Structure):
     _fields_ = [
-        ("dwSize", wintypes.DWORD),
-        ("cntUsage", wintypes.DWORD),
-        ("th32ThreadID", wintypes.DWORD),
-        ("th32OwnerProcessID", wintypes.DWORD),
-        ("tpBasePri", wintypes.LONG),
-        ("tpDeltaPri", wintypes.LONG),
-        ("dwFlags", wintypes.DWORD),
+        ("dwSize", DWORD),
+        ("cntUsage", DWORD),
+        ("th32ThreadID", DWORD),
+        ("th32OwnerProcessID", DWORD),
+        ("tpBasePri", LONG),
+        ("tpDeltaPri", LONG),
+        ("dwFlags", DWORD),
     ]
 
 
 # see https://msdn.microsoft.com/en-us/library/windows/desktop/ms632611(v=vs.85).aspx
 class WINDOWPLACEMENT(Structure):
     _fields_ = [
-        ("length", wintypes.UINT),
-        ("flags", wintypes.UINT),
-        ("showCmd", wintypes.UINT),
-        ("ptMinPosition", wintypes.POINT),
-        ("ptMaxPosition", wintypes.POINT),
-        ("rcNormalPosition", wintypes.RECT),
+        ("length", UINT),
+        ("flags", UINT),
+        ("showCmd", UINT),
+        ("ptMinPosition", POINT),
+        ("ptMaxPosition", POINT),
+        ("rcNormalPosition", RECT),
     ]
 
 
-def shell__open_start_menu(show_taskbar):
+def shell__open_start_menu(show_taskbar: bool) -> Optional[WindowsErrorMessage]:
     # Find the task bar window
     taskbar_hwnd = windll.user32.FindWindowW("Shell_TrayWnd", None)
     if taskbar_hwnd is None or 0 == taskbar_hwnd:
-        raise WinError()
-    taskbar_size = wintypes.RECT()
+        return WindowsErrorMessage('user32.FindWindowW')
+    taskbar_size = RECT()
     windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
 
     # if show_taskbar:
@@ -364,14 +374,14 @@ def shell__open_start_menu(show_taskbar):
         # print("<<Don't know how to show the task bar>>")
 
     # Find the process ID of the taskbar window.
-    taskbar_pid = wintypes.DWORD()
+    taskbar_pid = DWORD()
     windll.user32.GetWindowThreadProcessId(taskbar_hwnd, byref(taskbar_pid))
 
     # Find a thread in that process that has a "Start" button
     triggered_start = [False]
 
     # noinspection PyUnusedLocal
-    def thread_window_callback(hwnd, lparam):
+    def thread_window_callback(hwnd: HWND, lparam: LPARAM) -> bool:
         length = windll.user32.GetWindowTextLengthW(hwnd)
         if length > 0:
             buff = create_unicode_buffer(length + 1)
@@ -412,34 +422,37 @@ def shell__open_start_menu(show_taskbar):
 
                 # If the task bar is hidden, then part of the start window is not shown fully.
                 # SW_MAXIMIZE will show it fully, but the rendering becomes messed up.
-                taskbar_rect = wintypes.RECT()
+                taskbar_rect = RECT()
                 windll.user32.GetClientRect(taskbar_hwnd, byref(taskbar_rect))
 
-                client_rect = wintypes.RECT()
+                client_rect = RECT()
                 windll.user32.GetClientRect(hwnd, byref(client_rect))
 
-                overlap_rect = wintypes.RECT()
+                overlap_rect = RECT()
                 if windll.user32.IntersectRect(byref(overlap_rect), byref(taskbar_rect), byref(client_rect)) != 0:
                     # The taskbar and the start window rectangles overlap each other.
                     # Adjust the start window to be outside of this.
                     # Remember: the taskbar can be anywhere on the edge of the screen.
-                    new_x = client_rect.left
-                    new_y = client_rect.top
-                    if overlap_rect.left == client_rect.left and overlap_rect.right == client_rect.right:
+                    new_x = client_rect.left.value
+                    new_y = client_rect.top.value
+                    if (
+                            overlap_rect.left.value == client_rect.left.value and
+                            overlap_rect.right.value == client_rect.right.value
+                    ):
                         # Adjust along the y axis
-                        if overlap_rect.top <= client_rect.top <= overlap_rect.bottom:
+                        if overlap_rect.top.value <= client_rect.top.value <= overlap_rect.bottom.value:
                             # Adjust down
-                            new_y = overlap_rect.bottom
+                            new_y = overlap_rect.bottom.value
                         else:
                             # Adjust up
-                            new_y = client_rect.top - (overlap_rect.bottom - overlap_rect.top)
+                            new_y = client_rect.top.value - (overlap_rect.bottom.value - overlap_rect.top.value)
                     else:
                         # Adjust along the x axis
-                        if overlap_rect.left <= client_rect.left <= overlap_rect.right:
+                        if overlap_rect.left.value <= client_rect.left.value <= overlap_rect.right.value:
                             # Adjust to the right
-                            new_x = overlap_rect.right
+                            new_x = overlap_rect.right.value
                         else:
-                            new_x = client_rect.left - (overlap_rect.right - overlap_rect.left)
+                            new_x = client_rect.left.value - (overlap_rect.right.value - overlap_rect.left.value)
                     windll.user32.SetWindowPos(
                         hwnd, None, new_x, new_y,
                         0, 0, SWP_NOSIZE)
@@ -474,7 +487,7 @@ def shell__open_start_menu(show_taskbar):
         res = windll.kernel32.Thread32First(hsnapshot, byref(thread_entry))
         # print("DEBUG :: first: {0}".format(res))
         if res == 0:
-            raise WinError()
+            return WindowsErrorMessage('kernel32.Thread32First')
         while res != 0:
             if thread_entry.dwSize > THREADENTRY32.th32OwnerProcessID.offset:
                 thread_ids.append(thread_entry.th32ThreadID)
@@ -486,15 +499,15 @@ def shell__open_start_menu(show_taskbar):
     finally:
         windll.kernel32.CloseHandle(hsnapshot)
 
-    callback_type = CFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    callback_type = CFUNCTYPE(BOOL, HWND, LPARAM)
     callback_ptr = callback_type(thread_window_callback)
     for thread_id in thread_ids:
         # print("DEBUG Iterating over windows for thread {0} in pid {1}".format(thread_id, taskbar_pid))
         windll.user32.EnumThreadWindows(thread_id, callback_ptr, 0)
         if triggered_start[0]:
-            return
+            return None
 
-    raise OSError("Could not find start button")
+    return WindowsErrorMessage("Could not find start button")
 
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/bb773244(v=vs.85).aspx
@@ -507,7 +520,12 @@ class MARGINS(Structure):
     ]
 
 
-def create_window__create_borderless_window(func_map):
+def create_window__create_borderless_window(
+        func_map: Functions
+) -> Callable[
+        [str, str, MessageCallback, Dict[int, NativeMessageCallback], Optional[bool], Optional[bool]],
+        Union[HWND, WindowsErrorMessage]
+]:
     # Use an inner window, so that we can use the func_map for accessing other functions
     # that are OS specific.
 
@@ -517,8 +535,13 @@ def create_window__create_borderless_window(func_map):
     # However, the WM_CREATE just doesn't work right - it causes windows to
     # be automatically closed, even when 0 is explicitly returned.
 
-    def window__create_borderless_window(class_name, title, message_handler, callback_map,
-                                         show_on_taskbar=True, always_on_top=False):
+    def window__create_borderless_window(
+            class_name: str, title: str,
+            message_handler: MessageCallback,
+            callback_map: Dict[int, NativeMessageCallback],
+            show_on_taskbar: Optional[bool] = True,
+            always_on_top: Optional[bool] = False
+    ) -> Union[HWND, WindowsErrorMessage]:
         margins = MARGINS()
         margins.cxLeftWidth = 0
         margins.cxRightWidth = 0
@@ -535,7 +558,7 @@ def create_window__create_borderless_window(func_map):
         if not show_on_taskbar:
             style_flags.add('tool-window')
 
-        def hit_test(hwnd, msg, wparam, lparam):
+        def hit_test(_hwnd: HWND, _msg: int, _wparam: WPARAM, _lparam: LPARAM) -> LRESULT:
             # We don't have a border, so don't worry about
             # border cursor checks.
             # pt = wintypes.POINT()
@@ -547,15 +570,19 @@ def create_window__create_borderless_window(func_map):
 
             # rc = wintypes.RECT()
             # windll.user32.GetClientRect(hwnd, byref(rc))
-            return HTCLIENT
+            return LRESULT(HTCLIENT)
 
-        callback_map[WM_NCACTIVATE] = lambda hwnd, msg, wparam, lparam: 0
-        callback_map[WM_NCCALCSIZE] = lambda hwnd, msg, wparam, lparam: lparam == 0 and 0 or False
+        def zero(_hwnd: HWND, _msg: int, _wparam: WPARAM, _lparam: LPARAM) -> LRESULT:
+            return LRESULT(0)
+
+        callback_map[WM_NCACTIVATE] = zero
+        callback_map[WM_NCCALCSIZE] = zero
         callback_map[WM_NCHITTEST] = hit_test
 
-        hwnd = func_map['window__create_display_window'](class_name, title, message_handler, style_flags)
-        # windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, byref(margins))
-
-        return hwnd
+        if func_map.window.create_display_window:
+            hwnd = func_map.window.create_display_window(class_name, title, message_handler, style_flags)
+            # windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, byref(margins))
+            return hwnd
+        return WindowsErrorMessage('not supported')
 
     return window__create_borderless_window

@@ -8,7 +8,7 @@ Simple json serialization and de-serialization tool.
 """
 
 import json
-import collections
+import collections.abc
 import importlib
 from typing import Any, Dict, Union, Sequence, List, Tuple
 from ...errors import (
@@ -133,7 +133,7 @@ def serialize_value(value: Any, refs: Dict[int, SerialTyped]) -> SerialValue:
         }
         return ret
 
-    if isinstance(value, collections.Iterable):
+    if isinstance(value, collections.abc.Iterable):
         contents: List[SerialValue] = []
         for val in value:
             contents.append(serialize_value(val, refs))
@@ -159,7 +159,7 @@ def deserialize_value(
         return value
 
     if (
-            not isinstance(value, collections.Iterable) or
+            not isinstance(value, collections.abc.Iterable) or
             len(value) != 1 or
             not isinstance(value[0], int)
     ):
@@ -187,12 +187,12 @@ def deserialize_value(
     if value_type == _DICT_TYPE:
         if (
                 _VALUE_LIST_KEY not in vtype or
-                not isinstance(vtype[_VALUE_LIST_KEY], collections.Iterable)
+                not isinstance(vtype[_VALUE_LIST_KEY], collections.abc.Iterable)
         ):
             raise PetroniaSerializationFormatError('invalid dictionary format')
         retdict: Dict[Any, Any] = {}
         for keyval in vtype[_VALUE_LIST_KEY]:
-            if not isinstance(keyval, collections.Iterable) or len(keyval) != 2:
+            if not isinstance(keyval, collections.abc.Iterable) or len(keyval) != 2:
                 raise PetroniaSerializationFormatError('invalid dictionary format')
             key = deserialize_value(keyval[0], refs, seen)
             val = deserialize_value(keyval[1], refs, seen)
@@ -203,7 +203,7 @@ def deserialize_value(
     if value_type == _LIST_TYPE:
         if (
                 _VALUE_LIST_KEY not in vtype or
-                not isinstance(vtype[_VALUE_LIST_KEY], collections.Iterable)
+                not isinstance(vtype[_VALUE_LIST_KEY], collections.abc.Iterable)
         ):
             raise PetroniaSerializationFormatError('invalid list format')
         retlist: List[Any] = []
@@ -222,13 +222,13 @@ def deserialize_value(
                 _CLASSNAME_KEY not in vtype or
                 not isinstance(vtype[_CLASSNAME_KEY], str) or
                 _VALUE_LIST_KEY not in vtype or
-                not isinstance(vtype[_VALUE_LIST_KEY], collections.Iterable)
+                not isinstance(vtype[_VALUE_LIST_KEY], collections.abc.Iterable)
         ):
             raise PetroniaSerializationFormatError('invalid class format')
 
         for keyval in vtype[_VALUE_LIST_KEY]:
             if (
-                    not isinstance(keyval, collections.Iterable) or
+                    not isinstance(keyval, collections.abc.Iterable) or
                     len(keyval) != 2 or
                     not isinstance(keyval[0], str)
             ):

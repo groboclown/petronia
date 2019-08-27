@@ -8,11 +8,13 @@ from .....base import create_singleton_identity
 
 COMPONENT_FACTORY_ID_NOTICE = create_singleton_identity('core.platform.api/notice')
 
+
 class NoticeCreation:
     """
     Details for a new notification.
     Pass to RequestNewComponentEvent.
     """
+
 
 class NotificationAreaCreation:
     """

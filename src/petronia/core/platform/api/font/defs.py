@@ -3,6 +3,7 @@
 Definitions for fonts.
 """
 
+
 class FontDefinition:
     """
     The details for a font installed in the platform.

@@ -2,91 +2,100 @@
 Windows 8 & 8.1 functions
 """
 
-from ctypes import (windll, wintypes, byref, WinError,
-                    create_unicode_buffer, GetLastError, POINTER)
+from typing import Dict, Tuple, Union
 from ctypes import cast as c_cast
-from .windows_constants import *
+from .windows_common import (
+    DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE,
+    POINTER, byref,
+    windll,
+    WindowsErrorMessage,
+    create_unicode_buffer,
+)
+from ..windows_constants import *
+from .supported_functions import (
+    Functions,
+)
 
 
-def load_functions(environ, func_map):
+def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     if environ['system'].lower() == 'windows' and (environ['release'].lower() == '8' or environ['release'].lower() == '8.1'):
         load_all_functions(func_map)
 
 
-def load_all_functions(func_map):
+def load_all_functions(func_map: Functions) -> None:
     from .funcs_win7 import load_all_functions as w7_load
     w7_load(func_map)
-    func_map['process__get_username_domain_for_pid'] = process__get_username_domain_for_pid
-    func_map['process__get_current_username_domain'] = process__get_current_username_domain
+    func_map.process.get_username_domain_for_pid = process__get_username_domain_for_pid
+    func_map.process.get_current_username_domain = process__get_current_username_domain
 
 
-def shell__open_start_menu():
-    pass
-
-
-def process__get_username_domain_for_pid(thread_pid):
+def process__get_username_domain_for_pid(thread_pid: DWORD) -> Union[Tuple[str, str], WindowsErrorMessage]:
     """
 
     :param thread_pid:
     :return: the tuple (username, domain) for the user that owns the pid.
     """
     OpenProcessToken = windll.advapi32.OpenProcessToken
-    OpenProcessToken.argtypes = [wintypes.HANDLE, wintypes.DWORD, POINTER(wintypes.HANDLE)]
-    OpenProcessToken.restype = wintypes.BOOL
+    OpenProcessToken.argtypes = (HANDLE, DWORD, POINTER(HANDLE))
+    OpenProcessToken.restype = BOOL
     GetTokenInformation = windll.advapi32.GetTokenInformation
     LookupAccountSidW = windll.advapi32.LookupAccountSidW
     LookupAccountSidW.argtypes = [
-        wintypes.LPCWSTR, wintypes.LPVOID,
-        wintypes.LPCWSTR, POINTER(wintypes.DWORD),
-        wintypes.LPCWSTR, POINTER(wintypes.DWORD),
-        POINTER(wintypes.DWORD)
+        LPCWSTR, LPVOID,
+        LPCWSTR, POINTER(DWORD),
+        LPCWSTR, POINTER(DWORD),
+        POINTER(DWORD)
     ]
-    LookupAccountSidW.restype = wintypes.BOOL
+    LookupAccountSidW.restype = BOOL
 
     # WinXP does not support PROCESS_QUERY_LIMITED_INFORMATION
     # This needs to have a special Windows 8 vs. other implementation.
     # Win 8 uses the more limited query.
     hproc = windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, thread_pid)
     if hproc == 0:
-        if GetLastError() == ERROR_ACCESS_DENIED:
+        err = WindowsErrorMessage('kernel32.OpenProcess')
+        if err.errno == ERROR_ACCESS_DENIED:
             # Don't raise a problem in this situation.  Instead, return unique information.
             return "[denied]", "[denied]"
-        raise WinError()
+        return err
     try:
-        access_token = wintypes.HANDLE()
-        res = OpenProcessToken(hproc, wintypes.DWORD(TOKEN_QUERY), byref(access_token))
+        access_token = HANDLE()
+        res = OpenProcessToken(hproc, DWORD(TOKEN_QUERY), byref(access_token))
         if res == 0 or access_token is None:
-            raise WinError()
+            return WindowsErrorMessage('advapi32.OpenProcessToken')
         try:
-            length = wintypes.DWORD(0)
+            length = DWORD(0)
 
             if GetTokenInformation(access_token, TOKEN_INFORMATION__TOKEN_USER, None, 0, byref(length)) == 0:
-                if GetLastError() != ERROR_INSUFFICIENT_BUFFER:
-                    raise WinError()
-                sid_info = (wintypes.BYTE * length.value)()
-                if sid_info is None:
-                    raise WinError()
-                sid_info = c_cast(sid_info, POINTER(wintypes.LPVOID))
+                err = WindowsErrorMessage('advapi32.GetTokenInformation')
+                if err.errno != ERROR_INSUFFICIENT_BUFFER:
+                    return err
+                base_sid_info = (BYTE * length.value)()
+                if base_sid_info is None:
+                    # Could not allocate space.
+                    # May be wrong error...
+                    return WindowsErrorMessage('malloc')
+                sid_info = c_cast(base_sid_info, POINTER(LPVOID))
             else:
-                sid_info = POINTER(wintypes.LPVOID)()
+                sid_info = POINTER(LPVOID)()
             if GetTokenInformation(access_token, TOKEN_INFORMATION__TOKEN_USER, sid_info, length, byref(length)) == 0:
-                raise WinError()
+                return WindowsErrorMessage('advapi32.GetTokenInformation')
 
             # The "sid_info" is a pointer to a structure, but the only thing we care about
             # is the first value in the structure (index 0), which is itself a pointer to a SID structure.
             sid_ptr = sid_info[0]
 
             username = create_unicode_buffer(MAX_USERNAME_LENGTH + 1)
-            username_size = wintypes.DWORD(MAX_USERNAME_LENGTH)
+            username_size = DWORD(MAX_USERNAME_LENGTH)
             domain = create_unicode_buffer(MAX_USERNAME_LENGTH + 1)
-            domain_size = wintypes.DWORD(MAX_USERNAME_LENGTH)
-            sid_name_type = wintypes.DWORD()
+            domain_size = DWORD(MAX_USERNAME_LENGTH)
+            sid_name_type = DWORD()
 
             res = LookupAccountSidW(
                 None, sid_ptr, username, byref(username_size),
                 domain, byref(domain_size), byref(sid_name_type))
             if res == 0:
-                raise WinError()
+                return WindowsErrorMessage('advapi32.LookupAccountSidW')
 
             # return username.value[0:username_size], domain.value[0:domain_size]
             return username.value, domain.value
@@ -96,6 +105,6 @@ def process__get_username_domain_for_pid(thread_pid):
         windll.kernel32.CloseHandle(hproc)
 
 
-def process__get_current_username_domain():
+def process__get_current_username_domain() -> Union[Tuple[str, str], WindowsErrorMessage]:
     # Just the username is easy (GetUserName), but the domain takes more work.
     return process__get_username_domain_for_pid(windll.kernel32.GetCurrentProcessId())

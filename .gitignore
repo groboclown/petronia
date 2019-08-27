@@ -3,6 +3,7 @@
 *.log
 .mypy_cache/*
 src/.mypy_cache/*
+.venv/*
 .idea/*
 buildsrc/work/*
 *personal_config.py

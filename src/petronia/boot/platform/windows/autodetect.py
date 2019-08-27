@@ -23,9 +23,9 @@ def discover_platform_ext() -> str:
     try:
         winver = sys.getwindowsversion().major
         import ctypes.wintypes
-        import ctypes.byref
-        import ctypes.windll
-        import ctypes.WinDLL
+        from ctypes import byref
+        from ctypes import windll
+        from ctypes import WinDLL
     except:
         raise PetroniaPlatformNotSupported(
             '{0} {1}'.format(sys.platform, platform.architecture()[0])

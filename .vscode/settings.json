@@ -1,6 +1,4 @@
 {
-    "files.autoSave": true,
-    "python.pythonPath": "C:\\dev\\Python37.1-x64\\python.exe",
     "python.testing.unittestArgs": [
         "-v",
         "-s",
@@ -16,8 +14,10 @@
     "python.linting.pylintEnabled": true,
     "python.linting.mypyEnabled": false,
     "python.linting.mypyArgs": [
-    //    "--config-file", "${workspaceFolder}/src/mypy.ini"
+        "--config-file", "${workspaceFolder}/src/mypy.ini"
     ],
     "files.trimFinalNewlines": true,
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "pythonPath": "C:\\dev\\Python37.1-x64\\python.exe",
+    "python.pythonPath": "C:\\dev\\Python37.1-x64\\python.exe"
 }

@@ -1,21 +1,39 @@
-"""
-Standard Windows functions required for the system.
 
-The required APIs are:
-    * running processes
-        *
-    * GUI windows
-        * mapping a window to a process ID
+"""
+Top-level native windows functions and types.
 """
 
+
+from typing import Sequence
 import sys
 import importlib
 
 # Top-level global def
-from .funcs_any_win import SHELL__CANCEL_CALLBACK_CHAIN # pytlint: disable=unused-import
+from .funcs_any_win import SHELL__CANCEL_CALLBACK_CHAIN
+from .supported_functions import (
+    Functions,
+    PaintFunctions,
+    ShellFunctions,
+    MonitorFunctions,
+    ProcessFunctions,
+
+    PaintCallback,
+
+    Color,
+    ScreenRect,
+    ScreenSize,
+    NativeScreenInfo,
+    WindowsWindowState,
+)
+from .windows_common import (
+    HWND, DWORD, c_int,
+    UINT, WPARAM, LPARAM, LRESULT,
+    HDC, HFONT, HHOOK, ANIMATIONINFO,
+    MessageCallback, NativeMessageCallback,
+)
 
 
-def __load_functions(modules):
+def __load_functions(modules: Sequence[str]) -> Functions:
     import platform
     import struct
 
@@ -39,7 +57,7 @@ def __load_functions(modules):
         'version-service_pack': winver.service_pack,
     }
 
-    ret = {}
+    ret = Functions()
     for name in modules:
         if isinstance(name, str):
             try:
@@ -49,14 +67,15 @@ def __load_functions(modules):
                 raise
         else:
             mod = name
-        mod.load_functions(environ, ret)
+        if hasattr(mod, 'load_functions'):
+            mod.load_functions(environ, ret)  # type: ignore
     return ret
 
 
 # Defines the list of modules that contains platform specific functions.
 # They are loaded in a specific order to overwrite previous, less-specific
 # versions of the functions.
-__FUNCTIONS = __load_functions([
+WINDOWS_FUNCTIONS = __load_functions([
     __name__ + ".funcs_x86_win",
     __name__ + ".funcs_x64_win",
 
@@ -69,10 +88,4 @@ __FUNCTIONS = __load_functions([
     __name__ + ".funcs_win7",
     __name__ + ".funcs_win8",
     __name__ + ".funcs_win10",
-])
-
-# Special code that loads those final, platform-specific functions into
-# the current module namespace.
-__current_module = importlib.import_module(__name__)
-for __k, __v in __FUNCTIONS.items():
-    setattr(__current_module, __k, __v)
+    ])
