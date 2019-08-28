@@ -14,7 +14,7 @@ from ..arch import windows_constants
 from ..arch.native_funcs import (
     WINDOWS_FUNCTIONS,
     SHELL__CANCEL_CALLBACK_CHAIN,
-    HWND, HHOOK, UINT, WPARAM, LPARAM, c_int,
+    HWND, HHOOK, UINT, WPARAM, LPARAM,
     MessageCallback,
 )
 from .messages import MessageEntry

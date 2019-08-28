@@ -6,7 +6,7 @@ All supported windows functions, mapped to Python types.
 from typing import Callable, Sequence, Iterable, Tuple, Dict, Union, Optional
 from .windows_common import (
     HWND, DWORD, c_int,
-    UINT, WPARAM, LPARAM, LRESULT,
+    UINT, WPARAM, LPARAM,
     HDC, HFONT, HHOOK, ANIMATIONINFO,
     MessageCallback, NativeMessageCallback,
     WindowsErrorMessage,
