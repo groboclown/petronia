@@ -93,7 +93,20 @@ The current to-do list.
     * add PGP and checksum to zip loader.
 * Add the external execution w/ event bus code.
     * The local end that launches the process and marshals state across the wire must keep track of which events are listened to by the process.  This acts for two purposes - one, that only the necessary events are passed across the wire, and two, if the process dies, then the launcher can deregister those event listeners correctly.
-* Extensions: enforce only one implementation of an API loaded.
+* Extension security enhancements:
+    * API extensions:
+        * Cannot listen to events.
+        * Can only trigger the "register event" event.
+        * Each registered event must be declared as either public (anyone can trigger it) or private (only implementations of the API can trigger it).
+    * Implementation extensions:
+        * Can only listen to events declared by dependent API extensions.
+        * Can only trigger public events declared by dependent API extensions, and private event declared by the API extension it implements.
+        * Cannot register any event.
+        * Enforce only one implementation of an API loaded at a time.
+    * Stand-alone extensions:
+        * Can only listen to events declared by dependent API extensions.
+        * Can only trigger public events declared by dependent API extensions.
+        * Cannot register any event.
 
 
 ## Tech Debt

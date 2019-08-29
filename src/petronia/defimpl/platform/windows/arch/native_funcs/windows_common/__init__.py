@@ -69,14 +69,15 @@ if sys.platform.startswith('win'):
 
     # Bit-size specific, but used in many different places.
     # LRESULT: Type[Union[c_int64, c_long]] = c_int64 if platform.architecture()[0] == "64bit" else c_long
-    # From other code...
-    LRESULT = wintypes.LPARAM
+    # However, Python does a good job of handling this if we just use "int".
+    LRESULT = LPARAM
 
     RGB: Callable[[int, int, int], int] = wintypes.RGB
 
+    # Return False to not propagate message.
     MessageCallback = Callable[[HWND, int, WPARAM, LPARAM], bool]
 
-    NativeMessageCallback = Callable[[HWND, int, WPARAM, LPARAM], LRESULT]
+    NativeMessageCallback = Callable[[HWND, int, WPARAM, LPARAM], int]
 
     # see https://msdn.microsoft.com/en-us/library/windows/desktop/ms644967(v=vs.85).aspx
     class ANIMATIONINFO(Structure):

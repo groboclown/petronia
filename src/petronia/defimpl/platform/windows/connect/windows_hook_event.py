@@ -9,6 +9,9 @@ from typing import Dict, Optional, Callable
 from typing import cast as t_cast
 import threading
 
+from .....aid.simp import (
+    log, DEBUG, TRACE, ERROR, FATAL,
+)
 from ..arch.native_funcs.windows_common import WindowsErrorMessage
 from ..arch import windows_constants
 from ..arch.native_funcs import (
@@ -75,9 +78,12 @@ class WindowsHookEvent:
             return None
 
         def shell_handler(source_hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> bool:
-            print("[shell] {1}".format(source_hwnd, message))
-            if message in self._window_message_map:
-                return self._window_message_map[message](source_hwnd, message, wparam, lparam)
+            # Shell window messages use the WPARAM to specify the kind of shell event.
+            # See https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registershellhookwindow
+            print("[shell] {2}".format(source_hwnd, message, wparam))
+            wparam_msg = t_cast(int, wparam)
+            if wparam_msg in self._shell_message_map:
+                return self._shell_message_map[wparam_msg](source_hwnd, message, wparam, lparam)
             return True
 
         def shell_hook_handler(message: int, wparam: WPARAM, lparam: LPARAM) -> Optional[str]:
@@ -92,7 +98,7 @@ class WindowsHookEvent:
             return None
 
         def message_pumper() -> None:
-            print("In the message pumper")
+            log(TRACE, WindowsHookEvent, "In the message pumper")
             assert self.__start_state == 0
             self.__start_state = 1
 
@@ -100,17 +106,19 @@ class WindowsHookEvent:
             if WINDOWS_FUNCTIONS.shell.keyboard_hook:
                 hook = WINDOWS_FUNCTIONS.shell.keyboard_hook(key_handler)
                 if isinstance(hook, WindowsErrorMessage):
-                    print("Failed to register key handler: " + repr(hook))
+                    log(ERROR, WindowsHookEvent, "Failed to register key handler: {0}", hook)
                 else:
                     self._key_hook = hook
-                    print("Registered keyboard hook " + repr(self._key_hook))
+                    log(TRACE, WindowsHookEvent, "Registered keyboard hook {0}", self._key_hook)
+
             if WINDOWS_FUNCTIONS.shell.shell_hook:
                 hook = WINDOWS_FUNCTIONS.shell.shell_hook(shell_hook_handler)
                 if isinstance(hook, WindowsErrorMessage):
-                    print("Failed to register shell handler: " + repr(hook))
+                    # This is expected until the crazy work-arounds are implemented.
+                    log(TRACE, WindowsHookEvent, "Failed to register shell handler: {0}", hook)
                 else:
                     self._shell_hook = hook
-                    print("Registered shell hook " + repr(self._shell_hook))
+                    log(TRACE, WindowsHookEvent, "Registered shell hook {0}", self._shell_hook)
 
             if (
                     WINDOWS_FUNCTIONS.shell.create_global_message_handler and
@@ -125,24 +133,32 @@ class WindowsHookEvent:
                     "PyWinShell Hooks", message_callback_handler
                 )
                 if isinstance(hwnd, WindowsErrorMessage):
-                    # TODO better logging
-                    print("Error creating message window: " + repr(hwnd))
+                    log(
+                        FATAL, WindowsHookEvent,
+                        "Error creating message window: {0}; cannot continue.",
+                        hwnd
+                    )
                     return
                 self._hwnd = hwnd
                 if self._hwnd:
-                    print("Registering window hook " + repr(self._hwnd))
+                    log(TRACE, WindowsHookEvent, "Registering window hook {0}", self._hwnd)
                     msg = WINDOWS_FUNCTIONS.shell.register_window_hook(
                         self._hwnd, self._window_message_map, shell_handler
                     )
                     if isinstance(msg, WindowsErrorMessage):
-                        print("Failed to register window hook: " + repr(msg))
+                        log(
+                            FATAL,
+                            WindowsHookEvent,
+                            "Failed to register window hook: {0}; cannot continue",
+                            msg
+                        )
                     else:
-                        print("Register window hook message id: " + repr(msg))
+                        log(TRACE, WindowsHookEvent, "Register window hook message id: {0}", msg)
 
                 print("Pumping messages...")
                 WINDOWS_FUNCTIONS.shell.pump_messages(on_exit)
             else:
-                print("Basic functions not defined")
+                log(FATAL, WindowsHookEvent, "Basic platform functions not defined; cannot continue")
 
             print("Stopping the message pumper")
             self.__start_state = 2

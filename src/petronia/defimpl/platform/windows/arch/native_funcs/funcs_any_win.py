@@ -677,7 +677,7 @@ def window__activate(hwnd: HWND) -> Optional[WindowsErrorMessage]:
 
 
 class WNDCLASSEX(Structure):
-    _fields_ = (
+    _fields_ = [
         ("cbSize", c_uint),
         ("style", c_uint),
         ("lpfnWndProc", WNDPROCTYPE),
@@ -690,7 +690,7 @@ class WNDCLASSEX(Structure):
         ("lpszMenuName", LPCWSTR),
         ("lpszClassName", LPCWSTR),
         ("hIconSm", HANDLE)
-    )
+    ]
 
 
 def window__create_message_window(
@@ -713,6 +713,7 @@ def window__create_message_window(
 
     # A persistent pointer to a handler.  Must be persisted so it isn't
     # removed when we exit this method.
+    print("creating a windows procedure for " + repr(message_handler))
     window_proc = WNDPROCTYPE(message_handler)
     hinst = GetModuleHandleW(None)
     window_class = WNDCLASSEX()
@@ -735,10 +736,10 @@ def window__create_message_window(
     # "null" to further emphasize that this is a non-viewable window.
     # We don't use a message-only window, so that the window can
     # receive global event hooks.
-    hwnd = t_cast(HWND, CreateWindowExW(
+    hwnd: HWND = CreateWindowExW(
         0, class_name, None,
         WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, HWND_DESKTOP, None, hinst, None
-    ))
+    )
     if hwnd is None or hwnd == 0:
         return WindowsErrorMessage('user32.CreateWindowExW')
 
@@ -1237,6 +1238,19 @@ def shell__shell_hook(callback: Callable[[int, WPARAM, LPARAM], Optional[str]]) 
     :param callback:
     :return: hook handle
     """
+
+    # Without some tricky logic, the shell hook will always fail.
+    # Specifically, it must use a DLL to perform the hook.  One for 64-bit
+    # applications, and one for 32-bit applications.
+    # See https://www.codeproject.com/Articles/18638/Using-Window-Messages-to-Implement-Global-System-H
+    # Otherwise, this error is encountered.
+    #   ERROR_HOOK_NEEDS_HMOD (1428):
+    #   Cannot set nonlocal hook without a module handle.
+    #
+    hmod = GetModuleHandleW(None)
+    if hmod is None is None:
+        return WindowsErrorMessage('GetModuleHandleW')
+
     # See https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
     hook_id = None
 
@@ -1250,7 +1264,7 @@ def shell__shell_hook(callback: Callable[[int, WPARAM, LPARAM], Optional[str]]) 
                 ret = callback(code, wparam, lparam)
                 if ret == SHELL__CANCEL_CALLBACK_CHAIN:
                     call_next = False
-        except:
+        except:  # pylint: broad-except
             print("Unexpected error: {0}".format(sys.exc_info()[0]))
             raise
         finally:
@@ -1266,7 +1280,7 @@ def shell__shell_hook(callback: Callable[[int, WPARAM, LPARAM], Optional[str]]) 
                 return LRESULT(1)
 
     callback_pointer = HOOK_CALLBACK_TYPE(shell_handler)
-    hook_id = t_cast(HHOOK, SetWindowsHookExW(WH_SHELL, callback_pointer, GetModuleHandleW(None), 0))
+    hook_id = t_cast(HHOOK, SetWindowsHookExW(WH_SHELL, callback_pointer, hmod, 0))
     if hook_id == 0:
         return WindowsErrorMessage('SetWindowsHookExW / shell')
     print("started shell hook " + repr(hook_id))
@@ -1337,7 +1351,7 @@ def shell__register_window_hook(
     message_id = t_cast(int, RegisterWindowMessageW("SHELLHOOK"))
     if message_id == 0:
         return WindowsErrorMessage('RegisterWindowMessageW')
-    if message_id_callbacks and callback:
+    if message_id_callbacks is not None and callback:
         message_id_callbacks[message_id] = callback
     return message_id
 
@@ -1355,20 +1369,20 @@ def shell__create_global_message_handler(message_id_callbacks: Dict[int, Message
     """
     assert isinstance(message_id_callbacks, dict)
 
-    def handler(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> LRESULT:
-        # print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
+    def handler(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> int:
+        print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
         if message in message_id_callbacks:
             ret = message_id_callbacks[message](hwnd, message, wparam, lparam)
             if ret is not False:
-                return LRESULT(1)
+                return 1
             # False return code means run the standard DefWindowProc.
         elif message == WM_CLOSE:
             windll.user32.DestroyWindow(hwnd)
-            return LRESULT(0)
+            return 0
         elif message == WM_DESTROY:
             windll.user32.PostQuitMessage(0)
-            return LRESULT(0)
-        return t_cast(LRESULT, DefWindowProcW(hwnd, message, wparam, lparam))
+            return 0
+        return t_cast(int, DefWindowProcW(hwnd, message, wparam, lparam))
 
     return handler
 
@@ -1382,6 +1396,8 @@ def shell__pump_messages(on_exit_callback: Callable[[], None]) -> None:
             # print("DEBUG quit message in queue")
             # 0 means WM_QUIT, < 0 means error
             on_exit_callback()
+            # Is this right?
+            break
         else:
             TranslateMessage(byref(message))
             DispatchMessageW(byref(message))

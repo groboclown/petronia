@@ -83,7 +83,9 @@ class WindowFunctions:
     get_module_filename: Optional[Callable[[HWND], Union[WindowsErrorMessage, str]]]
     get_thread_window_handles: Optional[Callable[[DWORD], Sequence[HWND]]]
     get_child_window_handles: Optional[Callable[[HWND], Sequence[HWND]]]
+    # TODO the ScreenRect should be for virtual pixels, but this is actually native.
     border_rectangle: Optional[Callable[[HWND], Union[WindowsErrorMessage, ScreenRect]]]
+    # TODO the ScreenRect should be for virtual pixels, but this is actually native.
     client_rectangle: Optional[Callable[[HWND], Union[WindowsErrorMessage, ScreenRect]]]
     move_resize: Optional[Callable[[HWND, int, int, int, int, Optional[bool]], bool]]
     redraw: Optional[Callable[[HWND, Optional[bool]], bool]]
@@ -97,6 +99,7 @@ class WindowFunctions:
     restore: Optional[Callable[[HWND], Optional[WindowsErrorMessage]]]
     get_visibility_states: Optional[Callable[[HWND], Sequence[str]]]
     draw_border_outline: Optional[Callable[
+        # TODO the ScreenRect should be for virtual pixels, but this is actually native.
         [ScreenRect, Color, int, Optional[int], Optional[int], Optional[HWND]],
         None
     ]]
@@ -115,6 +118,7 @@ class WindowFunctions:
     get_font_for_description: Optional[Callable[[str, Optional[HWND], Optional[HDC]], Optional[HFONT]]]
     get_text_size: Optional[Callable[
         [HFONT, str, Optional[HWND], Optional[HDC]],
+        # TODO the ScreenRect should be for virtual pixels, but this is actually native.
         Union[ScreenSize, WindowsErrorMessage]
     ]]
     do_paint: Optional[Callable[[HWND, PaintCallback[T]], Union[T, WindowsErrorMessage]]]

@@ -48,6 +48,8 @@ The system supports adding a trust layer between an event generator and the even
 
 Due to the inability to truly lock down Python extensions in-memory, this only has impact when dealing with remote events.
 
+One additional approach to help with this is the API vs. Implementation vs. Standalone aspects for extensions.  APIs should declare event types, and which ones are public vs. generated only by implementations; they must not register any event listeners nor generate events (other than event registration).  Implementation plugins must not declare any events, but can listen to and generate events.  Stand-alone plugins act as implementations that cannot generate private events.  Additionally, each API can have at most one implementation registered at a time.
+
 ### Super Secure Petronia
 
 With the extension execution in a separate process, this enables Petronia to be able to run in a highly secure environment.
