@@ -18,33 +18,22 @@ https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getphysica
 
 """
 
-from typing import Tuple, Optional
+from typing import Tuple, Sequence, Union, Optional
 from .....core.platform.api import (
-    ScreenArea
+    ScreenArea,
+    NativeScreenInfo,
+    NATIVE_SCREEN_AREA_X,
+    NATIVE_SCREEN_AREA_Y,
+    NATIVE_SCREEN_AREA_WIDTH,
+    NATIVE_SCREEN_AREA_HEIGHT,
 )
 from ..arch.native_funcs.windows_common import (
     HWND, HFONT,
+    WindowsErrorMessage,
 )
 from ..arch.native_funcs import (
     WINDOWS_FUNCTIONS,
 )
-
-NativeScreenUnit = int
-
-# x, y
-NativeScreenPosition = Tuple[NativeScreenUnit, NativeScreenUnit]
-NATIVE_SCREEN_POSITION_X = 0
-NATIVE_SCREEN_POSITION_Y = 1
-
-# width, height
-NativeScreenSize = Tuple[NativeScreenUnit, NativeScreenUnit]
-
-# x, y, width, height
-NativeScreenArea = Tuple[NativeScreenUnit, NativeScreenUnit, NativeScreenUnit, NativeScreenUnit]
-NATIVE_SCREEN_AREA_X = 0
-NATIVE_SCREEN_AREA_Y = 1
-NATIVE_SCREEN_AREA_W = 2
-NATIVE_SCREEN_AREA_H = 3
 
 
 class WindowPosition:
@@ -98,39 +87,48 @@ class WindowPosition:
         if self.relative:
             # Adjust based on the specified monitor and relative location.
             # TODO implement
-            pass
+            pos_types = self.relative.split('-')
+            monitors = get_monitors()
+            if not isinstance(monitors, WindowsErrorMessage) and monitors:
+                if len(monitors) > self.monitor:
+                    monitor = monitors[self.monitor]
+                else:
+                    monitor = monitors[0]
+
+                if 'bottom' in pos_types:
+                    pos_y = (
+                        # Bottom of the monitor...
+                        # Note that, due to multi-monitor display properties, the Y can be non-zero.
+                        (monitor.work_area[NATIVE_SCREEN_AREA_Y] + monitor.work_area[NATIVE_SCREEN_AREA_HEIGHT])
+                        - height - self.padding
+                    )
+                elif 'top' in pos_types:
+                    pos_y = (
+                        # Top of the monitor...
+                        monitor.work_area[NATIVE_SCREEN_AREA_Y] + self.padding
+                    )
+
+                if 'right' in pos_types:
+                    pos_x = (
+                        # Right of the monitor...
+                        (monitor.work_area[NATIVE_SCREEN_AREA_X] + monitor.work_area[NATIVE_SCREEN_AREA_WIDTH])
+                        - width - self.padding
+                    )
+                elif 'left' in pos_types:
+                    pos_x = (
+                        # Left of the monitor...
+                        monitor.work_area[NATIVE_SCREEN_AREA_X] + self.padding
+                    )
+
+            if self.right is not None:
+                width = self.right - pos_x
+            if self.bottom is not None:
+                height = self.bottom - pos_y
 
         return pos_x, pos_y, width, height
 
 
-
-    """
-
-    if 'relative' in pos:
-        relative = pos['relative'].split('-')
-        if 'monitor' in pos:
-            monitor_index = pos['monitor']
-        else:
-            monitor_index = 0
-
-        monitors = monitor__find_monitors()
-        if monitor_index < 0 or monitor_index >= len(monitors):
-            monitor_index = 0
-
-        if 'bottom' in relative:
-            pos_y = monitors[monitor_index]['bottom'] - height - padding
-        elif 'top' in relative:
-            pos_y = monitors[monitor_index]['top'] + padding
-
-        if 'right' in relative:
-            pos_x = monitors[monitor_index]['right'] - width - padding
-        elif 'left' in relative:
-            pos_x = monitors[monitor_index]['left'] + padding
-
-    if 'right' in pos:
-        width = pos['right'] - pos_x
-    if 'bottom' in pos:
-        height = pos['bottom'] - pos_y
-
-    return pos_x, pos_y, width, height
-"""
+def get_monitors() -> Union[Sequence[NativeScreenInfo], WindowsErrorMessage]:
+    if WINDOWS_FUNCTIONS.monitor.find_monitors:
+        return WINDOWS_FUNCTIONS.monitor.find_monitors()
+    return WindowsErrorMessage('not implemented')

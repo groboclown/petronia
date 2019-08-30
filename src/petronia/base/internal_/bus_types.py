@@ -33,6 +33,7 @@ ExtensionMetadataStruct = Dict[str, Union[
     ]],
 ]]
 
+
 class EventBus:
     """
     The EventBus common API.

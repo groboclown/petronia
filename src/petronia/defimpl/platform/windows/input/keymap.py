@@ -5,6 +5,7 @@ Handlers for Windows VirtualKey (VK) codes and key names.
 
 from typing import Sequence, List, Dict, Set
 
+
 def vk_to_names(vk: int) -> Sequence[str]:
     maps: List[str] = []
     for vk_str, code in STR_VK_MAP.items():
@@ -18,6 +19,17 @@ def vk_to_names(vk: int) -> Sequence[str]:
 
 def is_vk_modifier(vk: int) -> bool:
     return vk in _MODIFIER_KEYS
+
+
+def is_specially_handled_vk_key(vk: int) -> bool:
+    return vk in SPECIAL_MODIFIER_CHECK_VKEY_CODES
+
+
+def contains_specially_handled_vk_key(vks: Sequence[int]) -> bool:
+    for vk in vks:
+        if vk in SPECIAL_MODIFIER_CHECK_VKEY_CODES:
+            return True
+    return False
 
 
 # Built-in alias VK keys that represent several keys.

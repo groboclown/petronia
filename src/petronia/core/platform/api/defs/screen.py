@@ -4,7 +4,7 @@ Definitions for data types of the screen.
 """
 
 from typing import Dict, Sequence, Union
-from .units import ScreenArea
+from .units import ScreenArea, NativeScreenArea
 
 # A platform specific way of referencing the screen.
 # This only has meaning to the platform.
@@ -38,7 +38,7 @@ class NativeScreenInfo:
     def __init__(
             self,
             handle: ScreenHandle, screen_index: int, is_primary: bool,
-            screen_size: ScreenArea, work_area: ScreenArea,
+            screen_size: NativeScreenArea, work_area: ScreenArea,
             name: str
     ) -> None:
         self.__handle = handle
@@ -59,12 +59,12 @@ class NativeScreenInfo:
         return self.__screen_index
 
     @property
-    def screen_size(self) -> ScreenArea:
+    def screen_size(self) -> NativeScreenArea:
         """Native platform coordinates for the screen."""
         return self.__screen_size
 
     @property
-    def work_area(self) -> ScreenArea:
+    def work_area(self) -> NativeScreenArea:
         """Native platform coordinates for the area where the windows can appear."""
         return self.__work_area
 

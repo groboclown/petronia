@@ -9,3 +9,6 @@ package, this package allows for interaction.
 from .windows_hook_event import (
     WindowsHookEvent,
 )
+from .screen import (
+    get_monitors,
+)

@@ -32,6 +32,30 @@ SCREEN_AREA_H = SCREEN_AREA_HEIGHT
 # Quarter font unit.
 FontQUnit = int
 
+# For native screen dimensions...
+NativeScreenUnit = int
+
+# x, y
+NativeScreenPosition = Tuple[NativeScreenUnit, NativeScreenUnit]
+NATIVE_SCREEN_POSITION_X = 0
+NATIVE_SCREEN_POSITION_Y = 1
+
+# width, height
+NativeScreenSize = Tuple[NativeScreenUnit, NativeScreenUnit]
+NATIVE_SCREEN_SIZE_WIDTH = 0
+NATIVE_SCREEN_SIZE_HEIGHT = 1
+NATIVE_SCREEN_SIZE_W = NATIVE_SCREEN_SIZE_WIDTH
+NATIVE_SCREEN_SIZE_H = NATIVE_SCREEN_SIZE_HEIGHT
+
+# x, y, width, height
+NativeScreenArea = Tuple[NativeScreenUnit, NativeScreenUnit, NativeScreenUnit, NativeScreenUnit]
+NATIVE_SCREEN_AREA_X = 0
+NATIVE_SCREEN_AREA_Y = 1
+NATIVE_SCREEN_AREA_WIDTH = 2
+NATIVE_SCREEN_AREA_HEIGHT = 3
+NATIVE_SCREEN_AREA_W = NATIVE_SCREEN_AREA_WIDTH
+NATIVE_SCREEN_AREA_H = NATIVE_SCREEN_AREA_HEIGHT
+
 
 class ScreenRect:
     """Rectangle display on the screen."""
@@ -39,8 +63,8 @@ class ScreenRect:
 
     def __init__(
             self,
-            x: int, y: int, width: int, height: int,
-            left: int, right: int, top: int, bottom: int
+            x: ScreenUnit, y: ScreenUnit, width: ScreenUnit, height: ScreenUnit,
+            left: ScreenUnit, right: ScreenUnit, top: ScreenUnit, bottom: ScreenUnit
     ) -> None:
         self.__x = x
         self.__y = y
@@ -52,33 +76,33 @@ class ScreenRect:
         self.__bottom = bottom
 
     @property
-    def x(self) -> int:
+    def x(self) -> ScreenUnit:
         return self.__x
 
     @property
-    def y(self) -> int:
+    def y(self) -> ScreenUnit:
         return self.__y
 
     @property
-    def width(self) -> int:
+    def width(self) -> ScreenUnit:
         return self.__width
 
     @property
-    def height(self) -> int:
+    def height(self) -> ScreenUnit:
         return self.__height
 
     @property
-    def left(self) -> int:
+    def left(self) -> ScreenUnit:
         return self.__left
 
     @property
-    def right(self) -> int:
+    def right(self) -> ScreenUnit:
         return self.__right
 
     @property
-    def top(self) -> int:
+    def top(self) -> ScreenUnit:
         return self.__top
 
     @property
-    def bottom(self) -> int:
+    def bottom(self) -> ScreenUnit:
         return self.__bottom

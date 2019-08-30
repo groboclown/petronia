@@ -6,6 +6,7 @@ Helpers for managing hotkeys.
 from .hotkey_chain import (
     ACTION_PENDING,
     ACTION_CANCELLED,
+    ACTION_COMPLETE,
     IGNORED,
     HotKeyChain,
     KeyCombo,

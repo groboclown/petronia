@@ -75,7 +75,7 @@ def create_master_mkey_and_sequence_combo(
         hotkeys: str
 ) -> Union[Sequence[KeyCombo], HotkeyFormatErrorMessage]:
     """
-    Create a modal key sequence.  This is a master modifer + key
+    Create a modal key sequence.  This is a master modifier + key
     (say, ctrl-a), followed by one or more normal keys.  This is similar to
     how the `screen` program works.
     """

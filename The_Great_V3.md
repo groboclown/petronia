@@ -64,6 +64,7 @@ The current to-do list.
     * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
     * Extensions publish translation files by sending an event with the translation contents.  That allows all sandboxes to receive the new translations.
     * `atoi` and `atof` formatting needs to be supported right.  Configuration files that are exchangeable between users, and that have a well defined format, should have a single expected numeric format.  All end-user input should use the `locale.atoi` and `locale.atof`, which means the above `locale.setlocale` should be used.
+    * Need to provide an error reporting mechanism that uses localization.
 * timer helper should include an implementation that uses the time event.
 * basic definition of platform responsibilities.
 * Create theme extension API that is a layer on top of the platform.  It provides better components that are themed.  With this, make sure the platform stuff isn't themed and is as low-level as possible.
@@ -107,6 +108,9 @@ The current to-do list.
         * Can only listen to events declared by dependent API extensions.
         * Can only trigger public events declared by dependent API extensions.
         * Cannot register any event.
+* Windows platform:
+    * Add enhancement config.
+        * State of pass-through win key.
 
 
 ## Tech Debt

@@ -5,12 +5,12 @@ General Windows hook event handler.
 Implementations will need to work with the WindowHandleMapper class.
 """
 
-from typing import Dict, Optional, Callable
+from typing import Dict, Tuple, Sequence, Optional, Callable
 from typing import cast as t_cast
 import threading
 
 from .....aid.simp import (
-    log, DEBUG, TRACE, ERROR, FATAL,
+    log, TRACE, ERROR, FATAL,
 )
 from ..arch.native_funcs.windows_common import WindowsErrorMessage
 from ..arch import windows_constants
@@ -43,7 +43,7 @@ class WindowsHookEvent:
     _shell_hook: Optional[HHOOK]
     _window_message_map: Dict[int, MessageCallback]
     _shell_message_map: Dict[int, MessageCallback]
-    _key_handler: Optional[Callable[[int, bool, bool], bool]]
+    _key_handler: Optional[Callable[[int, int, bool, bool], Tuple[bool, Sequence[Tuple[int, bool]]]]]
 
     def __init__(self) -> None:
         self._key_hook = None
@@ -54,10 +54,14 @@ class WindowsHookEvent:
         self._shell_message_map = {}
         self._key_handler = None
 
-    def set_key_handler(self, callback: Callable[[int, bool, bool], bool]) -> None:
+    def set_key_handler(
+            self, callback: Callable[[int, int, bool, bool], Tuple[bool, Sequence[Tuple[int, bool]]]]
+    ) -> None:
         """
         Sets the key handler.
-        :param callback: arguments: (VK_CODE, is_key_up, is_key_injected)
+        :param callback: arguments: (VK_CODE, is_key_up, is_key_injected).  Returns a tuple of
+            (bool - true if cancel propagation of key, false if let it go through,
+            list of (scancode, is_key_up) injected keys).
         :return: None
         """
         self._key_handler = callback
@@ -70,11 +74,19 @@ class WindowsHookEvent:
             self._window_message_map[message[1]] = message[2]
 
     def start(self, on_exit: Callable[[], None]) -> None:
-        def key_handler(vk_code: int, _scan_code: int, is_key_up: bool, is_injected: bool) -> Optional[str]:
+        def key_handler(vk_code: int, scan_code: int, is_key_up: bool, is_injected: bool) -> Optional[str]:
             print("[key] xxx {1}".format(vk_code, 'up' if is_key_up else 'dn'))
             if self._key_handler:
-                if self._key_handler(vk_code, is_key_up, is_injected):
+                res = self._key_handler(vk_code, scan_code, is_key_up, is_injected)
+                if WINDOWS_FUNCTIONS.shell.inject_scancode and res[1]:
+                    for inject_scancode, inject_is_up in res[1]:
+                        print(" - injecting {0} {1}".format(inject_scancode, inject_is_up))
+                        WINDOWS_FUNCTIONS.shell.inject_scancode(inject_scancode, inject_is_up)
+                if res[0]:
+                    print(" - cancelling callback chain for key")
                     return SHELL__CANCEL_CALLBACK_CHAIN
+                else:
+                    print(" - passing on key")
             return None
 
         def shell_handler(source_hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> bool:

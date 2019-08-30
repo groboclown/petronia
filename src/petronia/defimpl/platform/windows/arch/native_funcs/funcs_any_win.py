@@ -1166,7 +1166,7 @@ def shell__keyboard_hook(
     """
     hook_id = None
 
-    def low_level_handler(code: int, wparam: WPARAM, lparam: LPARAM) -> LRESULT:
+    def low_level_handler(code: int, wparam: WPARAM, lparam: LPARAM) -> int:
         kbd_ptr = c_cast(lparam, POINTER(KBDLLHOOKSTRUCT))[0]
 
         # If code is less than zero, the hook procedure must pass the message
@@ -1196,15 +1196,16 @@ def shell__keyboard_hook(
                     call_next = False
         finally:
             if call_next:
-                return t_cast(LRESULT, CallNextHookEx(hook_id, code, wparam, lparam))
+                print(" - forwarding key event")
+                return t_cast(int, CallNextHookEx(hook_id, code, wparam, lparam))
             else:
                 # From the docs:
                 # If the hook procedure processed the message, it may return
                 # a nonzero value to prevent the system from passing the
                 # message to the rest of the hook chain or the target window
                 # procedure.
-                # print("DEBUG NOT FORWARDING KEY")
-                return LRESULT(1)
+                print("DEBUG NOT FORWARDING KEY")
+                return 1
 
     callback_pointer = HOOK_CALLBACK_TYPE(low_level_handler)
     hook_id = t_cast(HHOOK, SetWindowsHookExW(WH_KEYBOARD_LL, callback_pointer, GetModuleHandleW(None), 0))

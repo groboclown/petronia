@@ -137,7 +137,6 @@ class BasicEventBus:
             event_id, target_id, listener_id
         )
 
-
         return listener_id
 
     def trigger(
@@ -155,7 +154,7 @@ class BasicEventBus:
         # Be super careful with this method.
 
         log(
-            TRACE, BasicEventBus,
+            DEBUG, BasicEventBus,
             'attempting to trigger priority "{0}" event "{1}" target "{2}" with "{3}"',
             when, event_id, target_id, event_obj
         )
@@ -164,12 +163,11 @@ class BasicEventBus:
         BasicEventBus.assert_event_id(event_id)
         BasicEventBus.assert_target_id(target_id)
         # Use a set of event names, in case the event_id or target_id are themselves wildcards.
-        events = set((
-            BasicEventBus._join_ids(event_id, target_id),
-            BasicEventBus._join_ids(EVENT_WILDCARD, target_id),
+        events = {
+            BasicEventBus._join_ids(event_id, target_id), BasicEventBus._join_ids(EVENT_WILDCARD, target_id),
             BasicEventBus._join_ids(event_id, TARGET_WILDCARD),
-            BasicEventBus._join_ids(EVENT_WILDCARD, TARGET_WILDCARD),
-        ))
+            BasicEventBus._join_ids(EVENT_WILDCARD, TARGET_WILDCARD)
+        }
         listeners: List[BasicEventCallback] = []
         self.__lock.acquire_read()
         try:
@@ -187,16 +185,17 @@ class BasicEventBus:
                         listeners.append(listener)
         finally:
             self.__lock.release()
-        self.__queue(
-            when,
-            listeners,
-            (event_id, target_id, event_obj)
-        )
-        log(
-            TRACE, BasicEventBus,
-            'queued priority "{0}" event "{1}" target "{2}" with "{3}"',
-            when, event_id, target_id, event_obj
-        )
+        if listeners:
+            self.__queue(
+                when,
+                listeners,
+                (event_id, target_id, event_obj)
+            )
+            log(
+                DEBUG, BasicEventBus,
+                'queued priority "{0}" event "{1}" target "{2}" with "{3}"',
+                when, event_id, target_id, event_obj
+            )
 
 
     def remove_listener(self, listener_id: ListenerId) -> bool:

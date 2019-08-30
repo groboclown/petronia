@@ -13,14 +13,16 @@ updated through user configuration.  Instead, some other API must be configured
 to use them.  For example, the `core.hotkeys.api`.
 """
 
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, Dict
 from .....aid.simp import (
     EventId,
     EventBus,
+    EventCallback,
     set_state,
 )
 from .....aid.bootstrap import (
     create_singleton_identity,
+    ListenerSetup,
 )
 
 # ---------------------------------------------------------------------------
@@ -30,12 +32,16 @@ CONFIGURATION_ID_HOTKEYS = create_singleton_identity('core.platform.api/hotkey-c
 class HotkeyConfig:
     """Requested configuration for the hotkeys.  If the configuration is
     allowed, the HotkeyState is sent out with the update.  If there was a
-    problem, then an error is reported."""
+    problem, then an error is reported.
+
+    The hotkeys are a mapping from the key combo to the hotkey label, because
+    hotkey combos must be unique.
+    """
     __slots__ = ('__hotkeys', '__master')
 
-    def __init__(self, master_sequence: str, hotkeys: Iterable[str]) -> None:
+    def __init__(self, master_sequence: str, hotkeys: Dict[str, str]) -> None:
         self.__master = master_sequence
-        self.__hotkeys = tuple(hotkeys)
+        self.__hotkeys = dict(hotkeys)
 
     @property
     def master_sequence(self) -> str:
@@ -44,12 +50,12 @@ class HotkeyConfig:
         return self.__master
 
     @property
-    def hotkeys(self) -> Sequence[str]:
+    def hotkeys(self) -> Dict[str, str]:
         """All registered hotkeys, as the configuration named them."""
         return self.__hotkeys
 
 
-def set_hotkey_config(bus: EventBus, master_sequence: str, hotkeys: Iterable[str]) -> None:
+def set_hotkey_config(bus: EventBus, master_sequence: str, hotkeys: Dict[str, str]) -> None:
     set_state(
         bus, CONFIGURATION_ID_HOTKEYS,
         HotkeyConfig, HotkeyConfig(master_sequence, hotkeys)
@@ -64,9 +70,9 @@ class HotkeyState:
     """The state of the current hotkeys.  Extracted from the hotkey configuration."""
     __slots__ = ('__hotkeys', '__master')
 
-    def __init__(self, master_sequence: str, hotkeys: Iterable[str]) -> None:
+    def __init__(self, master_sequence: str, hotkeys: Dict[str, str]) -> None:
         self.__master = master_sequence
-        self.__hotkeys = tuple(hotkeys)
+        self.__hotkeys = dict(hotkeys)
 
     @property
     def master_sequence(self) -> str:
@@ -75,12 +81,12 @@ class HotkeyState:
         return self.__master
 
     @property
-    def hotkeys(self) -> Sequence[str]:
+    def hotkeys(self) -> Dict[str, str]:
         """All registered hotkeys, as the configuration named them."""
         return self.__hotkeys
 
 
-def set_hotkey_state(bus: EventBus, master_sequence: str, hotkeys: Iterable[str]) -> None:
+def set_hotkey_state(bus: EventBus, master_sequence: str, hotkeys: Dict[str, str]) -> None:
     set_state(
         bus, STATE_ID_HOTKEYS,
         HotkeyState, HotkeyState(master_sequence, hotkeys)
@@ -103,3 +109,80 @@ class HotkeyPressedEvent:
     def name(self) -> str:
         """Name of the pressed hotkey."""
         return self.__name
+
+
+def send_hotkey_pressed_event(bus: EventBus, hotkey_name: str) -> None:
+    bus.trigger(EVENT_ID_HOTKEY_PRESSED, TARGET_ID_HOTKEY, HotkeyPressedEvent(hotkey_name))
+
+
+def as_hotkey_pressed_listener(
+        callback: EventCallback[HotkeyPressedEvent]
+) -> ListenerSetup[HotkeyPressedEvent]:
+    return (EVENT_ID_HOTKEY_PRESSED, callback,)
+
+
+# ---------------------------------------------------------------------------
+EVENT_ID_HOTKEY_PROGRESS = EventId('core.platform.api hotkey-progress')
+
+
+class HotkeyProgressEvent:
+    """
+    A hotkey sequence is being processed.
+
+    For limited use; specifically, a helper tool to display your progress in
+    entering a hotkey combo, and listing different next-key options, and what
+    they will do.
+    """
+    __slots__ = ('__keys', '__actions')
+
+    def __init__(self, keys: Sequence[str], actions: Sequence[str]) -> None:
+        self.__keys = tuple(keys)
+        self.__actions = tuple(actions)
+
+    @property
+    def keys(self) -> Sequence[str]:
+        """List of keys in the sequence pressed already."""
+        return self.__keys
+
+    @property
+    def actions(self) -> Sequence[str]:
+        """List of potential actions that could follow this up."""
+        return self.__actions
+
+
+def send_hotkey_progress_event(bus: EventBus, keys: Sequence[str], actions: Sequence[str]) -> None:
+    bus.trigger(EVENT_ID_HOTKEY_PROGRESS, TARGET_ID_HOTKEY, HotkeyProgressEvent(keys, actions))
+
+
+def as_hotkey_progress_listener(
+        callback: EventCallback[HotkeyProgressEvent]
+) -> ListenerSetup[HotkeyProgressEvent]:
+    return (EVENT_ID_HOTKEY_PROGRESS, callback,)
+
+
+# ---------------------------------------------------------------------------
+EVENT_ID_HOTKEY_PROGRESS_CANCELLED = EventId('core.platform.api hotkey-progress-cancelled')
+
+
+class HotkeyProgressCancelledEvent:
+    """
+    A hotkey sequence that was processed, is now cancelled.
+
+    For limited use; specifically, a helper tool to display your progress in
+    entering a hotkey combo, and listing different next-key options, and what
+    they will do.
+    """
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        pass
+
+
+def send_hotkey_progress_cancelled_event(bus: EventBus) -> None:
+    bus.trigger(EVENT_ID_HOTKEY_PROGRESS_CANCELLED, TARGET_ID_HOTKEY, HotkeyProgressCancelledEvent())
+
+
+def as_hotkey_progress_cancelled_listener(
+        callback: EventCallback[HotkeyProgressCancelledEvent]
+) -> ListenerSetup[HotkeyProgressCancelledEvent]:
+    return (EVENT_ID_HOTKEY_PROGRESS_CANCELLED, callback,)

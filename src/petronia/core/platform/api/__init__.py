@@ -45,6 +45,26 @@ from .defs import (
     SCREEN_AREA_HEIGHT,
     SCREEN_AREA_H,
 
+    NativeScreenUnit,
+
+    NativeScreenPosition,
+    NATIVE_SCREEN_POSITION_X,
+    NATIVE_SCREEN_POSITION_Y,
+
+    NativeScreenSize,
+    NATIVE_SCREEN_SIZE_WIDTH,
+    NATIVE_SCREEN_SIZE_W,
+    NATIVE_SCREEN_SIZE_HEIGHT,
+    NATIVE_SCREEN_SIZE_H,
+
+    NativeScreenArea,
+    NATIVE_SCREEN_AREA_X,
+    NATIVE_SCREEN_AREA_Y,
+    NATIVE_SCREEN_AREA_WIDTH,
+    NATIVE_SCREEN_AREA_W,
+    NATIVE_SCREEN_AREA_HEIGHT,
+    NATIVE_SCREEN_AREA_H,
+
     ScreenRect,
 
     TextBiDi,

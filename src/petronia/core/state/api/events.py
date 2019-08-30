@@ -45,7 +45,9 @@ class StateStoreUpdateRequestEvent(Generic[T]):
         return self._state_type
 
 
+# ---------------------------------------------------------------------------
 EVENT_ID_UPDATED_STATE = EventId('core.state.api updated')
+
 
 class StateStoreUpdatedEvent(Generic[T]):
     """Reports that a state value was successfully updated."""

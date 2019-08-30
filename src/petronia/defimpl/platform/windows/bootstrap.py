@@ -14,6 +14,9 @@ from ....aid.bootstrap import (
     ANY_VERSION,
 )
 from ....core.shutdown.api import send_system_shutdown_request
+from .state import (
+    bootstrap_hotkeys,
+)
 import atexit
 
 
@@ -23,7 +26,15 @@ def bootstrap_windows_platform(bus: EventBus) -> None:
         from . import connect
 
         # DEBUG CODE...
+        hotkeys = {
+            'f1': 'Pressed Super+f1',
+            'ctrl+f1': 'Pressed Super+Ctrl+f1'
+        }
         hook = connect.WindowsHookEvent()
+        bootstrap_hotkeys(
+            bus, hook,
+            ('meta:super', hotkeys,)
+        )
         hook.start(lambda: send_system_shutdown_request(bus))
         atexit.register(hook.dispose)
     except:

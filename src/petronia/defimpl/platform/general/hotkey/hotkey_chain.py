@@ -29,6 +29,7 @@ StatefulKeyCode = int
 # definition.
 KeyCombo = Sequence[StatefulKeyCode]
 
+
 class KeyComboTree:
     """An internal representation of the list of possible keys.  This forms
     a tree of possible results.  Using a tree represented by dictionaries
@@ -43,6 +44,20 @@ class KeyComboTree:
     def get(self, key: StatefulKeyCode) -> Union[str, 'KeyComboTree', None]:
         return self.children.get(key, None)
 
+    def leaves(self, store: Optional[List[str]] = None) -> Sequence[str]:
+        """All the leaf node values from this point, which are the strings."""
+        ret: List[str]
+        if store is None:
+            ret = []
+        else:
+            ret = store
+        for child in self.children.values():
+            if isinstance(child, str):
+                ret.append(child)
+            else:
+                child.leaves(ret)
+        return ret
+
     def add_child(self, keys: KeyCombo, name: str, override: bool = False) -> bool:
         """
         return `True` if the key was added without anything else present, or
@@ -50,7 +65,6 @@ class KeyComboTree:
         `override` is set, then the new child is added regardless of the
         return value.
         """
-        assert name not in _INVALID_ACTION_NAMES
         if keys:
             key0: StatefulKeyCode = keys[0]
             key1: Sequence[StatefulKeyCode] = keys[1:]
@@ -77,17 +91,10 @@ class KeyComboTree:
         return False
 
 
-ACTION_PENDING = '&&&pending&&&'
-ACTION_CANCELLED = '&&&canceled&&&'
-IGNORED = '&&&none&&&'
-
-_INVALID_ACTION_NAMES = (
-    ACTION_PENDING,
-    ACTION_CANCELLED,
-    IGNORED,
-    None,
-    ''
-)
+ACTION_PENDING = 1
+ACTION_CANCELLED = 2
+ACTION_COMPLETE = 3
+IGNORED = 0
 
 
 def create_stateful_key_code(standard_key_code: StandardKeyCode, is_down: bool) -> StatefulKeyCode:
@@ -131,7 +138,7 @@ def create_primary_chain(
 def create_modal_chain(
         initial_modifiers: Sequence[ModifierKeyCode], initial_keys: Sequence[StandardKeyCode],
         modal_keys: Sequence[StandardKeyCode]
-)-> Sequence[KeyCombo]:
+) -> Sequence[KeyCombo]:
     """
     Modal, like screen or tmux.  Pressing the initial key sequence causes the
     rest to be checked.  Those initial keys must all be down together, then released
@@ -191,7 +198,6 @@ def create_independent_key_chain(
     raise NotImplementedError()
 
 
-
 class HotKeyChain:
     """
     Keeps track of the current hotkey press progress.
@@ -205,7 +211,7 @@ class HotKeyChain:
     _active_combos: Optional[KeyComboTree]
 
     def __init__(
-            self, chain_commands: Optional[Dict[str, Union[Sequence[KeyCombo]]]] = None
+            self, chain_commands: Optional[List[Tuple[Sequence[KeyCombo], str]]] = None
     ) -> None:
         self._root_combos = KeyComboTree()
         self._active_combos = None
@@ -213,12 +219,10 @@ class HotKeyChain:
         if chain_commands is not None:
             self.set_key_chains(chain_commands)
 
-    def set_key_chains(self, chain_commands: Dict[str, Sequence[KeyCombo]]) -> None:
+    def set_key_chains(self, chain_commands: List[Tuple[Sequence[KeyCombo], str]]) -> None:
         """Set all the hotkey combinations."""
-        assert isinstance(chain_commands, dict)
-
         combos = KeyComboTree()
-        for name, key_list in chain_commands.items():
+        for key_list, name in chain_commands:
             for keys in key_list:
                 combos.add_child(keys, name, True)
 
@@ -230,14 +234,14 @@ class HotKeyChain:
         """Reset any active hotkey check."""
         self._active_combos = None
 
-    def key_action(self, key_code: StandardKeyCode, is_down: bool) -> str:
+    def key_action(self, key_code: StandardKeyCode, is_down: bool) -> Tuple[int, Optional[Sequence[str]]]:
         """
         Handle the key action.  Note that this MUST be done in-thread when
         the event happens, due to the ordering nature of key press, and how
         Petronia events are not guaranteed to be well-ordered.
 
         :param is_down:
-        :param vk_code:
+        :param key_code:
         :return: IGNORED if the key should be passed through,
             ACTION_PENDING if the key should be blocked from passing to
             another application, but does not complete an action,
@@ -253,26 +257,25 @@ class HotKeyChain:
             next_part = self._active_combos.get(key)
             if isinstance(next_part, str):
                 self._active_combos = None
-                return next_part
+                return ACTION_COMPLETE, (next_part,),
             if isinstance(next_part, KeyComboTree):
                 self._active_combos = next_part
-                return ACTION_PENDING
+                return ACTION_PENDING, next_part.leaves(),
             # Not a known key combo.
             self._active_combos = None
-            return ACTION_CANCELLED
+            return ACTION_CANCELLED, None,
 
         next_part = self._root_combos.get(key)
         if isinstance(next_part, str):
             # A one-key hotkey.  Shouldn't be allowed, but it is for now.
-            return next_part
+            return ACTION_COMPLETE, (next_part,),
         if isinstance(next_part, KeyComboTree):
             # Start a combo.
             self._active_combos = next_part
-            return ACTION_PENDING
+            return ACTION_PENDING, next_part.leaves(),
 
         # It wasn't a known combo.
-        return IGNORED
-
+        return IGNORED, None,
 
 
 def modifier_key_combinations(
