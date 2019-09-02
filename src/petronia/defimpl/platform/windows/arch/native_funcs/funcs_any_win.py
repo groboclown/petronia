@@ -1003,7 +1003,7 @@ def paint__draw_text(
         hdc: HDC, hfont: HFONT,
         text: str,
         pos_x: int, pos_y: int, width: int, height: int,
-        fg_color: Color, bg_color: Color
+        fg_color: Optional[Color], bg_color: Optional[Color]
 ) -> Optional[WindowsErrorMessage]:
     old_hfont = None
     try:
@@ -1042,7 +1042,7 @@ def paint__draw_outline_text(
         hdc: HDC, hfont: HFONT,
         text: str,
         pos_x: int, pos_y: int,
-        outline_width: int, outline_color: Color, fill_color: Color, bg_color: Color
+        outline_width: int, outline_color: Color, fill_color: Color, bg_color: Optional[Color]
 ) -> Optional[WindowsErrorMessage]:
     """
 
@@ -1541,7 +1541,7 @@ def monitor__find_monitors() -> Sequence[NativeScreenInfo]:
         if GetMonitorInfoW(monitor_handle, byref(info)) != 0:
             ret.append(NativeScreenInfo(
                 # Disguise the handle as something else
-                handle=monitor_handle.value or 0,
+                handle=monitor_handle or 0,
                 screen_index=index,
                 screen_size=(
                     info.rcWork.left, info.rcWork.top,

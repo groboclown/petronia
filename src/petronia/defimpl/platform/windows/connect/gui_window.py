@@ -12,14 +12,17 @@ from typing import Dict, Callable, Union, Optional
 from ..arch import windows_constants
 from ..arch.native_funcs.windows_common import (
     HWND, HFONT, HDC,
-    WPARAM, LPARAM,
+    WPARAM, LPARAM, UINT,
     MessageCallback,
     WindowsErrorMessage,
 )
 from ..arch.native_funcs import (
     WINDOWS_FUNCTIONS,
 )
-from .screen import (
+from .....aid.simp import (
+    log, WARN, VERBOSE, DEBUG, TRACE,
+)
+from .....core.platform.api.defs import (
     NativeScreenPosition,
     NATIVE_SCREEN_POSITION_X, NATIVE_SCREEN_POSITION_Y,
 
@@ -56,8 +59,12 @@ class Painter:
         """
         if not WINDOWS_FUNCTIONS.window.get_font_for_description or not WINDOWS_FUNCTIONS.window.get_text_size:
             return WindowsErrorMessage('not implemented')
-        hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font_desc, hwnd=self.__hwnd, base_hdc=self.__hdc)
-        return WINDOWS_FUNCTIONS.window.get_text_size(hfont, text, hwnd=self.__hwnd, base_hdc=self.__hdc)
+        hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font_desc, self.__hwnd, self.__hdc)
+        if isinstance(hfont, WindowsErrorMessage):
+            return hfont
+        if not hfont:
+            return WindowsErrorMessage('no font found for {0}'.format(font_desc))
+        return WINDOWS_FUNCTIONS.window.get_text_size(hfont, text, self.__hwnd, self.__hdc)
 
     def draw_rect(self, area: NativeScreenArea, color: Color) -> Optional[WindowsErrorMessage]:
         if not WINDOWS_FUNCTIONS.paint.draw_rect:
@@ -84,7 +91,9 @@ class Painter:
         """
         if not WINDOWS_FUNCTIONS.window.get_font_for_description or not WINDOWS_FUNCTIONS.paint.draw_text:
             return WindowsErrorMessage('not implemented')
-        hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font_desc, base_hdc=self.__hdc)
+        hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font_desc, self.__hwnd, self.__hdc)
+        if not hfont:
+            return WindowsErrorMessage('unknown font {0}'.format(font_desc))
         return WINDOWS_FUNCTIONS.paint.draw_text(
             self.__hdc,
             hfont, text,
@@ -100,7 +109,9 @@ class Painter:
     ) -> Optional[WindowsErrorMessage]:
         if not WINDOWS_FUNCTIONS.window.get_font_for_description or not WINDOWS_FUNCTIONS.paint.draw_outline_text:
             return WindowsErrorMessage('not implemented')
-        hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font_desc, base_hdc=self.__hdc)
+        hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font_desc, self.__hwnd, self.__hdc)
+        if not hfont:
+            return WindowsErrorMessage('unknown font {0}'.format(font_desc))
         return WINDOWS_FUNCTIONS.paint.draw_outline_text(
             self.__hdc, hfont, text,
             pos[NATIVE_SCREEN_POSITION_X], pos[NATIVE_SCREEN_POSITION_Y],
@@ -116,16 +127,19 @@ class GuiWindow:
     GUI window for showing information to the user.
     """
     __slots__ = (
-        '__hwnd',
-        '__hfont',
+        '_hwnd',
+        '_hfont',
         '__is_position_set',
         '__initial_position',
         '__is_always_on_top',
         '__removing',
         '__has_quit',
         '__on_exit',
+        '__painter',
         '_message_id_callbacks',
     )
+    _hwnd: Optional[HWND]
+    _hfont: Optional[HFONT]
     _message_id_callbacks: Dict[int, MessageCallback]
 
     def __init__(
@@ -142,29 +156,34 @@ class GuiWindow:
     ) -> None:
         self.__has_quit = False
         self.__removing = False
-        self.__hwnd = None
-        self.__hfont = None
-        self.__is_always_on_top = is_always_on_top
+        self._hwnd = None
+        self._hfont = None
+        self.__is_always_on_top = is_always_on_top or False
         self.__on_exit = on_exit
+        self.__painter = painter
 
         # Because of multi-threading issues, a resize may come in after initial creation
         self.__is_position_set = False
         self.__initial_position = initial_position
 
         def do_paint(hwnd: HWND, hdc: HDC) -> None:
-            window_size = WINDOWS_FUNCTIONS.window.client_rectangle(hwnd)
-            if isinstance(window_size, WindowsErrorMessage):
-                # TODO logging
-                pass
-            else:
-                painter(Painter(hwnd, hdc, window_size))
+            if WINDOWS_FUNCTIONS.window.client_rectangle:
+                window_size = WINDOWS_FUNCTIONS.window.client_rectangle(hwnd)
+                if isinstance(window_size, WindowsErrorMessage):
+                    log(
+                        WARN, GuiWindow, 'client_rectangle({0}) generated error: {1}',
+                        hwnd, window_size
+                    )
+                else:
+                    painter(Painter(hwnd, hdc, window_size))
 
         # noinspection PyUnusedLocal
         def paint(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> bool:
-            res = WINDOWS_FUNCTIONS.window.do_paint(hwnd, do_paint)
-            if isinstance(res, WindowsErrorMessage):
-                # This usually means that the window is no longer available.
-                self.close()
+            if WINDOWS_FUNCTIONS.window.do_paint:
+                res = WINDOWS_FUNCTIONS.window.do_paint(hwnd, do_paint)
+                if isinstance(res, WindowsErrorMessage):
+                    # This usually means that the window is no longer available.
+                    self.close()
             return True
 
         def on_exit_callback() -> None:
@@ -177,37 +196,63 @@ class GuiWindow:
 
         def message_pumper() -> None:
             # These MUST be in the same thread!
+            if (
+                    not WINDOWS_FUNCTIONS.shell.create_global_message_handler
+                    or not WINDOWS_FUNCTIONS.window.create_display_window
+                    or not WINDOWS_FUNCTIONS.window.create_borderless_window
+                    or not WINDOWS_FUNCTIONS.window.get_font_for_description
+                    or not WINDOWS_FUNCTIONS.window.set_position
+                    or not WINDOWS_FUNCTIONS.window.move_resize
+                    or not WINDOWS_FUNCTIONS.shell.pump_messages
+            ):
+                log(WARN, GuiWindow, 'native functions not supported')
+                return
             message_callback_handler = WINDOWS_FUNCTIONS.shell.create_global_message_handler(self._message_id_callbacks)
 
+            def message_handler(hwnd: HWND, msg: int, wparam: WPARAM, lparam: LPARAM) -> bool:
+                return message_callback_handler(hwnd, msg, wparam, lparam) == 0
+
             if has_border:
-                self.__hwnd = WINDOWS_FUNCTIONS.window.create_display_window(
-                    class_name, title, message_callback_handler, {
+                created_hwnd = WINDOWS_FUNCTIONS.window.create_display_window(
+                    class_name, title, message_handler, {
                         'border', 'dialog-frame', 'sysmenu-button', 'size-border', 'minimize-button', 'maximize-button'
                     }
                 )
             else:
-                self.__hwnd = WINDOWS_FUNCTIONS.window.create_borderless_window(
-                    class_name, title, message_callback_handler, self._message_id_callbacks,
-                    show_on_taskbar=is_on_taskbar, always_on_top=is_always_on_top
+                created_hwnd = WINDOWS_FUNCTIONS.window.create_borderless_window(
+                    class_name, title, message_handler, self._message_id_callbacks,
+                    is_on_taskbar, is_always_on_top
                 )
+            if isinstance(created_hwnd, WindowsErrorMessage):
+                log(WARN, GuiWindow, 'failed to create window: {0}'.format(created_hwnd))
+                return
+            self._hwnd = created_hwnd
 
             if font is not None:
-                self.__hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font, hwnd=self.__hwnd)
+                self._hfont = WINDOWS_FUNCTIONS.window.get_font_for_description(font, self._hwnd, None)
 
             if is_always_on_top:
                 WINDOWS_FUNCTIONS.window.set_position(
-                    self.__hwnd, 'topmost',
-                    self.__pos_x, self.__pos_y, self.__width, self.__height,
+                    self._hwnd, 'topmost',
+                    self.__initial_position[NATIVE_SCREEN_AREA_X],
+                    self.__initial_position[NATIVE_SCREEN_AREA_Y],
+                    self.__initial_position[NATIVE_SCREEN_AREA_W],
+                    self.__initial_position[NATIVE_SCREEN_AREA_H],
                     ('no-activate',)
                 )
             else:
                 WINDOWS_FUNCTIONS.window.move_resize(
-                    self.__hwnd, self.__pos_x, self.__pos_y, self.__width, self.__height, False
+                    self._hwnd,
+                    self.__initial_position[NATIVE_SCREEN_AREA_X],
+                    self.__initial_position[NATIVE_SCREEN_AREA_Y],
+                    self.__initial_position[NATIVE_SCREEN_AREA_W],
+                    self.__initial_position[NATIVE_SCREEN_AREA_H],
+                    False
                 )
 
             WINDOWS_FUNCTIONS.shell.pump_messages(on_exit_callback)
 
-            self._log_verbose("Window {0} quit".format(self.cid))
+            log(VERBOSE, GuiWindow, "Window {0} quit", self._hwnd)
             self.__has_quit = True
 
         pump_thread = threading.Thread(
@@ -220,58 +265,95 @@ class GuiWindow:
         if not self.__removing:
             self.__removing = True
             if not self.__has_quit:
-                self._log_debug("Sending quit message to window {0} / {1}".format(self.cid, self.__hwnd))
+                log(DEBUG, GuiWindow, "Sending quit message to window {0}", self._hwnd)
                 # window__send_message(self.__hwnd, windows_constants.WM_QUIT, 0, 0)
-                WINDOWS_FUNCTIONS.window.post_message(self.__hwnd, windows_constants.WM_CLOSE, 0, 0)
+                if self._hwnd and WINDOWS_FUNCTIONS.window.post_message:
+                    res = WINDOWS_FUNCTIONS.window.post_message(
+                        self._hwnd, UINT(windows_constants.WM_CLOSE),
+                        WPARAM(0), LPARAM(0)
+                    )
+                    if res:
+                        log(
+                            WARN, GuiWindow, 'post close message on window {0} failed: {1}',
+                            self._hwnd, res
+                        )
             self.__on_exit()
 
-    def add_message_handler(self, message_id: Union[int, str], handler) -> None:
+    def add_message_handler(
+            self, message_id: Union[int, str],
+            handler: MessageCallback
+    ) -> None:
         if isinstance(message_id, str):
-            message_id = windows_constants.WM_MESSAGE_NAMES[message_id]
-        self._message_id_callbacks[message_id] = handler
+            if message_id in windows_constants.WM_MESSAGE_NAMES:
+                self._message_id_callbacks[windows_constants.WM_MESSAGE_NAMES[message_id]] = handler
+            else:
+                raise ValueError('Unknown message ID {0}'.format(message_id))
+        else:
+            self._message_id_callbacks[message_id] = handler
 
     def draw(self) -> None:
         if not self.__has_quit:
-            res = WINDOWS_FUNCTIONS.window.repaint(self.__hwnd)
-            if isinstance(res, WindowsErrorMessage):
-                # This usually means that the window is no longer available.
-                self.close()
+            if self._hwnd and WINDOWS_FUNCTIONS.window.repaint:
+                res = WINDOWS_FUNCTIONS.window.repaint(self._hwnd)
+                if isinstance(res, WindowsErrorMessage):
+                    # This usually means that the window is no longer available.
+                    self.close()
 
     def draw_now(self) -> None:
+        if not WINDOWS_FUNCTIONS.window.do_draw or not self._hwnd:
+            return
+
         def do_paint(hwnd: HWND, hdc: HDC) -> None:
-            window_size = WINDOWS_FUNCTIONS.window.client_rectangle(hwnd)
-            self._on_paint(hwnd, hdc, window_size.width, window_size.height)
+            if WINDOWS_FUNCTIONS.window.client_rectangle:
+                window_size = WINDOWS_FUNCTIONS.window.client_rectangle(hwnd)
+                if isinstance(window_size, WindowsErrorMessage):
+                    log(
+                        WARN, GuiWindow, 'client_rectangle for window {0} failed: {1}',
+                        hwnd, window_size
+                    )
+                else:
+                    self.__painter(Painter(hwnd, hdc, window_size))
+
         try:
-            window__do_draw(self.__hwnd, do_paint)
+            WINDOWS_FUNCTIONS.window.do_draw(self._hwnd, do_paint)
         except OSError:
             # This usually means that the window is no longer available.
             self.close()
 
-    def move_resize(self, pos_x, pos_y, width, height, force_on_top=False):
-        self.__pos_x = pos_x
-        self.__pos_y = pos_y
-        self.__width = width
-        self.__height = height
-        self.__size_set = True
+    def move_resize(
+            self, pos_x: int, pos_y: int, width: int, height: int, force_on_top: Optional[bool] = False
+    ) -> None:
+        self.__initial_position = (pos_x, pos_y, width, height,)
+        self.__is_position_set = True
 
-        if self.__hwnd is None:
+        if self._hwnd is None:
             # Nothing to do yet.
             return
-        if self.__is_always_on_top:
-            window__set_position(
-                self.__hwnd, 'topmost',
-                pos_x, pos_y, width, height,
-                ['no-activate'])
-        elif force_on_top:
-            window__set_position(
-                self.__hwnd,
-                'topmost',  # 'top',
-                pos_x, pos_y, width, height,
-                ['no-activate'])
-        else:
-            # window__move_resize(self.__hwnd, pos_x, pos_y, width, height, False)
-            window__set_position(
-                self.__hwnd,
-                'no-topmost',  # 'top',
-                pos_x, pos_y, width, height,
-                ['no-activate'])
+        res: Optional[WindowsErrorMessage] = None
+        if WINDOWS_FUNCTIONS.window.set_position:
+            if self.__is_always_on_top:
+                res = WINDOWS_FUNCTIONS.window.set_position(
+                    self._hwnd, 'topmost',
+                    pos_x, pos_y, width, height,
+                    ('no-activate',)
+                )
+            elif force_on_top:
+                res = WINDOWS_FUNCTIONS.window.set_position(
+                    self._hwnd,
+                    'topmost',  # 'top',
+                    pos_x, pos_y, width, height,
+                    ('no-activate',)
+                )
+            else:
+                res = WINDOWS_FUNCTIONS.window.set_position(
+                    self._hwnd,
+                    'no-topmost',  # 'top',
+                    pos_x, pos_y, width, height,
+                    ('no-activate',)
+                )
+        if res:
+            log(
+                WARN, GuiWindow,
+                'set position for window {0} failed: {1}',
+                self._hwnd, res
+            )

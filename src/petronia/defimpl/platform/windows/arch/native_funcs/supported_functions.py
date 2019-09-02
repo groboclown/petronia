@@ -127,7 +127,7 @@ class WindowFunctions:
     has_style: Optional[Callable[[HWND, str], bool]]
     get_style: Optional[Callable[[HWND], Dict[str, bool]]]
     create_borderless_window: Optional[Callable[
-        [str, str, MessageCallback, Dict[int, NativeMessageCallback], Optional[bool], Optional[bool]],
+        [str, str, MessageCallback, Dict[int, MessageCallback], Optional[bool], Optional[bool]],
         Union[HWND, WindowsErrorMessage]
     ]]
 
@@ -185,9 +185,11 @@ class PaintFunctions:
         'draw_outline_text',
     )
     draw_rect: Optional[Callable[[HDC, int, int, int, int, Color], Optional[WindowsErrorMessage]]]
-    draw_text: Optional[Callable[[HDC, HFONT, str, int, int, int, int, Color, Color], Optional[WindowsErrorMessage]]]
+    draw_text: Optional[Callable[
+        [HDC, HFONT, str, int, int, int, int, Optional[Color], Optional[Color]],
+        Optional[WindowsErrorMessage]]]
     draw_outline_text: Optional[Callable[
-        [HDC, HFONT, str, int, int, int, Color, Color, Color],
+        [HDC, HFONT, str, int, int, int, Color, Color, Optional[Color]],
         Optional[WindowsErrorMessage]
     ]]
 

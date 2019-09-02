@@ -16,6 +16,7 @@ from ....aid.bootstrap import (
 from ....core.shutdown.api import send_system_shutdown_request
 from .state import (
     bootstrap_hotkeys,
+    bootstrap_display_detection,
 )
 import atexit
 
@@ -35,6 +36,8 @@ def bootstrap_windows_platform(bus: EventBus) -> None:
             bus, hook,
             ('meta:super', hotkeys,)
         )
+
+        bootstrap_display_detection(bus, hook)
         hook.start(lambda: send_system_shutdown_request(bus))
         atexit.register(hook.dispose)
     except:

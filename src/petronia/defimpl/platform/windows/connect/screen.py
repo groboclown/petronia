@@ -53,22 +53,22 @@ class WindowPosition:
             left: Optional[int] = None, right: Optional[int] = None,
             top: Optional[int] = None, bottom: Optional[int] = None,
             padding: Optional[int] = 4,
-            text_size: Optional[int] = None,
+            text_size: Optional[Union[int, str]] = None,
             relative: Optional[str] = None,
             monitor: Optional[int] = 0
     ):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
+        self.x = x or 0
+        self.y = y or 0
+        self.width = 100 if width is None else width
+        self.height = 100 if height is None else height
         self.left = left
         self.right = right
         self.top = top
         self.bottom = bottom
-        self.padding = padding
+        self.padding = padding or 4
         self.text_size = text_size
         self.relative = relative
-        self.monitor = monitor
+        self.monitor = monitor or 0
 
     def get_size(self, hwnd: Optional[HWND], hfont: Optional[HFONT] = None) -> ScreenArea:
         pos_x = self.x
@@ -81,8 +81,20 @@ class WindowPosition:
         if self.top is not None:
             pos_y = self.top
 
-        if self.text_size is not None and hfont is not None and hwnd is not None:
-            width, height = WINDOWS_FUNCTIONS.window.get_text_size(hwnd, hfont, self.text_size)
+        if (
+                self.text_size is not None and
+                hfont is not None and
+                hwnd is not None
+                and WINDOWS_FUNCTIONS.window.get_text_size
+        ):
+            text_size: str
+            if isinstance(self.text_size, int):
+                text_size = 'm' * self.text_size
+            else:
+                text_size = self.text_size
+            res = WINDOWS_FUNCTIONS.window.get_text_size(hfont, text_size, hwnd, None)
+            if not isinstance(res, WindowsErrorMessage):
+                width, height = res
 
         if self.relative:
             # Adjust based on the specified monitor and relative location.

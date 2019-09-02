@@ -75,7 +75,10 @@ def bootstrap_hotkeys(
         hotkey_chain.set_key_chains(chain_commands)
         set_hotkey_state(bus, obj.state.master_sequence, obj.state.hotkeys)
 
-    listeners.append(bus.add_listener(CONFIGURATION_ID_HOTKEYS, as_state_change_listener, on_hotkeys_config))
+    listeners.append(bus.add_listener(  # type: ignore
+        CONFIGURATION_ID_HOTKEYS,
+        as_state_change_listener, on_hotkeys_config
+    ))
 
     return listeners
 
@@ -84,41 +87,36 @@ def _parse_keys(
         master_seq: str, hotkeys: Dict[str, str],
         chain_commands: List[Tuple[Sequence[KeyCombo], str]]
 ) -> Sequence[Tuple[str, HotkeyFormatErrorMessage]]:
+    # TODO make this return a localizable string for errors.
     errors: List[Tuple[str, HotkeyFormatErrorMessage]] = []
 
     if master_seq.lower().startswith('seq:'):
-        master = create_master_mkey(master_seq[4:])
-        if isinstance(master, HotkeyFormatErrorMessage):
-            errors.append(('Invalid master key sequence "{0}": {1}'.format(master_seq, master), master))
+        master_mkey = create_master_mkey(master_seq[4:])
+        if isinstance(master_mkey, HotkeyFormatErrorMessage):
+            errors.append(('Invalid master key sequence "{0}": {1}'.format(master_seq, master_mkey), master_mkey))
             # No state change.
             return errors
         for key, name in hotkeys.items():
-            combo = create_master_mkey_and_sequence_combo(master[0], master[1], key)
+            combo = create_master_mkey_and_sequence_combo(master_mkey[0], master_mkey[1], key)
             if isinstance(combo, HotkeyFormatErrorMessage):
-                log(
-                    ERROR, 'windows.hotkeys_config',
-                    'Invalid key sequence: "{0}": {1} (for command {2})', key, combo, name
-                )
+                errors.append(('Invalid key sequence: "{0}": {1} (for command {2})'.format(key, combo, name), combo))
                 # No state change.
-                return
+                return errors
             chain_commands.append((combo, name,))
     elif master_seq.lower().startswith('meta:'):
-        master = create_master_modifier(master_seq[5:])
-        if isinstance(master, HotkeyFormatErrorMessage):
-            errors.append(('Invalid master modifier keys "{0}": {1}'.format(master_seq, master), master))
+        master_mod = create_master_modifier(master_seq[5:])
+        if isinstance(master_mod, HotkeyFormatErrorMessage):
+            errors.append(('Invalid master modifier keys "{0}": {1}'.format(master_seq, master_mod), master_mod))
             return errors
         for key, name in hotkeys.items():
-            combo = create_master_modifier_hotkey_combo(master, key)
+            combo = create_master_modifier_hotkey_combo(master_mod, key)
             if isinstance(combo, HotkeyFormatErrorMessage):
-                log(
-                    ERROR, 'windows.hotkeys_config',
-                    'Invalid key sequence: "{0}": {1} (for command {2})', key, combo, name
-                )
+                errors.append(('Invalid key sequence: "{0}": {1} (for command {2})'.format(key, combo, name), combo))
                 # No state change
-                return
+                return errors
             chain_commands.append((combo, name,))
     else:
         log(ERROR, 'windows.hotkeys_config', 'Invalid master "{0}"; must start with "seq:" or "meta:"', master_seq)
-        return
+        return errors
 
     return errors

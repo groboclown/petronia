@@ -597,7 +597,7 @@ def process__get_all_pids() -> Union[WindowsErrorMessage, Sequence[DWORD]]:
 def create_window__create_borderless_window(
         func_map: Functions
 ) -> Optional[Callable[
-    [str, str, MessageCallback, Dict[int, NativeMessageCallback], Optional[bool], Optional[bool]],
+    [str, str, MessageCallback, Dict[int, MessageCallback], Optional[bool], Optional[bool]],
     Union[HWND, WindowsErrorMessage]
 ]]:
 
@@ -608,7 +608,7 @@ def create_window__create_borderless_window(
     def window__create_borderless_window(
             class_name: str, title: str,
             message_handler: MessageCallback,
-            callback_map: Dict[int, NativeMessageCallback],
+            callback_map: Dict[int, MessageCallback],
             show_on_taskbar: Optional[bool] = True,
             always_on_top: Optional[bool] = False
     ) -> Union[HWND, WindowsErrorMessage]:
@@ -623,7 +623,7 @@ def create_window__create_borderless_window(
         if not show_on_taskbar:
             style_flags.add('tool-window')
 
-        def hit_test(_hwnd: HWND, _msg: int, _wparam: WPARAM, _lparam: LPARAM) -> LRESULT:
+        def hit_test(_hwnd: HWND, _msg: int, _wparam: WPARAM, _lparam: LPARAM) -> bool:
             # We don't have a border, so don't worry about
             # border cursor checks.
             # pt = wintypes.POINT()
@@ -635,10 +635,12 @@ def create_window__create_borderless_window(
 
             # rc = wintypes.RECT()
             # windll.user32.GetClientRect(hwnd, byref(rc))
-            return LRESULT(windows_constants.HTCLIENT)
 
-        def zero(_hwnd: HWND, _msg: int, _wparam: WPARAM, _lparam: LPARAM) -> LRESULT:
-            return LRESULT(0)
+            # return windows_constants.HTCLIENT
+            return True
+
+        def zero(_hwnd: HWND, _msg: int, _wparam: WPARAM, _lparam: LPARAM) -> bool:
+            return False
 
         callback_map[windows_constants.WM_NCACTIVATE] = zero
         callback_map[windows_constants.WM_NCCALCSIZE] = zero

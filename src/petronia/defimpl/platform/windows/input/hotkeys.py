@@ -59,7 +59,7 @@ def create_hotkey_handler(
             pending_keys.append(vk_to_names(vk_code)[0] or '(unknown)')
             pending_scancodes.append((scan_code, is_key_up,))
             print(" - Pending hotkeys: " + repr(actions))
-            send_hotkey_progress_event(bus, pending_keys, actions)
+            send_hotkey_progress_event(bus, pending_keys, actions or ())
             return cancel_key_forward, ()
         if res == ACTION_CANCELLED:
             pending_scancodes.append((scan_code, is_key_up,))
@@ -78,8 +78,8 @@ def create_hotkey_handler(
         if res == ACTION_COMPLETE:
             pending_keys.clear()
             pending_scancodes.clear()
-            print(" - Sending hotkey pressed event: " + actions[0])
-            send_hotkey_pressed_event(bus, actions[0])
+            print(" - Sending hotkey pressed event: " + repr(actions))
+            send_hotkey_pressed_event(bus, (actions or ('',))[0])
             return cancel_key_forward, ()
         # Ignore the keypress, and let everything process the key as usual.
         print(" - Ignoring key")

@@ -13,11 +13,12 @@ updated through user configuration.  Instead, some other API must be configured
 to use them.  For example, the `core.hotkeys.api`.
 """
 
-from typing import Iterable, Sequence, Dict
+from typing import Sequence, Dict
 from .....aid.simp import (
     EventId,
     EventBus,
     EventCallback,
+    SingletonId,
     set_state,
 )
 from .....aid.bootstrap import (
@@ -26,7 +27,7 @@ from .....aid.bootstrap import (
 )
 
 # ---------------------------------------------------------------------------
-CONFIGURATION_ID_HOTKEYS = create_singleton_identity('core.platform.api/hotkey-config')
+CONFIGURATION_ID_HOTKEYS: SingletonId = create_singleton_identity('core.platform.api/hotkey-config')
 
 
 class HotkeyConfig:
