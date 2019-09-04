@@ -17,6 +17,15 @@ from .action_occurred import (
 
     EVENT_ID_NATIVE_WINDOW_CREATED,
     NativeWindowCreatedEvent,
+
+    EVENT_ID_NATIVE_WINDOW_MOVED,
+    NativeWindowMovedEvent,
+
+    EVENT_ID_NATIVE_WINDOW_FOCUSED,
+    NativeWindowFocusedEvent,
+
+    EVENT_ID_NATIVE_WINDOW_FLASHED,
+    NativeWindowFlashedEvent,
 )
 from .action_requests import (
     EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW,
@@ -28,28 +37,44 @@ from .action_requests import (
     EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW,
     RequestMoveNativeWindowEvent,
 )
+from ..defs import (
+    ScreenRect,
+)
 
 
 def register_window_events(bus: EventBus) -> None:
     """Register all the events"""
     register_event(
         bus, EVENT_ID_NATIVE_WINDOW_CLOSED, QUEUE_EVENT_NORMAL,
-        NativeWindowClosedEvent, NativeWindowClosedEvent(NOT_PARTICIPANT, False)
+        NativeWindowClosedEvent, NativeWindowClosedEvent(False)
     )
     register_event(
         bus, EVENT_ID_NATIVE_WINDOW_CREATED, QUEUE_EVENT_NORMAL,
         NativeWindowCreatedEvent, NativeWindowCreatedEvent(NOT_PARTICIPANT)
     )
     register_event(
+        bus, EVENT_ID_NATIVE_WINDOW_FLASHED, QUEUE_EVENT_NORMAL,
+        NativeWindowFlashedEvent, NativeWindowFlashedEvent()
+    )
+    register_event(
+        bus, EVENT_ID_NATIVE_WINDOW_FOCUSED, QUEUE_EVENT_NORMAL,
+        NativeWindowFocusedEvent, NativeWindowFocusedEvent()
+    )
+    register_event(
+        bus, EVENT_ID_NATIVE_WINDOW_MOVED, QUEUE_EVENT_NORMAL,
+        NativeWindowMovedEvent, NativeWindowMovedEvent(ScreenRect(0, 0, 0, 0, 0, 0, 0, 0), True)
+    )
+
+    register_event(
         bus, EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW, QUEUE_EVENT_NORMAL,
-        RequestCloseNativeWindowEvent, RequestCloseNativeWindowEvent(NOT_PARTICIPANT, False)
+        RequestCloseNativeWindowEvent, RequestCloseNativeWindowEvent(False)
     )
     register_event(
         bus, EVENT_ID_REQUEST_FOCUS_NATIVE_WINDOW, QUEUE_EVENT_NORMAL,
-        RequestFocusNativeWindowEvent, RequestFocusNativeWindowEvent(NOT_PARTICIPANT, False)
+        RequestFocusNativeWindowEvent, RequestFocusNativeWindowEvent(False)
     )
     register_event(
         bus, EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW, QUEUE_EVENT_NORMAL,
         RequestMoveNativeWindowEvent,
-        RequestMoveNativeWindowEvent(NOT_PARTICIPANT, 0, 0, 0, 0)
+        RequestMoveNativeWindowEvent((0, 0, 0, 0,))
     )

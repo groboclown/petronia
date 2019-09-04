@@ -9,3 +9,6 @@ from .hotkeys import (
 from .display import (
     bootstrap_display_detection,
 )
+from .window import (
+    bootstrap_window_discovery,
+)

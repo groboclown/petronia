@@ -9,6 +9,7 @@ from traceback import print_exception
 from .bootstrap.args import parse_args
 from .bootstrap.all import bootstrap_petronia, run_petronia
 
+
 def main(args: Sequence[str]) -> int:
     """
     Entry for the program.

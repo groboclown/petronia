@@ -42,6 +42,7 @@ def compare_version(first: ExtensionVersion, second: ExtensionVersion) -> int:
         return first[1] - second[1]
     return first[0] - second[0]
 
+
 class ExtensionCompatibility:
     """
     Describes the compatibility request for an extension.

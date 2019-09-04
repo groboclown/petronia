@@ -30,6 +30,7 @@ class LoadedExtension:
     Simple data type for the loaded extension.
     """
     __slots__ = ('__name', '__secure', '__version', '__hash')
+
     def __init__(self, name: str, secure: bool, version: ExtensionVersion) -> None:
         self.__name = name
         self.__secure = secure
@@ -65,7 +66,6 @@ class LoadedExtension:
             )
         print("not equal - not same class")
         return False
-
 
     def __hash__(self) -> int:
         return self.__hash

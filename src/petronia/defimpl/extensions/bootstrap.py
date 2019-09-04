@@ -120,10 +120,10 @@ def bootstrap_extension_loader(
     # listen to the dispose event and remove it from the state.
 
 
-
 class _ExtensionStatefulLoader:
     __slots__ = ('__bus', '__state', '__loader', '_loaded')
     _loaded: Set[LoadedExtension]
+
     def __init__(
             self,
             bus: EventBus,

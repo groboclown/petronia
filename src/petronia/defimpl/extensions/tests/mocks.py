@@ -9,8 +9,10 @@ from ..defs import (
     SecureExtensionVersion,
 )
 
+
 def never_called_module_loader(bus: EventBus) -> None:
     raise Exception('should not be called')
+
 
 def mk_disc(
         name: str, version: SecureExtensionVersion,
@@ -30,10 +32,11 @@ def mk_disc(
         "defaults": (),
     }
     if implements:
-        json_data["implements"] = compat_to_dict(implements)
+        json_data["implements"] = (compat_to_dict(implements),)
     return DiscoveredExtension(
         name, version, json_data, never_called_module_loader
     )
+
 
 def compat_to_dict(compat: ExtensionCompatibility) -> Dict[str, Any]:
     ret = {

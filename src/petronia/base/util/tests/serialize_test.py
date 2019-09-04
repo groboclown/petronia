@@ -12,6 +12,7 @@ from ..serial.converter import (
     create_instance,
 )
 
+
 class TestCreateInstance(unittest.TestCase):
     def test_valid_simple(self) -> None:
         val = create_instance(__name__ + '.SimpleInstance', {})

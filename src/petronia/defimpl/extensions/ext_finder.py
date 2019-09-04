@@ -197,7 +197,7 @@ def _find_missing_defaults(
     expected_apis = set(apis.keys())
     implemented_apis = set(impls.keys())
     implemented_unknown_apis = implemented_apis.difference(expected_apis)
-    assert not implemented_unknown_apis
+    assert not implemented_unknown_apis, repr(implemented_unknown_apis)
     not_implemented_apis = expected_apis.difference(implemented_apis)
     if not not_implemented_apis:
         # Nothing additional to load!
@@ -367,7 +367,7 @@ def _find_extensions_internal(
                     )
                     match[group_extension] = highest
                     order.insert(0, group_extension)
-                    new_remaining_groups = _find_dependency_compatiblity(
+                    new_remaining_groups = _find_dependency_compatibility(
                         cache, group_extension, highest
                     )
                     new_remaining_groups.update(remaining_groups)
@@ -449,7 +449,8 @@ def _find_highest_version(
                 highest = ver
     return highest
 
-def _find_dependency_compatiblity(
+
+def _find_dependency_compatibility(
         cache: DependencyCache,
         name: str,
         version: SecureExtensionVersion
@@ -461,10 +462,13 @@ def _find_dependency_compatiblity(
     ret = _find_all_compatible(cache, disc.depends_on)
     for imp in disc.implements:
         ret[imp.name] = set(cache.get_compatible_versions_for(imp))
+    log(TRACE, _find_dependency_compatibility, 'Dependencies for {0}: {1}', name, ret)
     return ret
+
 
 def _deep_copy(inp: _VersionMap) -> _VersionMap:
     return dict(inp)
+
 
 def _match_version_is(
         match_version: SecureExtensionVersion, highest: SecureExtensionVersion

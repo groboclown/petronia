@@ -26,7 +26,7 @@ from .supported_functions import (
     WindowsWindowState,
 )
 from .windows_common import (
-    HWND, DWORD, c_int,
+    HWND, DWORD, c_int, RECT,
     UINT, WPARAM, LPARAM, LRESULT,
     HDC, HFONT, HHOOK, ANIMATIONINFO,
     MessageCallback, NativeMessageCallback,

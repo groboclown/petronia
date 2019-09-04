@@ -9,6 +9,7 @@ import unittest
 from ..hotkey_chain import (
     ACTION_PENDING,
     ACTION_CANCELLED,
+    ACTION_COMPLETE,
     IGNORED,
     KeyComboTree,
     HotKeyChain,
@@ -18,6 +19,7 @@ from ..hotkey_chain import (
     create_modal_chain,
     modifier_key_permutations,
 )
+
 
 class KeyComboTreeTest(unittest.TestCase):
     """Tests for KeyComboTree"""
@@ -194,38 +196,38 @@ class HotKeyChainTest(unittest.TestCase):
     """Test out the hotkey chain class."""
     def test_key_action_1(self) -> None:
         """A series of valid key actions."""
-        hotkeys = HotKeyChain({
-            "a": [
+        hotkeys = HotKeyChain([
+            ([
                 [SK_1_DOWN, SK_2_DOWN, SK_2_UP],
                 [SK_2_DOWN, SK_3_DOWN],
-            ],
-            "b": [
-                [SK_1_DOWN, SK_3_DOWN],
-                [SK_2_DOWN, SK_1_DOWN],
-            ],
+            ], 'a'),
+            ([
+                 [SK_1_DOWN, SK_3_DOWN],
+                 [SK_2_DOWN, SK_1_DOWN],
+             ], 'b'),
 
             # May not be allowed in the future.
-            "c": [
+            ([
                 [SK_4_DOWN],
-            ]
-        })
+            ], 'c'),
+        ])
 
         # First hotkey chain.
-        self.assertEqual(hotkeys.key_action(1, True), ACTION_PENDING)
-        self.assertEqual(hotkeys.key_action(2, True), ACTION_PENDING)
-        self.assertEqual(hotkeys.key_action(2, False), 'a')
+        self.assertEqual(hotkeys.key_action(1, True), (ACTION_PENDING, ['a', 'b']))
+        self.assertEqual(hotkeys.key_action(2, True), (ACTION_PENDING, ['a']))
+        self.assertEqual(hotkeys.key_action(2, False), (ACTION_COMPLETE, ('a',)))
 
         # Alternate first hotkey chain.
-        self.assertEqual(hotkeys.key_action(2, True), ACTION_PENDING)
-        self.assertEqual(hotkeys.key_action(3, True), 'a')
+        self.assertEqual(hotkeys.key_action(2, True), (ACTION_PENDING, ['a', 'b']))
+        self.assertEqual(hotkeys.key_action(3, True), (ACTION_COMPLETE, ('a',)))
 
         # Second hotkey chain.
-        self.assertEqual(hotkeys.key_action(1, True), ACTION_PENDING)
-        self.assertEqual(hotkeys.key_action(3, True), 'b')
+        self.assertEqual(hotkeys.key_action(1, True), (ACTION_PENDING, ['a', 'b']))
+        self.assertEqual(hotkeys.key_action(3, True), (ACTION_COMPLETE, ('b',)))
 
         # Cancelled hotkey chain.
-        self.assertEqual(hotkeys.key_action(1, True), ACTION_PENDING)
-        self.assertEqual(hotkeys.key_action(4, True), ACTION_CANCELLED)
+        self.assertEqual(hotkeys.key_action(1, True), (ACTION_PENDING, ['a', 'b']))
+        self.assertEqual(hotkeys.key_action(4, True), (ACTION_CANCELLED, None))
 
         # Single hotkey chain.
-        self.assertEqual(hotkeys.key_action(4, True), 'c')
+        self.assertEqual(hotkeys.key_action(4, True), (ACTION_COMPLETE, ('c',)))

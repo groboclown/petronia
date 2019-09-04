@@ -39,37 +39,37 @@ def get_platform_discovery_function(mod: ModuleType) -> DiscoveryFunction:
     """
     Get the discovery function for the current base platform.
     """
-    if not hasattr(mod, DISCOVERY_FUNCTION_NAME): # type: ignore
+    if not hasattr(mod, DISCOVERY_FUNCTION_NAME):  # type: ignore
         # TODO better error
         raise Exception('preboot platform {0} does not supply {1}'.format(
             mod.__name__,
             DISCOVERY_FUNCTION_NAME
         ))
-    ret = getattr(mod, DISCOVERY_FUNCTION_NAME) # type: ignore
-    if not callable(ret): # type: ignore
+    ret = getattr(mod, DISCOVERY_FUNCTION_NAME)  # type: ignore
+    if not callable(ret):  # type: ignore
         # TODO better error
         raise Exception('preboot platform {0} does not supply valid {1}'.format(
             mod.__name__,
             DISCOVERY_FUNCTION_NAME
         ))
     # could inspect it...  But we won't (right now)
-    return ret # type: ignore
+    return ret  # type: ignore
 
 
 def run_platform_main(bus: EventBus, mod: ModuleType) -> int:
     """Run the platform's run loop."""
-    if not hasattr(mod, RUN_SYSTEM_FUNCTION_NAME): # type: ignore
+    if not hasattr(mod, RUN_SYSTEM_FUNCTION_NAME):  # type: ignore
         # TODO better error
         raise Exception('preboot platform {0} does not supply {1}'.format(
             mod.__name__,
             RUN_SYSTEM_FUNCTION_NAME
         ))
-    ret = getattr(mod, RUN_SYSTEM_FUNCTION_NAME) # type: ignore
-    if not callable(ret): # type: ignore
+    ret = getattr(mod, RUN_SYSTEM_FUNCTION_NAME)  # type: ignore
+    if not callable(ret):  # type: ignore
         # TODO better error
         raise Exception('preboot platform {0} does not supply {1}'.format(
             mod.__name__,
             RUN_SYSTEM_FUNCTION_NAME
         ))
     # could inspect it...  But we won't (right now)
-    return ret(bus) # type: ignore
+    return ret(bus)  # type: ignore

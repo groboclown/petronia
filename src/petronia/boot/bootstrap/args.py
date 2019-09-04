@@ -5,9 +5,10 @@ User CLI arguments to adjust the initial behavior of Petronia.
 
 from typing import List, Sequence, Optional
 from ...base.logging import (
-    add_log_handler, TRACE, DEBUG, VERBOSE, WARN,
+    add_log_handler, TRACE, DEBUG, VERBOSE, INFO, WARN,
 )
 from ...defimpl.logging.console.handler import standard_log_message
+
 
 class UserArguments:
     """
@@ -60,6 +61,8 @@ def parse_args(args: Sequence[str]) -> UserArguments:
             log_level = TRACE
         elif arg == '--verbose':
             log_level = VERBOSE
+        elif arg == '--info':
+            log_level = INFO
         else:
             ret.unparsed_args.append(arg)
         idx += 1

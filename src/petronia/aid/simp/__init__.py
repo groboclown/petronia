@@ -10,6 +10,10 @@ from ...base.bus import (
     EventBus,
     ListenerId,
     EventCallback,
+    ListenerSetup,
+
+    TARGET_WILDCARD,
+    EVENT_WILDCARD,
 )
 
 from ...base.participant import (
@@ -20,6 +24,8 @@ from ...base.participant import (
     is_valid_component_identity,
     is_valid_participant_identity,
     is_valid_singleton_identity,
+
+    create_singleton_identity,
 )
 
 from ...base.events import (

@@ -4,11 +4,16 @@ Native window interactions.  The target for these events is the window
 component ID.
 """
 
-from .....base import (
+from .....aid.simp import (
     EventId,
+    EventBus,
     ComponentId,
+    EventCallback,
+    ListenerSetup,
 )
-
+from ..defs import (
+    ScreenArea,
+)
 
 # ---------------------------------------------------------------------------
 EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW = EventId('core.platform.api move-native-window')
@@ -19,37 +24,34 @@ class RequestMoveNativeWindowEvent:
     Request to move or resize a window.  A value of < 0 means that it
     shouldn't change.
     """
-    __slots__ = ('__window_id', '__x', '__y', '__w', '__h',)
+    __slots__ = ('__area',)
 
     def __init__(
-            self, window_id: ComponentId,
-            new_x: int, new_y: int, new_width: int, new_height: int
+            self,
+            area: ScreenArea
     ) -> None:
-        self.__window_id = window_id
-        self.__x = new_x
-        self.__y = new_y
-        self.__w = new_width
-        self.__h = new_height
+        self.__area = area
 
     @property
-    def window_id(self) -> ComponentId:
-        return self.__window_id
+    def area(self) -> ScreenArea:
+        return self.__area
 
-    @property
-    def new_x(self) -> int:
-        return self.__x
 
-    @property
-    def new_y(self) -> int:
-        return self.__y
+def send_request_move_native_window_event(
+        bus: EventBus,
+        window_id: ComponentId,
+        area: ScreenArea
+) -> None:
+    bus.trigger(
+        EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW, window_id,
+        RequestMoveNativeWindowEvent(area)
+    )
 
-    @property
-    def new_width(self) -> int:
-        return self.__w
 
-    @property
-    def new_height(self) -> int:
-        return self.__h
+def as_request_move_native_window_listener(
+        callback: EventCallback[RequestMoveNativeWindowEvent]
+) -> ListenerSetup[RequestMoveNativeWindowEvent]:
+    return (EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW, callback,)
 
 
 # ---------------------------------------------------------------------------
@@ -62,39 +64,58 @@ class RequestFocusNativeWindowEvent:
     may ignore the raise-to-top value.
     """
 
-    __slots__ = ('__window_id', '__raise',)
+    __slots__ = ('__raise',)
 
-    def __init__(self, window_id: ComponentId, raise_to_top: bool) -> None:
-        self.__window_id = window_id
+    def __init__(self, raise_to_top: bool) -> None:
         self.__raise = raise_to_top
-
-    @property
-    def window_id(self) -> ComponentId:
-        return self.__window_id
 
     @property
     def raise_to_top(self) -> bool:
         return self.__raise
 
 
+def send_request_focus_native_window_event(
+        bus: EventBus,
+        window_id: ComponentId,
+        raise_to_top: bool
+) -> None:
+    bus.trigger(EVENT_ID_REQUEST_FOCUS_NATIVE_WINDOW, window_id, RequestFocusNativeWindowEvent(raise_to_top))
 
+
+def as_request_focus_native_window_listener(
+        callback: EventCallback[RequestFocusNativeWindowEvent]
+) -> ListenerSetup[RequestFocusNativeWindowEvent]:
+    return (EVENT_ID_REQUEST_FOCUS_NATIVE_WINDOW, callback,)
+
+
+# ---------------------------------------------------------------------------
 EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW = EventId('core.platform.api close-native-window')
+
 
 class RequestCloseNativeWindowEvent:
     """
     Send a request to close a window.
     """
 
-    __slots__ = ('__window_id', '__force',)
+    __slots__ = ('__force',)
 
-    def __init__(self, window_id: ComponentId, force: bool) -> None:
-        self.__window_id = window_id
+    def __init__(self, force: bool) -> None:
         self.__force = force
-
-    @property
-    def window_id(self) -> ComponentId:
-        return self.__window_id
 
     @property
     def force(self) -> bool:
         return self.__force
+
+
+def send_request_close_native_window_event(
+        bus: EventBus,
+        window_id: ComponentId,
+        force: bool
+) -> None:
+    bus.trigger(EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW, window_id, RequestCloseNativeWindowEvent(force))
+
+
+def as_request_close_native_window_listener(
+        callback: EventCallback[RequestCloseNativeWindowEvent]
+) -> ListenerSetup[RequestCloseNativeWindowEvent]:
+    return (EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW, callback,)

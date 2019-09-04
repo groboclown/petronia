@@ -37,7 +37,7 @@ def discover_preboot_data() -> DiscoveryData:
         extension_paths,
         get_preboot_extension_sets(),
         [
-            ['default.configuration.file',],
+            ['default.configuration.file'],
             [discover_platform_ext()],
         ],
         TEMP_DIR_PATH,

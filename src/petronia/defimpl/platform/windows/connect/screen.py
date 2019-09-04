@@ -144,3 +144,10 @@ def get_monitors() -> Union[Sequence[NativeScreenInfo], WindowsErrorMessage]:
     if WINDOWS_FUNCTIONS.monitor.find_monitors:
         return WINDOWS_FUNCTIONS.monitor.find_monitors()
     return WindowsErrorMessage('not implemented')
+
+
+def from_user_to_native_screen(
+        x: int, y: int, monitors: Optional[Sequence[NativeScreenInfo]] = None
+) -> Tuple[int, int]:
+    # If we performed screen scaling, do it here...
+    return x, y,

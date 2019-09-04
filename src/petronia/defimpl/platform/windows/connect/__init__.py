@@ -11,5 +11,6 @@ from .windows_hook_event import (
 )
 from .screen import (
     get_monitors,
+    from_user_to_native_screen,
 )
 from ..arch.native_funcs.windows_common import WindowsErrorMessage

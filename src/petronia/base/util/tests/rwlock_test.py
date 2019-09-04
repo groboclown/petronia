@@ -12,6 +12,7 @@ from typing import List
 
 from ..rwlock import RWLock
 
+
 class RWLockTest(unittest.TestCase):
     """
     All RWLock tests
