@@ -19,6 +19,10 @@ def main(args: Sequence[str]) -> int:
         bus = bootstrap_petronia(user_args)
         return run_petronia(bus, user_args)
     except BaseException as err: # pylint: disable=broad-except
+        if isinstance(err, SystemExit):
+            if err.code == 0:
+                return 0
+            # Otherwise, treat as a normal error.
         print_exception(err.__class__, err, err.__traceback__)
         from ..base.util.worker_thread import stop_all_threads
         stop_all_threads()

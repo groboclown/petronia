@@ -5,6 +5,9 @@ Find the configuration files to load.
 
 import os
 from typing import Iterable, Set, List, Callable
+from ....aid.simp import (
+    log, VERBOSE,
+)
 
 _EXT_EXTENSIONS = ('.json', '.yaml', '.yml',)
 
@@ -36,15 +39,16 @@ def find_files(
     ret: List[str] = []
     for path in paths:
         if recurse:
-            for dirpath, _, filenames in os.walk(path, followlinks=True):
-                if dirpath in seen_dirs:
+            for dir_path, _, filenames in os.walk(path, followlinks=True):
+                if dir_path in seen_dirs:
                     continue
-                seen_dirs.add(dirpath)
+                seen_dirs.add(dir_path)
                 for fnm in filenames:
-                    _check_name(dirpath, fnm, name_matcher, ret)
+                    _check_name(dir_path, fnm, name_matcher, ret)
         else:
             for fnm in os.listdir(path):
                 _check_name(path, fnm, name_matcher, ret)
+    log(VERBOSE, find_files, 'Found config files {0}', ret)
     return tuple(ret)
 
 

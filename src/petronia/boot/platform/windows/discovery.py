@@ -44,5 +44,12 @@ def discover_preboot_data() -> DiscoveryData:
         False,
         ExtensionLoaderModel('petronia.defimpl.extensions'),
         RootEventQueueModel(8),
-        user_paths
+        user_paths,
+        '''
+Windows Specific Setup:
+
+The configuration for Windows will add default configuration search path
+of the directories %LOCALAPPDATA%\petronia, %HOME%\.petronia, and
+the directory where Petronia was started from.
+        '''
     )

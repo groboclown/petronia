@@ -12,7 +12,10 @@ from ...defimpl.configuration.general import (
     STATE_ID_PLATFORM_EXTENSION_CONFIGURATION_STATE,
     PlatformExtensionConfigurationState,
 )
-from .args import UserArguments
+from .args import (
+    UserArguments,
+    cmd_help,
+)
 from .platform import (
     get_platform_module,
     get_user_platform_module,
@@ -38,6 +41,8 @@ def bootstrap_petronia(args: UserArguments) -> EventBus:
         platform_module = get_platform_module()
     log(DEBUG, bootstrap_petronia, 'Using platform {0}', platform_module)
     data = get_platform_discovery_function(platform_module)()
+    if args.is_help:
+        cmd_help(data.arg_help)
 
     log(TRACE, bootstrap_petronia, 'Creating managed queue.')
     queue = create_managed_queue(data.event_queue_model)

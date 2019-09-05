@@ -79,8 +79,8 @@ class _DisposedListenerHandler:
 
     def event_handler_func(
             self,
-            event_id: EventId, target_id: ParticipantId, # pylint: disable=unused-argument
-            event_obj: Any # pylint: disable=unused-argument
+            event_id: EventId, target_id: ParticipantId,  # pylint: disable=unused-argument
+            event_obj: Any  # pylint: disable=unused-argument
     ) -> None:
         with self.__lock:
             if self._listeners:

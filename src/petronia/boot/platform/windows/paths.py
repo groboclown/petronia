@@ -1,16 +1,16 @@
 
+from typing import Sequence, List
 import os
-from typing import Sequence
 
 
 def get_user_paths() -> Sequence[str]:
     """The user's Petronia directory."""
+    ret: List[str] = []
     if 'LOCALAPPDATA' in os.environ:
-        home = os.environ['LOCALAPPDATA']
-        return (os.path.join(home, 'petronia'),)
+        ret.append(os.path.join(os.environ['LOCALAPPDATA'], 'petronia'))
 
     if 'HOME' in os.environ:
-        home = os.environ['HOME']
-        return (os.path.join(home, '.petronia'),)
+        ret.append(os.path.join(os.environ['HOME'], '.petronia'))
 
-    return os.getcwd()
+    ret.append(os.getcwd())
+    return tuple(ret)

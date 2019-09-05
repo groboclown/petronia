@@ -10,7 +10,7 @@ from typing import cast as t_cast
 import threading
 
 from .....aid.simp import (
-    log, TRACE, ERROR, FATAL,
+    log, TRACE, DEBUG, INFO, ERROR, FATAL,
 )
 from ..arch.native_funcs.windows_common import WindowsErrorMessage
 from ..arch import windows_constants
@@ -21,6 +21,7 @@ from ..arch.native_funcs import (
     MessageCallback,
 )
 from .messages import MessageEntry
+from ..input.keymap import vk_to_names
 
 _Hook = Callable[[], UINT]
 
@@ -75,7 +76,8 @@ class WindowsHookEvent:
 
     def start(self, on_exit: Callable[[], None]) -> None:
         def key_handler(vk_code: int, scan_code: int, is_key_up: bool, is_injected: bool) -> Optional[str]:
-            print("[key] xxx {1}".format(vk_code, 'up' if is_key_up else 'dn'))
+            print("[key] xxx {1}".format(vk_code, 'up' if is_key_up else 'dn', vk_to_names(vk_code)))
+            # print("[key] {2} {1}".format(vk_code, 'up' if is_key_up else 'dn', vk_to_names(vk_code)))
             if self._key_handler:
                 res = self._key_handler(vk_code, scan_code, is_key_up, is_injected)
                 if WINDOWS_FUNCTIONS.shell.inject_scancode and res[1]:
@@ -94,13 +96,16 @@ class WindowsHookEvent:
             # See https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registershellhookwindow
             wparam_msg = t_cast(int, wparam)
             if wparam_msg in self._shell_message_map:
-                print("[shell] {2} -> {3}".format(source_hwnd, message, wparam, self._shell_message_map[wparam_msg]))
+                log(
+                    DEBUG, shell_handler,
+                    "{2} -> {3}", source_hwnd, message, wparam, self._shell_message_map[wparam_msg]
+                )
                 return self._shell_message_map[wparam_msg](source_hwnd, message, wparam, lparam)
-            print("[shell] {2} not handled".format(source_hwnd, message, wparam))
+            log(DEBUG, shell_handler, "{2} not handled", source_hwnd, message, wparam)
             return True
 
         def shell_hook_handler(message: int, wparam: WPARAM, lparam: LPARAM) -> Optional[str]:
-            print("[hshell] {0} {1}".format(message, wparam))
+            log(DEBUG, shell_handler, "{0} {1}", message, wparam)
             if message in self._shell_message_map:
                 if self._shell_message_map[message](
                         self._hwnd or windows_constants.HWND_TOP,
@@ -168,15 +173,15 @@ class WindowsHookEvent:
                     else:
                         log(TRACE, WindowsHookEvent, "Register window hook message id: {0}", msg)
 
-                print("Pumping messages...")
+                log(DEBUG, message_pumper, "Pumping messages...")
                 WINDOWS_FUNCTIONS.shell.pump_messages(on_exit)
             else:
                 log(FATAL, WindowsHookEvent, "Basic platform functions not defined; cannot continue")
 
-            print("Stopping the message pumper")
+            log(INFO, message_pumper, "Stopping the Windows message pumper")
             self.__start_state = 2
 
-        print("Starting the message pumper")
+        log(INFO, message_pumper, "Starting the Windows message pumper")
         pump_thread = threading.Thread(
             target=message_pumper,
             daemon=True

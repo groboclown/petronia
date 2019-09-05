@@ -11,6 +11,7 @@ from ....aid.simp import (
     EventBus,
 )
 
+
 def handle_config_paths(bus: EventBus, paths: Iterable[str]) -> None:
     """
     Handle finding all the configuration files, parsing them, and sending them

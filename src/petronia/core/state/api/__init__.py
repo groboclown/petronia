@@ -4,6 +4,8 @@ Standard API for the state.
 """
 
 from .events import (
+    EVENT_ID_UPDATE_STATE_REQUEST,
+    EVENT_ID_UPDATED_STATE,
     StateStoreUpdatedEvent,
     as_state_change_listener,
 

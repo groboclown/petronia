@@ -62,7 +62,9 @@ class DiscoveryData:
         'event_queue_model',
         'extension_loader_module',
         'config_dirs',
+        'arg_help',
     )
+
     def __init__(
             self,
             ext_paths: ExtensionPaths,
@@ -72,7 +74,8 @@ class DiscoveryData:
             only_secure: bool,
             extension_loader_module: ExtensionLoaderModel,
             event_queue_model: EventQueueModel,
-            config_dirs: Iterable[str]
+            config_dirs: Iterable[str],
+            arg_help: str
     ) -> None:
         self.ext_paths = ext_paths
         self.preboot_extensions = preboot_extensions
@@ -82,6 +85,8 @@ class DiscoveryData:
         self.extension_loader_module = extension_loader_module
         self.event_queue_model = event_queue_model
         self.config_dirs = config_dirs
+        self.arg_help = arg_help
+
 
 DiscoveryFunction = Callable[[], DiscoveryData]
 

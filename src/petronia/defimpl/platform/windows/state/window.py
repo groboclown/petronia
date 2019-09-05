@@ -19,7 +19,7 @@ from .....aid.simp import (
     ComponentId,
     ParticipantId,
     TARGET_WILDCARD,
-    log, WARN, DEBUG, VERBOSE, INFO,
+    log, WARN, DEBUG, TRACE, VERBOSE, INFO,
 )
 from .....core.platform.api.defs import (
     ScreenRect, EMPTY_SCREEN_RECT,
@@ -90,6 +90,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
         cid = bus.create_component_id('petronia.defimpl.platform.windows/window')
         log(DEBUG, on_window_created, 'Window created: HWND {0} -> Component ID {1}', hwnd, cid)
         new_window_info = mk_window_info(hwnd, cid)
+        window_info: NativeWindowState
         if isinstance(new_window_info, WindowsErrorMessage):
             log(
                 INFO, on_window_created,
@@ -97,7 +98,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 hwnd, new_window_info
             )
             # Need *something* there...
-            active_windows[hwnd_i] = NativeWindowState(
+            window_info = NativeWindowState(
                 component_id=cid,
                 title='',
                 process_id=-1,
@@ -109,8 +110,9 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 is_focused=False
             )
         else:
-            active_windows[hwnd_i] = new_window_info
-        return new_window_info
+            window_info = new_window_info
+        active_windows[hwnd_i] = window_info
+        return window_info
 
     def on_window_created(hwnd: HWND) -> None:
         hwnd_i = _hwnd_to_int(hwnd)
@@ -268,7 +270,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 add_window_info(g_hwnd, g_hwnd_i)
     set_active_windows_state(bus, active_windows.values())
     log(
-        VERBOSE, bootstrap_window_discovery, 'Initial window state: {0}', active_windows.values()
+        TRACE, bootstrap_window_discovery, 'Initial window state: {0}', active_windows.values()
     )
 
     return listeners

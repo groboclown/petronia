@@ -23,7 +23,7 @@ from ...base import (
 
     log,
     ERROR,
-    VERBOSE,
+    DEBUG,
     TRACE,
 )
 from ...base.util import WorkerThread
@@ -122,7 +122,7 @@ class CoreActionHandler(BusQueueManager):
                     )
                 self._main_thread.queue(self._main_handler)
             log(
-                VERBOSE, CoreActionHandler,
+                DEBUG, CoreActionHandler,
                 'Active event count: {0}', self.__count
             )
 
@@ -178,6 +178,6 @@ class CoreActionHandler(BusQueueManager):
             with self.__lock:
                 self.__count -= 1
                 log(
-                    VERBOSE, CoreActionHandler,
+                    DEBUG, CoreActionHandler,
                     'Active event count: {0}', self.__count
                 )

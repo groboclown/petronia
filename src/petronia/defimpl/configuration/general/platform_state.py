@@ -18,6 +18,7 @@ STATE_ID_PLATFORM_EXTENSION_CONFIGURATION_STATE = create_singleton_identity(
     'default.configuration platform-state'
 )
 
+
 class PlatformExtensionConfigurationState:
     """
     Stores the paths to the configuration that this extension will
