@@ -34,7 +34,9 @@ DEFAULT_PREBOOT_EXTENSIONS: Dict[str, Optional[str]] = {
 
 
 def get_preboot_extension_sets() -> Iterable[Iterable[str]]:
-    # TODO load the defaults from an ini or config file?
     ret: List[Iterable[str]] = []
+
+    # TODO load the defaults from an ini or config file?
     ret.append(DEFAULT_PREBOOT_EXTENSIONS.keys())
+
     return ret

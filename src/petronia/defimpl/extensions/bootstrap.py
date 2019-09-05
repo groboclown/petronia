@@ -31,12 +31,16 @@ from ...base import (
     ParticipantId,
     log,
     DEBUG,
+    ERROR,
 )
 from ...base.bus import (
     ListenerSetup,
     ExtensionMetadataStruct,
 )
-from ...errors import PetroniaExtensionNotFound
+from ...errors import (
+    PetroniaExtensionNotFound,
+    PetroniaExtensionError,
+)
 from .defs import (
     ExtensionLoader,
 )
@@ -109,11 +113,11 @@ def bootstrap_extension_loader(
         )
         loaded.extend(load_additional_extensions(extensions, loader, bus, loaded))
 
-    extloader = _ExtensionStatefulLoader(bus, ExtensionState(setup.preloaded_extensions), loader)
+    ext_loader = _ExtensionStatefulLoader(bus, ExtensionState(loaded), loader)
     bus.add_listener(
         TARGET_EXTENSION_LOADER,
         _as_request_load_extension_listener,
-        extloader.on_extension_load_request
+        ext_loader.on_extension_load_request
     )
 
     # TODO if the system supports disposing extensions, then this needs to
@@ -146,12 +150,23 @@ class _ExtensionStatefulLoader:
                 # Already loaded the extension.  Nothing to do.
                 return
         # TODO error reporting / checking?
-        deps = load_additional_extensions(
-            (event_object.extension_name,),
-            self.__loader,
-            self.__bus,
-            self._loaded
-        )
+        try:
+            deps = load_additional_extensions(
+                (event_object.extension_name,),
+                self.__loader,
+                self.__bus,
+                self._loaded
+            )
+        except PetroniaExtensionError as err:
+            log(
+                ERROR,
+                load_additional_extensions,
+                'Failed to load extension {0}: {2}; already loaded extensions {1}',
+                event_object.extension_name,
+                ", ".join([ext.name for ext in self._loaded]),
+                str(err)
+            )
+            return
         loaded: Optional[LoadedExtension] = None
         for found in deps:
             if found.name == event_object.extension_name:
@@ -172,11 +187,11 @@ class _ExtensionStatefulLoader:
             _send_extension_state_change(self.__bus, ExtensionState(self._loaded))
 
 
-
 def _as_request_load_extension_listener(
         callback: EventCallback[RequestLoadExtensionEvent]
 ) -> ListenerSetup[RequestLoadExtensionEvent]:
     return (EVENT_ID_REQUEST_LOAD_EXTENSION, callback,)
+
 
 def _send_extension_loaded_event(
         bus: EventBus,
@@ -187,6 +202,7 @@ def _send_extension_loaded_event(
         EVENT_ID_EXTENSION_LOADED, TARGET_EXTENSION_LOADER,
         ExtensionLoadedEvent(extension, loaded_dependencies)
     )
+
 
 def _send_extension_state_change(
         bus: EventBus,

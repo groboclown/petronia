@@ -23,14 +23,14 @@ class UserArguments:
         'preboot_extensions',
         'extensions',
         'only_secure',
-        'config_dir',
+        'config_dirs',
         'unparsed_args',
         'is_help',
     )
     platform: Optional[str]
     preboot_extensions: List[str]
     extensions: List[str]
-    config_dir: Optional[str]
+    config_dirs: List[str]
     unparsed_args: List[str]
 
     def __init__(self) -> None:
@@ -38,7 +38,7 @@ class UserArguments:
         self.preboot_extensions = []
         self.extensions = []
         self.only_secure = False
-        self.config_dir = None
+        self.config_dirs = []
         self.unparsed_args = []
         self.is_help = False
 
@@ -58,7 +58,7 @@ def parse_args(args: Sequence[str]) -> UserArguments:
             ret.platform = args[idx]
         elif arg == '--config-dir' and idx + 1 < arg_count:
             idx += 1
-            ret.config_dir = args[idx]
+            ret.config_dirs.append(args[idx])
         elif arg == '--preboot' and idx + 1 < arg_count:
             idx += 1
             ret.preboot_extensions.append(args[idx])

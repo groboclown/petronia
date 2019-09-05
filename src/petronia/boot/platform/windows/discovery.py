@@ -49,7 +49,6 @@ def discover_preboot_data() -> DiscoveryData:
 Windows Specific Setup:
 
 The configuration for Windows will add default configuration search path
-of the directories %LOCALAPPDATA%\petronia, %HOME%\.petronia, and
-the directory where Petronia was started from.
-        '''
+of the directories %LOCALAPPDATA%\petronia and %HOME%\.petronia.
+'''
     )

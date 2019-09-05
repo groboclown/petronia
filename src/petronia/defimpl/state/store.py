@@ -39,11 +39,21 @@ class StateStore:
         existing state with the type.
         """
         validate_state_id(state_id)
+        assert_formatted(
+            isinstance(state_type, type),
+            'StateStore',
+            'arguments must be valid',
+            'state {1} type object must be a class: {0}',
+            state_type, state_id
+        )
         assert_all(
             'StateStore',
             'arguments must be valid',
-            issubclass(state_type, object),
-            isinstance(new_state, state_type),
+            (issubclass(state_type, object), 'state {1} type must extend object: {0}', (state_type, state_id,),),
+            (
+                isinstance(new_state, state_type),
+                'state {2} instance object ({0}) must extend type ({1})', (new_state, state_type, state_id,),
+            ),
         )
         old_state: Optional[T] = None
         with self.__lock:

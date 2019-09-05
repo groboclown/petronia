@@ -59,10 +59,9 @@ def bootstrap_petronia(args: UserArguments) -> EventBus:
     log(TRACE, bootstrap_petronia, 'Loading the halt manager.')
     bootstrap_halt(bus, queue, 120.0)
 
-    log(TRACE, bootstrap_petronia, 'Recording information about configuration paths.')
-    config_dirs = list(data.config_dirs)
-    if args.config_dir:
-        config_dirs.append(args.config_dir)
+    config_dirs = list(args.config_dirs)
+    config_dirs.extend(data.config_dirs)
+    log(DEBUG, bootstrap_petronia, 'Recording information about configuration paths {0}', config_dirs)
     set_state(
         bus, STATE_ID_PLATFORM_EXTENSION_CONFIGURATION_STATE, PlatformExtensionConfigurationState,
         PlatformExtensionConfigurationState(config_dirs)

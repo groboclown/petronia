@@ -235,10 +235,7 @@ def _find_missing_defaults(
                 found = True
                 break
         if not found:
-            # FIXME change exception
-            raise Exception('No extension found that implements {0}'.format(
-                ni_api.name
-            ))
+            raise PetroniaNoCompatibleExtensionFound(ni_api.name, [ext.name for ext in extensions])
     addl = _find_extensions_internal(to_load, only_secure, cache)
     # Return the new list with the new ones appended to the end.
     ret = list(extensions)

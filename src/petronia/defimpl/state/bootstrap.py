@@ -47,13 +47,14 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
     'authors': ['Petronia'],
 }
 
+
 def bootstrap_state_store(bus: EventBus) -> None:
     """Register all state store events."""
     helper = create_module_listener_helper(bus, MODULE_ID)
     store = _BusAwareStateStore(bus)
     # ListenerIds are not persisted, because this is a singleton
     # that is never disposed.
-    helper.listen( # type: ignore
+    helper.listen(  # type: ignore
         TARGET_WILDCARD,
         _as_update_state_request_listener,
         store.on_update_request
@@ -63,7 +64,6 @@ def bootstrap_state_store(bus: EventBus) -> None:
         as_listener_added_listener,
         store.on_listener_added
     )
-
 
 
 class _BusAwareStateStore:
@@ -78,7 +78,7 @@ class _BusAwareStateStore:
 
     def on_update_request(
             self,
-            eid: EventId, tid: ParticipantId, # pylint: disable=unused-argument
+            _eid: EventId, _tid: ParticipantId,  # pylint: disable=unused-argument
             event: StateStoreUpdateRequestEvent[T]
     ) -> None:
         """When a state is requested to be updated."""
@@ -86,13 +86,14 @@ class _BusAwareStateStore:
             event.state_id, event.state_type,
             event.state
         )
+        print("DEBUG updated state for " + _tid + " (" + event.state_id + ")")
         self.__bus.trigger(EVENT_ID_UPDATED_STATE, event.state_id, StateStoreUpdatedEvent(
             event.state_id, event.state_type, event.state, old_state
         ))
 
     def on_listener_added(
             self,
-            eid: EventId, tid: ParticipantId, # pylint: disable=unused-argument
+            eid: EventId, tid: ParticipantId,  # pylint: disable=unused-argument
             event: EventListenerAddedEvent
     ) -> None:
         """
@@ -114,9 +115,11 @@ class _BusAwareStateStore:
                     TRACE, _BusAwareStateStore.on_listener_added,
                     'Sending out the current state for {0} {1}', tid, state
                 )
+                print("DEBUG Sending out the current state for {0} {1}".format(tid, state))
                 self.__bus.trigger(EVENT_ID_UPDATED_STATE, tid, StateStoreUpdatedEvent(
                     tid, state_type, state, state
                 ))
+
 
 def _as_update_state_request_listener(
         callback: EventCallback[StateStoreUpdateRequestEvent[T]]

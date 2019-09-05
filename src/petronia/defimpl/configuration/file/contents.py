@@ -22,6 +22,7 @@ from ....core.config_persistence.api import PersistType
 _DEFAULT_CONFIGURATION_NAME = 'setup-configuration'
 _CONFIGURATION_ID_FORMAT = '{0}/{1}'
 
+
 class ExtensionConfigurationDetails:
     """
     Configuration of an extensions.
@@ -30,6 +31,7 @@ class ExtensionConfigurationDetails:
         '__src', '__mod', '__state_id', '__state', '__err',
         '__name', '__enabled',
     )
+
     def __init__(
             self,
             src: str,
@@ -82,6 +84,27 @@ class ExtensionConfigurationDetails:
     def is_enabled(self) -> bool:
         return self.__enabled
 
+    def __repr__(self) -> str:
+        return (
+            'ExtensionConfigurationDetails('
+            'src={src}, '
+            'extension_name={extension_name}, '
+            'state_id={state_id}, '
+            'err={err}, '
+            'state={state}, '
+            'name={name}, '
+            'enabled={enabled}'
+            ')'
+        ).format(
+            src=repr(self.__src),
+            extension_name=repr(self.__mod),
+            state_id=repr(self.__state_id),
+            err=repr(self.__err),
+            state=repr(self.__state),
+            name=repr(self.__name),
+            enabled=repr(self.__enabled)
+        )
+
 
 def deserialize_contents(
         file_contents: Any, source_name: str
@@ -107,7 +130,7 @@ def deserialize_contents(
             else:
                 named_configs[str(key)] = value
     else:
-        if not isinstance(file_contents, Iterable):
+        if isinstance(file_contents, str) or not isinstance(file_contents, Iterable):
             ret.append(ExtensionConfigurationDetails(
                 source_name, '',
                 # TODO Localise
@@ -117,7 +140,17 @@ def deserialize_contents(
         else:
             fcl = tuple(file_contents)
             for index in range(len(fcl)):
-                named_configs[str(index)] = fcl[index]
+                config = fcl[index]
+                if (
+                        isinstance(config, dict) and
+                        'ext' not in config and
+                        'extension' not in config and
+                        'config' not in config
+                ):
+                    for key, val in config.items():
+                        named_configs[key] = val
+                else:
+                    named_configs[str(index)] = fcl[index]
 
     for key, raw in named_configs.items():
         ret.append(decode_value(source_name, key, raw))
@@ -193,8 +226,12 @@ def _safe_key(
 def decode_version(version: Union[str, Iterable[Any]]) -> Union[str, ExtensionVersion]:
     if isinstance(version, str):
         parts = version.split('.')[:3]
-        # Default version values.
+    else:
+        parts = version
+
+    # Default version values.
     ret: List[int] = [0, 0, 0]
+
     for idx in range(len(parts)):
         part = parts[idx]
         if isinstance(part, str):
@@ -204,11 +241,11 @@ def decode_version(version: Union[str, Iterable[Any]]) -> Union[str, ExtensionVe
                 # TODO localize
                 return 'invalid value `{0}` in version `{1}`'.format(parts[idx], version)
         elif isinstance(part, Real):
-            ret[idx] = int(part[idx])
+            ret[idx] = int(part.real)
         else:
             # TODO localize
             return 'invalid value `{0}` in version `{1}`'.format(parts[idx], version)
-    return tuple(ret[0], ret[1], ret[2]) # type: ignore
+    return (ret[0], ret[1], ret[2],)
 
 
 def enforce_persist_type(properties: Dict[str, Any]) -> PersistType:

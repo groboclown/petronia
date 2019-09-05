@@ -713,7 +713,7 @@ def window__create_message_window(
 
     # A persistent pointer to a handler.  Must be persisted so it isn't
     # removed when we exit this method.
-    print("creating a windows procedure for " + repr(message_handler))
+    # print("creating a windows procedure for " + repr(message_handler))
     window_proc = WNDPROCTYPE(message_handler)
     hinst = GetModuleHandleW(None)
     window_class = WNDCLASSEX()

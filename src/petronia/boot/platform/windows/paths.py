@@ -12,5 +12,5 @@ def get_user_paths() -> Sequence[str]:
     if 'HOME' in os.environ:
         ret.append(os.path.join(os.environ['HOME'], '.petronia'))
 
-    ret.append(os.getcwd())
+    # ret.append(os.getcwd())
     return tuple(ret)

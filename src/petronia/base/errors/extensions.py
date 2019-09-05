@@ -7,14 +7,17 @@ from typing import Iterable
 from .base import PetroniaError
 from ..util.memory import EMPTY_TUPLE
 
+
 class PetroniaExtensionError(PetroniaError):
     """
     Base class for errors related to extensions.
     """
     __slots__ = ('extension_name',)
+
     def __init__(self, extension_name: str, msg: str) -> None:
         PetroniaError.__init__(self, 'Extension {0}: {1}'.format(extension_name, msg))
         self.extension_name = extension_name
+
 
 class PetroniaExtensionLoadError(PetroniaExtensionError):
     """
@@ -22,9 +25,11 @@ class PetroniaExtensionLoadError(PetroniaExtensionError):
     may have been loaded, and thus may need to be removed.
     """
     __slots__ = ('dependencies_loaded',)
+
     def __init__(self, extension_name: str, dependencies_loaded: Iterable[str], msg: str) -> None:
         PetroniaExtensionError.__init__(self, extension_name, msg)
         self.dependencies_loaded = tuple(dependencies_loaded)
+
 
 class PetroniaExtensionNotFound(PetroniaExtensionLoadError):
     """
@@ -36,17 +41,20 @@ class PetroniaExtensionNotFound(PetroniaExtensionLoadError):
             'could not find module'
         )
 
+
 class PetroniaCyclicExtensionDependency(PetroniaExtensionLoadError):
     """
     The extension defines a dependency which in turn depends on this extension.
     """
     __slots__ = ('cycle_in',)
+
     def __init__(self, extension_name: str, cycle_in: Iterable[str], dependencies_loaded: Iterable[str]) -> None:
         PetroniaExtensionLoadError.__init__(
             self, extension_name, dependencies_loaded,
             'multiple extensions depend upon each other: {0}'.format(cycle_in)
         )
         self.cycle_in = tuple(cycle_in)
+
 
 class PetroniaInvalidExtension(PetroniaExtensionLoadError):
     """
@@ -58,11 +66,13 @@ class PetroniaInvalidExtension(PetroniaExtensionLoadError):
             msg
         )
 
+
 class PetroniaExtensionInitializationError(PetroniaExtensionLoadError):
     """
     The extension raised an error during the load.
     """
     __slots__ = ('source_error',)
+
     def __init__(
             self, extension_name: str, dependencies_loaded: Iterable[str], source: BaseException
     ) -> None:
@@ -90,3 +100,14 @@ class PetroniaNoCompatibleExtensionFound(PetroniaExtensionLoadError):
             )
         )
         self.dependent = dependent
+
+
+class PetroniaExtensionImplementationNotFound(PetroniaExtensionLoadError):
+    """
+    No extension found that extends the given extension.
+    """
+    def __init__(self, extension_name: str, dependencies_loaded: Iterable[str]) -> None:
+        PetroniaExtensionLoadError.__init__(
+            self, extension_name, dependencies_loaded,
+            'No implementation of the extension'
+        )

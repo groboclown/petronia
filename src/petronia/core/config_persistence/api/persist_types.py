@@ -39,6 +39,7 @@ class PersistentConfigurationState:
     and that can potentially be written back to configuration.
     """
     __slots__ = ('__persistent',)
+
     def __init__(self, persistent: PersistType) -> None:
         self.__persistent = persistent
 

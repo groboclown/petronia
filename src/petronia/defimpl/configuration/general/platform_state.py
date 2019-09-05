@@ -15,7 +15,7 @@ from ....core.state.api import (
 )
 
 STATE_ID_PLATFORM_EXTENSION_CONFIGURATION_STATE = create_singleton_identity(
-    'default.configuration platform-state'
+    'default.configuration/platform-state'
 )
 
 
