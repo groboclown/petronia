@@ -17,7 +17,6 @@ from .config import (
     TARGET_TIMER_CONFIG,
     DEFAULT_INTERVAL,
     TimerConfig,
-    set_timer_config,
 )
 from .timer import BusTimer
 

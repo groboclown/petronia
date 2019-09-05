@@ -6,6 +6,7 @@ Native window states and notifications.
 from .state import (
     AllActiveWindowsState,
     NativeWindowState,
+    set_active_windows_state,
 )
 from .action_requests import (
     RequestMoveNativeWindowEvent,

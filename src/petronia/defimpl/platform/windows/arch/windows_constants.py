@@ -6,7 +6,7 @@ Constants defined by Windows.
 from typing import Dict
 # from typing import cast as t_cast
 from ctypes.wintypes import (
-    UINT, HANDLE, HWND,
+    HANDLE, HWND,
 )
 
 # Well, this isn't, but it's global for Petronia <-> Windows interaction.

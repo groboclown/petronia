@@ -106,3 +106,11 @@ class ScreenRect:
     @property
     def bottom(self) -> ScreenUnit:
         return self.__bottom
+
+    def __repr__(self) -> str:
+        return 'ScreenRect(x={0}, y={1}, w={2}, h={3})'.format(
+            self.__x, self.__y, self.__width, self.__height
+        )
+
+
+EMPTY_SCREEN_RECT = ScreenRect(0, 0, 0, 0, 0, 0, 0, 0)

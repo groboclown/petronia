@@ -92,10 +92,11 @@ class WindowsHookEvent:
         def shell_handler(source_hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> bool:
             # Shell window messages use the WPARAM to specify the kind of shell event.
             # See https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registershellhookwindow
-            print("[shell] {2}".format(source_hwnd, message, wparam))
             wparam_msg = t_cast(int, wparam)
             if wparam_msg in self._shell_message_map:
+                print("[shell] {2} -> {3}".format(source_hwnd, message, wparam, self._shell_message_map[wparam_msg]))
                 return self._shell_message_map[wparam_msg](source_hwnd, message, wparam, lparam)
+            print("[shell] {2} not handled".format(source_hwnd, message, wparam))
             return True
 
         def shell_hook_handler(message: int, wparam: WPARAM, lparam: LPARAM) -> Optional[str]:
@@ -126,7 +127,7 @@ class WindowsHookEvent:
             if WINDOWS_FUNCTIONS.shell.shell_hook:
                 hook = WINDOWS_FUNCTIONS.shell.shell_hook(shell_hook_handler)
                 if isinstance(hook, WindowsErrorMessage):
-                    # This is expected until the crazy work-arounds are implemented.
+                    # This is expected until the crazy work-around is implemented.
                     log(TRACE, WindowsHookEvent, "Failed to register shell handler: {0}", hook)
                 else:
                     self._shell_hook = hook

@@ -15,7 +15,7 @@ from ...base import (
     ParticipantId,
 
     log,
-    NOTICE,
+    NOTICE, DEBUG,
     INFO,
 )
 from ...core.state.api import (
@@ -56,7 +56,7 @@ class BusTimer:
 
     def on_config_change(
             self,
-            eid: EventId, tid: ParticipantId, # pylint: disable=unused-argument
+            _eid: EventId, _tid: ParticipantId,
             update_event: StateStoreUpdatedEvent[TimerConfig]
     ) -> None:
         """Event notification of a configuration change."""
@@ -92,7 +92,7 @@ class BusTimer:
         else:
             # May want to extend the interval time automatically.
             log(
-                NOTICE, 'system.timer',
+                DEBUG, 'system.timer',
                 'Timer interval exceeded by {0} seconds', -sleep_time
             )
         if self._config.active:
@@ -112,6 +112,7 @@ def _create_timer_thread_fn(
         is_active,
         True
     )
+
 
 CreateThreadType = Callable[
     [EventBus, Callable[[], bool], Callable[[], None]], Thread

@@ -62,6 +62,7 @@ from .units import (
     NATIVE_SCREEN_AREA_H,
 
     ScreenRect,
+    EMPTY_SCREEN_RECT,
 )
 from .alignment import (
     TextBiDi,
