@@ -1,5 +1,6 @@
 
-from typing import Iterable, List, cast
+from typing import Iterable, List
+from typing import cast as t_cast
 from .windows_common import (
     GUITHREADINFO,
     HWND, RECT,
@@ -18,14 +19,14 @@ from ......core.platform.api import (
 
 def convert_rect(rect: RECT) -> ScreenRect:
     return ScreenRect(
-        x=rect.left.value,
-        y=rect.top.value,
-        width=rect.right.value - rect.left.value,
-        height=rect.bottom.value - rect.top.value,
-        left=rect.left.value,
-        right=rect.right.value,
-        top=rect.top.value,
-        bottom=rect.bottom.value
+        x=t_cast(int, rect.left),
+        y=t_cast(int, rect.top),
+        width=t_cast(int, rect.right) - t_cast(int, rect.left),
+        height=t_cast(int, rect.bottom) - t_cast(int, rect.top),
+        left=t_cast(int, rect.left),
+        right=t_cast(int, rect.right),
+        top=t_cast(int, rect.top),
+        bottom=t_cast(int, rect.bottom)
     )
 
 

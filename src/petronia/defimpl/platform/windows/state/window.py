@@ -91,6 +91,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             on_window_destroyed(hwnd)
         cid = bus.create_component_id('petronia.defimpl.platform.windows/window')
         log(DEBUG, on_window_created, 'Window created: HWND {0} -> Component ID {1}', hwnd, cid)
+        log(VERBOSE, on_window_created, 'Window created: HWND {0} -> Component ID {1}', hwnd, cid)
         active_window_ids[hwnd_i] = cid
         reverse_window_ids[cid] = hwnd
         send_native_window_created_event(bus, cid)

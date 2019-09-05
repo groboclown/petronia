@@ -4,12 +4,9 @@ Unit tests for the extension finder.
 """
 
 import unittest
-# from petronia3.system.bus import EventBus
 from ....aid.simp import ERROR
-from ....aid.test_helper import BasicQueuer, EnabledLogs
+from ....aid.test_helper import EnabledLogs
 from ..defs import LoadedExtension
-from ..loaders.core import CoreExtensionLoader
-from ..loaders.composite import CompositeExtensionLoader
 from ..ext_finder import (
     find_extensions
 )
@@ -29,7 +26,7 @@ class FindExtensionTest(unittest.TestCase):
 
         :return:
         """
-        with EnabledLogs():
+        with EnabledLogs(ERROR):
             ext1 = LoadedExtension('p1', True, (1, 0, 0,))
             cmp1 = ExtensionCompatibility('p1', (1, 0, 0,), None)
             ext2 = LoadedExtension('p2', True, (1, 0, 0,))
@@ -41,7 +38,8 @@ class FindExtensionTest(unittest.TestCase):
             disc3 = mk_disc('p3', (True, (1, 0, 0,),), [], stand_alone=True)
             loader = MockLoader(disc1, disc2, disc3)
             res = find_extensions([cmp1], loader, False)
+            self.maxDiff = None
             self.assertEqual(
-                res,
+                list(res),
                 [disc3, disc2, disc1]
             )

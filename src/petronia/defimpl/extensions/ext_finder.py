@@ -141,7 +141,9 @@ def find_extensions(
     while count < 10:
         next_list = _find_missing_defaults(ext_list, only_secure, cache)
         if next_list is None:
-            return ext_list
+            # Because of the ordering bug, an extra topo sort must be added
+            # here.
+            return _extra_topo_sort(ext_list)
         ext_list = next_list
         count += 1
     # FIXME new exception
@@ -218,18 +220,18 @@ def _find_missing_defaults(
             ni_api.name
         )
         found = False
-        for apidef in ni_api.defaults:
-            compatible_exts = cache.get_compatible_versions_for(apidef)
+        for api_def in ni_api.defaults:
+            compatible_exts = cache.get_compatible_versions_for(api_def)
             if compatible_exts:
                 # There are >= 1 versions for this default extension, so add
                 # it to the list of additional loads.
                 log(
                     VERBOSE, find_extensions,
                     'Adding extension {0} as the default implemention of {1}',
-                    apidef.name,
+                    api_def.name,
                     ni_api.name
                 )
-                to_load.append(apidef)
+                to_load.append(api_def)
                 found = True
                 break
         if not found:
@@ -356,19 +358,25 @@ def _find_extensions_internal(
 
                     # 12. If there is an `N` in `C` with a different version
                     # than `Q`, then it's a conflict.  Go back to 9.
-                    log(TRACE, find_extensions, "Metch conflict.  Trying another one.")
+                    log(TRACE, find_extensions, "Match conflict.  Trying another one.")
                 else:
                     # 13. We now have a choice for `N`.  Set `N` in `C` with
                     # version `Q`.  Go back to 2.
-                    log(
-                        TRACE, find_extensions,
-                        "Going to try {0} at version {1}",
-                        group_extension, highest
-                    )
                     match[group_extension] = highest
+
+                    # This is a bug - the dependencies MUST be added after the
+                    # current group extension, so that, when the order is reversed,
+                    # it is in the right position.
+                    # In order to work around this bug, an extra topological sort is
+                    # included.
                     order.insert(0, group_extension)
                     new_remaining_groups = _find_dependency_compatibility(
                         cache, group_extension, highest
+                    )
+                    log(
+                        TRACE, find_extensions,
+                        "Going to try {0} at version {1}; has dependencies {2}, and remaining groups to check are {3}",
+                        group_extension, highest, new_remaining_groups, remaining_groups
                     )
                     new_remaining_groups.update(remaining_groups)
                     search_stack.append((
@@ -478,3 +486,55 @@ def _match_version_is(
     if INSECURE_ANY_VERSION in (match_version, highest):
         return True
     return match_version == highest
+
+
+def _extra_topo_sort(bad_ordering: Sequence[DiscoveredExtension]) -> Sequence[DiscoveredExtension]:
+    """
+    Simple depth-first search version of a topological sort, but without
+    recursion.
+
+    :param bad_ordering:
+    :return:
+    """
+
+    lookup: Dict[str, DiscoveredExtension] = {}
+    for node in bad_ordering:
+        lookup[node.name] = node
+    ret: List[DiscoveredExtension] = []
+    visiting: Set[str] = set()
+    visited: Set[str] = set()
+    remaining: List[Tuple[str, int]] = [(node.name, 0) for node in bad_ordering]
+    # This isn't really necessary, but makes things dependable for testing
+    # and gives a reliable, consistent load order.
+    remaining.sort(key=lambda t: t[0])
+    log(TRACE, _extra_topo_sort, 'Performing topo sort of {0}', bad_ordering)
+
+    while remaining:
+        node_name, state = remaining.pop()
+        log(TRACE, _extra_topo_sort, 'Inspecting {0}, {1}', node_name, state)
+        node = lookup[node_name]
+        if state == 0:
+            if node_name in visited:
+                continue
+            if node_name in visiting:
+                # Better exception?  This should not happen, based on the previous
+                # searching.
+                raise ValueError('Not a DAG')
+            log(TRACE, _extra_topo_sort, ' - Visiting')
+            visiting.add(node_name)
+            remaining.append((node_name, 1))
+            for child in node.depends_on:
+                log(TRACE, _extra_topo_sort, ' -- depends on {0}', child.name)
+                remaining.append((child.name, 0))
+            for child in node.implements:
+                log(TRACE, _extra_topo_sort, ' -- implements {0}', child.name)
+                remaining.append((child.name, 0))
+            log(TRACE, _extra_topo_sort, 'Remaining to search: {0}', remaining)
+        elif state == 1:
+            log(TRACE, _extra_topo_sort, ' - Finished visit')
+            visiting.remove(node_name)
+            visited.add(node_name)
+            ret.append(node)
+            log(TRACE, _extra_topo_sort, 'Order: {0}', ret)
+
+    return tuple(ret)

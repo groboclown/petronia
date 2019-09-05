@@ -269,8 +269,8 @@ def window__get_title(hwnd_handle: HWND) -> str:
 
 
 def window__is_visible(hwnd_handle: HWND) -> bool:
-    val = t_cast(UINT, windll.user32.IsWindowVisible(hwnd_handle))
-    return val.value != 0
+    val = t_cast(int, windll.user32.IsWindowVisible(hwnd_handle))
+    return val != 0
 
 
 def window__get_process_id(hwnd_handle: HWND) -> DWORD:

@@ -47,27 +47,16 @@ class ExtensionManagerTest(unittest.TestCase):
         # not returned by the load call.
         self.maxDiff = None
         self.assertEqual(len(new_state), 5)
-
-        # These two must be added, but there is no reason to have one before
-        # the other, so their ordering doesn't matter for these two items.
-        # Therefore, to make the big assert equal to work, we'll force a
-        # swap.
-        any_order = list(new_state[2:])
-        any_order.sort(key=lambda a: a.name)
-        new_state = new_state[:2] + any_order
+        
+        # The sorting makes an effort to ensure consistent ordering.
 
         self.assertEqual(
             list(new_state),
             [
-                LoadedExtension('core.timer.api', True, ANY_VERSION),
-
-                # Timer declares a dependency on the shutdown API.
                 LoadedExtension('core.shutdown.api', True, ANY_VERSION),
-
-                # Extension loads the default implementations.
-                # The order here doesn't matter.
-                LoadedExtension('default.shutdown.timer', True, ANY_VERSION),
-                LoadedExtension('default.state', True, ANY_VERSION),
+                LoadedExtension('core.timer.api', True, ANY_VERSION),
                 LoadedExtension('default.timer', True, ANY_VERSION),
+                LoadedExtension('default.state', True, ANY_VERSION),
+                LoadedExtension('default.shutdown.timer', True, ANY_VERSION),
             ]
         )
