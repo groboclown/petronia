@@ -8,6 +8,7 @@ Also, handles event requests to windows.
 """
 
 from typing import Sequence, List, Dict, Union, Optional
+from typing import cast as t_cast
 from ..arch.native_funcs import (
     HWND, RECT, DWORD,
     WINDOWS_FUNCTIONS,
@@ -39,13 +40,10 @@ from .....core.platform.api.window import (
 
     send_native_window_created_event,
 
-    NativeWindowFlashedEvent,
     send_native_window_flashed_event,
 
-    NativeWindowFocusedEvent,
     send_native_window_focused_event,
 
-    NativeWindowMovedEvent,
     send_native_window_moved_event,
 
     NativeWindowState,
@@ -194,11 +192,12 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
         # Nothing to update with window state.
 
     def on_request_move(
-            target_id: ParticipantId, _event_id: EventId,
+            _event_id: EventId, target_id: ParticipantId,
             event: RequestMoveNativeWindowEvent
     ) -> None:
-        if isinstance(target_id, ComponentId) and target_id in reverse_window_ids:
-            hwnd = reverse_window_ids[target_id]
+        if target_id in reverse_window_ids and WINDOWS_FUNCTIONS.window.move_resize:
+            # For target to be in the list, it must be of the right type.
+            hwnd = reverse_window_ids[t_cast(ComponentId, target_id)]
             area = event.area
             x, y = from_user_to_native_screen(area[SCREEN_AREA_X], area[SCREEN_AREA_Y])
             w, h = from_user_to_native_screen(area[SCREEN_AREA_W], area[SCREEN_AREA_H])
@@ -219,11 +218,12 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 )
 
     def on_request_close(
-            target_id: ParticipantId, _event_id: EventId,
+            _event_id: EventId, target_id: ParticipantId,
             _event: RequestCloseNativeWindowEvent
     ) -> None:
-        if isinstance(target_id, ComponentId) and target_id in reverse_window_ids:
-            hwnd = reverse_window_ids[target_id]
+        if target_id in reverse_window_ids and WINDOWS_FUNCTIONS.window.close:
+            # For target to be in the list, it must be of the right type.
+            hwnd = reverse_window_ids[t_cast(ComponentId, target_id)]
             res = WINDOWS_FUNCTIONS.window.close(hwnd)
             if isinstance(res, WindowsErrorMessage):
                 log(
@@ -233,11 +233,11 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 )
 
     def on_request_focus(
-            target_id: ParticipantId, _event_id: EventId,
+            _event_id: EventId, target_id: ParticipantId,
             _event: RequestFocusNativeWindowEvent
     ) -> None:
-        if isinstance(target_id, ComponentId) and target_id in reverse_window_ids:
-            hwnd = reverse_window_ids[target_id]
+        if target_id in reverse_window_ids and WINDOWS_FUNCTIONS.window.activate:
+            hwnd = reverse_window_ids[t_cast(ComponentId, target_id)]
             res = WINDOWS_FUNCTIONS.window.activate(hwnd)
             if isinstance(res, WindowsErrorMessage):
                 log(
@@ -247,6 +247,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 )
             # if event.raise_to_top:
             #     WINDOWS_FUNCTIONS.window. ...
+            #     which call to make?
 
     hooks.add_message_handler(window_created_message(on_window_created))
     hooks.add_message_handler(window_destroyed_message(on_window_destroyed))
@@ -330,15 +331,19 @@ def mk_window_info(
         # active, and which has focus.  This can only tell us which is the
         # foreground window.
         active_window_hwnd = WINDOWS_FUNCTIONS.window.get_active_window()
-    is_visible = WINDOWS_FUNCTIONS.window.is_visible(hwnd)
+    is_visible = False
+    if WINDOWS_FUNCTIONS.window.is_visible:
+        is_visible = WINDOWS_FUNCTIONS.window.is_visible(hwnd)
 
     title = ''
     if WINDOWS_FUNCTIONS.window.get_title:
         title = WINDOWS_FUNCTIONS.window.get_title(hwnd)
 
+    pid_d = DWORD(-1)
     pid = -1
     if WINDOWS_FUNCTIONS.window.get_process_id:
-        pid = _dword_to_int(WINDOWS_FUNCTIONS.window.get_process_id(hwnd))
+        pid_d = WINDOWS_FUNCTIONS.window.get_process_id(hwnd)
+        pid = _dword_to_int(pid_d) or 0
 
     names: Dict[str, str] = {}
     if WINDOWS_FUNCTIONS.window.get_class_name:
@@ -350,12 +355,12 @@ def mk_window_info(
         if mod_name and isinstance(mod_name, str):
             names['module'] = mod_name
     if pid >= 0 and WINDOWS_FUNCTIONS.process.get_username_domain_for_pid:
-        res = WINDOWS_FUNCTIONS.process.get_username_domain_for_pid(pid)
+        res = WINDOWS_FUNCTIONS.process.get_username_domain_for_pid(pid_d)
         if not isinstance(res, WindowsErrorMessage):
             names['user'] = res[0]
             names['domain'] = res[1]
     if pid >= 0 and WINDOWS_FUNCTIONS.process.get_executable_filename:
-        p_file = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)
+        p_file = WINDOWS_FUNCTIONS.process.get_executable_filename(pid_d)
         if p_file and isinstance(p_file, str):
             names['exe'] = p_file
 

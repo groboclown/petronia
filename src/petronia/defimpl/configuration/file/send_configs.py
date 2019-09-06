@@ -29,8 +29,9 @@ def send_config(bus: EventBus, config: ExtensionConfigurationDetails) -> None:
         return
     if config.state_id and config.is_enabled:
         # Note: version information is not used.
-        log(DEBUG, send_config, "config is sending load extension request for {0}", config.name)
-        send_request_load_extension_event(bus, config.extension_name)
+        if config.extension_name:
+            log(DEBUG, send_config, "config is sending load extension request for {0}", config.name)
+            send_request_load_extension_event(bus, config.extension_name)
 
         # Note that the configuration MUST be a PersistType; without it, it
         # requires importing the configuration object.  This cannot be done
@@ -38,5 +39,6 @@ def send_config(bus: EventBus, config: ExtensionConfigurationDetails) -> None:
 
         set_state(
             bus, create_singleton_identity(config.state_id),
-            PersistentConfigurationState, PersistentConfigurationState(config.state)
+            PersistentConfigurationState,
+            PersistentConfigurationState(config.state)  # type: ignore
         )

@@ -11,11 +11,10 @@ import atexit
 from .windows_common import (
     byref, create_unicode_buffer,
     DWORD, UINT, LONG, CHAR, BOOL, BYTE, LPCWSTR, LPVOID, HMODULE, HANDLE, HWND,
-    WPARAM, LPARAM, LRESULT,
+    WPARAM, LPARAM,
     POINTER, Structure,
     WindowsErrorMessage,
     WinDLL, windll,
-    NativeMessageCallback,
     MessageCallback,
 )
 from .. import windows_constants

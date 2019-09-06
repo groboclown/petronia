@@ -40,7 +40,7 @@ class StateStore:
         """
         validate_state_id(state_id)
         assert_formatted(
-            isinstance(state_type, type),
+            isinstance(state_type, type),  # type: ignore
             'StateStore',
             'arguments must be valid',
             'state {1} type object must be a class: {0}',

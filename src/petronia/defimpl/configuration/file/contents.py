@@ -227,7 +227,7 @@ def decode_version(version: Union[str, Iterable[Any]]) -> Union[str, ExtensionVe
     if isinstance(version, str):
         parts = version.split('.')[:3]
     else:
-        parts = version
+        parts = list(version)
 
     # Default version values.
     ret: List[int] = [0, 0, 0]

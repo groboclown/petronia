@@ -45,7 +45,7 @@ def create_one_and_done(
     lock = Lock()
     disposed = ValueHolder(False)
 
-    def dispose(_event_id: EventId, _target: ParticipantId, _event_obj: Any):
+    def dispose(_event_id: EventId, _target: ParticipantId, _event_obj: Any) -> None:
         with lock:
             if not disposed.value:
                 disposed.value = True
@@ -55,7 +55,7 @@ def create_one_and_done(
                 if is_standalone:
                     send_dispose_complete_event(bus, source_id)
 
-    def listener_func(event_id: EventId, target: ParticipantId, event_obj: T):
+    def listener_func(event_id: EventId, target: ParticipantId, event_obj: T) -> None:
         dispose(event_id, target, event_obj)
         callback(event_id, target, event_obj)
 

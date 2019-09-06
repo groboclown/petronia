@@ -105,5 +105,10 @@ def discover_preboot_data() -> DiscoveryData:
         False,
         ExtensionLoaderModel('petronia.defimpl.extensions'),
         RootEventQueueModel(8),
-        all_paths
+        all_paths,
+        '''
+POSIX Specific Setup:
+
+(TODO)
+'''
     )

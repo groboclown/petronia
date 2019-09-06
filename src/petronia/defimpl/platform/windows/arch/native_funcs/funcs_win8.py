@@ -2,7 +2,7 @@
 Windows 8 & 8.1 functions
 """
 
-from typing import Dict, Tuple, Union
+from typing import Tuple, Union
 from ctypes import cast as c_cast
 from .windows_common import (
     DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE,

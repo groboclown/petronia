@@ -1541,7 +1541,7 @@ def monitor__find_monitors() -> Sequence[NativeScreenInfo]:
         if GetMonitorInfoW(monitor_handle, byref(info)) != 0:
             ret.append(NativeScreenInfo(
                 # Disguise the handle as something else
-                handle=monitor_handle or 0,
+                handle=str(monitor_handle),
                 screen_index=index,
                 screen_size=(
                     info.rcWork.left, info.rcWork.top,

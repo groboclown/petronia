@@ -86,7 +86,7 @@ class _BusAwareStateStore:
             event.state_id, event.state_type,
             event.state
         )
-        print("DEBUG updated state for " + _tid + " (" + event.state_id + ")")
+        print("DEBUG updated state for " + str(_tid) + " (" + str(event.state_id) + ")")
         self.__bus.trigger(EVENT_ID_UPDATED_STATE, event.state_id, StateStoreUpdatedEvent(
             event.state_id, event.state_type, event.state, old_state
         ))

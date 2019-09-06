@@ -124,7 +124,7 @@ Standard options:
     sys.exit(0)
 
 
-def show_version():
+def show_version() -> None:
     # print(version.NAME)
     print(version.VERSION)
     sys.exit(0)
