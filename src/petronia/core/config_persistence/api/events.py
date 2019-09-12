@@ -33,10 +33,12 @@ class PersistConfigurationEvent:
         """The participant that requested the persistence."""
         return self.__initiator
 
+
 def as_persist_configuration_listener(
         callback: EventCallback[PersistConfigurationEvent]
 ) -> ListenerSetup[PersistConfigurationEvent]:
     return (EVENT_ID_PERSIST_CONFIGURATION, callback,)
+
 
 def send_persist_configuration(
         bus: EventBus,

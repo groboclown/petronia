@@ -11,8 +11,10 @@ from ...aid.bootstrap import (
     ANY_VERSION,
 )
 
+
 def bootstrap_config_persistence(bus: EventBus) -> None:
     """Doesn't do anything yet."""
+
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     "type": "impl",

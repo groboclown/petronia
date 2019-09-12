@@ -41,6 +41,12 @@ from ...base.events import (
     ParticipantStartedEvent,
     as_participant_started_listener,
     send_participant_started_event,
+
+    TARGET_ID_SYSTEM,
+
+    ErrorEvent,
+    send_error_event,
+    as_error_listener,
 )
 
 from ...base.events.component_events import (
@@ -94,3 +100,5 @@ from ...core.timer.api import (
     as_timer_listener,
     TARGET_TIMER,
 )
+
+from .error import report_error

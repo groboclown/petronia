@@ -17,6 +17,7 @@ from ....base.bus import (
 )
 from ...extensions.api import ANY_VERSION
 
+
 def bootstrap_config_api(bus: EventBus) -> None:
     """Bootstrap all the necessary bits for this extension."""
     register_event(
@@ -26,6 +27,7 @@ def bootstrap_config_api(bus: EventBus) -> None:
         PersistConfigurationEvent,
         PersistConfigurationEvent(NOT_PARTICIPANT)
     )
+
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     "name": "core.config_persistence.api",

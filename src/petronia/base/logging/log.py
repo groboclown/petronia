@@ -118,5 +118,7 @@ def remove_log_handler(handler_id: LogHandlerId) -> None:
 
 def _to_src_str(src: Any) -> str:
     if hasattr(src, '__name__'):
+        if hasattr(src, '__module__'):
+            return '{0}.{1}'.format(src.__module__, src.__name__)
         return str(src.__name__)
     return str(src)
