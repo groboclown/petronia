@@ -13,7 +13,6 @@ from .persist_types import (
 
     PERSISTENT_TYPE_SCHEMA_TYPE__BOOL,
     PERSISTENT_TYPE_SCHEMA_TYPE__FLOAT,
-    PERSISTENT_TYPE_SCHEMA_TYPE__INT,
     PERSISTENT_TYPE_SCHEMA_TYPE__STR,
 
     readonly_persistent_copy,

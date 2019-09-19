@@ -3,11 +3,10 @@
 Hotkey state.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Tuple, Optional
 from threading import Lock
 from ...aid.simp import (
-    ParticipantId,
-    log, WARN,
+    report_error,
 )
 from ...core.hotkeys.api import (
     BoundServiceActionSchema,
@@ -34,7 +33,7 @@ class HotkeyState:
     _hotkey_id_map: Dict[str, str]
 
     # Map the key ID (as registered to the platform hotkey) to the event.
-    _key_data_map: Dict[str, RegisteredHotkeyEvent]
+    _key_data_map: Dict[str, Tuple[RegisteredHotkeyEvent, BoundServiceActionSchema]]
 
     _announced: List[BoundServiceActionSchema]
     _unbound_keys: Dict[str, RegisteredHotkeyEvent]
@@ -51,6 +50,13 @@ class HotkeyState:
             all_keys = list(self._unbound_keys.values()) + list(self._key_data_map.values())
             return HotkeyEventState(all_keys, tuple(self._announced))
 
+    def get_platform_keys(self) -> Dict[str, str]:
+        keys: Dict[str, str] = {}
+        with self.__lock:
+            for key in self._key_data_map.keys():
+                keys[key] = key
+        return keys
+
     def add_announced(self, announced: BoundServiceActionSchema) -> None:
         with self.__lock:
             removed: List[str] = []
@@ -59,8 +65,7 @@ class HotkeyState:
                     self._announced[idx] = announced
                     for key, event in self._key_data_map:
                         if not _is_valid_schema_data(announced, event.data):
-                            log(
-                                WARN, HotkeyState,
+                            report_error(self._bus, HotkeyState,
                                 'Service {0} hotkey action {1} does not match requested hotkey {2}: {3}',
                                 announced.service, announced.action, key, event.data
                             )
@@ -91,16 +96,16 @@ class HotkeyState:
                 return False
             self._announced.remove(announced)
             removed: List[str] = []
-            for key, event in self._key_data_map.items():
-                if _event_schema_match(event, announced):
+            for key, binding in self._key_data_map.items():
+                if _event_schema_match(binding[0], announced):
                     removed.append(key)
-                    self._unbound_keys[key] = event
+                    self._unbound_keys[key] = binding[0]
             for key in removed:
                 del self._key_data_map[key]
             return True
 
-    def add_hotkey(self, target_id: ParticipantId, hotkey_sequence: str, data: BoundServiceActionData) -> None:
-        event = RegisteredHotkeyEvent(hotkey_sequence, target_id, data)
+    def add_hotkey(self, hotkey_sequence: str, data: BoundServiceActionData) -> None:
+        event = RegisteredHotkeyEvent(hotkey_sequence, data)
         with self.__lock:
             # First, see if it's been registered and if it's valid.
             for announced in self._announced:
@@ -113,7 +118,7 @@ class HotkeyState:
                         )
                         self._unbound_keys[hotkey_sequence] = event
                     else:
-                        self._key_data_map[hotkey_sequence] = event
+                        self._key_data_map[hotkey_sequence] = (event, announced,)
                     return
             # Nothing declares this kind of event yet.
             self._unbound_keys[hotkey_sequence] = event
@@ -129,7 +134,9 @@ class HotkeyState:
                 ret = True
         return ret
 
-    def get_hotkey_event(self, hotkey_sequence: str) -> Optional[RegisteredHotkeyEvent]:
+    def get_hotkey_event(
+            self, hotkey_sequence: str
+    ) -> Optional[Tuple[RegisteredHotkeyEvent, BoundServiceActionSchema]]:
         with self.__lock:
             return self._key_data_map.get(hotkey_sequence, None)
 
@@ -139,9 +146,9 @@ def _schema_src_match(first: BoundServiceActionSchema, second: BoundServiceActio
 
 
 def _event_schema_match(event: RegisteredHotkeyEvent, schema: BoundServiceActionSchema) -> bool:
-    return event.target_id == schema.service and event.data.action == schema.action
+    return event.data.action == schema.action
 
 
-def _is_valid_schema_data(schema: BoundServiceActionSchema, data: BoundServiceActionData) -> bool:
+def _is_valid_schema_data(_schema: BoundServiceActionSchema, _data: BoundServiceActionData) -> bool:
     # TODO check the schema for validity.
     return True

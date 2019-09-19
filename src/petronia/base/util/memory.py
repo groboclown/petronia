@@ -5,7 +5,7 @@ Memory-based helpers.
 Used to either profile memory or help reduce memory.
 """
 
-from typing import TypeVar, Tuple, Generic, Optional, Dict
+from typing import TypeVar, Tuple, Generic, Optional, Dict, Mapping
 
 
 # singleton empty collections.  DO NOT MODIFY THEM.
@@ -32,12 +32,12 @@ class ValueHolder(Generic[T]):
         self.value = val
 
 
-def readonly_dict(inp: Dict[K, V]) -> Dict[K, V]:
+def readonly_dict(inp: Mapping[K, V]) -> Mapping[K, V]:
     """Create a (shallow) read-only copy of the dictionary."""
     return _ReadOnlyDict(inp) # type: ignore
 
 
-class _ReadOnlyDict(Dict[K, V]):
+class _ReadOnlyDict(Dict[K, V], Generic[K, V]):
     """A read-only dictionary."""
     def __readonly__(self, *args, **kwargs): # type: ignore
         raise RuntimeError("Cannot modify ReadOnlyDict")

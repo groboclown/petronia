@@ -1,35 +1,52 @@
 
 # mypy: allow-any-expr
 # mypy: allow-any-explicit
-# mypy: allow-any-
+# mypy: allow-any-generics
 
 
-from typing import Iterable, Dict, Union, Optional, Type, Any
-from types import FunctionType, MethodType
+from typing import Optional, Any
 from ...base import EventBus
-from ...base.events.system_events import send_error_event
+from ...base.events.system_events import (
+    MessageArgumentValueType,
+    ErrorReport,
+    send_error_reports_event,
+    ERROR_CATEGORY_BUG, ERROR_CATEGORY_USER,
+)
 from ...base.logging import (
     log, logerr, ERROR,
 )
 
 
-def report_error(
+def report_user_error(
         bus: Optional[EventBus],
         source: Any,
         message: str,
-        **arguments: Union[
-            str, int, bool, float, BaseException,
-            Iterable[Union[str, int, bool, float]],
-            Dict[str, Union[str, int, bool, float]]
-        ]
+        **arguments: MessageArgumentValueType
 ) -> None:
-    if 'error' in arguments and isinstance(arguments['error'], BaseException):
-        logerr(ERROR, source, arguments['error'], message, **arguments)
+    report_error(bus, ErrorReport(_to_src_str(source), ERROR_CATEGORY_USER, message, arguments))
+
+
+def report_bug(
+        bus: Optional[EventBus],
+        source: Any,
+        message: str,
+        **arguments: MessageArgumentValueType
+) -> None:
+    report_error(bus, ErrorReport(_to_src_str(source), ERROR_CATEGORY_BUG, message, arguments))
+
+
+def report_error(
+        bus: Optional[EventBus],
+        report: ErrorReport
+) -> None:
+    # TODO look up the message key in the localization tools
+    if 'error' in report.arguments and isinstance(report.arguments['error'], BaseException):
+        logerr(ERROR, report.source, report.arguments['error'], report.message_code, **report.arguments)
     else:
-        log(ERROR, source, message, **arguments)
+        log(ERROR, report.source, report.message_code, **report.arguments)
 
     if bus:
-        send_error_event(bus, _to_src_str(source), message, **arguments)
+        send_error_reports_event(bus, report)
 
 
 def _to_src_str(src: Any) -> str:

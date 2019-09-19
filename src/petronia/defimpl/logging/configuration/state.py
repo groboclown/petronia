@@ -3,7 +3,7 @@
 Log state.
 """
 
-from typing import Dict
+from typing import Mapping
 from ....aid.simp import (
     EventBus,
     EventCallback,
@@ -18,17 +18,18 @@ from ....aid.bootstrap import (
     ListenerSetup,
 )
 
+
 class LogState:
     """
     The active state of the logger.
     """
     __slots__ = ('_category_levels',)
 
-    def __init__(self, category_levels: Dict[str, LogLevel]) -> None:
+    def __init__(self, category_levels: Mapping[str, LogLevel]) -> None:
         self._category_levels = readonly_dict(category_levels)
 
     @property
-    def category_levels(self) -> Dict[str, LogLevel]:
+    def category_levels(self) -> Mapping[str, LogLevel]:
         """
         The current mapping of category log levels.
 
@@ -43,6 +44,7 @@ def as_log_state_listener(
 ) -> ListenerSetup[StateStoreUpdatedEvent[LogState]]:
     """ListenerRegistrar setup."""
     return as_state_change_listener(callback)
+
 
 def set_log_state(
         bus: EventBus, log_state_id: ParticipantId, state: LogState

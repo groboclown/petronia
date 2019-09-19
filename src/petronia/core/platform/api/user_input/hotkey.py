@@ -95,7 +95,7 @@ def set_hotkey_state(bus: EventBus, master_sequence: str, hotkeys: Dict[str, str
 
 
 # ---------------------------------------------------------------------------
-TARGET_ID_HOTKEY = create_singleton_identity('core.platform.api/hotkey')
+TARGET_ID_PLATFORM_HOTKEY = create_singleton_identity('core.platform.api/hotkey')
 EVENT_ID_HOTKEY_PRESSED = EventId('core.platform.api hotkey-pressed')
 
 
@@ -113,7 +113,7 @@ class HotkeyPressedEvent:
 
 
 def send_hotkey_pressed_event(bus: EventBus, hotkey_name: str) -> None:
-    bus.trigger(EVENT_ID_HOTKEY_PRESSED, TARGET_ID_HOTKEY, HotkeyPressedEvent(hotkey_name))
+    bus.trigger(EVENT_ID_HOTKEY_PRESSED, TARGET_ID_PLATFORM_HOTKEY, HotkeyPressedEvent(hotkey_name))
 
 
 def as_hotkey_pressed_listener(
@@ -152,7 +152,7 @@ class HotkeyProgressEvent:
 
 
 def send_hotkey_progress_event(bus: EventBus, keys: Sequence[str], actions: Sequence[str]) -> None:
-    bus.trigger(EVENT_ID_HOTKEY_PROGRESS, TARGET_ID_HOTKEY, HotkeyProgressEvent(keys, actions))
+    bus.trigger(EVENT_ID_HOTKEY_PROGRESS, TARGET_ID_PLATFORM_HOTKEY, HotkeyProgressEvent(keys, actions))
 
 
 def as_hotkey_progress_listener(
@@ -180,7 +180,7 @@ class HotkeyProgressCancelledEvent:
 
 
 def send_hotkey_progress_cancelled_event(bus: EventBus) -> None:
-    bus.trigger(EVENT_ID_HOTKEY_PROGRESS_CANCELLED, TARGET_ID_HOTKEY, HotkeyProgressCancelledEvent())
+    bus.trigger(EVENT_ID_HOTKEY_PROGRESS_CANCELLED, TARGET_ID_PLATFORM_HOTKEY, HotkeyProgressCancelledEvent())
 
 
 def as_hotkey_progress_cancelled_listener(

@@ -6,6 +6,8 @@ The current state of the registered hotkeys.
 from typing import Sequence
 from ....aid.simp import (
     ParticipantId,
+    EventBus,
+    set_state,
 )
 from ....aid.bootstrap import (
     create_singleton_identity,
@@ -82,17 +84,13 @@ class BoundServiceActionSchema:
 
 
 class RegisteredHotkeyEvent:
-    """An internal state representation of the registered hotkey data."""
-    __slots__ = ('__hotkey', '__target_id', '__data',)
+    """An internal state representation of the registered hotkey data.  The target for the hotkey
+    is the bound service action schema's service."""
+    __slots__ = ('__hotkey', '__data',)
 
-    def __init__(self, hotkey: str, target_id: ParticipantId, data: BoundServiceActionData) -> None:
+    def __init__(self, hotkey: str, data: BoundServiceActionData) -> None:
         self.__hotkey = hotkey
-        self.__target_id = target_id
         self.__data = data
-
-    @property
-    def target_id(self) -> ParticipantId:
-        return self.__target_id
 
     @property
     def hotkey(self) -> str:
@@ -126,3 +124,7 @@ class HotkeyEventState:
     def announced(self) -> Sequence[BoundServiceActionSchema]:
         """All announced services and their actions which can have a hotkey binding."""
         return self.__adv
+
+
+def set_hotkey_event_state(bus: EventBus, state: HotkeyEventState) -> None:
+    set_state(bus, STATE_ID_HOTKEY_EVENTS, HotkeyEventState, state)

@@ -3,7 +3,7 @@
 The events around component lifecycle creation.
 """
 
-from typing import Generic, Dict, Union
+from typing import Generic, Dict, Mapping, Union
 from ..internal_.identity_types import (
     ParticipantId, ComponentId,
 )
@@ -13,6 +13,7 @@ from ..internal_.bus_types import (
 )
 from ..util.memory import T, readonly_dict
 
+# ---------------------------------------------------------------------------
 
 # Note: not "core".
 EVENT_ID_REQUEST_NEW_COMPONENT = EventId('petronia.registrar request-new-component')
@@ -77,8 +78,10 @@ def send_request_new_component(
         )
     )
 
+# ---------------------------------------------------------------------------
 
 EVENT_ID_COMPONENT_CREATED = EventId('petronia.registrar component-created')
+
 
 class ComponentCreatedEvent:
     """
@@ -107,6 +110,7 @@ def as_component_created_listener(
     """Listener setup for ComponentCreatedEvent"""
     return (EVENT_ID_COMPONENT_CREATED, callback,)
 
+
 def send_component_created_event(
         bus: EventBus,
         target_id: ParticipantId,
@@ -120,7 +124,10 @@ def send_component_created_event(
     )
 
 
+# ---------------------------------------------------------------------------
+
 EVENT_ID_COMPONENT_CREATION_FAILED = EventId('petronia.registrar component-create-failed')
+
 
 class ComponentCreationFailedEvent:
     """
@@ -154,7 +161,7 @@ class ComponentCreationFailedEvent:
         return self.__error_msg
 
     @property
-    def error_values(self) -> Dict[str, Union[str, int, float]]:
+    def error_values(self) -> Mapping[str, Union[str, int, float]]:
         """Extra descriptive values for the error."""
         return self.__error_values
 
@@ -164,6 +171,7 @@ def as_component_creation_failed_listener(
 ) -> ListenerSetup[ComponentCreationFailedEvent]:
     """Listener setup for ComponentCreationFailedEvent"""
     return (EVENT_ID_COMPONENT_CREATION_FAILED, callback,)
+
 
 def send_component_creation_failed_event(
         bus: EventBus,

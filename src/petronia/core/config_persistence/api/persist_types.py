@@ -3,7 +3,8 @@
 Definition for components that use a configuration part.
 """
 
-from typing import Dict, Iterable, Sequence, Union
+from typing import Dict, Mapping, Iterable, Sequence, Union
+from typing import cast as t_cast
 from ....base.util import T, readonly_dict
 
 
@@ -11,11 +12,11 @@ from ....base.util import T, readonly_dict
 _PrimitivePersistType = Union[str, float, bool, None]
 _GenericPersistType = Union[
     _PrimitivePersistType,
-    Dict[str, T],
+    Mapping[str, T],
     Iterable[T]
 ]
 # FIXME Any way to make this a tree with cycles?
-PersistType = Dict[str, _GenericPersistType[
+PersistType = Mapping[str, _GenericPersistType[
     _GenericPersistType[
         _GenericPersistType[
             _GenericPersistType[
@@ -55,8 +56,8 @@ class PersistTypeSchemaItem:
 # Dict: a dictionary of regex keys whose schema value match against regex matching keys values.
 # Sequence: it expects a list containing any number of items, but each one must match
 # up to one of the schemas in this list.
-_GenericPersistSchema = Union[PersistTypeSchemaItem, Dict[str, T], Sequence[T]]
-PersistTypeSchema = Dict[str, _GenericPersistSchema[
+_GenericPersistSchema = Union[PersistTypeSchemaItem, Mapping[str, T], Sequence[T]]
+PersistTypeSchema = Mapping[str, _GenericPersistSchema[
     _GenericPersistSchema[
         _GenericPersistSchema[
             _GenericPersistSchema[
@@ -84,7 +85,7 @@ PERSISTENT_TYPE_SCHEMA_TYPES = (
 
 
 def readonly_persistent_copy(src: PersistType) -> PersistType:
-    return _readonly_generic_type(src)
+    return t_cast(PersistType, _readonly_generic_type(src))
 
 
 def _readonly_generic_type(src: _GenericPersistType[T]) -> _GenericPersistType[T]:
@@ -97,31 +98,33 @@ def _readonly_generic_type(src: _GenericPersistType[T]) -> _GenericPersistType[T
     ):
         return src
 
-    if isinstance(src, dict):
-        ret: Dict[str, _GenericPersistType[T]] = {}
+    if isinstance(src, Mapping):
+        ret: Dict[str, T] = {}
         for key, val in src.items():
-            ret[key] = _readonly_generic_type(src)
+            ret[key] = t_cast(T, _readonly_generic_type(t_cast(T, val)))
         return readonly_dict(ret)
     if isinstance(src, Iterable):
-        return tuple([_readonly_generic_type(val) for val in src])
+        return tuple([
+            _readonly_generic_type(t_cast(T, val)) for val in src
+        ])
 
     raise ValueError('unsupported persistent type: {0} ({1})'.format(type(src), repr(src)))
 
 
 def readonly_persistent_schema_copy(src: PersistTypeSchema) -> PersistTypeSchema:
-    return _readonly_generic_schema(src)
+    return t_cast(PersistTypeSchema, _readonly_generic_schema(src))
 
 
-def _readonly_generic_schema(src: _GenericPersistSchema) -> _GenericPersistSchema:
+def _readonly_generic_schema(src: _GenericPersistSchema[T]) -> _GenericPersistSchema[T]:
     if isinstance(src, PersistTypeSchemaItem):
         return src
-    if isinstance(src, dict):
-        ret: Dict[str, _GenericPersistSchema[T]] = {}
+    if isinstance(src, Mapping):
+        ret: Dict[str, T] = {}
         for key, val in src.items():
-            ret[key] = _readonly_generic_type(val)
+            ret[key] = t_cast(T, _readonly_generic_schema(t_cast(_GenericPersistSchema[T], val)))
         return readonly_dict(ret)
     if isinstance(src, Iterable):
-        return tuple([_readonly_generic_schema(val) for val in src])
+        return tuple([t_cast(T, _readonly_generic_schema(t_cast(_GenericPersistSchema[T], val))) for val in src])
 
     raise ValueError('unsupported persistent schema type: {0} ({1})'.format(type(src), repr(src)))
 
@@ -134,7 +137,7 @@ class PersistentConfigurationState:
     __slots__ = ('__persistent',)
 
     def __init__(self, persistent: PersistType) -> None:
-        self.__persistent = persistent
+        self.__persistent = readonly_persistent_copy(persistent)
 
     @property
     def persistent(self) -> PersistType:

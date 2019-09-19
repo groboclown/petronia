@@ -39,6 +39,11 @@ from .events import (
     HotkeyBoundServiceAnnouncementEvent,
     as_hotkey_bound_service_announcement_listener,
     send_hotkey_bound_service_announcement,
+
+    EVENT_ID_HOTKEY_UNBIND_SERVICE_ANNOUNCEMENT,
+    HotkeyUnbindServiceAnnouncementEvent,
+    as_hotkey_unbind_service_announcement_listener,
+    send_hotkey_unbind_service_announcement,
 )
 from .state import (
     BoundServiceActionData,
@@ -46,4 +51,5 @@ from .state import (
     HotkeyEventState,
     RegisteredHotkeyEvent,
     STATE_ID_HOTKEY_EVENTS,
+    set_hotkey_event_state,
 )

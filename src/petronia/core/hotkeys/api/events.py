@@ -62,18 +62,14 @@ EVENT_ID_REGISTER_HOTKEY_EVENT = EventId('core.hotkeys.api/register')
 class RegisterHotkeyEventEvent:
     """
     Register a hotkey to trigger an event.  The hotkey itself does not include
-    the master sequence.
+    the master sequence.  The event will be targeted to the service that
+    registered the schema bound to the action type.
     """
-    __slots__ = ('__hotkey', '__target_id', '__data',)
+    __slots__ = ('__hotkey', '__data',)
 
     def __init__(self, hotkey: str, target_id: ParticipantId, data: BoundServiceActionData) -> None:
         self.__hotkey = hotkey
-        self.__target_id = target_id
         self.__data = data
-
-    @property
-    def target_id(self) -> ParticipantId:
-        return self.__target_id
 
     @property
     def hotkey(self) -> str:
@@ -192,6 +188,46 @@ def send_hotkey_bound_service_announcement(
 
 
 def as_hotkey_bound_service_announcement_listener(
-        callback: EventCallback[HotkeyEventTriggeredEvent]
-) -> ListenerSetup[HotkeyEventTriggeredEvent]:
+        callback: EventCallback[HotkeyBoundServiceAnnouncementEvent]
+) -> ListenerSetup[HotkeyBoundServiceAnnouncementEvent]:
+    return (EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT, callback,)
+
+
+# ---------------------------------------------------------------------------
+
+EVENT_ID_HOTKEY_UNBIND_SERVICE_ANNOUNCEMENT = EventId('core.hotkeys.api/revoke-announce')
+
+
+class HotkeyUnbindServiceAnnouncementEvent:
+    """
+    Notification that a service can be bound to a hotkey, and a description
+    of the expected values in the binding.
+    """
+    __slots__ = ('__service', '__action')
+
+    def __init__(self, service: ParticipantId, action: str) -> None:
+        self.__service = service
+        self.__action = action
+
+    @property
+    def service(self) -> ParticipantId:
+        return self.__service
+
+    @property
+    def action(self) -> str:
+        return self.__action
+
+
+def send_hotkey_unbind_service_announcement(
+        bus: EventBus, service: ParticipantId, action: str
+) -> None:
+    bus.trigger(
+        EVENT_ID_HOTKEY_EVENT_TRIGGERED, TARGET_ID_HOTKEYS,
+        HotkeyUnbindServiceAnnouncementEvent(service, action)
+    )
+
+
+def as_hotkey_unbind_service_announcement_listener(
+        callback: EventCallback[HotkeyUnbindServiceAnnouncementEvent]
+) -> ListenerSetup[HotkeyUnbindServiceAnnouncementEvent]:
     return (EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT, callback,)

@@ -1,10 +1,12 @@
-# Petronia: A Python Windows Tiling Window Manager
+# Petronia: A Python Tiling Window Manager
 
 #### Or: How We Retrained Windows To Be Useful
 
 ## Version 3 In Development!
 
 [Because you didn't ask for it!](The_Great_V3.md)
+
+It is turning into a cross-platform window manager.
 
 ## Version 2.2 Is Out!
 

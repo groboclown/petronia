@@ -6,13 +6,14 @@ Note that extension configuration should be handled separately, because that
 requires structured definitions.
 """
 
-from typing import Dict, Iterable, Optional, Tuple, Union, overload
+from typing import Dict, Mapping, Iterable, Optional, Tuple, Union, overload
 import configparser
 from ....base.util import (
     readonly_dict,
     STRING_EMPTY_TUPLE,
     EMPTY_TUPLE,
 )
+
 
 def create_ini_config() -> configparser.ConfigParser:
     """
@@ -59,7 +60,7 @@ class LayeredConfig:
     replacement.
     """
     __slots__ = ('_sections',)
-    _sections: Dict[str, Dict[str, str]]
+    _sections: Mapping[str, Mapping[str, str]]
 
     def __init__(
             self,
@@ -81,8 +82,10 @@ class LayeredConfig:
             if sec not in sections:
                 sections[sec] = opts
             elif overlap:
+                # FIXME this is a bug.  "cfg" is the wrong variable here.
                 for key, val in _extract_options(cfg, sec).items():
                     sections[sec][key] = val
+        # TODO each section's options needs to be made read-only.
         self._sections = readonly_dict(sections)
 
     def sections(self) -> Iterable[str]:
@@ -143,6 +146,7 @@ class LayeredConfig:
     def items(self) -> Iterable[Tuple[str, Iterable[Tuple[str, str]]]]: ...
     @overload
     def items(self, section: str) -> Iterable[Tuple[str, str]]: ...
+
     def items(
             self,
             section: Optional[str] = None
@@ -163,4 +167,4 @@ def _extract_options(config: configparser.ConfigParser, section: str) -> Dict[st
     ret: Dict[str, str] = {}
     for opt in config.options(section):
         ret[opt] = config.get(section, opt)
-    return readonly_dict(ret)
+    return ret

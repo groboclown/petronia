@@ -50,6 +50,14 @@ Due to the inability to truly lock down Python extensions in-memory, this only h
 
 One additional approach to help with this is the API vs. Implementation vs. Standalone aspects for extensions.  APIs should declare event types, and which ones are public vs. generated only by implementations; they must not register any event listeners nor generate events (other than event registration).  Implementation plugins must not declare any events, but can listen to and generate events.  Stand-alone plugins act as implementations that cannot generate private events.  Additionally, each API can have at most one implementation registered at a time.
 
+### Untrusted Events 
+
+One enormous weakness (from the security standpoint) in Petronia's current design is the use of classes as the event type.  This may not seem like much, but it introduces a dependency upon loading an extension to be able to transmit or receive an event.  This means that, using traditional methods, a package must be loaded, which means that it must have some of its code executed.  If this is untrusted code, it means it must be loaded in the trusted space, which is a break in the security guarantees.
+
+However, we can recognize that Petronia has a wire-transmission form for its events, and there is no part of Petronia that requires the transmission of events while knowing the event contents.  Additionally, an extension must declare which events it is interested in receiving, which means that it declares to have access to that event.  On top of that, events (and thus the event class) are only declared by the API extensions.
+
+This means that event objects only need to be generated and interpreted within the security context that directly uses them.  The parts of the system that shuffle events between senders and receivers only need to store the wire (marshalled) version. 
+
 ### Super Secure Petronia
 
 With the extension execution in a separate process, this enables Petronia to be able to run in a highly secure environment.
@@ -63,6 +71,8 @@ The main process would need enough permission to be able to start processes that
 This web of processes would listen on a local network port (could even be SSL with a once-per-load time self-signed certificate) for events.  The locally running event bus would translate "added listener" to include the listener's port number before sending it to all other processes.
 
 This setup is a long term goal, but should be kept in mind when writing extensions and the core system.
+
+To work around this 
 
 ## System Parts
 

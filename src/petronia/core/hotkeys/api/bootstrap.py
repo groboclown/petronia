@@ -35,6 +35,9 @@ from .events import (
     EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT,
     HotkeyBoundServiceAnnouncementEvent,
     BoundServiceActionSchema,
+
+    EVENT_ID_HOTKEY_UNBIND_SERVICE_ANNOUNCEMENT,
+    HotkeyUnbindServiceAnnouncementEvent,
 )
 from .state import (
     STATE_ID_HOTKEY_EVENTS,
@@ -63,6 +66,12 @@ def bootstrap_hotkeys(bus: EventBus) -> None:
         bus, EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT, QUEUE_EVENT_NORMAL,
         HotkeyBoundServiceAnnouncementEvent, HotkeyBoundServiceAnnouncementEvent(
             BoundServiceActionSchema(NOT_PARTICIPANT, '', {})
+        )
+    )
+    register_event(
+        bus, EVENT_ID_HOTKEY_UNBIND_SERVICE_ANNOUNCEMENT, QUEUE_EVENT_NORMAL,
+        HotkeyUnbindServiceAnnouncementEvent, HotkeyUnbindServiceAnnouncementEvent(
+            NOT_PARTICIPANT, ''
         )
     )
     set_state(
