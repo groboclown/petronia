@@ -67,7 +67,7 @@ class RegisterHotkeyEventEvent:
     """
     __slots__ = ('__hotkey', '__data',)
 
-    def __init__(self, hotkey: str, target_id: ParticipantId, data: BoundServiceActionData) -> None:
+    def __init__(self, hotkey: str, data: BoundServiceActionData) -> None:
         self.__hotkey = hotkey
         self.__data = data
 
@@ -85,7 +85,7 @@ def register_hotkey_event(
 ) -> None:
     bus.trigger(
         EVENT_ID_REGISTER_HOTKEY_EVENT, TARGET_ID_HOTKEYS,
-        RegisterHotkeyEventEvent(target_id, hotkey, data)
+        RegisterHotkeyEventEvent(hotkey, data)
     )
 
 

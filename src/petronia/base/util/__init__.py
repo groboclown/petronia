@@ -15,6 +15,7 @@ from .memory import (
     EMPTY_DICT,
     EMPTY_LIST,
     EMPTY_TUPLE,
+    EMPTY_MAPPING,
     STRING_EMPTY_TUPLE,
 
     T, V, K,

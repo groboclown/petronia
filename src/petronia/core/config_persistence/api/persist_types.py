@@ -101,12 +101,10 @@ def _readonly_generic_type(src: _GenericPersistType[T]) -> _GenericPersistType[T
     if isinstance(src, Mapping):
         ret: Dict[str, T] = {}
         for key, val in src.items():
-            ret[key] = t_cast(T, _readonly_generic_type(t_cast(T, val)))
+            ret[key] = _readonly_generic_type(val)  # type: ignore
         return readonly_dict(ret)
     if isinstance(src, Iterable):
-        return tuple([
-            _readonly_generic_type(t_cast(T, val)) for val in src
-        ])
+        return tuple([_readonly_generic_type(val) for val in src])  # type: ignore
 
     raise ValueError('unsupported persistent type: {0} ({1})'.format(type(src), repr(src)))
 

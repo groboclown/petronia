@@ -29,7 +29,7 @@ from ...base.bus import (
     as_listener_added_listener,
     TARGET_WILDCARD,
 )
-from ...aid.module_bootstrap import create_module_listener_helper
+from ...aid.lifecycle import create_module_listener_helper
 from .store import StateStore
 
 

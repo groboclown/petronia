@@ -1,9 +1,12 @@
 
+# mypy: allow-any-expr
+# mypy: allow-any-explicit
+
 """
 The current state of the registered hotkeys.
 """
 
-from typing import Sequence
+from typing import Sequence, Any
 from ....aid.simp import (
     ParticipantId,
     EventBus,
@@ -70,10 +73,10 @@ class BoundServiceActionSchema:
         return self.__action
 
     @property
-    def parameters(self) -> PersistType:
+    def parameters(self) -> PersistTypeSchema:
         return self.__parameters
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BoundServiceActionSchema):
             return False
         return (
@@ -103,7 +106,8 @@ class RegisteredHotkeyEvent:
 
 class HotkeyEventState:
     """
-    All the registered hotkey events.
+    All the registered hotkey events with bindings to announced
+    service actions.  Only correctly bound hotkeys are stored.
     """
     __slots__ = ('__reg', '__adv',)
 

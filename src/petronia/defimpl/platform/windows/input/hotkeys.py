@@ -47,7 +47,7 @@ def create_hotkey_handler(
     ) -> Tuple[bool, Sequence[Tuple[int, bool]]]:
         if is_injected:
             # Forward on injected keys...
-            print(" - Ignoring injected keys")
+            # print(" - Ignoring injected keys")
             return False, ()
         # return True to cancel the key handling...
         cancel_key_forward = True
@@ -82,7 +82,7 @@ def create_hotkey_handler(
             send_hotkey_pressed_event(bus, (actions or ('',))[0])
             return cancel_key_forward, ()
         # Ignore the keypress, and let everything process the key as usual.
-        print(" - Ignoring key")
+        # print(" - Ignoring key")
         return False, ()
 
     return handler

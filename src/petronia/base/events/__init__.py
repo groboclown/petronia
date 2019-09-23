@@ -44,6 +44,7 @@ from .system_events import (
     SystemStartedEvent,
     as_system_started_listener,
     ErrorEvent,
+    ErrorReport,
     send_error_event,
     as_error_listener,
 )

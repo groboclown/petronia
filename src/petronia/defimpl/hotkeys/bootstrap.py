@@ -15,7 +15,7 @@ from ...aid.bootstrap import (
     ExtensionMetadataStruct,
     ANY_VERSION,
 )
-from ...aid.module_bootstrap import create_module_listener_helper
+from ...aid.lifecycle import create_module_listener_helper
 from ...core.hotkeys.api import (
     TARGET_ID_HOTKEYS,
 
@@ -52,7 +52,7 @@ from .state import (
     HotkeyState,
 )
 
-MODULE_ID = create_singleton_identity('default.hotkey.cmd')
+MODULE_ID = create_singleton_identity('default.hotkeys')
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     'type': 'impl',
     "implements": [{
@@ -60,7 +60,7 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
         "version": ANY_VERSION,
     }],
     'depends': [],
-    'name': 'default.hotkeys.cmd',
+    'name': 'default.hotkeys',
     'version': (1, 0, 0,),
     'authors': ['Petronia'],
 }

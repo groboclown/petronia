@@ -5,16 +5,17 @@ Memory-based helpers.
 Used to either profile memory or help reduce memory.
 """
 
-from typing import TypeVar, Tuple, Generic, Optional, Dict, Mapping
+from typing import TypeVar, Tuple, Generic, Optional, Dict, Mapping, Any
 
 
 # singleton empty collections.  DO NOT MODIFY THEM.
 # Note that the typing is ignored, so that they can take the place of anything.
-EMPTY_DICT = dict() # type: ignore
-EMPTY_LIST = list() # type: ignore
-EMPTY_TUPLE = tuple() # type: ignore
+EMPTY_DICT = dict()  # type: ignore
+EMPTY_LIST = list()  # type: ignore
+EMPTY_TUPLE = tuple()  # type: ignore
 
-STRING_EMPTY_TUPLE: Tuple[str] = EMPTY_TUPLE # type: ignore
+EMPTY_MAPPING: Mapping[Any, Any] = EMPTY_DICT  # type: ignore
+STRING_EMPTY_TUPLE: Tuple[str] = EMPTY_TUPLE  # type: ignore
 
 # For generics
 T = TypeVar('T') # pylint: disable=invalid-name
@@ -34,6 +35,8 @@ class ValueHolder(Generic[T]):
 
 def readonly_dict(inp: Mapping[K, V]) -> Mapping[K, V]:
     """Create a (shallow) read-only copy of the dictionary."""
+    if isinstance(inp, _ReadOnlyDict):
+        return inp
     return _ReadOnlyDict(inp) # type: ignore
 
 

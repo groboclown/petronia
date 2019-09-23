@@ -76,19 +76,19 @@ class WindowsHookEvent:
 
     def start(self, on_exit: Callable[[], None]) -> None:
         def key_handler(vk_code: int, scan_code: int, is_key_up: bool, is_injected: bool) -> Optional[str]:
-            print("[key] xxx {1}".format(vk_code, 'up' if is_key_up else 'dn', vk_to_names(vk_code)))
+            # print("[key] xxx {1}".format(vk_code, 'up' if is_key_up else 'dn', vk_to_names(vk_code)))
             # print("[key] {2} {1}".format(vk_code, 'up' if is_key_up else 'dn', vk_to_names(vk_code)))
             if self._key_handler:
                 res = self._key_handler(vk_code, scan_code, is_key_up, is_injected)
                 if WINDOWS_FUNCTIONS.shell.inject_scancode and res[1]:
                     for inject_scancode, inject_is_up in res[1]:
-                        print(" - injecting {0} {1}".format(inject_scancode, inject_is_up))
+                        # print(" - injecting {0} {1}".format(inject_scancode, inject_is_up))
                         WINDOWS_FUNCTIONS.shell.inject_scancode(inject_scancode, inject_is_up)
                 if res[0]:
-                    print(" - cancelling callback chain for key")
+                    # print(" - cancelling callback chain for key")
                     return SHELL__CANCEL_CALLBACK_CHAIN
-                else:
-                    print(" - passing on key")
+                # else:
+                #     print(" - passing on key")
             return None
 
         def shell_handler(source_hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> bool:

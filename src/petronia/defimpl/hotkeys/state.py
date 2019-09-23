@@ -3,10 +3,11 @@
 Hotkey state.
 """
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Sequence, Tuple, Optional
 from threading import Lock
 from ...aid.simp import (
-    report_error,
+    ErrorReport,
+    create_user_error,
 )
 from ...core.hotkeys.api import (
     BoundServiceActionSchema,
@@ -47,7 +48,10 @@ class HotkeyState:
 
     def get_state(self) -> HotkeyEventState:
         with self.__lock:
-            all_keys = list(self._unbound_keys.values()) + list(self._key_data_map.values())
+            all_keys: List[RegisteredHotkeyEvent] = (
+                [x for x in self._unbound_keys.values()] +
+                [x[0] for x in self._key_data_map.values()]
+            )
             return HotkeyEventState(all_keys, tuple(self._announced))
 
     def get_platform_keys(self) -> Dict[str, str]:
@@ -57,38 +61,49 @@ class HotkeyState:
                 keys[key] = key
         return keys
 
-    def add_announced(self, announced: BoundServiceActionSchema) -> None:
+    def add_announced(self, announced: BoundServiceActionSchema) -> Sequence[ErrorReport]:
         with self.__lock:
+            ret: List[ErrorReport] = []
             removed: List[str] = []
             for idx in range(len(self._announced)):
                 if _schema_src_match(self._announced[idx], announced):
                     self._announced[idx] = announced
-                    for key, event in self._key_data_map:
-                        if not _is_valid_schema_data(announced, event.data):
-                            report_error(self._bus, HotkeyState,
-                                'Service {0} hotkey action {1} does not match requested hotkey {2}: {3}',
-                                announced.service, announced.action, key, event.data
-                            )
+                    for key, event in self._key_data_map.items():
+                        if not _is_valid_schema_data(announced, event[0].data):
+                            ret.append(create_user_error(
+                                HotkeyState,
+                                'Service {service} hotkey action {action} does not match '
+                                'requested hotkey {hotkey}: {data}',
+                                service=announced.service,
+                                action=announced.action,
+                                hotkey=key,
+                                data=repr(event[0].data)
+                            ))
                             removed.append(key)
-                            self._unbound_keys[key] = event
+                            self._unbound_keys[key] = event[0]
                     for key in removed:
                         del self._key_data_map[key]
-                    return
+                    return ret
 
             self._announced.append(announced)
-            for key, event in self._unbound_keys.items():
-                if _event_schema_match(event, announced):
-                    if _is_valid_schema_data(announced, event.data):
-                        self._key_data_map[key] = event
+            for key, raw in self._unbound_keys.items():
+                if _event_schema_match(raw, announced):
+                    if _is_valid_schema_data(announced, raw.data):
+                        self._key_data_map[key] = (raw, announced,)
                         removed.append(key)
                     else:
-                        log(
-                            WARN, HotkeyState,
-                            'Service {0} hotkey action {1} does not match requested hotkey {2}: {3}',
-                            announced.service, announced.action, key, event.data
-                        )
+                        ret.append(create_user_error(
+                            HotkeyState,
+                            'Service {service} hotkey action {action} does not match '
+                            'requested hotkey {hotkey}: {data}',
+                            service=announced.service,
+                            action=announced.action,
+                            hotkey=key,
+                            data=repr(raw.data)
+                        ))
             for key in removed:
                 del self._unbound_keys[key]
+            return ret
 
     def remove_announced(self, announced: BoundServiceActionSchema) -> bool:
         with self.__lock:
@@ -104,24 +119,29 @@ class HotkeyState:
                 del self._key_data_map[key]
             return True
 
-    def add_hotkey(self, hotkey_sequence: str, data: BoundServiceActionData) -> None:
+    def add_hotkey(self, hotkey_sequence: str, data: BoundServiceActionData) -> Sequence[ErrorReport]:
+        ret: List[ErrorReport] = []
         event = RegisteredHotkeyEvent(hotkey_sequence, data)
         with self.__lock:
             # First, see if it's been registered and if it's valid.
             for announced in self._announced:
                 if _event_schema_match(event, announced):
                     if not _is_valid_schema_data(announced, event.data):
-                        log(
-                            WARN, HotkeyState,
-                            'Service {0} hotkey action {1} does not match requested hotkey {2}: {3}',
-                            announced.service, announced.action, hotkey_sequence, event.data
-                        )
+                        ret.append(create_user_error(
+                            HotkeyState,
+                            'Service {service} hotkey action {action} does not match requested hotkey {hotkey}: {data}',
+                            service=announced.service,
+                            action=announced.action,
+                            hotkey=hotkey_sequence,
+                            data=repr(event.data)
+                        ))
                         self._unbound_keys[hotkey_sequence] = event
                     else:
                         self._key_data_map[hotkey_sequence] = (event, announced,)
-                    return
+                    return ret
             # Nothing declares this kind of event yet.
             self._unbound_keys[hotkey_sequence] = event
+        return ret
 
     def remove_hotkey(self, hotkey_sequence: str) -> bool:
         ret = False

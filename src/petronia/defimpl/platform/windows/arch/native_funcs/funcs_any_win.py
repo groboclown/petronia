@@ -1196,7 +1196,7 @@ def shell__keyboard_hook(
                     call_next = False
         finally:
             if call_next:
-                print(" - forwarding key event")
+                # print(" - forwarding key event")
                 return t_cast(int, CallNextHookEx(hook_id, code, wparam, lparam))
             else:
                 # From the docs:
@@ -1353,6 +1353,7 @@ def shell__register_window_hook(
     if message_id == 0:
         return WindowsErrorMessage('RegisterWindowMessageW')
     if message_id_callbacks is not None and callback:
+        print("DEBUG window hook message {0}".format(message_id))
         message_id_callbacks[message_id] = callback
     return message_id
 
@@ -1545,13 +1546,13 @@ def monitor__find_monitors() -> Sequence[NativeScreenInfo]:
                 screen_index=index,
                 screen_size=(
                     info.rcWork.left, info.rcWork.top,
-                    info.rcWork.right - info.rcWork.left,
-                    info.rcWork.bottom - info.rcWork.top
+                    info.rcWork.right - info.rcWork.left + 1,
+                    info.rcWork.bottom - info.rcWork.top + 1
                 ),
                 work_area=(
                     info.rcMonitor.left, info.rcMonitor.top,
-                    info.rcMonitor.right - info.rcMonitor.left,
-                    info.rcMonitor.bottom - info.rcMonitor.top
+                    info.rcMonitor.right - info.rcMonitor.left + 1,
+                    info.rcMonitor.bottom - info.rcMonitor.top + 1
                 ),
                 name=info.szDevice,
                 is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == 1

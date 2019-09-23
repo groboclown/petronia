@@ -3,7 +3,7 @@
 Logging configuration state.
 """
 
-from typing import Dict
+from typing import Dict, Mapping
 from ....aid.simp import (
     EventBus,
     EventCallback,
@@ -28,7 +28,7 @@ class LogConfiguration:
         self._category_levels = readonly_dict(category_levels)
 
     @property
-    def category_levels(self) -> Dict[str, LogLevel]:
+    def category_levels(self) -> Mapping[str, LogLevel]:
         """
         The current mapping of category log levels.
 

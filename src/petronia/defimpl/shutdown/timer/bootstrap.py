@@ -3,12 +3,14 @@
 Sets up the extension.
 """
 
-from ....base.bus import (
+from .timer import setup_shutdown_handler
+from ....aid.simp import (
     EventBus,
+)
+from ....aid.bootstrap import (
+    ANY_VERSION,
     ExtensionMetadataStruct,
 )
-from .timer import setup_shutdown_handler
-from ....aid.bootstrap import ANY_VERSION
 
 def bootstrap_shutdown_timer(bus: EventBus) -> None:
     # This is the default time.  Configuration allows changing it.

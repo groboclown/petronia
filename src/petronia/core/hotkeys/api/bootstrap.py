@@ -9,6 +9,7 @@ Startup the extension.
 from ....aid.simp import (
     EventBus,
     EMPTY_DICT,
+    EMPTY_MAPPING,
     EMPTY_TUPLE,
 )
 from ....aid.bootstrap import (
@@ -22,6 +23,7 @@ from ...state.api import set_state
 from .events import (
     EVENT_ID_HOTKEY_EVENT_TRIGGERED,
     HotkeyEventTriggeredEvent,
+    BoundServiceActionData,
 
     EVENT_ID_REGISTER_HOTKEY_EVENT,
     RegisterHotkeyEventEvent,
@@ -49,10 +51,11 @@ def bootstrap_hotkeys(bus: EventBus) -> None:
     """Register all the events and everything."""
     register_event(
         bus, EVENT_ID_HOTKEY_EVENT_TRIGGERED, QUEUE_EVENT_NORMAL,
-        HotkeyEventTriggeredEvent, HotkeyEventTriggeredEvent(EMPTY_DICT))
+        HotkeyEventTriggeredEvent, HotkeyEventTriggeredEvent(BoundServiceActionData('', EMPTY_MAPPING))
+    )
     register_event(
         bus, EVENT_ID_REGISTER_HOTKEY_EVENT, QUEUE_EVENT_NORMAL,
-        RegisterHotkeyEventEvent, RegisterHotkeyEventEvent('', NOT_PARTICIPANT, EMPTY_DICT)
+        RegisterHotkeyEventEvent, RegisterHotkeyEventEvent('', BoundServiceActionData('', EMPTY_MAPPING))
     )
     register_event(
         bus, EVENT_ID_REMOVE_HOTKEY_EVENT, QUEUE_EVENT_NORMAL,

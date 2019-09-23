@@ -43,7 +43,7 @@ def load_hotkey_configuration(state: HotkeyState, persistent: PersistType) -> Tu
     ):
         return "", False,
 
-    for key, settings in persistent["keys"]:
+    for key, settings in persistent["keys"].items():
         if (
                 key and isinstance(key, str) and
                 settings and isinstance(settings, dict) and

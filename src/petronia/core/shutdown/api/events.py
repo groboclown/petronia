@@ -20,6 +20,8 @@ from ....base.bus import (
 TARGET_ID_SYSTEM_SHUTDOWN = create_singleton_identity('core.shutdown.api')
 
 
+# ---------------------------------------------------------------------------
+
 EVENT_ID_REQUEST_SYSTEM_SHUTDOWN = EventId('core.shutdown.api request-shutdown')
 
 
@@ -42,6 +44,8 @@ def send_system_shutdown_request(bus: EventBus) -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+
 EVENT_ID_SYSTEM_SHUTDOWN = EventId('core.shutdown.api system-shutting-down')
 
 class SystemShutdownEvent:
@@ -56,6 +60,8 @@ def as_system_shutdown_listener(
 ) -> ListenerSetup[SystemShutdownEvent]:
     return (EVENT_ID_SYSTEM_SHUTDOWN, callback,)
 
+
+# ---------------------------------------------------------------------------
 
 EVENT_ID_REQUEST_CANCEL_SYSTEM_SHUTDOWN = EventId('core.shutdown.api request-cancel-shutdown')
 
@@ -72,6 +78,8 @@ def send_cancel_system_shutdown_request(bus: EventBus) -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+
 EVENT_ID_SYSTEM_SHUTDOWN_CANCELLED = EventId('core.shutdown.api shutdown-cancelled')
 
 class SystemShutdownCancelledEvent:
@@ -85,6 +93,8 @@ def as_system_shutdown_cancelled_listener(
 ) -> ListenerSetup[SystemShutdownCancelledEvent]:
     return (EVENT_ID_SYSTEM_SHUTDOWN_CANCELLED, callback,)
 
+
+# ---------------------------------------------------------------------------
 
 EVENT_ID_SYSTEM_SHUTDOWN_FINALIZE = EventId('core.shutdown.api system-shut-down-finalize')
 

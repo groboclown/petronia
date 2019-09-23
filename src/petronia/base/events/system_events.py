@@ -77,9 +77,11 @@ MessageArgumentValueType = Union[
 
 ERROR_CATEGORY_USER = 'user'
 ERROR_CATEGORY_BUG = 'bug'
+ERROR_CATEGORY_ENVIRONMENT = 'environment'
 ERROR_CATEGORIES = (
     ERROR_CATEGORY_USER,
     ERROR_CATEGORY_BUG,
+    ERROR_CATEGORY_ENVIRONMENT,
 )
 
 
@@ -188,3 +190,4 @@ def send_error_event(
         **arguments: MessageArgumentValueType
 ) -> None:
     send_error_reports_event(bus, ErrorReport(source, category, message_code, arguments))
+

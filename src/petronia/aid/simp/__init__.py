@@ -45,6 +45,7 @@ from ...base.events import (
     TARGET_ID_SYSTEM,
 
     ErrorEvent,
+    ErrorReport,
     send_error_event,
     as_error_listener,
 )
@@ -84,6 +85,7 @@ from ...base.util import (
     EMPTY_DICT,
     EMPTY_LIST,
     EMPTY_TUPLE,
+    EMPTY_MAPPING,
     STRING_EMPTY_TUPLE,
 )
 
@@ -101,4 +103,10 @@ from ...core.timer.api import (
     TARGET_TIMER,
 )
 
-from .error import report_error
+from .error import (
+    report_bug,
+    create_bug_report,
+    report_user_error,
+    create_user_error,
+    report_error,
+)
