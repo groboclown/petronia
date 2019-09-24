@@ -17,6 +17,14 @@ from ....aid.simp import (
 from ....aid.bootstrap import (
     ListenerSetup,
 )
+from ....core.config_persistence.api import (
+    PersistType,
+    PersistTypeSchema,
+    PersistTypeSchemaItem,
+    readonly_persistent_schema_copy,
+    PERSISTENT_TYPE_SCHEMA_TYPE__STR,
+)
+
 
 class LogConfiguration:
     """
@@ -38,11 +46,21 @@ class LogConfiguration:
         return self._category_levels
 
 
+def parse_user_log_configuration(data: PersistType) -> LogConfiguration:
+    raise NotImplementedError()
+
+
+USER_LOG_CONFIGURATION_SCHEMA: PersistTypeSchema = readonly_persistent_schema_copy({
+    "root": PersistTypeSchemaItem("Root log level", PERSISTENT_TYPE_SCHEMA_TYPE__STR)
+})
+
+
 def as_log_configuration_listener(
         callback: EventCallback[StateStoreUpdatedEvent[LogConfiguration]]
 ) -> ListenerSetup[StateStoreUpdatedEvent[LogConfiguration]]:
     """ListenerRegistrar setup."""
     return as_state_change_listener(callback)
+
 
 def send_log_configuration(
         bus: EventBus, logger_config_id: ParticipantId, config: LogConfiguration

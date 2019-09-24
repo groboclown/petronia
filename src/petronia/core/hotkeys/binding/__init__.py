@@ -1,5 +1,5 @@
 """
-Petronia Core Hotkey Handlers.
+Petronia Core Hotkey Bindings.
 
 Defines the hotkey action types for core actions the user may want to perform.
 

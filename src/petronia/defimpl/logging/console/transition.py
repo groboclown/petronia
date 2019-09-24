@@ -28,6 +28,7 @@ from .ident import (
     TARGET_ID_CONSOLE_LOGGER_STATE,
 )
 
+
 class LogStateTransitionHandler:
     """
     Handles the transition of a configuration request on the
@@ -48,7 +49,6 @@ class LogStateTransitionHandler:
             self._on_config_change
         )
 
-
     def dispose(self) -> None:
         """Dispose of this component.  Completely idempotent."""
         with self._lock:
@@ -60,7 +60,6 @@ class LogStateTransitionHandler:
                 remove_log_handler(llh[1])
             self._listeners.clear()
 
-
     def _generate_state(self) -> LogState:
         # Must be in a lock.
         lsm: Dict[str, LogLevel] = {}
@@ -68,10 +67,9 @@ class LogStateTransitionHandler:
             lsm[cat] = llh[0]
         return LogState(lsm)
 
-
     def _on_config_change(
             self,
-            event_id: EventId, target_id: ParticipantId, # pylint: disable=unused-argument
+            _event_id: EventId, _target_id: ParticipantId,  # pylint: disable=unused-argument
             event_obj: StateStoreUpdatedEvent[LogConfiguration]
     ) -> None:
         with self._lock:

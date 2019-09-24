@@ -2,6 +2,25 @@
 
 Each service that installs itself into Petronia must be able to remove itself.  Petronia provides events that all such participants must be aware of to conform to this standard.
 
+## Quick Win
+
+The rest of this document describes the events and what extensions need to do to correctly handle them.  However, Petronia comes with a helper to make this easy.
+
+```python
+from petronia.aid.lifecycle import create_module_listener_helper
+from petronia.aid.bootstrap import create_singleton_identity
+
+MODULE_ID = create_singleton_identity('my.extension')
+
+def start_module(bus):
+    listeners = create_module_listener_helper(bus, MODULE_ID)
+    listeners.listen(TARGET_ID_OTHER, as_other_listener, my_callback)
+```
+
+The returned `listeners` object will correctly dispose all registered event listeners and hotkey descriptors when the module is requested to be disposed, or if the system shuts down.
+
+Optionally, you can pass an additional argument to `create_module_listener_helper`, a call back function that is invoked when the disposal executes.  This allows for hooking in additional shutdown behavior beyond what the listener set provides.
+
 ## Required Dispose Events
 
 ### Request Dispose and Disposed

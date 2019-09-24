@@ -29,12 +29,13 @@ from ctypes import (
 from ..arch.native_funcs.windows_common import (
     MessageCallback,
     Structure,
-    UINT,
     LPARAM, WPARAM,
     HWND,
     RECT,
 )
 from ..arch import windows_constants
+from ..arch.native_funcs import WINDOWS_FUNCTIONS
+from ..arch.native_funcs.windows_common import WindowsErrorMessage
 
 MessageEntry = Tuple[bool, int, MessageCallback]
 
@@ -104,8 +105,8 @@ def forced_exit_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEn
 
 
 def window_monitor_changed_message(callback: Callable[[HWND], None]) -> MessageEntry:
-    """Listens for a window that moved to a different monitor.  This can mean a rescale
-    is necessary."""
+    """Listens for a window that moved to a different monitor.  This can mean a
+    rescale is necessary."""
     return True, windows_constants.HSHELL_MONITORCHANGED, _window_handle_callback(callback)
 
 
@@ -114,19 +115,44 @@ def window_flash_message(callback: Callable[[HWND], None]) -> MessageEntry:
     return True, windows_constants.HSHELL_FLASH, _window_handle_callback(callback)
 
 
-# FIXME HOW TO IMPLEMENT
-#def window_replacing_message(callback: Callable[[HWND], None]) -> MessageEntry:
-#    pass
-#HSHELL_WINDOWREPLACING = 14  # -> A handle to the window replacing the top-level window.
+# These two occur when a window comes back from being hung
+def window_replacing_message(callback: Callable[[HWND, HWND], None]) -> MessageEntry:
+    """Listens for when a window is hung, and needs to be recreated.
+    The first HWND will be set to the HWND of the new window handle, and
+    the second is the HWND of the replaced window.
 
-# FIXME HOW TO IMPLEMENT
-#def window_replaced_message(callback: Callable[[HWND], None]) -> MessageEntry:
-#    pass
-#HSHELL_WINDOWREPLACED = 13  # A handle to the window being replaced.
+    The callback should be reused with window_replaced_message."""
+    def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
+        # LPARAM stores a handle to the window replacing the top-level window.
+        top = _source_hwnd
+        if WINDOWS_FUNCTIONS.window.get_top_window:
+            t = WINDOWS_FUNCTIONS.window.get_top_window(_source_hwnd)
+            if isinstance(t, WindowsErrorMessage):
+                # TODO do something smart.
+                top = _source_hwnd
+            else:
+                top = t
+        callback(t_cast(HWND, lparam), top)
+        return True
+    return True, windows_constants.HSHELL_WINDOWREPLACING, handler
 
-#def app_command_message(callback: Callable[[HWND], None]) -> MessageEntry:
-#    pass
-#HSHELL_APPCOMMAND = 12  # -> The APPCOMMAND which has been unhandled by the application
+
+def window_replaced_message(callback: Callable[[HWND, HWND], None]) -> MessageEntry:
+    """Listens for when a window is hung, and needs to be recreated.
+    The first HWND will be set to the HWND of the new window handle, and
+    the second is the HWND of the replaced window.
+
+    The callback should be reused with window_replacing_message."""
+    def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
+        # LPARAM stores a handle to the window being replaced.
+        callback(t_cast(HWND, lparam), _source_hwnd)
+        return True
+    return True, windows_constants.HSHELL_WINDOWREPLACED, handler
+
+
+# def app_command_message(callback: Callable[[HWND], None]) -> MessageEntry:
+#     pass
+# HSHELL_APPCOMMAND = 12  # -> The APPCOMMAND which has been unhandled by the application
 # or other hooks. See WM_APPCOMMAND and use the GET_APPCOMMAND_LPARAM macro to retrieve this parameter.
 
 
@@ -139,12 +165,12 @@ def taskman_message(callback: Callable[[HWND], None]) -> MessageEntry:
 
 
 # FIXME need to figure out how to implement these.
-#HSHELL_LANGUAGE = 8  # -> ???
-#HSHELL_SYSMENU = 9  # -> ???
-#HSHELL_ACCESSIBILITYSTATE = 11  # -> ???
+# HSHELL_LANGUAGE = 8  # -> ???
+# HSHELL_SYSMENU = 9  # -> ???
+# HSHELL_ACCESSIBILITYSTATE = 11  # -> ???
 # We get shell message "0x35" and "0x36".  Don't know what these are.
-#HSHELL_UNKNOWN_35 = 0x35
-#HSHELL_UNKNOWN_36 = 0x36
+# HSHELL_UNKNOWN_35 = 0x35
+# HSHELL_UNKNOWN_36 = 0x36
 
 
 # ---------------------------------------------------------------------------

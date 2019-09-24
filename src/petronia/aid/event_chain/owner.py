@@ -87,15 +87,15 @@ class EventChainManager:
             assert first.value
             mapping.set_event_chain_start(first.value)
 
-        events_and_targets = mapping.get_matched_events_and_targets() # type: ignore
-        for event_reg, participants in events_and_targets: # type: ignore
+        events_and_targets = mapping.get_matched_events_and_targets()  # type: ignore
+        for event_reg, participants in events_and_targets:  # type: ignore
             if not participants:
                 continue
             if None in participants:
                 # No ID to listen on.
                 self.__listeners.listen(
                     TARGET_WILDCARD,
-                    event_reg, # type: ignore
+                    event_reg,  # type: ignore
                     mapping.handle_event
                 )
             else:
@@ -105,10 +105,9 @@ class EventChainManager:
                     assert pid is not None
                     self.__listeners.listen(
                         pid,
-                        event_reg, # type: ignore
+                        event_reg,  # type: ignore
                         mapping.handle_event
                     )
-
 
     def dispose(self) -> bool:
         """
@@ -132,9 +131,9 @@ class EventChainManager:
 
     def __self_dipose(
             self,
-            eid: EventId, # pylint: disable=unused-argument
+            _eid: EventId,  # pylint: disable=unused-argument
             tid: ParticipantId,
-            eobj: RequestDisposeEvent # pylint: disable=unused-argument
+            _eobj: RequestDisposeEvent  # pylint: disable=unused-argument
     ) -> None:
         if tid != self.__pid:
             return

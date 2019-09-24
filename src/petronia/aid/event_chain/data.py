@@ -29,7 +29,7 @@ EventObjectGenerator = Callable[[ParticipantId, Marks], T]
 
 def send_runner(
         event_id: EventId,
-        target_id: Union[ParticipantId, TargetGenerator], # pylint: disable=invalid-name
+        target_id: Union[ParticipantId, TargetGenerator],  # pylint: disable=invalid-name
         obj: EventObjectGenerator[T]
 ) -> LinkRunner:
     """Create a LinkRunner function that sends an event."""
@@ -44,7 +44,6 @@ def send_runner(
             obj(to_id, marks)
         )
     return r
-
 
 
 class LinkEventDetails(Generic[T]):
@@ -75,7 +74,7 @@ class LinkHandlerData(Generic[T]):
     event_target_id: Optional[ParticipantId]
     event_matchers: Sequence[EventMatcher[T]]
     event_extractors: Dict[str, IdentifierExtractor[T]]
-    generated_ints: Set[str] # may be too much memory... a list instead?
+    generated_ints: Set[str]  # might be too much memory... a list instead?
     generated_ids: List[Tuple[str, str]]
     handlers: List[LinkRunner]
 
@@ -96,7 +95,7 @@ class LinkHandlerData(Generic[T]):
         self.event_extractors = details.track
 
         # hack to work-around the type safe nature...
-        setup = self.event_registrator(None) # type: ignore
+        setup = self.event_registrator(None)  # type: ignore
         self.event_id = setup[0]
 
     @property
@@ -223,7 +222,6 @@ class MappedEvents:
                 participant_ids,
             ))
         return ret
-
 
     def handle_event(
             self,

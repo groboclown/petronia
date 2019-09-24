@@ -8,7 +8,7 @@ Split each state into its own object, and have a controller object that the stat
 
 Each state object provides a function to install the event listeners that the state concerns itself with, and a dispose function to uninstall those listeners.
 
-Use the `state_swap.StateSwapController` class to register those state setup/teardown functions.
+Use the `petronia.aid.state_swap.StateSwapController` class to register those state setup/teardown functions.
 
 When a state encounters a swap event, it calls the controller's `switch_state` method to perform the necessary operations.
 

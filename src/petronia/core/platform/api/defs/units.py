@@ -107,6 +107,18 @@ class ScreenRect:
     def bottom(self) -> ScreenUnit:
         return self.__bottom
 
+    def copy(self) -> 'ScreenRect':
+        return ScreenRect(
+            x=self.__x,
+            y=self.__y,
+            width=self.__width,
+            height=self.__height,
+            left=self.__left,
+            right=self.__right,
+            top=self.__top,
+            bottom=self.__bottom
+        )
+
     def __repr__(self) -> str:
         return 'ScreenRect(x={0}, y={1}, w={2}, h={3})'.format(
             self.__x, self.__y, self.__width, self.__height

@@ -37,22 +37,12 @@ The code should be written defensively to protect against mistakes or attacks.
 
 The system needs to be flexible.  By making component parts interchangeable and replaceable, the core system can grow and change without breaking other components.  End-users can swap out functionality to suit their needs.
 
-# Architecture
-
-## Platform-Specific
-
-All platform specific code is in the [arch](src/petronia3/arch) source directory.  Each supported platform is in the top level directory, and must conform to the spec laid out by the [generic](src/petronia3/arch/generic) tree.
-
-The platform acts as the main program.  It knows how to start up, shut down, and mingle itself into the running OS to do what needs to be done.  The platform calls out to the rest of the Petronia system on operating system events.
-
 # TODO
 
 The current to-do list.
 
 ## Really Basic Infrastructure Work
 
-* file configuration extensions
-* add proper extension definitions to `defimpl` modules.
 * localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
     * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
       ```python
@@ -64,10 +54,58 @@ The current to-do list.
     * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
     * Extensions publish translation files by sending an event with the translation contents.  That allows all sandboxes to receive the new translations.
     * `atoi` and `atof` formatting needs to be supported right.  Configuration files that are exchangeable between users, and that have a well defined format, should have a single expected numeric format.  All end-user input should use the `locale.atoi` and `locale.atof`, which means the above `locale.setlocale` should be used.
-    * Need to provide an error reporting mechanism that uses localization.
+    * Note that `ErrorReport` uses localizable messages.
+    * May look at [Babel](http://babel.pocoo.org/en/latest/)
+* Extension security enhancements:
+    * API extensions:
+        * Cannot listen to events.
+        * Can only trigger the "register event" event.
+        * Each registered event must be declared with:
+            * trigger protection: public (anyone can trigger it) or private (only implementations of the API can trigger it).
+            * listen protection: public (anyone can listen to it) or private (only implementations can listen to it)
+    * Implementation extensions:
+        * Can only listen to listen-public events declared by dependent API extensions.
+        * Can listen to public or private events declared by the implemented API.
+        * Can only trigger public events declared by dependent API extensions, and private event declared by the API extension it implements.
+        * Cannot register any event.
+        * Enforce only one implementation of an API loaded at a time.
+    * Stand-alone extensions:
+        * Can only listen to public events declared by dependent API extensions.
+        * Can only trigger public events declared by dependent API extensions.
+        * Cannot register any event.
 * timer helper should include an implementation that uses the time event.
 * basic definition of platform responsibilities.
 * Create theme extension API that is a layer on top of the platform.  It provides better components that are themed.  With this, make sure the platform stuff isn't themed and is as low-level as possible.
+* create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
+* add proper zip support in the extension module loader.
+    * add PGP and checksum to zip loader.
+* Windows platform:
+    * Add enhancement config.
+        * State of pass-through win key.
+* Document extension patterns.
+
+
+## Tech Debt
+
+Early development that caused rethinking of how things are done, but that code needs to be revisited to do over again.
+
+* default.extension:
+    * loading needs better error handling.
+* default.state:
+    * use new coding patterns.
+* default.configuration.file:
+    * needs correct locale usage for messages.
+* default.logging.*
+    * config file loading needs to be implemented.
+* Switch to `ErrorReport` as the standard error reporting mechanism.
+* Unit tests everywhere.
+
+
+## Later On Features
+
+* Provide a way to run an extension in a sandbox to extract its documentation. 
+* Add the external execution w/ event bus code.
+    * The local end that launches the process and marshals state across the wire must keep track of which events are listened to by the process.  This acts for two purposes - one, that only the necessary events are passed across the wire, and two, if the process dies, then the launcher can deregister those event listeners correctly.
 * Implement secure module.  It should allow different implementations to check the PGP signature.  Implementations can be swapped out whenever, because enforcing a "only once" policy is silly due to the limitations in securing python.  [OpenPGP-Python](https://github.com/singpolyma/OpenPGP-Python) looks promising, but doesn't provide an easy way to access the GPG key store, and depends on several other libraries that most likely require compilation.  [`python-gnupg`](https://pythonhosted.org/python-gnupg/) may be the easiest and safest - it relies upon the `gnupg` program to do everything, it's one file, and is under the BSD-3 clause license.  [openpgp-python](https://github.com/diafygi/openpgp-python) and [python-pgp](https://github.com/mitchellrj/python-pgp) are 100% python, but are under the GPL.  Probably just want to go with [pycrypto](https://github.com/dlitz/pycrypto), as it's under the public domain, but it requires compilation sadface.  To [verify a PKCS#5 v1.5 signature in Python](https://stackoverflow.com/a/19551810/4580538) / PyCrypto, use:
     ```python
     from Crypto.PublicKey import RSA
@@ -83,53 +121,3 @@ The current to-do list.
         print "Invalid"
     ```
     Probably would have two parts - a file-based one (for extensions) and one for in-memory signatures (for events).
-* configuration from a file.  Need standards for configuration events (generic format?).  Need INI file reader and writer.  Configuration usage also needs to be standardized.  External storage backed configuration requires a specific configuration object that is generic.  This kind of configuration is more akin to "persistent state", which would allow for saving off session information.
-* create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
-* module helpers (`ext_help` for now).  Things like:
-    * event listener thread safety.  With event listeners running in any number of threads, developers must take care to make sure their code is thread safe.  Some simple helpers can make life so much easier.
-    * event chaining with promise-like API. **Implemented, needs tests.**
-    * shutdown handling.  Include shutdown in the listeners.
-* Document extension patterns.
-* add proper zip support in the extension module loader.
-    * add PGP and checksum to zip loader.
-* Add the external execution w/ event bus code.
-    * The local end that launches the process and marshals state across the wire must keep track of which events are listened to by the process.  This acts for two purposes - one, that only the necessary events are passed across the wire, and two, if the process dies, then the launcher can deregister those event listeners correctly.
-* Extension security enhancements:
-    * API extensions:
-        * Cannot listen to events.
-        * Can only trigger the "register event" event.
-        * Each registered event must be declared as either public (anyone can trigger it) or private (only implementations of the API can trigger it).
-    * Implementation extensions:
-        * Can only listen to events declared by dependent API extensions.
-        * Can only trigger public events declared by dependent API extensions, and private event declared by the API extension it implements.
-        * Cannot register any event.
-        * Enforce only one implementation of an API loaded at a time.
-    * Stand-alone extensions:
-        * Can only listen to events declared by dependent API extensions.
-        * Can only trigger public events declared by dependent API extensions.
-        * Cannot register any event.
-* Windows platform:
-    * Add enhancement config.
-        * State of pass-through win key.
-
-
-## Tech Debt
-
-Early development that caused rethinking of how things are done, but that code needs to be revisited to do over again.
-
-* default.extension:
-    * loading needs better error handling.
-* default.state:
-    * use new coding patterns.
-* default.configuration.file:
-    * needs correct locale usage for messages.
-* Unit tests everywhere.
-
-
-# Platform Implementation Notes
-
-The X side will probably use a combination of:
-
-* *(xcb)[https://xcb.freedesktop.org/]* - basic UI interaction and management.
-* *(pango)[https://pango.gnome.org/]* - BiDi text rendering.
-* *(cairo)[https://www.cairographics.org/]* - graphics rendering, for SVG and drawing Pango glyphs.

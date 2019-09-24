@@ -8,7 +8,7 @@ windows, and when it is created, create chrome around it, then add a title bar
 on it.
 
 >>> my_id = bus.create_component_id('my-component')
->>> chain = new EventChainManager(bus, my_id)
+>>> chain = EventChainManager(bus, my_id)
 >>> chain.
 ...     # Create a new chain.
 ...     create().

@@ -292,7 +292,6 @@ def modifier_key_combinations(
     return ret
 
 
-
 def modifier_key_permutations(
         modifiers: Sequence[ModifierKeyCode]
 ) -> Sequence[List[StandardKeyCode]]:

@@ -3,7 +3,7 @@
 State definition for window objects.
 """
 
-from typing import Sequence, Dict, Iterable
+from typing import Sequence, Dict, Iterable, List, Union
 from .....aid.simp import (
     EventBus,
     set_state,
@@ -32,6 +32,7 @@ class NativeWindowState:
         '__is_visible',
         '__is_focused',
         '__is_active',
+        '__style',
     )
 
     def __init__(
@@ -42,6 +43,7 @@ class NativeWindowState:
             names: Dict[str, str],
             bordered_rect: ScreenRect,
             client_rect: ScreenRect,
+            style: Dict[str, Union[str, float, bool]],
             is_visible: bool,
             is_active: bool,
             is_focused: bool
@@ -52,6 +54,7 @@ class NativeWindowState:
         self.__names = dict(names)
         self.__bordered_rect = bordered_rect
         self.__client_rect = client_rect
+        self.__style = style
         self.__is_visible = is_visible
         self.__is_active = is_active
         self.__is_focused = is_focused
@@ -92,17 +95,44 @@ class NativeWindowState:
     def is_focused(self) -> bool:
         return self.__is_focused
 
+    @property
+    def style(self) -> Dict[str, Union[str, float, bool]]:
+        return self.__style
+
+    def get_style_flags(self) -> Sequence[str]:
+        """All style settings which have a boolean 'True' value."""
+        ret: List[str] = []
+        for key, val in self.__style.items():
+            if isinstance(val, bool) and val is True:
+                ret.append(key)
+        return ret
+
+    def copy(self) -> 'NativeWindowState':
+        return NativeWindowState(
+            component_id=self.__cid,
+            title=self.__title,
+            process_id=self.__process_id,
+            names=dict(self.__names),
+            bordered_rect=self.__bordered_rect.copy(),
+            client_rect=self.__client_rect.copy(),
+            style=dict(self.__style),
+            is_visible=self.__is_visible,
+            is_active=self.__is_active,
+            is_focused=self.__is_focused
+        )
+
     def __repr__(self) -> str:
         return (
             'NativeWindowState(component_id={0}, title={1}, '
             'process_id={2}, names={3},'
-            'bordered_rect={4}, client_rect={5}, '
+            'bordered_rect={4}, client_rect={5}, style={9}, '
             'is_visible={6}, is_active={7}, is_focused={8})'
         ).format(
             repr(self.__cid), repr(self.__title),
             repr(self.__process_id), repr(self.__names),
             repr(self.__bordered_rect), repr(self.__client_rect),
-            repr(self.__is_visible), repr(self.__is_active), repr(self.__is_focused)
+            repr(self.__is_visible), repr(self.__is_active), repr(self.__is_focused),
+            repr(self.__style)
         )
 
 

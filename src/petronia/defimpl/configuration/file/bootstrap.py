@@ -40,7 +40,7 @@ def bootstrap_config_file(bus: EventBus) -> None:
 
     # The configuration only needs to run once.
 
-    create_one_and_done(
+    create_one_and_done(  # type: ignore
         bus, STATE_ID_PLATFORM_EXTENSION_CONFIGURATION_STATE,
         STATE_ID_PLATFORM_EXTENSION_CONFIGURATION_STATE,
         as_state_change_listener, on_config_state_change,

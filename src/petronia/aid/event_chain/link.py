@@ -36,7 +36,7 @@ class EventHas(Generic[T]):
         self._track = {}
         self._target = None
 
-    def to(self, target_id: ParticipantId) -> 'EventHas[T]': # pylint: disable=invalid-name
+    def to(self, target_id: ParticipantId) -> 'EventHas[T]':  # pylint: disable=invalid-name
         """Set the matching target for the event.  This can only be done for
         hard-coded target IDs; for marked target IDs, use the matching
         function instead."""
@@ -69,7 +69,6 @@ class EventHas(Generic[T]):
     def finish(self) -> LinkEventDetails[T]:
         """Internal use only."""
         return LinkEventDetails(self._reg, self._target, self._matchers, self._track)
-
 
 
 class EventLinkRunner(Generic[T]):
@@ -111,10 +110,9 @@ class EventLinkRunner(Generic[T]):
         return EventLinkWait(self._chains, self._data)
 
 
-
 class EventLinkPrep(Generic[T]):
     """
-    Preperations to handling the event.
+    Preparations to handling the event.
     """
     __slots__ = ('_chains', '_data',)
 

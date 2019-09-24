@@ -1,4 +1,7 @@
 
+"""
+Bootstrap the hotkey bindings for the core services.
+"""
 
 from ....aid.simp import (
     EventBus,

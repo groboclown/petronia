@@ -107,6 +107,7 @@ def load_functions(_: Dict[str, str], func_map: Functions) -> None:
     func_map.window.get_module_filename = window__get_module_filename
     func_map.window.get_thread_window_handles = window__get_thread_window_handles
     func_map.window.get_child_window_handles = window__get_child_window_handles
+    func_map.window.get_top_window = window__get_top_window
     func_map.window.border_rectangle = window__border_rectangle
     func_map.window.client_rectangle = window__client_rectangle
     func_map.window.move_resize = window__move_resize
@@ -325,6 +326,13 @@ def window__get_child_window_handles(hwnd_parent: HWND) -> Sequence[HWND]:
     windll.user32.EnumChildWindows(hwnd_parent, enum_win_proc(callback), None)
 
     return ret
+
+
+def window__get_top_window(hwnd_child: Optional[HWND]) -> Union[WindowsErrorMessage, HWND]:
+    ret = windll.user32.GetTopWindow(hwnd_child)
+    if ret == 0 or ret is None:
+        return WindowsErrorMessage('user32.GetTopWindow')
+    return t_cast(HWND, ret)
 
 
 def window__border_rectangle(hwnd: HWND) -> Union[WindowsErrorMessage, ScreenRect]:

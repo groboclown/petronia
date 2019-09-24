@@ -9,6 +9,7 @@ from ...aid.simp import (
     ParticipantId,
     as_state_change_listener,
     StateStoreUpdatedEvent,
+    report_error,
 )
 from ...aid.bootstrap import (
     create_singleton_identity,
@@ -39,7 +40,6 @@ from ...core.config_persistence.api import (
 )
 from ...core.platform.api.user_input.hotkey import (
     TARGET_ID_PLATFORM_HOTKEY,
-    HotkeyConfig,
     set_hotkey_config,
     HotkeyPressedEvent,
     as_hotkey_pressed_listener,
@@ -69,7 +69,7 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
 def bootstrap_hotkey_broker(bus: EventBus) -> None:
     handler = Handler(bus)
     helper = create_module_listener_helper(bus, MODULE_ID)
-    helper.listen(
+    helper.listen(  # type: ignore
         CONFIGURATION_ID_HOTKEYS_CMD, as_state_change_listener,
         handler.on_config_load
     )
@@ -108,8 +108,11 @@ class Handler:
             _event_id: EventId, _target_id: ParticipantId,
             state: StateStoreUpdatedEvent[PersistentConfigurationState]
     ) -> None:
-        master, ok = load_hotkey_configuration(self.__state, state.state.persistent)
-        if ok:
+        master, problems = load_hotkey_configuration(self.__state, state.state.persistent)
+        if problems:
+            for problem in problems:
+                report_error(self.__bus, problem)
+        else:
             self.__master = master
             self._send_hotkey_setup()
 

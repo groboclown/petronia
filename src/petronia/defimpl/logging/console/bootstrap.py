@@ -17,6 +17,7 @@ from ....aid.lifecycle import (
 from .ident import TARGET_ID_CONSOLE_LOGGER
 from .transition import LogStateTransitionHandler
 
+
 def bootstrap_console_logger(bus: EventBus) -> None:
     """
     Sets up the console logger.
@@ -31,6 +32,7 @@ def bootstrap_console_logger(bus: EventBus) -> None:
         bus,
         TARGET_ID_CONSOLE_LOGGER
     )
+
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     'type': 'standalone',

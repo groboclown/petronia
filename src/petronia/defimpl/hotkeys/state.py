@@ -154,6 +154,10 @@ class HotkeyState:
                 ret = True
         return ret
 
+    def clear_hotkeys(self) -> None:
+        with self.__lock:
+            self._key_data_map.clear()
+
     def get_hotkey_event(
             self, hotkey_sequence: str
     ) -> Optional[Tuple[RegisteredHotkeyEvent, BoundServiceActionSchema]]:

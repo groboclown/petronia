@@ -1,9 +1,19 @@
 ---
 
-# Built-in extension setup.
+# Extensions that the system defines to load.
 
 Timer:
   extension: default.timer
   enabled: true
   properties:
     interval_seconds: 1.2
+
+CoreHotkeyBindings:
+  extension: core.hotkeys.binding
+  enabled: true
+
+Logger:
+  extension: default.logger.console
+  enabled: true
+  properties:
+    categories:

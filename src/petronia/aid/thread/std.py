@@ -42,11 +42,11 @@ def create_loop_thread(
     return mk_lt(name, daemon, runner, is_active, err, _mk_keyboard_handler(bus))
 
 
-
 def _mk_keyboard_listener(bus: EventBus) -> Callable[[], None]:
     def ret() -> None:
         send_system_shutdown_request(bus)
     return ret
+
 
 def _mk_keyboard_handler(bus: EventBus) -> Callable[[], bool]:
     def ret() -> bool:
@@ -54,15 +54,26 @@ def _mk_keyboard_handler(bus: EventBus) -> Callable[[], bool]:
         return True
     return ret
 
+
 def _mk_error_reporter(name: str) -> Callable[[BaseException], None]:
     def ret(err: BaseException) -> None:
-        logerr(ERROR, name, err, 'Encountered unexpected problem.')
+        if _is_reportable_error(err):
+            logerr(ERROR, name, err, 'Encountered unexpected problem.')
     return ret
+
 
 def _mk_error_handler(
         name: str, fail_on_error: bool
 ) -> Callable[[BaseException], bool]:
     def ret(err: BaseException) -> bool:
-        logerr(ERROR, name, err, 'Encountered unexpected problem.')
+        if _is_reportable_error(err):
+            logerr(ERROR, name, err, 'Encountered unexpected problem.')
         return fail_on_error
     return ret
+
+
+def _is_reportable_error(err: BaseException) -> bool:
+    return (
+            not isinstance(err, SystemExit) and
+            not isinstance(err, KeyboardInterrupt)
+    )

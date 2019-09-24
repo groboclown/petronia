@@ -24,6 +24,7 @@ _LOG_PREFIX = {
     FATAL:      '[FATAL] ',
 }
 
+
 def standard_log_message(
         level: LogLevel, src: str, msg: str, err: Optional[BaseException]
 ) -> None:
@@ -44,10 +45,11 @@ def standard_log_message(
     if err:
         traceback.print_exception(err.__class__, err, err.__traceback__)
 
+
 _SEEN_DEPRECATED: Set[str] = set()
-
-
 _PRINT_LOCK = Lock()
+
+
 def _print(msg: str) -> None:
     with _PRINT_LOCK:
         sys.stdout.write(msg + '\n')

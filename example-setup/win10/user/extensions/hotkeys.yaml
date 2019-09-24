@@ -1,0 +1,12 @@
+---
+
+Hotkeys:
+  extension: default.hotkeys
+  enabled: true
+  properties:
+    # If master starts with "seq:", then it's a sequence of keystrokes.
+    # If master starts with "meta:", then it's a collection of modifier keys (control, shift, alt, super, etc)
+    master: "meta:super"
+    bind:
+      - key: "ctrl+shift+q"
+        action: shutdown
