@@ -90,7 +90,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     original_state: Dict[int, NativeWindowState] = {}
 
     # Always, always, always restore windows to their original state at exit.
-    atexit.register(_restore_windows, (reverse_window_ids, original_state,))
+    atexit.register(_restore_windows, reverse_window_ids, original_state)
 
     def add_window_info(hwnd: HWND, hwnd_i: int) -> NativeWindowState:
         with lock:
@@ -100,11 +100,12 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 # Keep the original state, though.
             cid = bus.create_component_id('petronia.defimpl.platform.windows/window')
             log(DEBUG, on_window_created, 'Window created: HWND {0} -> Component ID {1}', hwnd, cid)
+            print("DEBUG HWND {0} -> cid {1} ***".format(hwnd, cid))
             new_window_info = mk_window_info(hwnd, cid)
             window_info: NativeWindowState
             if isinstance(new_window_info, WindowsErrorMessage):
                 log(
-                    INFO, on_window_created,
+                    WARN, on_window_created,
                     'Failed to get information for window {0}: {1}',
                     hwnd, new_window_info
                 )
@@ -125,7 +126,10 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 window_info = new_window_info
             active_windows[hwnd_i] = window_info
             if hwnd_i not in original_state:
+                print("DEBUG Added original state for HWND {0} ***".format(hwnd, cid))
                 original_state[hwnd_i] = window_info
+            reverse_window_ids[cid] = hwnd
+            print("DEBUG Registered cid {0} -> HWND {1} ({2}) ***".format(new_window_info.component_id, reverse_window_ids[new_window_info.component_id], hwnd))
         return window_info
 
     def on_window_created(hwnd: HWND) -> None:
