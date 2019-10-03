@@ -3,12 +3,13 @@
 State definition for window objects.
 """
 
-from typing import Sequence, Dict, Iterable, List, Union
+from typing import Sequence, Mapping, Dict, Iterable, List, Union
 from .....aid.simp import (
     EventBus,
     set_state,
     create_singleton_identity,
     ComponentId,
+    readonly_dict,
 )
 from ..defs import (
     ScreenRect,
@@ -43,7 +44,7 @@ class NativeWindowState:
             names: Dict[str, str],
             bordered_rect: ScreenRect,
             client_rect: ScreenRect,
-            style: Dict[str, Union[str, float, bool]],
+            style: Mapping[str, Union[str, float, bool]],
             is_visible: bool,
             is_active: bool,
             is_focused: bool
@@ -54,7 +55,7 @@ class NativeWindowState:
         self.__names = dict(names)
         self.__bordered_rect = bordered_rect
         self.__client_rect = client_rect
-        self.__style = style
+        self.__style = readonly_dict(style)
         self.__is_visible = is_visible
         self.__is_active = is_active
         self.__is_focused = is_focused
@@ -96,7 +97,7 @@ class NativeWindowState:
         return self.__is_focused
 
     @property
-    def style(self) -> Dict[str, Union[str, float, bool]]:
+    def style(self) -> Mapping[str, Union[str, float, bool]]:
         return self.__style
 
     def get_style_flags(self) -> Sequence[str]:
@@ -115,7 +116,7 @@ class NativeWindowState:
             names=dict(self.__names),
             bordered_rect=self.__bordered_rect.copy(),
             client_rect=self.__client_rect.copy(),
-            style=dict(self.__style),
+            style=self.__style,
             is_visible=self.__is_visible,
             is_active=self.__is_active,
             is_focused=self.__is_focused

@@ -3,6 +3,7 @@
 Requests on the locale.
 """
 
+
 class RequestAddLocaleTranslationEvent:
     """
     Add an additional translation to the existing mappings.

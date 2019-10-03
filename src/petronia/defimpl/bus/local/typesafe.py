@@ -22,7 +22,7 @@ from ....aid.simp import (
 )
 from ....aid.bootstrap import (
     TARGET_WILDCARD,
-    ListenerRegistrator,
+    ListenerRegistrar,
 )
 from ....base.events.bus import (
     EventListenerAddedEvent,
@@ -51,7 +51,7 @@ class TypeSafeEventBus(EventBus):
     def add_listener(
             self,
             target_id: ParticipantId,
-            listener_setup: ListenerRegistrator[T],
+            listener_setup: ListenerRegistrar[T],
             listener: EventCallback[T]
     ) -> ListenerId:
         """

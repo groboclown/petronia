@@ -24,7 +24,7 @@ from ..bootstrap import (
     as_system_shutdown_finalize_listener,
     as_system_shutdown_listener,
     TARGET_ID_SYSTEM_SHUTDOWN,
-    ListenerRegistrator,
+    ListenerRegistrar,
 )
 
 
@@ -32,7 +32,7 @@ def create_one_and_done(
         bus: EventBus,
         source_id: ParticipantId,
         target_id: ParticipantId,
-        registrator: ListenerRegistrator[T],
+        registrator: ListenerRegistrar[T],
         callback: EventCallback[T],
         is_application: bool = True,
         is_standalone: bool = False

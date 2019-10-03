@@ -103,14 +103,19 @@ def process__get_executable_filename(thread_pid: DWORD) -> Union[str, WindowsErr
         windows_constants.PROCESS_QUERY_INFORMATION | windows_constants.PROCESS_VM_READ,
         False, thread_pid
     )
-    try:
-        filename = create_unicode_buffer(windows_constants.MAX_FILENAME_LENGTH + 1)
+    if hproc != 0 and hproc is not None:
+        try:
+            filename = create_unicode_buffer(windows_constants.MAX_FILENAME_LENGTH + 1)
 
-        res = GetProcessImageFileName(hproc, None, byref(filename), windows_constants.MAX_FILENAME_LENGTH + 1)
-        if res > 0:
-            return filename.value[:res]
-    finally:
-        windll.kernel32.CloseHandle(hproc)
+            res = GetProcessImageFileName(hproc, None, byref(filename), windows_constants.MAX_FILENAME_LENGTH + 1)
+            if res > 0:
+                print("DEBUG found filename ({1}) for pid {0}".format(thread_pid, filename))
+                return filename.value[:res]
+            print("DEBUG failed to get filename for pid {0}: {1}".format(thread_pid, WindowsErrorMessage('GetProcessImageFileName')))
+        finally:
+            windll.kernel32.CloseHandle(hproc)
+    else:
+        print("DEBUG failed to open the process handle for pid {0}".format(thread_pid))
 
     # So, GetProcessImageFileName failed, as it's apt to do.
     # So, do this the hard way.

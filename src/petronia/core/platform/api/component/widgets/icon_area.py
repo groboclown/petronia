@@ -4,7 +4,11 @@ Area for displaying the notification icons.  Used primarily for the taskbar,
 if you want one.  The contents are entirely up to the platform to show.
 """
 
+from ......base import create_singleton_identity
 from ...defs import Color
+
+COMPONENT_ID_CREATE_NOTIFICATION_ICON_AREA = create_singleton_identity('core.platform.api/notification-icon-area')
+
 
 class NotificationIconArea:
     """

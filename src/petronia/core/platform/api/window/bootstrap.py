@@ -37,22 +37,34 @@ from .action_requests import (
 
     EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW,
     RequestMoveNativeWindowEvent,
+
+    EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE,
+    RequestSetNativeWindowStyleEvent,
 )
 from ..defs import (
     ScreenRect,
 )
+from .state import (
+    NativeWindowState,
+)
+
+EMPTY_SCREEN_RECT = ScreenRect(0, 0, 0, 0, 0, 0, 0, 0)
 
 
 def register_window_events(bus: EventBus) -> None:
     """Register all the events"""
     # Notification of a window event is immediate.
+    # This will be handled before the state change event.
     register_event(
         bus, EVENT_ID_NATIVE_WINDOW_CLOSED, QUEUE_EVENT_HIGH,
         NativeWindowClosedEvent, NativeWindowClosedEvent(False)
     )
     register_event(
         bus, EVENT_ID_NATIVE_WINDOW_CREATED, QUEUE_EVENT_HIGH,
-        NativeWindowCreatedEvent, NativeWindowCreatedEvent(NOT_PARTICIPANT)
+        NativeWindowCreatedEvent, NativeWindowCreatedEvent(NOT_PARTICIPANT, NativeWindowState(
+            NOT_PARTICIPANT, '', 0, {}, EMPTY_SCREEN_RECT, EMPTY_SCREEN_RECT,
+            {}, False, False, False
+        ))
     )
     register_event(
         bus, EVENT_ID_NATIVE_WINDOW_FLASHED, QUEUE_EVENT_HIGH,
@@ -64,7 +76,7 @@ def register_window_events(bus: EventBus) -> None:
     )
     register_event(
         bus, EVENT_ID_NATIVE_WINDOW_MOVED, QUEUE_EVENT_HIGH,
-        NativeWindowMovedEvent, NativeWindowMovedEvent(ScreenRect(0, 0, 0, 0, 0, 0, 0, 0), True)
+        NativeWindowMovedEvent, NativeWindowMovedEvent(EMPTY_SCREEN_RECT, True)
     )
 
     register_event(
@@ -79,4 +91,11 @@ def register_window_events(bus: EventBus) -> None:
         bus, EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW, QUEUE_EVENT_NORMAL,
         RequestMoveNativeWindowEvent,
         RequestMoveNativeWindowEvent((0, 0, 0, 0,))
+    )
+
+    # This is a high priority event, because it will need to be sent right after
+    # the window is created.
+    register_event(
+        bus, EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE, QUEUE_EVENT_HIGH,
+        RequestSetNativeWindowStyleEvent, RequestSetNativeWindowStyleEvent({})
     )

@@ -13,7 +13,7 @@ from ...base import ParticipantId
 from ...base.bus import (
     EventBus,
     EventId,
-    ListenerRegistrator,
+    ListenerRegistrar,
     TARGET_WILDCARD,
 )
 from ...base.util import T
@@ -52,7 +52,7 @@ class LinkEventDetails(Generic[T]):
 
     def __init__(
             self,
-            registrator: ListenerRegistrator[T],
+            registrator: ListenerRegistrar[T],
             target: Optional[ParticipantId],
             matchers: List[EventMatcher[T]],
             track: Dict[str, IdentifierExtractor[T]]
@@ -197,11 +197,11 @@ class MappedEvents:
 
     def get_matched_events_and_targets(
             self
-    ) -> Sequence[Tuple[ListenerRegistrator[Any], Set[Optional[ParticipantId]]]]:
+    ) -> Sequence[Tuple[ListenerRegistrar[Any], Set[Optional[ParticipantId]]]]:
         """Find all the events listend to in the handlers, and all of the
         explicitly specified participants for that event.  If a handler does
         not call out a participant, then a None is added."""
-        registrators: Dict[EventId, ListenerRegistrator[Any]] = {}
+        registrators: Dict[EventId, ListenerRegistrar[Any]] = {}
         particpants: Dict[EventId, Set[Optional[ParticipantId]]] = {}
         for handler in self._handlers:
             if not handler.is_valid:
@@ -215,7 +215,7 @@ class MappedEvents:
                 particpants[handler.event_id] = set()
             particpants[handler.event_id].add(handler.event_target_id)
 
-        ret: List[Tuple[ListenerRegistrator, Set[Optional[ParticipantId]]]] = []
+        ret: List[Tuple[ListenerRegistrar, Set[Optional[ParticipantId]]]] = []
         for event_id, participant_ids in particpants.items():
             ret.append((
                 registrators[event_id],

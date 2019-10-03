@@ -4,19 +4,21 @@ Native window interactions.  The target for these events is the window
 component ID.
 """
 
+from typing import Mapping, Union
 from .....aid.simp import (
     EventId,
     EventBus,
     ComponentId,
     EventCallback,
     ListenerSetup,
+    readonly_dict,
 )
 from ..defs import (
     ScreenArea,
 )
 
 # ---------------------------------------------------------------------------
-EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW = EventId('core.platform.api move-native-window')
+EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW = EventId('core.platform.api/move-native-window')
 
 
 class RequestMoveNativeWindowEvent:
@@ -55,7 +57,7 @@ def as_request_move_native_window_listener(
 
 
 # ---------------------------------------------------------------------------
-EVENT_ID_REQUEST_FOCUS_NATIVE_WINDOW = EventId('core.platform.api focus-native-window')
+EVENT_ID_REQUEST_FOCUS_NATIVE_WINDOW = EventId('core.platform.api/focus-native-window')
 
 
 class RequestFocusNativeWindowEvent:
@@ -89,7 +91,7 @@ def as_request_focus_native_window_listener(
 
 
 # ---------------------------------------------------------------------------
-EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW = EventId('core.platform.api close-native-window')
+EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW = EventId('core.platform.api/close-native-window')
 
 
 class RequestCloseNativeWindowEvent:
@@ -119,3 +121,37 @@ def as_request_close_native_window_listener(
         callback: EventCallback[RequestCloseNativeWindowEvent]
 ) -> ListenerSetup[RequestCloseNativeWindowEvent]:
     return (EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW, callback,)
+
+
+# ---------------------------------------------------------------------------
+EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE = EventId('core.platform.api/set-native-window-style')
+
+
+class RequestSetNativeWindowStyleEvent:
+    """
+    Send a request to set a window's native style.  The keys and values are
+    highly dependent upon the underlying OS and windowing system.
+    """
+
+    __slots__ = ('__style',)
+
+    def __init__(self, style: Mapping[str, Union[float, bool, str]]) -> None:
+        self.__style = readonly_dict(style)
+
+    @property
+    def style(self) -> Mapping[str, Union[float, bool, str]]:
+        return self.__style
+
+
+def send_request_set_native_window_style_event(
+        bus: EventBus,
+        window_id: ComponentId,
+        style: Mapping[str, Union[float, bool, str]]
+) -> None:
+    bus.trigger(EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE, window_id, RequestSetNativeWindowStyleEvent(style))
+
+
+def as_request_set_native_window_style_listener(
+        callback: EventCallback[RequestSetNativeWindowStyleEvent]
+) -> ListenerSetup[RequestSetNativeWindowStyleEvent]:
+    return (EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE, callback,)

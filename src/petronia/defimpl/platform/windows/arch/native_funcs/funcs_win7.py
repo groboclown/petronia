@@ -2,8 +2,7 @@
 Windows 7 functions
 """
 
-from typing import Dict, List, Sequence, Union
-from typing import cast as t_cast
+from typing import List, Sequence, Union
 from ctypes import sizeof as c_sizeof
 from .windows_common import (
     DWORD,
@@ -43,7 +42,10 @@ def process__get_executable_filename(thread_pid: DWORD) -> Union[WindowsErrorMes
     # OpenProcess.restype = wintypes.HANDLE
 
     hproc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, thread_pid)
-    if hproc is None:
+    if hproc is None or hproc == 0:
+        # err = WindowsErrorMessage('kernel32.OpenProcess')
+        # print("WARNING *** Failed to open process handle for pid {0}: {1}".format(thread_pid, err))
+        # return err
         return WindowsErrorMessage('kernel32.OpenProcess')
     try:
         filename = create_unicode_buffer(MAX_FILENAME_LENGTH + 1)
@@ -51,7 +53,9 @@ def process__get_executable_filename(thread_pid: DWORD) -> Union[WindowsErrorMes
         # For some reason, this isn't found in Windows 10.
         res = GetProcessImageFileName(hproc, byref(filename), MAX_FILENAME_LENGTH + 1)
         if res <= 0:
+            # print("DEBUG failed to read filename for handle {0} pid {1}".format(hproc, thread_pid))
             return WindowsErrorMessage('kernel32.K32GetProcessImageFileNameW')
+        # print("DEBUG found filename for pid {0}: {1}".format(thread_pid, filename.value))
         return str(filename.value[:res])
     finally:
         windll.kernel32.CloseHandle(hproc)

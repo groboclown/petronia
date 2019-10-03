@@ -4,6 +4,12 @@ Container UI components.  It contains zero or more widgets arranged
 according to the container's setup.
 """
 
+from ..defs import (
+    Color,
+    ScreenUnit,
+)
+
+
 class GridContainer:
     """
     A low-level container that is NxM grid.
@@ -22,9 +28,48 @@ class GridContainer:
 
     The container size itself is in screen units.
     """
-    __slots__ = ()
-    def __init__(self) -> None:
-        pass
+    __slots__ = (
+        '__color',
+        '__width',
+        '__height',
+        '__grid_x',
+        '__grid_y',
+    )
+
+    def __init__(
+            self,
+            color: Color,
+            width: ScreenUnit,
+            height: ScreenUnit,
+            grid_count_x: int,
+            grid_count_y: int
+    ) -> None:
+        self.__color = color
+        self.__width = width
+        self.__height = height
+        assert grid_count_y >= 0 and grid_count_x >= 0
+        self.__grid_x = grid_count_x
+        self.__grid_y = grid_count_y
+
+    @property
+    def color(self) -> Color:
+        return self.__color
+
+    @property
+    def width(self) -> ScreenUnit:
+        return self.__width
+
+    @property
+    def height(self) -> ScreenUnit:
+        return self.__height
+
+    @property
+    def grid_count_x(self) -> int:
+        return self.__grid_x
+
+    @property
+    def grid_count_y(self) -> int:
+        return self.__grid_y
 
 
 class FlowContainer:
@@ -35,6 +80,15 @@ class FlowContainer:
 
     The container can either be vertical or horizontal in orientation.
     """
-    __slots__ = ()
-    def __init__(self) -> None:
-        pass
+    __slots__ = (
+        '__color',
+        '__width',
+        '__height',
+    )
+
+    def __init__(self, color: Color) -> None:
+        self.__color = color
+
+    @property
+    def color(self) -> Color:
+        return self.__color

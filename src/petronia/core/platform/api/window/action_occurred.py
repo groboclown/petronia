@@ -14,6 +14,9 @@ from .....aid.simp import (
 from ..defs import (
     ScreenRect,
 )
+from .state import (
+    NativeWindowState,
+)
 
 
 TARGET_ID_WINDOW_CREATION = create_singleton_identity('core.platform.api/native-window')
@@ -27,18 +30,29 @@ class NativeWindowCreatedEvent:
     A new window was created.  Its state is stored with the window_id.
     Behavior such as the window moving or gaining focus are associated with
     state changes for the window.
+
+    The state information for the newly created window may not be fully
+    defined.  Later state updates will fill out missing information.  State
+    is included here to allow for early inspection of the window to allow for
+    quick style or other updates before the window has much time to render.
     """
-    __slots__ = ('__id',)
+    __slots__ = ('__id', '__info')
 
     def __init__(
             self,
-            window_id: ComponentId
+            window_id: ComponentId,
+            info: NativeWindowState
     ) -> None:
         self.__id = window_id
+        self.__info = info
 
     @property
     def window_id(self) -> ComponentId:
         return self.__id
+
+    @property
+    def info(self) -> NativeWindowState:
+        return self.__info
 
 
 def as_native_window_created_listener(
@@ -49,9 +63,13 @@ def as_native_window_created_listener(
 
 def send_native_window_created_event(
         bus: EventBus,
-        window_id: ComponentId
+        window_id: ComponentId,
+        info: NativeWindowState
 ) -> None:
-    bus.trigger(EVENT_ID_NATIVE_WINDOW_CREATED, TARGET_ID_WINDOW_CREATION, NativeWindowCreatedEvent(window_id))
+    bus.trigger(
+        EVENT_ID_NATIVE_WINDOW_CREATED, TARGET_ID_WINDOW_CREATION,
+        NativeWindowCreatedEvent(window_id, info)
+    )
 
 
 # ---------------------------------------------------------------------------

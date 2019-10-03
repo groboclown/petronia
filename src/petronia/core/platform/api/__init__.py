@@ -92,3 +92,6 @@ from .defs import (
     ScreenHandle,
     NativeScreenInfo,
 )
+from .window.state import (
+    NativeWindowState,
+)

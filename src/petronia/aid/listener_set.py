@@ -10,7 +10,7 @@ from threading import Lock
 from ..base import (
     EventBus, ListenerId, EventCallback, ParticipantId,
 )
-from ..base.bus import ListenerRegistrator
+from ..base.bus import ListenerRegistrar
 from ..base.util import T
 from ..core.hotkeys.api import (
     BoundServiceActionSchema,
@@ -42,7 +42,7 @@ class ListenerSet:
     def listen(
             self,
             target_id: ParticipantId,
-            listener_setup: ListenerRegistrator[T],
+            listener_setup: ListenerRegistrar[T],
             callback: EventCallback[T]
     ) -> ListenerId:
         """

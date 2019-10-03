@@ -43,6 +43,7 @@ def bootstrap_state_store_api(bus: EventBus) -> None:
         StateStoreUpdatedEvent(NOT_PARTICIPANT, object, object(), object()) # type: ignore
     )
 
+
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     "name": "core.state.api",
     "version": (1, 0, 0,),

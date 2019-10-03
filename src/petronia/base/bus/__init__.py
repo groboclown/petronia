@@ -7,7 +7,7 @@ API for the event bus system.
 from ..internal_.bus_types import (
     EventBus, EventCallback,
     EventId, ListenerId,
-    ListenerRegistrator, ListenerSetup,
+    ListenerRegistrar, ListenerSetup,
     QueuePriority,
 
     # These probably should move to some other module.

@@ -16,6 +16,7 @@ from .text import (
 )
 from .image import (
     Image,
+    ImageTransform,
     ImageLocation,
     ImageRaw,
 )
@@ -64,7 +65,7 @@ from .units import (
     ScreenRect,
     EMPTY_SCREEN_RECT,
 )
-from .alignment import (
+from .position import (
     TextBiDi,
     TEXT_BIDI_LTR,
     TEXT_BIDI_RTL,
@@ -86,6 +87,29 @@ from .alignment import (
     TEXT_ALIGN_BOTTOM_CENTER,
     TEXT_ALIGN_CENTER_CENTER,
     TEXT_ALIGN_ALL,
+
+    ImageRelativeVerticalAlign,
+    IMAGE_RELATIVE_VERTICAL_TOP,
+    IMAGE_RELATIVE_VERTICAL_CENTER,
+    IMAGE_RELATIVE_VERTICAL_BASELINE,
+    IMAGE_RELATIVE_VERTICAL_BOTTOM,
+    IMAGE_RELATIVE_VERTICAL_ALL,
+
+    ImageRelativePosition,
+    IMAGE_RELATIVE_POSITION_N,
+    IMAGE_RELATIVE_POSITION_S,
+    IMAGE_RELATIVE_POSITION_E,
+    IMAGE_RELATIVE_POSITION_W,
+    IMAGE_RELATIVE_POSITION_CENTER,
+    IMAGE_RELATIVE_POSITION_ALL,
+
+    ImageRelativeZOrder,
+    IMAGE_RELATIVE_Z_ORDER_HARD,
+    IMAGE_RELATIVE_Z_ORDER_FRONT,
+    IMAGE_RELATIVE_Z_ORDER_BACK,
+    IMAGE_RELATIVE_Z_ORDER_ALL,
+
+    ImageRelativeTextPosition,
 )
 from .screen import (
     ScreenHandle,

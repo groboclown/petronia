@@ -16,7 +16,7 @@ from .data import (
     send_runner,
 )
 from ...base.bus import (
-    ListenerRegistrator,
+    ListenerRegistrar,
     EventId,
 )
 from ...base import ParticipantId
@@ -30,7 +30,7 @@ class EventHas(Generic[T]):
     _matchers: List[EventMatcher[T]]
     _track: Dict[str, IdentifierExtractor[T]]
 
-    def __init__(self, registrator: ListenerRegistrator[T]) -> None:
+    def __init__(self, registrator: ListenerRegistrar[T]) -> None:
         self._reg = registrator
         self._matchers = []
         self._track = {}

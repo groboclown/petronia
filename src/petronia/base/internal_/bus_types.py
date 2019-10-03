@@ -12,8 +12,10 @@ QueuePriority = NewType('QueuePriority', str)
 ListenerId = NewType('ListenerId', int)
 
 EventCallback = Callable[[EventId, ParticipantId, T], None]
+
+# TODO figure out the right way to declare these as being generic.
 ListenerSetup = Tuple[EventId, EventCallback[T]]
-ListenerRegistrator = Callable[[EventCallback[T]], ListenerSetup[T]]
+ListenerRegistrar = Callable[[EventCallback[T]], ListenerSetup[T]]
 
 ExtensionVersionStruct = Tuple[Union[int, float], Union[int, float], Union[int, float]]
 ExtensionCompatibilityStruct = Dict[str, Union[
@@ -42,7 +44,7 @@ class EventBus:
     def add_listener(
             self,
             target_id: ParticipantId,
-            listener_setup: ListenerRegistrator[T],
+            listener_setup: ListenerRegistrar[T],
             listener: EventCallback[T]
     ) -> ListenerId:
         """

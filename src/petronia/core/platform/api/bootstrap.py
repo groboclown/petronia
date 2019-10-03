@@ -35,6 +35,9 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
         "minimum": ANY_VERSION,
     }],
     "defaults": [{
+        # A non-existent plugin.  Because platform must be included in the
+        # bootstrap phase, a real platform that implements this API must also
+        # be included, so that this doesn't generate a boot-up error.
         "extension": "default.platform",
         "minimum": ANY_VERSION,
     }],

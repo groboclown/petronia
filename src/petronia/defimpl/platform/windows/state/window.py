@@ -38,6 +38,9 @@ from .....core.platform.api.window import (
     RequestMoveNativeWindowEvent,
     as_request_move_native_window_listener,
 
+    RequestSetNativeWindowStyleEvent,
+    as_request_set_native_window_style_listener,
+
     send_native_window_closed_event,
 
     send_native_window_created_event,
@@ -66,6 +69,9 @@ from ..connect.messages import (
     window_rude_activated_message,
     window_replaced_message,
     window_replacing_message,
+)
+from ..arch.error_codes_common import (
+    ERROR_ACCESS_DENIED
 )
 
 
@@ -129,7 +135,11 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 print("DEBUG Added original state for HWND {0} ***".format(hwnd, cid))
                 original_state[hwnd_i] = window_info
             reverse_window_ids[cid] = hwnd
-            print("DEBUG Registered cid {0} -> HWND {1} ({2}) ***".format(new_window_info.component_id, reverse_window_ids[new_window_info.component_id], hwnd))
+            # print(
+            #   "DEBUG Registered cid {0} -> HWND {1} ({2}) ***".format(
+            #     new_window_info.component_id, reverse_window_ids[new_window_info.component_id], hwnd
+            #   )
+            # )
         return window_info
 
     def on_window_created(hwnd: HWND) -> None:
@@ -139,7 +149,12 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
         with lock:
             new_window_info = add_window_info(hwnd, hwnd_i)
             reverse_window_ids[new_window_info.component_id] = hwnd
-            send_native_window_created_event(bus, new_window_info.component_id)
+
+            # Note: Send the creation notice must be done before the
+            # state is set.  State setting is a normal priority, while
+            # creation is high, so that the creator can then listen for
+            # state after receiving the window created event.
+            send_native_window_created_event(bus, new_window_info.component_id, new_window_info)
             set_active_windows_state(bus, active_windows.values())
 
     def on_window_destroyed(hwnd: HWND) -> None:
@@ -241,7 +256,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                     new_window, old_window
                 )
                 return
-            # Else, swap-a-rooni
+            # Else, swap-a-roni
             active = active_windows[o_hwnd_i]
             del active_windows[o_hwnd_i]
             active_windows[n_hwnd_i] = active
@@ -286,6 +301,8 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                         'Failed to move window {0} ({1}): {2}',
                         target_id, hwnd, res
                     )
+                # TODO does this need to explicitly trigger a state change, or does the
+                #   corresponding event get triggered?
 
     def on_request_close(
             _event_id: EventId, target_id: ParticipantId,
@@ -302,6 +319,8 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                         'Failed to close window {0} ({1}): {2}',
                         target_id, hwnd, res
                     )
+                # TODO does this need to explicitly trigger a state change, or does the
+                #   corresponding event get triggered?
 
     def on_request_focus(
             _event_id: EventId, target_id: ParticipantId,
@@ -320,6 +339,19 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 # if event.raise_to_top:
                 #     WINDOWS_FUNCTIONS.window. ...
                 #     which call to make?
+                # TODO does this need to explicitly trigger a state change, or does the
+                #   corresponding event get triggered?
+
+    def on_request_style(
+            _event_id: EventId, target_id: ParticipantId,
+            event: RequestSetNativeWindowStyleEvent
+    ) -> None:
+        with lock:
+            if target_id in reverse_window_ids:
+                hwnd = reverse_window_ids[target_id]
+                _set_window_style(hwnd, event.style)
+                # TODO does this need to explicitly trigger a state change, or does the
+                #   corresponding event get triggered?
 
     hooks.add_message_handler(window_created_message(on_window_created))
     hooks.add_message_handler(window_destroyed_message(on_window_destroyed))
@@ -335,6 +367,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
         bus.add_listener(TARGET_WILDCARD, as_request_move_native_window_listener, on_request_move),
         bus.add_listener(TARGET_WILDCARD, as_request_focus_native_window_listener, on_request_focus),
         bus.add_listener(TARGET_WILDCARD, as_request_close_native_window_listener, on_request_close),
+        bus.add_listener(TARGET_WILDCARD, as_request_set_native_window_style_listener, on_request_style),
     ))
 
     # Set the initial state.
@@ -441,6 +474,8 @@ def mk_window_info(
         p_file = WINDOWS_FUNCTIONS.process.get_executable_filename(pid_d)
         if p_file and isinstance(p_file, str):
             names['exe'] = p_file
+        else:
+            names['exe'] = '<unknown> {0}'.format(repr(p_file))
 
     # WINDOWS_FUNCTIONS.shell.get_window_metrics?  Is that something we should also get?
 
@@ -474,6 +509,25 @@ def update_active_window(active_hwnd: int, active_windows: Dict[int, NativeWindo
         )
 
 
+def _set_window_style(
+        hwnd: HWND,
+        style: Mapping[str, Union[str, float, bool]]
+) -> Optional[WindowsErrorMessage]:
+    flags: Dict[str, bool] = {}
+    for f, val in style.items():
+        if val is True:
+            flags[f] = True
+    res = WINDOWS_FUNCTIONS.window.set_style(hwnd, flags)
+    if isinstance(res, WindowsErrorMessage):
+        log(
+            WARN, _restore_windows,
+            "Could not set the style state of {0}: {1}",
+            hwnd, res
+        )
+        return res
+    return None
+
+
 def _restore_windows(
         reverse_window_ids: Dict[ComponentId, HWND], original_state: Dict[int, NativeWindowState]
 ) -> None:
@@ -499,16 +553,7 @@ def _restore_windows(
             continue
         hwnd = reverse_window_ids[cid]
         if WINDOWS_FUNCTIONS.window.set_style:
-            flags: Dict[str, bool] = {}
-            for f in original.get_style_flags():
-                flags[f] = True
-            res_s = WINDOWS_FUNCTIONS.window.set_style(hwnd, flags)
-            if isinstance(res_s, WindowsErrorMessage):
-                log(
-                    WARN, _restore_windows,
-                    "Could not restore the style state of {0}: {1}",
-                    hwnd, res_s
-                )
+            _set_window_style(hwnd, original.style)
         if WINDOWS_FUNCTIONS.window.set_position:
             pos = original.bordered_rect
             res_p = WINDOWS_FUNCTIONS.window.set_position(
@@ -516,8 +561,17 @@ def _restore_windows(
                 ["frame-changed", "no-zorder", "async-window-pos"]
             )
             if isinstance(res_p, WindowsErrorMessage):
-                log(
-                    WARN, _restore_windows,
-                    "Could not restore the position and size of {0}: {1}",
-                    hwnd, res_p
-                )
+                # Access denied happens when the window is a message window.
+                if res_p.errno != ERROR_ACCESS_DENIED:
+                    log(
+                        WARN, _restore_windows,
+                        "Could not restore the position and size of {0}: {1}",
+                        hwnd, res_p
+                    )
+                else:
+                    log(
+                        DEBUG, _restore_windows,
+                        "access denied when resorting pos on {0}",
+                        original
+                    )
+    # TODO should also restore focus state.

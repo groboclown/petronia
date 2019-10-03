@@ -23,6 +23,11 @@ from .action_requests import (
     EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW,
     as_request_close_native_window_listener,
     send_request_close_native_window_event,
+
+    RequestSetNativeWindowStyleEvent,
+    EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE,
+    as_request_set_native_window_style_listener,
+    send_request_set_native_window_style_event,
 )
 from .action_occurred import (
     NativeWindowCreatedEvent,

@@ -22,7 +22,7 @@ from ..bootstrap import (
     as_system_shutdown_listener,
     TARGET_ID_SYSTEM_SHUTDOWN,
 
-    ListenerRegistrator,
+    ListenerRegistrar,
 )
 
 
@@ -71,7 +71,7 @@ class _DisposedListenerHandler:
     def add_listener(
             self,
             target_id: ParticipantId,
-            listener_setup: ListenerRegistrator[Any]
+            listener_setup: ListenerRegistrar[Any]
     ) -> None:
         self._listeners.append(self.__bus.add_listener(
             target_id, listener_setup, self.event_handler_func

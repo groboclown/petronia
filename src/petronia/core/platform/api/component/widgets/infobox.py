@@ -3,13 +3,15 @@
 Widgets are added into custom components that support them.
 """
 
-from typing import Optional
+from typing import Mapping, Optional, Union
 from ...defs import (
     RespondsToAction,
     Text,
     TextAlignment,
     TextRotation,
     Image,
+    ImageTransform,
+    ImageRelativeTextPosition,
     Color,
 )
 from ......base import create_singleton_identity
@@ -27,40 +29,72 @@ class InfoBoxWidget:
 
     Pass to RequestNewComponentEvent or as part of a widget list.  Also
     pass to the Configuration state event.
+
+    TODO add events to allow changing the contents.
     """
 
     __slots__ = (
-        '__text', '__image',
+        '__text_format', '__image', '__text_data',
+        '__text_alignment', '__text_rotation', '__image_transform',
+        '__image_text_position',
         '__bg', '__fg', '__border_style', '__responds_to',
     )
 
     def __init__(
             self,
-            text: Optional[Text],
+            text_format: Optional[Text],
+            text_data: Optional[Mapping[str, Union[str, float, int, bool]]],
             image: Optional[Image],
             text_alignment: Optional[TextAlignment] = None,
             text_rotation: Optional[TextRotation] = None,
+            image_transform: Optional[ImageTransform] = None,
+            image_text_position: Optional[ImageRelativeTextPosition] = None,
             background_color: Optional[Color] = None,
             foreground_color: Optional[Color] = None,
             border_style: Optional[str] = None,
             responds_to: Optional[RespondsToAction] = None
     ) -> None:
-        self.__text = text
+        self.__text_format = text_format
+        self.__text_data = text_data
         self.__image = image
+        self.__text_alignment = text_alignment
+        self.__text_rotation = text_rotation
+        self.__image_transform = image_transform
+        self.__image_text_position = image_text_position
         self.__bg = background_color
         self.__fg = foreground_color
         self.__border_style = border_style
         self.__responds_to = responds_to
 
     @property
-    def text(self) -> Optional[Text]:
+    def text_format(self) -> Optional[Text]:
         """Localized message."""
-        return self.__text
+        return self.__text_format
+
+    @property
+    def text_data(self) -> Optional[Mapping[str, Union[str, float, int, bool]]]:
+        return self.__text_data
 
     @property
     def image(self) -> Optional[Image]:
         """Image to show."""
         return self.__image
+
+    @property
+    def text_alignment(self) -> TextAlignment:
+        return self.__text_alignment
+
+    @property
+    def text_rotation(self) -> TextRotation:
+        return self.__text_rotation
+
+    @property
+    def image_transform(self) -> ImageTransform:
+        return self.__image_transform
+
+    @property
+    def image_text_position(self) -> ImageRelativeTextPosition:
+        return self.__image_text_position
 
     @property
     def foreground_color(self) -> Optional[Color]:

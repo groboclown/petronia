@@ -13,7 +13,10 @@ class TextFieldWidget:
     """
     Displays a text field with an optional label and picture and activation button.
     """
-    __slots__ = ('placeholder',)
+    __slots__ = (
+        '__label', '__icon', '__char_width', '__button_label',
+        '__default_text',
+    )
 
     def __init__(self) -> None:
         pass

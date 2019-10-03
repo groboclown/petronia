@@ -7,7 +7,7 @@ This should be imported along with the `simp` module.
 
 
 from ...base.bus import (
-    ListenerRegistrator,
+    ListenerRegistrar,
     ListenerSetup,
     QueuePriority,
     ExtensionMetadataStruct,
