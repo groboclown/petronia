@@ -4,7 +4,7 @@ Theme-level widgets, which are a higher-level abstraction on top of the
 low-level platform api.
 """
 
-from ...platform.api.defs import (
+from ....platform.api.defs import (
     TextBiDi,
     TextDisplay,
     TextRotation,

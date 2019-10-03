@@ -10,6 +10,10 @@ from .color import (
     Color,
 )
 from .text import (
+    TextBiDi,
+    TEXT_BIDI_LTR,
+    TEXT_BIDI_RTL,
+
     TextFragment,
     TextDisplay,
     Text,
@@ -66,10 +70,6 @@ from .units import (
     EMPTY_SCREEN_RECT,
 )
 from .position import (
-    TextBiDi,
-    TEXT_BIDI_LTR,
-    TEXT_BIDI_RTL,
-
     TextRotation,
     TEXT_ROTATE_HORIZ,
     TEXT_ROTATE_90_CLOCKWISE,

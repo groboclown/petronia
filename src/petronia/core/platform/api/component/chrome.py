@@ -4,7 +4,7 @@ Decorations around a native window.  Defined as widgets for each side and
 corner around the window.
 """
 
-from typing import Iterable, Optional
+from typing import Optional
 from ..defs import RespondsToAction
 from .....base import (
     create_singleton_identity,

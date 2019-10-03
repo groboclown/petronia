@@ -6,11 +6,6 @@ Constants and types for aligning things against other things.
 from typing import Tuple
 from .units import FontQUnit
 
-# Text Bi-directional display direction.
-TextBiDi = bool
-TEXT_BIDI_LTR = True
-TEXT_BIDI_RTL = False
-
 # Text display rotation
 TextRotation = int
 

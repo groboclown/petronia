@@ -6,7 +6,11 @@ Low-level UI text description.
 from typing import Iterable, Tuple
 from .color import Color
 from .units import FontQUnit
-from .alignment import TextBiDi
+
+# Text Bi-directional display direction.
+TextBiDi = bool
+TEXT_BIDI_LTR = True
+TEXT_BIDI_RTL = False
 
 
 class TextDisplay:
