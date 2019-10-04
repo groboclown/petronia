@@ -43,7 +43,7 @@ class WindowMatcher:
         return self.__key
 
     @property
-    def match(self) -> str:
+    def match(self) -> Optional[str]:
         return self.__match
 
     @property
@@ -57,12 +57,12 @@ class WindowMatcher:
         val = info.names[self.__key]
         if self.__re:
             return self.__re.match(val) is not None
-        if self.__kind == WINDOW_MATCH_PART:
+        if self.__kind == WINDOW_MATCH_PART and self.__match:
             return self.__match in val.lower()
         return self.__match == val
 
 
-def _get_re(match: str, kind: int) -> Tuple[Optional[Pattern], Optional[str], Optional[ErrorReport]]:
+def _get_re(match: str, kind: int) -> Tuple[Optional[Pattern[str]], Optional[str], Optional[ErrorReport]]:
     if kind == WINDOW_MATCH_REGEX:
         try:
             return re.compile(match, re.IGNORECASE), None, None,

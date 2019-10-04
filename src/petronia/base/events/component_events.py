@@ -78,6 +78,7 @@ def send_request_new_component(
         )
     )
 
+
 # ---------------------------------------------------------------------------
 
 EVENT_ID_COMPONENT_CREATED = EventId('petronia.registrar component-created')

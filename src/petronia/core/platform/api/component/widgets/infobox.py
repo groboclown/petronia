@@ -81,19 +81,19 @@ class InfoBoxWidget:
         return self.__image
 
     @property
-    def text_alignment(self) -> TextAlignment:
+    def text_alignment(self) -> Optional[TextAlignment]:
         return self.__text_alignment
 
     @property
-    def text_rotation(self) -> TextRotation:
+    def text_rotation(self) -> Optional[TextRotation]:
         return self.__text_rotation
 
     @property
-    def image_transform(self) -> ImageTransform:
+    def image_transform(self) -> Optional[ImageTransform]:
         return self.__image_transform
 
     @property
-    def image_text_position(self) -> ImageRelativeTextPosition:
+    def image_text_position(self) -> Optional[ImageRelativeTextPosition]:
         return self.__image_text_position
 
     @property

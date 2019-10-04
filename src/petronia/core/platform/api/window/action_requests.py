@@ -57,6 +57,31 @@ def as_request_move_native_window_listener(
 
 
 # ---------------------------------------------------------------------------
+
+EVENT_ID_REQUEST_SET_NATIVE_WINDOW_VISIBILITY = EventId('core.platform.api/request-visibility')
+
+
+class RequestSetNativeWindowVisibility:
+    """
+    Request to change the window's visibility.  The platform may minimize or
+    move off screen or in some other way hide the window from sight.  Making a
+    window visible may alter the original size.  Setting a hidden window to
+    hidden, or a visible window to visible, is a no-op; setting a window
+    hidden then hidden then visible will restore the window to visible.
+    """
+
+    __slots__ = ('__visible',)
+
+    def __init__(self, visible: bool) -> None:
+        self.__visible = visible
+
+    @property
+    def visible(self) -> bool:
+        return self.__visible
+
+
+# ---------------------------------------------------------------------------
+
 EVENT_ID_REQUEST_FOCUS_NATIVE_WINDOW = EventId('core.platform.api/focus-native-window')
 
 

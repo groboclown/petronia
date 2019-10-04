@@ -2,8 +2,16 @@
 """
 Container UI components.  It contains zero or more widgets arranged
 according to the container's setup.
+
+Containers themselves do not respond to user input.  If you want an
+entire container to respond to, say, mouse clicks, then each child
+component will need that added.
+
+For those that come from more standard UI backgrounds, these containers
+mix the idea of contained widget layout and holding the widgets.
 """
 
+from typing import Union
 from ..defs import (
     Color,
     ScreenUnit,
@@ -92,3 +100,6 @@ class FlowContainer:
     @property
     def color(self) -> Color:
         return self.__color
+
+
+Container = Union[GridContainer, FlowContainer]

@@ -16,6 +16,8 @@ class NotificationIconArea:
 
     The end-user can request the maximum number of icons
     to display and the background color.
+
+    The behavior of icon clicking is up to the platform.
     """
     __slots__ = ('__max', '__bg',)
 

@@ -12,6 +12,7 @@ from ....base.util import (
 
 SandboxPath = Tuple[str, Iterable[SandboxPermission]]
 
+
 class ExtensionPaths:
     """
     Definition of where to load extensions.  This is static at boot time, and

@@ -7,6 +7,7 @@ from typing import Callable, Iterable
 from .directories import ExtensionPaths
 from ....base import EventBus
 
+
 class EventQueueModel:
     """
     Simple object that can be extended according to the different
@@ -22,7 +23,8 @@ class ExtensionLoaderModel:
     """
     Details about how to load the extension loader extension.
     """
-    __slots__ = ('name')
+    __slots__ = ('name',)
+
     def __init__(self, name: str) -> None:
         self.name = name
 

@@ -38,6 +38,9 @@ from .action_requests import (
     EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW,
     RequestMoveNativeWindowEvent,
 
+    EVENT_ID_REQUEST_SET_NATIVE_WINDOW_VISIBILITY,
+    RequestSetNativeWindowVisibility,
+
     EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE,
     RequestSetNativeWindowStyleEvent,
 )
@@ -91,6 +94,11 @@ def register_window_events(bus: EventBus) -> None:
         bus, EVENT_ID_REQUEST_MOVE_NATIVE_WINDOW, QUEUE_EVENT_NORMAL,
         RequestMoveNativeWindowEvent,
         RequestMoveNativeWindowEvent((0, 0, 0, 0,))
+    )
+    register_event(
+        bus, EVENT_ID_REQUEST_SET_NATIVE_WINDOW_VISIBILITY, QUEUE_EVENT_NORMAL,
+        RequestSetNativeWindowVisibility,
+        RequestSetNativeWindowVisibility(False)
     )
 
     # This is a high priority event, because it will need to be sent right after

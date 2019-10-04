@@ -1,11 +1,11 @@
 
 """
 Decorations around a native window.  Defined as widgets for each side and
-corner around the window.
+corner around the window.  The chrome itself does not react to user input,
+but the attached widgets can.
 """
 
 from typing import Optional
-from ..defs import RespondsToAction
 from .....base import (
     create_singleton_identity,
     ComponentId,

@@ -30,13 +30,7 @@ from .icon_area import (
     NotificationIconArea,
 )
 
-from .label import (
-    COMPONENT_ID_CREATE_LABEL,
-    LabelWidget,
-)
-
-
 Widget = Union[
     InfoBoxWidget, SeparatorWidget, SpacerWidget, TextFieldWidget,
-    NotificationIconArea, LabelWidget,
+    NotificationIconArea,
 ]

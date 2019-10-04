@@ -1,4 +1,0 @@
-
-"""
-Windows-only platform extensions
-"""

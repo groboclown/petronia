@@ -168,7 +168,7 @@ Note that core modules (those distributed with Petronia) have an implicit versio
 
 The extension zip file must contain a `manifest.json` file that defines information about the extension:
 
-```json
+```javascript
 {
     // Required information
 

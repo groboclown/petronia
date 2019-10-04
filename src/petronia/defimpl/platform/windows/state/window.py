@@ -348,7 +348,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     ) -> None:
         with lock:
             if target_id in reverse_window_ids:
-                hwnd = reverse_window_ids[target_id]
+                hwnd = reverse_window_ids[target_id]  # type: ignore
                 _set_window_style(hwnd, event.style)
                 # TODO does this need to explicitly trigger a state change, or does the
                 #   corresponding event get triggered?
@@ -513,6 +513,8 @@ def _set_window_style(
         hwnd: HWND,
         style: Mapping[str, Union[str, float, bool]]
 ) -> Optional[WindowsErrorMessage]:
+    if not WINDOWS_FUNCTIONS.window.set_style:
+        return None
     flags: Dict[str, bool] = {}
     for f, val in style.items():
         if val is True:

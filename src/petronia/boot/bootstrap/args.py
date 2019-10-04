@@ -70,7 +70,7 @@ def parse_args(args: Sequence[str]) -> UserArguments:
             log_level = VERBOSE
         elif arg == '--info':
             log_level = INFO
-        elif arg == '--help':
+        elif arg in ('--help', '-h', '/h', '/?',):
             ret.is_help = True
         elif arg == '--version':
             show_version()
