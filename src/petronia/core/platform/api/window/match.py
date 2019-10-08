@@ -5,8 +5,8 @@ Definitions for matching window properties.
 
 from typing import Pattern, Tuple, Optional
 import re
-from ...platform.api import NativeWindowState
-from ....aid.simp import (
+from .state import NativeWindowState
+from .....aid.std import (
     create_user_error,
     ErrorReport,
 )

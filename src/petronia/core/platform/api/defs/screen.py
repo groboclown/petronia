@@ -5,7 +5,7 @@ Definitions for data types of the screen.
 
 from typing import Dict, Sequence, Union, Optional
 from .units import (
-    ScreenArea, NativeScreenArea, ScreenPosition,
+    ScreenArea, NativeScreenArea, ScreenPosition, ScreenSize,
     SCREEN_AREA_X, SCREEN_AREA_Y, SCREEN_AREA_W, SCREEN_AREA_H,
     SCREEN_POSITION_X, SCREEN_POSITION_Y,
 )
@@ -82,6 +82,9 @@ class VirtualScreenArea:
     def get_bottom(self) -> int:
         """Bottom-most pixel; still inside the screen area."""
         return self.__area[SCREEN_AREA_Y] + self.__area[SCREEN_AREA_H] - 1
+
+    def get_size(self) -> ScreenSize:
+        return self.__area[SCREEN_AREA_W], self.__area[SCREEN_AREA_H]
 
     def contains(self, pos: ScreenPosition) -> bool:
         return (

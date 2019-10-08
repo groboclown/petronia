@@ -3,7 +3,7 @@
 Type definitions for the event bus.
 """
 
-from typing import Callable, Tuple, NewType, Union, Sequence, Dict
+from typing import Callable, Tuple, NewType, Union, Sequence, Generic, Dict
 from .identity_types import ParticipantId, ComponentId
 from ..util.memory import T
 
@@ -13,7 +13,10 @@ ListenerId = NewType('ListenerId', int)
 
 EventCallback = Callable[[EventId, ParticipantId, T], None]
 
-# TODO figure out the right way to declare these as being generic.
+# TODO figure out the right way to declare these as being generic for PyCharm.
+#   Could make this a generic class, but that's a waste of memory for something that
+#   has such a short lifecycle.
+#   But Python and MyPy is just fine with the generic tuple, so keep it that way for now.
 ListenerSetup = Tuple[EventId, EventCallback[T]]
 ListenerRegistrar = Callable[[EventCallback[T]], ListenerSetup[T]]
 

@@ -5,7 +5,7 @@ Unit tests for event.py
 
 import unittest
 from .....aid.test_helper import BasicListener, BasicQueuer
-from .....aid.simp import (
+from .....aid.std import (
     PetroniaInvalidState,
 )
 from .....aid.bootstrap import (

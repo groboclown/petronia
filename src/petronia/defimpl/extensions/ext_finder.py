@@ -400,7 +400,7 @@ def _find_extensions_internal(
     # (3...) if `C` contains all the direct child extension names of the root node,
     # then there is a match; otherwise no compatible search could be made.
     matched_names = set(match.keys())
-    required_names = set(map(lambda x: x.name, extensions)) # type: ignore
+    required_names = set(map(lambda x: x.name, extensions))  # type: ignore
     found_required_names = required_names.intersection(matched_names)
     log(
         TRACE, find_extensions,

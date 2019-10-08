@@ -1,5 +1,5 @@
 
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     EventId,
     ParticipantId,

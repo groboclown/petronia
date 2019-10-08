@@ -4,7 +4,7 @@ Unit tests for the extension finder.
 """
 
 import unittest
-from ....aid.simp import ERROR
+from ....aid.std import ERROR
 from ....aid.test_helper import EnabledLogs
 from ..defs import LoadedExtension
 from ..ext_finder import (

@@ -5,7 +5,7 @@ Find the configuration files to load.
 
 import os
 from typing import Iterable, Set, List, Callable
-from ....aid.simp import (
+from ....aid.std import (
     log, VERBOSE,
 )
 

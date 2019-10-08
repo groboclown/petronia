@@ -15,6 +15,7 @@ from ..logging import (
     log, logerr, TRACE, DEBUG,
 )
 
+
 def create_single_pass_thread(
         name: str,
         daemon: bool,

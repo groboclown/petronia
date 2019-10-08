@@ -5,13 +5,11 @@ Type-safe storage of multiple states.
 
 from typing import Dict, Sequence, Optional, Type
 from threading import Lock
-from ...aid.simp import (
+from ...aid.std import (
     ParticipantId,
     assert_formatted,
     assert_all,
     T,
-    log,
-    TRACE,
 )
 from ...core.state.api.validate import validate_state_id
 
@@ -65,7 +63,7 @@ class StateStore:
                     'state {0} has type {1}, but requested type {2}',
                     state_id, self._state_types[state_id], state_type
                 )
-                old_state = self._states[state_id] # type: ignore
+                old_state = self._states[state_id]  # type: ignore
             self._state_types[state_id] = state_type
             self._states[state_id] = new_state
         return old_state
@@ -85,7 +83,7 @@ class StateStore:
         """Returns the state stored for the state ID.  If the state isn't registered,
         then a ValueError is raised."""
         with self.__lock:
-            return self._states[state_id] # type: ignore
+            return self._states[state_id]  # type: ignore
 
     @property
     def state_ids(self) -> Sequence[ParticipantId]:

@@ -7,7 +7,7 @@ from typing import Iterable
 from .find_configs import find_extension_config_files
 from .load_config import load_config_file
 from .send_configs import send_config
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
 )
 

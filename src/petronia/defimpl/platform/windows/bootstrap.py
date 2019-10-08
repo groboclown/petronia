@@ -5,7 +5,7 @@ Start up the Windows system.
 
 from typing import Optional
 import sys
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     PetroniaPlatformNotSupported,
 )

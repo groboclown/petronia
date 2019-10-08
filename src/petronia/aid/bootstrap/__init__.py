@@ -7,6 +7,8 @@ This should be imported along with the `simp` module.
 
 
 from ...base.bus import (
+    EventBus,
+
     ListenerRegistrar,
     ListenerSetup,
     QueuePriority,

@@ -1,9 +1,7 @@
 
 
-from ....aid.simp import (
-    EventBus,
-)
 from ....aid.bootstrap import (
+    EventBus,
     QUEUE_EVENT_NORMAL,
     ExtensionMetadataStruct,
     register_event,

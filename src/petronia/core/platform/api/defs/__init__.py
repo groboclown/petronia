@@ -114,4 +114,5 @@ from .position import (
 from .screen import (
     ScreenHandle,
     NativeScreenInfo,
+    VirtualScreenArea,
 )

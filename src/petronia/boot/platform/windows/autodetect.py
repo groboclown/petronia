@@ -1,13 +1,10 @@
 
-# Ignore types, because if this is run on Linux, it will cause problems.
-# types: ignore
-
 """
 Auto-detect the right extension to provide the Platform API.
 """
 
 import sys
-from ....aid.simp import PetroniaPlatformNotSupported
+from ....aid.std import PetroniaPlatformNotSupported
 
 
 def discover_platform_ext() -> str:

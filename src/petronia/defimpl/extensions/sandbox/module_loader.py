@@ -8,6 +8,7 @@ from ....base import EventBus
 from ....base.security import SandboxPermission
 from ..defs import ModuleLoader
 
+
 def create_sandbox_module_loader(
         paths: Sequence[str],
         permissions: Sequence[SandboxPermission]

@@ -3,7 +3,7 @@
 Start up the layout.
 """
 
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
 )
 from ....aid.bootstrap import (

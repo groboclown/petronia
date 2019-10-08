@@ -66,7 +66,7 @@ def load_additional_extensions(
             loaded_names.add(disc.name)
         except PetroniaExtensionError:
             raise
-        except BaseException as err: # pylint: disable=broad-except
+        except BaseException as err:  # pylint: disable=broad-except
             raise PetroniaExtensionInitializationError(
                 disc.name,
                 [ext.name for ext in ret],
@@ -101,10 +101,10 @@ def load_extensions(
             ))
         except PetroniaExtensionError:
             raise
-        except BaseException as err: # pylint: disable=broad-except
+        except BaseException as err:  # pylint: disable=broad-except
             raise PetroniaExtensionInitializationError(
                 ext.name,
-                map(lambda x: x.name, ret), # type: ignore
+                map(lambda x: x.name, ret),  # type: ignore
                 err
             )
     return ret

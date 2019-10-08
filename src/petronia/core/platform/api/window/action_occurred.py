@@ -3,7 +3,7 @@
 Native window interactions.
 """
 
-from .....aid.simp import (
+from .....aid.std import (
     EventId,
     EventBus,
     EventCallback,

@@ -7,7 +7,7 @@ from typing import Optional, Set
 import traceback
 import sys
 from threading import Lock
-from ....aid.simp import (
+from ....aid.std import (
     TRACE, DEBUG, VERBOSE, INFO, NOTICE, WARN, DEPRECATED, ERROR, FATAL,
     LogLevel,
 )

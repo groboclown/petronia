@@ -5,7 +5,7 @@ component ID.
 """
 
 from typing import Mapping, Union
-from .....aid.simp import (
+from .....aid.std import (
     EventId,
     EventBus,
     ComponentId,
@@ -80,6 +80,23 @@ class RequestSetNativeWindowVisibility:
         return self.__visible
 
 
+def send_request_set_native_window_visibility_event(
+        bus: EventBus,
+        window: ComponentId,
+        visible: bool
+) -> None:
+    bus.trigger(
+        EVENT_ID_REQUEST_SET_NATIVE_WINDOW_VISIBILITY,
+        window, RequestSetNativeWindowVisibility(visible)
+    )
+
+
+def as_request_set_native_window_visibility_listener(
+        callback: EventCallback[RequestSetNativeWindowVisibility]
+) -> ListenerSetup[RequestSetNativeWindowVisibility]:
+    return (EVENT_ID_REQUEST_SET_NATIVE_WINDOW_VISIBILITY, callback,)
+
+
 # ---------------------------------------------------------------------------
 
 EVENT_ID_REQUEST_FOCUS_NATIVE_WINDOW = EventId('core.platform.api/focus-native-window')
@@ -116,6 +133,7 @@ def as_request_focus_native_window_listener(
 
 
 # ---------------------------------------------------------------------------
+
 EVENT_ID_REQUEST_CLOSE_NATIVE_WINDOW = EventId('core.platform.api/close-native-window')
 
 
@@ -149,6 +167,7 @@ def as_request_close_native_window_listener(
 
 
 # ---------------------------------------------------------------------------
+
 EVENT_ID_REQUEST_SET_NATIVE_WINDOW_STYLE = EventId('core.platform.api/set-native-window-style')
 
 

@@ -3,7 +3,7 @@
 Hotkey action registration.
 """
 
-from ....aid.simp import (
+from ....aid.std import (
     EventId,
     EventBus,
     ParticipantId,

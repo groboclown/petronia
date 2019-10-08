@@ -15,7 +15,7 @@ from ..arch.native_funcs import (
     HWND, RECT, DWORD,
     WINDOWS_FUNCTIONS,
 )
-from .....aid.simp import (
+from .....aid.std import (
     EventBus,
     EventId,
     ListenerId,

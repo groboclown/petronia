@@ -6,7 +6,7 @@
 Startup the extension.
 """
 
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     EMPTY_DICT,
     EMPTY_MAPPING,

@@ -4,7 +4,7 @@ Send the configuration files to all the necessary parties.
 """
 
 from .contents import ExtensionConfigurationDetails
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     log, NOTICE, DEBUG,
     set_state,

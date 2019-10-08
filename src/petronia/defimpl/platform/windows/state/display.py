@@ -5,7 +5,7 @@ settings, to update the state on the fly.
 """
 
 from typing import Sequence, List, Tuple
-from .....aid.simp import (
+from .....aid.std import (
     EventBus,
     ListenerId,
 )

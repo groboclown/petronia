@@ -10,7 +10,7 @@ from .basic_event_bus import (
     BasicEventBus,
 )
 from .event_registry import EventRegistry
-from ....aid.simp import (
+from ....aid.std import (
     EventBus, EventCallback, EventId,
     ListenerId,
     ParticipantId,

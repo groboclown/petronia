@@ -18,6 +18,7 @@ from ....base import (
 )
 from ..defs import ModuleLoader
 
+
 def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
     """
     Checks if the module is a valid startable type.
@@ -78,10 +79,10 @@ def get_module_loader(mod: ModuleType) -> Optional[ModuleLoader]:
         )
         return None
     log(TRACE, get_module_loader, 'module {0} has starter {1}', mod.__name__, starter)
-    return starter # type: ignore
+    return starter  # type: ignore
 
 
-def get_internal_module_metadata(mod: ModuleType) -> Optional[Dict[str, Any]]: # type: ignore
+def get_internal_module_metadata(mod: ModuleType) -> Optional[Dict[str, Any]]:  # type: ignore
     """
     Get the internally defined metadata for the module.
     """

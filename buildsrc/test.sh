@@ -32,4 +32,5 @@ echo "Linting..."
 python3 -m pylint -j 3 -E petronia
 echo "======================================================="
 echo "Running unit tests..."
-python3 -m unittest discover -s . -p "*_test.py"
+python3 -m coverage run --source . -m unittest discover -s . -p "*_test.py"
+python3 -m coverage report -m

@@ -10,7 +10,7 @@ from ...core.state.api.events import (
     EVENT_ID_UPDATED_STATE,
     StateStoreUpdatedEvent,
 )
-from ...aid.simp import (
+from ...aid.std import (
     EventId,
     EventBus, EventCallback,
     ParticipantId,

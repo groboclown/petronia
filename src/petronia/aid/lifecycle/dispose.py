@@ -9,7 +9,7 @@ Dispose listener helpers.
 
 from typing import Callable, List, Any
 from threading import Lock
-from ..simp import (
+from ..std import (
     EventBus,
     ParticipantId,
     ListenerId,
@@ -79,8 +79,8 @@ class _DisposedListenerHandler:
 
     def event_handler_func(
             self,
-            event_id: EventId, target_id: ParticipantId,  # pylint: disable=unused-argument
-            event_obj: Any  # pylint: disable=unused-argument
+            _event_id: EventId, _target_id: ParticipantId,
+            _event_obj: Any
     ) -> None:
         with self.__lock:
             if self._listeners:

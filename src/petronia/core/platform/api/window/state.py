@@ -4,7 +4,7 @@ State definition for window objects.
 """
 
 from typing import Sequence, Mapping, Dict, Iterable, List, Union
-from .....aid.simp import (
+from .....aid.std import (
     EventBus,
     set_state,
     create_singleton_identity,

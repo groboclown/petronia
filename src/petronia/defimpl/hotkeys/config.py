@@ -16,7 +16,7 @@ bind:
 """
 
 from typing import Tuple, Iterable, List, Sequence
-from ...aid.simp import (
+from ...aid.std import (
     create_singleton_identity,
     create_user_error,
     ErrorReport,

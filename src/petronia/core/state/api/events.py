@@ -105,7 +105,7 @@ def set_state(
 
 
 def as_state_change_listener(
-        callback: EventCallback[StateStoreUpdatedEvent[T]],
+        callback: EventCallback[StateStoreUpdatedEvent[T]]
 ) -> ListenerSetup[StateStoreUpdatedEvent[T]]:
     """
     Creates the event listener setup for use with add_listener.

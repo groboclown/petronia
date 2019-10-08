@@ -14,7 +14,7 @@ to use them.  For example, the `core.hotkeys.api`.
 """
 
 from typing import Sequence, Dict
-from .....aid.simp import (
+from .....aid.std import (
     EventId,
     EventBus,
     EventCallback,

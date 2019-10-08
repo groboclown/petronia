@@ -5,7 +5,7 @@ Hotkey state.
 
 from typing import Dict, List, Sequence, Tuple, Optional
 from threading import Lock
-from ...aid.simp import (
+from ...aid.std import (
     ErrorReport,
     create_user_error,
 )

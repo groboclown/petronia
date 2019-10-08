@@ -6,6 +6,7 @@ Controls state swaps.
 from typing import Dict, Callable, Optional
 from threading import Lock
 
+
 class StateSwapController:
     """
     Controls invoking state objects to swap their behavior.

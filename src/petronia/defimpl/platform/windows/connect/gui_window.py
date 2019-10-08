@@ -19,7 +19,7 @@ from ..arch.native_funcs.windows_common import (
 from ..arch.native_funcs import (
     WINDOWS_FUNCTIONS,
 )
-from .....aid.simp import (
+from .....aid.std import (
     log, WARN, VERBOSE, DEBUG, TRACE,
 )
 from .....core.platform.api.defs import (

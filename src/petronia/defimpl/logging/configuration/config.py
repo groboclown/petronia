@@ -4,7 +4,7 @@ Logging configuration state.
 """
 
 from typing import Dict, Mapping
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     EventCallback,
     ParticipantId,

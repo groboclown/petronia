@@ -7,9 +7,9 @@ A specific lifecycle for an event listener that, once triggered, is finished
 with all actions.
 """
 
-from typing import List, Optional, Any
+from typing import List, Any
 from threading import Lock
-from ..simp import (
+from ..std import (
     EventBus,
     ParticipantId,
     ListenerId,

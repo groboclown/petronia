@@ -8,7 +8,7 @@ from ..general import (
     PlatformExtensionConfigurationState,
     STATE_ID_PLATFORM_EXTENSION_CONFIGURATION_STATE,
 )
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     ParticipantId,
     EventId,

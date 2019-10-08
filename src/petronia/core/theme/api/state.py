@@ -6,9 +6,11 @@ create them.
 """
 
 from typing import Iterable, Sequence
-from ...platform.api import NativeWindowState
+from ...platform.api import (
+    NativeWindowState,
+    WindowMatcher,
+)
 from .chrome import ThemeChrome
-from .match import WindowMatcher
 
 
 class WindowMatchChrome:

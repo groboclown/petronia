@@ -9,7 +9,7 @@ timeout.  If either is surpassed, then a halt is sent out.
 import time
 import threading
 from typing import Optional
-from ....aid.simp import (
+from ....aid.std import (
     ParticipantId,
     log,
     VERBOSE,
@@ -70,8 +70,9 @@ def setup_shutdown_handler(
     controller.switch_state(_STATE_WAIT_FOR_SHUTDOWN)
 
 
-
 _STATE_WAIT_FOR_SHUTDOWN = 'normal'
+
+
 class _WaitForShutdown:
     """
     State while waiting for a shutdown request to happen.
@@ -112,7 +113,7 @@ class _WaitForShutdown:
 
     def _on_request_shutdown(
             self,
-            event_id: EventId, target_id: ParticipantId, event_obj: RequestSystemShutdownEvent # pylint: disable=unused-argument
+            _event_id: EventId, _target_id: ParticipantId, _event_obj: RequestSystemShutdownEvent
     ) -> None:
         log(DEBUG, _WaitForShutdown, 'Switching to cancellable shutdown state.')
         self.__bus.trigger(
@@ -124,6 +125,8 @@ class _WaitForShutdown:
 
 
 _STATE_CAN_BE_CANCELLED = 'cancellable'
+
+
 class _CancellableShutdown:
     """
     State while the shutdown can be cancelled.
@@ -176,7 +179,7 @@ class _CancellableShutdown:
 
     def _on_any_event(
             self, event_id: EventId,
-            target_id: ParticipantId, event_obj: object # pylint: disable=unused-argument
+            _target_id: ParticipantId, _event_obj: object
     ) -> None:
         if not self._listener:
             # Not active, so don't do anything.
@@ -222,6 +225,8 @@ class _CancellableShutdown:
 
 
 _STATE_SHUTDOWN_FINALIZE = 'finalize'
+
+
 class _FinalizeShutdown:
     """
     State while the final shutdown is happening, which can't be cancelled.
@@ -301,7 +306,7 @@ class _FinalizeShutdown:
 
     def _on_any_event(
             self, event_id: EventId,
-            target_id: ParticipantId, event_obj: object # pylint: disable=unused-argument
+            _target_id: ParticipantId, _event_obj: object  # pylint: disable=unused-argument
     ) -> None:
         if not self._listener:
             # Not active, so don't do anything.
@@ -335,7 +340,6 @@ class _FinalizeShutdown:
             now, self.__next_quiet_expires, self.__next_global_expires
         )
         return False
-
 
 
 def _as_any_listener(

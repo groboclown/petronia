@@ -3,10 +3,8 @@
 Bootstrap the extension.
 """
 
-from ...aid.simp import (
-    EventBus,
-)
 from ...aid.bootstrap import (
+    EventBus,
     ExtensionMetadataStruct,
     ANY_VERSION,
 )

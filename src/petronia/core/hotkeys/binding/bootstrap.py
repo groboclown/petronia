@@ -3,7 +3,7 @@
 Bootstrap the hotkey bindings for the core services.
 """
 
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     EventId,
     ParticipantId,

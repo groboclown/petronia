@@ -3,6 +3,7 @@
 *.log
 .mypy_cache/*
 src/.mypy_cache/*
+src/.coverage
 .venv/*
 .idea/*
 buildsrc/work/*

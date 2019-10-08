@@ -7,7 +7,7 @@ The current state of the registered hotkeys.
 """
 
 from typing import Sequence, Any
-from ....aid.simp import (
+from ....aid.std import (
     ParticipantId,
     EventBus,
     set_state,

@@ -5,9 +5,11 @@ Lock-safe wrappers around basic operations.
 
 from threading import Lock
 
+
 class AtomicInt:
     """A thread-safe counter."""
     __slots__ = ('__counter', '__lock',)
+
     def __init__(self, start: int = 0):
         self.__counter = start
         self.__lock = Lock()

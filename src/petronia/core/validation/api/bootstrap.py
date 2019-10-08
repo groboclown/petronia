@@ -1,5 +1,9 @@
 
-from ....aid.simp import (
+"""
+Validation bootstrap
+"""
+
+from ....aid.std import (
     EventBus,
     EventId,
     ParticipantId,

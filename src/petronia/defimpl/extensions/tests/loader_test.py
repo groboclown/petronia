@@ -4,8 +4,7 @@ Unit tests for the extension loader.
 """
 
 import unittest
-# from petronia3.system.bus import EventBus
-from ....aid.simp import ERROR
+from ....aid.std import ERROR
 from ....aid.bootstrap import ANY_VERSION
 from ....aid.test_helper import BasicQueuer, EnabledLogs
 from ....boot.bootstrap.bus import bootstrap_event_bus

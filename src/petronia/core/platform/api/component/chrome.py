@@ -18,14 +18,25 @@ COMPONENT_ID_CREATE_CHROME = create_singleton_identity('core.platform.api/chrome
 class Chrome:
     """
     Describes the chrome outline of a window.
+
+    To add the chrome to a window, you must trigger the
+    RequestCreateChromeWrapperEvent.  This will cause the platform to add the
+    new chrome around the window, and requests to the window will affect the
+    chrome.
+
+    To add widgets to the chrome, you must first provide a new component ID for
+    the area for the widget to live, then send standard widget creation lifecycle
+    calls, using the chrome's border area as the parent.
     """
     __slots__ = ('__owner', '__n', '__e', '__s', '__w', '__ne', '__nw', '__se', '__sw')
 
     def __init__(
             self,
             owning_window_id: ComponentId,
-            n: Optional[Widget], e: Optional[Widget], s: Optional[Widget], w: Optional[Widget],
-            ne: Optional[Widget], nw: Optional[Widget], se: Optional[Widget], sw: Optional[Widget]
+            n: Optional[ComponentId] = None, e: Optional[ComponentId] = None,
+            s: Optional[ComponentId] = None, w: Optional[ComponentId] = None,
+            ne: Optional[ComponentId] = None, nw: Optional[ComponentId] = None,
+            se: Optional[ComponentId] = None, sw: Optional[ComponentId] = None
     ) -> None:
         self.__owner = owning_window_id
         self.__n = n
@@ -42,33 +53,33 @@ class Chrome:
         return self.__owner
 
     @property
-    def n(self) -> Optional[Widget]:
+    def n(self) -> Optional[ComponentId]:
         return self.__n
 
     @property
-    def e(self) -> Optional[Widget]:
+    def e(self) -> Optional[ComponentId]:
         return self.__e
 
     @property
-    def s(self) -> Optional[Widget]:
+    def s(self) -> Optional[ComponentId]:
         return self.__s
 
     @property
-    def w(self) -> Optional[Widget]:
+    def w(self) -> Optional[ComponentId]:
         return self.__w
 
     @property
-    def ne(self) -> Optional[Widget]:
+    def ne(self) -> Optional[ComponentId]:
         return self.__ne
 
     @property
-    def nw(self) -> Optional[Widget]:
+    def nw(self) -> Optional[ComponentId]:
         return self.__nw
 
     @property
-    def se(self) -> Optional[Widget]:
+    def se(self) -> Optional[ComponentId]:
         return self.__se
 
     @property
-    def sw(self) -> Optional[Widget]:
+    def sw(self) -> Optional[ComponentId]:
         return self.__sw

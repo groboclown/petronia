@@ -3,7 +3,8 @@
 Auto-detect the right extension to provide the Platform API.
 """
 
-from ....aid.simp import PetroniaPlatformNotSupported
+from ....aid.std import PetroniaPlatformNotSupported
+
 
 def discover_platform_ext() -> str:
     import sys

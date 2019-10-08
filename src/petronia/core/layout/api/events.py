@@ -7,7 +7,7 @@ For example, a tiling layout manager can interpret "move window"
 to mean swap the window with another adjacent window.
 """
 
-from ....aid.simp import (
+from ....aid.std import (
     EventId,
     EventCallback,
     EventBus,
@@ -34,7 +34,7 @@ class LayoutChangedEvent:
     """
     __slots__ = ()
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
 

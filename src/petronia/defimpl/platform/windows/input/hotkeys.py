@@ -10,7 +10,7 @@ from ...general.hotkey import (
     ACTION_COMPLETE,
     HotKeyChain,
 )
-from .....aid.simp import (
+from .....aid.std import (
     EventBus,
     ValueHolder,
 )

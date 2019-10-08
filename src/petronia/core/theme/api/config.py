@@ -4,9 +4,12 @@ End-user configuration of the theme.
 """
 
 from typing import List, Tuple
-from ....aid.simp import (
+from ....aid.std import (
     create_user_error,
     ErrorReport,
+)
+from ...platform.api import (
+    WindowMatcher,
 )
 from ...config_persistence.api import (
     PersistTypeSchema,
@@ -25,9 +28,6 @@ from .chrome import (
     ThemeBorderSide,
     ThemeBorder,
     ThemeChrome,
-)
-from .match import (
-    WindowMatcher,
 )
 from .state import (
     WindowMatchChrome,

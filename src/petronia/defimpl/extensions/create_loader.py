@@ -14,6 +14,7 @@ from .loaders import (
     CompositeExtensionLoader,
 )
 
+
 def create_core_loader() -> ExtensionLoader:
     """
     Create an extension loader that only loads extensions that are defined
@@ -21,6 +22,7 @@ def create_core_loader() -> ExtensionLoader:
     okay to load and run in the main (loose permissions) execution thread.
     """
     return CoreExtensionLoader()
+
 
 def create_extension_loader(
         cache_dir: str,

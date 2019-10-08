@@ -21,6 +21,7 @@ PETRONIA_HASHES = {
 _MAXIMUM_HASH_SIZE = 1024 * 10 # 10k
 _BUFFER_SIZE = 1024 * 10
 
+
 def load_hashes(
         filename: str, hash_algorithm_names: Sequence[str]
 ) -> HashResult:
@@ -46,7 +47,9 @@ def load_hashes(
         digests[hash_name] = hashf.hexdigest() # type: ignore
     return (size, digests)
 
+
 FileHashResult = Tuple[int, Dict[str, str], Dict[str, str]]
+
 
 def check_file_hashes(
         base_filename: str,
@@ -78,7 +81,7 @@ def check_file_hashes(
                 else:
                     with open(fname, 'r') as inp:
                         file_contents[hash_name] = inp.read().strip()
-            except: # pylint: disable=bare-except
+            except:  # pylint: disable=bare-except
                 # We're okay to skip error reporting, because it's an
                 # acceptable state.
                 file_contents[hash_name] = ''

@@ -9,7 +9,7 @@ from typing import Dict, Tuple, Sequence, Optional, Callable
 from typing import cast as t_cast
 import threading
 
-from .....aid.simp import (
+from .....aid.std import (
     log, TRACE, DEBUG, INFO, ERROR, FATAL,
 )
 from ..arch.native_funcs.windows_common import WindowsErrorMessage

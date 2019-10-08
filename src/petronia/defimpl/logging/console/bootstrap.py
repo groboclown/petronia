@@ -3,7 +3,7 @@
 Sets up the logger in the system.
 """
 
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
 )
 from ....aid.bootstrap import (

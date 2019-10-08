@@ -5,7 +5,7 @@ The log state transition handler.
 
 from typing import Dict, Tuple, Optional
 from threading import Lock
-from ....aid.simp import (
+from ....aid.std import (
     EventBus,
     EventId,
     ParticipantId,
