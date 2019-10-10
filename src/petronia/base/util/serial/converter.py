@@ -81,6 +81,7 @@ _DICT_TYPE = 'd'
 _LIST_TYPE = 'l'
 _INTERNAL_CLASS_TYPE = 'z'
 
+
 def serialize_value(value: Any, refs: Dict[int, SerialTyped]) -> SerialValue:
     """
     Attempt to serialize the value.  Any non-trivial value is stuffed into the

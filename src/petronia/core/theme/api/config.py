@@ -3,7 +3,7 @@
 End-user configuration of the theme.
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Iterable
 from ....aid.std import (
     create_user_error,
     ErrorReport,
@@ -11,7 +11,7 @@ from ....aid.std import (
 from ...platform.api import (
     WindowMatcher,
 )
-from ...config_persistence.api import (
+from ....base.util.simple_type import (
     PersistTypeSchema,
     PersistTypeSchemaItem,
     PersistType,
@@ -72,35 +72,31 @@ _CHROME_SCHEMA = {
 THEME_CONFIG_SCHEMA = readonly_persistent_schema_copy({
     "chrome": {
         "default": _CHROME_SCHEMA,
-        "window": [
-            {
-                "matches": [
-                    {
-                        "key": PersistTypeSchemaItem(
-                            "Key from the set of window descriptions, whose value will be matched",
-                            PERSISTENT_TYPE_SCHEMA_TYPE__STR
-                        ),
-                        "exactly": PersistTypeSchemaItem(
-                            "Exact text to match the key's value against",
-                            PERSISTENT_TYPE_SCHEMA_TYPE__STR
-                        ),
-                        "partial": PersistTypeSchemaItem(
-                            "Exact text to match the key's value against",
-                            PERSISTENT_TYPE_SCHEMA_TYPE__STR
-                        ),
-                        "regex": PersistTypeSchemaItem(
-                            "Regular expression matching the value",
-                            PERSISTENT_TYPE_SCHEMA_TYPE__STR
-                        ),
-                        "glob": PersistTypeSchemaItem(
-                            "Glob ('*' and '?') expression matching the value",
-                            PERSISTENT_TYPE_SCHEMA_TYPE__STR
-                        )
-                    },
-                ],
-                "chrome": _CHROME_SCHEMA,
-            },
-        ],
+        "window": [{
+            "matches": [{
+                "key": PersistTypeSchemaItem(
+                    "Key from the set of window descriptions, whose value will be matched",
+                    PERSISTENT_TYPE_SCHEMA_TYPE__STR
+                ),
+                "exactly": PersistTypeSchemaItem(
+                    "Exact text to match the key's value against",
+                    PERSISTENT_TYPE_SCHEMA_TYPE__STR
+                ),
+                "partial": PersistTypeSchemaItem(
+                    "Exact text to match the key's value against",
+                    PERSISTENT_TYPE_SCHEMA_TYPE__STR
+                ),
+                "regex": PersistTypeSchemaItem(
+                    "Regular expression matching the value",
+                    PERSISTENT_TYPE_SCHEMA_TYPE__STR
+                ),
+                "glob": PersistTypeSchemaItem(
+                    "Glob ('*' and '?') expression matching the value",
+                    PERSISTENT_TYPE_SCHEMA_TYPE__STR
+                ),
+            }],
+            "chrome": _CHROME_SCHEMA,
+        }],
     },
 })
 

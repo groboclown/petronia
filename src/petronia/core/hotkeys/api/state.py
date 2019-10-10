@@ -15,7 +15,7 @@ from ....aid.std import (
 from ....aid.bootstrap import (
     create_singleton_identity,
 )
-from ....core.config_persistence.api import (
+from ....base.util.simple_type import (
     PersistType,
     PersistTypeSchema,
     readonly_persistent_copy,

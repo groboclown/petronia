@@ -48,6 +48,8 @@ from ...base.events import (
     ErrorReport,
     send_error_event,
     as_error_listener,
+    ResultWithErrors,
+    ResultOrErrors,
 )
 
 from ...base.events.component_events import (

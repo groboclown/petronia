@@ -63,6 +63,8 @@ class StateWatch(Generic[T]):
         # can swap itself out with something else.
         with self.__lock:
             self.__listener = listener
+            if listener and self.__set:
+                listener(self.__state)
 
     @property
     def state(self) -> T:

@@ -2,7 +2,7 @@
 """
 Core events for the Petronia system.
 
-There are interdepndencies between this module and the bus module, so care is
+There are interdependencies between this module and the bus module, so care is
 taken to split this out to prevent cycles, with the intent that the end user
 would have the primary events imported separately from the bus.
 """
@@ -45,6 +45,8 @@ from .system_events import (
     as_system_started_listener,
     ErrorEvent,
     ErrorReport,
+    ResultOrErrors,
+    ResultWithErrors,
     send_error_event,
     as_error_listener,
 )

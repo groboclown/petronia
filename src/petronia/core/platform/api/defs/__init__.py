@@ -115,4 +115,5 @@ from .screen import (
     ScreenHandle,
     NativeScreenInfo,
     VirtualScreenArea,
+    VirtualScreenInfo,
 )

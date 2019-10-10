@@ -92,6 +92,7 @@ from .defs import (
     ScreenHandle,
     NativeScreenInfo,
     VirtualScreenArea,
+    VirtualScreenInfo,
 )
 from .screen import (
     STATE_ID_SCREENS,

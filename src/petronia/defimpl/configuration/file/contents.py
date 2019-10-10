@@ -15,8 +15,8 @@ from ....base.util import (
     V,
     EMPTY_DICT,
 )
+from ....base.util.simple_type import PersistType
 from ....core.extensions.api import ExtensionVersion
-from ....core.config_persistence.api import PersistType
 
 
 _DEFAULT_CONFIGURATION_NAME = 'setup-configuration'

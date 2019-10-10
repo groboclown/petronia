@@ -17,7 +17,7 @@ from ....aid.std import (
 from ....aid.bootstrap import (
     ListenerSetup,
 )
-from ....core.config_persistence.api import (
+from ....base.util.simple_type import (
     PersistType,
     PersistTypeSchema,
     PersistTypeSchemaItem,

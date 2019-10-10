@@ -34,6 +34,7 @@ class WindowMatcher:
     )
 
     def __init__(self, key: str, match: str, kind: int) -> None:
+        assert kind in WINDOW_MATCHES
         self.__key = key
         self.__kind = kind
         self.__re, self.__match, self.__problem = _get_re(match, kind)

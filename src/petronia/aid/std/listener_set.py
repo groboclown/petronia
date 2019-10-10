@@ -28,7 +28,7 @@ class ListenerSet:
     This is thread-safe.
     """
 
-    __slots__ = ('__bus', '_children', '__lock', '_listener_ids', '_bound_hotkeys')
+    __slots__ = ('__bus', '_children', '__lock', '__disposed', '_listener_ids', '_bound_hotkeys')
 
     _listener_ids: List[ListenerId]
     _bound_hotkeys: List[Tuple[ParticipantId, str]]
@@ -40,6 +40,11 @@ class ListenerSet:
         self._bound_hotkeys = []
         self._children = []
         self.__lock = Lock()
+        self.__disposed = False
+
+    @property
+    def disposed(self) -> bool:
+        return self.__disposed
 
     def listen(
             self,
@@ -50,6 +55,7 @@ class ListenerSet:
         """
         Register a new listener.
         """
+        assert not self.__disposed
         with self.__lock:
             listener_id = self.__bus.add_listener(target_id, listener_setup, callback)
             self._listener_ids.append(listener_id)
@@ -71,9 +77,10 @@ class ListenerSet:
         """
         Bind a hotkey schema to this target.
         """
-        send_hotkey_bound_service_announcement(self.__bus, binding)
-        with self.__lock:
-            self._bound_hotkeys.append((binding.service, binding.action,))
+        if not self.__disposed:
+            send_hotkey_bound_service_announcement(self.__bus, binding)
+            with self.__lock:
+                self._bound_hotkeys.append((binding.service, binding.action,))
 
     def child(self) -> 'ListenerSet':
         """
@@ -83,6 +90,8 @@ class ListenerSet:
         disposed, but the children can be independently disposed without disturbing
         the parent.
         """
+        if self.__disposed:
+            raise ValueError('already disposed')
         child = ListenerSet(self.__bus)
         with self.__lock:
             self._children.append(child)
@@ -92,7 +101,10 @@ class ListenerSet:
         """
         De-register all the active listeners.
         """
+        if self.__disposed:
+            return
         with self.__lock:
+            self.__disposed = True
             for service, action in self._bound_hotkeys:
                 send_hotkey_unbind_service_announcement(self.__bus, service, action)
             for listener_id in self._listener_ids:

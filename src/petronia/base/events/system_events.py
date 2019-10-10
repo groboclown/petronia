@@ -3,7 +3,7 @@
 The events around system lifecycle.
 """
 
-from typing import Iterable, Dict, Mapping, Union
+from typing import List, Iterable, Dict, Mapping, Union, Tuple
 from typing import cast as t_cast
 from ..internal_.identity_types import (
     create_singleton_identity,
@@ -12,7 +12,7 @@ from ..internal_.bus_types import (
     EventBus, EventId, EventCallback,
     ListenerSetup,
 )
-from ..util.memory import readonly_dict
+from ..util.memory import readonly_dict, T
 
 # Note: not "core".  This is not a plugin.
 TARGET_ID_SYSTEM = create_singleton_identity('petronia.system')
@@ -140,6 +140,10 @@ class ErrorReport:
             message_code=repr(self.__message),
             arguments=repr(self.__arguments)
         )
+
+
+ResultOrErrors = Union[T, Iterable[ErrorReport]]
+ResultWithErrors = Tuple[T, Iterable[ErrorReport]]
 
 
 class ErrorEvent:

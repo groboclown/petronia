@@ -21,7 +21,7 @@ from ...aid.std import (
     create_user_error,
     ErrorReport,
 )
-from ...core.config_persistence.api import (
+from ...base.util.simple_type import (
     PersistType,
     PersistTypeSchema,
     PersistTypeSchemaItem,
@@ -29,6 +29,7 @@ from ...core.config_persistence.api import (
     PERSISTENT_TYPE_SCHEMA_TYPE__STR,
     PERSISTENT_TYPE_SCHEMA_TYPE__BOOL,
     PERSISTENT_TYPE_SCHEMA_TYPE__ANY,
+    is_key_true,
 )
 from ...core.hotkeys.api import (
     BoundServiceActionData,
@@ -90,7 +91,8 @@ def load_hotkey_configuration(state: HotkeyState, persistent: PersistType) -> Tu
             load_hotkey_configuration, "Invalid configuration definition for hotkeys: {p}", p=repr(persistent)
         ),),
 
-    if 'append' not in persistent or persistent['append'] is not True:
+    if not is_key_true(persistent, 'append'):
+        # Unless "append" is explicitly set to True, clear the hotkeys.
         state.clear_hotkeys()
 
     errors: List[ErrorReport] = []

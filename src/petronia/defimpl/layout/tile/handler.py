@@ -1,9 +1,12 @@
 
+# mypy: allow-any-expr
+# mypy: allow-any-explicit
+
 """
 The intermediary between the EventBus events and the tile controller.
 """
 
-from typing import Iterable
+from typing import Iterable, Any
 from ....aid.std import (
     EventBus,
     EventId,
@@ -32,8 +35,11 @@ from ....core.platform.api import (
 
     ScreenState,
     STATE_ID_SCREENS,
+    VirtualScreenInfo,
 )
-from .config.layout import (
+from .config import (
+    TileLayoutConfig,
+    CONFIG_ID_TILE_LAYOUT,
     match_layouts_to_screens,
     RootTileLayout,
 )
@@ -54,7 +60,19 @@ def startup_tile_event_handler(
     :param listeners:
     :return:
     """
-    pass
+
+    # Use the wait-for-initialization startup pattern.
+
+    tile_config = StateWatch(listeners, CONFIG_ID_TILE_LAYOUT, TileLayoutConfig([], {}))
+    screen_state = StateWatch(listeners, STATE_ID_SCREENS, ScreenState(VirtualScreenInfo([])))
+
+    def on_state_change(val: Any) -> None:
+        if tile_config.is_set and screen_state.is_set:
+            # Boot up the tile event handler.
+            TileEventHandler(bus, listeners, tile_config, screen_state)
+
+    tile_config.set_listener(on_state_change)
+    screen_state.set_listener(on_state_change)
 
 
 class TileEventHandler:
@@ -64,34 +82,35 @@ class TileEventHandler:
 
     __slots__ = (
         '__bus',
-        '__ctrl',
-        '__layouts',
         '__listeners',
-        '__disposed',
+        '__ctrl',
+        '__config',
+        '__screens',
     )
 
     def __init__(
             self, bus: EventBus,
-            layouts: Iterable[RootTileLayout],
-            listeners: ListenerSet
+            listeners: ListenerSet,
+            tile_config: StateWatch[TileLayoutConfig],
+            screen_state: StateWatch[ScreenState]
     ):
         self.__bus = bus
         #self.__ctrl =
         self.__listeners = listeners
-        self.__disposed = False
+        self.__config = tile_config.state
+        self.__screens = screen_state.state
 
+        screen_state.set_listener(self._on_screen_state_changed)
         listeners.listen(
             TARGET_ID_WINDOW_CREATION, as_native_window_created_listener, self._on_window_created
         )
-        listeners.listen(STATE_ID_SCREENS, as_state_change_listener, self._on_screen_state_changed)  # type: ignore
 
-    def _on_screen_state_changed(
-            self,
-            event_id: EventId,
-            target_id: ParticipantId,
-            event_obj: StateStoreUpdatedEvent[ScreenState]
-    ) -> None:
+    def _on_screen_state_changed(self, state: ScreenState) -> None:
         # TODO find the new layout that matches the screens.
+        raise NotImplementedError()
+
+    def _on_tile_config_changed(self, config: TileLayoutConfig) -> None:
+        # TODO found out the new layout that matches the screens.
         raise NotImplementedError()
 
     def _on_window_created(
