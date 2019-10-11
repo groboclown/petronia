@@ -40,7 +40,7 @@ class WindowMatcher:
         self.__re, self.__match, self.__problem = _get_re(match, kind)
 
     @property
-    def key(self) -> str:
+    def key(self) -> Optional[str]:
         return self.__key
 
     @property

@@ -5,11 +5,9 @@ Portals, Containers, and Managers, oh my!
 
 from typing import List, Sequence, Optional, Iterable
 from ....aid.std import (
-    EventBus,
     ComponentId,
 )
 from ....core.platform.api import (
-    ScreenUnit,
     ScreenArea,
     NativeWindowState,
     WindowMatcher,
@@ -33,7 +31,6 @@ class Portal:
     """
 
     __slots__ = (
-        '__bus',
         '__name',
         '__matchers',
         '__size',
@@ -46,13 +43,11 @@ class Portal:
 
     def __init__(
             self,
-            bus: EventBus,
             name: str,
             initial_size: ScreenArea,
             matchers: Iterable[WindowMatcher],
             background: Optional[ComponentId]
     ) -> None:
-        self.__bus = bus
         self.__name = name
         self.__matchers = tuple(matchers)
         self.__size = initial_size

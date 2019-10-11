@@ -18,14 +18,14 @@ def in_or(con: Dict[K, V], key: K, default_value: V) -> V:
 
 def optional_key(
         con: Dict[K, V], key: K,
-        oftype: Optional[Union[type, Tuple[Union[type, Tuple[V, ...]], ...]]] = None
+        of_type: Optional[Union[type, Tuple[Union[type, Tuple[V, ...]], ...]]] = None
 ) -> Optional[V]:
     """If the key is in the collection, return the value, otherwise return
-    None.  If `oftype` is non-None, then the value will only be returned if it
+    None.  If `of_type` is non-None, then the value will only be returned if it
     is of the expected type."""
     if key in con:
         val = con[key]
-        if not oftype or isinstance(val, oftype):
+        if not of_type or isinstance(val, of_type):
             return val
     return None
 

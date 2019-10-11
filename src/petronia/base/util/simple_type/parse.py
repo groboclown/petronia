@@ -6,6 +6,7 @@ other data structures.
 
 from typing import Callable, List, Mapping, Iterable, Optional, Union
 from typing import cast as t_cast
+from numbers import Real
 from .defs import (
     PersistType,
     GenericPersistType,
@@ -111,3 +112,67 @@ def is_key_false(value: Union[PersistType, GenericPersistType[T]], key: str) -> 
     if isinstance(value, Mapping) and key in value and value[key] is False:
         return True
     return False
+
+
+def optional_float(
+        value: Union[PersistType, GenericPersistType[T]], key: str,
+        error_handler: Callable[[], ErrorReport]
+) -> ResultWithErrors[Optional[float]]:
+    if isinstance(value, Mapping) and key in value:
+        res = value[key]
+        if res is None:
+            return None, NO_ERRORS
+        if not isinstance(res, Real):
+            if error_handler:
+                return None, (error_handler(),)
+            return None, NO_ERRORS
+        return float(res), NO_ERRORS
+    return None, NO_ERRORS
+
+
+def optional_int(
+        value: Union[PersistType, GenericPersistType[T]], key: str,
+        error_handler: Callable[[], ErrorReport]
+) -> ResultWithErrors[Optional[int]]:
+    if isinstance(value, Mapping) and key in value:
+        res = value[key]
+        if res is None:
+            return None, NO_ERRORS
+        if not isinstance(res, Real):
+            if error_handler:
+                return None, (error_handler(),)
+            return None, NO_ERRORS
+        return round(res), NO_ERRORS
+    return None, NO_ERRORS
+
+
+def optional_bool(
+        value: Union[PersistType, GenericPersistType[T]], key: str,
+        error_handler: Callable[[], ErrorReport]
+) -> ResultWithErrors[Optional[bool]]:
+    if isinstance(value, Mapping) and key in value:
+        res = value[key]
+        if res is None:
+            return None, NO_ERRORS
+        if not isinstance(res, bool):
+            if error_handler:
+                return None, (error_handler(),)
+            return None, NO_ERRORS
+        return res, NO_ERRORS
+    return None, NO_ERRORS
+
+
+def optional_str(
+        value: Union[PersistType, GenericPersistType[T]], key: str,
+        error_handler: Callable[[], ErrorReport]
+) -> ResultWithErrors[Optional[str]]:
+    if isinstance(value, Mapping) and key in value:
+        res = value[key]
+        if res is None:
+            return None, NO_ERRORS
+        if not isinstance(res, str):
+            if error_handler:
+                return None, (error_handler(),)
+            return None, NO_ERRORS
+        return res, NO_ERRORS
+    return None, NO_ERRORS

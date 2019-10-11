@@ -41,3 +41,6 @@ class TileLayoutConfig:
     @property
     def matchers(self) -> Sequence[MatchWindowToPortal]:
         return self.__window_matchers
+
+    def __repr__(self) -> str:
+        return "TileLayoutConfig(layouts={0}, matchers={1})".format(repr(self.__layouts), repr(self.__window_matchers))

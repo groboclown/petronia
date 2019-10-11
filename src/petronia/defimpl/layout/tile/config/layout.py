@@ -21,10 +21,15 @@ from .....core.platform.api import (
 class PortalLayout:
     __slots__ = (
         'name',
+        'size',
     )
 
-    def __init__(self, name: str):
+    def __init__(self, name: Optional[str], size: int):
         self.name = name
+        self.size = size
+
+    def __repr__(self) -> str:
+        return "PortalLayout(name={0}, size={1})".format(repr(self.name), repr(self.size))
 
 
 TileLayout = Union[PortalLayout, 'SplitTileLayout']
@@ -39,18 +44,30 @@ class SplitTileLayout:
         '_splits',
         'is_split_target',
         'name',
+        'size',
     )
 
     _splits: List[TileLayout]
 
     def __init__(
             self,
-            name: str,
+            name: Optional[str],
+            size: int,
             splits: Optional[Iterable[TileLayout]], is_split_target: bool = False
     ) -> None:
         self.name = name
+        self.size = size
         self._splits = list(splits or EMPTY_LIST)  # type: ignore
         self.is_split_target = is_split_target
+
+    @property
+    def splits(self) -> List[TileLayout]:
+        return self._splits
+
+    def __repr__(self) -> str:
+        return "SplitTileLayout(name={0}, size={1}, is_split_target={2}, splits={3})".format(
+            repr(self.name), repr(self.size), repr(self.is_split_target), repr(self._splits)
+        )
 
 
 class ScreenTileLayout:
@@ -67,18 +84,21 @@ class ScreenTileLayout:
     )
     _layout: List[TileLayout]
 
-    def __init__(self, name: str, direction: bool, primary: bool, size: ScreenSize) -> None:
+    def __init__(
+            self, name: Optional[str], direction: int, primary: bool, size: ScreenSize,
+            layout: Optional[Iterable[TileLayout]] = None
+    ) -> None:
         self.name = name
         self.direction = direction
         self.primary = primary
         self.size = size
-        self._layout = []
+        self._layout = list(layout or [])
 
     @property
     def layout(self) -> List[TileLayout]:
         return self._layout
 
-    def match_screen(self, screen: ScreenSize) -> int:
+    def match_screen(self, screen: ScreenSize, screen_name: str, screen_index: int, current_index: int) -> int:
         """
         Generates a match value indicating how close this layout is to the
         given monitor.  A lower number means a closer match.
@@ -90,11 +110,21 @@ class ScreenTileLayout:
         # mechanism to detect the difference, and make pixel differences large
         # enough to matter.
 
-        # + 1 so that, when multiplied, a 0 doesn't truncate stuff...
+        # + 1 so that, when multiplied, a 0 doesn't change any other differences to be a 0.
         delta_x = abs((screen[SCREEN_SIZE_WIDTH] ** 2) - (self.size[SCREEN_SIZE_WIDTH] ** 2)) + 1
         delta_y = abs((screen[SCREEN_SIZE_HEIGHT] ** 2) - (self.size[SCREEN_SIZE_HEIGHT] ** 2)) + 1
 
-        return (delta_x * delta_y) + 1
+        raw_match = (delta_x * delta_y) + 1
+
+        # Adjust the pixel match by the screen name/index match.
+        if self.name:
+            if self.name.lower() == screen_name.lower():
+                # Perfect name match - it lines up
+                return raw_match
+            if self.name == str(screen_index):
+                # Perfect index match - it lines up
+                return raw_match
+        return raw_match * (abs(screen_index - current_index) + 1)
 
     def __repr__(self) -> str:
         return "ScreenTileLayout(name={0}, direction={1}, primary={2}, size={3})".format(
@@ -119,8 +149,12 @@ class RootTileLayout:
     def __init__(self, screens: Iterable[ScreenTileLayout]) -> None:
         self._screen_layouts = list(screens)
 
+    @property
     def screens(self) -> List[ScreenTileLayout]:
         return self._screen_layouts
+
+    def __repr__(self) -> str:
+        return "RootTileLayout(screens={0})".format(repr(self._screen_layouts))
 
 
 def match_layouts_to_screens(
@@ -137,8 +171,6 @@ def match_layouts_to_screens(
     :param active_screens:
     :return: for each screen, the corresponding layout.
     """
-
-    # TODO include a match on the name rather than just the index.
 
     # Issues this will try to tackle:
     #  - The layout may match except for the index position.  In this case, the
@@ -165,8 +197,7 @@ def match_layouts_to_screens(
                 # Because the match is guaranteed to be > 0, the raw match can be
                 # directly multiplied by the index delta, but note that the index
                 # delta must itself be positive (not zero) for this to work.
-                raw_match = layout.match_screen(screen.get_size())
-                match = raw_match * (abs(screen_index - layout_index) + 1)
+                match = layout.match_screen(screen.get_size(), screen.name, screen_index, layout_index)
                 # print("Match {0}:{1} vs {2}:{3} :: {4} => {5}".format(
                 #     layout_index, layout,
                 #     screen_index, screen,

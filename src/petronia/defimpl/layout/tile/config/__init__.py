@@ -18,3 +18,4 @@ from .config import (
 from .parser import (
     parse_config,
 )
+from .match import MatchWindowToPortal
