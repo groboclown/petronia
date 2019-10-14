@@ -5,9 +5,9 @@ Tests out the configuration parser.
 
 import unittest
 from ..layout import (
-    TileLayout,
     RootTileLayout,
     ScreenTileLayout,
+    SplitTileLayout,
     PortalLayout,
 )
 from ..config import TileLayoutConfig
@@ -54,7 +54,9 @@ class ParseConfigTest(unittest.TestCase):
         res, errors = parse_config(config)
         self.assertEqual(
             repr(res),
-            repr(TileLayoutConfig([RootTileLayout([ScreenTileLayout(None, SPLIT_VERTICAL, False, (0, 0,), [])])], []))
+            repr(TileLayoutConfig([RootTileLayout([ScreenTileLayout(None, SPLIT_VERTICAL, False, (0, 0,), [
+                PortalLayout('default', 1)
+            ])])], []))
         )
 
     def test_one_screen_layout(self) -> None:
@@ -68,5 +70,37 @@ class ParseConfigTest(unittest.TestCase):
         res, errors = parse_config(config)
         self.assertEqual(
             repr(res),
-            repr(TileLayoutConfig([RootTileLayout([ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [])])], []))
+            repr(TileLayoutConfig([RootTileLayout([ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [
+                PortalLayout('default', 1)
+            ])])], []))
+        )
+
+    def test_basic_split_layout(self) -> None:
+        self.maxDiff = None
+        config: PersistType = {
+            "layouts": [{
+                "direction": "left-right",
+                "splits": [{
+                    "size": 2,
+                }, {
+                    "target": True,
+                    "size": 1,
+                    "splits": [{
+                        "size": 3,
+                    }, {
+                        "size": 2,
+                    }],
+                }],
+            }],
+        }
+        res, errors = parse_config(config)
+        self.assertEqual(
+            repr(res),
+            repr(TileLayoutConfig([RootTileLayout([ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [
+                PortalLayout('default', 2),
+                SplitTileLayout(None, 1, [
+                    PortalLayout('default', 3),
+                    PortalLayout('default', 2),
+                ], True),
+            ])])], []))
         )

@@ -185,7 +185,7 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
             screen_list_data = collect_errors(errors, with_key_as_list(
                 layout_data, _KEY_SCREENS,
                 lambda: create_user_error(
-                    parse_config, '{s} in each {l} must be a list', s=_KEY_SCREENS, l=_KEY_LAYOUTS
+                    parse_config, '{s} in each {la} must be a list', s=_KEY_SCREENS, la=_KEY_LAYOUTS
                 )
             ))
             if screen_list_data:
@@ -193,7 +193,7 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
                 for screen_data in list_of_maps(
                     screen_list_data, errors,
                     lambda i: create_user_error(
-                        parse_config, '{s} #{i} in {l} must be a key-value set', s=_KEY_SCREENS, i=i, l=_KEY_LAYOUTS
+                        parse_config, '{s} #{i} in {la} must be a key-value set', s=_KEY_SCREENS, i=i, la=_KEY_LAYOUTS
                     )
                 ):
                     screen = collect_errors(errors, parse_screen(screen_data))
@@ -201,7 +201,7 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
                         layout_screens.append(screen)
                 layouts.append(RootTileLayout(layout_screens))
             else:
-                top = collect_errors(errors, parse_screen(t_cast(PersistType, data[_KEY_LAYOUTS])))
+                top = collect_errors(errors, parse_screen(t_cast(PersistType, layout_data)))
                 if top:
                     floating_screens.append(top)
         if len(floating_screens) > 0:
@@ -272,18 +272,7 @@ def parse_screen(data: PersistType) -> ResultWithErrors[Optional[ScreenTileLayou
     """
     """
     errors: List[ErrorReport] = []
-    splits: List[Union[SplitTileLayout, PortalLayout]] = []
-    split_list_data = collect_errors(errors, with_key_as_list(
-        data, 'splits',
-        lambda: create_user_error(parse_config, 'splits must be a list of key-value sets')
-    ))
-    if split_list_data:
-        for split_data in list_of_maps(split_list_data, errors, lambda i: create_user_error(
-                parse_config, 'split #{i} must be a key-value set', i=i
-        )):
-            tile = collect_errors(errors, parse_tile(split_data))
-            if tile:
-                splits.append(tile)
+    splits = collect_errors(errors, parse_splits(data))
     if not splits:
         splits.append(PortalLayout('default', 1))
 
@@ -315,8 +304,9 @@ def parse_screen(data: PersistType) -> ResultWithErrors[Optional[ScreenTileLayou
         direction_int = SPLIT_VERTICAL
     # if target is None:
     #     target = False
-
-    return ScreenTileLayout(name, direction_int, False, size), errors
+    ret = ScreenTileLayout(name, direction_int, False, size)
+    ret.layout.extend(splits)
+    return ret, errors
 
 
 def parse_tile(data: PersistType) -> ResultWithErrors[Union[SplitTileLayout, PortalLayout, None]]:
@@ -327,24 +317,13 @@ def parse_tile(data: PersistType) -> ResultWithErrors[Union[SplitTileLayout, Por
     name = collect_errors(errors, optional_str(
         data, 'name', lambda: create_user_error(parse_config, 'name must be a string')
     ))
-    splits: List[Union[SplitTileLayout, PortalLayout]] = []
-    split_list_data = collect_errors(errors, with_key_as_list(
-        data, 'splits',
-        lambda: create_user_error(parse_config, 'splits must be a list of key-value sets')
-    ))
-    if split_list_data:
-        for split_data in list_of_maps(split_list_data, errors, lambda i: create_user_error(
-                parse_config, 'split #{i} must be a key-value set', i=i
-        )):
-            tile = collect_errors(errors, parse_tile(split_data))
-            if tile:
-                splits.append(tile)
+    splits = collect_errors(errors, parse_splits(data))
     if not splits:
         size = 1
         size_data = collect_errors(errors, optional_int(
             data, 'size', lambda: create_user_error(parse_config, 'size must be a number')
         ))
-        if size_data is not None:
+        if size_data is not None and size_data > 0:
             size = size_data
         return PortalLayout(name or 'default', size), errors
 
@@ -361,6 +340,23 @@ def parse_tile(data: PersistType) -> ResultWithErrors[Union[SplitTileLayout, Por
     else:
         size = size_data
     return SplitTileLayout(name, size, splits, target), errors
+
+
+def parse_splits(data: PersistType) -> ResultWithErrors[List[Union[SplitTileLayout, PortalLayout]]]:
+    errors: List[ErrorReport] = []
+    splits: List[Union[SplitTileLayout, PortalLayout]] = []
+    split_list_data = collect_errors(errors, with_key_as_list(
+        data, 'splits',
+        lambda: create_user_error(parse_config, 'splits must be a list of key-value sets')
+    ))
+    if split_list_data:
+        for split_data in list_of_maps(split_list_data, errors, lambda i: create_user_error(
+                parse_config, 'split #{i} must be a key-value set', i=i
+        )):
+            tile = collect_errors(errors, parse_tile(split_data))
+            if tile:
+                splits.append(tile)
+    return splits, errors
 
 
 MATCH_KIND_GLOB = 'glob'

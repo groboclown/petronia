@@ -8,7 +8,10 @@ matches those against the current screen list.
 
 from typing import List, Tuple, Iterable, Sequence, Optional, Union
 from .....aid.std import (
-    EMPTY_LIST
+    EMPTY_LIST,
+    ResultWithErrors,
+    ErrorReport,
+    create_user_error,
 )
 from .....core.platform.api import (
     VirtualScreenArea,
@@ -127,11 +130,12 @@ class ScreenTileLayout:
         return raw_match * (abs(screen_index - current_index) + 1)
 
     def __repr__(self) -> str:
-        return "ScreenTileLayout(name={0}, direction={1}, primary={2}, size={3})".format(
+        return "ScreenTileLayout(name={0}, direction={1}, primary={2}, size={3}, layout={4})".format(
             repr(self.name),
             repr(self.direction),
             repr(self.primary),
-            repr(self.size)
+            repr(self.size),
+            repr(self._layout)
         )
 
 
@@ -160,7 +164,7 @@ class RootTileLayout:
 def match_layouts_to_screens(
         screen_layout_combinations: Iterable[Sequence[ScreenTileLayout]],
         active_screens: Sequence[VirtualScreenArea]
-) -> Sequence[Tuple[ScreenTileLayout, VirtualScreenArea]]:
+) -> ResultWithErrors[Sequence[Tuple[ScreenTileLayout, VirtualScreenArea]]]:
     """
     Finds the "best" user screen layout that corresponds with the current (active)
     screens.  The ordering of the active screens and layouts is important.  If the
@@ -172,6 +176,8 @@ def match_layouts_to_screens(
     :return: for each screen, the corresponding layout.
     """
 
+    errors: List[ErrorReport] = []
+
     # Issues this will try to tackle:
     #  - The layout may match except for the index position.  In this case, the
     #    layout can still work, but at a penalty to the match.
@@ -181,40 +187,54 @@ def match_layouts_to_screens(
     #    layout to the screen, but note that the layout index to screen index
     #    penalty will take effect.
 
-    best_match = 9999999999
+    # These numbers can get really, really big.  Use None to avoid an issue
+    # where the match number is bigger than the initial assumption of
+    # too big.
+    best_match: Optional[int] = None
     best_layout: Sequence[Tuple[ScreenTileLayout, VirtualScreenArea]] = []
 
+    # print("** Matching screens {0}".format(active_screens))
+
     for layout_map in screen_layout_combinations:
+        # print("Trying layout {0}".format(layout_map))
         # For this layout, find the best screen tile layout match for each screen.
         all_screens: List[Tuple[ScreenTileLayout, VirtualScreenArea]] = []
         all_screen_match = 0
         for screen_index in range(len(active_screens)):
             screen = active_screens[screen_index]
+            # print(" - against screen {0} -> {1}".format(screen_index, screen))
             best_screen: Optional[ScreenTileLayout] = None
-            best_screen_match = 9999999999
+            best_screen_match: Optional[int] = None
             for layout_index in range(len(layout_map)):
                 layout = layout_map[layout_index]
+                # print(" -- layout {0} -> {1}".format(layout_index, layout))
                 # Because the match is guaranteed to be > 0, the raw match can be
                 # directly multiplied by the index delta, but note that the index
                 # delta must itself be positive (not zero) for this to work.
                 match = layout.match_screen(screen.get_size(), screen.name, screen_index, layout_index)
-                # print("Match {0}:{1} vs {2}:{3} :: {4} => {5}".format(
+                # print(" -- match {0}:{1} vs {2}:{3} :: {4}".format(
                 #     layout_index, layout,
                 #     screen_index, screen,
-                #     raw_match, match
+                #     match
                 # ))
-                if match < best_screen_match:
+                if best_screen_match is None or match < best_screen_match:
                     best_screen = layout
                     best_screen_match = match
-            if not best_screen:
-                raise ValueError('no layouts')
-            all_screen_match += best_screen_match
-            all_screens.append((best_screen, screen,))
-        if all_screen_match < best_match:
+            if not best_screen or not best_screen_match:
+                errors.append(create_user_error(
+                    match_layouts_to_screens, 'no layouts in screen {si}', si=screen_index
+                ))
+            else:
+                all_screen_match += best_screen_match
+                all_screens.append((best_screen, screen,))
+        if best_match is None or all_screen_match < best_match:
             best_match = all_screen_match
             best_layout = tuple(all_screens)
 
     if not best_layout:
-        raise ValueError('no layouts or screens')
+        errors.append(create_user_error(
+            match_layouts_to_screens, 'no layouts or screens in {sc}', sc=repr(screen_layout_combinations)
+        ))
+        return [], errors
 
-    return best_layout
+    return best_layout, errors

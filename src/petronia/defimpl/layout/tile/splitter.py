@@ -68,6 +68,7 @@ class SplitterTile:
             is_split_target: bool
     ) -> None:
         assert direction in SPLIT_ALL
+        assert splits
         self.__direction = direction
         self.__size = size
         self.__factory = factory
@@ -78,14 +79,16 @@ class SplitterTile:
         total = 0
         for s in self.__splits:
             total += s
-        factor = _split_dir_size(size, direction) // total
+        # Avoid a divide by zero.
+        factor = _split_dir_size(size, direction) // max(total, 1)
         last = 0
         for i in range(len(self.__splits)):
+            is_last = i >= len(self.__splits) - 1
             prop = self.__splits[i]
             if prop <= 0:
-                sub_area = _split_dir_pos(size, last, -1, direction)[0]
+                sub_area = _split_dir_pos(size, last, -1, direction, is_last)[0]
             else:
-                sub_area, last = _split_dir_pos(size, last, factor * prop, direction)
+                sub_area, last = _split_dir_pos(size, last, factor * prop, direction, is_last)
             self._children.append(factory(i, sub_area))
         assert len(self._children) > 0
 
@@ -213,6 +216,9 @@ class SplitterTile:
         """
         raise NotImplementedError()
 
+    def get_area(self) -> ScreenArea:
+        return self.__size
+
     def resize(self, new_area: ScreenArea) -> None:
         raise NotImplementedError()
 
@@ -231,6 +237,19 @@ class SplitterTile:
     def __len__(self) -> int:
         return self.count()
 
+    def __repr__(self) -> str:
+        return (
+            'SplitterTile(size={size}, '
+            'active={active}, direction={direction}, is_split_target={target}, splits={splits}, children={kids})'
+        ).format(
+            size=repr(self.__size),
+            active=repr(self.__active_index),
+            direction=repr(self.__direction),
+            target=repr(self.__is_split_target),
+            splits=repr(self.__splits),
+            kids=repr(self._children)
+        )
+
 
 def _split_dir_size(area: ScreenArea, direction: int) -> ScreenUnit:
     if direction == SPLIT_HORIZONTAL:
@@ -239,7 +258,8 @@ def _split_dir_size(area: ScreenArea, direction: int) -> ScreenUnit:
 
 
 def _split_dir_pos(
-        area: ScreenArea, prev_end: ScreenUnit, size: ScreenUnit, direction: int
+        area: ScreenArea, prev_end: ScreenUnit, size: ScreenUnit, direction: int,
+        is_last: bool
 ) -> Tuple[ScreenArea, ScreenUnit]:
     """
     Creates a screen area in the direction for the given size.  This limits
@@ -255,8 +275,9 @@ def _split_dir_pos(
     if direction == SPLIT_HORIZONTAL:
         mpos = area[SCREEN_AREA_X] + area[SCREEN_AREA_WIDTH]
         start = min(mpos, area[SCREEN_AREA_X] + prev_end)
-        if size <= 0:
+        if size <= 0 or is_last:
             end = mpos
+            size = end - start
         else:
             end = min(mpos, area[SCREEN_AREA_X] + prev_end + size)
         return (
@@ -267,8 +288,9 @@ def _split_dir_pos(
         )
     mpos = area[SCREEN_AREA_Y] + area[SCREEN_AREA_HEIGHT]
     start = min(mpos, area[SCREEN_AREA_Y] + prev_end)
-    if size <= 0:
+    if size <= 0 or is_last:
         end = mpos
+        size = end - start
     else:
         end = min(mpos, area[SCREEN_AREA_Y] + prev_end + size)
     return (

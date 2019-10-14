@@ -11,6 +11,59 @@ from ....core.platform.api import (
     ScreenArea,
     NativeWindowState,
     WindowMatcher,
+    SCREEN_AREA_X,
+    SCREEN_AREA_Y,
+    SCREEN_AREA_W,
+    SCREEN_AREA_H,
+)
+
+
+# If it's restricted, then the size cannot go beyond the bound.
+POSITION_FAVOR_MASK_RESTRICT_WIDTH = 0X01
+POSITION_FAVOR_MASK_RESTRICT_HEIGHT = 0X02
+POSITION_FAVOR_MASK_RESTRICT_AREA = POSITION_FAVOR_MASK_RESTRICT_WIDTH | POSITION_FAVOR_MASK_RESTRICT_HEIGHT
+POSITION_FAVOR_MASK_ALIGN_N = 0X04
+POSITION_FAVOR_MASK_ALIGN_S = 0X08
+POSITION_FAVOR_MASK_ALIGN_E = 0X10
+POSITION_FAVOR_MASK_ALIGN_W = 0X20
+POSITION_FAVOR_FILL = (
+        POSITION_FAVOR_MASK_ALIGN_N | POSITION_FAVOR_MASK_ALIGN_E |
+        POSITION_FAVOR_MASK_ALIGN_E | POSITION_FAVOR_MASK_ALIGN_W
+)
+POSITION_FAVOR_N_EDGE = POSITION_FAVOR_MASK_ALIGN_N | POSITION_FAVOR_MASK_ALIGN_E | POSITION_FAVOR_MASK_ALIGN_W
+POSITION_FAVOR_E_EDGE = POSITION_FAVOR_MASK_ALIGN_E | POSITION_FAVOR_MASK_ALIGN_N | POSITION_FAVOR_MASK_ALIGN_S
+POSITION_FAVOR_S_EDGE = POSITION_FAVOR_MASK_ALIGN_S | POSITION_FAVOR_MASK_ALIGN_E | POSITION_FAVOR_MASK_ALIGN_W
+POSITION_FAVOR_W_EDGE = POSITION_FAVOR_MASK_ALIGN_W | POSITION_FAVOR_MASK_ALIGN_N | POSITION_FAVOR_MASK_ALIGN_S
+POSITION_FAVOR_NE = POSITION_FAVOR_MASK_ALIGN_N | POSITION_FAVOR_MASK_ALIGN_E
+POSITION_FAVOR_NW = POSITION_FAVOR_MASK_ALIGN_N | POSITION_FAVOR_MASK_ALIGN_W
+POSITION_FAVOR_SE = POSITION_FAVOR_MASK_ALIGN_S | POSITION_FAVOR_MASK_ALIGN_E
+POSITION_FAVOR_SW = POSITION_FAVOR_MASK_ALIGN_S | POSITION_FAVOR_MASK_ALIGN_W
+POSITION_FAVOR_RESTRICTED_N_EDGE = POSITION_FAVOR_N_EDGE | POSITION_FAVOR_MASK_RESTRICT_HEIGHT
+POSITION_FAVOR_RESTRICTED_S_EDGE = POSITION_FAVOR_S_EDGE | POSITION_FAVOR_MASK_RESTRICT_HEIGHT
+POSITION_FAVOR_RESTRICTED_E_EDGE = POSITION_FAVOR_E_EDGE | POSITION_FAVOR_MASK_RESTRICT_WIDTH
+POSITION_FAVOR_RESTRICTED_W_EDGE = POSITION_FAVOR_W_EDGE | POSITION_FAVOR_MASK_RESTRICT_WIDTH
+POSITION_FAVOR_RESTRICTED_NE = POSITION_FAVOR_NE | POSITION_FAVOR_MASK_RESTRICT_AREA
+POSITION_FAVOR_RESTRICTED_NW = POSITION_FAVOR_NW | POSITION_FAVOR_MASK_RESTRICT_AREA
+POSITION_FAVOR_RESTRICTED_SE = POSITION_FAVOR_SE | POSITION_FAVOR_MASK_RESTRICT_AREA
+POSITION_FAVOR_RESTRICTED_SW = POSITION_FAVOR_SW | POSITION_FAVOR_MASK_RESTRICT_AREA
+POSITION_FAVOR_ALL = (
+    POSITION_FAVOR_FILL,
+    POSITION_FAVOR_N_EDGE,
+    POSITION_FAVOR_E_EDGE,
+    POSITION_FAVOR_S_EDGE,
+    POSITION_FAVOR_W_EDGE,
+    POSITION_FAVOR_NE,
+    POSITION_FAVOR_SE,
+    POSITION_FAVOR_NW,
+    POSITION_FAVOR_SW,
+    POSITION_FAVOR_RESTRICTED_N_EDGE,
+    POSITION_FAVOR_RESTRICTED_E_EDGE,
+    POSITION_FAVOR_RESTRICTED_S_EDGE,
+    POSITION_FAVOR_RESTRICTED_W_EDGE,
+    POSITION_FAVOR_RESTRICTED_NE,
+    POSITION_FAVOR_RESTRICTED_SE,
+    POSITION_FAVOR_RESTRICTED_NW,
+    POSITION_FAVOR_RESTRICTED_SW,
 )
 
 
@@ -34,7 +87,6 @@ class Portal:
         '__name',
         '__matchers',
         '__size',
-        '__position_favor',
         '_window_cids',
         '__current_index',
         '__background_cid',
@@ -46,7 +98,7 @@ class Portal:
             name: str,
             initial_size: ScreenArea,
             matchers: Iterable[WindowMatcher],
-            background: Optional[ComponentId]
+            background: Optional[ComponentId] = None,
     ) -> None:
         self.__name = name
         self.__matchers = tuple(matchers)
@@ -70,10 +122,6 @@ class Portal:
     def background_cid(self) -> Optional[ComponentId]:
         return self.__background_cid
 
-    @property
-    def area(self) -> ScreenArea:
-        return self.__size
-
     def add_window(self, cid: ComponentId) -> int:
         """
         Add the window to the portal's managed list.  This could be
@@ -89,6 +137,10 @@ class Portal:
         """
         raise NotImplementedError()
 
+    def get_area(self) -> ScreenArea:
+        # A function, not a property, because of the explicit "set_area" call.
+        return self.__size
+
     def set_area(self, new_area_size: ScreenArea) -> None:
         """
         Set the size of this portal.  The implementation passes this
@@ -98,6 +150,34 @@ class Portal:
         :return:
         """
         raise NotImplementedError()
+
+    def get_window_position(self, window_size: ScreenArea, position_favor: int) -> ScreenArea:
+        assert position_favor in POSITION_FAVOR_ALL
+        x = window_size[SCREEN_AREA_X]
+        y = window_size[SCREEN_AREA_Y]
+        w = window_size[SCREEN_AREA_W]
+        h = window_size[SCREEN_AREA_H]
+
+        if (position_favor & POSITION_FAVOR_MASK_RESTRICT_WIDTH) != 0:
+            w = min(self.__size[SCREEN_AREA_W], w)
+        if (position_favor & POSITION_FAVOR_MASK_RESTRICT_HEIGHT) != 0:
+            h = min(self.__size[SCREEN_AREA_H], h)
+
+        if (position_favor & POSITION_FAVOR_MASK_ALIGN_E) != 0:
+            x = self.__size[SCREEN_AREA_X]
+            if (position_favor & POSITION_FAVOR_MASK_ALIGN_W) != 0:
+                w = self.__size[SCREEN_AREA_W]
+        elif (position_favor & POSITION_FAVOR_MASK_ALIGN_W) != 0:
+            x = self.__size[SCREEN_AREA_X] + self.__size[SCREEN_AREA_W] - w
+
+        if (position_favor & POSITION_FAVOR_MASK_ALIGN_N) != 0:
+            y = self.__size[SCREEN_AREA_Y]
+            if (position_favor & POSITION_FAVOR_MASK_ALIGN_S) != 0:
+                h = self.__size[SCREEN_AREA_H]
+        elif (position_favor & POSITION_FAVOR_MASK_ALIGN_S) != 0:
+            y = self.__size[SCREEN_AREA_Y] + self.__size[SCREEN_AREA_H] - h
+
+        return x, y, w, h
 
     def __getitem__(self, i: int) -> ComponentId:
         return self._window_cids[i]
@@ -142,3 +222,14 @@ class Portal:
         :return:
         """
         raise NotImplementedError()
+
+    def __repr__(self) -> str:
+        return (
+            'Portal(name={name}, size={size}, current={current}, '
+            'background={background}, windows={windows})').format(
+            name=repr(self.__name),
+            size=repr(self.__size),
+            current=repr(self.__current_index),
+            background=repr(self.__background_cid),
+            windows=repr(self._window_cids)
+        )

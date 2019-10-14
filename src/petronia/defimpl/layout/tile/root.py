@@ -76,3 +76,6 @@ class RootTile:
 
     def get_children(self) -> Sequence[SplitterTile]:
         return self.__screens
+
+    def __repr__(self) -> str:
+        return "RootTile(active={0}, screens={1})".format(self.__active_index, self.__screens)

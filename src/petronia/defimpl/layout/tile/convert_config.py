@@ -3,7 +3,7 @@
 Convert a configuration layout to a formal structure.
 """
 
-from typing import List, Sequence, Tuple
+from typing import List, Sequence, Tuple, Iterable
 
 from .config import (
     TileLayoutConfig,
@@ -30,9 +30,15 @@ from ....core.platform.api import (
     ScreenArea,
     WindowMatcher,
 )
+from ....aid.std import (
+    ErrorReport,
+    create_user_error,
+)
 
 
-def convert_config(config: TileLayoutConfig, display: VirtualScreenInfo) -> Tuple[RootTile, int]:
+def convert_config(
+        config: TileLayoutConfig, display: VirtualScreenInfo
+) -> Tuple[RootTile, int, Iterable[ErrorReport]]:
     """
     Uses the current screen layout to convert the configuration into the
     tile layout.  It also returns which screen index in the root tile is
@@ -44,7 +50,7 @@ def convert_config(config: TileLayoutConfig, display: VirtualScreenInfo) -> Tupl
     """
     screens: List[SplitterTile] = []
 
-    screen_assignment = match_layouts_to_screens(
+    screen_assignment, errors = match_layouts_to_screens(
         [lay.screens for lay in config.layouts],
         display.blocks
     )
@@ -63,8 +69,18 @@ def convert_config(config: TileLayoutConfig, display: VirtualScreenInfo) -> Tupl
             primary = index
         screens.append(split)
         index += 1
+    if not screens:
+        if not errors:
+            errors = [create_user_error(
+                convert_config, 'no screens defined in {sc}', sc=repr(config)
+            )]
+        screens.append(SplitterTile(
+            mk_tile_factory((PortalLayout('default', 1),), SPLIT_HORIZONTAL, []),
+            display.get_primary().area,
+            SPLIT_HORIZONTAL, [1], True
+        ))
 
-    return RootTile(screens), primary
+    return RootTile(screens), primary, errors
 
 
 def get_split_children_sizes(children: Sequence[TileLayout]) -> List[int]:
