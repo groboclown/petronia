@@ -16,6 +16,9 @@ from ....base.bus import (
     QUEUE_EVENT_NORMAL,
 )
 from ....base import create_singleton_identity
+from ....base.events.bus import (
+    REQUEST_EVENT_PROTECTION, RESPONSE_EVENT_PROTECTION,
+)
 from ....core.extensions.api import ANY_VERSION
 
 
@@ -26,11 +29,13 @@ def bootstrap_extensions_api(bus: EventBus) -> None:
     """Register all events."""
     register_event(
         bus, EVENT_ID_REQUEST_LOAD_EXTENSION, QUEUE_EVENT_NORMAL,
+        REQUEST_EVENT_PROTECTION,
         RequestLoadExtensionEvent,
         RequestLoadExtensionEvent('x')
     )
     register_event(
         bus, EVENT_ID_EXTENSION_LOADED, QUEUE_EVENT_NORMAL,
+        RESPONSE_EVENT_PROTECTION,
         ExtensionLoadedEvent,
         ExtensionLoadedEvent(LoadedExtension('x', True, (1, 0, 0,)), [])
     )

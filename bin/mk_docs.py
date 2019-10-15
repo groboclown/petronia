@@ -19,7 +19,9 @@ from petronia.base.util import T
 from petronia.base.events.bus import RegisterEventEvent, EVENT_ID_REGISTER_EVENT
 from petronia.base.bus import (QUEUE_EVENT_HIGH, QUEUE_EVENT_IO)
 from petronia.base.util.serial import add_repr
+from petronia.core.state.api import StateStoreUpdatedEvent, EVENT_ID_UPDATED_STATE
 from petronia.defimpl.extensions.defs.discover_types import DiscoveredExtension
+
 
 
 class Config:
@@ -109,11 +111,13 @@ def document_extension(config: Config, fqn, mod, starter, md, schema):
 
     # print("{0} <- {1}".format(fqn, name))
     write_template(
-        config, prefix + '.template.md', name + '.md', create_data(ext, ext_doc, bus.events, bus.listens, schema)
+        config, prefix + '.template.md', name + '.md', create_data(
+            ext, ext_doc, bus.events, bus.listens, schema, bus.states
+        )
     )
 
 
-def create_data(ext, ext_doc, events, listens, schema):
+def create_data(ext, ext_doc, events, listens, schema, states):
     dep_data = [create_compat_data(dep) for dep in ext.depends_on]
     impl_data = [create_compat_data(impl) for impl in ext.implements]
     defaults_data = [create_compat_data(default) for default in ext.defaults]
@@ -126,7 +130,7 @@ def create_data(ext, ext_doc, events, listens, schema):
         "doc": ext_doc,
         "authors": ', '.join(ext.authors or []),
         "license": ext.license or '(not specified)',
-        "secure": ext.is_secure and 'secure' or 'not secure',
+        "secure_text": ext.is_secure and 'elevated privileges' or 'private sandbox',
         "depends": dep_data,
         "has_depends": len(dep_data) > 0,
         "implements": impl_data,
@@ -139,6 +143,7 @@ def create_data(ext, ext_doc, events, listens, schema):
         "has_listens_to": len(listens) > 0,
 
         # TODO add schema to here, and to the docs.
+        # TODO add state to here, and add to the docs.
     }
 
 
@@ -170,8 +175,14 @@ def create_event_data(event: RegisterEventEvent):
         "priority": pri,
         "type": event.event_class.__module__ + '.' + event.event_class.__name__,
         "doc": clean_doc_str(event.event_class.__doc__),
-
-        # TODO add in the public/private policy for the event.
+        "produce": "public" if event.protection.public_produce else "private",
+        "consume": "public" if event.protection.public_consume else "private",
+        "produce_text": (
+            "Public triggering allowed" if event.protection.public_produce else "Only instance triggering permitted"
+        ),
+        "consume_text": (
+            "Public listening allowed" if event.protection.public_consume else "Only instance listening permitted"
+        ),
     }
 
 
@@ -270,6 +281,7 @@ class MockEventBus(EventBus):
     def __init__(self):
         self.events = []
         self.listens = []
+        self.states = []
 
     def add_listener(
             self,
@@ -296,6 +308,9 @@ class MockEventBus(EventBus):
         if event_id == EVENT_ID_REGISTER_EVENT:
             assert isinstance(event_obj, RegisterEventEvent)
             self.events.append(event_obj)
+        elif event_id == EVENT_ID_UPDATED_STATE:
+            assert isinstance(event_id, StateStoreUpdatedEvent)
+            self.states.append((target_id, event_obj,))
 
     def create_component_id(self, component_category: str) -> ComponentId:
         # Essentially ignore

@@ -10,13 +10,14 @@ from ....base.bus import (
     EVENT_WILDCARD,
     QUEUE_EVENT_TYPES,
 )
-from ....base  import (
+from ....base import (
     ParticipantId,
     log, TRACE, DEBUG,
 )
 from ....base.events.bus import (
     EVENT_ID_REGISTER_EVENT,
     RegisterEventEvent,
+    EventProtectionModel,
 )
 from ....base.util import (
     optional_key,
@@ -31,14 +32,16 @@ from .basic_event_bus import (
 )
 
 
-class _EventTypeInfo: # pylint: disable=too-few-public-methods
+class _EventTypeInfo:
     """
     Description about the registered event type.
     """
-    __slots__ = ('type', 'priority')
-    def __init__(self, type_obj: Type[object], priority: QueuePriority) -> None:
+    __slots__ = ('type', 'priority', 'protection',)
+
+    def __init__(self, type_obj: Type[object], priority: QueuePriority, protection: EventProtectionModel) -> None:
         self.type = type_obj
         self.priority = priority
+        self.protection = protection
 
 
 class EventRegistry:
@@ -46,13 +49,14 @@ class EventRegistry:
     Registration of all event IDs and the expected class types.
     """
 
-    _types: Dict[str, _EventTypeInfo]
+    _types: Dict[EventId, _EventTypeInfo]
 
     def __init__(self) -> None:
         self._types = {}
 
     def register(
             self, event_id: EventId, priority: QueuePriority,
+            protection: EventProtectionModel,
             event_class: Type[T], example: T
     ) -> None:
         """
@@ -98,7 +102,7 @@ class EventRegistry:
                 'event classes must provide the __slots__ member for itself and all parent classes',
             )
         )
-        self._types[event_id] = _EventTypeInfo(event_class, priority)
+        self._types[event_id] = _EventTypeInfo(event_class, priority, protection)
         log(DEBUG, EventRegistry, 'registered event {0} as type {1}', event_id, event_class)
 
     def has_event_id(self, event_id: EventId) -> bool:
@@ -108,12 +112,17 @@ class EventRegistry:
     @property
     def event_ids(self) -> Iterable[EventId]:
         """List of all registered event ids."""
-        return self._types.keys() # type: ignore
+        return self._types.keys()
 
     def get_event_id_priority(self, event_id: EventId) -> Optional[QueuePriority]:
         """The queue priority for the event."""
         if event_id in self._types:
             return self._types[event_id].priority
+        return None
+
+    def get_event_id_protection(self, event_id: EventId) -> Optional[EventProtectionModel]:
+        if event_id in self._types:
+            return self._types[event_id].protection
         return None
 
     def validate_event_on_trigger(
@@ -131,6 +140,7 @@ class EventRegistry:
             self.register(
                 event_object.event_id,
                 event_object.priority,
+                event_object.protection,
                 event_object.event_class,
                 event_object.example
             )

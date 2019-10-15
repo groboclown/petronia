@@ -15,17 +15,15 @@ from ....base.bus import (
     ExtensionMetadataStruct,
     QUEUE_EVENT_IO,
 )
+from ....base.events.bus import GLOBAL_EVENT_PROTECTION
 from ...extensions.api import ANY_VERSION
 
 
 def bootstrap_config_api(bus: EventBus) -> None:
     """Bootstrap all the necessary bits for this extension."""
     register_event(
-        bus,
-        EVENT_ID_PERSIST_CONFIGURATION,
-        QUEUE_EVENT_IO,
-        PersistConfigurationEvent,
-        PersistConfigurationEvent(NOT_PARTICIPANT)
+        bus, EVENT_ID_PERSIST_CONFIGURATION, QUEUE_EVENT_IO, GLOBAL_EVENT_PROTECTION,
+        PersistConfigurationEvent, PersistConfigurationEvent(NOT_PARTICIPANT)
     )
 
 

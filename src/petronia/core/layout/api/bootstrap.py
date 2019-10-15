@@ -6,6 +6,8 @@ from ....aid.bootstrap import (
     ExtensionMetadataStruct,
     register_event,
     ANY_VERSION,
+    CONSUME_EVENT_PROTECTION,
+    REQUEST_EVENT_PROTECTION,
 )
 from .events import (
     EVENT_ID_LAYOUT_CHANGED,
@@ -24,19 +26,19 @@ from .events import (
 
 def bootstrap_layout_api(bus: EventBus) -> None:
     register_event(
-        bus, EVENT_ID_LAYOUT_CHANGED, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_LAYOUT_CHANGED, QUEUE_EVENT_NORMAL, CONSUME_EVENT_PROTECTION,
         LayoutChangedEvent, LayoutChangedEvent()
     )
     register_event(
-        bus, EVENT_ID_REQUEST_MOVE_RESIZE_FOCUSED_WINDOW, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_REQUEST_MOVE_RESIZE_FOCUSED_WINDOW, QUEUE_EVENT_NORMAL, REQUEST_EVENT_PROTECTION,
         RequestMoveResizeFocusedWindowEvent, RequestMoveResizeFocusedWindowEvent(0, 0, 0, 0, 0)
     )
     register_event(
-        bus, EVENT_ID_REQUEST_SHIFT_LAYOUT_FOCUS, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_REQUEST_SHIFT_LAYOUT_FOCUS, QUEUE_EVENT_NORMAL, REQUEST_EVENT_PROTECTION,
         RequestShiftLayoutFocusEvent, RequestShiftLayoutFocusEvent('', 0)
     )
     register_event(
-        bus, EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY, QUEUE_EVENT_NORMAL, REQUEST_EVENT_PROTECTION,
         RequestSetFocusedWindowVisibilityEvent, RequestSetFocusedWindowVisibilityEvent(False)
     )
 

@@ -15,6 +15,7 @@ from ....base.bus import (
 from ....base.events import (
     register_event,
 )
+from ....base.events.bus import CONSUME_EVENT_PROTECTION
 from ....core.extensions.api import (
     ANY_VERSION,
 )
@@ -31,6 +32,7 @@ def bootstrap_timer_api(bus: EventBus) -> None:
         bus,
         EVENT_ID_TIMER,
         QUEUE_EVENT_NORMAL,
+        CONSUME_EVENT_PROTECTION,
         TimerEvent,
         GLOBAL_TIMER_EVENT
     )

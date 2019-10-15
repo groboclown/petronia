@@ -1,5 +1,8 @@
 # API Extension {name} v{version}
 
+* Authors: {authors}
+* License: {license}
+
 {doc}
 
 {#has_depends:depends_on.inc.md#}

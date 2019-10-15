@@ -3,6 +3,10 @@
 Extension For:
 {#implements:dependency.inc.md#}
 
+* Authors: {authors}
+* License: {license}
+* Runs in {secure_text}
+
 {doc}
 
 {#has_depends:depends_on.inc.md#}

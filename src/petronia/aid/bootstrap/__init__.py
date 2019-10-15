@@ -45,6 +45,15 @@ from ...base.events import (
     as_participant_started_listener,
     send_participant_started_event,
 )
+from ...base.events.bus import (
+    EventProtectionModel,
+    GLOBAL_EVENT_PROTECTION,
+    INTERNAL_EVENT_PROTECTION,
+    PRODUCE_EVENT_PROTECTION,
+    CONSUME_EVENT_PROTECTION,
+    REQUEST_EVENT_PROTECTION,
+    RESPONSE_EVENT_PROTECTION,
+)
 
 from ...core.extensions.api import ANY_VERSION
 

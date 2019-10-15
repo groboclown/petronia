@@ -3,7 +3,10 @@
 Constants for the event bus.
 """
 
-from .bus_types import EventId, ListenerId, QueuePriority
+from .bus_types import (
+    EventId, ListenerId, QueuePriority,
+    EventProtectionModel,
+)
 from .identity_types import create_singleton_identity
 
 
@@ -21,3 +24,12 @@ QUEUE_EVENT_TYPES = (
     QUEUE_EVENT_NORMAL,
     QUEUE_EVENT_IO,
 )
+
+GLOBAL_EVENT_PROTECTION = EventProtectionModel(True, True)
+INTERNAL_EVENT_PROTECTION = EventProtectionModel(False, False)
+PRODUCE_EVENT_PROTECTION = EventProtectionModel(True, False)
+CONSUME_EVENT_PROTECTION = EventProtectionModel(False, True)
+
+# Aliases
+REQUEST_EVENT_PROTECTION = PRODUCE_EVENT_PROTECTION
+RESPONSE_EVENT_PROTECTION = CONSUME_EVENT_PROTECTION

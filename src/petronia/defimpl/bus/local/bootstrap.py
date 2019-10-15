@@ -1,4 +1,7 @@
 
+# mypy: allow-any-expr
+# mypy: allow-any-generics
+
 """
 Bootstraps singletons and event registration.
 """
@@ -35,13 +38,14 @@ def bootstrap_event_bus(queuer: QueueFunction) -> EventBus:
     return ret
 
 
-def register_core_events(evtr: EventRegistry) -> None:
+def register_core_events(event_reg: EventRegistry) -> None:
     """For internal use and test support."""
-    core_events = bootstrap_core_events() # type: ignore
-    for event_id, priority, event_class, event_example in core_events: # type: ignore
-        evtr.register(
+    core_events = bootstrap_core_events()
+    for event_id, priority, protection, event_class, event_example in core_events:  # type: ignore
+        event_reg.register(
             event_id,
             priority,
-            event_class, # type: ignore
-            event_example # type: ignore
+            protection,
+            event_class,  # type: ignore
+            event_example  # type: ignore
         )

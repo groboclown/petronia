@@ -14,6 +14,10 @@ from ....aid.bootstrap import (
     ANY_VERSION,
     QUEUE_EVENT_NORMAL,
     NOT_PARTICIPANT,
+    GLOBAL_EVENT_PROTECTION,
+    REQUEST_EVENT_PROTECTION,
+    RESPONSE_EVENT_PROTECTION,
+    CONSUME_EVENT_PROTECTION,
 )
 from ....base.util import (
     EMPTY_MAPPING,
@@ -50,29 +54,29 @@ from .state import (
 def bootstrap_hotkeys(bus: EventBus) -> None:
     """Register all the events and everything."""
     register_event(
-        bus, EVENT_ID_HOTKEY_EVENT_TRIGGERED, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_HOTKEY_EVENT_TRIGGERED, QUEUE_EVENT_NORMAL, CONSUME_EVENT_PROTECTION,
         HotkeyEventTriggeredEvent, HotkeyEventTriggeredEvent(BoundServiceActionData('', EMPTY_MAPPING))
     )
     register_event(
-        bus, EVENT_ID_REGISTER_HOTKEY_EVENT, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_REGISTER_HOTKEY_EVENT, QUEUE_EVENT_NORMAL, REQUEST_EVENT_PROTECTION,
         RegisterHotkeyEventEvent, RegisterHotkeyEventEvent('', BoundServiceActionData('', EMPTY_MAPPING))
     )
     register_event(
-        bus, EVENT_ID_REMOVE_HOTKEY_EVENT, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_REMOVE_HOTKEY_EVENT, QUEUE_EVENT_NORMAL, REQUEST_EVENT_PROTECTION,
         RemoveHotkeyEventEvent, RemoveHotkeyEventEvent('')
     )
     register_event(
-        bus, EVENT_ID_SET_MASTER_HOTKEY_SEQUENCE, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_SET_MASTER_HOTKEY_SEQUENCE, QUEUE_EVENT_NORMAL, REQUEST_EVENT_PROTECTION,
         SetMasterHotkeySequenceEvent, SetMasterHotkeySequenceEvent('')
     )
     register_event(
-        bus, EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT, QUEUE_EVENT_NORMAL, RESPONSE_EVENT_PROTECTION,
         HotkeyBoundServiceAnnouncementEvent, HotkeyBoundServiceAnnouncementEvent(
             BoundServiceActionSchema(NOT_PARTICIPANT, '', {})
         )
     )
     register_event(
-        bus, EVENT_ID_HOTKEY_UNBIND_SERVICE_ANNOUNCEMENT, QUEUE_EVENT_NORMAL,
+        bus, EVENT_ID_HOTKEY_UNBIND_SERVICE_ANNOUNCEMENT, QUEUE_EVENT_NORMAL, RESPONSE_EVENT_PROTECTION,
         HotkeyUnbindServiceAnnouncementEvent, HotkeyUnbindServiceAnnouncementEvent(
             NOT_PARTICIPANT, ''
         )

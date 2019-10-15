@@ -41,17 +41,23 @@ from ..internal_.dispose_events import (
     RequestDisposeEvent,
 )
 from ..internal_.bus_types import (
-    EventId, QueuePriority
+    EventId, QueuePriority, EventProtectionModel,
 )
 from ..internal_.bus_constants import (
     QUEUE_EVENT_IO,
     QUEUE_EVENT_NORMAL,
     QUEUE_EVENT_HIGH,
+    GLOBAL_EVENT_PROTECTION,
+    CONSUME_EVENT_PROTECTION,
+    PRODUCE_EVENT_PROTECTION,
 )
 from ..internal_.identity_types import NOT_PARTICIPANT
 from ..util.memory import T
 
-EventDefinition = Tuple[EventId, QueuePriority, Type[T], T]
+# Order of arguments to the RegisterEventEvent constructor
+# event_id: EventId, priority: QueuePriority, public_produce: bool, public_consume: bool,
+# event_class: Type[T], example: T
+EventDefinition = Tuple[EventId, QueuePriority, EventProtectionModel, Type[T], T]
 
 
 def bootstrap_core_events() -> Sequence[EventDefinition[Any]]:  # type: ignore
@@ -62,64 +68,64 @@ def bootstrap_core_events() -> Sequence[EventDefinition[Any]]:  # type: ignore
     return (
         (
             EVENT_ID_EVENT_LISTENER_ADDED,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, CONSUME_EVENT_PROTECTION,
             EventListenerAddedEvent,
             EventListenerAddedEvent(EVENT_ID_EVENT_LISTENER_ADDED, NOT_PARTICIPANT),
         ),
         (
             EVENT_ID_REGISTER_EVENT,
-            QUEUE_EVENT_HIGH,
+            QUEUE_EVENT_HIGH, PRODUCE_EVENT_PROTECTION,
             RegisterEventEvent,
             RegisterEventEvent(
-                EVENT_ID_DISPOSE_COMPLETE, QUEUE_EVENT_IO,
+                EVENT_ID_DISPOSE_COMPLETE, QUEUE_EVENT_IO, GLOBAL_EVENT_PROTECTION,
                 DisposeCompleteEvent, DisposeCompleteEvent(NOT_PARTICIPANT)
             ),
         ),
         (
             EVENT_ID_DISPOSE_COMPLETE,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             DisposeCompleteEvent,
             DisposeCompleteEvent(NOT_PARTICIPANT),
         ),
         (
             EVENT_ID_REQUEST_DISPOSE,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             RequestDisposeEvent,
             RequestDisposeEvent(NOT_PARTICIPANT),
         ),
         (
             EVENT_ID_COMPONENT_CREATED,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             ComponentCreatedEvent,
             ComponentCreatedEvent(NOT_PARTICIPANT, 1),
         ),
         (
             EVENT_ID_COMPONENT_CREATION_FAILED,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             ComponentCreationFailedEvent,
             ComponentCreationFailedEvent('x', 1, 'x', {}),
         ),
         (
             EVENT_ID_REQUEST_NEW_COMPONENT,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             RequestNewComponentEvent,
             RequestNewComponentEvent(object(), NOT_PARTICIPANT, 1),
         ),
         (
             EVENT_ID_PARTICIPANT_STARTED,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             ParticipantStartedEvent,
             ParticipantStartedEvent(NOT_PARTICIPANT),
         ),
         (
             EVENT_ID_SYSTEM_STARTED,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, CONSUME_EVENT_PROTECTION,
             SystemStartedEvent,
             SystemStartedEvent(),
         ),
         (
             EVENT_ID_SYSTEM_HALTED,
-            QUEUE_EVENT_NORMAL,
+            QUEUE_EVENT_NORMAL, CONSUME_EVENT_PROTECTION,
             SystemHaltedEvent,
             SystemHaltedEvent()
         ),

@@ -38,6 +38,7 @@ class TypeSafeEventBus(EventBus):
     A local, type-safe version of the EventBus.
     """
     __slots__ = ('__bus', '__reg', '__next_id', '__id_lock', '__lock_timeout')
+
     def __init__(self, bus: BasicEventBus, reg: EventRegistry) -> None:
         assert isinstance(bus, BasicEventBus)
         assert isinstance(reg, EventRegistry)
@@ -46,7 +47,6 @@ class TypeSafeEventBus(EventBus):
         self.__next_id = 1
         self.__id_lock = Lock()
         self.__lock_timeout = 0.1
-
 
     def add_listener(
             self,
@@ -65,10 +65,10 @@ class TypeSafeEventBus(EventBus):
         # Really, the Event* stuff should take a generic that is of type object.
         # But even that isn't right.  Look, it's complicated.  Don't judge me.
         callback: EventCallback[object] = lambda eid, tid, eo: (
-            self.__listener_callback( # type: ignore
+            self.__listener_callback(  # type: ignore
                 eid, tid,
-                eo, # type: ignore
-                listener # type: ignore
+                eo,  # type: ignore
+                listener  # type: ignore
             ))
 
         ret = self.__bus.add_listener(

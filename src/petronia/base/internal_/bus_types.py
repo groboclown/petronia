@@ -39,6 +39,40 @@ ExtensionMetadataStruct = Dict[str, Union[
 ]]
 
 
+class EventProtectionModel:
+    """
+    Describes the protection around listening (consuming) and triggering
+    (producing) a specific event.  The protection model is based around
+    defining events only through an API, and the elevated (non-public) access
+    is granted only to implementations of that API.
+    """
+    __slots__ = ('__produce', '__consume')
+
+    def __init__(self, public_produce: bool, public_consume: bool) -> None:
+        self.__produce = public_produce
+        self.__consume = public_consume
+
+    @property
+    def public_produce(self) -> bool:
+        """
+
+        :return: True if the triggering of the event can be done by any
+            extension, or False if only an implementation of the API extension
+            can produce it.
+        """
+        return self.__produce
+
+    @property
+    def public_consume(self) -> bool:
+        """
+
+        :return: True if the listening to the event can be done by any
+            extension, or False if only an implementation of the API extension
+            can consume it.
+        """
+        return self.__consume
+
+
 class EventBus:
     """
     The EventBus common API.

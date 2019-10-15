@@ -11,6 +11,7 @@ from .....aid.bootstrap import (
     register_event,
     QUEUE_EVENT_NORMAL,
     QUEUE_EVENT_HIGH,
+    CONSUME_EVENT_PROTECTION,
 )
 from .hotkey import (
     EVENT_ID_HOTKEY_PRESSED,
@@ -31,14 +32,14 @@ def register_user_input_events(bus: EventBus) -> None:
     # Hotkey events have high priority, because we want the key responsiveness
     # to be quick.
     register_event(
-        bus, EVENT_ID_HOTKEY_PRESSED, QUEUE_EVENT_HIGH,
+        bus, EVENT_ID_HOTKEY_PRESSED, QUEUE_EVENT_HIGH, CONSUME_EVENT_PROTECTION,
         HotkeyPressedEvent, HotkeyPressedEvent('')
     )
     register_event(
-        bus, EVENT_ID_HOTKEY_PROGRESS, QUEUE_EVENT_HIGH,
+        bus, EVENT_ID_HOTKEY_PROGRESS, QUEUE_EVENT_HIGH, CONSUME_EVENT_PROTECTION,
         HotkeyProgressEvent, HotkeyProgressEvent('', STRING_EMPTY_TUPLE)
     )
     register_event(
-        bus, EVENT_ID_HOTKEY_PROGRESS_CANCELLED, QUEUE_EVENT_HIGH,
+        bus, EVENT_ID_HOTKEY_PROGRESS_CANCELLED, QUEUE_EVENT_HIGH, CONSUME_EVENT_PROTECTION,
         HotkeyProgressCancelledEvent, HotkeyProgressCancelledEvent()
     )

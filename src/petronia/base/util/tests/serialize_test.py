@@ -13,7 +13,10 @@ from ...internal_.bus_events import (
     RegisterEventEvent,
     EVENT_ID_REGISTER_EVENT,
 )
-from ...internal_.bus_constants import QUEUE_EVENT_NORMAL
+from ...internal_.bus_constants import (
+    QUEUE_EVENT_NORMAL,
+    GLOBAL_EVENT_PROTECTION,
+)
 
 
 class TestCreateInstance(unittest.TestCase):
@@ -98,7 +101,9 @@ class TestSerialize(unittest.TestCase):
 
     def test_register_event(self) -> None:
         ev1 = SimpleInstance()
-        ev2 = RegisterEventEvent(EVENT_ID_REGISTER_EVENT, QUEUE_EVENT_NORMAL, SimpleInstance, ev1)
+        ev2 = RegisterEventEvent(
+            EVENT_ID_REGISTER_EVENT, QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION, SimpleInstance, ev1
+        )
         serialized = serialize_to_json(ev2)
         # print("serialized with class to {0}".format(serialized))
         back = deserialize_from_json(serialized)

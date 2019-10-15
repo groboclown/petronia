@@ -17,3 +17,14 @@ from ...internal_.bus_events import (
     RegisterEventEvent,
     as_register_event_listener,
 )
+from ...internal_.bus_types import (
+    EventProtectionModel,
+)
+from ...internal_.bus_constants import (
+    GLOBAL_EVENT_PROTECTION,
+    INTERNAL_EVENT_PROTECTION,
+    PRODUCE_EVENT_PROTECTION,
+    CONSUME_EVENT_PROTECTION,
+    REQUEST_EVENT_PROTECTION,
+    RESPONSE_EVENT_PROTECTION,
+)

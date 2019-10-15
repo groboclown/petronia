@@ -20,6 +20,9 @@ from ....base.bus import (
     ExtensionMetadataStruct,
     QUEUE_EVENT_NORMAL,
 )
+from ....base.events.bus import (
+    REQUEST_EVENT_PROTECTION, RESPONSE_EVENT_PROTECTION,
+)
 from ...extensions.api import ANY_VERSION
 
 
@@ -32,6 +35,7 @@ def bootstrap_state_store_api(bus: EventBus) -> None:
         bus,
         EVENT_ID_UPDATE_STATE_REQUEST,
         QUEUE_EVENT_NORMAL,
+        REQUEST_EVENT_PROTECTION,
         StateStoreUpdateRequestEvent,
         StateStoreUpdateRequestEvent(NOT_PARTICIPANT, object, object()) # type: ignore
     )
@@ -39,6 +43,7 @@ def bootstrap_state_store_api(bus: EventBus) -> None:
         bus,
         EVENT_ID_UPDATED_STATE,
         QUEUE_EVENT_NORMAL,
+        RESPONSE_EVENT_PROTECTION,
         StateStoreUpdatedEvent,
         StateStoreUpdatedEvent(NOT_PARTICIPANT, object, object(), object()) # type: ignore
     )
