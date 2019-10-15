@@ -24,5 +24,9 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
     "name": "core.validation.api",
     "version": (1, 0, 0,),
     "depends": [],
+    "defaults": [{
+        "extension": "defimpl.validation",
+        "minimum": ANY_VERSION,
+    }],
     "authors": ["Petronia"],
 }

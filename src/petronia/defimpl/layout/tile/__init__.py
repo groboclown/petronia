@@ -11,7 +11,10 @@ It allows for:
 
 The UI is split into "portals" and "containers".  A portal is a place where
 zero or more UI windows are stored.
+
+
 """
 
 from .bootstrap import bootstrap_layout as start_extension
 from .bootstrap import EXTENSION_METADATA
+from .config.parser import TILE_LAYOUT_CONFIG_SCHEMA as CONFIG_SCHEMA

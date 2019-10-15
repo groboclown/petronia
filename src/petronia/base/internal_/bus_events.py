@@ -20,7 +20,7 @@ from ..util import T
 TARGET_EVENT_BUS = create_singleton_identity('petronia.bus.api')
 TARGET_EVENT_REGISTRY = create_singleton_identity('petronia.bus.event-registry')
 
-EVENT_ID_EVENT_LISTENER_ADDED = EventId('petronia.bus.event-registry listener-add')
+EVENT_ID_EVENT_LISTENER_ADDED = EventId('petronia.bus.event-registry/listener-add')
 
 
 class EventListenerAddedEvent:
@@ -30,6 +30,7 @@ class EventListenerAddedEvent:
     There is no event triggered for removing an event listener.
     """
     __slots__ = ('_event_id', '_target_id',)
+
     def __init__(self, event_id: EventId, target_id: ParticipantId) -> None:
         self._event_id = event_id
         self._target_id = target_id
@@ -45,7 +46,7 @@ class EventListenerAddedEvent:
         return self._target_id
 
 
-EVENT_ID_REGISTER_EVENT = EventId('petronia.bus.event-registry register-event')
+EVENT_ID_REGISTER_EVENT = EventId('petronia.bus.event-registry/register-event')
 
 
 class RegisterEventEvent(Generic[T]):
@@ -53,6 +54,7 @@ class RegisterEventEvent(Generic[T]):
     A request to add an event to the registration.
     """
     __slots__ = ('_event_id', '_priority', '_event_class', '_example',)
+
     def __init__(
             self, event_id: EventId, priority: QueuePriority,
             event_class: Type[T], example: T
@@ -103,6 +105,7 @@ def register_event(
         EVENT_ID_REGISTER_EVENT, TARGET_EVENT_REGISTRY,
         RegisterEventEvent(event_id, priority, event_class, example)
     )
+
 
 def as_register_event_listener(
         callback: EventCallback[RegisterEventEvent[T]]

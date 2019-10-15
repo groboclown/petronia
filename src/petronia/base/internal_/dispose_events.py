@@ -18,8 +18,8 @@ from ..validation import (
 )
 
 # Note: not "core".
-EVENT_ID_REQUEST_DISPOSE = EventId('petronia.participant request-dispose')
-EVENT_ID_DISPOSE_COMPLETE = EventId('petronia.participant dispose-complete')
+EVENT_ID_REQUEST_DISPOSE = EventId('petronia.participant/request-dispose')
+EVENT_ID_DISPOSE_COMPLETE = EventId('petronia.participant/dispose-complete')
 
 
 class RequestDisposeEvent:

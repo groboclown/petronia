@@ -17,6 +17,8 @@ def bootstrap_shutdown_timer(bus: EventBus) -> None:
 
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "name": "default.shutdown.timer",
+    "version": (1, 0, 0),
     "type": "impl",
     "depends": [],
     "implements": [{

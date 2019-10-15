@@ -18,7 +18,7 @@ case "$( uname )" in
         rm -r $HERE/.cache/petronia/defimpl/platform/windows
         ;;
     *)
-               exit 1
+        exit 1
         ;;
 esac
 

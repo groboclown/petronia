@@ -53,7 +53,8 @@ from ..util.memory import T
 
 EventDefinition = Tuple[EventId, QueuePriority, Type[T], T]
 
-def bootstrap_core_events() -> Sequence[EventDefinition[Any]]: # type: ignore
+
+def bootstrap_core_events() -> Sequence[EventDefinition[Any]]:  # type: ignore
     """
     List all the core events along with details of how they should be
     registered.

@@ -3,16 +3,17 @@
 Hotkey action registration.
 """
 
-from ....aid.std import (
-    EventId,
-    EventBus,
-    ParticipantId,
-    EventCallback,
-)
+# Cannot import aid.std because of inter-dependencies.
 from ....aid.bootstrap import (
+    EventBus,
     ListenerSetup,
     create_singleton_identity,
 )
+from ....base.bus import (
+    EventId,
+    EventCallback,
+)
+from ....base.participant import ParticipantId
 from .state import (
     BoundServiceActionData,
     BoundServiceActionSchema,

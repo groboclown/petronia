@@ -35,7 +35,10 @@ def bootstrap_extensions_api(bus: EventBus) -> None:
         ExtensionLoadedEvent(LoadedExtension('x', True, (1, 0, 0,)), [])
     )
 
+
 EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "name": "core.extensions.api",
+    "version": (1, 0, 0,),
     "type": "api",
     "depends": [
         {

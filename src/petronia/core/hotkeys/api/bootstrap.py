@@ -6,18 +6,18 @@
 Startup the extension.
 """
 
-from ....aid.std import (
-    EventBus,
-    EMPTY_DICT,
-    EMPTY_MAPPING,
-    EMPTY_TUPLE,
-)
+# Cannot import aid.std because of inter-dependencies.
 from ....aid.bootstrap import (
+    EventBus,
     register_event,
     ExtensionMetadataStruct,
     ANY_VERSION,
     QUEUE_EVENT_NORMAL,
     NOT_PARTICIPANT,
+)
+from ....base.util import (
+    EMPTY_MAPPING,
+    EMPTY_TUPLE,
 )
 from ...state.api import set_state
 from .events import (
@@ -85,16 +85,16 @@ def bootstrap_hotkeys(bus: EventBus) -> None:
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     "type": "api",
-    "default": [{
+    "defaults": [{
         "extension": "defimpl.hotkeys",
-        "version": ANY_VERSION,
+        "minimum": ANY_VERSION,
     }],
     "depends": [{
         "extension": "core.platform.api",
-        "version": ANY_VERSION,
+        "minimum": ANY_VERSION,
     }, {
         "extension": "core.state.api",
-        "version": ANY_VERSION,
+        "minimum": ANY_VERSION,
     }],
 
     "name": "core.hotkeys.api",

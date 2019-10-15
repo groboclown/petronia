@@ -7,10 +7,13 @@ from ...errors import (
 from ..serial.converter import (
     serialize_to_json,
     deserialize_from_json,
-    #serialize_value,
-    #deserialize_value,
     create_instance,
 )
+from ...internal_.bus_events import (
+    RegisterEventEvent,
+    EVENT_ID_REGISTER_EVENT,
+)
+from ...internal_.bus_constants import QUEUE_EVENT_NORMAL
 
 
 class TestCreateInstance(unittest.TestCase):
@@ -36,21 +39,21 @@ class TestCreateInstance(unittest.TestCase):
 
     def test_invalid_too_many_args(self) -> None:
         try:
-            create_instance(__name__ + '.SimpleInstance', { 'x': 1 })
+            create_instance(__name__ + '.SimpleInstance', {'x': 1})
             self.fail('did not raise right error')
         except TypeError:
             pass
 
     def test_invalid_too_few_args(self) -> None:
         try:
-            create_instance(__name__ + '.WithArguments', { 'v2': 1 })
+            create_instance(__name__ + '.WithArguments', {'v2': 1})
             self.fail('did not raise right error')
         except TypeError:
             pass
 
     def test_invalid_wrong_args(self) -> None:
         try:
-            create_instance(__name__ + '.WithArguments', { 'x': 1 })
+            create_instance(__name__ + '.WithArguments', {'x': 1})
             self.fail('did not throw right error')
         except TypeError:
             pass
@@ -93,12 +96,22 @@ class TestSerialize(unittest.TestCase):
         self.assertIs(back.r1, back.r2.r1)
         self.assertIs(back.r1, back.r2.r2)
 
+    def test_register_event(self) -> None:
+        ev1 = SimpleInstance()
+        ev2 = RegisterEventEvent(EVENT_ID_REGISTER_EVENT, QUEUE_EVENT_NORMAL, SimpleInstance, ev1)
+        serialized = serialize_to_json(ev2)
+        # print("serialized with class to {0}".format(serialized))
+        back = deserialize_from_json(serialized)
+        self.assertIsInstance(back, RegisterEventEvent)
+        self.assertEqual(back.event_class, SimpleInstance)
 
 
 class SimpleInstance:
     __slots__ = ()
+
     def __init__(self) -> None:
         pass
+
 
 class WithArguments:
     __slots__ = ('_v1', '_v2',)
@@ -114,6 +127,7 @@ class WithArguments:
     @property
     def v2(self) -> int:
         return self._v2
+
 
 class Recursive:
     __slots__ = ('__r1', '__r2', '__v')

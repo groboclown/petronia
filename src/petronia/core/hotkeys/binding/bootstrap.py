@@ -49,6 +49,7 @@ def bootstrap_core_handlers(bus: EventBus) -> None:
 
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "name": "core.hotkeys.binding",
     "type": "standalone",
     "version": (1, 0, 0,),
     "depends": [{

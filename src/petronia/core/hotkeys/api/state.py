@@ -6,21 +6,20 @@
 The current state of the registered hotkeys.
 """
 
+# Cannot import aid.std because of inter-dependencies.
 from typing import Sequence, Any
-from ....aid.std import (
-    ParticipantId,
-    EventBus,
-    set_state,
-)
 from ....aid.bootstrap import (
+    EventBus,
     create_singleton_identity,
 )
+from ....base.participant import ParticipantId
 from ....base.util.simple_type import (
     PersistType,
     PersistTypeSchema,
     readonly_persistent_copy,
     readonly_persistent_schema_copy,
 )
+from ....core.state.api import set_state
 
 
 STATE_ID_HOTKEY_EVENTS = create_singleton_identity('core.hotkeys.api/state')

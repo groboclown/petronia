@@ -1,7 +1,7 @@
 
 """
 General manager for the tiles.  This provides the control methods for
-interacting with the splitters and portals.
+interacting with the splitters and portals tree.
 """
 
 from typing import Dict, Sequence, Tuple, Optional

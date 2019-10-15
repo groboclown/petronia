@@ -13,6 +13,12 @@ from .events import (
 
     EVENT_ID_REQUEST_MOVE_RESIZE_FOCUSED_WINDOW,
     RequestMoveResizeFocusedWindowEvent,
+
+    EVENT_ID_REQUEST_SHIFT_LAYOUT_FOCUS,
+    RequestShiftLayoutFocusEvent,
+
+    EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY,
+    RequestSetFocusedWindowVisibilityEvent,
 )
 
 
@@ -23,7 +29,15 @@ def bootstrap_layout_api(bus: EventBus) -> None:
     )
     register_event(
         bus, EVENT_ID_REQUEST_MOVE_RESIZE_FOCUSED_WINDOW, QUEUE_EVENT_NORMAL,
-        RequestMoveResizeFocusedWindowEvent, RequestMoveResizeFocusedWindowEvent(0, 0, 0, 0)
+        RequestMoveResizeFocusedWindowEvent, RequestMoveResizeFocusedWindowEvent(0, 0, 0, 0, 0)
+    )
+    register_event(
+        bus, EVENT_ID_REQUEST_SHIFT_LAYOUT_FOCUS, QUEUE_EVENT_NORMAL,
+        RequestShiftLayoutFocusEvent, RequestShiftLayoutFocusEvent('', 0)
+    )
+    register_event(
+        bus, EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY, QUEUE_EVENT_NORMAL,
+        RequestSetFocusedWindowVisibilityEvent, RequestSetFocusedWindowVisibilityEvent(False)
     )
 
 

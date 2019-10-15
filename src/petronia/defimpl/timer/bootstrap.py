@@ -53,6 +53,8 @@ def start_extension(bus: EventBus) -> None:
 
 
 EXTENSION_METADATA: ExtensionMetadataStruct = {
+    "name": "default.timer",
+    "version": (1, 0, 0),
     'type': 'impl',
     "depends": [{
         'extension': 'core.state.api',

@@ -69,14 +69,15 @@ class RequestMoveResizeFocusedWindowEvent:
     """
 
     __slots__ = (
-        '__dx', '__dy', '__dw', '__dh',
+        '__dx', '__dy', '__dw', '__dh', '__dz',
     )
 
-    def __init__(self, dx: int, dy: int, dw: int, dh: int) -> None:
+    def __init__(self, dx: int, dy: int, dw: int, dh: int, dz: int) -> None:
         self.__dx = dx
         self.__dy = dy
         self.__dw = dw
         self.__dh = dh
+        self.__dz = dz
 
     @property
     def dx(self) -> int:
@@ -94,6 +95,10 @@ class RequestMoveResizeFocusedWindowEvent:
     def dh(self) -> int:
         return self.__dh
 
+    @property
+    def dz(self) -> int:
+        return self.__dz
+
 
 def as_request_move_resize_focused_window_listener(
         callback: EventCallback[RequestMoveResizeFocusedWindowEvent]
@@ -103,20 +108,66 @@ def as_request_move_resize_focused_window_listener(
 
 def send_request_move_resize_focused_window_event(
         bus: EventBus,
-        dx: int, dy: int, dw: int, dh: int
+        dx: int, dy: int, dw: int, dh: int, dz: int
 ) -> None:
     bus.trigger(
         EVENT_ID_REQUEST_MOVE_RESIZE_FOCUSED_WINDOW, TARGET_ID_LAYOUT,
-        RequestMoveResizeFocusedWindowEvent(dx, dy, dw, dh)
+        RequestMoveResizeFocusedWindowEvent(dx, dy, dw, dh, dz)
     )
 
 # ---------------------------------------------------------------------------
 
 
-EVENT_ID_REQUEST_SET_WINDOW_VISIBILITY = EventId('core.layout.api/request-visibility')
+EVENT_ID_REQUEST_SHIFT_LAYOUT_FOCUS = EventId('core.layout.api/request-shift')
 
 
-class RequestSetWindowVisibility:
+class RequestShiftLayoutFocusEvent:
+    """
+    Request to shift where the layout is focusing.  This could be moving to
+    another virtual workspace, switching to a different tile in a tiling
+    system, flipping to another window in a full-screen layout, or any number
+    of other options that are specific to the layout manager.
+
+    This super generic event takes a "name" and an "index", to allow a
+    number and string input.
+    """
+
+    __slots__ = (
+        '__name', '__index',
+    )
+
+    def __init__(self, name: str, index: int) -> None:
+        self.__name = name
+        self.__index = index
+
+    @property
+    def name(self) -> str:
+        return self.__name
+
+    @property
+    def index(self) -> int:
+        return self.__index
+
+
+def as_request_shift_layout_focus_listener(
+        callback: EventCallback[RequestShiftLayoutFocusEvent]
+) -> ListenerSetup[RequestShiftLayoutFocusEvent]:
+    return (EVENT_ID_REQUEST_SHIFT_LAYOUT_FOCUS, callback,)
+
+
+def send_request_shift_layout_focus_event(bus: EventBus, name: str, index: int) -> None:
+    bus.trigger(
+        EVENT_ID_REQUEST_SHIFT_LAYOUT_FOCUS, TARGET_ID_LAYOUT,
+        RequestShiftLayoutFocusEvent(name, index)
+    )
+
+# ---------------------------------------------------------------------------
+
+
+EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY = EventId('core.layout.api/request-visibility')
+
+
+class RequestSetFocusedWindowVisibilityEvent:
     """
     Request to change the window's visibility.  The layout may minimize or move off
     screen or in some other way hide the window from sight.  Making a window visible
@@ -131,3 +182,16 @@ class RequestSetWindowVisibility:
 
     def __init__(self, visible: bool) -> None:
         self.__visible = visible
+
+
+def as_request_set_focused_window_visibility_listener(
+        callback: EventCallback[RequestSetFocusedWindowVisibilityEvent]
+) -> ListenerSetup[RequestSetFocusedWindowVisibilityEvent]:
+    return (EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY, callback,)
+
+
+def send_request_set_window_visibility_event(bus: EventBus, visible: bool) -> None:
+    bus.trigger(
+        EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY, TARGET_ID_LAYOUT,
+        RequestSetFocusedWindowVisibilityEvent(visible)
+    )

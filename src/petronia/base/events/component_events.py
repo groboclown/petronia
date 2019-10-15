@@ -16,7 +16,7 @@ from ..util.memory import T, readonly_dict
 # ---------------------------------------------------------------------------
 
 # Note: not "core".
-EVENT_ID_REQUEST_NEW_COMPONENT = EventId('petronia.registrar request-new-component')
+EVENT_ID_REQUEST_NEW_COMPONENT = EventId('petronia.registrar/request-new-component')
 
 
 class RequestNewComponentEvent(Generic[T]):
@@ -81,7 +81,7 @@ def send_request_new_component(
 
 # ---------------------------------------------------------------------------
 
-EVENT_ID_COMPONENT_CREATED = EventId('petronia.registrar component-created')
+EVENT_ID_COMPONENT_CREATED = EventId('petronia.registrar/component-created')
 
 
 class ComponentCreatedEvent:
@@ -127,7 +127,7 @@ def send_component_created_event(
 
 # ---------------------------------------------------------------------------
 
-EVENT_ID_COMPONENT_CREATION_FAILED = EventId('petronia.registrar component-create-failed')
+EVENT_ID_COMPONENT_CREATION_FAILED = EventId('petronia.registrar/component-create-failed')
 
 
 class ComponentCreationFailedEvent:

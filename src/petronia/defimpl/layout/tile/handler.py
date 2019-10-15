@@ -37,6 +37,16 @@ from ....core.platform.api import (
     STATE_ID_SCREENS,
     VirtualScreenInfo,
 )
+from ....core.layout.api import (
+    TARGET_ID_LAYOUT,
+    send_layout_changed_event,
+    RequestMoveResizeFocusedWindowEvent,
+    as_request_move_resize_focused_window_listener,
+    RequestShiftLayoutFocusEvent,
+    as_request_shift_layout_focus_listener,
+    RequestSetFocusedWindowVisibilityEvent,
+    as_request_set_focused_window_visibility_listener,
+)
 from .config import (
     TileLayoutConfig,
     CONFIG_ID_TILE_LAYOUT,
@@ -100,11 +110,49 @@ class TileEventHandler:
         self.__config = tile_config.state
         self.__screens = screen_state.state
 
+        listeners.listen(
+            TARGET_ID_LAYOUT, as_request_set_focused_window_visibility_listener, self._req_window_visibility
+        )
+        listeners.listen(
+            TARGET_ID_LAYOUT, as_request_shift_layout_focus_listener, self._req_shift_focus
+        )
+        listeners.listen(
+            TARGET_ID_LAYOUT, as_request_move_resize_focused_window_listener, self._req_resize
+        )
         screen_state.set_listener(self._on_screen_state_changed)
+        tile_config.set_listener(self._on_tile_config_changed)
         listeners.listen(
             TARGET_ID_WINDOW_CREATION, as_native_window_created_listener, self._on_window_created
         )
 
+    # -----------------------------------------------------------------------
+    # User Requests
+    def _req_window_visibility(
+            self,
+            event_id: EventId,
+            target_id: ParticipantId,
+            event_obj: RequestSetFocusedWindowVisibilityEvent
+    ) -> None:
+        raise NotImplementedError()
+
+    def _req_shift_focus(
+            self,
+            event_id: EventId,
+            target_id: ParticipantId,
+            event_obj: RequestShiftLayoutFocusEvent
+    ) -> None:
+        raise NotImplementedError()
+
+    def _req_resize(
+            self,
+            event_id: EventId,
+            target_id: ParticipantId,
+            event_obj: RequestMoveResizeFocusedWindowEvent
+    ) -> None:
+        raise NotImplementedError()
+
+    # -----------------------------------------------------------------------
+    # State Change Events
     def _on_screen_state_changed(self, state: ScreenState) -> None:
         # TODO find the new layout that matches the screens.
         raise NotImplementedError()
@@ -113,6 +161,8 @@ class TileEventHandler:
         # TODO found out the new layout that matches the screens.
         raise NotImplementedError()
 
+    # -----------------------------------------------------------------------
+    # Native Platform Events
     def _on_window_created(
             self,
             event_id: EventId,

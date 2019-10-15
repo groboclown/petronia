@@ -56,8 +56,8 @@ MODULE_ID = create_singleton_identity('default.hotkeys')
 EXTENSION_METADATA: ExtensionMetadataStruct = {
     'type': 'impl',
     "implements": [{
-        "extension": "core.hotkeys/api",
-        "version": ANY_VERSION,
+        "extension": "core.hotkeys.api",
+        "minimum": ANY_VERSION,
     }],
     'depends': [],
     'name': 'default.hotkeys',
