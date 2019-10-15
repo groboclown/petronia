@@ -8,15 +8,15 @@ from .events import (
     EVENT_ID_PERSIST_CONFIGURATION,
     PersistConfigurationEvent,
 )
-from ....base import NOT_PARTICIPANT
-from ....base.bus import (
+from ....aid.bootstrap import (
     EventBus,
     register_event,
-    ExtensionMetadataStruct,
     QUEUE_EVENT_IO,
+    NOT_PARTICIPANT,
+    GLOBAL_EVENT_PROTECTION,
+    ANY_VERSION,
 )
-from ....base.events.bus import GLOBAL_EVENT_PROTECTION
-from ...extensions.api import ANY_VERSION
+from ....base.internal_.internal_extension import petronia_extension
 
 
 def bootstrap_config_api(bus: EventBus) -> None:
@@ -27,7 +27,7 @@ def bootstrap_config_api(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.config_persistence.api",
     "version": (1, 0, 0,),
     "type": "api",
@@ -36,5 +36,4 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
         "extension": "default.config_persistence",
         "minimum": ANY_VERSION,
     }],
-    "authors": ["Petronia"],
-}
+})

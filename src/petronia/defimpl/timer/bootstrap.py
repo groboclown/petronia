@@ -3,11 +3,11 @@
 Sets up the timer.
 """
 
-from ...base.bus import (
+from ...aid.bootstrap import (
     EventBus,
-    ExtensionMetadataStruct,
+    ANY_VERSION,
 )
-from ...core.extensions.api import ANY_VERSION
+from ...base.internal_.internal_extension import petronia_extension
 from ...core.state.api import (
     as_state_change_listener,
     StateStoreUpdatedEvent,
@@ -52,17 +52,16 @@ def start_extension(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "default.timer",
     "version": (1, 0, 0),
     'type': 'impl',
-    "depends": [{
+    "depends": ({
         'extension': 'core.state.api',
         'minimum': ANY_VERSION,
-    }],
-    'implements': [{
+    },),
+    'implements': ({
         "extension": "core.timer.api",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+})

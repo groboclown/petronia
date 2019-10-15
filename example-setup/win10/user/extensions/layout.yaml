@@ -1,0 +1,48 @@
+---
+
+TileLayout:
+  extension: default.layout.tile
+  enabled: true
+  properties:
+    layouts:
+      # Layout 1: 1 screen.
+      - screens:
+          - resolution: 1024x768
+            direction: horiz
+            splits:
+              - size: 2
+                name: Primary
+              - target: true
+                size: 1
+                splits:
+                  - size: 3
+                    name: s1
+                  - size: 2
+                    name: s2
+      # Layout 2: 2 screens, 1024x768 and 768x1024
+      - screens:
+          - resolution: 1024x768
+            direction: horiz
+            splits:
+              - size: 2
+                name: Primary
+              - target: true
+                size: 1
+                splits:
+                  - size: 3
+                    name: s1
+                  - size: 2
+                    name: s2
+          - resolution: 768x1024
+            name: Secondary
+            direction: vert
+            splits:
+              - size: 0
+                name: communication
+              - size: 2
+                target: true
+                name: terminal
+              - size: 1
+                name: log
+
+    # match-windows:

@@ -1,11 +1,21 @@
-# Extension default.shutdown.timer v1.0.0
+# default.shutdown.timer (implementation)
+**v1.0.0**
+
+(no documentation provided)
+
+## Details
 
 Extension For:
 * [core.shutdown.api](core.shutdown.api.md)
   no version restriction
 
 
-(no documentation provided)
+Runs in elevated privileges
+
+## User Configuration
+
+Does not provide any user configuration.
+
 
 
 
@@ -15,6 +25,12 @@ Extension For:
 ## Listens To Events
 
 * Event Id **`core.shutdown.api request-shutdown`**
-  Target Id **`core.shutdown.api`**`
+  Target Id **`core.shutdown.api`**
 
 
+
+Authors: Petronia
+
+License: MIT
+
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*

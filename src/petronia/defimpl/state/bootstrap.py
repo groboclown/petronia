@@ -21,7 +21,6 @@ from ...aid.std import (
 from ...aid.bootstrap import (
     create_singleton_identity,
     ListenerSetup,
-    ExtensionMetadataStruct,
     ANY_VERSION,
 )
 from ...base.bus import (
@@ -29,23 +28,23 @@ from ...base.bus import (
     as_listener_added_listener,
     TARGET_WILDCARD,
 )
+from ...base.internal_.internal_extension import petronia_extension
 from ...aid.lifecycle import create_module_listener_helper
 from .store import StateStore
 
 
 MODULE_ID = create_singleton_identity('default.state')
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     'type': 'impl',
-    'implements': [{
+    'implements': ({
         'extension': 'core.state.api',
         'minimum': ANY_VERSION,
-    }],
-    'depends': [],
+    },),
+    'depends': (),
     'name': 'default.state',
     'version': (1, 0, 0,),
-    'authors': ['Petronia'],
-}
+})
 
 
 def bootstrap_state_store(bus: EventBus) -> None:

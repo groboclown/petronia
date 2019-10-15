@@ -35,8 +35,8 @@ from ...base import (
 )
 from ...base.bus import (
     ListenerSetup,
-    ExtensionMetadataStruct,
 )
+from ...base.internal_.internal_extension import petronia_extension
 from ...errors import (
     PetroniaExtensionNotFound,
     PetroniaExtensionError,
@@ -50,29 +50,26 @@ from .ext_loader import (
 )
 
 
-def compatible_start_extension(bus: EventBus) -> None: # pylint: disable=unused-argument
+def compatible_start_extension(_bus: EventBus) -> None:
     """For extension compatibility.  Doesn't do anything."""
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "type": "impl",
-    "implements": [
-        {
-            "extension": "core.extensions.api",
-            "minimum": ANY_VERSION,
-        },
-    ],
-    "depends": [
-        {
-            "extension": "core.state.api",
-            "minimum": ANY_VERSION,
-        }
-    ],
+    "implements": ({
+        "extension": "core.extensions.api",
+        "minimum": ANY_VERSION,
+    },),
+    "depends": ({
+        "extension": "core.state.api",
+        "minimum": ANY_VERSION,
+    },),
 
     "name": "default.extensions",
     "version": (1, 0, 0,),
-    "authors": ["Petronia"],
-}
+    "authors": ("Petronia",),
+    "license": "MIT",
+})
 
 
 def bootstrap_extension_loader(

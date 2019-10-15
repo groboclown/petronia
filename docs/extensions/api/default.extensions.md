@@ -1,14 +1,25 @@
-# Extension default.extensions v1.0.0
+# default.extensions (implementation)
+**v1.0.0**
+
+(no documentation provided)
+
+## Details
 
 Extension For:
 * [core.extensions.api](core.extensions.api.md)
   no version restriction
 
 
-(no documentation provided)
+Runs in elevated privileges
+
+## User Configuration
+
+Does not provide any user configuration.
 
 
-Depends On Extensions:
+
+## Dependencies
+
 * [core.state.api](core.state.api.md)
   no version restriction
 
@@ -17,3 +28,9 @@ Depends On Extensions:
 
 
 
+
+Authors: Petronia
+
+License: MIT
+
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*

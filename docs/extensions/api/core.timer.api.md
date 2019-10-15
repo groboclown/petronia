@@ -1,17 +1,16 @@
-# API Extension core.timer.api v1.0.0
+# core.timer.api (API)
+**v1.0.0**
 
 (no documentation provided)
 
+## Details
 
-Depends On Extensions:
+
+## Dependencies
+
 * [core.shutdown.api](core.shutdown.api.md)
   no version restriction
 
-
-
-Default Implementations:
-* [default.timer](default.timer.md)
-  no version restriction
 
 
 
@@ -21,11 +20,24 @@ Default Implementations:
 ### Event `core.timer.api tick`
 
 * Event Id: **`core.timer.api tick`**
-* Event Class: **petronia.core.timer.api.events.TimerEvent**
+* Event Class: **`petronia.core.timer.api.events.TimerEvent`**
 * Queue Priority: **normal**
+* Only instance triggering permitted
+* Public listening allowed
 
 The most basic timer event.  It contains no state, and so is only ever created once.
 
 
 
 
+
+Default Implementations:
+* [default.timer](default.timer.md)
+  no version restriction
+
+
+Authors: Petronia
+
+License: MIT
+
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*

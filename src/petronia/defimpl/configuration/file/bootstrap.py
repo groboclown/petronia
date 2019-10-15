@@ -15,10 +15,10 @@ from ....aid.std import (
     log, TRACE, DEBUG, VERBOSE,
 )
 from ....aid.bootstrap import (
-    ExtensionMetadataStruct,
     ANY_VERSION,
 )
 from ....aid.lifecycle import create_one_and_done
+from ....base.internal_.internal_extension import petronia_extension
 from ....core.state.api import (
     EVENT_ID_UPDATED_STATE,
     StateStoreUpdatedEvent,
@@ -48,16 +48,13 @@ def bootstrap_config_file(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "type": "standalone",
-    "depends": [
-        {
-            "extension": "core.state.api",
-            "minimum": ANY_VERSION,
-        },
-    ],
+    "depends": ({
+        "extension": "core.state.api",
+        "minimum": ANY_VERSION,
+    },),
 
     "name": "default.configuration.file",
     "version": (1, 0, 0,),
-    "authors": ["Petronia"],
-}
+})

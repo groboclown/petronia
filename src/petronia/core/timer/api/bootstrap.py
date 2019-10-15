@@ -7,18 +7,14 @@ from .events import (
     EVENT_ID_TIMER, GLOBAL_TIMER_EVENT,
     TimerEvent,
 )
-from ....base.bus import (
+from ....aid.bootstrap import (
     EventBus,
     QUEUE_EVENT_NORMAL,
-    ExtensionMetadataStruct,
-)
-from ....base.events import (
     register_event,
-)
-from ....base.events.bus import CONSUME_EVENT_PROTECTION
-from ....core.extensions.api import (
+    CONSUME_EVENT_PROTECTION,
     ANY_VERSION,
 )
+from ....base.internal_.internal_extension import petronia_extension
 
 
 def bootstrap_timer_api(bus: EventBus) -> None:
@@ -38,22 +34,17 @@ def bootstrap_timer_api(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.timer.api",
     "version": (1, 0, 0,),
 
     "type": "api",
-    "depends": [
-        {
-            "extension": "core.shutdown.api",
-            "minimum": ANY_VERSION,
-        }
-    ],
-    "defaults": [
-        {
-            "extension": "default.timer",
-            "minimum": ANY_VERSION,
-        }
-    ],
-    "authors": ["Petronia"],
-}
+    "depends": ({
+        "extension": "core.shutdown.api",
+        "minimum": ANY_VERSION,
+    },),
+    "defaults": ({
+        "extension": "default.timer",
+        "minimum": ANY_VERSION,
+    },),
+})

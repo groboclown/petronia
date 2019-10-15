@@ -5,3 +5,5 @@ The base Petronia design attempts to keep the core engine as small as possible. 
 ## Events
 
 {#events:event.inc.md#}
+
+*This file was auto-generated from the Petronia source on {now}.*

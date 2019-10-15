@@ -3,7 +3,7 @@
 Type definitions for the event bus.
 """
 
-from typing import Callable, Tuple, NewType, Union, Sequence, Generic, Dict
+from typing import Callable, Tuple, NewType, Union, Sequence, Mapping, Dict
 from .identity_types import ParticipantId, ComponentId
 from ..util.memory import T
 
@@ -21,14 +21,14 @@ ListenerSetup = Tuple[EventId, EventCallback[T]]
 ListenerRegistrar = Callable[[EventCallback[T]], ListenerSetup[T]]
 
 ExtensionVersionStruct = Tuple[Union[int, float], Union[int, float], Union[int, float]]
-ExtensionCompatibilityStruct = Dict[str, Union[
+ExtensionCompatibilityStruct = Mapping[str, Union[
     str, ExtensionVersionStruct
 ]]
 
 # This is very carefully constructed.  Take care modifying this.
 # In particular, only one sequence can be contained inside of a
 # Union.
-ExtensionMetadataStruct = Dict[str, Union[
+ExtensionMetadataStruct = Mapping[str, Union[
     str,
     ExtensionVersionStruct,
     ExtensionCompatibilityStruct,

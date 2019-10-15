@@ -1,7 +1,7 @@
 # Extension Documentation
 
-* [base](base.md)
-* [core.config_persistence.api](core.config_persistence.api.md) (no documentation provided)
+* [base](base.md) the core engine.
+* [core.config_persistence.api](core.config_persistence.api.md) Configuration in Petronia is much more than some files.  It takes advantage of the state storage mechanism and applies readers and persistence on top of it.
 * [core.extensions.api](core.extensions.api.md) (no documentation provided)
 * [core.hotkeys.api](core.hotkeys.api.md) The API acts as a broker between applications that use hotkeys, and the low- level platform hotkey registration.
 * [core.hotkeys.binding](core.hotkeys.binding.md) Defines the hotkey action types for core actions the user may want to perform.
@@ -18,7 +18,9 @@
 * [default.state](default.state.md) (no documentation provided)
 * [default.timer](default.timer.md) (no documentation provided)
 * [default.configuration.file](default.configuration.file.md) This extension will wait for the `platform_state.PlatformConfigurationState` state event, then start the process of loading the events.  This will help ensure that loading will only happen after the state extension has started.
-* [default.layout.tile](default.layout.tile.md) It allows for: * splitting the screen up into sections; * having different splits depending on the monitor resolution * virtual screens * dynamic splitting, based on per screen settings. * overlapping windows.
+* [default.layout.tile](default.layout.tile.md) It allows for:
 * [default.logging.console](default.logging.console.md) (no documentation provided)
 * [default.shutdown.timer](default.shutdown.timer.md) (no documentation provided)
 
+
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*

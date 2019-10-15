@@ -53,9 +53,11 @@ class RegisterEventEvent(Generic[T]):
     """
     A request to add an event to the registration.
     """
+
+    # As a generic class, all slots must be a single underscore.
     __slots__ = (
-        '__event_id', '__priority', '__event_class', '__example',
-        '__protection',
+        '_event_id', '_priority', '_event_class', '_example',
+        '_protection',
     )
 
     def __init__(
@@ -63,36 +65,36 @@ class RegisterEventEvent(Generic[T]):
             protection: EventProtectionModel,
             event_class: Type[T], example: T
     ) -> None:
-        self.__event_id = event_id
-        self.__priority = priority
-        self.__protection = protection
-        self.__event_class = event_class
-        self.__example = example
+        self._event_id = event_id
+        self._priority = priority
+        self._protection = protection
+        self._event_class = event_class
+        self._example = example
 
     @property
     def event_id(self) -> EventId:
         """The event_id"""
-        return self.__event_id
+        return self._event_id
 
     @property
     def priority(self) -> QueuePriority:
         """The event priority"""
-        return self.__priority
+        return self._priority
 
     @property
     def event_class(self) -> Type[T]:
         """The class of the event objects."""
-        return self.__event_class
+        return self._event_class
 
     @property
     def example(self) -> T:
         """An example of the event class."""
-        return self.__example
+        return self._example
 
     @property
     def protection(self) -> EventProtectionModel:
         """Public and protected access to producing and consuming this event."""
-        return self.__protection
+        return self._protection
 
 
 def as_listener_added_listener(

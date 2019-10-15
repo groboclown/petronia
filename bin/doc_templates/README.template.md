@@ -3,4 +3,4 @@
 * [base](base.md) the core engine.
 {#extensions:extension.inc.md#}
 
-*This file was auto-generated from the Petronia source.*
+*This file was auto-generated from the Petronia source on {now}.*

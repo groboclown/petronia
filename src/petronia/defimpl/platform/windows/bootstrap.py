@@ -3,16 +3,15 @@
 Start up the Windows system.
 """
 
-from typing import Optional
 import sys
 from ....aid.std import (
     EventBus,
     PetroniaPlatformNotSupported,
 )
 from ....aid.bootstrap import (
-    ExtensionMetadataStruct,
     ANY_VERSION,
 )
+from ....base.internal_.internal_extension import petronia_extension
 from ....core.shutdown.api import send_system_shutdown_request
 from .state import (
     bootstrap_hotkeys,
@@ -48,17 +47,16 @@ def bootstrap_windows_platform(bus: EventBus) -> None:
         )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "default.platform.windows",
     "version": (1, 0, 0,),
     "type": "impl",
-    "implements": [{
+    "implements": ({
         "extension": "core.platform.api",
         "minimum": ANY_VERSION,
-    }],
-    "depends": [{
+    },),
+    "depends": ({
         "extension": "core.state.api",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+})

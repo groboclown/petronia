@@ -13,10 +13,10 @@ from ...aid.std import (
 )
 from ...aid.bootstrap import (
     create_singleton_identity,
-    ExtensionMetadataStruct,
     ANY_VERSION,
 )
 from ...aid.lifecycle import create_module_listener_helper
+from ...base.internal_.internal_extension import petronia_extension
 from ...core.hotkeys.api import (
     TARGET_ID_HOTKEYS,
 
@@ -53,17 +53,16 @@ from .state import (
 )
 
 MODULE_ID = create_singleton_identity('default.hotkeys')
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     'type': 'impl',
-    "implements": [{
+    "implements": ({
         "extension": "core.hotkeys.api",
         "minimum": ANY_VERSION,
-    }],
-    'depends': [],
+    },),
+    'depends': (),
     'name': 'default.hotkeys',
     'version': (1, 0, 0,),
-    'authors': ['Petronia'],
-}
+})
 
 
 def bootstrap_hotkey_broker(bus: EventBus) -> None:

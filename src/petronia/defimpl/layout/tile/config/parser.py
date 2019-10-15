@@ -103,7 +103,7 @@ _SCREEN_SCHEMA = {
         PERSISTENT_TYPE_SCHEMA_TYPE__BOOL
     ),
     'splits': [
-        PersistTypeSchemaItem("split-layout", PERSISTENT_TYPE_SCHEMA_TYPE__REF),
+        _SPLIT_SCHEMA,
         _PORTAL_SCHEMA,
     ],
 }

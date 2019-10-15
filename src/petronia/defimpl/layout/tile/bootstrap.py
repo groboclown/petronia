@@ -8,13 +8,13 @@ from ....aid.std import (
 )
 from ....aid.bootstrap import (
     QUEUE_EVENT_NORMAL,
-    ExtensionMetadataStruct,
     register_event,
     ANY_VERSION,
 )
 from ....aid.lifecycle import (
     create_module_listener_helper,
 )
+from ....base.internal_.internal_extension import petronia_extension
 
 
 def bootstrap_layout(bus: EventBus) -> None:
@@ -29,16 +29,16 @@ def bootstrap_layout(bus: EventBus) -> None:
     pass
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "default.layout.tile",
     "version": (1, 0, 0,),
 
     "type": "impl",
-    "implements": [{
+    "implements": ({
         "extension": "core.layout.api",
         "minimum": ANY_VERSION,
-    }],
-    "depends": [{
+    },),
+    "depends": ({
         "extension": "core.platform.api",
         "minimum": ANY_VERSION,
     }, {
@@ -50,6 +50,5 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
     }, {
         "extension": "core.hotkeys.api",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+})

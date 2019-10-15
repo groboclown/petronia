@@ -1,5 +1,5 @@
 
-### Event `{event_id}` ({produce} trigger, {consume} listen)
+### Event `{event_id}`
 
 * Event Id: **`{event_id}`**
 * Event Class: **`{type}`**

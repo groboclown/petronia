@@ -14,6 +14,7 @@ from .defs import (
     PERSISTENT_TYPE_SCHEMA_TYPE__REF,
     PERSISTENT_TYPE_SCHEMA_TYPE__ID,
     PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA,
+    PERSISTENT_TYPE_SCHEMA_NAME__DOC,
 )
 from .copy import (
     readonly_persistent_copy,

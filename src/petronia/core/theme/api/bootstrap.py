@@ -3,17 +3,13 @@
 Bootstrap the theme API.
 """
 
-from ....base.bus import (
+from ....aid.bootstrap import (
     EventBus,
     QUEUE_EVENT_NORMAL,
-    ExtensionMetadataStruct,
-)
-from ....base.events import (
     register_event,
-)
-from ....core.extensions.api import (
     ANY_VERSION,
 )
+from ....base.internal_.internal_extension import petronia_extension
 
 
 def bootstrap_theme_api(bus: EventBus) -> None:
@@ -30,22 +26,17 @@ def bootstrap_theme_api(bus: EventBus) -> None:
     pass
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.theme.api",
     "version": (1, 0, 0,),
 
     "type": "api",
-    "depends": [
-        {
-            "extension": "core.platform.api",
-            "minimum": ANY_VERSION,
-        }
-    ],
-    "defaults": [
-        {
-            "extension": "default.theme",
-            "minimum": ANY_VERSION,
-        }
-    ],
-    "authors": ["Petronia"],
-}
+    "depends": ({
+        "extension": "core.platform.api",
+        "minimum": ANY_VERSION,
+    },),
+    "defaults": ({
+        "extension": "default.theme",
+        "minimum": ANY_VERSION,
+    },),
+})

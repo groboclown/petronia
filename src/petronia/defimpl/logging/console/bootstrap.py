@@ -8,12 +8,12 @@ from ....aid.std import (
 )
 from ....aid.bootstrap import (
     send_participant_started_event,
-    ExtensionMetadataStruct,
     ANY_VERSION,
 )
 from ....aid.lifecycle import (
     setup_dispose_handler,
 )
+from ....base.internal_.internal_extension import petronia_extension
 from .ident import TARGET_ID_CONSOLE_LOGGER
 from .transition import LogStateTransitionHandler
 
@@ -34,13 +34,12 @@ def bootstrap_console_logger(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     'type': 'standalone',
-    'depends': [{
+    'depends': ({
         'extension': 'core.state.api',
         'minimum': ANY_VERSION,
-    }],
+    },),
     'name': 'default.logging.console',
     'version': (1, 0, 0,),
-    'authors': ['Petronia'],
-}
+})

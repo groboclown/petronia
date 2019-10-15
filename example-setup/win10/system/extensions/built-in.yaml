@@ -13,7 +13,7 @@ CoreHotkeyBindings:
   enabled: true
 
 Logger:
-  extension: default.logger.console
+  extension: default.logging.console
   enabled: true
   properties:
     categories:

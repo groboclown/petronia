@@ -8,8 +8,10 @@ The base Petronia design attempts to keep the core engine as small as possible. 
 ### Event `petronia.bus.event-registry/listener-add`
 
 * Event Id: **`petronia.bus.event-registry/listener-add`**
-* Event Class: **petronia.base.internal_.bus_events.EventListenerAddedEvent**
+* Event Class: **`petronia.base.internal_.bus_events.EventListenerAddedEvent`**
 * Queue Priority: **normal**
+* Only instance triggering permitted
+* Public listening allowed
 
 Information about the added event listener.
 
@@ -18,72 +20,92 @@ There is no event triggered for removing an event listener.
 ### Event `petronia.bus.event-registry/register-event`
 
 * Event Id: **`petronia.bus.event-registry/register-event`**
-* Event Class: **petronia.base.internal_.bus_events.RegisterEventEvent**
+* Event Class: **`petronia.base.internal_.bus_events.RegisterEventEvent`**
 * Queue Priority: **high**
+* Public triggering allowed
+* Only instance listening permitted
 
 A request to add an event to the registration.
 
 ### Event `petronia.participant/dispose-complete`
 
 * Event Id: **`petronia.participant/dispose-complete`**
-* Event Class: **petronia.base.internal_.dispose_events.DisposeCompleteEvent**
+* Event Class: **`petronia.base.internal_.dispose_events.DisposeCompleteEvent`**
 * Queue Priority: **normal**
+* Public triggering allowed
+* Public listening allowed
 
 Notification that a dispose completed.
 
 ### Event `petronia.participant/request-dispose`
 
 * Event Id: **`petronia.participant/request-dispose`**
-* Event Class: **petronia.base.internal_.dispose_events.RequestDisposeEvent**
+* Event Class: **`petronia.base.internal_.dispose_events.RequestDisposeEvent`**
 * Queue Priority: **normal**
+* Public triggering allowed
+* Public listening allowed
 
 Request for a participant to dispose itself.
 
 ### Event `petronia.registrar/component-created`
 
 * Event Id: **`petronia.registrar/component-created`**
-* Event Class: **petronia.base.events.component_events.ComponentCreatedEvent**
+* Event Class: **`petronia.base.events.component_events.ComponentCreatedEvent`**
 * Queue Priority: **normal**
+* Public triggering allowed
+* Public listening allowed
 
 Reports that a component was created.
 
 ### Event `petronia.registrar/component-create-failed`
 
 * Event Id: **`petronia.registrar/component-create-failed`**
-* Event Class: **petronia.base.events.component_events.ComponentCreationFailedEvent**
+* Event Class: **`petronia.base.events.component_events.ComponentCreationFailedEvent`**
 * Queue Priority: **normal**
+* Public triggering allowed
+* Public listening allowed
 
 Reports that a component creation attempt failed.
 
 ### Event `petronia.registrar/request-new-component`
 
 * Event Id: **`petronia.registrar/request-new-component`**
-* Event Class: **petronia.base.events.component_events.RequestNewComponentEvent**
+* Event Class: **`petronia.base.events.component_events.RequestNewComponentEvent`**
 * Queue Priority: **normal**
+* Public triggering allowed
+* Public listening allowed
 
 Asks the component factory to create a new instance.  The target of the event is the component factory, which will be called with the request_id to allow the called-back target to know which component was created.
 
 ### Event `petronia.participant/started`
 
 * Event Id: **`petronia.participant/started`**
-* Event Class: **petronia.base.events.participant_events.ParticipantStartedEvent**
+* Event Class: **`petronia.base.events.participant_events.ParticipantStartedEvent`**
 * Queue Priority: **normal**
+* Public triggering allowed
+* Public listening allowed
 
 Event to indicate that a participant finished initializing itself and is ready to begin normal operation.  This should happen after configuration.
 
 ### Event `petronia.system/started`
 
 * Event Id: **`petronia.system/started`**
-* Event Class: **petronia.base.events.system_events.SystemStartedEvent**
+* Event Class: **`petronia.base.events.system_events.SystemStartedEvent`**
 * Queue Priority: **normal**
+* Only instance triggering permitted
+* Public listening allowed
 
 Event to indicate that all the basic systems at boot time have finished running, and the system is now safe for end user actions.
 
 ### Event `petronia.system/halt`
 
 * Event Id: **`petronia.system/halt`**
-* Event Class: **petronia.base.events.system_events.SystemHaltedEvent**
+* Event Class: **`petronia.base.events.system_events.SystemHaltedEvent`**
 * Queue Priority: **normal**
+* Only instance triggering permitted
+* Public listening allowed
 
 Stop the system immediately.
 
+
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*

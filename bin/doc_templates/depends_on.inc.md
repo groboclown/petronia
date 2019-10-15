@@ -1,3 +1,4 @@
 
-Depends On Extensions:
+## Dependencies
+
 {#depends:dependency.inc.md#}

@@ -7,8 +7,8 @@ from .timer import setup_shutdown_handler
 from ....aid.bootstrap import (
     EventBus,
     ANY_VERSION,
-    ExtensionMetadataStruct,
 )
+from ....base.internal_.internal_extension import petronia_extension
 
 
 def bootstrap_shutdown_timer(bus: EventBus) -> None:
@@ -16,14 +16,13 @@ def bootstrap_shutdown_timer(bus: EventBus) -> None:
     setup_shutdown_handler(bus, 5, 120, 5, 120)
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "default.shutdown.timer",
     "version": (1, 0, 0),
     "type": "impl",
-    "depends": [],
-    "implements": [{
+    "depends": (),
+    "implements": ({
         "extension": "core.shutdown.api",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+})

@@ -103,5 +103,6 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
 
     "name": "core.hotkeys.api",
     "version": (1, 0, 0,),
-    "authors": ["Petronia"],
+    "authors": ("Petronia",),
+    "license": ("MIT",),
 }

@@ -3,12 +3,10 @@
 Sets up the platform API.
 """
 
-from ....base.bus import (
+from ....aid.bootstrap import (
     EventBus,
-    register_event,
-    ExtensionMetadataStruct,
-    QUEUE_EVENT_NORMAL,
 )
+from ....base.internal_.internal_extension import petronia_extension
 from ...extensions.api import ANY_VERSION
 from .component.bootstrap import (
     register_component_events,
@@ -30,20 +28,19 @@ def bootstrap_platform_api(bus: EventBus) -> None:
     register_window_events(bus)
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.platform.api",
     "version": (1, 0, 0,),
     "type": "api",
-    "depends": [{
+    "depends": ({
         "extension": "core.state.api",
         "minimum": ANY_VERSION,
-    }],
-    "defaults": [{
+    },),
+    "defaults": ({
         # A non-existent plugin.  Because platform must be included in the
         # bootstrap phase, a real platform that implements this API must also
         # be included, so that this doesn't generate a boot-up error.
         "extension": "default.platform",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+})

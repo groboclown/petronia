@@ -3,12 +3,12 @@
 from ....aid.bootstrap import (
     EventBus,
     QUEUE_EVENT_NORMAL,
-    ExtensionMetadataStruct,
     register_event,
     ANY_VERSION,
     CONSUME_EVENT_PROTECTION,
     REQUEST_EVENT_PROTECTION,
 )
+from ....base.internal_.internal_extension import petronia_extension
 from .events import (
     EVENT_ID_LAYOUT_CHANGED,
     LayoutChangedEvent,
@@ -43,17 +43,14 @@ def bootstrap_layout_api(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.layout.api",
     "version": (1, 0, 0,),
 
     "type": "api",
-    "depends": [],
-    "defaults": [
-        {
-            "extension": "default.layout.tile",
-            "minimum": ANY_VERSION,
-        }
-    ],
-    "authors": ["Petronia"],
-}
+    "depends": (),
+    "defaults": ({
+        "extension": "default.layout.tile",
+        "minimum": ANY_VERSION,
+    },),
+})

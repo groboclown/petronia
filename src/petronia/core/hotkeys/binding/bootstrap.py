@@ -10,10 +10,10 @@ from ....aid.std import (
 )
 from ....aid.bootstrap import (
     ANY_VERSION,
-    ExtensionMetadataStruct,
     create_singleton_identity,
 )
 from ....aid.lifecycle import create_module_listener_helper
+from ....base.internal_.internal_extension import petronia_extension
 from ..api import (
     HotkeyEventTriggeredEvent,
     BoundServiceActionSchema,
@@ -48,11 +48,11 @@ def bootstrap_core_handlers(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.hotkeys.binding",
     "type": "standalone",
     "version": (1, 0, 0,),
-    "depends": [{
+    "depends": ({
         "extension": "core.hotkeys.api",
         "minimum": ANY_VERSION,
     }, {
@@ -61,6 +61,5 @@ EXTENSION_METADATA: ExtensionMetadataStruct = {
     }, {
         "extension": "core.validation.api",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    }),
+})

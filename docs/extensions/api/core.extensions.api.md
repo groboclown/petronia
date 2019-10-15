@@ -1,17 +1,16 @@
-# API Extension core.extensions.api v1.0.0
+# core.extensions.api (API)
+**v1.0.0**
 
 (no documentation provided)
 
+## Details
 
-Depends On Extensions:
+
+## Dependencies
+
 * [core.state.api](core.state.api.md)
   no version restriction
 
-
-
-Default Implementations:
-* [defimpl.extensions](defimpl.extensions.md)
-  no version restriction
 
 
 
@@ -21,8 +20,10 @@ Default Implementations:
 ### Event `core.extensions.api request-load`
 
 * Event Id: **`core.extensions.api request-load`**
-* Event Class: **petronia.core.extensions.api.events.RequestLoadExtensionEvent**
+* Event Class: **`petronia.core.extensions.api.events.RequestLoadExtensionEvent`**
 * Queue Priority: **normal**
+* Public triggering allowed
+* Only instance listening permitted
 
 Request to the extension loading mechanism to load an extension.
 
@@ -33,11 +34,24 @@ Requesting extensions through an Event means that the version is up to the exten
 ### Event `core.extensions.api loaded`
 
 * Event Id: **`core.extensions.api loaded`**
-* Event Class: **petronia.core.extensions.api.events.ExtensionLoadedEvent**
+* Event Class: **`petronia.core.extensions.api.events.ExtensionLoadedEvent`**
 * Queue Priority: **normal**
+* Only instance triggering permitted
+* Public listening allowed
 
 A signal that an exception completed loading.  Not guaranteed to be sent in the order that they were loaded.
 
 
 
 
+
+Default Implementations:
+* [defimpl.extensions](defimpl.extensions.md)
+  no version restriction
+
+
+Authors: Petronia
+
+License: MIT
+
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*

@@ -1,18 +1,19 @@
 
 """
-The Petronia tiling.
+The Petronia tiling extension.
 
 It allows for:
   * splitting the screen up into sections;
-  * having different splits depending on the monitor resolution
-  * virtual screens
-  * dynamic splitting, based on per screen settings.
+  * having different splits depending on the monitor resolution;
+  * virtual screens;
+  * dynamic splitting, based on per screen settings;
   * overlapping windows.
 
 The UI is split into "portals" and "containers".  A portal is a place where
 zero or more UI windows are stored.
 
-
+Make sure you define the configuration for this extension in order to customize
+the layout.
 """
 
 from .bootstrap import bootstrap_layout as start_extension

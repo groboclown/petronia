@@ -1,11 +1,22 @@
-# Stand-Alone Extension core.hotkeys.binding v1.0.0
+# core.hotkeys.binding (stand-alone)
+**v1.0.0**
 
 Petronia Core Hotkey Bindings.
 
 Defines the hotkey action types for core actions the user may want to perform.
 
+## Details
 
-Depends On Extensions:
+Runs in elevated privileges
+
+## User Configuration
+
+Does not provide any user configuration.
+
+
+
+## Dependencies
+
 * [core.hotkeys.api](core.hotkeys.api.md)
   no version restriction
 * [core.shutdown.api](core.shutdown.api.md)
@@ -21,10 +32,16 @@ Depends On Extensions:
 ## Listens To Events
 
 * Event Id **`petronia.participant/request-dispose`**
-  Target Id **`core.hotkey.core`**`
+  Target Id **`core.hotkey.core`**
 * Event Id **`core.shutdown.api system-shut-down-finalize`**
-  Target Id **`core.shutdown.api`**`
+  Target Id **`core.shutdown.api`**
 * Event Id **`core.hotkeys.api/trigger`**
-  Target Id **`core.hotkey.core`**`
+  Target Id **`core.hotkey.core`**
 
 
+
+Authors: Petronia
+
+License: MIT
+
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*

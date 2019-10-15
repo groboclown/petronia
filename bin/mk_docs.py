@@ -8,6 +8,8 @@ import sys
 import re
 import argparse
 import importlib
+import datetime
+import collections.abc
 BINDIR = os.path.dirname(sys.argv[0])
 BASEDIR = os.path.join(BINDIR, os.path.pardir)
 SRCDIR = os.path.join(BASEDIR, "src")
@@ -21,7 +23,19 @@ from petronia.base.bus import (QUEUE_EVENT_HIGH, QUEUE_EVENT_IO)
 from petronia.base.util.serial import add_repr
 from petronia.core.state.api import StateStoreUpdatedEvent, EVENT_ID_UPDATED_STATE
 from petronia.defimpl.extensions.defs.discover_types import DiscoveredExtension
+from petronia.base.util.simple_type import (
+    PersistTypeSchemaItem,
+    PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA,
+    PERSISTENT_TYPE_SCHEMA_TYPE__FLOAT,
+    PERSISTENT_TYPE_SCHEMA_TYPE__ID,
+    PERSISTENT_TYPE_SCHEMA_TYPE__REF,
+    PERSISTENT_TYPE_SCHEMA_TYPE__STR,
+    PERSISTENT_TYPE_SCHEMA_TYPE__BOOL,
+    PERSISTENT_TYPE_SCHEMA_TYPE__ANY,
+    PERSISTENT_TYPE_SCHEMA_NAME__DOC,
+)
 
+NOW = datetime.datetime.utcnow().utcnow().strftime("%Y-%b-%d")
 
 
 class Config:
@@ -38,6 +52,7 @@ def mk_base(config: Config):
         # Returns a list of event_id, priority, event object, event object example
         events.append(create_event_data(RegisterEventEvent(*event)))
     data = {
+        "now": NOW,
         "events": events,
         "has_events": len(events) > 0,
     }
@@ -60,6 +75,7 @@ def mk_built_in(config: Config):
                 starter = getattr(mod, 'start_extension')
                 config_schema = None
                 if hasattr(mod, 'CONFIG_SCHEMA'):
+                    print("!! {0}".format(mod_name))
                     config_schema = getattr(mod, 'CONFIG_SCHEMA')
                 else:
                     print("No configuration schema in {0}".format(mod_name))
@@ -71,6 +87,7 @@ def mk_built_in(config: Config):
                 })
 
     write_template(config, "README.template.md", "README.md", {
+        "now": NOW,
         "extensions": found,
     })
     return found
@@ -112,12 +129,12 @@ def document_extension(config: Config, fqn, mod, starter, md, schema):
     # print("{0} <- {1}".format(fqn, name))
     write_template(
         config, prefix + '.template.md', name + '.md', create_data(
-            ext, ext_doc, bus.events, bus.listens, schema, bus.states
+            config, ext, ext_doc, bus.events, bus.listens, schema, bus.states
         )
     )
 
 
-def create_data(ext, ext_doc, events, listens, schema, states):
+def create_data(config, ext, ext_doc, events, listens, schema, states):
     dep_data = [create_compat_data(dep) for dep in ext.depends_on]
     impl_data = [create_compat_data(impl) for impl in ext.implements]
     defaults_data = [create_compat_data(default) for default in ext.defaults]
@@ -141,8 +158,10 @@ def create_data(ext, ext_doc, events, listens, schema, states):
         "has_events": len(event_data) > 0,
         "listens_to": listens,
         "has_listens_to": len(listens) > 0,
+        "configuration": create_schema_str(config, ext.name, schema),
+        "has_config": schema is not None,
+        "now": NOW,
 
-        # TODO add schema to here, and to the docs.
         # TODO add state to here, and add to the docs.
     }
 
@@ -190,14 +209,24 @@ def clean_doc_str(doc, overview=False):
     doc = doc or ''
     ret = ''
     current = ''
-    for line in doc.splitlines():
-        line = line.strip()
+    for o_line in doc.splitlines():
+        line = o_line.strip()
         if len(line) <= 0:
             if len(ret) > 0:
                 if overview:
                     return current
                 ret += '\n\n'
             ret += current
+            current = ''
+        elif line[0:2] == '* ':
+            # a list item.
+            if len(current) > 0:
+                if len(ret) > 0:
+                    if overview:
+                        return current
+                    ret += '\n\n'
+                ret += current
+            ret += '\n' + line
             current = ''
         elif len(current) > 0:
             current += ' ' + line
@@ -208,6 +237,107 @@ def clean_doc_str(doc, overview=False):
     if not ret:
         ret = '(no documentation provided)'
     return ret
+
+
+def create_schema_str(config, ext_name, schema):
+    if not schema:
+        return None
+
+    if PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA in schema:
+        item = schema[PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA]
+        assert isinstance(item, PersistTypeSchemaItem)
+        assert item.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__ID
+        name = item.description
+    else:
+        name = 'Configuration'
+
+    doc = str(schema.get(PERSISTENT_TYPE_SCHEMA_NAME__DOC, ''))
+    layout = ''
+    parts = []
+    children_parts = []
+    for key, val in schema.items():
+        kid_layout, kid_parts, grandkid_parts = inner_schema_part_str(name, key, '    ', val)
+        layout += kid_layout
+        parts.extend(kid_parts)
+        children_parts.extend(grandkid_parts)
+    parts.extend(children_parts)
+
+    all_parts = []
+    seen = set()
+    for part in parts:
+        if part['key'] not in seen:
+            seen.add(part['key'])
+            all_parts.append(part)
+
+    return transform_template(config, 'configuration.template.md', {
+        "ext_name": ext_name,
+        "doc": doc,
+        "layout": layout,
+        "parts": all_parts,
+    })
+
+
+def inner_schema_part_str(name, key, indent, val):
+    assert isinstance(key, str)
+    if key in (PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA, PERSISTENT_TYPE_SCHEMA_NAME__DOC,):
+        return '', [], []
+    if key == '':
+        pref = indent + '-'
+        key = '[]'
+        name += '[]'
+    else:
+        pref = indent + key + ':'
+        name += '.' + key
+    if isinstance(val, PersistTypeSchemaItem):
+        if val.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__ANY:
+            layout = pref + ' (any type)\n'
+        elif val.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__BOOL:
+            layout = pref + ' (true / false)\n'
+        elif val.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__STR:
+            layout = pref + ' "text"\n'
+        elif val.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__FLOAT:
+            layout = pref + ' (some number)\n'
+        elif val.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__REF:
+            layout = pref + '\n' + indent + '  (a "' + val.description + '" sub-schema value)\n'
+        else:
+            layout = pref + ' (unknown)\n'
+        return layout, [{"key": name, "desc": val.description}], []
+
+    if isinstance(val, collections.abc.Mapping):
+        layout = pref + '\n'
+        if PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA in val:
+            item = val[PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA]
+            assert isinstance(item, PersistTypeSchemaItem)
+            assert item.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__ID
+            name = item.description
+            layout += indent + '  # Sub-Schema Definition: ' + name + '\n'
+        doc = str(val.get(PERSISTENT_TYPE_SCHEMA_NAME__DOC, ''))
+        if doc:
+            parts = [{"key": name, "desc": doc}]
+        else:
+            parts = []
+        grandkid_parts = []
+        for subkey, subval in val.items():
+            kid_layout, kid_parts, gkp = inner_schema_part_str(name, subkey, indent + '  ', subval)
+            layout += kid_layout
+            parts.extend(kid_parts)
+            grandkid_parts.extend(gkp)
+        return layout, parts, grandkid_parts
+    elif isinstance(val, collections.abc.Iterable):
+        # A list of one or more of these types
+        layout = pref + '\n' + indent + '  # one or more of these types\n'
+        parts = []
+        grandkid_parts = []
+        for kid in val:
+            # Better key name?
+            kid_layout, kid_parts, gkp = inner_schema_part_str(name, '', indent + '  ', kid)
+            layout += kid_layout
+            parts.extend(kid_parts)
+            grandkid_parts.extend(gkp)
+        return layout, parts, grandkid_parts
+    else:
+        print("{0} has unknown schema key {1} value {2}".format(name, key, repr(val)))
+        return '', [], []
 
 
 def no_op_loader(_bus):

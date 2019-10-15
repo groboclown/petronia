@@ -6,12 +6,13 @@ Setup the extension.
 from ....base.bus import (
     EventBus,
     register_event,
-    ExtensionMetadataStruct,
     QUEUE_EVENT_NORMAL,
 )
 from ....base.events.bus import (
     PRODUCE_EVENT_PROTECTION, CONSUME_EVENT_PROTECTION,
 )
+from ....base.internal_.internal_extension import petronia_extension
+
 from .events import (
     EVENT_ID_REQUEST_SYSTEM_SHUTDOWN,
     RequestSystemShutdownEvent,
@@ -57,14 +58,15 @@ def bootstrap_shutdown_api(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.shutdown.api",
     "version": (1, 0, 0,),
     "type": "api",
-    "depends": [],
-    "defaults": [{
+    "depends": (),
+    "defaults": ({
         "extension": "default.shutdown.timer",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+    "authors": ("Petronia",),
+    "license": ("MIT",),
+})

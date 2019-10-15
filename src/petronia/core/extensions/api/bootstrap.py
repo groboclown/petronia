@@ -10,16 +10,18 @@ from .events import (
     RequestLoadExtensionEvent,
 )
 from .defs import LoadedExtension
+from ....core.extensions.api import ANY_VERSION
+
+# Cannot import aid.std because of inter-dependencies.
 from ....base.bus import (
     EventBus, register_event,
-    ExtensionMetadataStruct,
     QUEUE_EVENT_NORMAL,
 )
 from ....base import create_singleton_identity
 from ....base.events.bus import (
     REQUEST_EVENT_PROTECTION, RESPONSE_EVENT_PROTECTION,
 )
-from ....core.extensions.api import ANY_VERSION
+from ....base.internal_.internal_extension import petronia_extension
 
 
 MODULE_ID = create_singleton_identity('core.extensions.api')
@@ -41,20 +43,19 @@ def bootstrap_extensions_api(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.extensions.api",
     "version": (1, 0, 0,),
     "type": "api",
-    "depends": [
-        {
-            # extensions publish a state.
-            "extension": "core.state.api",
-            "minimum": ANY_VERSION,
-        }
-    ],
-    "defaults": [{
+    "depends": ({
+        # extensions publish a state.
+        "extension": "core.state.api",
+        "minimum": ANY_VERSION,
+    },),
+    "defaults": ({
         "extension": "defimpl.extensions",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+    "authors": ("Petronia",),
+    "license": ("MIT",),
+})

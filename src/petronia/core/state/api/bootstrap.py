@@ -17,12 +17,12 @@ from ....base import (
 from ....base.bus import (
     register_event,
     EventBus,
-    ExtensionMetadataStruct,
     QUEUE_EVENT_NORMAL,
 )
 from ....base.events.bus import (
     REQUEST_EVENT_PROTECTION, RESPONSE_EVENT_PROTECTION,
 )
+from ....base.internal_.internal_extension import petronia_extension
 from ...extensions.api import ANY_VERSION
 
 
@@ -49,14 +49,15 @@ def bootstrap_state_store_api(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "name": "core.state.api",
     "version": (1, 0, 0,),
     "type": "api",
     "depends": [],
-    "defaults": [{
+    "defaults": ({
         "extension": "default.state",
         "minimum": ANY_VERSION,
-    }],
-    "authors": ["Petronia"],
-}
+    },),
+    "authors": ("Petronia",),
+    "license": "MIT",
+})

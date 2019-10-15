@@ -1,6 +1,13 @@
-# API Extension core.validation.api v1.0.0
+# core.validation.api (API)
+**v1.0.0**
 
 (no documentation provided)
+
+## Details
+
+
+
+
 
 
 
@@ -9,6 +16,8 @@ Default Implementations:
   no version restriction
 
 
+Authors: Petronia
 
+License: MIT
 
-
+*This file was auto-generated from the Petronia source on 2019-Oct-15.*
