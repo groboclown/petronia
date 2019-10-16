@@ -14,7 +14,6 @@ from ....aid.bootstrap import (
     ANY_VERSION,
     QUEUE_EVENT_NORMAL,
     NOT_PARTICIPANT,
-    GLOBAL_EVENT_PROTECTION,
     REQUEST_EVENT_PROTECTION,
     RESPONSE_EVENT_PROTECTION,
     CONSUME_EVENT_PROTECTION,
@@ -23,6 +22,7 @@ from ....base.util import (
     EMPTY_MAPPING,
     EMPTY_TUPLE,
 )
+from ....base.internal_.internal_extension import petronia_extension
 from ...state.api import set_state
 from .events import (
     EVENT_ID_HOTKEY_EVENT_TRIGGERED,
@@ -87,22 +87,20 @@ def bootstrap_hotkeys(bus: EventBus) -> None:
     )
 
 
-EXTENSION_METADATA: ExtensionMetadataStruct = {
+EXTENSION_METADATA = petronia_extension({
     "type": "api",
-    "defaults": [{
-        "extension": "defimpl.hotkeys",
+    "defaults": ({
+        "extension": "default.hotkeys",
         "minimum": ANY_VERSION,
-    }],
-    "depends": [{
+    },),
+    "depends": ({
         "extension": "core.platform.api",
         "minimum": ANY_VERSION,
     }, {
         "extension": "core.state.api",
         "minimum": ANY_VERSION,
-    }],
+    },),
 
     "name": "core.hotkeys.api",
     "version": (1, 0, 0,),
-    "authors": ("Petronia",),
-    "license": ("MIT",),
-}
+})

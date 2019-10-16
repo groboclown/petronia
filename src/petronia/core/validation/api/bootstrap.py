@@ -25,7 +25,7 @@ EXTENSION_METADATA = petronia_extension({
     "version": (1, 0, 0,),
     "depends": (),
     "defaults": ({
-        "extension": "defimpl.validation",
+        "extension": "default.validation",
         "minimum": ANY_VERSION,
     },),
 })

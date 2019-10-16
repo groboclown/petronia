@@ -183,7 +183,7 @@ def send_hotkey_bound_service_announcement(
         bus: EventBus, schema: BoundServiceActionSchema
 ) -> None:
     bus.trigger(
-        EVENT_ID_HOTKEY_EVENT_TRIGGERED, TARGET_ID_HOTKEYS,
+        EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT, TARGET_ID_HOTKEYS,
         HotkeyBoundServiceAnnouncementEvent(schema)
     )
 
@@ -223,7 +223,7 @@ def send_hotkey_unbind_service_announcement(
         bus: EventBus, service: ParticipantId, action: str
 ) -> None:
     bus.trigger(
-        EVENT_ID_HOTKEY_EVENT_TRIGGERED, TARGET_ID_HOTKEYS,
+        EVENT_ID_HOTKEY_UNBIND_SERVICE_ANNOUNCEMENT, TARGET_ID_HOTKEYS,
         HotkeyUnbindServiceAnnouncementEvent(service, action)
     )
 

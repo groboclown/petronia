@@ -4,6 +4,11 @@ Split the hotkey string into the VK code sets.
 """
 
 from typing import Sequence, Tuple, List, Union, Optional
+from .....aid.std import (
+    ErrorReport,
+    ResultOrError,
+    create_user_error,
+)
 from ...general.hotkey import (
     KeyCombo,
     StandardKeyCode,
@@ -18,40 +23,18 @@ from .keymap import (
 )
 
 
-class HotkeyFormatErrorMessage:
-    """A problem with the format of a hotkey string."""
-    __slots__ = ('__hotkey', '__err_msg', '__err_args',)
-
-    def __init__(
-            self, hotkey: str, err_msg: str,
-            *err_args: Union[int, str]
-    ) -> None:
-        self.__hotkey = hotkey
-        self.__err_msg = err_msg
-        self.__err_args = err_args
-
-    @property
-    def hotkey(self) -> str:
-        return self.__hotkey
-
-    @property
-    def err_msg(self) -> str:
-        return self.__err_msg
-
-    @property
-    def err_args(self) -> Sequence[Union[int, str]]:
-        return self.__err_args
-
-    def __repr__(self) -> str:
-        return 'HotkeyFormatErrorMessage(hotkey={0}, err_msg={1}, err_args={2}'.format(
-            repr(self.__hotkey), repr(self.__err_msg), repr(self.__err_args)
-        )
+def create_hotkey_format_error(hotkey: str, err: str, **args: Union[int, str]) -> ErrorReport:
+    return create_user_error(
+        'parse_hotkeys',
+        'invalid hotkey format for "{hotkey}": ' + err,
+        hotkey=hotkey, **args
+    )
 
 
 def create_master_modifier_hotkey_combo(
         master_modifier: Sequence[ModifierKeyCode],
         hotkey: str
-) -> Union[Sequence[KeyCombo], HotkeyFormatErrorMessage]:
+) -> ResultOrError[Sequence[KeyCombo]]:
     """
     Parses the standard master modifier (e.g. Super+Shift) plus a key to go with it
     (e.g. up-arrow or ctrl+1).
@@ -59,13 +42,13 @@ def create_master_modifier_hotkey_combo(
     if hotkey.find('+') > 0:
         # At least one modifier...
         simple = parse_simple_modified_key(hotkey, hotkey)
-        if isinstance(simple, HotkeyFormatErrorMessage):
+        if isinstance(simple, ErrorReport):
             return simple
         modifiers = list(master_modifier) + list(simple[0])
         return create_primary_chain(modifiers, (simple[1],))
     key = convert_standard_key_name(hotkey)
     if key is None:
-        return HotkeyFormatErrorMessage(hotkey, 'expected zero or more modifiers plus a normal key')
+        return create_hotkey_format_error(hotkey, 'expected zero or more modifiers plus a normal key')
     return create_primary_chain(master_modifier, (key,))
 
 
@@ -73,55 +56,52 @@ def create_master_mkey_and_sequence_combo(
         master_modifiers: Sequence[ModifierKeyCode],
         master_key: StandardKeyCode,
         hotkeys: str
-) -> Union[Sequence[KeyCombo], HotkeyFormatErrorMessage]:
+) -> ResultOrError[Sequence[KeyCombo]]:
     """
     Create a modal key sequence.  This is a master modifier + key
     (say, ctrl-a), followed by one or more normal keys.  This is similar to
     how the `screen` program works.
     """
     modal_keys = parse_key_sequence(hotkeys, hotkeys)
-    if isinstance(modal_keys, HotkeyFormatErrorMessage):
+    if isinstance(modal_keys, ErrorReport):
         return modal_keys
     return create_modal_chain(master_modifiers, (master_key,), modal_keys)
 
 
 def create_master_modifier(
         master: str
-) -> Union[Sequence[ModifierKeyCode], HotkeyFormatErrorMessage]:
+) -> ResultOrError[Sequence[ModifierKeyCode]]:
     """Creates a primary modifier combination master sequence, such as `super`."""
     return parse_modifier_sequence(master, master)
 
 
 def create_master_mkey(
         modifier_key: str
-) -> Union[Tuple[Sequence[ModifierKeyCode], StandardKeyCode], HotkeyFormatErrorMessage]:
+) -> ResultOrError[Tuple[Sequence[ModifierKeyCode], StandardKeyCode]]:
     """Creates a master modifier key sequence, such as `super+a`."""
     return parse_simple_modified_key(modifier_key, modifier_key)
 
 
 def parse_modifier_sequence(
         original_expression: str, hotkey: str
-) -> Union[Sequence[ModifierKeyCode], HotkeyFormatErrorMessage]:
+) -> ResultOrError[Sequence[ModifierKeyCode]]:
     """
     Parses a simple sequence of modifier keys, separated by '+'.
     """
     keys = hotkey.split('+')
     if not keys:
-        return HotkeyFormatErrorMessage(
-            original_expression,
-            # TODO localize
-            'modifier sequence must have at least 1 modifier'
+        return create_hotkey_format_error(
+            original_expression, 'modifier sequence must have at least 1 modifier'
         )
     modifier_vks: List[ModifierKeyCode] = []
     for kname in keys:
         mvk = convert_modifier_key_name(kname)
         if mvk is None:
-            return HotkeyFormatErrorMessage(
+            return create_hotkey_format_error(
                 original_expression,
-                # TODO localize
                 'modifier key must have at least 1 modifier; '
-                'found normal key or unknown modifier key "{0}"',
-                kname
+                'found normal key or unknown modifier key "{kname}"',
+                kname=kname
             )
         modifier_vks.append(mvk)
     assert len(modifier_vks) >= 1
@@ -130,7 +110,7 @@ def parse_modifier_sequence(
 
 def parse_simple_modified_key(
         original_expression: str, hotkey: str
-) -> Union[Tuple[Sequence[ModifierKeyCode], StandardKeyCode], HotkeyFormatErrorMessage]:
+) -> ResultOrError[Tuple[Sequence[ModifierKeyCode], StandardKeyCode]]:
     """
     Parses a simple sequence of `modifier '+' modifier '+' ... '+' key`.
 
@@ -138,39 +118,37 @@ def parse_simple_modified_key(
     """
     keys = hotkey.split('+')
     if len(keys) < 2:
-        return HotkeyFormatErrorMessage(
+        return create_hotkey_format_error(
             original_expression,
-            # TODO localize
             'modifier key must have at least 1 modifier and exactly 1 normal key'
         )
     final_vk = convert_standard_key_name(keys[-1])
     if final_vk is None:
-        return HotkeyFormatErrorMessage(
+        return create_hotkey_format_error(
             original_expression,
-            # TODO localize
             'modifier key must have at least 1 modifier and exactly 1 normal key; '
-            'found modifier key or unknown key "{0}" instead of a normal key',
-            keys[-1]
+            'found modifier key or unknown key "{key}" instead of a normal key',
+            key=keys[-1]
         )
     modifier_vks: List[ModifierKeyCode] = []
     for kname in keys[:-1]:
         mvk = convert_modifier_key_name(kname)
         if mvk is None:
-            return HotkeyFormatErrorMessage(
+            return create_hotkey_format_error(
                 original_expression,
                 # TODO localize
                 'modifier key must have at least 1 modifier and exactly 1 normal key; '
-                'found normal key or unknown key "{0}" instead of a modifier',
-                kname
+                'found normal key or unknown key "{kname}" instead of a modifier',
+                kname=kname
             )
         modifier_vks.append(mvk)
     assert len(modifier_vks) >= 1
-    return (modifier_vks, final_vk,)
+    return modifier_vks, final_vk
 
 
 def parse_key_sequence(
         original_expression: str, hotkey: str
-) -> Union[Sequence[StandardKeyCode], HotkeyFormatErrorMessage]:
+) -> ResultOrError[Sequence[StandardKeyCode]]:
     """
     Parses a sequence of non-modifier keys.
 
@@ -179,21 +157,19 @@ def parse_key_sequence(
 
     sequence_keys = hotkey.split('+')
     if not sequence_keys:
-        return HotkeyFormatErrorMessage(
+        return create_hotkey_format_error(
             original_expression,
-            # TODO localize
             'key sequence must have at least 1 normal key'
         )
     sequence_vks: List[StandardKeyCode] = []
     for kname in sequence_keys:
         skv = convert_standard_key_name(kname)
         if skv is None:
-            return HotkeyFormatErrorMessage(
+            return create_hotkey_format_error(
                 original_expression,
-                # TODO localize
                 'key sequence must have at least 1 normal key; '
-                'found modifier key or unknown key "{0}" instead of a normal key',
-                kname
+                'found modifier key or unknown key "{kname}" instead of a normal key',
+                kname=kname
             )
         sequence_vks.append(skv)
     return sequence_vks

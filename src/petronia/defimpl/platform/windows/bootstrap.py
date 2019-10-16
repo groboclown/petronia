@@ -26,22 +26,18 @@ def bootstrap_windows_platform(bus: EventBus) -> None:
     try:
         from . import connect
 
-        # DEBUG CODE...
-        hotkeys = {
-            'f1': 'Pressed Super+f1',
-            'ctrl+f1': 'Pressed Super+Ctrl+f1'
-        }
         hook = connect.WindowsHookEvent()
         bootstrap_hotkeys(
             bus, hook,
-            ('meta:super', hotkeys,)
+            ('meta:super', {},)
         )
-
         bootstrap_display_detection(bus, hook)
         bootstrap_window_discovery(bus, hook)
+
         hook.start(lambda: send_system_shutdown_request(bus))
         atexit.register(hook.dispose)
-    except:
+    except BaseException as err:
+        print(err)
         raise PetroniaPlatformNotSupported(
             '{0} {1}'.format(sys.platform, platform.architecture()[0])
         )

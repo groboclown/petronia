@@ -43,6 +43,9 @@ class _EventTypeInfo:
         self.priority = priority
         self.protection = protection
 
+    def __str__(self) -> str:
+        return str(self.type)
+
 
 class EventRegistry:
     """

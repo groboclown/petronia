@@ -45,7 +45,7 @@ from .system_events import (
     as_system_started_listener,
     ErrorEvent,
     ErrorReport,
-    ResultOrErrors,
+    ResultOrError,
     ResultWithErrors,
     send_error_event,
     as_error_listener,

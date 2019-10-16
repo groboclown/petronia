@@ -5,7 +5,6 @@ Test the parse_hotkeys functions
 
 import unittest
 from ..parse_hotkeys import (
-    HotkeyFormatErrorMessage,
     create_master_mkey_and_sequence_combo,
     create_master_modifier_hotkey_combo,
     create_master_modifier,
@@ -13,6 +12,8 @@ from ..parse_hotkeys import (
 )
 from ..keymap import STR_VK_MAP
 from ....general.hotkey.hotkey_chain import create_stateful_key_code
+from ......aid.std import ErrorReport
+
 
 _VK_LSUPER = STR_VK_MAP['lsuper']
 _LSUPER_DOWN = create_stateful_key_code(_VK_LSUPER, True)
@@ -31,14 +32,18 @@ _VK_C = STR_VK_MAP['c']
 _C_DOWN = create_stateful_key_code(_VK_C, True)
 _C_UP = create_stateful_key_code(_VK_C, False)
 
+
 class ParseHotkeysTest(unittest.TestCase):
     def test_create_master_modifier_hotkey_combo_1(self) -> None:
         master = create_master_modifier('lsuper')
+        self.assertIsNotNone(master)
+        self.assertNotIsInstance(master, ErrorReport)
         self.assertEqual(
             master,
             [_VK_LSUPER]
         )
-        assert not isinstance(master, HotkeyFormatErrorMessage)
+        # assertions for mypy
+        assert not isinstance(master, ErrorReport)
         self.assertEqual(
             create_master_modifier_hotkey_combo(master, 'a'),
             [[_LSUPER_DOWN, _A_DOWN]]
@@ -51,14 +56,16 @@ class ParseHotkeysTest(unittest.TestCase):
             ]
         )
 
-
     def test_create_master_mkey_and_sequence_combo_1(self) -> None:
         master = create_master_mkey('lsuper+a')
+        self.assertIsNotNone(master)
+        self.assertNotIsInstance(master, ErrorReport)
         self.assertEqual(
             master,
             ([_VK_LSUPER], _VK_A,)
         )
-        assert not isinstance(master, HotkeyFormatErrorMessage)
+        # assertions for mypy
+        assert not isinstance(master, ErrorReport)
         self.assertEqual(
             create_master_mkey_and_sequence_combo(master[0], master[1], 'b'),
             [
@@ -67,14 +74,19 @@ class ParseHotkeysTest(unittest.TestCase):
             ]
         )
 
-
-
     def test_create_master_modifier_hotkey_combo_fail_1(self) -> None:
         master = create_master_modifier('lsuper')
+        self.assertIsNotNone(master)
+        self.assertNotIsInstance(master, ErrorReport)
         self.assertEqual(master, [_VK_LSUPER])
-        assert not isinstance(master, HotkeyFormatErrorMessage)
+        # assertions for mypy
+        assert not isinstance(master, ErrorReport)
+
         val = create_master_modifier_hotkey_combo(master, 'a+b')
-        self.assertIsInstance(val, HotkeyFormatErrorMessage)
-        assert isinstance(val, HotkeyFormatErrorMessage)
-        self.assertEqual(val.hotkey, 'a+b')
-        self.assertEqual(val.err_args, ('a',))
+        self.assertIsNotNone(val)
+        self.assertIsInstance(val, ErrorReport)
+        # assertions for mypy
+        assert isinstance(val, ErrorReport)
+
+        self.assertEqual(val.arguments.get('hotkey'), 'a+b')
+        self.assertEqual(val.arguments.get('key'), 'a')

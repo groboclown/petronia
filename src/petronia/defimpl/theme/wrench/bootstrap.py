@@ -1,6 +1,6 @@
 
 """
-Bootstrap the theme API.
+Bootstrap the Wrench theme.
 """
 
 from ....aid.bootstrap import (
@@ -12,31 +12,27 @@ from ....aid.bootstrap import (
 from ....base.internal_.internal_extension import petronia_extension
 
 
-def bootstrap_theme_api(bus: EventBus) -> None:
+def bootstrap_wrench(bus: EventBus) -> None:
     """
     Setup the theme.
     """
-    # register_event(
-    #     bus,
-    #     EVENT_ID_TIMER,
-    #     QUEUE_EVENT_NORMAL,
-    #     TimerEvent,
-    #     GLOBAL_TIMER_EVENT
-    # )
     pass
 
 
 EXTENSION_METADATA = petronia_extension({
-    "name": "core.theme.api",
+    "name": "default.theme.wrench",
     "version": (1, 0, 0,),
 
-    "type": "api",
+    "type": "impl",
+    "implements": ({
+       "extension": "core.theme.api",
+       "minimum": ANY_VERSION,
+    },),
     "depends": ({
         "extension": "core.platform.api",
         "minimum": ANY_VERSION,
-    },),
-    "defaults": ({
-        "extension": "default.theme.wrench",
+    }, {
+        "extension": "core.hotkeys.binding",
         "minimum": ANY_VERSION,
     },),
 })

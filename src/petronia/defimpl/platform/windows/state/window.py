@@ -106,7 +106,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 # Keep the original state, though.
             cid = bus.create_component_id('petronia.defimpl.platform.windows/window')
             log(DEBUG, on_window_created, 'Window created: HWND {0} -> Component ID {1}', hwnd, cid)
-            print("DEBUG HWND {0} -> cid {1} ***".format(hwnd, cid))
+            # print("DEBUG HWND {0} -> cid {1} ***".format(hwnd, cid))
             new_window_info = mk_window_info(hwnd, cid)
             window_info: NativeWindowState
             if isinstance(new_window_info, WindowsErrorMessage):
@@ -132,7 +132,12 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 window_info = new_window_info
             active_windows[hwnd_i] = window_info
             if hwnd_i not in original_state:
-                print("DEBUG Added original state for HWND {0} ***".format(hwnd, cid))
+                # print("DEBUG Added original state for HWND {0} ***".format(hwnd, cid))
+                if window_info.bordered_rect.width != 0 and window_info.bordered_rect.height != 0:
+                    log(
+                        VERBOSE, add_window_info, "Found new visible window {0} -> cid {1} {3} ({2})",
+                        hwnd_i, cid[1], window_info.names.get('exe'), window_info.bordered_rect
+                    )
                 original_state[hwnd_i] = window_info
             reverse_window_ids[cid] = hwnd
             # print(
@@ -544,7 +549,9 @@ def _restore_windows(
             "Cannot restore known windows original position; no function set."
         )
 
-    for original in original_state.values():
+    # Create a copy of the list; without it, the original state can change underneath us
+    # in certain conditions, which leads to an error.
+    for original in tuple(original_state.values()):
         cid = original.component_id
         if cid not in reverse_window_ids:
             log(
@@ -558,22 +565,25 @@ def _restore_windows(
             _set_window_style(hwnd, original.style)
         if WINDOWS_FUNCTIONS.window.set_position:
             pos = original.bordered_rect
-            res_p = WINDOWS_FUNCTIONS.window.set_position(
-                hwnd, hwnd, pos.x, pos.y, pos.width, pos.height,
-                ["frame-changed", "no-zorder", "async-window-pos"]
-            )
-            if isinstance(res_p, WindowsErrorMessage):
-                # Access denied happens when the window is a message window.
-                if res_p.errno != ERROR_ACCESS_DENIED:
-                    log(
-                        WARN, _restore_windows,
-                        "Could not restore the position and size of {0}: {1}",
-                        hwnd, res_p
-                    )
+            if pos.width != 0 and pos.height != 0:
+                res_p = WINDOWS_FUNCTIONS.window.set_position(
+                    hwnd, hwnd, pos.x, pos.y, pos.width, pos.height,
+                    ["frame-changed", "no-zorder", "async-window-pos"]
+                )
+                if isinstance(res_p, WindowsErrorMessage):
+                    # Access denied happens when the window is a message window.
+                    if res_p.errno != ERROR_ACCESS_DENIED:
+                        log(
+                            WARN, _restore_windows,
+                            "Could not restore the position and size of {0}: {1}",
+                            hwnd, res_p
+                        )
+                    else:
+                        log(
+                            DEBUG, _restore_windows,
+                            "access denied when resorting pos on {0}",
+                            original
+                        )
                 else:
-                    log(
-                        DEBUG, _restore_windows,
-                        "access denied when resorting pos on {0}",
-                        original
-                    )
+                    log(VERBOSE, _restore_windows, "Restore {0} -> {1}", hwnd, pos)
     # TODO should also restore focus state.

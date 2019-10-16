@@ -61,5 +61,5 @@ EXTENSION_METADATA = petronia_extension({
     }, {
         "extension": "core.validation.api",
         "minimum": ANY_VERSION,
-    }),
+    },),
 })

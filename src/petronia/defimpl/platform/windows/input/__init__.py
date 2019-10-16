@@ -10,7 +10,6 @@ from .keymap import (
     vk_to_names,
 )
 from .parse_hotkeys import (
-    HotkeyFormatErrorMessage,
     create_master_mkey,
     create_master_modifier,
     create_master_mkey_and_sequence_combo,

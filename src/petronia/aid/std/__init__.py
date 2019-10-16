@@ -49,7 +49,7 @@ from ...base.events import (
     send_error_event,
     as_error_listener,
     ResultWithErrors,
-    ResultOrErrors,
+    ResultOrError,
 )
 
 from ...base.events.component_events import (

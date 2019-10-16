@@ -142,7 +142,7 @@ class ErrorReport:
         )
 
 
-ResultOrErrors = Union[T, Iterable[ErrorReport]]
+ResultOrError = Union[T, ErrorReport]
 ResultWithErrors = Tuple[T, Iterable[ErrorReport]]
 
 
