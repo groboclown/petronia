@@ -37,7 +37,11 @@ class BusTimer:
 
     Made "public" for unit test ease.
     """
-    __slots__ = ('_config', '_bus', '_running', '_thread', 'sleeper', 'mk_thread', '_last_time')
+    __slots__ = (
+        '_config', '_bus', '_running', '_thread', 'sleeper',
+        'mk_thread', '_last_time',
+        '_disposed',
+    )
     _thread: Optional[Thread]
 
     def __init__(self, bus: EventBus, config: TimerConfig):
@@ -48,9 +52,12 @@ class BusTimer:
         self.sleeper = time.sleep
         self.mk_thread = _create_timer_thread
         self._last_time = -1.0
+        self._disposed = False
 
     def dispose(self) -> None:
-        self._config = TimerConfig(self._config.interval_seconds, False)
+        if not self._disposed:
+            self._disposed = True
+            self._config = TimerConfig(self._config.interval_seconds, False)
 
     @property
     def is_running(self) -> bool:
@@ -63,6 +70,8 @@ class BusTimer:
             update_event: StateStoreUpdatedEvent[TimerConfig]
     ) -> None:
         """Event notification of a configuration change."""
+        if self._disposed:
+            return
         new_config = update_event.state
         activate = not self._config.active and new_config.active
         self._config = new_config
@@ -81,12 +90,13 @@ class BusTimer:
             )
 
     def is_config_active(self) -> bool:
-        return self._config.active
+        return not self._disposed and self._config.active
 
     def run_in_loop(self) -> None:
-        # Wait for the interval since the last sleep started.
-        if not self._config.active:
+        if not self.is_config_active():
             return
+
+        # Wait for the interval since the last sleep started.
         now_time = time.time()
         if self._last_time < 0:
             self._last_time = now_time
