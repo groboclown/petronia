@@ -205,12 +205,11 @@ class SplitterTile:
         self.__active_index -= 1
         raise NotImplementedError()
 
-    def increase_active_split_factor(self, active_increase: int) -> None:
+    def resize_active_split(self, increase: ScreenUnit) -> None:
         """
-        Resizes the split by a given amount.  If the amount is negative, then the
-        split size is reduced by that amount.  However, a split size cannot be less
-        than 1, so if that happens, then the other splits are all increased by the
-        corresponding number.
+        Resizes the active split by the given number of "pixels".
+        Note that once the split is created, all sizes are in pixel sizes,
+        not in the proportion.
 
         :return:
         """
@@ -220,6 +219,10 @@ class SplitterTile:
         return self.__size
 
     def resize(self, new_area: ScreenArea) -> None:
+        """
+        Resize the whole split.  This will attempt to keep the same proportions between
+        the splits.
+        """
         raise NotImplementedError()
 
     def get_children(self) -> Sequence[Tile]:

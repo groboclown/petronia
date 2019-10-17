@@ -67,7 +67,6 @@ def bootstrap_hotkeys(
         #   But that will be a different configuration event.
 
         chain_commands: List[Tuple[Sequence[KeyCombo], str]] = []
-        print("DEBUG ** calling _parse_keys from hotkey config event with {0}".format(repr(event_obj)))
         errors = _parse_keys(event_obj.state.master_sequence, event_obj.state.hotkeys, chain_commands)
         if errors:
             for error in errors:

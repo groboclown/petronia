@@ -16,7 +16,7 @@ from ...aid.std import (
     ParticipantId,
     T,
     log,
-    TRACE,
+    TRACE, VERBOSE,
 )
 from ...aid.bootstrap import (
     create_singleton_identity,
@@ -85,7 +85,8 @@ class _BusAwareStateStore:
             event.state_id, event.state_type,
             event.state
         )
-        print("DEBUG updated state for " + str(_tid) + " (" + str(event.state_id) + ")")
+        log(VERBOSE, _BusAwareStateStore, 'Updated state for {0}', _tid)
+        log(TRACE, _BusAwareStateStore, 'Set {0} state to {1}', _tid, event.state)
         self.__bus.trigger(EVENT_ID_UPDATED_STATE, event.state_id, StateStoreUpdatedEvent(
             event.state_id, event.state_type, event.state, old_state
         ))

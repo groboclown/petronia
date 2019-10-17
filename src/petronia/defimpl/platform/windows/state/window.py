@@ -99,10 +99,10 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     atexit.register(_restore_windows, reverse_window_ids, original_state)
 
     def add_window_info(hwnd: HWND, hwnd_i: int) -> NativeWindowState:
-        top_window: HWND = 0
+        top_window = t_cast(HWND, 0)
         if WINDOWS_FUNCTIONS.window.get_owning_window:
             t_top = WINDOWS_FUNCTIONS.window.get_owning_window(g_hwnd)
-            if isinstance(t_top, HWND):
+            if not isinstance(t_top, WindowsErrorMessage):
                 top_window = t_top
             # Otherwise (error), it means generally either hwnd is a top
             # window, or it was an access denied error.
@@ -114,7 +114,6 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 # Keep the original state, though.
             cid = bus.create_component_id('petronia.defimpl.platform.windows/window')
             log(DEBUG, on_window_created, 'Window created: HWND {0} -> Component ID {1}', hwnd, cid)
-            # print("DEBUG HWND {0} -> cid {1} ***".format(hwnd, cid))
             new_window_info = mk_window_info(hwnd, cid)
             window_info: NativeWindowState
             if isinstance(new_window_info, WindowsErrorMessage):
@@ -140,7 +139,6 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 window_info = new_window_info
             active_windows[hwnd_i] = window_info
             if hwnd_i not in original_state:
-                # print("DEBUG Added original state for HWND {0} ***".format(hwnd, cid))
                 if (
                         top_window == 0
                         and window_info.bordered_rect.width != 0
@@ -150,14 +148,8 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                         VERBOSE, add_window_info, "Found new visible top window {0} -> cid {1} {3} ({2})",
                         hwnd_i, cid[1], window_info.names.get('exe'), window_info.bordered_rect
                     )
-                original_state[hwnd_i] = window_info
+                    original_state[hwnd_i] = window_info
             reverse_window_ids[cid] = hwnd
-
-            # print(
-            #   "DEBUG Registered cid {0} -> HWND {1} ({2}) ***".format(
-            #     new_window_info.component_id, reverse_window_ids[new_window_info.component_id], hwnd
-            #   )
-            # )
         return window_info
 
     def on_window_created(hwnd: HWND) -> None:

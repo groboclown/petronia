@@ -49,6 +49,9 @@ class BusTimer:
         self.mk_thread = _create_timer_thread
         self._last_time = -1.0
 
+    def dispose(self) -> None:
+        self._config = TimerConfig(self._config.interval_seconds, False)
+
     @property
     def is_running(self) -> bool:
         """Is the timer thread running?"""
@@ -82,6 +85,8 @@ class BusTimer:
 
     def run_in_loop(self) -> None:
         # Wait for the interval since the last sleep started.
+        if not self._config.active:
+            return
         now_time = time.time()
         if self._last_time < 0:
             self._last_time = now_time

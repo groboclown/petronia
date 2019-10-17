@@ -108,7 +108,6 @@ class Handler:
             state: StateStoreUpdatedEvent[PersistentConfigurationState]
     ) -> None:
         master, problems = load_hotkey_configuration(self.__state, state.state.persistent)
-        print("Loaded config with master {0}".format(repr(master)))
         if problems:
             for problem in problems:
                 report_error(self.__bus, problem)
