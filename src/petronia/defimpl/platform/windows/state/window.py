@@ -73,6 +73,11 @@ from ..connect.messages import (
 from ..arch.error_codes_common import (
     ERROR_ACCESS_DENIED
 )
+from .window_info_factory import (
+    create_native_window_state,
+    mk_window_state,
+    hwnd_to_int,
+)
 
 
 def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequence[ListenerId]:
@@ -98,66 +103,36 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     # Always, always, always restore windows to their original state at exit.
     atexit.register(_restore_windows, reverse_window_ids, original_state)
 
-    def add_window_info(hwnd: HWND, hwnd_i: int) -> NativeWindowState:
-        top_window = t_cast(HWND, 0)
-        if WINDOWS_FUNCTIONS.window.get_owning_window:
-            t_top = WINDOWS_FUNCTIONS.window.get_owning_window(g_hwnd)
-            if not isinstance(t_top, WindowsErrorMessage):
-                top_window = t_top
-            # Otherwise (error), it means generally either hwnd is a top
-            # window, or it was an access denied error.
+    def add_window_info(hwnd: HWND, hwnd_i: int) -> Optional[NativeWindowState]:
+        window_state = create_native_window_state(bus, hwnd, hwnd_i)
+        if not window_state:
+            return None
 
         with lock:
             if hwnd_i in active_windows:
                 # The remove was never received.  Trigger that.
                 on_window_destroyed(hwnd)
                 # Keep the original state, though.
-            cid = bus.create_component_id('petronia.defimpl.platform.windows/window')
-            log(DEBUG, on_window_created, 'Window created: HWND {0} -> Component ID {1}', hwnd, cid)
-            new_window_info = mk_window_info(hwnd, cid)
-            window_info: NativeWindowState
-            if isinstance(new_window_info, WindowsErrorMessage):
-                log(
-                    WARN, on_window_created,
-                    'Failed to get information for window {0}: {1}',
-                    hwnd, new_window_info
-                )
-                # Need *something* there...
-                window_info = NativeWindowState(
-                    component_id=cid,
-                    title='',
-                    process_id=-1,
-                    names={},
-                    bordered_rect=EMPTY_SCREEN_RECT,
-                    client_rect=EMPTY_SCREEN_RECT,
-                    style={},
-                    is_visible=True,
-                    is_active=False,
-                    is_focused=False
-                )
-            else:
-                window_info = new_window_info
-            active_windows[hwnd_i] = window_info
+            active_windows[hwnd_i] = window_state
             if hwnd_i not in original_state:
-                if (
-                        top_window == 0
-                        and window_info.bordered_rect.width != 0
-                        and window_info.bordered_rect.height != 0
-                ):
+                if window_state.bordered_rect.width != 0 and window_state.bordered_rect.height != 0:
                     log(
                         VERBOSE, add_window_info, "Found new visible top window {0} -> cid {1} {3} ({2})",
-                        hwnd_i, cid[1], window_info.names.get('exe'), window_info.bordered_rect
+                        hwnd_i, window_state.component_id[1], window_state.names.get('exe'), window_state.bordered_rect
                     )
-                    original_state[hwnd_i] = window_info
-            reverse_window_ids[cid] = hwnd
-        return window_info
+                    original_state[hwnd_i] = window_state
+            reverse_window_ids[window_state.component_id] = hwnd
+        return window_state
 
     def on_window_created(hwnd: HWND) -> None:
-        hwnd_i = _hwnd_to_int(hwnd)
+        hwnd_i = hwnd_to_int(hwnd)
         if hwnd_i is None:
             return
         with lock:
             new_window_info = add_window_info(hwnd, hwnd_i)
+            if not new_window_info:
+                log(DEBUG, on_window_created, "Ignored window created event for {0}", hwnd)
+                return
             reverse_window_ids[new_window_info.component_id] = hwnd
 
             # Note: Send the creation notice must be done before the
@@ -168,7 +143,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             set_active_windows_state(bus, active_windows.values())
 
     def on_window_destroyed(hwnd: HWND) -> None:
-        hwnd_i = _hwnd_to_int(hwnd)
+        hwnd_i = hwnd_to_int(hwnd)
         if hwnd_i is None:
             return
         with lock:
@@ -190,12 +165,15 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 del original_state[hwnd_i]
 
     def on_window_focused(hwnd: HWND) -> None:
-        hwnd_i = _hwnd_to_int(hwnd)
+        hwnd_i = hwnd_to_int(hwnd)
         if hwnd_i is None:
             return
         with lock:
             if hwnd_i not in active_windows:
-                on_window_created(hwnd)
+                winfo = add_window_info(hwnd, hwnd_i)
+                if not winfo:
+                    log(DEBUG, on_window_focused, "Ignored window focused event for {0}", hwnd)
+                    return
                 assert hwnd_i in active_windows
             window_info = active_windows[hwnd_i]
             log(DEBUG, on_window_focused, 'Window focused: {0}', window_info.component_id)
@@ -204,17 +182,20 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             set_active_windows_state(bus, active_windows.values())
 
     def on_window_moved(hwnd: HWND, _pos: Optional[RECT] = None) -> None:
-        hwnd_i = _hwnd_to_int(hwnd)
+        hwnd_i = hwnd_to_int(hwnd)
         if hwnd_i is None:
             return
         with lock:
             if hwnd_i not in active_windows:
-                on_window_created(hwnd)
+                winfo = add_window_info(hwnd, hwnd_i)
+                if not winfo:
+                    log(DEBUG, on_window_moved, "Ignored window moved event for {0}", hwnd)
+                    return
                 assert hwnd_i in active_windows
             window_info = active_windows[hwnd_i]
             log(DEBUG, on_window_focused, 'Window moved: {0}', window_info.component_id)
             screen_rect: ScreenRect
-            new_window_info = mk_window_info(hwnd, window_info.component_id)
+            new_window_info = mk_window_state(hwnd, window_info.component_id)
             if isinstance(new_window_info, WindowsErrorMessage):
                 log(
                     INFO, on_request_move,
@@ -231,12 +212,15 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             set_active_windows_state(bus, active_windows.values())
 
     def on_window_flash(hwnd: HWND) -> None:
-        hwnd_i = _hwnd_to_int(hwnd)
+        hwnd_i = hwnd_to_int(hwnd)
         if hwnd_i is None:
             return
         with lock:
             if hwnd_i not in active_windows:
-                on_window_created(hwnd)
+                winfo = add_window_info(hwnd, hwnd_i)
+                if not winfo:
+                    log(DEBUG, on_window_flash, "Ignored window flashed event for {0}", hwnd)
+                    return
                 assert hwnd_i in active_windows
             window_info = active_windows[hwnd_i]
             log(DEBUG, on_window_focused, 'Window flashed: {0}', window_info.component_id)
@@ -244,8 +228,8 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             # Nothing to update with window state.
 
     def on_window_replace(new_window: HWND, old_window: HWND) -> None:
-        n_hwnd_i = _hwnd_to_int(new_window)
-        o_hwnd_i = _hwnd_to_int(old_window)
+        n_hwnd_i = hwnd_to_int(new_window)
+        o_hwnd_i = hwnd_to_int(old_window)
         if n_hwnd_i is None or o_hwnd_i is None:
             return
         with lock:
@@ -387,7 +371,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             # just the top-level windows.  However, it reports many top-level
             # windows for programs that have just a single displayed window.
             # Need to understand what's going on better.
-            g_hwnd_i = _hwnd_to_int(g_hwnd)
+            g_hwnd_i = hwnd_to_int(g_hwnd)
             if g_hwnd_i is not None:
                 add_window_info(g_hwnd, g_hwnd_i)
     set_active_windows_state(bus, active_windows.values())
@@ -396,115 +380,6 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     )
 
     return listeners
-
-
-def _hwnd_to_int(hwnd: HWND) -> Optional[int]:
-    if hwnd is None:
-        return None
-    if isinstance(hwnd, int):
-        return hwnd
-    if hwnd.value is None:
-        return None
-    return hwnd.value
-
-
-def _dword_to_int(dword: DWORD) -> Optional[int]:
-    if dword is None:
-        return None
-    if isinstance(dword, int):
-        return dword
-    if dword.value is None:
-        return None
-    return dword.value
-
-
-def mk_window_info(
-        hwnd: HWND,
-        cid: ComponentId
-) -> Union[NativeWindowState, WindowsErrorMessage]:
-    bordered_rect: ScreenRect
-    if WINDOWS_FUNCTIONS.window.border_rectangle:
-        rect = WINDOWS_FUNCTIONS.window.border_rectangle(hwnd)
-        if isinstance(rect, WindowsErrorMessage):
-            return rect
-        bordered_rect = rect
-    else:
-        bordered_rect = EMPTY_SCREEN_RECT
-    client_rect: ScreenRect
-    if WINDOWS_FUNCTIONS.window.client_rectangle:
-        # This returns coordinates where 0,0 is always the top/left value.
-        # So it needs to be converted.
-        rect = WINDOWS_FUNCTIONS.window.client_rectangle(hwnd)
-        if isinstance(rect, WindowsErrorMessage):
-            return rect
-        client_rect = ScreenRect(
-            rect.x + bordered_rect.x, rect.y + bordered_rect.y,
-            rect.width, rect.height,
-            rect.left + bordered_rect.left, rect.right + bordered_rect.right,
-            rect.top + bordered_rect.top, rect.bottom + bordered_rect.bottom
-        )
-    else:
-        client_rect = EMPTY_SCREEN_RECT
-
-    active_window_hwnd: Optional[HWND] = None
-    if WINDOWS_FUNCTIONS.window.get_active_window:
-        # Can't tell outside the handling thread which window is the proper
-        # active, and which has focus.  This can only tell us which is the
-        # foreground window.
-        active_window_hwnd = WINDOWS_FUNCTIONS.window.get_active_window()
-    is_visible = False
-    if WINDOWS_FUNCTIONS.window.is_visible:
-        is_visible = WINDOWS_FUNCTIONS.window.is_visible(hwnd)
-
-    style: Mapping[str, Union[str, float, bool]] = {}
-    if is_visible and WINDOWS_FUNCTIONS.window.get_style:
-        style = WINDOWS_FUNCTIONS.window.get_style(hwnd)
-
-    title = ''
-    if WINDOWS_FUNCTIONS.window.get_title:
-        title = WINDOWS_FUNCTIONS.window.get_title(hwnd)
-
-    pid_d = DWORD(-1)
-    pid = -1
-    if WINDOWS_FUNCTIONS.window.get_process_id:
-        pid_d = WINDOWS_FUNCTIONS.window.get_process_id(hwnd)
-        pid = _dword_to_int(pid_d) or 0
-
-    names: Dict[str, str] = {}
-    if WINDOWS_FUNCTIONS.window.get_class_name:
-        cls_name = WINDOWS_FUNCTIONS.window.get_class_name(hwnd)
-        if cls_name and isinstance(cls_name, str):
-            names['class'] = cls_name
-    if WINDOWS_FUNCTIONS.window.get_module_filename:
-        mod_name = WINDOWS_FUNCTIONS.window.get_module_filename(hwnd)
-        if mod_name and isinstance(mod_name, str):
-            names['module'] = mod_name
-    if pid >= 0 and WINDOWS_FUNCTIONS.process.get_username_domain_for_pid:
-        res = WINDOWS_FUNCTIONS.process.get_username_domain_for_pid(pid_d)
-        if not isinstance(res, WindowsErrorMessage):
-            names['user'] = res[0]
-            names['domain'] = res[1]
-    if pid >= 0 and WINDOWS_FUNCTIONS.process.get_executable_filename:
-        p_file = WINDOWS_FUNCTIONS.process.get_executable_filename(pid_d)
-        if p_file and isinstance(p_file, str):
-            names['exe'] = p_file
-        else:
-            names['exe'] = '<unknown> {0}'.format(repr(p_file))
-
-    # WINDOWS_FUNCTIONS.shell.get_window_metrics?  Is that something we should also get?
-
-    return NativeWindowState(
-        component_id=cid,
-        title=title,
-        process_id=pid,
-        names=names,
-        bordered_rect=bordered_rect,
-        client_rect=client_rect,
-        style=t_cast(Dict[str, Union[str, float, bool]], style),
-        is_visible=is_visible is not False,
-        is_active=active_window_hwnd == hwnd,
-        is_focused=active_window_hwnd == hwnd
-    )
 
 
 def update_active_window(active_hwnd: int, active_windows: Dict[int, NativeWindowState]) -> None:

@@ -7,7 +7,7 @@ from ...base import (
     EventBus,
     create_singleton_identity,
 )
-from ...core import set_state
+from ...core.state.api import set_state
 
 TARGET_TIMER_CONFIG = create_singleton_identity('core.timer.impl config')
 DEFAULT_INTERVAL = 1.2

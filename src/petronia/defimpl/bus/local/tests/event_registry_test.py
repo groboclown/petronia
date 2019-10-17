@@ -30,7 +30,7 @@ class EventRegistryTest(unittest.TestCase):
         evtr.validate_has('simple')
 
     def test_register_no_slots(self):
-        """register() an object with no defiend slots"""
+        """register() an object with no defined slots"""
         evtr = EventRegistry()
         try:
             evtr.register('no_slots', QUEUE_EVENT_NORMAL, EventNoSlot, EventNoSlot())

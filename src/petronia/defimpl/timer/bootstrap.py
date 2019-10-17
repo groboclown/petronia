@@ -41,7 +41,7 @@ def start_extension(bus: EventBus) -> None:
 
     listener = create_module_listener_helper(bus, MODULE_ID_TIMER, timer.dispose)
 
-    listener.listen(
+    listener.listen(  # type: ignore
         TARGET_TIMER_CONFIG,
         as_state_change_listener,
         timer.on_config_change

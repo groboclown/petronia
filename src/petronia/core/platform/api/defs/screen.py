@@ -151,6 +151,9 @@ class VirtualScreenInfo:
                 return block
         return None
 
+    def __repr__(self) -> str:
+        return "VirtualScreenInfo({0})".format(repr(self.__blocks))
+
 
 class NativeScreenInfo:
     """A single "screen" with its information.  This represents the screen as the underlying
@@ -203,3 +206,11 @@ class NativeScreenInfo:
     @property
     def is_primary(self) -> bool:
         return self.__is_primary
+
+    def __repr__(self) -> str:
+        return ("NativeScreenInfo(handle={0}, screen_index={1}, is_primary={2}, "
+        "screen_size={3}, work_area={4}, name={5})").format(
+            repr(self.__handle), repr(self.__screen_index),
+            repr(self.__is_primary), repr(self.__screen_size),
+            repr(self.__work_area), repr(self.__name)
+        )
