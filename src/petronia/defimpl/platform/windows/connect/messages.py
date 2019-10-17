@@ -125,8 +125,8 @@ def window_replacing_message(callback: Callable[[HWND, HWND], None]) -> MessageE
     def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
         # LPARAM stores a handle to the window replacing the top-level window.
         top = _source_hwnd
-        if WINDOWS_FUNCTIONS.window.get_top_window:
-            t = WINDOWS_FUNCTIONS.window.get_top_window(_source_hwnd)
+        if WINDOWS_FUNCTIONS.window.get_owning_window:
+            t = WINDOWS_FUNCTIONS.window.get_owning_window(_source_hwnd)
             if isinstance(t, WindowsErrorMessage):
                 # TODO do something smart.
                 top = _source_hwnd

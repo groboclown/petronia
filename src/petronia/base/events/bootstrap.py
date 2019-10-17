@@ -21,6 +21,11 @@ from .system_events import (
 
     EVENT_ID_SYSTEM_HALTED,
     SystemHaltedEvent,
+
+    EVENT_ID_ERROR,
+    ErrorEvent,
+    ErrorReport,
+    ERROR_CATEGORY_USER,
 )
 from .participant_events import (
     EVENT_ID_PARTICIPANT_STARTED,
@@ -52,7 +57,7 @@ from ..internal_.bus_constants import (
     PRODUCE_EVENT_PROTECTION,
 )
 from ..internal_.identity_types import NOT_PARTICIPANT
-from ..util.memory import T
+from ..util.memory import T, EMPTY_MAPPING
 
 # Order of arguments to the RegisterEventEvent constructor
 # event_id: EventId, priority: QueuePriority, public_produce: bool, public_consume: bool,
@@ -128,5 +133,11 @@ def bootstrap_core_events() -> Sequence[EventDefinition[Any]]:  # type: ignore
             QUEUE_EVENT_NORMAL, CONSUME_EVENT_PROTECTION,
             SystemHaltedEvent,
             SystemHaltedEvent()
+        ),
+        (
+            EVENT_ID_ERROR,
+            QUEUE_EVENT_HIGH, GLOBAL_EVENT_PROTECTION,
+            ErrorEvent,
+            ErrorEvent(ErrorReport('', ERROR_CATEGORY_USER, '', EMPTY_MAPPING))  # type: ignore
         ),
     )

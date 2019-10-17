@@ -8,7 +8,7 @@ Hotkey processing.
 The system should allow for only one type of chain to be used at a time.
 """
 
-from typing import Dict, List, Tuple, Sequence, Union, Optional
+from typing import Dict, List, Tuple, Sequence, Iterable, Union, Optional
 from .....base.util import T
 
 # The platform-specific integer representation of the key press.  It's up to
@@ -21,7 +21,7 @@ ModifierKeyCode = Union[int, Sequence[int]]
 StandardKeyCode = int
 KeyCode = Union[ModifierKeyCode, StandardKeyCode]
 
-# Up or down state of the key
+# Up or down state + the key
 # Internally, this is (keycode << 1) | (key_down ? 1 : 0)
 StatefulKeyCode = int
 
@@ -89,6 +89,16 @@ class KeyComboTree:
             self.children[key0] = name
             return True
         return False
+
+    def __repr__(self) -> str:
+        kids = []
+        for key, val in self.children.items():
+            nk = "{0:02x}:{1}".format(
+                (key >> 1) & 0xff,
+                key & 1 == 0 and 'up' or 'dn'
+            )
+            kids.append(repr(nk) + '=' + repr(val))
+        return "KeyComboTree({0})".format(', '.join(kids))
 
 
 ACTION_PENDING = 1
@@ -189,15 +199,6 @@ def create_modal_chain(
     return ret
 
 
-def create_independent_key_chain(
-        key_sets: Sequence[Tuple[Sequence[ModifierKeyCode], Sequence[StandardKeyCode]]]
-) -> KeyCombo:
-    """
-    A series of combo types, where each must be pressed in order.
-    """
-    raise NotImplementedError()
-
-
 class HotKeyChain:
     """
     Keeps track of the current hotkey press progress.
@@ -225,6 +226,7 @@ class HotKeyChain:
         for key_list, name in chain_commands:
             for keys in key_list:
                 combos.add_child(keys, name, True)
+        # print("Set key chain to " + repr(combos))
 
         # Change the variable in a single command.
         self._root_combos = combos
@@ -234,7 +236,7 @@ class HotKeyChain:
         """Reset any active hotkey check."""
         self._active_combos = None
 
-    def key_action(self, key_code: StandardKeyCode, is_down: bool) -> Tuple[int, Optional[Sequence[str]]]:
+    def key_action(self, key_code: StandardKeyCode, is_down: bool) -> Tuple[int, Optional[Iterable[str]]]:
         """
         Handle the key action.  Note that this MUST be done in-thread when
         the event happens, due to the ordering nature of key press, and how
@@ -260,7 +262,7 @@ class HotKeyChain:
                 return ACTION_COMPLETE, (next_part,),
             if isinstance(next_part, KeyComboTree):
                 self._active_combos = next_part
-                return ACTION_PENDING, next_part.leaves(),
+                return ACTION_PENDING, set(next_part.leaves()),
             # Not a known key combo.
             self._active_combos = None
             return ACTION_CANCELLED, None,
@@ -271,8 +273,9 @@ class HotKeyChain:
             return ACTION_COMPLETE, (next_part,),
         if isinstance(next_part, KeyComboTree):
             # Start a combo.
+            # print("Starting hotkey combo " + repr(next_part))
             self._active_combos = next_part
-            return ACTION_PENDING, next_part.leaves(),
+            return ACTION_PENDING, set(next_part.leaves()),
 
         # It wasn't a known combo.
         return IGNORED, None,
@@ -330,7 +333,7 @@ def combinations(src_elements: Sequence[T]) -> Sequence[List[T]]:
     ret: List[List[T]] = []
     source_size = len(src_elements)
     last_index = source_size - 1
-    index_stack: List[int] = [-1] # weird initial state to handle the looping
+    index_stack: List[int] = [-1]  # weird initial state to handle the looping
     while index_stack:
         if len(index_stack) > source_size:
             # Completed filling up the stack, so this is the end of the

@@ -34,3 +34,6 @@ echo "======================================================="
 echo "Running unit tests..."
 python3 -m coverage run --source . -m unittest discover -s . -p "*_test.py"
 python3 -m coverage report -m
+cd "$HERE"
+python3 ./mk_docs.py
+

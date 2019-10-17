@@ -99,6 +99,14 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     atexit.register(_restore_windows, reverse_window_ids, original_state)
 
     def add_window_info(hwnd: HWND, hwnd_i: int) -> NativeWindowState:
+        top_window: HWND = 0
+        if WINDOWS_FUNCTIONS.window.get_owning_window:
+            t_top = WINDOWS_FUNCTIONS.window.get_owning_window(g_hwnd)
+            if isinstance(t_top, HWND):
+                top_window = t_top
+            # Otherwise (error), it means generally either hwnd is a top
+            # window, or it was an access denied error.
+
         with lock:
             if hwnd_i in active_windows:
                 # The remove was never received.  Trigger that.
@@ -133,13 +141,18 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             active_windows[hwnd_i] = window_info
             if hwnd_i not in original_state:
                 # print("DEBUG Added original state for HWND {0} ***".format(hwnd, cid))
-                if window_info.bordered_rect.width != 0 and window_info.bordered_rect.height != 0:
+                if (
+                        top_window == 0
+                        and window_info.bordered_rect.width != 0
+                        and window_info.bordered_rect.height != 0
+                ):
                     log(
-                        VERBOSE, add_window_info, "Found new visible window {0} -> cid {1} {3} ({2})",
+                        VERBOSE, add_window_info, "Found new visible top window {0} -> cid {1} {3} ({2})",
                         hwnd_i, cid[1], window_info.names.get('exe'), window_info.bordered_rect
                     )
                 original_state[hwnd_i] = window_info
             reverse_window_ids[cid] = hwnd
+
             # print(
             #   "DEBUG Registered cid {0} -> HWND {1} ({2}) ***".format(
             #     new_window_info.component_id, reverse_window_ids[new_window_info.component_id], hwnd
@@ -378,6 +391,10 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     # Set the initial state.
     if WINDOWS_FUNCTIONS.window.find_handles:
         for g_hwnd in WINDOWS_FUNCTIONS.window.find_handles():
+            # This calls EnumWindows under the covers, which is supposed to return
+            # just the top-level windows.  However, it reports many top-level
+            # windows for programs that have just a single displayed window.
+            # Need to understand what's going on better.
             g_hwnd_i = _hwnd_to_int(g_hwnd)
             if g_hwnd_i is not None:
                 add_window_info(g_hwnd, g_hwnd_i)
@@ -586,4 +603,4 @@ def _restore_windows(
                         )
                 else:
                     log(VERBOSE, _restore_windows, "Restore {0} -> {1}", hwnd, pos)
-    # TODO should also restore focus state.
+    # May also want to restore focus state to how it was right before this function ran.

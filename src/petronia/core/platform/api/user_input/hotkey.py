@@ -55,6 +55,11 @@ class HotkeyConfig:
         """All registered hotkeys, as the configuration named them."""
         return self.__hotkeys
 
+    def __repr__(self) -> str:
+        return "HotkeyConfig(master_sequence={0}, hotkeys={1})".format(
+            repr(self.__master), repr(self.__hotkeys)
+        )
+
 
 def set_hotkey_config(bus: EventBus, master_sequence: str, hotkeys: Dict[str, str]) -> None:
     set_state(

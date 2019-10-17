@@ -38,6 +38,8 @@ def create_master_modifier_hotkey_combo(
     """
     Parses the standard master modifier (e.g. Super+Shift) plus a key to go with it
     (e.g. up-arrow or ctrl+1).
+
+    The master modifier keys must be pressed before any of the hotkey is pressed.
     """
     if hotkey.find('+') > 0:
         # At least one modifier...

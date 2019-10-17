@@ -38,7 +38,7 @@ from ..windows_constants import (
     RDW_INTERNALPAINT, RDW_ERASE, RDW_ALLCHILDREN, RDW_FRAME, RDW_INVALIDATE,
     SW_MINIMIZE, SW_RESTORE, SW_SHOW, SW_HIDE, SW_MAXIMIZE, SW_SHOWNA,
     SW_SHOWNORMAL, SW_SHOWMINIMIZED, SW_SHOWMAXIMIZED, SW_SHOWNOACTIVATE, SW_SHOWMINNOACTIVE,
-    HWND_TOPMOST, HWND_NOTOPMOST, HWND_DESKTOP,
+    HWND_TOPMOST, HWND_NOTOPMOST, HWND_DESKTOP, GW_OWNER,
     SWP_NOSIZE, SWP_NOMOVE,
     PROCESS_QUERY_INFORMATION, PROCESS_VM_READ,
     WM_CLOSE, WM_DESTROY, WH_SHELL, WM_SETTINGCHANGE,
@@ -107,7 +107,7 @@ def load_functions(_: Dict[str, str], func_map: Functions) -> None:
     func_map.window.get_module_filename = window__get_module_filename
     func_map.window.get_thread_window_handles = window__get_thread_window_handles
     func_map.window.get_child_window_handles = window__get_child_window_handles
-    func_map.window.get_top_window = window__get_top_window
+    func_map.window.get_owning_window = window__get_owning_window
     func_map.window.border_rectangle = window__border_rectangle
     func_map.window.client_rectangle = window__client_rectangle
     func_map.window.move_resize = window__move_resize
@@ -328,10 +328,14 @@ def window__get_child_window_handles(hwnd_parent: HWND) -> Sequence[HWND]:
     return ret
 
 
-def window__get_top_window(hwnd_child: Optional[HWND]) -> Union[WindowsErrorMessage, HWND]:
-    ret = windll.user32.GetTopWindow(hwnd_child)
+def window__get_owning_window(hwnd_child: HWND) -> Union[WindowsErrorMessage, HWND]:
+    # "GetTopWindow" gets the top-Z level *child window* for the given window.
+    # "GetWindow(..., GW_OWNER)" gets the Owning child (not parent window) for the
+    # window.   Difference: "Owner Window" is the HWND for the top-most window whose
+    # parent is none (e.g. the desktop).
+    ret = windll.user32.GetWindow(hwnd_child, GW_OWNER)
     if ret == 0 or ret is None:
-        return WindowsErrorMessage('user32.GetTopWindow')
+        return WindowsErrorMessage('user32.GetWindow')
     return t_cast(HWND, ret)
 
 

@@ -43,7 +43,7 @@ class WindowFunctions:
         'get_module_filename',
         'get_thread_window_handles',
         'get_child_window_handles',
-        'get_top_window',
+        'get_owning_window',
         'border_rectangle',
         'client_rectangle',
         'move_resize',
@@ -84,7 +84,7 @@ class WindowFunctions:
     get_module_filename: Optional[Callable[[HWND], Union[WindowsErrorMessage, str]]]
     get_thread_window_handles: Optional[Callable[[DWORD], Sequence[HWND]]]
     get_child_window_handles: Optional[Callable[[HWND], Sequence[HWND]]]
-    get_top_window: Optional[Callable[[Optional[HWND]], Union[WindowsErrorMessage, HWND]]]
+    get_owning_window: Optional[Callable[[HWND], Union[WindowsErrorMessage, HWND]]]
     # TODO the ScreenRect should be for virtual pixels, but this is actually native.
     border_rectangle: Optional[Callable[[HWND], Union[WindowsErrorMessage, ScreenRect]]]
     # TODO the ScreenRect should be for virtual pixels, but this is actually native.

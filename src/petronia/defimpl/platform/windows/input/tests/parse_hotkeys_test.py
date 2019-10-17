@@ -21,6 +21,9 @@ _LSUPER_UP = create_stateful_key_code(_VK_LSUPER, False)
 _VK_LSHIFT = STR_VK_MAP['lshift']
 _LSHIFT_DOWN = create_stateful_key_code(_VK_LSHIFT, True)
 _LSHIFT_UP = create_stateful_key_code(_VK_LSHIFT, False)
+_VK_RSHIFT = STR_VK_MAP['rshift']
+_RSHIFT_DOWN = create_stateful_key_code(_VK_RSHIFT, True)
+_RSHIFT_UP = create_stateful_key_code(_VK_RSHIFT, False)
 
 _VK_A = STR_VK_MAP['a']
 _A_DOWN = create_stateful_key_code(_VK_A, True)
@@ -51,8 +54,34 @@ class ParseHotkeysTest(unittest.TestCase):
         self.assertEqual(
             create_master_modifier_hotkey_combo(master, 'lshift+a'),
             [
+                # Master sequence must be pressed before the other keys.
+                [_LSUPER_DOWN, _LSHIFT_DOWN, _A_DOWN],
+            ]
+        )
+
+    def test_create_master_modifier_hotkey_combo_2(self) -> None:
+        master = create_master_modifier('lsuper+lshift')
+        self.assertIsNotNone(master)
+        self.assertNotIsInstance(master, ErrorReport)
+        self.assertEqual(
+            master,
+            [_VK_LSUPER]
+        )
+        # assertions for mypy
+        assert not isinstance(master, ErrorReport)
+        self.assertEqual(
+            create_master_modifier_hotkey_combo(master, 'a'),
+            [
                 [_LSUPER_DOWN, _LSHIFT_DOWN, _A_DOWN],
                 [_LSHIFT_DOWN, _LSUPER_DOWN, _A_DOWN],
+            ]
+        )
+        self.assertEqual(
+            create_master_modifier_hotkey_combo(master, 'rshift+a'),
+            [
+                # Master sequence must be pressed before the other keys.
+                [_LSUPER_DOWN, _LSHIFT_DOWN, _RSHIFT_DOWN, _A_DOWN],
+                [_LSHIFT_DOWN, _LSUPER_DOWN, _RSHIFT_DOWN, _A_DOWN],
             ]
         )
 

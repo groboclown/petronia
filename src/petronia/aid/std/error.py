@@ -77,6 +77,10 @@ def report_error(
         logerr(ERROR, report.source, report.arguments['error'], report.message_code, **report.arguments)
     else:
         log(ERROR, report.source, report.message_code, **report.arguments)
+        # try:
+        #     raise Exception('source')
+        # except Exception as err:
+        #     logerr(DEBUG, report.source, err, 'source')
 
     if bus:
         send_error_reports_event(bus, report)

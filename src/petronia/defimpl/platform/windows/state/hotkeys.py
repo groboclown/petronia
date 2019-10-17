@@ -13,7 +13,6 @@ from .....aid.std import (
     as_state_change_listener,
     StateStoreUpdatedEvent,
     log,
-    ERROR,
     DEBUG,
     ErrorReport,
     create_user_error,
@@ -28,6 +27,7 @@ from ...general.hotkey import HotKeyChain, KeyCombo
 from ..connect import WindowsHookEvent
 from ..input import (
     create_hotkey_handler,
+    create_pass_through_win_key_set,
     create_master_mkey,
     create_master_modifier,
     create_master_modifier_hotkey_combo,
@@ -46,35 +46,36 @@ def bootstrap_hotkeys(
         c_cmd: List[Tuple[Sequence[KeyCombo], str]] = []
         c_errors = _parse_keys(initial_keys[0], initial_keys[1], c_cmd)
         for c_error in c_errors:
-            log(ERROR, bootstrap_hotkeys, str(c_error))
+            report_error(bus, c_error)
         hotkey_chain.set_key_chains(c_cmd)
 
     resend_invalid_hotkey = ValueHolder(True)
-    pass_through_win_key = ValueHolder(False)
-    key_hook = create_hotkey_handler(bus, hotkey_chain, resend_invalid_hotkey, pass_through_win_key)
+    pass_through_keys = ValueHolder(create_pass_through_win_key_set(False))
+    key_hook = create_hotkey_handler(bus, hotkey_chain, resend_invalid_hotkey, pass_through_keys)
     hooks.set_key_handler(key_hook)
 
     # -----------------------------------------------------------------------
     # Config Change Handler
     def on_hotkeys_config(
             _event_id: EventId, _target_id: ParticipantId,
-            obj: StateStoreUpdatedEvent[HotkeyConfig]
+            event_obj: StateStoreUpdatedEvent[HotkeyConfig]
     ) -> None:
-        if obj.state_id != CONFIGURATION_ID_HOTKEYS:
+        if event_obj.state_id != CONFIGURATION_ID_HOTKEYS:
             return
 
-        # Could change the behavior of the stop win key...
-        # But that will be a different configuration event.
+        # TODO Could change the behavior of the stop win key...
+        #   But that will be a different configuration event.
 
         chain_commands: List[Tuple[Sequence[KeyCombo], str]] = []
-        errors = _parse_keys(obj.state.master_sequence, obj.state.hotkeys, chain_commands)
+        print("DEBUG ** calling _parse_keys from hotkey config event with {0}".format(repr(event_obj)))
+        errors = _parse_keys(event_obj.state.master_sequence, event_obj.state.hotkeys, chain_commands)
         if errors:
             for error in errors:
                 report_error(bus, error)
             return
         log(DEBUG, on_hotkeys_config, 'Setting hotkeys.')
         hotkey_chain.set_key_chains(chain_commands)
-        set_hotkey_state(bus, obj.state.master_sequence, obj.state.hotkeys)
+        set_hotkey_state(bus, event_obj.state.master_sequence, event_obj.state.hotkeys)
 
     listeners.append(bus.add_listener(  # type: ignore
         CONFIGURATION_ID_HOTKEYS,

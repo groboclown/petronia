@@ -87,6 +87,11 @@ class StateStoreUpdatedEvent(Generic[T]):
         differences, if any."""
         return self._previous
 
+    def __repr__(self) -> str:
+        return "StateStoreUpdatedEvent(state_id={0}, state={1}, state_type={2}, previous={3})".format(
+            repr(self._state_id), repr(self._state), repr(self._state_type), repr(self._previous)
+        )
+
 
 def set_state(
         bus: EventBus, state_id: ParticipantId, state_type: Type[T], state: T

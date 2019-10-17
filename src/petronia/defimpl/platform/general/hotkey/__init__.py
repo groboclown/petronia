@@ -16,5 +16,4 @@ from .hotkey_chain import (
     StatefulKeyCode,
     create_primary_chain,
     create_modal_chain,
-    create_independent_key_chain,
 )

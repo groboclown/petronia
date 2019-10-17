@@ -108,10 +108,11 @@ class Handler:
             state: StateStoreUpdatedEvent[PersistentConfigurationState]
     ) -> None:
         master, problems = load_hotkey_configuration(self.__state, state.state.persistent)
+        print("Loaded config with master {0}".format(repr(master)))
         if problems:
             for problem in problems:
                 report_error(self.__bus, problem)
-        else:
+        elif master:
             self.__master = master
             self._send_hotkey_setup()
 
@@ -157,5 +158,7 @@ class Handler:
             send_hotkey_event_triggered(self.__bus, binding[1].service, binding[0].data)
 
     def _send_hotkey_setup(self) -> None:
-        set_hotkey_config(self.__bus, self.__master, self.__state.get_platform_keys())
+        if self.__master:
+            # Only broadcast the key config if we have a configuration.
+            set_hotkey_config(self.__bus, self.__master, self.__state.get_platform_keys())
         set_hotkey_event_state(self.__bus, self.__state.get_state())

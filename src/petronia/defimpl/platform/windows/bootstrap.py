@@ -4,6 +4,7 @@ Start up the Windows system.
 """
 
 import sys
+import atexit
 from ....aid.std import (
     EventBus,
     PetroniaPlatformNotSupported,
@@ -18,7 +19,6 @@ from .state import (
     bootstrap_display_detection,
     bootstrap_window_discovery,
 )
-import atexit
 
 
 def bootstrap_windows_platform(bus: EventBus) -> None:

@@ -95,7 +95,7 @@ class ErrorReport:
     __slots__ = ('__source', '__category', '__message', '__arguments')
 
     def __init__(
-            self, source: str, category: str, message_code: str, arguments: Dict[str, MessageArgumentValueType]
+            self, source: str, category: str, message_code: str, arguments: Mapping[str, MessageArgumentValueType]
     ) -> None:
         assert category in ERROR_CATEGORIES
         self.__source = source

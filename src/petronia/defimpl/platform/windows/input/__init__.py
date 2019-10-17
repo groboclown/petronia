@@ -5,6 +5,7 @@ General input handling code.
 
 from .hotkeys import (
     create_hotkey_handler,
+    create_pass_through_win_key_set,
 )
 from .keymap import (
     vk_to_names,
