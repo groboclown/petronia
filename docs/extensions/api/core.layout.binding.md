@@ -1,10 +1,12 @@
-# core.hotkeys.binding (stand-alone)
+# core.layout.binding (stand-alone)
 **v1.0.0**
 
-Petronia Core Hotkey Bindings.
+Petronia Layout Hotkey Bindings.
 
 
-Defines the hotkey action types for core actions the user may want to perform.
+Allows for adding hotkey binding to the standard layout events, so that the
+different layouts don't need to re-implement all the bindings.  Instead,
+they can just listen to the layout API events.
 
 ## Details
 
@@ -20,9 +22,7 @@ Does not provide any user configuration.
 
 * [core.hotkeys.api](core.hotkeys.api.md)
   no version restriction
-* [core.shutdown.api](core.shutdown.api.md)
-  no version restriction
-* [core.validation.api](core.validation.api.md)
+* [core.layout.api](core.layout.api.md)
   no version restriction
 
 
@@ -33,11 +33,11 @@ Does not provide any user configuration.
 ## Listens To Events
 
 * Event Id **`petronia.participant/request-dispose`**
-  Target Id **`core.hotkey.binding`**
+  Target Id **`core.layout.binding`**
 * Event Id **`core.shutdown.api system-shut-down-finalize`**
   Target Id **`core.shutdown.api`**
 * Event Id **`core.hotkeys.api/trigger`**
-  Target Id **`core.hotkey.binding`**
+  Target Id **`core.layout.binding`**
 
 
 

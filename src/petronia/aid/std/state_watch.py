@@ -30,8 +30,8 @@ class StateWatch(Generic[T]):
     """
 
     __slots__ = (
-        '__listener', '__state', '__set',
-        '__lock',
+        '_listener', '_state', '_set',
+        '_lock',
     )
 
     def __init__(
@@ -41,35 +41,35 @@ class StateWatch(Generic[T]):
             initial_state: T,
             listener: Optional[Callable[[T], None]] = None
     ) -> None:
-        self.__state = initial_state
-        self.__listener = listener
-        self.__set = False
-        self.__lock = RLock()
+        self._state = initial_state
+        self._listener = listener
+        self._set = False
+        self._lock = RLock()
         listeners.listen(target, as_state_change_listener, self._on_state)  # type: ignore
 
     def _on_state(
             self, _event_id: EventId, _target_id: ParticipantId,
             event_obj: StateStoreUpdatedEvent[T]
     ) -> None:
-        with self.__lock:
-            if not self.__set or event_obj.state != self.__state:
-                self.__set = True
-                self.__state = event_obj.state
-                if self.__listener:
-                    self.__listener(self.__state)
+        with self._lock:
+            if not self._set or event_obj.state != self._state:
+                self._set = True
+                self._state = event_obj.state
+                if self._listener:
+                    self._listener(self._state)
 
     def set_listener(self, listener: Optional[Callable[[T], None]]) -> None:
         # This is why we need a re-entrant lock: so that the listener
         # can swap itself out with something else.
-        with self.__lock:
-            self.__listener = listener
-            if listener and self.__set:
-                listener(self.__state)
+        with self._lock:
+            self._listener = listener
+            if listener and self._set:
+                listener(self._state)
 
     @property
     def state(self) -> T:
-        return self.__state
+        return self._state
 
     @property
     def is_set(self) -> bool:
-        return self.__set
+        return self._set

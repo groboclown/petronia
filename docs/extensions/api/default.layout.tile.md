@@ -3,6 +3,7 @@
 
 The Petronia tiling extension.
 
+
 It allows for:
 * splitting the screen up into sections;
 * having different splits depending on the monitor resolution;
@@ -11,8 +12,38 @@ It allows for:
 * overlapping windows.
 
 
+The UI is split into "portals" and "containers".  A portal is a place where
+zero or more UI windows are stored.
 
-The UI is split into "portals" and "containers".  A portal is a place where zero or more UI windows are stored.
+
+Make sure you define the configuration for this extension in order to customize
+the layout.
+
+
+**Key Binding Guide:**
+
+
+The layout API provides generic key bindings, which, for this layout, have these meanings:
+
+
+* `move-active`: Adjusts the size and position of the active portal, if possible.
+Only one of `dx` and `dy`, or `dw` and `dh` need be specified; the layout will
+use the correct one for the owning split's direction.
+Moving a portal (dx or dy) means resizing the sibling tiles so the active portal
+keeps its ame size.
+The `dz` has a special meaning - it flips the active window within the portal.
+* `shift-focus`: Changes the currently focused portal.  Uses the `name` to indicate
+the direction, and `index` to indicate the amount of move.  The direction names
+recognized are 'n', 's', 'e', and 'w'.  An index of 0 will be interpreted as a 1
+(this is due to the way Petronia handles the index if it isn't specified).
+The layout configuration defines whether the focus will wrap-around to the other side.
+FIXME add an option to move focus to a named portal.
+FIXME add an option to move the active window to a different portal.
+* `set-visible`: if `visible` is True, then it minimizes the currently active
+window in the currently active portal.  If `visible` is False, then it restores the
+currently active window; explore what this means on your own!
+
+
 
 ## Details
 
@@ -26,7 +57,7 @@ Runs in elevated privileges
 ## User Configuration
 
 
-
+(no documentation)
 
 ```yaml
 ---
@@ -167,7 +198,7 @@ Configuration:
   no version restriction
 * [core.theme.api](core.theme.api.md)
   no version restriction
-* [core.hotkeys.api](core.hotkeys.api.md)
+* [core.layout.binding](core.layout.binding.md)
   no version restriction
 
 
@@ -175,9 +206,23 @@ Configuration:
 
 
 
+## Listens To Events
+
+* Event Id **`petronia.participant/request-dispose`**
+  Target Id **`default.layout.tile`**
+* Event Id **`core.shutdown.api system-shut-down-finalize`**
+  Target Id **`core.shutdown.api`**
+* Event Id **`core.state.api updated`**
+  Target Id **`default.layout.tile/setup-configuration`**
+* Event Id **`core.state.api updated`**
+  Target Id **`core.platform.api/screen-state`**
+* Event Id **`core.state.api updated`**
+  Target Id **`petronia.core.platform.api/windows`**
+
+
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

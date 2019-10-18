@@ -18,7 +18,6 @@ from ....aid.std import (
     report_error,
     TARGET_WILDCARD,
     readonly_dict,
-    create_singleton_identity,
 )
 from ....core.platform.api import (
     NativeWindowFocusedEvent,
@@ -36,11 +35,10 @@ from ....core.platform.api import (
     send_request_close_native_window_event,
     send_request_set_native_window_visibility_event,
 
-    WindowMatcher,
-
     ScreenState,
     STATE_ID_SCREENS,
     VirtualScreenInfo,
+    VirtualScreenArea,
     ScreenArea,
 
     STATE_ID_ACTIVE_WINDOWS,
@@ -130,7 +128,9 @@ def startup_tile_event_handler(
     # Use the wait-for-initialization startup pattern.
 
     tile_config = StateWatch(listeners, CONFIG_ID_TILE_LAYOUT, TileLayoutConfig([], {}))
-    screen_state = StateWatch(listeners, STATE_ID_SCREENS, ScreenState(VirtualScreenInfo([])))
+    screen_state = StateWatch(listeners, STATE_ID_SCREENS, ScreenState(VirtualScreenInfo([
+        VirtualScreenArea('', (0, 0, 0, 0,), True)
+    ])))
     windows = StateWatch(listeners, STATE_ID_ACTIVE_WINDOWS, AllActiveWindowsState([]))
 
     def on_state_change(_val: Any) -> None:
@@ -196,8 +196,8 @@ class TileEventHandler:
     # User Requests
     def _req_window_visibility(
             self,
-            event_id: EventId,
-            target_id: ParticipantId,
+            _event_id: EventId,
+            _target_id: ParticipantId,
             event_obj: RequestSetFocusedWindowVisibilityEvent
     ) -> None:
         # Change the window to be minimized or restored.
@@ -209,8 +209,8 @@ class TileEventHandler:
 
     def _req_shift_focus(
             self,
-            event_id: EventId,
-            target_id: ParticipantId,
+            _event_id: EventId,
+            _target_id: ParticipantId,
             event_obj: RequestShiftLayoutFocusEvent
     ) -> None:
         """
@@ -219,17 +219,21 @@ class TileEventHandler:
         recognized are 'n', 's', 'e', and 'w'.  An index of 0 will be interpreted as a 1
         (this is due to the way Petronia handles the index if it isn't specified).
 
-        :param event_id:
-        :param target_id:
-        :param event_obj:
-        :return:
+        FIXME add an option to move focus to a named portal.
+
+        FIXME add an option to move the active window to a different portal.
+
         """
-        raise NotImplementedError()
+        # TODO check layout for wrap mode.
+        dest_portal, new_active_cid = self.__ctrl.move_portal_focus(event_obj.name.lower(), event_obj.index, True)
+        # TODO if the portal has chrome, send a notice that it's active.
+        if new_active_cid:
+            send_request_focus_native_window_event(self.__bus, new_active_cid, True)
 
     def _req_resize(
             self,
-            event_id: EventId,
-            target_id: ParticipantId,
+            _event_id: EventId,
+            _target_id: ParticipantId,
             event_obj: RequestMoveResizeFocusedWindowEvent
     ) -> None:
         """
@@ -239,16 +243,17 @@ class TileEventHandler:
         Moving a portal (dx or dy) means resizing the sibling tiles so the active portal
         keeps its ame size.
         The `dz` has a special meaning - it flips the active window within the portal.
-
-        :param event_id:
-        :param target_id:
-        :param event_obj:
-        :return:
         """
-        # if dx isn't given, try dy.
         # if dw isn't given, try dh.
-
-        raise NotImplementedError()
+        resize = event_obj.dw or event_obj.dh
+        if resize != 0:
+            self.__ctrl.resize_active_split(resize)
+        # if dx isn't given, try dy.
+        move = event_obj.dx or event_obj.dy
+        if move != 0:
+            self.__ctrl.move_active_split(move)
+        if event_obj.dz != 0:
+            self.__ctrl.active_portal_window_switch(event_obj.dz)
 
     # -----------------------------------------------------------------------
     # State Change Events

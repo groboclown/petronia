@@ -31,6 +31,8 @@ The layout API provides generic key bindings, which, for this layout, have these
     recognized are 'n', 's', 'e', and 'w'.  An index of 0 will be interpreted as a 1
     (this is due to the way Petronia handles the index if it isn't specified).
     The layout configuration defines whether the focus will wrap-around to the other side.
+    FIXME add an option to move focus to a named portal.
+    FIXME add an option to move the active window to a different portal.
 * `set-visible`: if `visible` is True, then it minimizes the currently active
     window in the currently active portal.  If `visible` is False, then it restores the
     currently active window; explore what this means on your own!

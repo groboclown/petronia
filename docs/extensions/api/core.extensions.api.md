@@ -27,9 +27,16 @@
 
 Request to the extension loading mechanism to load an extension.
 
-If the extension has already been loaded, then this will not generate a corresponding ExtensionLoadedEvent.
 
-Requesting extensions through an Event means that the version is up to the extension API to determine.  Likewise, the extension can be loaded as an insecure extension (forced into restricted access).
+If the extension has already been loaded, then this will not generate a
+corresponding ExtensionLoadedEvent.
+
+
+Requesting extensions through an Event means that the version is up to the
+extension API to determine.  Likewise, the extension can be loaded as an
+insecure extension (forced into restricted access).
+
+
 
 ### Event `core.extensions.api loaded`
 
@@ -39,7 +46,9 @@ Requesting extensions through an Event means that the version is up to the exten
 * Only instance triggering permitted
 * Public listening allowed
 
-A signal that an exception completed loading.  Not guaranteed to be sent in the order that they were loaded.
+in the order that they were loaded.
+
+
 
 
 
@@ -54,4 +63,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

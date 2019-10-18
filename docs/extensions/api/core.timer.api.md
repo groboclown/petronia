@@ -25,7 +25,9 @@
 * Only instance triggering permitted
 * Public listening allowed
 
-The most basic timer event.  It contains no state, and so is only ever created once.
+is only ever created once.
+
+
 
 
 
@@ -40,4 +42,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

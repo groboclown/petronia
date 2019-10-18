@@ -3,9 +3,15 @@
 
 User Configuration Sub-System.
 
-Configuration in Petronia is much more than some files.  It takes advantage of the state storage mechanism and applies readers and persistence on top of it.
 
-The internal participant configuration is handled through states. However, whereas states are *pushed* from the owner to the system for announcing the changes, the configuration is pushed from the configuration reader to the component (backwards of states).
+Configuration in Petronia is much more than some files.  It takes advantage of
+the state storage mechanism and applies readers and persistence on top of it.
+
+
+The internal participant configuration is handled through states. However,
+whereas states are *pushed* from the owner to the system for announcing the
+changes, the configuration is pushed from the configuration reader to the
+component (backwards of states).
 
 ## Details
 
@@ -23,7 +29,9 @@ The internal participant configuration is handled through states. However, where
 * Public triggering allowed
 * Public listening allowed
 
-A signal to persist a single configuration piece.  Only those write-enabled participants need to listen to this, and those that write a complete unit of configuration (for example, a configuration file or a registry sub-tree), which are called by this system "configuration collection".
+which are called by this system "configuration collection".
+
+
 
 
 
@@ -38,4 +46,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

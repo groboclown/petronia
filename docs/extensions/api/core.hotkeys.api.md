@@ -3,7 +3,9 @@
 
 Standard API for registering hotkeys that perform generate events.
 
-The API acts as a broker between applications that use hotkeys, and the low- level platform hotkey registration.
+
+The API acts as a broker between applications that use hotkeys, and the low-
+level platform hotkey registration.
 
 ## Details
 
@@ -31,6 +33,8 @@ The API acts as a broker between applications that use hotkeys, and the low- lev
 
 Notification that a hotkey event activated.
 
+
+
 ### Event `core.hotkeys.api/register`
 
 * Event Id: **`core.hotkeys.api/register`**
@@ -39,7 +43,9 @@ Notification that a hotkey event activated.
 * Public triggering allowed
 * Only instance listening permitted
 
-Register a hotkey to trigger an event.  The hotkey itself does not include the master sequence.  The event will be targeted to the service that registered the schema bound to the action type.
+registered the schema bound to the action type.
+
+
 
 ### Event `core.hotkeys.api/remove`
 
@@ -51,6 +57,8 @@ Register a hotkey to trigger an event.  The hotkey itself does not include the m
 
 Remove a registered hotkey.
 
+
+
 ### Event `core.hotkeys.api/master`
 
 * Event Id: **`core.hotkeys.api/master`**
@@ -61,6 +69,8 @@ Remove a registered hotkey.
 
 Set the master hotkey sequence.  This may be rejected by the underlying platform.
 
+
+
 ### Event `core.hotkeys.api/announce`
 
 * Event Id: **`core.hotkeys.api/announce`**
@@ -69,7 +79,9 @@ Set the master hotkey sequence.  This may be rejected by the underlying platform
 * Only instance triggering permitted
 * Public listening allowed
 
-Notification that a service can be bound to a hotkey, and a description of the expected values in the binding.
+of the expected values in the binding.
+
+
 
 ### Event `core.hotkeys.api/revoke-announce`
 
@@ -79,19 +91,21 @@ Notification that a service can be bound to a hotkey, and a description of the e
 * Only instance triggering permitted
 * Public listening allowed
 
-Notification that a service can be bound to a hotkey, and a description of the expected values in the binding.
+of the expected values in the binding.
+
+
 
 
 
 
 
 Default Implementations:
-* [defimpl.hotkeys](defimpl.hotkeys.md)
+* [default.hotkeys](default.hotkeys.md)
   no version restriction
 
 
 Authors: Petronia
 
-License: (not specified)
+License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

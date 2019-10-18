@@ -1,4 +1,4 @@
-# default.shutdown.timer (implementation)
+# default.validation (implementation)
 **v1.0.0**
 
 (no documentation provided)
@@ -6,7 +6,7 @@
 ## Details
 
 Extension For:
-* [core.shutdown.api](core.shutdown.api.md)
+* [core.validation.api](core.validation.api.md)
   no version restriction
 
 
@@ -20,12 +20,6 @@ Does not provide any user configuration.
 
 
 
-
-
-## Listens To Events
-
-* Event Id **`core.shutdown.api request-shutdown`**
-  Target Id **`core.shutdown.api`**
 
 
 

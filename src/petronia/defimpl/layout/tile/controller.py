@@ -81,6 +81,18 @@ class TileController:
         raise NotImplementedError()
 
     def resize_active_split(self, pixel_count: int) -> None:
+        """
+        Resize the active split child, in the direction of this split.
+
+        In general, it prioritizes east and south growth or shrinkage.
+        """
+        raise NotImplementedError()
+
+    def move_active_split(self, pixel_count: int) -> None:
+        """
+        Moves the active split by growing or shrinking the sibling splits
+        around it.
+        """
         raise NotImplementedError()
 
     def move_active_window(self, direction: int, count: int, wrap: bool) -> None:
@@ -113,6 +125,15 @@ class TileController:
     def get_active_window(self) -> Optional[ComponentId]:
         portal = self.__root.get_active_portal()
         return portal.get_visible_window()
+
+    def move_portal_focus(self, direction: str, amount: int, wrap: bool) -> Tuple[Portal, Optional[ComponentId]]:
+        """
+
+        :param direction: one of 'n', 's', 'e', or 'w'.  Default is 'e'.
+        :param amount:
+        :param wrap:
+        :return:
+        """
 
     def _left(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
         """The tile that is 'left' from the currently active tile."""

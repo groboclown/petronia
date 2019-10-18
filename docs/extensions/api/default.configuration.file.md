@@ -3,7 +3,10 @@
 
 Extension configuration through files.
 
-This extension will wait for the `platform_state.PlatformConfigurationState` state event, then start the process of loading the events.  This will help ensure that loading will only happen after the state extension has started.
+
+This extension will wait for the `platform_state.PlatformConfigurationState`
+state event, then start the process of loading the events.  This will help
+ensure that loading will only happen after the state extension has started.
 
 ## Details
 
@@ -40,4 +43,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

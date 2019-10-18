@@ -15,7 +15,10 @@ The base Petronia design attempts to keep the core engine as small as possible. 
 
 Information about the added event listener.
 
+
 There is no event triggered for removing an event listener.
+
+
 
 ### Event `petronia.bus.event-registry/register-event`
 
@@ -27,6 +30,8 @@ There is no event triggered for removing an event listener.
 
 A request to add an event to the registration.
 
+
+
 ### Event `petronia.participant/dispose-complete`
 
 * Event Id: **`petronia.participant/dispose-complete`**
@@ -36,6 +41,8 @@ A request to add an event to the registration.
 * Public listening allowed
 
 Notification that a dispose completed.
+
+
 
 ### Event `petronia.participant/request-dispose`
 
@@ -47,6 +54,8 @@ Notification that a dispose completed.
 
 Request for a participant to dispose itself.
 
+
+
 ### Event `petronia.registrar/component-created`
 
 * Event Id: **`petronia.registrar/component-created`**
@@ -56,6 +65,8 @@ Request for a participant to dispose itself.
 * Public listening allowed
 
 Reports that a component was created.
+
+
 
 ### Event `petronia.registrar/component-create-failed`
 
@@ -67,6 +78,8 @@ Reports that a component was created.
 
 Reports that a component creation attempt failed.
 
+
+
 ### Event `petronia.registrar/request-new-component`
 
 * Event Id: **`petronia.registrar/request-new-component`**
@@ -75,7 +88,9 @@ Reports that a component creation attempt failed.
 * Public triggering allowed
 * Public listening allowed
 
-Asks the component factory to create a new instance.  The target of the event is the component factory, which will be called with the request_id to allow the called-back target to know which component was created.
+to allow the called-back target to know which component was created.
+
+
 
 ### Event `petronia.participant/started`
 
@@ -85,7 +100,9 @@ Asks the component factory to create a new instance.  The target of the event is
 * Public triggering allowed
 * Public listening allowed
 
-Event to indicate that a participant finished initializing itself and is ready to begin normal operation.  This should happen after configuration.
+ready to begin normal operation.  This should happen after configuration.
+
+
 
 ### Event `petronia.system/started`
 
@@ -95,7 +112,9 @@ Event to indicate that a participant finished initializing itself and is ready t
 * Only instance triggering permitted
 * Public listening allowed
 
-Event to indicate that all the basic systems at boot time have finished running, and the system is now safe for end user actions.
+running, and the system is now safe for end user actions.
+
+
 
 ### Event `petronia.system/halt`
 
@@ -108,4 +127,22 @@ Event to indicate that all the basic systems at boot time have finished running,
 Stop the system immediately.
 
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+
+### Event `petronia.system/error`
+
+* Event Id: **`petronia.system/error`**
+* Event Class: **`petronia.base.events.system_events.ErrorEvent`**
+* Queue Priority: **high**
+* Public triggering allowed
+* Public listening allowed
+
+anything.
+
+
+This allows for localization of an error message, and to broadcast the issue to
+different extensions that may have custom ways to handle the message.
+
+
+
+
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

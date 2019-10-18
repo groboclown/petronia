@@ -25,13 +25,23 @@ API that the platform components must implement.
 * Public triggering allowed
 * Only instance listening permitted
 
-When the theme (or anything else) wants to create chrome around an existing window.
+existing window.
+
 
 If the chrome already exists, it is rejected.
 
-If the chrome does not exist, then it should be created; creation works and is accepted, then any reference to the native window ID will go through the chrome.  This means extensions don't need special handling for chrome handles; the platform invisibly handles it.
 
-This is why there is a special creation event, rather than going through the normal creation lifecycle - the created chrome will not be directly callable.
+If the chrome does not exist, then it should be created;
+creation works and is accepted, then any reference to the native window ID
+will go through the chrome.  This means extensions don't need special
+handling for chrome handles; the platform invisibly handles it.
+
+
+This is why there is a special creation event, rather than going through
+the normal creation lifecycle - the created chrome will not be directly
+callable.
+
+
 
 ### Event `core.platform.api hotkey-pressed`
 
@@ -53,7 +63,12 @@ This is why there is a special creation event, rather than going through the nor
 
 A hotkey sequence is being processed.
 
-For limited use; specifically, a helper tool to display your progress in entering a hotkey combo, and listing different next-key options, and what they will do.
+
+For limited use; specifically, a helper tool to display your progress in
+entering a hotkey combo, and listing different next-key options, and what
+they will do.
+
+
 
 ### Event `core.platform.api hotkey-progress-cancelled`
 
@@ -65,7 +80,12 @@ For limited use; specifically, a helper tool to display your progress in enterin
 
 A hotkey sequence that was processed, is now cancelled.
 
-For limited use; specifically, a helper tool to display your progress in entering a hotkey combo, and listing different next-key options, and what they will do.
+
+For limited use; specifically, a helper tool to display your progress in
+entering a hotkey combo, and listing different next-key options, and what
+they will do.
+
+
 
 ### Event `core.platform.api native-window-closed`
 
@@ -77,6 +97,8 @@ For limited use; specifically, a helper tool to display your progress in enterin
 
 The window was closed.  The corresponding state is removed.
 
+
+
 ### Event `core.platform.api native-window-created`
 
 * Event Id: **`core.platform.api native-window-created`**
@@ -85,9 +107,15 @@ The window was closed.  The corresponding state is removed.
 * Only instance triggering permitted
 * Public listening allowed
 
-A new window was created.  Its state is stored with the window_id. Behavior such as the window moving or gaining focus are associated with state changes for the window.
+state changes for the window.
 
-The state information for the newly created window may not be fully defined.  Later state updates will fill out missing information.  State is included here to allow for early inspection of the window to allow for quick style or other updates before the window has much time to render.
+
+The state information for the newly created window may not be fully
+defined.  Later state updates will fill out missing information.  State
+is included here to allow for early inspection of the window to allow for
+quick style or other updates before the window has much time to render.
+
+
 
 ### Event `core.platform.api native-window-flashed`
 
@@ -99,6 +127,8 @@ The state information for the newly created window may not be fully defined.  La
 
 The window sent a request to alert the user about it.
 
+
+
 ### Event `core.platform.api native-window-focused`
 
 * Event Id: **`core.platform.api native-window-focused`**
@@ -108,6 +138,8 @@ The window sent a request to alert the user about it.
 * Public listening allowed
 
 The window was given focus.
+
+
 
 ### Event `core.platform.api native-window-moved`
 
@@ -119,6 +151,8 @@ The window was given focus.
 
 The window moved or resized or changed visibility.
 
+
+
 ### Event `core.platform.api/close-native-window`
 
 * Event Id: **`core.platform.api/close-native-window`**
@@ -129,6 +163,8 @@ The window moved or resized or changed visibility.
 
 Send a request to close a window.
 
+
+
 ### Event `core.platform.api/focus-native-window`
 
 * Event Id: **`core.platform.api/focus-native-window`**
@@ -137,7 +173,9 @@ Send a request to close a window.
 * Public triggering allowed
 * Only instance listening permitted
 
-Set the window as focused and optionally raised to top.  Some platforms may ignore the raise-to-top value.
+may ignore the raise-to-top value.
+
+
 
 ### Event `core.platform.api/move-native-window`
 
@@ -147,7 +185,9 @@ Set the window as focused and optionally raised to top.  Some platforms may igno
 * Public triggering allowed
 * Only instance listening permitted
 
-Request to move or resize a window.  A value of < 0 means that it shouldn't change.
+shouldn't change.
+
+
 
 ### Event `core.platform.api/request-visibility`
 
@@ -157,7 +197,9 @@ Request to move or resize a window.  A value of < 0 means that it shouldn't chan
 * Public triggering allowed
 * Only instance listening permitted
 
-Request to change the window's visibility.  The platform may minimize or move off screen or in some other way hide the window from sight.  Making a window visible may alter the original size.  Setting a hidden window to hidden, or a visible window to visible, is a no-op; setting a window hidden then hidden then visible will restore the window to visible.
+hidden then hidden then visible will restore the window to visible.
+
+
 
 ### Event `core.platform.api/set-native-window-style`
 
@@ -167,7 +209,9 @@ Request to change the window's visibility.  The platform may minimize or move of
 * Public triggering allowed
 * Only instance listening permitted
 
-Send a request to set a window's native style.  The keys and values are highly dependent upon the underlying OS and windowing system.
+highly dependent upon the underlying OS and windowing system.
+
+
 
 
 
@@ -182,4 +226,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*

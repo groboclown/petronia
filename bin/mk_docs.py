@@ -7,14 +7,15 @@
 Creates extension event API documentation.
 """
 
+from typing import Tuple, Sequence, List, Optional
 import os
 import sys
 import re
 import argparse
 import importlib
 import datetime
+import traceback
 import collections.abc
-from typing import Tuple, Sequence, List
 BINDIR = os.path.dirname(sys.argv[0])
 BASEDIR = os.path.join(BINDIR, os.path.pardir)
 SRCDIR = os.path.join(BASEDIR, "src")
@@ -48,13 +49,13 @@ NOW = datetime.datetime.utcnow().utcnow().strftime("%Y-%b-%d")
 
 
 class Config:
-    def __init__(self, src_dir, dest_dir, template_dir):
+    def __init__(self, src_dir: str, dest_dir: str, template_dir: str) -> None:
         self.src_dir = src_dir
         self.dest_dir = dest_dir
         self.template_dir = template_dir
 
 
-def mk_base(config: Config):
+def mk_base(config: Config) -> None:
     """Create the documentation for the `petronia.base` tree.  It's very special."""
     events = []
     for event in bootstrap_core_events():
@@ -68,7 +69,7 @@ def mk_base(config: Config):
     write_template(config, "base.template.md", "base.md", data)
 
 
-def mk_built_in(config: Config):
+def mk_built_in(config: Config) -> List[dict]:
     """Create the core API documentation"""
     found = []
     for search_dir in ('petronia/core', 'petronia/defimpl'):
@@ -76,7 +77,9 @@ def mk_built_in(config: Config):
             try:
                 mod = importlib.import_module(mod_name)
             except BaseException as err:
+                # Could be an OS compatibility issue...
                 print("Skipping {0}: {1}".format(mod_name, err))
+                # traceback.print_exception(type(err), err, err.__traceback__)
                 continue
             if hasattr(mod, 'EXTENSION_METADATA') and hasattr(mod, 'start_extension'):
                 # print(fqn)
@@ -216,40 +219,92 @@ def create_event_data(event: RegisterEventEvent):
 
 
 def clean_doc_str(doc, overview=False):
+    """
+    Transform a Python doc string into a Markdown string.
+
+    First, it finds the indentation of the whole block.  It's assumed that
+    everything in the block shares the same basic indentation.
+
+    Any line that starts with ":" is considered to be Python meta-information,
+    and is stripped out.  If the line following the ":" has the same indention
+    and is not whitespace, it too is stripped out.
+
+    For markdown support, lines with the same indention immediately after each
+    other are considered to be the same line, and are joined together.
+    """
     doc = doc or ''
     ret = ''
     current = ''
+    base_indent = 0
+    prev_indent = 0
+    strip_prev = False
+
+    def get_indent(val: str) -> int:
+        ind = 0
+        while ind < len(val) and val[ind].isspace():
+            ind += 1
+        if ind >= len(val):
+            return 0
+        return ind
+
     for o_line in doc.splitlines():
-        line = o_line.strip()
-        if len(line) <= 0:
-            if len(ret) > 0:
-                if overview:
-                    return current
-                ret += '\n\n'
-            ret += current
-            current = ''
-        elif line[0:2] == '* ':
-            # a list item.
-            if len(current) > 0:
-                if len(ret) > 0:
-                    if overview:
-                        return current
-                    ret += '\n\n'
-                ret += current
-            ret += '\n' + line
-            current = ''
-        elif len(current) > 0:
-            current += ' ' + line
-        else:
-            current = line
+        line = o_line.rstrip()
+        curr_indent = get_indent(line)
+
+        # Check for Python meta-data
+        if line and line.lstrip()[0] == ':':
+            prev_indent = curr_indent
+            strip_prev = True
+            continue
+        if curr_indent == prev_indent and strip_prev:
+            continue
+
+        if not ret and line:
+            # First non-empty line.
+            base_indent = get_indent(line)
+            prev_indent = base_indent
+            current = line[base_indent:]
+            continue
+
+        if not line:
+            # Empty line
+            if current:
+                if ret and overview:
+                    return ret.lstrip()
+                ret += '\n\n' + current
+                current = ''
+            # leave the previous indent the same.
+            continue
+
+        # Not-empty, not-ignored line.
+        # if curr_indent != prev_indent:
+        #     # Different line than the previous one.
+        #     if current:
+        #         if ret and overview:
+        #             return ret.lstrip()
+        #         ret += '\n\n' + current
+        #     current = line[base_indent:].lstrip()
+        #
+        #     # Special case for lists...
+        #     if line[curr_indent] == '*':
+        #         prev_indent = curr_indent + get_indent(line[curr_indent + 1:])
+        #     else:
+        #         # TODO match for numbered lists...
+        #         prev_indent = curr_indent
+        # else:
+        #     # Continuation of the previous line.
+        #     current += ' ' + line[base_indent:].lstrip()
+
+        current += '\n' + line[base_indent:].lstrip()
+
     if not current:
-        ret += current
+        ret += '\n\n' + current
     if not ret:
         ret = '(no documentation provided)'
-    return ret
+    return ret.lstrip()
 
 
-def create_schema_str(config, ext_name, schema):
+def create_schema_str(config: Config, ext_name: str, schema: Optional[dict]) -> Optional[str]:
     if not schema:
         return None
 
@@ -263,7 +318,7 @@ def create_schema_str(config, ext_name, schema):
 
     doc_data = schema.get(
         PERSISTENT_TYPE_SCHEMA_NAME__DOC,
-        PersistTypeSchemaItem('', PERSISTENT_TYPE_SCHEMA_TYPE__STR)
+        PersistTypeSchemaItem('(no documentation)', PERSISTENT_TYPE_SCHEMA_TYPE__STR)
     )
     if isinstance(doc_data, PersistTypeSchemaItem):
         doc = doc_data.description
@@ -426,7 +481,7 @@ def transform_template(config, template_name, data) -> str:
 
 
 class MockEventBus(EventBus):
-    def __init__(self):
+    def __init__(self) -> None:
         self.events = []
         self.listens = []
         self.states = []

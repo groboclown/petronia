@@ -3,7 +3,13 @@
 
 Basic UI theme support.
 
-Nearly all things that want to interact with the UI should do so through the theme, rather than through the platform directly.  The platform supports very low-level UI interaction, while the theme allows for much nicer looking components that the user can mildly control through configuration.  This means that the component interacting with the UI doesn't need to concern itself with the user definitions.
+
+Nearly all things that want to interact with the UI should do so through the
+theme, rather than through the platform directly.  The platform supports very
+low-level UI interaction, while the theme allows for much nicer looking
+components that the user can mildly control through configuration.  This
+means that the component interacting with the UI doesn't need to concern
+itself with the user definitions.
 
 ## Details
 
@@ -20,7 +26,7 @@ Nearly all things that want to interact with the UI should do so through the the
 
 
 Default Implementations:
-* [default.theme](default.theme.md)
+* [default.theme.wrench](default.theme.wrench.md)
   no version restriction
 
 
@@ -28,4 +34,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-15.*
+*This file was auto-generated from the Petronia source on 2019-Oct-18.*
