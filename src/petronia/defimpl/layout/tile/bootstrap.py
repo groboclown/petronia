@@ -7,26 +7,24 @@ from ....aid.std import (
     EventBus,
 )
 from ....aid.bootstrap import (
-    QUEUE_EVENT_NORMAL,
-    register_event,
+    create_singleton_identity,
     ANY_VERSION,
 )
 from ....aid.lifecycle import (
     create_module_listener_helper,
 )
 from ....base.internal_.internal_extension import petronia_extension
+from .handler import (
+    startup_tile_event_handler,
+)
+
+
+MODULE_ID = create_singleton_identity('default.layout.tile')
 
 
 def bootstrap_layout(bus: EventBus) -> None:
-    # TODO register platform listeners
-
-    # TODO register configuration listener
-
-    # TODO register initial state
-
-    # TODO register hotkey types and action listeners
-
-    pass
+    listeners = create_module_listener_helper(bus, MODULE_ID)
+    startup_tile_event_handler(bus, listeners)
 
 
 EXTENSION_METADATA = petronia_extension({
@@ -48,7 +46,7 @@ EXTENSION_METADATA = petronia_extension({
         "extension": "core.theme.api",
         "minimum": ANY_VERSION,
     }, {
-        "extension": "core.hotkeys.api",
+        "extension": "core.layout.binding",
         "minimum": ANY_VERSION,
     },),
 })

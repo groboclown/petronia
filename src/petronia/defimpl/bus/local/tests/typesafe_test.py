@@ -7,9 +7,11 @@ import unittest
 from .....aid.test_helper import BasicListener, BasicQueuer
 from .....aid.std import (
     PetroniaInvalidState,
+    EventId,
+    SingletonId,
 )
 from .....aid.bootstrap import (
-    TARGET_WILDCARD, QUEUE_EVENT_NORMAL,
+    TARGET_WILDCARD, QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
 )
 from ..event_registry import EventRegistry
 from ..basic_event_bus import BasicEventBus
@@ -23,7 +25,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
         """Simple use case."""
         evtr = EventRegistry()
         register_core_events(evtr)
-        evtr.register('simple', QUEUE_EVENT_NORMAL, EventSimple, EventSimple())
+        evtr.register(EventId('simple'), QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION, EventSimple, EventSimple())
         queue = BasicQueuer(self)
         bus = BasicEventBus(queue.pure_queuer)
         typesafe = TypeSafeEventBus(bus, evtr)
@@ -53,7 +55,7 @@ class TypeSafeEventBusTest(unittest.TestCase):
         bus = BasicEventBus(queue.pure_queuer)
         typesafe = TypeSafeEventBus(bus, evtr)
         try:
-            typesafe.trigger('not-registered', 'tgt', EventSimple())
+            typesafe.trigger(EventId('not-registered'), SingletonId('tgt'), EventSimple())
             self.fail('Did not raise error')
         except PetroniaInvalidState as err:
             self.assertEqual(

@@ -1,4 +1,8 @@
 
+# mypy: allow-any-expr
+# mypy: allow-any-generics
+# mypy: allow-any-explicit
+
 """
 Creates extension event API documentation.
 """
@@ -10,6 +14,7 @@ import argparse
 import importlib
 import datetime
 import collections.abc
+from typing import Tuple, Sequence, List
 BINDIR = os.path.dirname(sys.argv[0])
 BASEDIR = os.path.join(BINDIR, os.path.pardir)
 SRCDIR = os.path.join(BASEDIR, "src")
@@ -22,6 +27,10 @@ from petronia.base.events.bus import RegisterEventEvent, EVENT_ID_REGISTER_EVENT
 from petronia.base.bus import (QUEUE_EVENT_HIGH, QUEUE_EVENT_IO)
 from petronia.base.util.serial import add_repr
 from petronia.core.state.api import StateStoreUpdatedEvent, EVENT_ID_UPDATED_STATE
+from petronia.core.hotkeys.api import (
+    HotkeyBoundServiceAnnouncementEvent, EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT,
+    BoundServiceActionSchema,
+)
 from petronia.defimpl.extensions.defs.discover_types import DiscoveredExtension
 from petronia.base.util.simple_type import (
     PersistTypeSchemaItem,
@@ -129,12 +138,12 @@ def document_extension(config: Config, fqn, mod, starter, md, schema):
     # print("{0} <- {1}".format(fqn, name))
     write_template(
         config, prefix + '.template.md', name + '.md', create_data(
-            config, ext, ext_doc, bus.events, bus.listens, schema, bus.states
+            config, ext, ext_doc, bus.events, bus.listens, schema, bus.bound, bus.states
         )
     )
 
 
-def create_data(config, ext, ext_doc, events, listens, schema, states):
+def create_data(config, ext, ext_doc, events, listens, schema, bound, states):
     dep_data = [create_compat_data(dep) for dep in ext.depends_on]
     impl_data = [create_compat_data(impl) for impl in ext.implements]
     defaults_data = [create_compat_data(default) for default in ext.defaults]
@@ -162,6 +171,7 @@ def create_data(config, ext, ext_doc, events, listens, schema, states):
         "has_config": schema is not None,
         "now": NOW,
 
+        # TODO add hotkey bindings here, and add to the docs.
         # TODO add state to here, and add to the docs.
     }
 
@@ -251,7 +261,15 @@ def create_schema_str(config, ext_name, schema):
     else:
         name = 'Configuration'
 
-    doc = str(schema.get(PERSISTENT_TYPE_SCHEMA_NAME__DOC, ''))
+    doc_data = schema.get(
+        PERSISTENT_TYPE_SCHEMA_NAME__DOC,
+        PersistTypeSchemaItem('', PERSISTENT_TYPE_SCHEMA_TYPE__STR)
+    )
+    if isinstance(doc_data, PersistTypeSchemaItem):
+        doc = doc_data.description
+    else:
+        doc = ''
+
     layout = ''
     parts = []
     children_parts = []
@@ -277,7 +295,7 @@ def create_schema_str(config, ext_name, schema):
     })
 
 
-def inner_schema_part_str(name, key, indent, val):
+def inner_schema_part_str(name, key, indent, val) -> Tuple[str, Sequence[dict], Sequence[dict]]:
     assert isinstance(key, str)
     if key in (PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA, PERSISTENT_TYPE_SCHEMA_NAME__DOC,):
         return '', [], []
@@ -344,7 +362,7 @@ def no_op_loader(_bus):
     raise NotImplementedError()
 
 
-def write_template(config: Config, base_template_name, outfile_name, data):
+def write_template(config: Config, base_template_name, outfile_name, data) -> None:
     if outfile_name[0] == '/':
         raise ValueError(outfile_name, data)
     if not os.path.exists(config.dest_dir):
@@ -358,7 +376,7 @@ def write_template(config: Config, base_template_name, outfile_name, data):
 _IMPORT_MATCH = re.compile(r'{#([^:]+):([^#]+)#\}')
 
 
-def transform_template(config, template_name, data):
+def transform_template(config, template_name, data) -> str:
     """A trivial template language.
 
     {#key:template#} is replaced with an included template file.  The "key" is the internal
@@ -412,6 +430,7 @@ class MockEventBus(EventBus):
         self.events = []
         self.listens = []
         self.states = []
+        self.bound = []  # type: List[BoundServiceActionSchema]
 
     def add_listener(
             self,
@@ -441,6 +460,9 @@ class MockEventBus(EventBus):
         elif event_id == EVENT_ID_UPDATED_STATE:
             assert isinstance(event_id, StateStoreUpdatedEvent)
             self.states.append((target_id, event_obj,))
+        elif event_id == EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT:
+            assert isinstance(event_obj, HotkeyBoundServiceAnnouncementEvent)
+            self.bound.append(event_obj.schema)
 
     def create_component_id(self, component_category: str) -> ComponentId:
         # Essentially ignore

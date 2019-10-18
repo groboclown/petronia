@@ -118,6 +118,9 @@ class ScreenRect:
             top=self.__top,
             bottom=self.__bottom
         )
+    
+    def get_area(self) -> ScreenArea:
+        return self.__x, self.__y, self.__width, self.__height
 
     def __repr__(self) -> str:
         return 'ScreenRect(x={0}, y={1}, w={2}, h={3})'.format(

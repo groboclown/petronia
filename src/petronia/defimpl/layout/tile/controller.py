@@ -60,6 +60,10 @@ class TileController:
         """Set the named path as active and return its visible window cid."""
         raise NotImplementedError()
 
+    def on_window_focused(self, window: ComponentId) -> None:
+        """Inform the owning portal that the given window is now focused."""
+        raise NotImplementedError()
+
     def active_portal_window_switch(self, direction: int) -> None:
         """
         Switch the active window within the active portal by the given number of
@@ -101,7 +105,14 @@ class TileController:
                 val, path = self._tile_at(self._named_portals[name])
                 if isinstance(val, Portal):
                     return val
-            return self.__root.get_active_portal()
+            return self.get_active_portal()
+
+    def get_active_portal(self) -> Portal:
+        return self.__root.get_active_portal()
+
+    def get_active_window(self) -> Optional[ComponentId]:
+        portal = self.__root.get_active_portal()
+        return portal.get_visible_window()
 
     def _left(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
         """The tile that is 'left' from the currently active tile."""

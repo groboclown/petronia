@@ -206,6 +206,23 @@ class Portal:
             return
         raise NotImplementedError()
 
+    def set_visible_window(self, window_cid: ComponentId) -> None:
+        raise NotImplementedError()
+
+    def get_visible_window_index(self) -> int:
+        """
+        Gets the visible window index, or < 0 if there is no window in
+        this portal.
+        """
+        if len(self._window_cids) <= 0:
+            return -1
+        return self.__current_index
+
+    def get_visible_window(self) -> Optional[ComponentId]:
+        if len(self._window_cids) <= 0:
+            return None
+        return self._window_cids[self.__current_index]
+
     def change_visible_window_index(self, delta_index: int) -> None:
         """
         Same as `set_visible_window_index`, but changes the index by

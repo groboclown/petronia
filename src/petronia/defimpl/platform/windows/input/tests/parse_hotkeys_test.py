@@ -54,8 +54,8 @@ class ParseHotkeysTest(unittest.TestCase):
         self.assertEqual(
             create_master_modifier_hotkey_combo(master, 'lshift+a'),
             [
-                # Master sequence must be pressed before the other keys.
                 [_LSUPER_DOWN, _LSHIFT_DOWN, _A_DOWN],
+                [_LSHIFT_DOWN, _LSUPER_DOWN, _A_DOWN],
             ]
         )
 
@@ -65,7 +65,7 @@ class ParseHotkeysTest(unittest.TestCase):
         self.assertNotIsInstance(master, ErrorReport)
         self.assertEqual(
             master,
-            [_VK_LSUPER]
+            [_VK_LSUPER, _VK_LSHIFT]
         )
         # assertions for mypy
         assert not isinstance(master, ErrorReport)
@@ -81,7 +81,11 @@ class ParseHotkeysTest(unittest.TestCase):
             [
                 # Master sequence must be pressed before the other keys.
                 [_LSUPER_DOWN, _LSHIFT_DOWN, _RSHIFT_DOWN, _A_DOWN],
+                [_LSUPER_DOWN, _RSHIFT_DOWN, _LSHIFT_DOWN, _A_DOWN],
                 [_LSHIFT_DOWN, _LSUPER_DOWN, _RSHIFT_DOWN, _A_DOWN],
+                [_LSHIFT_DOWN, _RSHIFT_DOWN, _LSUPER_DOWN, _A_DOWN],
+                [_RSHIFT_DOWN, _LSUPER_DOWN, _LSHIFT_DOWN, _A_DOWN],
+                [_RSHIFT_DOWN, _LSHIFT_DOWN, _LSUPER_DOWN, _A_DOWN],
             ]
         )
 
@@ -118,4 +122,3 @@ class ParseHotkeysTest(unittest.TestCase):
         assert isinstance(val, ErrorReport)
 
         self.assertEqual(val.arguments.get('hotkey'), 'a+b')
-        self.assertEqual(val.arguments.get('key'), 'a')

@@ -183,6 +183,10 @@ class RequestSetFocusedWindowVisibilityEvent:
     def __init__(self, visible: bool) -> None:
         self.__visible = visible
 
+    @property
+    def visible(self) -> bool:
+        return self.__visible
+
 
 def as_request_set_focused_window_visibility_listener(
         callback: EventCallback[RequestSetFocusedWindowVisibilityEvent]

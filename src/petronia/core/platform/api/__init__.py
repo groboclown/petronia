@@ -155,6 +155,8 @@ from .window.action_occurred import (
 )
 from .window.state import (
     NativeWindowState,
+    AllActiveWindowsState,
+    STATE_ID_ACTIVE_WINDOWS,
 )
 from .window.match import (
     WindowMatcher,

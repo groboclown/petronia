@@ -24,7 +24,7 @@ from .handlers import (
 )
 
 
-TARGET_ID_HOTKEY_CORE = create_singleton_identity("core.hotkey.core")
+TARGET_ID_HOTKEY_CORE = create_singleton_identity("core.hotkey.binding")
 
 HOTKEY_ACTION_SHUTDOWN = 'shutdown'
 

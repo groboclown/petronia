@@ -6,6 +6,7 @@ Configuration to match windows to named portals.
 from typing import Sequence, Iterable, Optional
 from .....core.platform.api import (
     WindowMatcher,
+    NativeWindowState,
 )
 
 
@@ -61,9 +62,20 @@ class MatchWindowToPortal:
                 resized along the vertical, so that the n edge of the window is aligned with
                 the n edge of the portal, and the window takes up the whole n edge.
 
+            With an added "-r" at the end:
+                Restricted mode.  The will maintain its natural size up to the limits of the
+                portal, at which point it is limited to the portal size.
+
             None:
                 The window is resized to fit the portal
 
         :return:
         """
         return self.__position
+
+    def is_window_property_match(self, info: NativeWindowState) -> bool:
+        """Performs an "OR" match on all the matchers."""
+        for matcher in self.__window_matchers:
+            if matcher.is_window_property_match(info):
+                return True
+        return False
