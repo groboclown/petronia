@@ -12,7 +12,7 @@ from typing import cast as t_cast
 from threading import RLock
 import atexit
 from ..arch.native_funcs import (
-    HWND, RECT, DWORD,
+    HWND, RECT,
     WINDOWS_FUNCTIONS,
 )
 from .....aid.std import (
@@ -25,7 +25,7 @@ from .....aid.std import (
     log, WARN, DEBUG, TRACE, VERBOSE, INFO,
 )
 from .....core.platform.api.defs import (
-    ScreenRect, EMPTY_SCREEN_RECT,
+    ScreenRect,
     SCREEN_AREA_X, SCREEN_AREA_Y, SCREEN_AREA_W, SCREEN_AREA_H,
 )
 from .....core.platform.api.window import (
@@ -274,6 +274,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             event: RequestMoveNativeWindowEvent
     ) -> None:
         with lock:
+            log(WARN, on_request_move, 'Picked up a request to move a window.')
             if target_id in reverse_window_ids and WINDOWS_FUNCTIONS.window.move_resize:
                 # For target to be in the list, it must be of the right type.
                 hwnd = reverse_window_ids[t_cast(ComponentId, target_id)]
@@ -320,6 +321,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             _event_id: EventId, target_id: ParticipantId,
             _event: RequestFocusNativeWindowEvent
     ) -> None:
+        log(WARN, on_request_move, 'Picked up a request to focus a window.')
         with lock:
             if target_id in reverse_window_ids and WINDOWS_FUNCTIONS.window.activate:
                 hwnd = reverse_window_ids[t_cast(ComponentId, target_id)]

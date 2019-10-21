@@ -8,6 +8,7 @@ The intermediary between the EventBus events and the tile controller.
 
 from typing import Tuple, Iterable, Optional, Any
 from typing import cast as t_cast
+
 from ....aid.std import (
     EventBus,
     EventId,
@@ -19,6 +20,7 @@ from ....aid.std import (
     TARGET_WILDCARD,
     readonly_dict,
 )
+from ....core.config_persistence.api import PersistentConfigurationState
 from ....core.platform.api import (
     NativeWindowFocusedEvent,
     as_native_window_focused_listener,
@@ -59,6 +61,7 @@ from .config import (
     TileLayoutConfig,
     CONFIG_ID_TILE_LAYOUT,
     MatchWindowToPortal,
+    parse_config,
 )
 from .controller import (
     TileController,
@@ -127,19 +130,23 @@ def startup_tile_event_handler(
 
     # Use the wait-for-initialization startup pattern.
 
-    tile_config = StateWatch(listeners, CONFIG_ID_TILE_LAYOUT, TileLayoutConfig([], {}))
+    tile_config = StateWatch(listeners, CONFIG_ID_TILE_LAYOUT, PersistentConfigurationState({}))
     screen_state = StateWatch(listeners, STATE_ID_SCREENS, ScreenState(VirtualScreenInfo([
         VirtualScreenArea('', (0, 0, 0, 0,), True)
     ])))
     windows = StateWatch(listeners, STATE_ID_ACTIVE_WINDOWS, AllActiveWindowsState([]))
 
     def on_state_change(_val: Any) -> None:
+        print("tile config? {0}; screen? {1}; windows? {2}".format(
+            tile_config.is_set, screen_state.is_set, windows.is_set
+        ))
         if tile_config.is_set and screen_state.is_set and windows.is_set:
             # Boot up the tile event handler.
             TileEventHandler(bus, listeners, tile_config, screen_state, windows)
 
     tile_config.set_listener(on_state_change)
     screen_state.set_listener(on_state_change)
+    windows.set_listener(on_state_change)
 
 
 class TileEventHandler:
@@ -159,13 +166,13 @@ class TileEventHandler:
     def __init__(
             self, bus: EventBus,
             listeners: ListenerSet,
-            tile_config: StateWatch[TileLayoutConfig],
+            tile_config: StateWatch[PersistentConfigurationState],
             screen_state: StateWatch[ScreenState],
             windows: StateWatch[AllActiveWindowsState]
     ):
         self.__bus = bus
         self.__listeners = listeners
-        self.__config = tile_config.state
+        self.__config = parse_config_data(bus, tile_config.state)
         self.__screens = screen_state.state
         self.__windows = windows.state
 
@@ -181,7 +188,7 @@ class TileEventHandler:
         screen_state.set_listener(self._on_screen_state_changed)
         tile_config.set_listener(self._on_tile_config_changed)
         windows.set_listener(self._on_windows_changed)
-        self.__ctrl = do_layout(bus, tile_config.state, screen_state.state, windows.state)
+        self.__ctrl = do_layout(bus, self.__config, screen_state.state, windows.state)
         listeners.listen(
             TARGET_ID_WINDOW_CREATION, as_native_window_created_listener, self._on_window_created
         )
@@ -224,11 +231,22 @@ class TileEventHandler:
         FIXME add an option to move the active window to a different portal.
 
         """
-        # TODO check layout for wrap mode.
-        dest_portal, new_active_cid = self.__ctrl.move_portal_focus(event_obj.name.lower(), event_obj.index, True)
-        # TODO if the portal has chrome, send a notice that it's active.
-        if new_active_cid:
-            send_request_focus_native_window_event(self.__bus, new_active_cid, True)
+        action = (event_obj.name or '').lower()
+        if action.find(':') > 0:
+            # Named portal.
+            portal_name = action[action.find(':') + 1:]
+            pass
+        if action.startswith('move-focus-'):
+            direction = action[11:]
+            # TODO check layout for wrap mode.
+            dest_portal, new_active_cid = self.__ctrl.move_portal_focus(direction, event_obj.index, True)
+            # TODO if the portal has chrome, send a notice that it's active.
+            if new_active_cid:
+                send_request_focus_native_window_event(self.__bus, new_active_cid, True)
+            return
+        if action.startswith('move-window-'):
+            direction = action[12:]
+            pass
 
     def _req_resize(
             self,
@@ -261,8 +279,8 @@ class TileEventHandler:
         self.__screens = state
         self.__ctrl = do_layout(self.__bus, self.__config, self.__screens, self.__windows)
 
-    def _on_tile_config_changed(self, config: TileLayoutConfig) -> None:
-        self.__config = config
+    def _on_tile_config_changed(self, config: PersistentConfigurationState) -> None:
+        self.__config = parse_config_data(self.__bus, config)
         self.__ctrl = do_layout(self.__bus, self.__config, self.__screens, self.__windows)
 
     def _on_windows_changed(self, windows: AllActiveWindowsState) -> None:
@@ -340,3 +358,10 @@ def match_window_to_portal(
 def get_window_position(window: NativeWindowState, portal: Portal, position: Optional[str]) -> ScreenArea:
     favor = PORTAL_FAVOR_MAP.get(position or '') or POSITION_FAVOR_FILL
     return portal.get_window_position(window.bordered_rect.get_area(), favor)
+
+
+def parse_config_data(bus: EventBus, config: PersistentConfigurationState) -> TileLayoutConfig:
+    res, errors = parse_config(config.persistent)
+    for err in errors:
+        report_error(bus, err)
+    return res

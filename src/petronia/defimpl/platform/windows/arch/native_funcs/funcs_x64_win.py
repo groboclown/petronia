@@ -2,7 +2,7 @@
 64-bit windows functions
 """
 
-from typing import Dict, Union
+from typing import Union
 from .windows_common import (
     HWND,
     windll,
@@ -53,7 +53,7 @@ def window__set_style(hwnd: HWND, style_update: Dict[str, bool]) -> Union[Window
         SetLastError(0)
         res = SetWindowLongPtrW(hwnd, GWL_STYLE, std_bits)
         if res == 0:
-            return WindowsErrorMessage('user32.SetWindowLongPtrW')
+            return WindowsErrorMessage('user32.SetWindowLongPtrW(GWL_STYLE)')
 
     ex_style_update = False
     ex_bits = 0
@@ -70,7 +70,7 @@ def window__set_style(hwnd: HWND, style_update: Dict[str, bool]) -> Union[Window
         # print("DEBUG Setting Window Ex Style to {0}".format(hex(ex_bits)))
         res = SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex_bits)
         if res == 0:
-            return WindowsErrorMessage('user32.SetWindowLongPtrW')
+            return WindowsErrorMessage('user32.SetWindowLongPtrW(GWL_EXSTYLE)')
 
     # Sometimes, it only changed some of the values.
     # Double check.

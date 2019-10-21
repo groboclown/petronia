@@ -93,14 +93,18 @@ class _BusAwareStateStore:
 
     def on_listener_added(
             self,
-            eid: EventId, tid: ParticipantId,  # pylint: disable=unused-argument
+            _event_id: EventId, _target_id: ParticipantId,
             event: EventListenerAddedEvent
     ) -> None:
         """
         Whenever a new listener is added to the event bus.
         This allows new listeners to a specific state to receive the state when they
         start.
+
+        The target id is always a wildcard.  To find the requested target ID of the
+        listener, look at the event.
         """
+        tid = event.target_id
         if event.event_id == EVENT_ID_UPDATED_STATE and tid in self.__store:
             log(
                 TRACE, _BusAwareStateStore.on_listener_added,
@@ -112,10 +116,9 @@ class _BusAwareStateStore:
             state_type = self.__store.get_state_type(tid)
             if state and state_type:
                 log(
-                    TRACE, _BusAwareStateStore.on_listener_added,
+                    VERBOSE, _BusAwareStateStore.on_listener_added,
                     'Sending out the current state for {0} {1}', tid, state
                 )
-                print("DEBUG Sending out the current state for {0} {1}".format(tid, state))
                 self.__bus.trigger(EVENT_ID_UPDATED_STATE, tid, StateStoreUpdatedEvent(
                     tid, state_type, state, state
                 ))

@@ -96,25 +96,23 @@ class BasicEventBus:
         If an event is triggered with a wildcard event or target, then only
         listeners to the corresponding wildcard value will match.
 
-        :param event_id str: event to listen to.
-        :param target_id str: target of the event to listen to.
-        :param callback callable: a function that takes as arguments
+        :param event_id: event to listen to.
+        :param target_id: target of the event to listen to.
+        :param callback: a function that takes as arguments
             (event_id, target_id, event_object)
             and is called when a matching event is triggered.  If the listener
             is registered to a wildcard,
             the real event or target ID is passed as argument.
-        :return ListenerId: a unique identifier for the listener.
+        :return: a unique identifier for the listener.
         """
         log(
             TRACE, BasicEventBus,
             'attempting to add listener of event "{0}" for target "{1}"', event_id, target_id
         )
 
-        # "is not" rather than "!=" because everything should use the
-        # wildcard reference, and not make a copy.
-        if event_id is not EVENT_WILDCARD:
+        if event_id != EVENT_WILDCARD:
             BasicEventBus.assert_event_id(event_id)
-        if target_id is not TARGET_WILDCARD:
+        if target_id != TARGET_WILDCARD:
             BasicEventBus.assert_target_id(target_id)
         BasicEventBus.assert_event_callback(callback)
 
