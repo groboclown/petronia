@@ -28,7 +28,7 @@ from ..portal import Portal
 
 class ConvertConfigTest(unittest.TestCase):
     def test_convert_basic_split_layout(self):
-        config = TileLayoutConfig([RootTileLayout([ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [
+        config = TileLayoutConfig([RootTileLayout('', [ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [
             PortalLayout(None, 2),
             SplitTileLayout(None, 1, [
                 PortalLayout(None, 3),

@@ -86,6 +86,7 @@ from .window_state import (
     create_windows_window_state,
     convert_rect,
 )
+from .monitor import WindowsMonitor
 from ......core.platform.api import (
     ScreenRect,
     ScreenSize,
@@ -397,7 +398,7 @@ def window__redraw(hwnd: HWND, force: Optional[bool] = False) -> bool:
     # None of the above worked, probably because the process isolation doesn't allow
     # our process to send a message to another process.
 
-    # So, try minimize then restore (if maximized, it will restore itself again)
+    # So, try minimize then actions (if maximized, it will actions itself again)
     # This really messes up the z-ordering, though.
     if force and window__is_visible(hwnd):
         windll.user32.ShowWindow(hwnd, SW_MINIMIZE)
@@ -476,7 +477,7 @@ def window__minimize(hwnd: HWND) -> Optional[WindowsErrorMessage]:
 def window__restore(hwnd: HWND) -> Optional[WindowsErrorMessage]:
     # This needs to be called twice, because of the situation
     # where a window was maximized then minimized.  The first
-    # restore will bring it back to visible, but maximized,
+    # actions will bring it back to visible, but maximized,
     # and the second will bring it to restored.
     # But... the first call will return:
     # "If the window was previously hidden, the return value is zero."
@@ -1532,7 +1533,7 @@ class MONITORINFOEXW(Structure):
     )
 
 
-def monitor__find_monitors() -> Sequence[NativeScreenInfo]:
+def monitor__find_monitors() -> Sequence[WindowsMonitor]:
     monitor_handles: List[HMONITOR] = []
 
     def callback(h_monitor: HMONITOR, hdc_monitor: HDC, lprc_monitor: LPRECT, l_param: LPARAM) -> bool:
@@ -1546,28 +1547,34 @@ def monitor__find_monitors() -> Sequence[NativeScreenInfo]:
     if EnumDisplayMonitors(None, None, enum_monitor_proc(callback), 0) == 0:
         return ()
 
-    ret: List[NativeScreenInfo] = []
+    ret: List[WindowsMonitor] = []
     index = 0
     for monitor_handle in monitor_handles:
         info = MONITORINFOEXW()
         info.cbSize = c_sizeof(MONITORINFOEXW)
         if GetMonitorInfoW(monitor_handle, byref(info)) != 0:
-            ret.append(NativeScreenInfo(
-                # Disguise the handle as something else
-                handle=str(monitor_handle),
+            ret.append(WindowsMonitor(
+                monitor_handle=monitor_handle,
                 screen_index=index,
-                screen_size=(
-                    info.rcWork.left, info.rcWork.top,
-                    info.rcWork.right - info.rcWork.left + 1,
-                    info.rcWork.bottom - info.rcWork.top + 1
-                ),
-                work_area=(
-                    info.rcMonitor.left, info.rcMonitor.top,
-                    info.rcMonitor.right - info.rcMonitor.left + 1,
-                    info.rcMonitor.bottom - info.rcMonitor.top + 1
-                ),
+
+                monitor_left=info.rcMonitor.left,
+                monitor_right=info.rcMonitor.right,
+                monitor_top=info.rcMonitor.top,
+                monitor_bottom=info.rcMonitor.bottom,
+
+                work_left=info.rcWork.left,
+                work_right=info.rcWork.right,
+                work_top=info.rcWork.top,
+                work_bottom=info.rcWork.bottom,
+
                 name=info.szDevice,
-                is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == 1
+                is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == 1,
+
+                # Generic versions of Windows does not support these API queries.
+                # Default for an unknown DPI is 96.  It just is.
+                scale_factor=100,
+                dpi_x=96,
+                dpi_y=96
             ))
         index += 1
 

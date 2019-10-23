@@ -10,6 +10,7 @@ from .windows_hook_event import (
     WindowsHookEvent,
 )
 from .screen import (
+    bootstrap_screens,
     get_monitors,
     from_user_to_native_screen,
 )

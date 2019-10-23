@@ -9,14 +9,14 @@ import re
 import atexit
 from .windows_common import (
     c_int,
-    LONG, DWORD, BYTE, CHAR, BOOL, UINT, LRESULT,
+    LONG, DWORD, BYTE, CHAR, BOOL, UINT,
     POINT, RECT, WPARAM, LPARAM, HWND,
     windll, Structure,
     byref, create_unicode_buffer,
-    MessageCallback, NativeMessageCallback,
+    MessageCallback,
     WindowsErrorMessage,
 )
-from ctypes import CFUNCTYPE, WinError
+from ctypes import CFUNCTYPE, WinError, windll
 from ctypes import sizeof as c_sizeof
 from ..windows_constants import *
 from .supported_functions import (
@@ -37,6 +37,7 @@ def load_all_functions(func_map: Functions) -> None:
     load_taskbar_functions(func_map)
     func_map.shell.find_notification_icons = create_shell__find_notification_icons(func_map)
     func_map.process.load_all_process_details = process__load_all_process_details
+    func_map.monitor.set_native_dpi_awareness = monitor__set_native_dpi_awareness
     func_map.shell.get_window_metrics = shell__get_window_metrics
     func_map.shell.set_window_metrics = shell__set_window_metrics
     func_map.shell.set_border_size = shell__set_border_size
@@ -132,6 +133,21 @@ def process__load_all_process_details() -> Sequence[Dict[str, str]]:
     return ret
 
 
+def monitor__set_native_dpi_awareness() -> Optional[WindowsErrorMessage]:
+    # In Windows Vista and Windows 7, this is the equivalent of turning on
+    # system DPI aware mode:
+    # This app does not scale for DPI changes.
+    # It will query for the DPI once and use that value for the
+    # lifetime of the app. If the DPI changes, the app will not
+    # adjust to the new DPI value. It will be automatically scaled
+    # up or down by the system when the DPI changes from the system
+    # value.
+    success = windll.user32.SetProcessDPIAware()
+    if success:
+        return None
+    return WindowsErrorMessage('user32.SetProcessDPIAware')
+
+
 # https://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx
 class LOGFONT(Structure):
     _fields_ = (
@@ -223,7 +239,7 @@ def shell__set_window_metrics(metrics: WindowMetrics) -> Optional[WindowsErrorMe
 def inner__set_window_metrics(metrics: Union[NONCLIENTMETRICS, WindowMetrics]) -> Optional[WindowsErrorMessage]:
     SystemParametersInfoW = windll.user32.SystemParametersInfoW
 
-    # Always restore the original user metrics at exit time.
+    # Always actions the original user metrics at exit time.
     root_metrics = None
     if _BASE_OS_METRICS[0] is None:
         root_metrics = shell__get_raw_window_metrics()

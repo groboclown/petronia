@@ -21,12 +21,17 @@ class RootTile:
     resolution, but that, by its nature, will be hard to do.
     """
 
-    __slots__ = ('__screens', '__active_index',)
+    __slots__ = ('__screens', '__active_index', '__name',)
 
-    def __init__(self, screens: Iterable[SplitterTile]) -> None:
+    def __init__(self, name: str, screens: Iterable[SplitterTile], primary: int = 0) -> None:
         assert screens
+        self.__name = name
         self.__screens = tuple(screens)
-        self.__active_index = 0
+        self.__active_index = max(0, min(primary, len(self.__screens) - 1))
+
+    @property
+    def name(self) -> str:
+        return self.__name
 
     def set_active_index(self, index: int) -> None:
         """

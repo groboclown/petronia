@@ -3,7 +3,7 @@
 The events around system lifecycle.
 """
 
-from typing import List, Iterable, Dict, Mapping, Union, Tuple
+from typing import Iterable, Dict, Mapping, Union, Tuple
 from typing import cast as t_cast
 from ..internal_.identity_types import (
     create_singleton_identity,
@@ -69,9 +69,9 @@ EVENT_ID_ERROR = EventId('petronia.system/error')
 
 
 MessageArgumentValueType = Union[
-    str, int, bool, float, BaseException,
-    Iterable[Union[str, int, bool, float]],
-    Mapping[str, Union[str, int, bool, float]]
+    str, int, bool, float, None, BaseException,
+    Iterable[Union[str, int, bool, float, None]],
+    Mapping[str, Union[str, int, bool, float, None]]
 ]
 
 

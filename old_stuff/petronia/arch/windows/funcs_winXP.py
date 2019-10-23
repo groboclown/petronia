@@ -412,7 +412,7 @@ _BASE_OS_METRICS = [None]
 def shell__set_window_metrics(metrics):
     SystemParametersInfoW = windll.user32.SystemParametersInfoW
 
-    # Always restore the original user metrics at exit time.
+    # Always actions the original user metrics at exit time.
     root_metrics = None
     if _BASE_OS_METRICS[0] is None:
         root_metrics = shell__get_raw_window_metrics()

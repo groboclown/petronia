@@ -116,7 +116,7 @@ class _BusAwareStateStore:
             state_type = self.__store.get_state_type(tid)
             if state and state_type:
                 log(
-                    VERBOSE, _BusAwareStateStore.on_listener_added,
+                    TRACE, _BusAwareStateStore.on_listener_added,
                     'Sending out the current state for {0} {1}', tid, state
                 )
                 self.__bus.trigger(EVENT_ID_UPDATED_STATE, tid, StateStoreUpdatedEvent(

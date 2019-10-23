@@ -67,7 +67,7 @@ class RequestSetNativeWindowVisibility:
     move off screen or in some other way hide the window from sight.  Making a
     window visible may alter the original size.  Setting a hidden window to
     hidden, or a visible window to visible, is a no-op; setting a window
-    hidden then hidden then visible will restore the window to visible.
+    hidden then hidden then visible will actions the window to visible.
     """
 
     __slots__ = ('__visible',)

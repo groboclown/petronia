@@ -103,7 +103,7 @@ class WindowMapper(Identifiable, Component):
             orig_size = window__border_rectangle(hwnd)
             orig_style = window__get_style(hwnd)
             self.__hwnd_restore_state[hwnd] = (orig_size, orig_style)
-            # Always, always restore window state at exit.  This ensures it.
+            # Always, always actions window state at exit.  This ensures it.
             atexit.register(_restore_window_state, hwnd, orig_size, orig_style)
             style_data = {}
             if remove_title:

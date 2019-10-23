@@ -145,6 +145,9 @@ TILE_LAYOUT_CONFIG_SCHEMA = readonly_persistent_schema_copy({
         }]
     }],
     _KEY_LAYOUTS: [{
+        'name': PersistTypeSchemaItem(
+            "layout name, for logging purposes", PERSISTENT_TYPE_SCHEMA_TYPE__STR
+        ),
         _KEY_SCREENS: [_SCREEN_SCHEMA],
     }, _SCREEN_SCHEMA]
 })
@@ -189,6 +192,7 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
                 )
             ))
             if screen_list_data:
+                name = str(layout_data.get("name", str(len(layouts))))
                 layout_screens: List[ScreenTileLayout] = []
                 for screen_data in list_of_maps(
                     screen_list_data, errors,
@@ -199,13 +203,13 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
                     screen = collect_errors(errors, parse_screen(screen_data))
                     if screen:
                         layout_screens.append(screen)
-                layouts.append(RootTileLayout(layout_screens))
+                layouts.append(RootTileLayout(name, layout_screens))
             else:
                 top = collect_errors(errors, parse_screen(t_cast(PersistType, layout_data)))
                 if top:
                     floating_screens.append(top)
         if len(floating_screens) > 0:
-            layouts.append(RootTileLayout(floating_screens))
+            layouts.append(RootTileLayout('top', floating_screens))
 
     return TileLayoutConfig(layouts, matchers), errors
 
@@ -299,7 +303,9 @@ def parse_screen(data: PersistType) -> ResultWithErrors[Optional[ScreenTileLayou
         direction_int = SPLIT_VERTICAL
     else:
         errors.append(create_user_error(
-            parse_config, 'direction must be "vertical" or "horizontal"; defaulting to vertical'
+            parse_config,
+            'direction must be "vertical" or "horizontal" but found "{direction}"; defaulting to vertical',
+            direction=direction
         ))
         direction_int = SPLIT_VERTICAL
     # if target is None:

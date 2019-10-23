@@ -19,6 +19,7 @@ from ....aid.std import (
     report_error,
     TARGET_WILDCARD,
     readonly_dict,
+    log, INFO, DEBUG,
 )
 from ....core.config_persistence.api import PersistentConfigurationState
 from ....core.platform.api import (
@@ -322,9 +323,17 @@ def do_layout(
         bus: EventBus, config: TileLayoutConfig, screens: ScreenState,
         windows: AllActiveWindowsState
 ) -> TileController:
-    root, layout_index, errors = convert_config(config, screens.screens)
+    root, primary_index, errors = convert_config(config, screens.screens)
     for err in errors:
         report_error(bus, err)
+    log(
+        INFO, do_layout,
+        'Using layout "{0}" (primary screen: {1})', root.name, primary_index
+    )
+    log(
+        DEBUG, do_layout,
+        'layout={0}', repr(root)
+    )
     ctrl = TileController(root)
     for window in windows.windows:
         assign_window_to_portal(bus, ctrl, window, config.matchers)
@@ -340,6 +349,9 @@ def assign_window_to_portal(
     send_request_move_native_window_event(
         bus, window.component_id, area
     )
+    #print("DEBUG -- would have moved window {0} to portal {1} / area {2}".format(
+    #    window, portal, area
+    #))
 
 
 def match_window_to_portal(

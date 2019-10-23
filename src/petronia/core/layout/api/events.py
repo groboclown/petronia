@@ -171,7 +171,7 @@ class RequestSetFocusedWindowVisibilityEvent:
     """
     Request to change the window's visibility.  The layout may minimize or move off
     screen or in some other way hide the window from sight.  Making a window visible
-    will restore it to the window's previous visibility setting.  Following the
+    will actions it to the window's previous visibility setting.  Following the
     successful request, the focus should be the same as before setting the visibility.
     So, a separate request focus event may be necessary.
     """

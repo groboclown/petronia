@@ -14,6 +14,7 @@ from .windows_common import (
 from .window_state import WindowsWindowState
 from .window_metrics import WindowMetrics
 from .process_metrics import ProcessMetrics
+from .monitor import WindowsMonitor
 from ......core.platform.api import (
     ScreenRect,
     ScreenSize,
@@ -278,11 +279,14 @@ class MonitorFunctions:
 
     __slots__ = (
         'find_monitors',
+        'set_native_dpi_awareness'
     )
-    find_monitors: Optional[Callable[[], Sequence[NativeScreenInfo]]]
+    find_monitors: Optional[Callable[[], Sequence[WindowsMonitor]]]
+    set_native_dpi_awareness: Optional[Callable[[], Optional[WindowsErrorMessage]]]
 
     def __init__(self) -> None:
         self.find_monitors = None
+        self.set_native_dpi_awareness = None
 
 
 class ProcessFunctions:

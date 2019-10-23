@@ -7,7 +7,7 @@ Converts from low-level information to Petronia, platform agnostic level.
 Also, handles event requests to windows.
 """
 
-from typing import Sequence, List, Dict, Mapping, Union, Optional
+from typing import Sequence, List, Dict, Optional
 from typing import cast as t_cast
 from threading import RLock
 import atexit
@@ -70,14 +70,13 @@ from ..connect.messages import (
     window_replaced_message,
     window_replacing_message,
 )
-from ..arch.error_codes_common import (
-    ERROR_ACCESS_DENIED
-)
 from .window_info_factory import (
     create_native_window_state,
     mk_window_state,
     hwnd_to_int,
 )
+from .actions.restore_windows import restore_windows
+from .actions.window_style import set_window_style
 
 
 def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequence[ListenerId]:
@@ -100,8 +99,8 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     active_windows: Dict[int, NativeWindowState] = {}
     original_state: Dict[int, NativeWindowState] = {}
 
-    # Always, always, always restore windows to their original state at exit.
-    atexit.register(_restore_windows, reverse_window_ids, original_state)
+    # Always, always, always actions windows to their original state at exit.
+    atexit.register(restore_windows, reverse_window_ids, original_state)
 
     def add_window_info(hwnd: HWND, hwnd_i: int) -> Optional[NativeWindowState]:
         window_state = create_native_window_state(bus, hwnd, hwnd_i)
@@ -345,7 +344,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
         with lock:
             if target_id in reverse_window_ids:
                 hwnd = reverse_window_ids[target_id]  # type: ignore
-                _set_window_style(hwnd, event.style)
+                set_window_style(hwnd, event.style)
                 # TODO does this need to explicitly trigger a state change, or does the
                 #   corresponding event get triggered?
 
@@ -398,78 +397,3 @@ def update_active_window(active_hwnd: int, active_windows: Dict[int, NativeWindo
             is_active=key == active_hwnd,
             is_focused=key == active_hwnd
         )
-
-
-def _set_window_style(
-        hwnd: HWND,
-        style: Mapping[str, Union[str, float, bool]]
-) -> Optional[WindowsErrorMessage]:
-    if not WINDOWS_FUNCTIONS.window.set_style:
-        return None
-    flags: Dict[str, bool] = {}
-    for f, val in style.items():
-        if val is True:
-            flags[f] = True
-    res = WINDOWS_FUNCTIONS.window.set_style(hwnd, flags)
-    if isinstance(res, WindowsErrorMessage):
-        log(
-            WARN, _restore_windows,
-            "Could not set the style state of {0}: {1}",
-            hwnd, res
-        )
-        return res
-    return None
-
-
-def _restore_windows(
-        reverse_window_ids: Dict[ComponentId, HWND], original_state: Dict[int, NativeWindowState]
-) -> None:
-    if not WINDOWS_FUNCTIONS.window.set_style:
-        log(
-            WARN, _restore_windows,
-            "Cannot restore known windows original style; no function set."
-        )
-    if not WINDOWS_FUNCTIONS.window.set_position:
-        log(
-            WARN, _restore_windows,
-            "Cannot restore known windows original position; no function set."
-        )
-
-    # Create a copy of the list; without it, the original state can change underneath us
-    # in certain conditions, which leads to an error.
-    for original in tuple(original_state.values()):
-        cid = original.component_id
-        if cid not in reverse_window_ids:
-            log(
-                WARN, _restore_windows,
-                "Know about window {0}, but it has no registered HWND",
-                cid
-            )
-            continue
-        hwnd = reverse_window_ids[cid]
-        if WINDOWS_FUNCTIONS.window.set_style:
-            _set_window_style(hwnd, original.style)
-        if WINDOWS_FUNCTIONS.window.set_position:
-            pos = original.bordered_rect
-            if pos.width != 0 and pos.height != 0:
-                res_p = WINDOWS_FUNCTIONS.window.set_position(
-                    hwnd, hwnd, pos.x, pos.y, pos.width, pos.height,
-                    ["frame-changed", "no-zorder", "async-window-pos"]
-                )
-                if isinstance(res_p, WindowsErrorMessage):
-                    # Access denied happens when the window is a message window.
-                    if res_p.errno != ERROR_ACCESS_DENIED:
-                        log(
-                            WARN, _restore_windows,
-                            "Could not restore the position and size of {0}: {1}",
-                            hwnd, res_p
-                        )
-                    else:
-                        log(
-                            DEBUG, _restore_windows,
-                            "access denied when resorting pos on {0}",
-                            original
-                        )
-                else:
-                    log(VERBOSE, _restore_windows, "Restore {0} -> {1}", hwnd, pos)
-    # May also want to restore focus state to how it was right before this function ran.

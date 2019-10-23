@@ -306,7 +306,7 @@ def window__redraw(hwnd):
     # None of the above worked, probably because the process isolation doesn't allow
     # our process to send a message to another process.
 
-    # So, try minimize then restore (if maximized, it will restore itself again)
+    # So, try minimize then actions (if maximized, it will actions itself again)
     # This really messes up the z-ordering, though.
     if window__is_visible(hwnd):
         windll.user32.ShowWindow(hwnd, SW_MINIMIZE)
@@ -369,7 +369,7 @@ def window__minimize(hwnd):
 def window__restore(hwnd):
     # This needs to be called twice, because of the situation
     # where a window was maximized then minimized.  The first
-    # restore will bring it back to visible, but maximized,
+    # actions will bring it back to visible, but maximized,
     # and the second will bring it to restored.
     windll.user32.ShowWindow(hwnd, SW_RESTORE)
     windll.user32.ShowWindow(hwnd, SW_RESTORE)

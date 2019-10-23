@@ -20,15 +20,21 @@ from .....core.platform.api.defs import (
 )
 from ..connect import (
     WindowsHookEvent,
+    bootstrap_screens,
     get_monitors,
     WindowsErrorMessage,
 )
 from ..connect.messages import (
     display_changed_message,
 )
+from ..arch.native_funcs.monitor import WindowsMonitor
 
 
 def bootstrap_display_detection(bus: EventBus, connect: WindowsHookEvent) -> Sequence[ListenerId]:
+    errors = bootstrap_screens()
+    for error in errors:
+        print("DEBUG setup screens: {0}".format(error))
+
     active_monitors: List[Tuple[NativeScreenInfo, VirtualScreenArea]] = []
 
     def on_display_changed() -> None:
@@ -51,19 +57,20 @@ def _map_monitors(store: List[Tuple[NativeScreenInfo, VirtualScreenArea]]) -> No
         # Logging?
         return
     for display in active_displays:
-        store.append((display, _as_virtual_screen(display),))
+        store.append((display.info, _as_virtual_screen(display),))
 
 
-def _as_virtual_screen(native: NativeScreenInfo) -> VirtualScreenArea:
+def _as_virtual_screen(native: WindowsMonitor) -> VirtualScreenArea:
     # If we need to scale the screen size, this is where we'd do it.
+    work_area = native.info.work_area
     area = (
-        native.work_area[NATIVE_SCREEN_AREA_X],
-        native.work_area[NATIVE_SCREEN_AREA_Y],
-        native.work_area[NATIVE_SCREEN_AREA_W],
-        native.work_area[NATIVE_SCREEN_AREA_H],
+        work_area[NATIVE_SCREEN_AREA_X],
+        work_area[NATIVE_SCREEN_AREA_Y],
+        native.scale_x(work_area[NATIVE_SCREEN_AREA_W]),
+        native.scale_y(work_area[NATIVE_SCREEN_AREA_H]),
     )
     return VirtualScreenArea(
-        name=native.name,
+        name=native.info.name,
         area=area,
-        is_primary=native.is_primary
+        is_primary=native.info.is_primary
     )

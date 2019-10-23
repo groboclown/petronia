@@ -3,12 +3,15 @@
 Manages finding the monitors, their size, their scale, and virtual <->
 physical pixels.
 
-At the moment, we let Windows natively handle the scaling.
+This has issues with screen scaling:
 
     https://docs.microsoft.com/en-us/windows/win32/winauto/uiauto-screenscaling
 
-However, this may cause pixel adjustment issues.  If that's the case, then extra
-effort is needed to convert this application to be DPI aware.
+Specifically, with multi-DPI setups.  If the system has multiple monitors, each with
+a different scaling, then the default Python application will have potential
+issues around the placement of windows on different screens.  The most common issue
+seen is that the program is system DPI aware, meaning that the main monitor's DPI is
+used for everything, which restores the windows on other screens to the wrong size.
 
 https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setprocessdpiaware
 
@@ -18,7 +21,7 @@ https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getphysica
 
 """
 
-from typing import Tuple, Sequence, Union, Optional
+from typing import List, Tuple, Sequence, Union, Optional
 from .....core.platform.api import (
     ScreenArea,
     NativeScreenInfo,
@@ -31,9 +34,22 @@ from ..arch.native_funcs.windows_common import (
     HWND, HFONT,
     WindowsErrorMessage,
 )
+from ..arch.native_funcs.monitor import WindowsMonitor
 from ..arch.native_funcs import (
     WINDOWS_FUNCTIONS,
 )
+
+
+def bootstrap_screens() -> Sequence[WindowsErrorMessage]:
+    """
+    Initialize the process for the screen settings
+    """
+    ret: List[WindowsErrorMessage] = []
+    if WINDOWS_FUNCTIONS.monitor.set_native_dpi_awareness:
+        err = WINDOWS_FUNCTIONS.monitor.set_native_dpi_awareness()
+        if err:
+            ret.append(err)
+    return ret
 
 
 class WindowPosition:
@@ -103,9 +119,9 @@ class WindowPosition:
             monitors = get_monitors()
             if not isinstance(monitors, WindowsErrorMessage) and monitors:
                 if len(monitors) > self.monitor:
-                    monitor = monitors[self.monitor]
+                    monitor = monitors[self.monitor].info
                 else:
-                    monitor = monitors[0]
+                    monitor = monitors[0].info
 
                 if 'bottom' in pos_types:
                     pos_y = (
@@ -140,7 +156,7 @@ class WindowPosition:
         return pos_x, pos_y, width, height
 
 
-def get_monitors() -> Union[Sequence[NativeScreenInfo], WindowsErrorMessage]:
+def get_monitors() -> Union[Sequence[WindowsMonitor], WindowsErrorMessage]:
     if WINDOWS_FUNCTIONS.monitor.find_monitors:
         return WINDOWS_FUNCTIONS.monitor.find_monitors()
     return WindowsErrorMessage('not implemented')

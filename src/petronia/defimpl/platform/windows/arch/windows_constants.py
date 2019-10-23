@@ -844,3 +844,27 @@ HSHELL_UNKNOWN_36 = 0x36
 
 # https://referencesource.microsoft.com/#System.Windows.Forms/winforms/Managed/System/WinForms/NativeMethods.cs,3d19d38cf9b246fa
 CCHDEVICENAME = 32
+
+
+S_OK = 0
+
+
+# https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/ne-shellscalingapi-process_dpi_awareness
+PROCESS_DPI_UNAWARE = 0
+PROCESS_SYSTEM_DPI_AWARE = 1
+PROCESS_PER_MONITOR_DPI_AWARE = 2
+
+# DEVICE_SCALE_FACTOR enum
+SCALE_100_PERCENT = 100
+SCALE_120_PERCENT = 120
+SCALE_140_PERCENT = 140
+SCALE_150_PERCENT = 150
+SCALE_160_PERCENT = 160
+SCALE_180_PERCENT = 180
+SCALE_225_PERCENT = 225
+
+# https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/ne-shellscalingapi-monitor_dpi_type
+MDT_EFFECTIVE_DPI = 0
+MDT_ANGULAR_DPI = 1
+MDT_RAW_DPI = 2
+MDT_DEFAULT = MDT_EFFECTIVE_DPI

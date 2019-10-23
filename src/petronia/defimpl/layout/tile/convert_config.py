@@ -50,10 +50,14 @@ def convert_config(
     """
     screens: List[SplitterTile] = []
 
-    screen_assignment, errors = match_layouts_to_screens(
+    packed_data, errors = match_layouts_to_screens(
         [lay.screens for lay in config.layouts],
         display.blocks
     )
+    root_index, screen_assignment = packed_data
+    name = '()'
+    if 0 <= root_index < len(config.layouts):
+        name = config.layouts[root_index].name
 
     primary = 0
     index = 0
@@ -80,7 +84,7 @@ def convert_config(
             SPLIT_HORIZONTAL, [1], True
         ))
 
-    return RootTile(screens), primary, errors
+    return RootTile(name, screens, primary), primary, errors
 
 
 def get_split_children_sizes(children: Sequence[TileLayout]) -> List[int]:

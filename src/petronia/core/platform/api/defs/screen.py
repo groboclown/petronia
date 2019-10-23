@@ -209,8 +209,20 @@ class NativeScreenInfo:
 
     def __repr__(self) -> str:
         return ("NativeScreenInfo(handle={0}, screen_index={1}, is_primary={2}, "
-        "screen_size={3}, work_area={4}, name={5})").format(
+            "screen_size={3}, work_area={4}, name={5})").format(
             repr(self.__handle), repr(self.__screen_index),
             repr(self.__is_primary), repr(self.__screen_size),
             repr(self.__work_area), repr(self.__name)
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, NativeScreenInfo):
+            return False
+        return (
+            self.__handle == other.__handle and
+            self.__screen_index == other.__screen_index and
+            self.__is_primary == other.__is_primary and
+            self.__screen_size == other.__screen_size and
+            self.__work_area == other.__work_area and
+            self.__name == other.__name
         )

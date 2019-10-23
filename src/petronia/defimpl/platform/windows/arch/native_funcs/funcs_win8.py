@@ -2,15 +2,22 @@
 Windows 8 & 8.1 functions
 """
 
-from typing import Tuple, Union
+from typing import List, Tuple, Sequence, Union, Optional
+from typing import cast as t_cast
+from ctypes import c_bool
 from ctypes import cast as c_cast
 from .windows_common import (
-    DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE,
-    POINTER, byref,
+    DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE, UINT, c_int, HDC, LPRECT, LPARAM,
+    HMONITOR, WINFUNCTYPE,
+    POINTER, byref, c_sizeof,
     windll,
     WindowsErrorMessage,
     create_unicode_buffer,
 )
+from .funcs_any_win import (
+    EnumDisplayMonitors, MONITORINFOEXW, GetMonitorInfoW,
+)
+from .monitor import WindowsMonitor
 from ..windows_constants import *
 from .supported_functions import (
     Functions,
@@ -27,6 +34,8 @@ def load_all_functions(func_map: Functions) -> None:
     w7_load(func_map)
     func_map.process.get_username_domain_for_pid = process__get_username_domain_for_pid
     func_map.process.get_current_username_domain = process__get_current_username_domain
+    func_map.monitor.find_monitors = monitor__find_monitors
+    func_map.monitor.set_native_dpi_awareness = monitor__set_native_dpi_awareness
 
 
 def process__get_username_domain_for_pid(thread_pid: DWORD) -> Union[Tuple[str, str], WindowsErrorMessage]:
@@ -108,3 +117,89 @@ def process__get_username_domain_for_pid(thread_pid: DWORD) -> Union[Tuple[str, 
 def process__get_current_username_domain() -> Union[Tuple[str, str], WindowsErrorMessage]:
     # Just the username is easy (GetUserName), but the domain takes more work.
     return process__get_username_domain_for_pid(windll.kernel32.GetCurrentProcessId())
+
+
+def monitor__set_native_dpi_awareness() -> Optional[WindowsErrorMessage]:
+    awareness = c_int()
+    error_code = windll.shcore.GetProcessDpiAwareness(0, byref(awareness))
+    if error_code != 0:  # S_OK
+        return WindowsErrorMessage('shcore.GetProcessDpiAwareness', error_code)
+
+    if awareness != PROCESS_PER_MONITOR_DPI_AWARE:
+        error_code = windll.shcore.SetProcessDpiAwareness(2)
+        if error_code != 0:  # S_OK
+            return WindowsErrorMessage('shcore.SetProcessDpiAwareness', error_code)
+
+    return None
+
+
+def monitor__find_monitors() -> Sequence[WindowsMonitor]:
+    monitor_handles: List[HMONITOR] = []
+
+    def callback(h_monitor: HMONITOR, hdc_monitor: HDC, lprc_monitor: LPRECT, l_param: LPARAM) -> bool:
+        # hMonitor: display monitor handle
+        # hdcMonitor: device context handle; color attributes + clipping region; may be null
+        # lprcMonitor: RECT structure w/ device-context coordinates.
+        monitor_handles.append(h_monitor)
+        return True
+
+    enum_monitor_proc = WINFUNCTYPE(c_bool, HMONITOR, HDC, LPRECT, LPARAM)
+    if EnumDisplayMonitors(None, None, enum_monitor_proc(callback), 0) == 0:
+        return ()
+
+    ret: List[WindowsMonitor] = []
+    index = 0
+    dpi_x = UINT()
+    dpi_y = UINT()
+    scale_factor = c_int()
+    for monitor_handle in monitor_handles:
+        info = MONITORINFOEXW()
+        info.cbSize = c_sizeof(MONITORINFOEXW)
+        if GetMonitorInfoW(monitor_handle, byref(info)) != 0:
+            res = windll.shcore.GetDpiForMonitor(
+                monitor_handle, MDT_RAW_DPI, byref(dpi_x), byref(dpi_y)
+            )
+            if res != S_OK:
+                # could not get the DPI; use the default.
+                dpi_x = UINT(96)
+                dpi_y = UINT(96)
+                print("DEBUG ** Monitor {0} could not find DPI: {1}".format(index, res))
+            else:
+                print("DEBUG ** Monitor {0} has dpi ({1}, {2})/{3}".format(index, dpi_x, dpi_y, type(dpi_x)))
+
+            res = windll.shcore.GetScaleFactorForMonitor(
+                monitor_handle, byref(scale_factor)
+            )
+            if res != S_OK:
+                # could not get the scale factor.
+                scale_factor = c_int(SCALE_100_PERCENT)
+                print("DEBUG ** Monitor {0} could not find scale factor: {1}".format(index, res))
+            else:
+                print("DEBUG ** Monitor {0} has scale factor {1}/{2}".format(index, repr(scale_factor), type(scale_factor)))
+
+            ret.append(WindowsMonitor(
+                monitor_handle=monitor_handle,
+                screen_index=index,
+
+                monitor_left=info.rcMonitor.left,
+                monitor_right=info.rcMonitor.right,
+                monitor_top=info.rcMonitor.top,
+                monitor_bottom=info.rcMonitor.bottom,
+
+                work_left=info.rcWork.left,
+                work_right=info.rcWork.right,
+                work_top=info.rcWork.top,
+                work_bottom=info.rcWork.bottom,
+
+                name=info.szDevice,
+                is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == 1,
+
+                # Generic versions of Windows does not support these API queries.
+                # Default for an unknown DPI is 96.  It just is.
+                scale_factor=scale_factor.value,
+                dpi_x=dpi_x.value,
+                dpi_y=dpi_y.value
+            ))
+        index += 1
+
+    return ret

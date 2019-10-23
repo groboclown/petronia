@@ -94,9 +94,12 @@ class WindowsErrorMessage:
         '__errno', '__errmsg',
     )
 
-    def __init__(self, called_function: str):
+    def __init__(self, called_function: str, last_error: Optional[int] = None):
         self.__called = called_function
-        self.__errno = GetLastError()
+        if last_error is None:
+            self.__errno = GetLastError()
+        else:
+            self.__errno = last_error
 
         # Should use "FormatMessage", but can't find it.
 
