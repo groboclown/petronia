@@ -43,5 +43,5 @@ class SplitterTileTest(unittest.TestCase):
         self.assertEqual(p2.get_area(), (1, 0, 2, 3))
 
 
-def simple_portal_factory(index: int, area: ScreenArea) -> Portal:
-    return Portal('', area, [], None)
+def simple_portal_factory(_index: int, area: ScreenArea) -> Portal:
+    return Portal('', area, [], POSITION_FAVOR_FILL, None)

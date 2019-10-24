@@ -12,9 +12,124 @@ they can just listen to the layout API events.
 
 Runs in elevated privileges
 
-## User Configuration
+### User Configuration
 
 Does not provide any user configuration.
+
+
+
+### Provides Key Bindings
+
+To bind a hotkey to an action, use this in the hotkey bind configuration:
+
+```yaml
+bind:
+  - key: "ctrl+shift+a"
+    action: "name of the action, which is in the title"
+    parameters:
+      example_parameter: "value"
+``` 
+
+
+#### `move-active`
+
+
+
+    User request to move and/or resize the currently focused window.
+
+    The interpretation of what a "change" means depends greatly upon the
+    implementing layout.  See the specific layout's documentation for how
+    to use this.
+
+    If the layout decides to accept the change request, it can trigger
+    window move and layout change events.  It can change multiple windows
+    and other parts of the system.
+    
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: move-active
+  enabled: true
+  properties:
+    dx: (some number)
+    dy: (some number)
+    dw: (some number)
+    dh: (some number)
+    dz: (some number)
+
+```
+
+
+**Configuration.dx** : Change in window x position (move)
+
+**Configuration.dy** : Change in window y position (move)
+
+**Configuration.dw** : Change in window width (resize)
+
+**Configuration.dh** : Change in window height (resize)
+
+**Configuration.dz** : Change in window z-order (focus)
+
+
+
+#### `shift-focus`
+
+
+
+    Request to shift where the layout is focusing.  This could be moving to
+    another virtual workspace, switching to a different tile in a tiling
+    system, flipping to another window in a full-screen layout, or any number
+    of other options that are specific to the layout manager.
+
+    This super generic event takes a "name" and an "index", to allow a
+    number and string input.
+    
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: shift-focus
+  enabled: true
+  properties:
+    name: "text"
+    index: (some number)
+
+```
+
+
+**Configuration.name** : Layout focus shift name
+
+**Configuration.index** : Layout focus shift index
+
+
+
+#### `set-visible`
+
+
+
+    Request to change the window's visibility.  The layout may minimize or move off
+    screen or in some other way hide the window from sight.  Making a window visible
+    will actions it to the window's previous visibility setting.  Following the
+    successful request, the focus should be the same as before setting the visibility.
+    So, a separate request focus event may be necessary.
+    
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: set-visible
+  enabled: true
+  properties:
+    visible: (true / false)
+
+```
+
+
+**Configuration.visible** : True to make the window visible, False to make it hidden
+
+
+
 
 
 
@@ -45,4 +160,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

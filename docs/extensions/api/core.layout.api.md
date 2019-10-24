@@ -6,9 +6,7 @@
 ## Details
 
 
-
-
-## Declared Events
+### Declared Events
 
 
 ### Event `core.layout.api/layout-changed`
@@ -77,13 +75,19 @@ So, a separate request focus event may be necessary.
 
 
 
-Default Implementations:
+
+
+
+
+### Default Implementations:
 * [default.layout.tile](default.layout.tile.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

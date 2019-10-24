@@ -4,8 +4,11 @@ The general container type.
 """
 
 from typing import List, Sequence, Tuple, Iterable, Callable, Optional, Union
+from typing import cast as t_cast
+import math
 from ....aid.std import (
     ComponentId,
+    EMPTY_LIST
 )
 from ....core.platform.api import (
     ScreenUnit,
@@ -14,6 +17,7 @@ from ....core.platform.api import (
     SCREEN_AREA_Y,
     SCREEN_AREA_HEIGHT,
     SCREEN_AREA_WIDTH,
+    WindowMatcher,
 )
 from .portal import Portal
 
@@ -48,9 +52,13 @@ class SplitterTile:
     tree must be only portals.
     """
 
+    # TODO add a higher-level interface for a "layout tile", which knows how
+    #   to place the portals inside it.  This puts more of the responsibility on the
+    #   layout to figure out what navigation directions mean.
+
     __slots__ = (
         '_children',
-        '__size',
+        '__area',
         '__splits',
         '__factory',
         '__active_index',
@@ -70,7 +78,7 @@ class SplitterTile:
         assert direction in SPLIT_ALL
         assert splits
         self.__direction = direction
-        self.__size = size
+        self.__area = size
         self.__factory = factory
         self.__splits = tuple(splits)
         self._children = []
@@ -91,6 +99,13 @@ class SplitterTile:
                 sub_area, last = _split_dir_pos(size, last, factor * prop, direction, is_last)
             self._children.append(factory(i, sub_area))
         assert len(self._children) > 0
+
+    @property
+    def is_split_target(self) -> bool:
+        return self.__is_split_target
+
+    def get_area(self) -> ScreenArea:
+        return self.__area
 
     def get_active_split_target(self) -> Optional[Tile]:
         """
@@ -152,42 +167,89 @@ class SplitterTile:
                 ret.extend(path)
         return ret
 
-    def get_portals(self) -> Sequence[Portal]:
+    def get_portals(self) -> Iterable[Portal]:
         """
         Find all contained portals, including within all child splits.
         :return:
         """
-        ret: List[Portal] = []
         for child in self._children:
             if isinstance(child, Portal):
-                ret.append(child)
+                yield child
             else:
-                ret.extend(child.get_portals())
-        return ret
+                for kid in child.get_portals():
+                    yield kid
 
-    def set_active_split(self, pos: int) -> Optional[ComponentId]:
-        """
+    def get_portals_with_paths(self) -> Iterable[Tuple[Portal, Sequence[int]]]:
+        for child_index in range(len(self._children)):
+            child = self._children[child_index]
+            if isinstance(child, Portal):
+                yield child, [child_index]
+            else:
+                for portal, path in child.get_portals_with_paths():
+                    yield portal, [child_index, *path]
 
-        :param pos:
-        :return: the cid of the now-active portal's
-        """
-        if len(self._children) <= 0:
-            # TODO disable the active split.
-            return None
-        raise NotImplementedError()
+    def set_active_split(self, pos: int) -> None:
+        # Note: always at least 1 child
+        self.__active_index = abs(pos % len(self._children))
 
-    def change_active_split(self, adjustment: int) -> Optional[ComponentId]:
+    def set_active_split_path(self, path: Sequence[int]) -> None:
+        path_len = len(path)
+        if path_len > 0:
+            self.set_active_split(path[0])
+            if path_len > 1:
+                child = self._children[self.__active_index]
+                if not isinstance(child, Portal):
+                    child.set_active_split_path(path[1:])
+
+    def set_active_window(self, cid: ComponentId) -> Sequence[int]:
+        for child_index in range(len(self._children)):
+            child = self._children[child_index]
+            if isinstance(child, Portal):
+                if child.set_visible_window(cid):
+                    # found the destination
+                    self.__active_index = child_index
+                    return child_index,
+                return t_cast(Sequence[int], EMPTY_LIST)
+            found = child.set_active_window(cid)
+            if found:
+                self.__active_index = child_index
+                return (child_index, *found)
+        return t_cast(Sequence[int], EMPTY_LIST)
+
+    def change_active_split(self, adjustment: int) -> None:
         """
 
         :param adjustment:
         :return: the cid of the now-active portal's
         """
-        return self.set_active_split(self.__active_index + adjustment)
+        self.set_active_split(self.__active_index + adjustment)
 
-    def add_split(self, proportion: int) -> None:
+    def add_split(self, percent_size: int) -> Tuple[Portal, Sequence[Tuple[ComponentId, ScreenArea]]]:
+        """
+        Add a new split with a new portal.  This new portal will be made active.
+        If any other split is resized to accommodate the new portal, their
+        contained windows will be returned to allow the caller to invoke the
+        proper resize call.
+        """
+
+        # TODO allow setting the relative position of the new split - should it
+        #   be above the current split, at the front of the rest, at the end?
+        #   So many options for the user.
+        # TODO allow better control over the size of the new portal.
+
+        # 1. Collect the size information of the existing splits.
+        # 2. Calculate the size of the new portal based on the percent_size and existing splits.
+        # 3. Insert the portal into the list, and make it active.
+        # 4. Recalculate the split sizes.
+        # 5. Send the splits down to the child splits, and collect the adjusted window sizes.
+
         # Set the active index to the newly added split.
         # This allows add -> remove to be essentially a no-op.
-        self.__active_index = -1
+
+        #size = blah
+        #portal = Portal('', size, t_cast(Iterable[WindowMatcher], EMPTY_LIST))
+
+        #self.__active_index = -1
         raise NotImplementedError()
 
     def remove_active_split(self) -> Sequence[ComponentId]:
@@ -200,9 +262,9 @@ class SplitterTile:
             It's the caller's responsibility to move those to new splits or
             to otherwise manage their new state.
         """
-        if len(self._children) <= 0:
-            return ()
-        self.__active_index -= 1
+        #if len(self._children) <= 0:
+        #    return ()
+        #self.__active_index -= 1
         raise NotImplementedError()
 
     def resize_active_split(self, increase: ScreenUnit) -> None:
@@ -215,15 +277,27 @@ class SplitterTile:
         """
         raise NotImplementedError()
 
-    def get_area(self) -> ScreenArea:
-        return self.__size
-
-    def resize(self, new_area: ScreenArea) -> None:
+    def resize(self, new_area: ScreenArea) -> List[Tuple[ComponentId, ScreenArea]]:
         """
         Resize the whole split.  This will attempt to keep the same proportions between
         the splits.
         """
-        raise NotImplementedError()
+        orig_length = _split_dir_size(self.__area, self.__direction)
+        new_length = _split_dir_size(new_area, self.__direction)
+        scale = new_length / orig_length
+        last_pos = 0
+        ret: List[Tuple[ComponentId, ScreenArea]] = []
+        for child_index in range(len(self._children)):
+            child = self._children[child_index]
+            old_size = child.get_area()
+            old_child_length = _split_dir_size(old_size, self.__direction)
+            new_child_length = old_child_length * scale
+            new_child_area, last_pos = _split_dir_pos(
+                new_area, last_pos, math.floor(new_child_length), self.__direction,
+                child_index >= len(self._children) - 1
+            )
+            ret.extend(child.resize(new_child_area))
+        return ret
 
     def get_children(self) -> Sequence[Tile]:
         return tuple(self._children)
@@ -245,7 +319,7 @@ class SplitterTile:
             'SplitterTile(size={size}, '
             'active={active}, direction={direction}, is_split_target={target}, splits={splits}, children={kids})'
         ).format(
-            size=repr(self.__size),
+            size=repr(self.__area),
             active=repr(self.__active_index),
             direction=repr(self.__direction),
             target=repr(self.__is_split_target),

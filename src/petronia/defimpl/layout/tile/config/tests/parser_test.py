@@ -55,7 +55,7 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(
             repr(res),
             repr(TileLayoutConfig([RootTileLayout('top', [ScreenTileLayout(None, SPLIT_VERTICAL, False, (0, 0,), [
-                PortalLayout('default', 1)
+                PortalLayout('default', 1, 'r-ne')
             ])])], []))
         )
 
@@ -71,7 +71,7 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(
             repr(res),
             repr(TileLayoutConfig([RootTileLayout('0', [ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [
-                PortalLayout('default', 1)
+                PortalLayout('default', 1, 'r-ne')
             ])])], []))
         )
 
@@ -87,6 +87,7 @@ class ParseConfigTest(unittest.TestCase):
                     "size": 1,
                     "splits": [{
                         "size": 3,
+                        "position": "r-nw",
                     }, {
                         "size": 2,
                     }],
@@ -97,10 +98,10 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(
             repr(res),
             repr(TileLayoutConfig([RootTileLayout('top', [ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [
-                PortalLayout('default', 2),
+                PortalLayout('default', 2, 'r-ne'),
                 SplitTileLayout(None, 1, [
-                    PortalLayout('default', 3),
-                    PortalLayout('default', 2),
+                    PortalLayout('default', 3, 'r-nw'),
+                    PortalLayout('default', 2, 'r-ne'),
                 ], True),
             ])])], []))
         )

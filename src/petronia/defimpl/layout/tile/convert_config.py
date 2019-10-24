@@ -11,6 +11,9 @@ from .config import (
     TileLayout,
     MatchWindowToPortal,
     match_layouts_to_screens,
+    parse_position,
+    DEFAULT_WINDOW_POSITION,
+    DEFAULT_WINDOW_POSITION_VALUE,
 )
 from .root import (
     RootTile,
@@ -78,8 +81,10 @@ def convert_config(
             errors = [create_user_error(
                 convert_config, 'no screens defined in {sc}', sc=repr(config)
             )]
+        # TODO should the splitter define the default window position too?
+        #   This should be inherited from the parent splitter.
         screens.append(SplitterTile(
-            mk_tile_factory((PortalLayout('default', 1),), SPLIT_HORIZONTAL, []),
+            mk_tile_factory((PortalLayout('default', 1, DEFAULT_WINDOW_POSITION),), SPLIT_HORIZONTAL, []),
             display.get_primary().area,
             SPLIT_HORIZONTAL, [1], True
         ))
@@ -112,7 +117,12 @@ def mk_tile_factory(
             layout = children[index]
             if isinstance(layout, PortalLayout):
                 portal_name = layout.name or str(index)
-                return Portal(portal_name, size, find_matchers_for_name(portal_name, matchers), None)
+                position = parse_position(layout.default_fill or DEFAULT_WINDOW_POSITION)
+                if position is None:
+                    position = DEFAULT_WINDOW_POSITION_VALUE
+                return Portal(
+                    portal_name, size, find_matchers_for_name(portal_name, matchers), position, None
+                )
             else:
                 return SplitterTile(
                     mk_tile_factory(layout.splits, direction, matchers),
@@ -120,5 +130,9 @@ def mk_tile_factory(
                 )
         portal_name = str(index)
         # TODO allow for setting up a background.
-        return Portal(portal_name, size, find_matchers_for_name(portal_name, matchers), None)
+        return Portal(
+            portal_name, size,
+            find_matchers_for_name(portal_name, matchers),
+            DEFAULT_WINDOW_POSITION_VALUE, None
+        )
     return tile_factory

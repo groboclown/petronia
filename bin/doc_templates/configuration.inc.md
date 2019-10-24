@@ -1,3 +1,3 @@
-## User Configuration
+### User Configuration
 
 {configuration}

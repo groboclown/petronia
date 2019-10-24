@@ -54,14 +54,12 @@ Extension For:
 
 Runs in elevated privileges
 
-## User Configuration
+### User Configuration
 
 
 (no documentation)
 
 ```yaml
----
-
 # Top-level item is some name the user prefers.  Here, we call it "Configuration".
 Configuration:
   extension: default.layout.tile
@@ -84,6 +82,7 @@ Configuration:
     layouts:
       # one or more of these types
       -
+        name: "text"
         screens:
           # one or more of these types
           -
@@ -105,9 +104,11 @@ Configuration:
                   -
                     name: "text"
                     size: (some number)
+                    default-position: "text"
               -
                 name: "text"
                 size: (some number)
+                default-position: "text"
       -
         resolution: "text"
         name: "text"
@@ -127,16 +128,19 @@ Configuration:
               -
                 name: "text"
                 size: (some number)
+                default-position: "text"
           -
             name: "text"
             size: (some number)
+            default-position: "text"
 
 ```
 
 
 **Configuration.match-windows[].portal** : name of the portal that the window will go into by default
 
-**Configuration.match-windows[].position** : corner to align the window (ne, se, nw, sw), or not set if it is resized
+**Configuration.match-windows[].position** : corner to align the window (fill, ne, se, nw, sw, n, e, s, w, and r- variants),
+            or not set if it is resized
 
 **Configuration.match-windows[].key** : window property key to match
 
@@ -149,6 +153,8 @@ Configuration:
 **Configuration.match-windows[].matchers[].match** : text to match against the window property key value
 
 **Configuration.match-windows[].matchers[].type** : type of matching to use: glob (default), partial, exact, or regex
+
+**Configuration.layouts[].name** : layout name, for logging purposes
 
 **Configuration.layouts[].screens[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
 
@@ -170,13 +176,15 @@ Configuration:
 
 **split-layout.splits[].size** : proportional size of the area
 
+**split-layout.splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
+
 **Configuration.layouts[].screens[].splits[].name** : An optional name for the portal, for use with matching or quick focus on key bindings
 
 **Configuration.layouts[].screens[].splits[].size** : proportional size of the area
 
-**Configuration.layouts[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
+**Configuration.layouts[].screens[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
 
-**Configuration.layouts[].name** : screen name or index to match against
+**Configuration.layouts[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
 
 **Configuration.layouts[].direction** : Initial split direction.  Deeper splits will alternate.
 
@@ -185,6 +193,127 @@ Configuration:
 **Configuration.layouts[].splits[].name** : An optional name for the portal, for use with matching or quick focus on key bindings
 
 **Configuration.layouts[].splits[].size** : proportional size of the area
+
+**Configuration.layouts[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
+
+
+
+
+
+### Provides Key Bindings
+
+To bind a hotkey to an action, use this in the hotkey bind configuration:
+
+```yaml
+bind:
+  - key: "ctrl+shift+a"
+    action: "name of the action, which is in the title"
+    parameters:
+      example_parameter: "value"
+``` 
+
+
+#### `set-window-position`
+
+
+Allows to, on the fly, change how the active window sizes itself within the portal.
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: set-window-position
+  enabled: true
+  properties:
+    position: "text"
+
+```
+
+
+**Configuration.position** : The same value for the matcher is used here (n, s, e, w, ne, nw, se, sw, and the `r-` variants).
+
+
+
+#### `name-portal`
+
+
+
+            Gives the active portal a name, so that other hotkeys can reference it.  This is useful to, on the fly,
+            change the destination for a common collection of hotkeys.  For example, you can name a portal
+            'run', then have a series of hotkeys to move a window to 'run', and quickly move the focus to 'run',
+            then have an accompanying series of hotkeys for 'edit', to enable quick navigation between the two.
+            
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: name-portal
+  enabled: true
+  properties:
+    name: "text"
+
+```
+
+
+**Configuration.name** : The new name for the portal.
+
+
+
+#### `add-portal`
+
+
+Creates a new portal where windows can be added.
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: add-portal
+  enabled: true
+  properties:
+
+```
+
+
+
+
+#### `remove-portal`
+
+
+Removes the active portal, unless it's the last portal in a split.
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: remove-portal
+  enabled: true
+  properties:
+
+```
+
+
+
+
+#### `move-window-to-portal`
+
+
+Moves a window to an adjacent or named portal.
+
+```yaml
+# Top-level item is some name the user prefers.  Here, we call it "Configuration".
+Configuration:
+  extension: move-window-to-portal
+  enabled: true
+  properties:
+    direction: "text"
+    name: "text"
+
+```
+
+
+**Configuration.direction** : The direction to move the window - one of `n`, `s`, `e`, or `w`.
+
+**Configuration.name** : Portal name to move the window into.  If this is not given, or the portal with the given name is not
+            found, then `direction` is used.
+
 
 
 
@@ -221,8 +350,10 @@ Configuration:
 
 
 
+## Source
+
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

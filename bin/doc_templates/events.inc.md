@@ -1,4 +1,4 @@
 
-## Declared Events
+### Declared Events
 
 {#events:event.inc.md#}

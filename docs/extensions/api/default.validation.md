@@ -12,7 +12,7 @@ Extension For:
 
 Runs in elevated privileges
 
-## User Configuration
+### User Configuration
 
 Does not provide any user configuration.
 
@@ -23,8 +23,12 @@ Does not provide any user configuration.
 
 
 
+
+
+## Source
+
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

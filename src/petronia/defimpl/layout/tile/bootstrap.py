@@ -14,12 +14,12 @@ from ....aid.lifecycle import (
     create_module_listener_helper,
 )
 from ....base.internal_.internal_extension import petronia_extension
+from .consts import (
+    MODULE_ID,
+)
 from .handler import (
     startup_tile_event_handler,
 )
-
-
-MODULE_ID = create_singleton_identity('default.layout.tile')
 
 
 def bootstrap_layout(bus: EventBus) -> None:

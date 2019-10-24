@@ -6,15 +6,7 @@
 ## Details
 
 
-## Dependencies
-
-* [core.shutdown.api](core.shutdown.api.md)
-  no version restriction
-
-
-
-
-## Declared Events
+### Declared Events
 
 
 ### Event `core.timer.api tick`
@@ -33,13 +25,25 @@ is only ever created once.
 
 
 
-Default Implementations:
+
+
+
+## Dependencies
+
+* [core.shutdown.api](core.shutdown.api.md)
+  no version restriction
+
+
+
+### Default Implementations:
 * [default.timer](default.timer.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

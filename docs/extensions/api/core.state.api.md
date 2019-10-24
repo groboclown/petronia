@@ -6,9 +6,7 @@
 ## Details
 
 
-
-
-## Declared Events
+### Declared Events
 
 
 ### Event `core.state.api request-update`
@@ -35,13 +33,19 @@
 
 
 
-Default Implementations:
+
+
+
+
+### Default Implementations:
 * [default.state](default.state.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

@@ -6,15 +6,7 @@ API that the platform components must implement.
 ## Details
 
 
-## Dependencies
-
-* [core.state.api](core.state.api.md)
-  no version restriction
-
-
-
-
-## Declared Events
+### Declared Events
 
 
 ### Event `core.platform.api/component/request-create-chrome-wrapper`
@@ -197,7 +189,7 @@ shouldn't change.
 * Public triggering allowed
 * Only instance listening permitted
 
-hidden then hidden then visible will restore the window to visible.
+hidden then hidden then visible will actions the window to visible.
 
 
 
@@ -217,13 +209,25 @@ highly dependent upon the underlying OS and windowing system.
 
 
 
-Default Implementations:
+
+
+
+## Dependencies
+
+* [core.state.api](core.state.api.md)
+  no version restriction
+
+
+
+### Default Implementations:
 * [default.platform](default.platform.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

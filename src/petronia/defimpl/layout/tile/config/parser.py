@@ -53,6 +53,31 @@ from ..splitter import (
     SPLIT_HORIZONTAL,
     SPLIT_VERTICAL,
 )
+from ..portal import (
+    POSITION_FAVOR_FILL,
+    POSITION_FAVOR_N_EDGE,
+    POSITION_FAVOR_E_EDGE,
+    POSITION_FAVOR_S_EDGE,
+    POSITION_FAVOR_W_EDGE,
+    POSITION_FAVOR_NE,
+    POSITION_FAVOR_SE,
+    POSITION_FAVOR_NW,
+    POSITION_FAVOR_SW,
+    POSITION_FAVOR_RESTRICTED_N_EDGE,
+    POSITION_FAVOR_RESTRICTED_E_EDGE,
+    POSITION_FAVOR_RESTRICTED_S_EDGE,
+    POSITION_FAVOR_RESTRICTED_W_EDGE,
+    POSITION_FAVOR_RESTRICTED_NE,
+    POSITION_FAVOR_RESTRICTED_SE,
+    POSITION_FAVOR_RESTRICTED_NW,
+    POSITION_FAVOR_RESTRICTED_SW,
+)
+from ..controller import (
+    MOVE_WINDOW_DIRECTION_NORTH,
+    MOVE_WINDOW_DIRECTION_EAST,
+    MOVE_WINDOW_DIRECTION_SOUTH,
+    MOVE_WINDOW_DIRECTION_WEST,
+)
 
 _PORTAL_SCHEMA = {
     'name': PersistTypeSchemaItem(
@@ -63,7 +88,13 @@ _PORTAL_SCHEMA = {
         "proportional size of the area",
         PERSISTENT_TYPE_SCHEMA_TYPE__FLOAT
     ),
+    'default-position': PersistTypeSchemaItem(
+        "Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).",
+        PERSISTENT_TYPE_SCHEMA_TYPE__STR
+    )
 }
+DEFAULT_WINDOW_POSITION = 'r-ne'
+DEFAULT_WINDOW_POSITION_VALUE = POSITION_FAVOR_RESTRICTED_NE
 _SPLIT_SCHEMA = {
     PERSISTENT_TYPE_SCHEMA_NAME__SCHEMA: PersistTypeSchemaItem(
         "split-layout",
@@ -118,7 +149,8 @@ TILE_LAYOUT_CONFIG_SCHEMA = readonly_persistent_schema_copy({
             "name of the portal that the window will go into by default", PERSISTENT_TYPE_SCHEMA_TYPE__STR
         ),
         'position': PersistTypeSchemaItem(
-            "corner to align the window (ne, se, nw, sw), or not set if it is resized",
+            """corner to align the window (fill, ne, se, nw, sw, n, e, s, w, and r- variants),
+            or not set if it is resized""",
             PERSISTENT_TYPE_SCHEMA_TYPE__STR
         ),
         'key': PersistTypeSchemaItem(
@@ -278,7 +310,7 @@ def parse_screen(data: PersistType) -> ResultWithErrors[Optional[ScreenTileLayou
     errors: List[ErrorReport] = []
     splits = collect_errors(errors, parse_splits(data))
     if not splits:
-        splits.append(PortalLayout('default', 1))
+        splits.append(PortalLayout('default', 1, DEFAULT_WINDOW_POSITION))
 
     resolution = collect_errors(errors, optional_str(
         data, 'resolution', lambda: create_user_error(parse_config, 'resolution must be a string')
@@ -329,9 +361,12 @@ def parse_tile(data: PersistType) -> ResultWithErrors[Union[SplitTileLayout, Por
         size_data = collect_errors(errors, optional_int(
             data, 'size', lambda: create_user_error(parse_config, 'size must be a number')
         ))
+        position = collect_errors(errors, optional_str(
+            data, 'default-position', lambda: create_user_error(parse_config, 'default-position must be a string')
+        ))
         if size_data is not None and size_data > 0:
             size = size_data
-        return PortalLayout(name or 'default', size), errors
+        return PortalLayout(name or 'default', size, position or DEFAULT_WINDOW_POSITION), errors
 
     target = collect_errors(errors, optional_bool(
         data, 'target', lambda: create_user_error(parse_config, 'target must be true or false')
@@ -399,3 +434,80 @@ def create_matcher(
         errors.append(create_user_error(create_matcher, 'Unknown window matcher kind `{kind}`', kind=kind))
 
     return WindowMatcher(key, matches, kind_id), errors
+
+
+_POSITION_MAP = {
+    'fill': POSITION_FAVOR_FILL,
+    'n': POSITION_FAVOR_N_EDGE,
+    'e': POSITION_FAVOR_E_EDGE,
+    's': POSITION_FAVOR_S_EDGE,
+    'w': POSITION_FAVOR_W_EDGE,
+    'ne': POSITION_FAVOR_NE,
+    'se': POSITION_FAVOR_SE,
+    'nw': POSITION_FAVOR_NW,
+    'sw': POSITION_FAVOR_SW,
+    'r-n': POSITION_FAVOR_RESTRICTED_N_EDGE,
+    'r-e': POSITION_FAVOR_RESTRICTED_E_EDGE,
+    'r-s': POSITION_FAVOR_RESTRICTED_S_EDGE,
+    'r-w': POSITION_FAVOR_RESTRICTED_W_EDGE,
+    'r-ne': POSITION_FAVOR_RESTRICTED_NE,
+    'r-se': POSITION_FAVOR_RESTRICTED_SE,
+    'r-nw': POSITION_FAVOR_RESTRICTED_NW,
+    'r-sw': POSITION_FAVOR_RESTRICTED_SW,
+    'n-r': POSITION_FAVOR_RESTRICTED_N_EDGE,
+    'e-r': POSITION_FAVOR_RESTRICTED_E_EDGE,
+    's-r': POSITION_FAVOR_RESTRICTED_S_EDGE,
+    'w-r': POSITION_FAVOR_RESTRICTED_W_EDGE,
+    'ne-r': POSITION_FAVOR_RESTRICTED_NE,
+    'se-r': POSITION_FAVOR_RESTRICTED_SE,
+    'nw-r': POSITION_FAVOR_RESTRICTED_NW,
+    'sw-r': POSITION_FAVOR_RESTRICTED_SW,
+}
+
+
+def parse_position(position: Optional[str]) -> Optional[int]:
+    """
+    Convert the position text value to a correct value.
+
+    :param position:
+    :return:
+    """
+    if not position:
+        return None
+    position = position.strip().lower()
+    if position in _POSITION_MAP:
+        return _POSITION_MAP[position]
+    return None
+
+
+_MOVE_MAP = {
+    'l': MOVE_WINDOW_DIRECTION_WEST,
+    'left': MOVE_WINDOW_DIRECTION_WEST,
+    'w': MOVE_WINDOW_DIRECTION_WEST,
+    'west': MOVE_WINDOW_DIRECTION_WEST,
+    'r': MOVE_WINDOW_DIRECTION_EAST,
+    'right': MOVE_WINDOW_DIRECTION_EAST,
+    'e': MOVE_WINDOW_DIRECTION_EAST,
+    'east': MOVE_WINDOW_DIRECTION_EAST,
+    't': MOVE_WINDOW_DIRECTION_NORTH,
+    'top': MOVE_WINDOW_DIRECTION_NORTH,
+    'up': MOVE_WINDOW_DIRECTION_NORTH,
+    'u': MOVE_WINDOW_DIRECTION_NORTH,
+    'n': MOVE_WINDOW_DIRECTION_NORTH,
+    'north': MOVE_WINDOW_DIRECTION_NORTH,
+    'b': MOVE_WINDOW_DIRECTION_SOUTH,
+    'bottom': MOVE_WINDOW_DIRECTION_SOUTH,
+    'down': MOVE_WINDOW_DIRECTION_SOUTH,
+    'd': MOVE_WINDOW_DIRECTION_SOUTH,
+    's': MOVE_WINDOW_DIRECTION_SOUTH,
+    'south': MOVE_WINDOW_DIRECTION_SOUTH,
+}
+
+
+def parse_direction(direction: Optional[str]) -> Optional[int]:
+    if not direction:
+        return None
+    direction = direction.strip().lower()
+    if direction in _MOVE_MAP:
+        return _MOVE_MAP[direction]
+    return None

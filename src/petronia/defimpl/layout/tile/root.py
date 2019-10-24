@@ -4,8 +4,9 @@ The root tile of the tile tree, which means it directly contains
 one splitter per screen.
 """
 
-from typing import Iterable, Sequence, List, Optional
-from ....aid.std import ComponentId
+from typing import List, Tuple, Iterable, Sequence
+from typing import cast as t_cast
+from ....aid.std import ComponentId, EMPTY_LIST
 from .portal import Portal
 from .splitter import SplitterTile, Tile
 
@@ -46,6 +47,14 @@ class RootTile:
     def get_active_index(self) -> int:
         return self.__active_index
 
+    def set_active_index_path(self, path: Sequence[int]) -> None:
+        path_len = len(path)
+        if path_len > 0:
+            # Note: always have at least 1 screen.
+            self.set_active_index(path[0])
+            if path_len > 1:
+                self.__screens[self.__active_index].set_active_split_path(path[1:])
+
     def get_active_portal_path(self) -> Sequence[int]:
         ret = [self.__active_index]
         ret.extend(self.__screens[self.__active_index].get_active_portal_path())
@@ -54,18 +63,51 @@ class RootTile:
     def get_active_portal(self) -> Portal:
         ret = self.__screens[self.__active_index].get_active_portal()
         if ret is None:
-            # TODO use validation logic stuff...
+            # TODO use validation logic stuff instead...
             raise ValueError('Should always have one active portal')
         return ret
 
-    def get_portals(self) -> Sequence[Portal]:
-        ret: List[Portal] = []
+    def get_portals(self) -> Iterable[Portal]:
+        """Note that this is a generator...  So that an early exit will not need
+        to loop through everything."""
         for screen in self.__screens:
-            ret.extend(screen.get_portals())
-        return ret
+            for portal in screen.get_portals():
+                yield portal
 
-    def get_active_split_target(self) -> Optional[Tile]:
-        raise NotImplementedError()
+    def get_portals_with_paths(self) -> Iterable[Tuple[Portal, Sequence[int]]]:
+        for screen_index in range(len(self.__screens)):
+            screen = self.__screens[screen_index]
+            for portal, path in screen.get_portals_with_paths():
+                yield portal, [screen_index, *path]
+
+    def get_active_split_target(self) -> Tuple[SplitterTile, Sequence[int]]:
+        """
+        Find the active split target.  This is done by finding the active portal, and walking
+        up the splits to the first one that is a target.  If none are targets, then the
+        portal's direct parent is returned.
+        :return:
+        """
+
+        # First, find the paths that lead up to the active portal.
+        path = self.get_active_portal_path()
+        assert path
+        splits: List[SplitterTile] = []
+        kids: Sequence[Tile] = self.__screens
+        index = 0
+        while index < len(path):
+            part = kids[path[index]]
+            if isinstance(part, Portal):
+                path = path[0:index + 1]
+                break
+            kids = part.get_children()
+            splits.append(part)
+
+        # Then, find the closest split target to the end.
+        for index in range(len(splits) - 1, -1, -1):
+            if splits[index].is_split_target:
+                return splits[index], path[0:index + 1]
+        # No target found
+        return splits[-1], path
 
     def count(self) -> int:
         return len(self.__screens)
@@ -81,6 +123,20 @@ class RootTile:
 
     def get_children(self) -> Sequence[SplitterTile]:
         return self.__screens
+
+    def set_active_window(self, cid: ComponentId) -> Sequence[int]:
+        """
+        Helper method to assign the currently active window path.
+
+        :param cid:
+        :return:
+        """
+        for screen_index in range(len(self.__screens)):
+            found = self.__screens[screen_index].set_active_window(cid)
+            if found:
+                self.__active_index = screen_index
+                return [screen_index, *found]
+        return t_cast(Sequence[int], EMPTY_LIST)
 
     def __repr__(self) -> str:
         return "RootTile(active={0}, screens={1})".format(self.__active_index, self.__screens)

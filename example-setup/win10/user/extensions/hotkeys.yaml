@@ -10,3 +10,85 @@ Hotkeys:
     bind:
       - key: "ctrl+shift+q"
         action: shutdown
+
+      # =====================================================================
+      # Portal Keys
+      - key: "ctrl+plus"
+        action: add-portal
+      - key: "ctrl+minus"
+        action: remove-portal
+
+      # ---------------------------------------------------------------------
+      # Set the window position in the portal
+      - key: "shift+numpad1"
+        action: set-window-position
+        parameters:
+          position: r-sw
+      - key: "shift+numpad2"
+        action: set-window-position
+        parameters:
+          position: r-s
+      - key: "shift+numpad3"
+        action: set-window-position
+        parameters:
+          position: r-se
+      - key: "shift+numpad4"
+        action: set-window-position
+        parameters:
+          position: r-w
+      - key: "shift+numpad5"
+        action: set-window-position
+        parameters:
+          position: fill
+      - key: "shift+numpad6"
+        action: set-window-position
+        parameters:
+          position: r-e
+      - key: "shift+numpad7"
+        action: set-window-position
+        parameters:
+          position: r-nw
+      - key: "shift+numpad8"
+        action: set-window-position
+        parameters:
+          position: r-n
+      - key: "shift+numpad9"
+        action: set-window-position
+        parameters:
+          position: r-ne
+
+
+      # ---------------------------------------------------------------------
+      # Move window between portals
+      - key: "alt+up"
+        action: move-window-to-portal
+        parameters:
+          direction: up
+      - key: "alt+numpad8"
+        action: move-window-to-portal
+        parameters:
+          direction: up
+      - key: "alt+down"
+        action: move-window-to-portal
+        parameters:
+          direction: down
+      - key: "alt+numpad2"
+        action: move-window-to-portal
+        parameters:
+          direction: down
+      - key: "alt+left"
+        action: move-window-to-portal
+        parameters:
+          direction: left
+      - key: "alt+numpad4"
+        action: move-window-to-portal
+        parameters:
+          direction: left
+      - key: "alt+right"
+        action: move-window-to-portal
+        parameters:
+          direction: right
+      - key: "alt+numpad6"
+        action: move-window-to-portal
+        parameters:
+          direction: right

@@ -6,9 +6,7 @@
 ## Details
 
 
-
-
-## Declared Events
+### Declared Events
 
 
 ### Event `core.shutdown.api request-shutdown`
@@ -75,13 +73,19 @@ after a quiet period, the system will send a HALT event.
 
 
 
-Default Implementations:
+
+
+
+
+### Default Implementations:
 * [default.shutdown.timer](default.shutdown.timer.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

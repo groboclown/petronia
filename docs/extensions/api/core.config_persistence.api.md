@@ -16,9 +16,7 @@ component (backwards of states).
 ## Details
 
 
-
-
-## Declared Events
+### Declared Events
 
 
 ### Event `core.config_persistence.api persist`
@@ -37,13 +35,19 @@ which are called by this system "configuration collection".
 
 
 
-Default Implementations:
+
+
+
+
+### Default Implementations:
 * [default.config_persistence](default.config_persistence.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

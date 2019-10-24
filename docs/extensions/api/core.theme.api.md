@@ -14,6 +14,12 @@ itself with the user definitions.
 ## Details
 
 
+
+
+
+
+
+
 ## Dependencies
 
 * [core.platform.api](core.platform.api.md)
@@ -21,17 +27,15 @@ itself with the user definitions.
 
 
 
-
-
-
-
-Default Implementations:
+### Default Implementations:
 * [default.theme.wrench](default.theme.wrench.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

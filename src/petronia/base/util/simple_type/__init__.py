@@ -35,3 +35,6 @@ from .parse import (
     optional_int,
     NO_ERRORS,
 )
+
+EMPTY_PERSISTENT_SCHEMA = readonly_persistent_schema_copy({})
+EMPTY_PERSISTENT_DATA = readonly_persistent_copy({})

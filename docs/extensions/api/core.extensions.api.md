@@ -6,15 +6,7 @@
 ## Details
 
 
-## Dependencies
-
-* [core.state.api](core.state.api.md)
-  no version restriction
-
-
-
-
-## Declared Events
+### Declared Events
 
 
 ### Event `core.extensions.api request-load`
@@ -54,13 +46,25 @@ in the order that they were loaded.
 
 
 
-Default Implementations:
+
+
+
+## Dependencies
+
+* [core.state.api](core.state.api.md)
+  no version restriction
+
+
+
+### Default Implementations:
 * [defimpl.extensions](defimpl.extensions.md)
   no version restriction
 
+
+## Source
 
 Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

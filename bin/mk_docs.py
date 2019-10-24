@@ -28,6 +28,7 @@ from petronia.base.events.bus import RegisterEventEvent, EVENT_ID_REGISTER_EVENT
 from petronia.base.bus import (QUEUE_EVENT_HIGH, QUEUE_EVENT_IO)
 from petronia.base.util.serial import add_repr
 from petronia.core.state.api import StateStoreUpdatedEvent, EVENT_ID_UPDATED_STATE
+from petronia.core.config_persistence.api import PersistentConfigurationState
 from petronia.core.hotkeys.api import (
     HotkeyBoundServiceAnnouncementEvent, EVENT_ID_HOTKEY_BOUND_SERVICE_ANNOUNCEMENT,
     BoundServiceActionSchema,
@@ -173,9 +174,10 @@ def create_data(config, ext, ext_doc, events, listens, schema, bound, states):
         "configuration": create_schema_str(config, ext.name, schema),
         "has_config": schema is not None,
         "now": NOW,
-
-        # TODO add hotkey bindings here, and add to the docs.
-        # TODO add state to here, and add to the docs.
+        "binding": create_bindings(config, bound),
+        "has_binding": len(bound) > 0,
+        "states": create_states(config, ext.name, states),
+        "has_states": len(states) > 0,
     }
 
 
@@ -216,6 +218,30 @@ def create_event_data(event: RegisterEventEvent):
             "Public listening allowed" if event.protection.public_consume else "Only instance listening permitted"
         ),
     }
+
+
+def create_bindings(config: Config, bindings: List[BoundServiceActionSchema]):
+    ret = []
+    for bound in bindings:
+        ret.append({
+            "action": bound.action,
+            "service": bound.service,
+            # FIXME clean up this document so it can be used with hotkeys.
+            "schema": create_schema_str(config, bound.action, bound.parameters or {})
+        })
+    return ret
+
+
+def create_states(config: Config, mod_name: str, states: List[StateStoreUpdatedEvent]):
+    ret = []
+    for state in states:
+        if state.state and isinstance(state.state, PersistentConfigurationState):
+            # External Config
+            pass
+        else:
+            # Internal State
+            pass
+    return ret
 
 
 def clean_doc_str(doc, overview=False):
@@ -484,7 +510,7 @@ class MockEventBus(EventBus):
     def __init__(self) -> None:
         self.events = []
         self.listens = []
-        self.states = []
+        self.states = []  # type: List[StateStoreUpdatedEvent]
         self.bound = []  # type: List[BoundServiceActionSchema]
 
     def add_listener(

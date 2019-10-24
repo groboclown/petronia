@@ -23,16 +23,21 @@ from ..splitter import (
     SPLIT_HORIZONTAL,
     SplitterTile,
 )
-from ..portal import Portal
+from ..portal import (
+    Portal,
+    POSITION_FAVOR_FILL,
+    POSITION_FAVOR_RESTRICTED_NE,
+    POSITION_FAVOR_RESTRICTED_NW,
+)
 
 
 class ConvertConfigTest(unittest.TestCase):
     def test_convert_basic_split_layout(self):
         config = TileLayoutConfig([RootTileLayout('', [ScreenTileLayout(None, SPLIT_HORIZONTAL, False, (0, 0,), [
-            PortalLayout(None, 2),
+            PortalLayout(None, 2, 'fill'),
             SplitTileLayout(None, 1, [
-                PortalLayout(None, 3),
-                PortalLayout(None, 2),
+                PortalLayout(None, 3, 'r-ne'),
+                PortalLayout(None, 2, 'r-nw'),
             ], True),
         ])])], [])
 
@@ -54,7 +59,8 @@ class ConvertConfigTest(unittest.TestCase):
             split = t
         self.assertIsInstance(primary, Portal)
         self.assertEqual(primary.get_area(), (0, 0, 682, 768))
-        self.assertEqual(primary.name, '0')
+        self.assertEqual(primary.get_name(), '0')
+        self.assertEqual(primary.default_position, POSITION_FAVOR_FILL)
 
         self.assertIsInstance(split, SplitterTile)
         # +1 due to remainder
@@ -66,8 +72,10 @@ class ConvertConfigTest(unittest.TestCase):
         self.assertIsInstance(ch1, Portal)
         self.assertIsInstance(ch2, Portal)
         self.assertEqual(ch1.get_area(), (682, 0, 342, 459))
+        self.assertEqual(ch1.default_position, POSITION_FAVOR_RESTRICTED_NE)
         # +3 due to remainder: 459 + 309 = 768.
         self.assertEqual(ch2.get_area(), (682, 459, 342, 309))
+        self.assertEqual(ch2.default_position, POSITION_FAVOR_RESTRICTED_NW)
 
 
 ONE_SCREEN = VirtualScreenInfo([

@@ -1,4 +1,7 @@
 
+# Because mypy freaks out and starts injecting Any within the complex function.
+# mypy: allow-any-expr
+
 """
 Screen layout definition and manager.
 
@@ -28,14 +31,18 @@ class PortalLayout:
     __slots__ = (
         'name',
         'size',
+        'default_fill',
     )
 
-    def __init__(self, name: Optional[str], size: int):
+    def __init__(self, name: Optional[str], size: int, default_fill: str):
         self.name = name
         self.size = size
+        self.default_fill = default_fill
 
     def __repr__(self) -> str:
-        return "PortalLayout(name={0}, size={1})".format(repr(self.name), repr(self.size))
+        return "PortalLayout(name={0}, size={1}, default_fill={2})".format(
+            repr(self.name), repr(self.size), repr(self.default_fill)
+        )
 
 
 TileLayout = Union[PortalLayout, 'SplitTileLayout']
@@ -219,15 +226,15 @@ def match_layouts_to_screens(
         # Find the layout screen to each screen match count.  If the number of screens != number of layout
         # screens, then a penalty is added.
 
-        permutation_indicies = permutations(max(len(active_screens), len(layout_map)))
+        permutation_indices = permutations(max(len(active_screens), len(layout_map)))
 
-        layout_screen_match: List[LayoutScreenMatchSet] = []
+        layout_screen_match_set_list: List[LayoutScreenMatchSet] = []
         for layout_screen_index in range(len(layout_map)):
             ls_match = LayoutScreenMatchSet(layout_map[layout_screen_index], layout_screen_index, [])
 
             for screen_index in range(len(active_screens)):
                 ls_match.add_screen(active_screens[screen_index], screen_index)
-            layout_screen_match.append(ls_match)
+            layout_screen_match_set_list.append(ls_match)
 
         best_screen_layout_match = -1
         # screen_index -> layout
@@ -240,23 +247,23 @@ def match_layouts_to_screens(
         #   - if screen count > layout count, a fake ful-screen layout is used, and that size is a penalty.
         #   - if screen count < layout count, then each unused layout is a penalty.
 
-        for screen_to_layout_perm in permutation_indicies:
+        for screen_to_layout_perm in permutation_indices:
             total_match = 0
-            layout: List[Tuple[ScreenTileLayout, VirtualScreenArea]] = []
-            layout_indicies: Set[int] = set()
+            current_layout_list: List[Tuple[ScreenTileLayout, VirtualScreenArea]] = []
+            used_layout_indices: Set[int] = set()
             # print(" - Permutation " + repr(screen_to_layout_perm))
             for screen_index in range(len(active_screens)):
                 screen = active_screens[screen_index]
-                if screen_index >= len(layout_screen_match):
+                if screen_index >= len(layout_screen_match_set_list):
                     # Find best layout match
                     tmp_best_match = -1
-                    tmp_best = layout_screen_match[0].layout_screen
-                    for layout_screen in layout_screen_match:
-                        match = layout_screen.match_screen(screen, screen_index)
+                    tmp_best_layout_screen = layout_screen_match_set_list[0].layout_screen
+                    for layout_screen_matcher_set in layout_screen_match_set_list:
+                        match = layout_screen_matcher_set.match_screen(screen, screen_index)
                         if tmp_best_match < 0 or match < tmp_best_match:
                             tmp_best_match = match
-                            tmp_best = layout_screen.layout_screen
-                    layout.append((tmp_best, screen,))
+                            tmp_best_layout_screen = layout_screen_matcher_set.layout_screen
+                    current_layout_list.append((tmp_best_layout_screen, screen,))
                     total_match += screen.area[SCREEN_AREA_WIDTH] * screen.area[SCREEN_AREA_HEIGHT]
                     # print(" -- Adding extra screen {0} for penalty {1} ; {2}".format(
                     #     screen_index, screen.area[SCREEN_AREA_WIDTH] * screen.area[SCREEN_AREA_HEIGHT], total_match
@@ -265,17 +272,17 @@ def match_layouts_to_screens(
                     # Number of screens <= number of layouts.
                     assert screen_index < len(screen_to_layout_perm)
                     layout_index = screen_to_layout_perm[screen_index]
-                    assert layout_index < len(layout_screen_match)
-                    layout_screen = layout_screen_match[layout_index].matches[screen_index]
-                    layout_indicies.add(layout_index)
-                    layout.append((layout_screen.layout_screen, screen,))
-                    total_match += layout_screen.match
+                    assert layout_index < len(layout_screen_match_set_list)
+                    layout_screen_matcher = layout_screen_match_set_list[layout_index].matches[screen_index]
+                    used_layout_indices.add(layout_index)
+                    current_layout_list.append((layout_screen_matcher.layout_screen, screen,))
+                    total_match += layout_screen_matcher.match
                     # print(" -- Added layout {0} as screen {1} with match {2} ; {3}".format(
                     #     layout_index, screen_index, layout_screen.match, total_match
                     # ))
-            for layout_screen in layout_screen_match:
-                if layout_screen.layout_screen_index not in layout_indicies:
-                    total_match += layout_screen.missing_screen_match()
+            for layout_screen_matcher_set in layout_screen_match_set_list:
+                if layout_screen_matcher_set.layout_screen_index not in used_layout_indices:
+                    total_match += layout_screen_matcher_set.missing_screen_match()
                     # print(" -- Extra layout {0} causing penalty of {1} ; {2}".format(
                     #     layout_screen.layout_screen_index, layout_screen.missing_screen_match(), total_match
                     # ))
@@ -283,7 +290,7 @@ def match_layouts_to_screens(
             if best_screen_layout_match < 0 or total_match < best_screen_layout_match:
                 # print(" -- >> Now the best match")
                 best_screen_layout_match = total_match
-                best_screen_layout = layout
+                best_screen_layout = current_layout_list
 
         if best_layout_match < 0 or best_screen_layout_match < best_layout_match:
             best_layout = best_screen_layout

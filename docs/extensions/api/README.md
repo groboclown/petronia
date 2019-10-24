@@ -22,11 +22,11 @@
 * [default.configuration.file](default.configuration.file.md) Extension configuration through files.
 * [default.layout.tile](default.layout.tile.md) The Petronia tiling extension.
 * [default.logging.console](default.logging.console.md) (no documentation provided)
-* [default.platform.windows](default.platform.windows.md) Windows platform API handler.
+* [default.platform.windows](default.platform.windows.md) (no documentation provided)
 * [default.shutdown.timer](default.shutdown.timer.md) (no documentation provided)
 * [default.theme.wrench](default.theme.wrench.md) The Wrench Theme.  It's not pretty, but it does all kinds of work.
 
 
 
 
-*This file was auto-generated from the Petronia source on 2019-Oct-21.*
+*This file was auto-generated from the Petronia source on 2019-Oct-24.*

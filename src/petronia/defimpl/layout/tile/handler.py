@@ -6,7 +6,7 @@
 The intermediary between the EventBus events and the tile controller.
 """
 
-from typing import Tuple, Iterable, Optional, Any
+from typing import Tuple, Iterable, Sequence, Any
 from typing import cast as t_cast
 
 from ....aid.std import (
@@ -58,64 +58,54 @@ from ....core.layout.api import (
     RequestSetFocusedWindowVisibilityEvent,
     as_request_set_focused_window_visibility_listener,
 )
+from ....core.hotkeys.api import (
+    as_hotkey_event_triggered_listener,
+    HotkeyEventTriggeredEvent,
+)
+from ....base.util.simple_type import (
+    PersistType,
+)
+from .consts import (
+    MODULE_ID,
+)
+from .hotkeys import (
+    HOTKEY_ACTION_FILL_PORTAL,
+    HOTKEY_SCHEMA_FILL_PORTAL,
+    HOTKEY_SCHEMA_FILL_PORTAL__FILL,
+
+    HOTKEY_ACTION_NAME_PORTAL,
+    HOTKEY_SCHEMA_NAME_PORTAL,
+    HOTKEY_SCHEMA_NAME_PORTAL__NAME,
+
+    HOTKEY_ACTION_ADD_PORTAL,
+    HOTKEY_SCHEMA_ADD_PORTAL,
+
+    HOTKEY_ACTION_REMOVE_PORTAL,
+    HOTKEY_SCHEMA_REMOVE_PORTAL,
+
+    HOTKEY_ACTION_MOVE_WINDOW,
+    HOTKEY_SCHEMA_MOVE_WINDOW,
+    HOTKEY_SCHEMA_MOVE_WINDOW__NAME,
+    HOTKEY_SCHEMA_MOVE_WINDOW__DIRECTION,
+)
 from .config import (
     TileLayoutConfig,
     CONFIG_ID_TILE_LAYOUT,
     MatchWindowToPortal,
     parse_config,
+    parse_position,
+    parse_direction,
 )
 from .controller import (
     TileController,
+    AdjustedPortal,
 )
 from .convert_config import (
     convert_config,
 )
 from .portal import (
     Portal,
-    POSITION_FAVOR_FILL,
-    POSITION_FAVOR_N_EDGE,
-    POSITION_FAVOR_E_EDGE,
-    POSITION_FAVOR_S_EDGE,
-    POSITION_FAVOR_W_EDGE,
-    POSITION_FAVOR_NE,
-    POSITION_FAVOR_SE,
-    POSITION_FAVOR_NW,
-    POSITION_FAVOR_SW,
-    POSITION_FAVOR_RESTRICTED_N_EDGE,
-    POSITION_FAVOR_RESTRICTED_E_EDGE,
-    POSITION_FAVOR_RESTRICTED_S_EDGE,
-    POSITION_FAVOR_RESTRICTED_W_EDGE,
-    POSITION_FAVOR_RESTRICTED_NE,
-    POSITION_FAVOR_RESTRICTED_SE,
-    POSITION_FAVOR_RESTRICTED_NW,
-    POSITION_FAVOR_RESTRICTED_SW,
 )
-
-
-PORTAL_FAVOR_MAP = readonly_dict({
-    "fill": POSITION_FAVOR_FILL,
-
-    "n": POSITION_FAVOR_N_EDGE,
-    "e": POSITION_FAVOR_E_EDGE,
-    "s": POSITION_FAVOR_S_EDGE,
-    "w": POSITION_FAVOR_W_EDGE,
-
-    "n-r": POSITION_FAVOR_RESTRICTED_N_EDGE,
-    "e-r": POSITION_FAVOR_RESTRICTED_E_EDGE,
-    "s-r": POSITION_FAVOR_RESTRICTED_S_EDGE,
-    "w-r": POSITION_FAVOR_RESTRICTED_W_EDGE,
-
-    "ne": POSITION_FAVOR_NE,
-    "nw": POSITION_FAVOR_NW,
-    "se": POSITION_FAVOR_SE,
-    "sw": POSITION_FAVOR_SW,
-
-    "ne-r": POSITION_FAVOR_RESTRICTED_NE,
-    "nw-r": POSITION_FAVOR_RESTRICTED_NW,
-    "se-r": POSITION_FAVOR_RESTRICTED_SE,
-    "sw-r": POSITION_FAVOR_RESTRICTED_SW,
-
-})
 
 
 def startup_tile_event_handler(
@@ -128,6 +118,12 @@ def startup_tile_event_handler(
     :param listeners:
     :return:
     """
+
+    listeners.bind_hotkey(HOTKEY_SCHEMA_FILL_PORTAL)
+    listeners.bind_hotkey(HOTKEY_SCHEMA_NAME_PORTAL)
+    listeners.bind_hotkey(HOTKEY_SCHEMA_ADD_PORTAL)
+    listeners.bind_hotkey(HOTKEY_SCHEMA_REMOVE_PORTAL)
+    listeners.bind_hotkey(HOTKEY_SCHEMA_MOVE_WINDOW)
 
     # Use the wait-for-initialization startup pattern.
 
@@ -186,6 +182,9 @@ class TileEventHandler:
         listeners.listen(
             TARGET_ID_LAYOUT, as_request_move_resize_focused_window_listener, self._req_resize
         )
+        listeners.listen(
+            MODULE_ID, as_hotkey_event_triggered_listener, self._req_hotkey
+        )
         screen_state.set_listener(self._on_screen_state_changed)
         tile_config.set_listener(self._on_tile_config_changed)
         windows.set_listener(self._on_windows_changed)
@@ -229,8 +228,6 @@ class TileEventHandler:
 
         FIXME add an option to move focus to a named portal.
 
-        FIXME add an option to move the active window to a different portal.
-
         """
         action = (event_obj.name or '').lower()
         if action.find(':') > 0:
@@ -263,6 +260,8 @@ class TileEventHandler:
         keeps its ame size.
         The `dz` has a special meaning - it flips the active window within the portal.
         """
+        # FIXME gather the windows + portals that changed, and send events to perform resizes.
+        #   Portals will be important so that, if there's per-portal chrome, it can be resized.
         # if dw isn't given, try dh.
         resize = event_obj.dw or event_obj.dh
         if resize != 0:
@@ -273,6 +272,65 @@ class TileEventHandler:
             self.__ctrl.move_active_split(move)
         if event_obj.dz != 0:
             self.__ctrl.active_portal_window_switch(event_obj.dz)
+
+    def _req_hotkey(
+            self,
+            _event_id: EventId,
+            _target_id: ParticipantId,
+            event_obj: HotkeyEventTriggeredEvent
+    ) -> None:
+        if event_obj.data.action == HOTKEY_ACTION_FILL_PORTAL:
+            active_portal = self.__ctrl.get_active_portal()
+            active_window = active_portal.get_visible_window()
+            window_fill = event_obj.data.parameters.get(HOTKEY_SCHEMA_FILL_PORTAL__FILL, None)
+            # FIXME
+        elif event_obj.data.action == HOTKEY_ACTION_NAME_PORTAL:
+            active_portal = self.__ctrl.get_active_portal()
+            active_window = active_portal.get_visible_window()
+            window_name = event_obj.data.parameters.get(HOTKEY_SCHEMA_NAME_PORTAL__NAME, None)
+            # FIXME
+            pass
+        elif event_obj.data.action == HOTKEY_ACTION_ADD_PORTAL:
+            for moved in self.__ctrl.add_active_split():
+                for window in moved.windows:
+                    send_request_move_native_window_event(
+                        self.__bus, window.window_cid, window.area
+                    )
+        elif event_obj.data.action == HOTKEY_ACTION_REMOVE_PORTAL:
+            # FIXME
+            pass
+        elif event_obj.data.action == HOTKEY_ACTION_MOVE_WINDOW:
+            self._move_window(event_obj.data.parameters)
+
+    def _move_window(self, parameters: PersistType) -> None:
+        active_portal = self.__ctrl.get_active_portal()
+        active_window = active_portal.get_visible_window_info()
+        if not active_window:
+            return
+        if HOTKEY_SCHEMA_MOVE_WINDOW__NAME in parameters:
+            name = parameters[HOTKEY_SCHEMA_MOVE_WINDOW__NAME]
+            if isinstance(name, str):
+                dest = self.__ctrl.get_named_portal(name)
+                if dest:
+                    active_portal.remove_window(active_window.cid)
+                    _index, area = dest.add_window(
+                        active_window.cid, active_window.base_area, active_window.position_favor
+                    )
+                    send_request_move_native_window_event(self.__bus, active_window.cid, area)
+                    send_request_focus_native_window_event(self.__bus, active_window.cid, True)
+                    return
+        if HOTKEY_SCHEMA_MOVE_WINDOW__DIRECTION in parameters:
+            direction_raw = parameters[HOTKEY_SCHEMA_MOVE_WINDOW__DIRECTION]
+            if isinstance(direction_raw, str):
+                # FIXME add count and wrap to parameters.
+                direction = parse_direction(direction_raw)
+                if direction is not None:
+                    moved_windows = self.__ctrl.move_active_window(direction, 1, False)
+                    for moved in moved_windows:
+                        for window in moved.windows:
+                            send_request_move_native_window_event(
+                                self.__bus, window.window_cid, window.area
+                            )
 
     # -----------------------------------------------------------------------
     # State Change Events
@@ -344,14 +402,12 @@ def do_layout(
 def assign_window_to_portal(
         bus: EventBus, ctrl: TileController, window: NativeWindowState, matchers: Iterable[MatchWindowToPortal]
 ) -> None:
-    portal, position = match_window_to_portal(ctrl, window, matchers)
-    area = get_window_position(window, portal, position)
+    portal, position_str = match_window_to_portal(ctrl, window, matchers)
+    position = parse_position(position_str)
+    _index, area = portal.add_window(window.component_id, window.bordered_rect.get_area(), position)
     send_request_move_native_window_event(
         bus, window.component_id, area
     )
-    #print("DEBUG -- would have moved window {0} to portal {1} / area {2}".format(
-    #    window, portal, area
-    #))
 
 
 def match_window_to_portal(
@@ -365,11 +421,6 @@ def match_window_to_portal(
             position = matcher.position or "fill"
             break
     return portal, position.lower()
-
-
-def get_window_position(window: NativeWindowState, portal: Portal, position: Optional[str]) -> ScreenArea:
-    favor = PORTAL_FAVOR_MAP.get(position or '') or POSITION_FAVOR_FILL
-    return portal.get_window_position(window.bordered_rect.get_area(), favor)
 
 
 def parse_config_data(bus: EventBus, config: PersistentConfigurationState) -> TileLayoutConfig:
