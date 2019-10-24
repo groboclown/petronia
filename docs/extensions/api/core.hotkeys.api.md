@@ -7,6 +7,10 @@ Standard API for registering hotkeys that perform generate events.
 The API acts as a broker between applications that use hotkeys, and the low-
 level platform hotkey registration.
 
+
+The registration will associate a basic key combination to a target ID and
+a basic data structure.  The event ID is fixed.
+
 ## Details
 
 
@@ -23,8 +27,6 @@ level platform hotkey registration.
 
 Notification that a hotkey event activated.
 
-
-
 ### Event `core.hotkeys.api/register`
 
 * Event Id: **`core.hotkeys.api/register`**
@@ -34,8 +36,6 @@ Notification that a hotkey event activated.
 * Only instance listening permitted
 
 registered the schema bound to the action type.
-
-
 
 ### Event `core.hotkeys.api/remove`
 
@@ -47,8 +47,6 @@ registered the schema bound to the action type.
 
 Remove a registered hotkey.
 
-
-
 ### Event `core.hotkeys.api/master`
 
 * Event Id: **`core.hotkeys.api/master`**
@@ -58,8 +56,6 @@ Remove a registered hotkey.
 * Only instance listening permitted
 
 Set the master hotkey sequence.  This may be rejected by the underlying platform.
-
-
 
 ### Event `core.hotkeys.api/announce`
 
@@ -71,8 +67,6 @@ Set the master hotkey sequence.  This may be rejected by the underlying platform
 
 of the expected values in the binding.
 
-
-
 ### Event `core.hotkeys.api/revoke-announce`
 
 * Event Id: **`core.hotkeys.api/revoke-announce`**
@@ -82,8 +76,6 @@ of the expected values in the binding.
 * Public listening allowed
 
 of the expected values in the binding.
-
-
 
 
 

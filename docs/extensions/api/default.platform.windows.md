@@ -1,7 +1,7 @@
 # default.platform.windows (implementation)
 **v1.0.0**
 
-(no documentation provided)
+Provides the low-level platform API implementation for the Windows operating system.
 
 ## Details
 

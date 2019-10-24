@@ -3,8 +3,6 @@
 
 The Wrench Theme.  It's not pretty, but it does all kinds of work.
 
-
-
 ## Details
 
 Extension For:

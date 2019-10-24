@@ -6,6 +6,10 @@ Petronia Core Hotkey Bindings.
 
 Defines the hotkey action types for core actions the user may want to perform.
 
+
+Extracted into a separate extension, because some of these core extensions
+must be loaded before the hotkey registration can load.
+
 ## Details
 
 Runs in elevated privileges

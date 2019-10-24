@@ -18,8 +18,6 @@ Information about the added event listener.
 
 There is no event triggered for removing an event listener.
 
-
-
 ### Event `petronia.bus.event-registry/register-event`
 
 * Event Id: **`petronia.bus.event-registry/register-event`**
@@ -29,8 +27,6 @@ There is no event triggered for removing an event listener.
 * Only instance listening permitted
 
 A request to add an event to the registration.
-
-
 
 ### Event `petronia.participant/dispose-complete`
 
@@ -42,8 +38,6 @@ A request to add an event to the registration.
 
 Notification that a dispose completed.
 
-
-
 ### Event `petronia.participant/request-dispose`
 
 * Event Id: **`petronia.participant/request-dispose`**
@@ -53,8 +47,6 @@ Notification that a dispose completed.
 * Public listening allowed
 
 Request for a participant to dispose itself.
-
-
 
 ### Event `petronia.registrar/component-created`
 
@@ -66,8 +58,6 @@ Request for a participant to dispose itself.
 
 Reports that a component was created.
 
-
-
 ### Event `petronia.registrar/component-create-failed`
 
 * Event Id: **`petronia.registrar/component-create-failed`**
@@ -77,8 +67,6 @@ Reports that a component was created.
 * Public listening allowed
 
 Reports that a component creation attempt failed.
-
-
 
 ### Event `petronia.registrar/request-new-component`
 
@@ -90,8 +78,6 @@ Reports that a component creation attempt failed.
 
 to allow the called-back target to know which component was created.
 
-
-
 ### Event `petronia.participant/started`
 
 * Event Id: **`petronia.participant/started`**
@@ -101,8 +87,6 @@ to allow the called-back target to know which component was created.
 * Public listening allowed
 
 ready to begin normal operation.  This should happen after configuration.
-
-
 
 ### Event `petronia.system/started`
 
@@ -114,8 +98,6 @@ ready to begin normal operation.  This should happen after configuration.
 
 running, and the system is now safe for end user actions.
 
-
-
 ### Event `petronia.system/halt`
 
 * Event Id: **`petronia.system/halt`**
@@ -125,8 +107,6 @@ running, and the system is now safe for end user actions.
 * Public listening allowed
 
 Stop the system immediately.
-
-
 
 ### Event `petronia.system/error`
 
@@ -141,8 +121,6 @@ anything.
 
 This allows for localization of an error message, and to broadcast the issue to
 different extensions that may have custom ways to handle the message.
-
-
 
 
 *This file was auto-generated from the Petronia source on 2019-Oct-24.*

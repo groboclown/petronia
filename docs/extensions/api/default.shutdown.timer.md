@@ -1,7 +1,7 @@
 # default.shutdown.timer (implementation)
 **v1.0.0**
 
-(no documentation provided)
+a quiet period with no events.
 
 ## Details
 

@@ -3,6 +3,9 @@
 
 API that the platform components must implement.
 
+
+This defines what is expected from the platform runtime implementation.
+
 ## Details
 
 
@@ -33,8 +36,6 @@ This is why there is a special creation event, rather than going through
 the normal creation lifecycle - the created chrome will not be directly
 callable.
 
-
-
 ### Event `core.platform.api hotkey-pressed`
 
 * Event Id: **`core.platform.api hotkey-pressed`**
@@ -43,7 +44,7 @@ callable.
 * Only instance triggering permitted
 * Public listening allowed
 
-(no documentation provided)
+A hotkey sequence was detected as pressed by the user.
 
 ### Event `core.platform.api hotkey-progress`
 
@@ -60,8 +61,6 @@ For limited use; specifically, a helper tool to display your progress in
 entering a hotkey combo, and listing different next-key options, and what
 they will do.
 
-
-
 ### Event `core.platform.api hotkey-progress-cancelled`
 
 * Event Id: **`core.platform.api hotkey-progress-cancelled`**
@@ -77,8 +76,6 @@ For limited use; specifically, a helper tool to display your progress in
 entering a hotkey combo, and listing different next-key options, and what
 they will do.
 
-
-
 ### Event `core.platform.api native-window-closed`
 
 * Event Id: **`core.platform.api native-window-closed`**
@@ -88,8 +85,6 @@ they will do.
 * Public listening allowed
 
 The window was closed.  The corresponding state is removed.
-
-
 
 ### Event `core.platform.api native-window-created`
 
@@ -107,8 +102,6 @@ defined.  Later state updates will fill out missing information.  State
 is included here to allow for early inspection of the window to allow for
 quick style or other updates before the window has much time to render.
 
-
-
 ### Event `core.platform.api native-window-flashed`
 
 * Event Id: **`core.platform.api native-window-flashed`**
@@ -118,8 +111,6 @@ quick style or other updates before the window has much time to render.
 * Public listening allowed
 
 The window sent a request to alert the user about it.
-
-
 
 ### Event `core.platform.api native-window-focused`
 
@@ -131,8 +122,6 @@ The window sent a request to alert the user about it.
 
 The window was given focus.
 
-
-
 ### Event `core.platform.api native-window-moved`
 
 * Event Id: **`core.platform.api native-window-moved`**
@@ -142,8 +131,6 @@ The window was given focus.
 * Public listening allowed
 
 The window moved or resized or changed visibility.
-
-
 
 ### Event `core.platform.api/close-native-window`
 
@@ -155,8 +142,6 @@ The window moved or resized or changed visibility.
 
 Send a request to close a window.
 
-
-
 ### Event `core.platform.api/focus-native-window`
 
 * Event Id: **`core.platform.api/focus-native-window`**
@@ -166,8 +151,6 @@ Send a request to close a window.
 * Only instance listening permitted
 
 may ignore the raise-to-top value.
-
-
 
 ### Event `core.platform.api/move-native-window`
 
@@ -179,8 +162,6 @@ may ignore the raise-to-top value.
 
 shouldn't change.
 
-
-
 ### Event `core.platform.api/request-visibility`
 
 * Event Id: **`core.platform.api/request-visibility`**
@@ -191,8 +172,6 @@ shouldn't change.
 
 hidden then hidden then visible will actions the window to visible.
 
-
-
 ### Event `core.platform.api/set-native-window-style`
 
 * Event Id: **`core.platform.api/set-native-window-style`**
@@ -202,8 +181,6 @@ hidden then hidden then visible will actions the window to visible.
 * Only instance listening permitted
 
 highly dependent upon the underlying OS and windowing system.
-
-
 
 
 

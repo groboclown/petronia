@@ -323,7 +323,7 @@ def clean_doc_str(doc, overview=False):
 
         current += '\n' + line[base_indent:].lstrip()
 
-    if not current:
+    if current:
         ret += '\n\n' + current
     if not ret:
         ret = '(no documentation provided)'
@@ -347,7 +347,7 @@ def create_schema_str(config: Config, ext_name: str, schema: Optional[dict]) -> 
         PersistTypeSchemaItem('(no documentation)', PERSISTENT_TYPE_SCHEMA_TYPE__STR)
     )
     if isinstance(doc_data, PersistTypeSchemaItem):
-        doc = doc_data.description
+        doc = clean_doc_str(doc_data.description)
     else:
         doc = ''
 

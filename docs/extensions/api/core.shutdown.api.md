@@ -1,7 +1,7 @@
 # core.shutdown.api (API)
 **v1.0.0**
 
-(no documentation provided)
+API for the system shutdown process.
 
 ## Details
 
@@ -19,8 +19,6 @@
 
 to shut down, the SystemShutdownEvent is triggered by the event bus.
 
-
-
 ### Event `core.shutdown.api request-cancel-shutdown`
 
 * Event Id: **`core.shutdown.api request-cancel-shutdown`**
@@ -30,8 +28,6 @@ to shut down, the SystemShutdownEvent is triggered by the event bus.
 * Only instance listening permitted
 
 A request to stop the shutdown.
-
-
 
 ### Event `core.shutdown.api system-shutting-down`
 
@@ -43,8 +39,6 @@ A request to stop the shutdown.
 
 shut everything off.
 
-
-
 ### Event `core.shutdown.api shutdown-cancelled`
 
 * Event Id: **`core.shutdown.api shutdown-cancelled`**
@@ -55,8 +49,6 @@ shut everything off.
 
 The system shutdown is cancelled, and the system is back to normal operation.
 
-
-
 ### Event `core.shutdown.api system-shut-down-finalize`
 
 * Event Id: **`core.shutdown.api system-shut-down-finalize`**
@@ -66,8 +58,6 @@ The system shutdown is cancelled, and the system is back to normal operation.
 * Public listening allowed
 
 after a quiet period, the system will send a HALT event.
-
-
 
 
 

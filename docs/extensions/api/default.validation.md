@@ -1,7 +1,7 @@
 # default.validation (implementation)
 **v1.0.0**
 
-(no documentation provided)
+The Validation implementation.
 
 ## Details
 

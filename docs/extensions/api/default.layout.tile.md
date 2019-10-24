@@ -43,8 +43,6 @@ FIXME add an option to move the active window to a different portal.
 window in the currently active portal.  If `visible` is False, then it restores the
 currently active window; explore what this means on your own!
 
-
-
 ## Details
 
 Extension For:
@@ -236,12 +234,7 @@ Configuration:
 #### `name-portal`
 
 
-
-            Gives the active portal a name, so that other hotkeys can reference it.  This is useful to, on the fly,
-            change the destination for a common collection of hotkeys.  For example, you can name a portal
-            'run', then have a series of hotkeys to move a window to 'run', and quickly move the focus to 'run',
-            then have an accompanying series of hotkeys for 'edit', to enable quick navigation between the two.
-            
+then have an accompanying series of hotkeys for 'edit', to enable quick navigation between the two.
 
 ```yaml
 # Top-level item is some name the user prefers.  Here, we call it "Configuration".

@@ -1,7 +1,7 @@
 # default.logging.console (stand-alone)
 **v1.0.0**
 
-(no documentation provided)
+Console-based logging.
 
 ## Details
 

@@ -1,7 +1,7 @@
 # default.extensions (implementation)
 **v1.0.0**
 
-(no documentation provided)
+for proper integration into the extension API.
 
 ## Details
 

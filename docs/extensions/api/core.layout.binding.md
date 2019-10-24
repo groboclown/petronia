@@ -8,6 +8,9 @@ Allows for adding hotkey binding to the standard layout events, so that the
 different layouts don't need to re-implement all the bindings.  Instead,
 they can just listen to the layout API events.
 
+
+Layout implementations should depend upon this extension.
+
 ## Details
 
 Runs in elevated privileges
@@ -34,17 +37,17 @@ bind:
 #### `move-active`
 
 
+User request to move and/or resize the currently focused window.
 
-    User request to move and/or resize the currently focused window.
 
-    The interpretation of what a "change" means depends greatly upon the
-    implementing layout.  See the specific layout's documentation for how
-    to use this.
+The interpretation of what a "change" means depends greatly upon the
+implementing layout.  See the specific layout's documentation for how
+to use this.
 
-    If the layout decides to accept the change request, it can trigger
-    window move and layout change events.  It can change multiple windows
-    and other parts of the system.
-    
+
+If the layout decides to accept the change request, it can trigger
+window move and layout change events.  It can change multiple windows
+and other parts of the system.
 
 ```yaml
 # Top-level item is some name the user prefers.  Here, we call it "Configuration".
@@ -76,15 +79,11 @@ Configuration:
 #### `shift-focus`
 
 
+of other options that are specific to the layout manager.
 
-    Request to shift where the layout is focusing.  This could be moving to
-    another virtual workspace, switching to a different tile in a tiling
-    system, flipping to another window in a full-screen layout, or any number
-    of other options that are specific to the layout manager.
 
-    This super generic event takes a "name" and an "index", to allow a
-    number and string input.
-    
+This super generic event takes a "name" and an "index", to allow a
+number and string input.
 
 ```yaml
 # Top-level item is some name the user prefers.  Here, we call it "Configuration".
@@ -107,13 +106,7 @@ Configuration:
 #### `set-visible`
 
 
-
-    Request to change the window's visibility.  The layout may minimize or move off
-    screen or in some other way hide the window from sight.  Making a window visible
-    will actions it to the window's previous visibility setting.  Following the
-    successful request, the focus should be the same as before setting the visibility.
-    So, a separate request focus event may be necessary.
-    
+So, a separate request focus event may be necessary.
 
 ```yaml
 # Top-level item is some name the user prefers.  Here, we call it "Configuration".

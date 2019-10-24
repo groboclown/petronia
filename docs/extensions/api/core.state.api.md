@@ -1,7 +1,7 @@
 # core.state.api (API)
 **v1.0.0**
 
-(no documentation provided)
+Standard API for the state.
 
 ## Details
 
@@ -17,7 +17,7 @@
 * Public triggering allowed
 * Only instance listening permitted
 
-(no documentation provided)
+The state in the store is updated.
 
 ### Event `core.state.api updated`
 
@@ -27,7 +27,7 @@
 * Only instance triggering permitted
 * Public listening allowed
 
-(no documentation provided)
+Reports that a state value was successfully updated.
 
 
 

@@ -1,7 +1,7 @@
 # core.validation.api (API)
 **v1.0.0**
 
-(no documentation provided)
+The validation API.
 
 ## Details
 

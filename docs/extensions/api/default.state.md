@@ -1,7 +1,7 @@
 # default.state (implementation)
 **v1.0.0**
 
-(no documentation provided)
+Implementation of the state store extension.
 
 ## Details
 

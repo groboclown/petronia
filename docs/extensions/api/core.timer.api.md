@@ -1,7 +1,7 @@
 # core.timer.api (API)
 **v1.0.0**
 
-(no documentation provided)
+Timer heartbeat event api.
 
 ## Details
 
@@ -18,8 +18,6 @@
 * Public listening allowed
 
 is only ever created once.
-
-
 
 
 

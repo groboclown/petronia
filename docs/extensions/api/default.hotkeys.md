@@ -1,7 +1,7 @@
 # default.hotkeys (implementation)
 **v1.0.0**
 
-(no documentation provided)
+low-level platform hotkey events.
 
 ## Details
 

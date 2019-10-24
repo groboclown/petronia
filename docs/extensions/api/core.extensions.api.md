@@ -1,7 +1,7 @@
 # core.extensions.api (API)
 **v1.0.0**
 
-(no documentation provided)
+General, public, extensions API.
 
 ## Details
 
@@ -28,8 +28,6 @@ Requesting extensions through an Event means that the version is up to the
 extension API to determine.  Likewise, the extension can be loaded as an
 insecure extension (forced into restricted access).
 
-
-
 ### Event `core.extensions.api loaded`
 
 * Event Id: **`core.extensions.api loaded`**
@@ -39,8 +37,6 @@ insecure extension (forced into restricted access).
 * Public listening allowed
 
 in the order that they were loaded.
-
-
 
 
 

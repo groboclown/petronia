@@ -1,7 +1,7 @@
 # default.config_persistence (implementation)
 **v1.0.0**
 
-(no documentation provided)
+Default Implementation.
 
 ## Details
 
