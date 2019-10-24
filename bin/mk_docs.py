@@ -171,7 +171,7 @@ def create_data(config, ext, ext_doc, events, listens, schema, bound, states):
         "has_events": len(event_data) > 0,
         "listens_to": listens,
         "has_listens_to": len(listens) > 0,
-        "configuration": create_schema_str(config, ext.name, schema),
+        "configuration": create_schema_str(config, 'configuration.template.md', ext.name, schema),
         "has_config": schema is not None,
         "now": NOW,
         "binding": create_bindings(config, bound),
@@ -226,8 +226,7 @@ def create_bindings(config: Config, bindings: List[BoundServiceActionSchema]):
         ret.append({
             "action": bound.action,
             "service": bound.service,
-            # FIXME clean up this document so it can be used with hotkeys.
-            "schema": create_schema_str(config, bound.action, bound.parameters or {})
+            "schema": create_schema_str(config, 'hotkey.template.md', bound.action, bound.parameters or {}, 'bind')
         })
     return ret
 
@@ -302,25 +301,6 @@ def clean_doc_str(doc, overview=False):
             # leave the previous indent the same.
             continue
 
-        # Not-empty, not-ignored line.
-        # if curr_indent != prev_indent:
-        #     # Different line than the previous one.
-        #     if current:
-        #         if ret and overview:
-        #             return ret.lstrip()
-        #         ret += '\n\n' + current
-        #     current = line[base_indent:].lstrip()
-        #
-        #     # Special case for lists...
-        #     if line[curr_indent] == '*':
-        #         prev_indent = curr_indent + get_indent(line[curr_indent + 1:])
-        #     else:
-        #         # TODO match for numbered lists...
-        #         prev_indent = curr_indent
-        # else:
-        #     # Continuation of the previous line.
-        #     current += ' ' + line[base_indent:].lstrip()
-
         current += '\n' + line[base_indent:].lstrip()
 
     if current:
@@ -330,7 +310,9 @@ def clean_doc_str(doc, overview=False):
     return ret.lstrip()
 
 
-def create_schema_str(config: Config, ext_name: str, schema: Optional[dict]) -> Optional[str]:
+def create_schema_str(
+        config: Config, template_name: str, ext_name: str, schema: Optional[dict], default_name: str = 'Configuration'
+) -> Optional[str]:
     if not schema:
         return None
 
@@ -340,7 +322,7 @@ def create_schema_str(config: Config, ext_name: str, schema: Optional[dict]) -> 
         assert item.type_name == PERSISTENT_TYPE_SCHEMA_TYPE__ID
         name = item.description
     else:
-        name = 'Configuration'
+        name = default_name
 
     doc_data = schema.get(
         PERSISTENT_TYPE_SCHEMA_NAME__DOC,
@@ -355,7 +337,7 @@ def create_schema_str(config: Config, ext_name: str, schema: Optional[dict]) -> 
     parts = []
     children_parts = []
     for key, val in schema.items():
-        kid_layout, kid_parts, grandkid_parts = inner_schema_part_str(name, key, '    ', val)
+        kid_layout, kid_parts, grandkid_parts = inner_schema_part_str(name + '.properties', key, '    ', val)
         layout += kid_layout
         parts.extend(kid_parts)
         children_parts.extend(grandkid_parts)
@@ -368,7 +350,7 @@ def create_schema_str(config: Config, ext_name: str, schema: Optional[dict]) -> 
             seen.add(part['key'])
             all_parts.append(part)
 
-    return transform_template(config, 'configuration.template.md', {
+    return transform_template(config, template_name, {
         "ext_name": ext_name,
         "doc": doc,
         "layout": layout,

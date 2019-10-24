@@ -135,32 +135,32 @@ Configuration:
 ```
 
 
-**Configuration.match-windows[].portal** : name of the portal that the window will go into by default
+**Configuration.properties.match-windows[].portal** : name of the portal that the window will go into by default
 
-**Configuration.match-windows[].position** : corner to align the window (fill, ne, se, nw, sw, n, e, s, w, and r- variants),
+**Configuration.properties.match-windows[].position** : corner to align the window (fill, ne, se, nw, sw, n, e, s, w, and r- variants),
             or not set if it is resized
 
-**Configuration.match-windows[].key** : window property key to match
+**Configuration.properties.match-windows[].key** : window property key to match
 
-**Configuration.match-windows[].match** : text to match against the window property key value
+**Configuration.properties.match-windows[].match** : text to match against the window property key value
 
-**Configuration.match-windows[].type** : type of matching to use: glob (default), partial, exact, or regex
+**Configuration.properties.match-windows[].type** : type of matching to use: glob (default), partial, exact, or regex
 
-**Configuration.match-windows[].matchers[].key** : window property key to match
+**Configuration.properties.match-windows[].matchers[].key** : window property key to match
 
-**Configuration.match-windows[].matchers[].match** : text to match against the window property key value
+**Configuration.properties.match-windows[].matchers[].match** : text to match against the window property key value
 
-**Configuration.match-windows[].matchers[].type** : type of matching to use: glob (default), partial, exact, or regex
+**Configuration.properties.match-windows[].matchers[].type** : type of matching to use: glob (default), partial, exact, or regex
 
-**Configuration.layouts[].name** : layout name, for logging purposes
+**Configuration.properties.layouts[].name** : layout name, for logging purposes
 
-**Configuration.layouts[].screens[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
+**Configuration.properties.layouts[].screens[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
 
-**Configuration.layouts[].screens[].name** : screen name or index to match against
+**Configuration.properties.layouts[].screens[].name** : screen name or index to match against
 
-**Configuration.layouts[].screens[].direction** : Initial split direction.  Deeper splits will alternate.
+**Configuration.properties.layouts[].screens[].direction** : Initial split direction.  Deeper splits will alternate.
 
-**Configuration.layouts[].screens[].target** : TRUE if this is where the user-triggered splits will happen
+**Configuration.properties.layouts[].screens[].target** : TRUE if this is where the user-triggered splits will happen
 
 **split-layout.target** : TRUE if this is where the user-triggered splits will happen
 
@@ -176,23 +176,23 @@ Configuration:
 
 **split-layout.splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
 
-**Configuration.layouts[].screens[].splits[].name** : An optional name for the portal, for use with matching or quick focus on key bindings
+**Configuration.properties.layouts[].screens[].splits[].name** : An optional name for the portal, for use with matching or quick focus on key bindings
 
-**Configuration.layouts[].screens[].splits[].size** : proportional size of the area
+**Configuration.properties.layouts[].screens[].splits[].size** : proportional size of the area
 
-**Configuration.layouts[].screens[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
+**Configuration.properties.layouts[].screens[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
 
-**Configuration.layouts[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
+**Configuration.properties.layouts[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
 
-**Configuration.layouts[].direction** : Initial split direction.  Deeper splits will alternate.
+**Configuration.properties.layouts[].direction** : Initial split direction.  Deeper splits will alternate.
 
-**Configuration.layouts[].target** : TRUE if this is where the user-triggered splits will happen
+**Configuration.properties.layouts[].target** : TRUE if this is where the user-triggered splits will happen
 
-**Configuration.layouts[].splits[].name** : An optional name for the portal, for use with matching or quick focus on key bindings
+**Configuration.properties.layouts[].splits[].name** : An optional name for the portal, for use with matching or quick focus on key bindings
 
-**Configuration.layouts[].splits[].size** : proportional size of the area
+**Configuration.properties.layouts[].splits[].size** : proportional size of the area
 
-**Configuration.layouts[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
+**Configuration.properties.layouts[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
 
 
 
@@ -217,17 +217,13 @@ bind:
 Allows to, on the fly, change how the active window sizes itself within the portal.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: set-window-position
-  enabled: true
   properties:
     position: "text"
 
 ```
 
 
-**Configuration.position** : The same value for the matcher is used here (n, s, e, w, ne, nw, se, sw, and the `r-` variants).
+**bind.properties.position** : The same value for the matcher is used here (n, s, e, w, ne, nw, se, sw, and the `r-` variants).
 
 
 
@@ -237,17 +233,13 @@ Configuration:
 then have an accompanying series of hotkeys for 'edit', to enable quick navigation between the two.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: name-portal
-  enabled: true
   properties:
     name: "text"
 
 ```
 
 
-**Configuration.name** : The new name for the portal.
+**bind.properties.name** : The new name for the portal.
 
 
 
@@ -257,10 +249,6 @@ Configuration:
 Creates a new portal where windows can be added.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: add-portal
-  enabled: true
   properties:
 
 ```
@@ -274,10 +262,6 @@ Configuration:
 Removes the active portal, unless it's the last portal in a split.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: remove-portal
-  enabled: true
   properties:
 
 ```
@@ -291,10 +275,6 @@ Configuration:
 Moves a window to an adjacent or named portal.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: move-window-to-portal
-  enabled: true
   properties:
     direction: "text"
     name: "text"
@@ -302,9 +282,9 @@ Configuration:
 ```
 
 
-**Configuration.direction** : The direction to move the window - one of `n`, `s`, `e`, or `w`.
+**bind.properties.direction** : The direction to move the window - one of `n`, `s`, `e`, or `w`.
 
-**Configuration.name** : Portal name to move the window into.  If this is not given, or the portal with the given name is not
+**bind.properties.name** : Portal name to move the window into.  If this is not given, or the portal with the given name is not
             found, then `direction` is used.
 
 

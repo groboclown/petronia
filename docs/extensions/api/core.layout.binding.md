@@ -50,10 +50,6 @@ window move and layout change events.  It can change multiple windows
 and other parts of the system.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: move-active
-  enabled: true
   properties:
     dx: (some number)
     dy: (some number)
@@ -64,15 +60,15 @@ Configuration:
 ```
 
 
-**Configuration.dx** : Change in window x position (move)
+**bind.properties.dx** : Change in window x position (move)
 
-**Configuration.dy** : Change in window y position (move)
+**bind.properties.dy** : Change in window y position (move)
 
-**Configuration.dw** : Change in window width (resize)
+**bind.properties.dw** : Change in window width (resize)
 
-**Configuration.dh** : Change in window height (resize)
+**bind.properties.dh** : Change in window height (resize)
 
-**Configuration.dz** : Change in window z-order (focus)
+**bind.properties.dz** : Change in window z-order (focus)
 
 
 
@@ -86,10 +82,6 @@ This super generic event takes a "name" and an "index", to allow a
 number and string input.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: shift-focus
-  enabled: true
   properties:
     name: "text"
     index: (some number)
@@ -97,9 +89,9 @@ Configuration:
 ```
 
 
-**Configuration.name** : Layout focus shift name
+**bind.properties.name** : Layout focus shift name
 
-**Configuration.index** : Layout focus shift index
+**bind.properties.index** : Layout focus shift index
 
 
 
@@ -109,17 +101,13 @@ Configuration:
 So, a separate request focus event may be necessary.
 
 ```yaml
-# Top-level item is some name the user prefers.  Here, we call it "Configuration".
-Configuration:
-  extension: set-visible
-  enabled: true
   properties:
     visible: (true / false)
 
 ```
 
 
-**Configuration.visible** : True to make the window visible, False to make it hidden
+**bind.properties.visible** : True to make the window visible, False to make it hidden
 
 
 
