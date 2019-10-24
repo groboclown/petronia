@@ -75,7 +75,7 @@ and other parts of the system.
 #### `shift-focus`
 
 
-of other options that are specific to the layout manager.
+Request to shift where the layout is focusing.  This could be moving toanother virtual workspace, switching to a different tile in a tilingsystem, flipping to another window in a full-screen layout, or any numberof other options that are specific to the layout manager.
 
 
 This super generic event takes a "name" and an "index", to allow a
@@ -98,7 +98,7 @@ number and string input.
 #### `set-visible`
 
 
-So, a separate request focus event may be necessary.
+Request to change the window's visibility.  The layout may minimize or move offscreen or in some other way hide the window from sight.  Making a window visiblewill actions it to the window's previous visibility setting.  Following thesuccessful request, the focus should be the same as before setting the visibility.So, a separate request focus event may be necessary.
 
 ```yaml
   properties:

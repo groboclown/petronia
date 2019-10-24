@@ -17,7 +17,7 @@ API for the system shutdown process.
 * Public triggering allowed
 * Only instance listening permitted
 
-to shut down, the SystemShutdownEvent is triggered by the event bus.
+Request that the Petronia system stop running.  When the system is readyto shut down, the SystemShutdownEvent is triggered by the event bus.
 
 ### Event `core.shutdown.api request-cancel-shutdown`
 
@@ -37,7 +37,7 @@ A request to stop the shutdown.
 * Only instance triggering permitted
 * Public listening allowed
 
-shut everything off.
+The system has started the shutdown phase.  The system will decide when toshut everything off.
 
 ### Event `core.shutdown.api shutdown-cancelled`
 
@@ -57,7 +57,7 @@ The system shutdown is cancelled, and the system is back to normal operation.
 * Only instance triggering permitted
 * Public listening allowed
 
-after a quiet period, the system will send a HALT event.
+The system has finished the application shutdown phase, and it can nolonger be cancelled.  At this point, system services must shutdown, andafter a quiet period, the system will send a HALT event.
 
 
 

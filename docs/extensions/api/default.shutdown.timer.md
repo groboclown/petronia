@@ -1,7 +1,7 @@
 # default.shutdown.timer (implementation)
 **v1.0.0**
 
-a quiet period with no events.
+Sends a halt message after a time is exceeded in either a total time ora quiet period with no events.
 
 ## Details
 

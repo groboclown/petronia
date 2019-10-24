@@ -288,7 +288,7 @@ def clean_doc_str(doc, overview=False):
             # First non-empty line.
             base_indent = get_indent(line)
             prev_indent = base_indent
-            current = line[base_indent:]
+            current += line[base_indent:]
             continue
 
         if not line:

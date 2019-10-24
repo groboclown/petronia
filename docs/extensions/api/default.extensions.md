@@ -1,7 +1,7 @@
 # default.extensions (implementation)
 **v1.0.0**
 
-for proper integration into the extension API.
+Default extension implementations.  Several are available for differentrequirements.  Due to the nature of extension loaders, they should only becreated and configured once at startup, and thus do not need the normalextension definitions.  However, the definitions should still be providedfor proper integration into the extension API.
 
 ## Details
 

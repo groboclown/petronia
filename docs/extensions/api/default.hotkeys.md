@@ -1,7 +1,7 @@
 # default.hotkeys (implementation)
 **v1.0.0**
 
-low-level platform hotkey events.
+A hotkey handler, which acts as a broker between services and thelow-level platform hotkey events.
 
 ## Details
 

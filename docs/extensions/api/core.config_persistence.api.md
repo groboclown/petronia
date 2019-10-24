@@ -31,7 +31,7 @@ persist it back.  Passing the configuration is done through the state system.
 * Public triggering allowed
 * Public listening allowed
 
-which are called by this system "configuration collection".
+A signal to persist a single configuration piece.  Only those write-enabledparticipants need to listen to this, and those that write a complete unit ofconfiguration (for example, a configuration file or a registry sub-tree),which are called by this system "configuration collection".
 
 
 

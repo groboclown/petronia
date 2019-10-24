@@ -36,7 +36,7 @@ insecure extension (forced into restricted access).
 * Only instance triggering permitted
 * Public listening allowed
 
-in the order that they were loaded.
+A signal that an exception completed loading.  Not guaranteed to be sentin the order that they were loaded.
 
 
 

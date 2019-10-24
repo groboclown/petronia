@@ -17,7 +17,7 @@ Timer heartbeat event api.
 * Only instance triggering permitted
 * Public listening allowed
 
-is only ever created once.
+The most basic timer event.  It contains no state, and sois only ever created once.
 
 
 

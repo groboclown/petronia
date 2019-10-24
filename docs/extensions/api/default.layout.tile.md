@@ -230,7 +230,7 @@ Allows to, on the fly, change how the active window sizes itself within the port
 #### `name-portal`
 
 
-then have an accompanying series of hotkeys for 'edit', to enable quick navigation between the two.
+Gives the active portal a name, so that other hotkeys can reference it.  This is useful to, on the fly,change the destination for a common collection of hotkeys.  For example, you can name a portal'run', then have a series of hotkeys to move a window to 'run', and quickly move the focus to 'run',then have an accompanying series of hotkeys for 'edit', to enable quick navigation between the two.
 
 ```yaml
   properties:

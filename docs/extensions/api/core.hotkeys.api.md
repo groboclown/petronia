@@ -35,7 +35,7 @@ Notification that a hotkey event activated.
 * Public triggering allowed
 * Only instance listening permitted
 
-registered the schema bound to the action type.
+Register a hotkey to trigger an event.  The hotkey itself does not includethe master sequence.  The event will be targeted to the service thatregistered the schema bound to the action type.
 
 ### Event `core.hotkeys.api/remove`
 
@@ -65,7 +65,7 @@ Set the master hotkey sequence.  This may be rejected by the underlying platform
 * Only instance triggering permitted
 * Public listening allowed
 
-of the expected values in the binding.
+Notification that a service can be bound to a hotkey, and a descriptionof the expected values in the binding.
 
 ### Event `core.hotkeys.api/revoke-announce`
 
@@ -75,7 +75,7 @@ of the expected values in the binding.
 * Only instance triggering permitted
 * Public listening allowed
 
-of the expected values in the binding.
+Notification that a service can be bound to a hotkey, and a descriptionof the expected values in the binding.
 
 
 

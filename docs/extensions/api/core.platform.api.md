@@ -20,7 +20,7 @@ This defines what is expected from the platform runtime implementation.
 * Public triggering allowed
 * Only instance listening permitted
 
-existing window.
+When the theme (or anything else) wants to create chrome around anexisting window.
 
 
 If the chrome already exists, it is rejected.
@@ -94,7 +94,7 @@ The window was closed.  The corresponding state is removed.
 * Only instance triggering permitted
 * Public listening allowed
 
-state changes for the window.
+A new window was created.  Its state is stored with the window_id.Behavior such as the window moving or gaining focus are associated withstate changes for the window.
 
 
 The state information for the newly created window may not be fully
@@ -150,7 +150,7 @@ Send a request to close a window.
 * Public triggering allowed
 * Only instance listening permitted
 
-may ignore the raise-to-top value.
+Set the window as focused and optionally raised to top.  Some platformsmay ignore the raise-to-top value.
 
 ### Event `core.platform.api/move-native-window`
 
@@ -160,7 +160,7 @@ may ignore the raise-to-top value.
 * Public triggering allowed
 * Only instance listening permitted
 
-shouldn't change.
+Request to move or resize a window.  A value of < 0 means that itshouldn't change.
 
 ### Event `core.platform.api/request-visibility`
 
@@ -170,7 +170,7 @@ shouldn't change.
 * Public triggering allowed
 * Only instance listening permitted
 
-hidden then hidden then visible will actions the window to visible.
+Request to change the window's visibility.  The platform may minimize ormove off screen or in some other way hide the window from sight.  Making awindow visible may alter the original size.  Setting a hidden window tohidden, or a visible window to visible, is a no-op; setting a windowhidden then hidden then visible will actions the window to visible.
 
 ### Event `core.platform.api/set-native-window-style`
 
@@ -180,7 +180,7 @@ hidden then hidden then visible will actions the window to visible.
 * Public triggering allowed
 * Only instance listening permitted
 
-highly dependent upon the underlying OS and windowing system.
+Send a request to set a window's native style.  The keys and values arehighly dependent upon the underlying OS and windowing system.
 
 
 

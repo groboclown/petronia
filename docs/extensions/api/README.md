@@ -17,8 +17,8 @@ This defines what is expected from the platform runtime implementation.
 * [core.timer.api](core.timer.api.md) Timer heartbeat event api.
 * [core.validation.api](core.validation.api.md) The validation API.
 * [default.config_persistence](default.config_persistence.md) Default Implementation.
-* [default.extensions](default.extensions.md) for proper integration into the extension API.
-* [default.hotkeys](default.hotkeys.md) low-level platform hotkey events.
+* [default.extensions](default.extensions.md) Default extension implementations.  Several are available for differentrequirements.  Due to the nature of extension loaders, they should only becreated and configured once at startup, and thus do not need the normalextension definitions.  However, the definitions should still be providedfor proper integration into the extension API.
+* [default.hotkeys](default.hotkeys.md) A hotkey handler, which acts as a broker between services and thelow-level platform hotkey events.
 * [default.state](default.state.md) Implementation of the state store extension.
 * [default.timer](default.timer.md) (no documentation provided)
 * [default.validation](default.validation.md) The Validation implementation.
@@ -26,7 +26,7 @@ This defines what is expected from the platform runtime implementation.
 * [default.layout.tile](default.layout.tile.md) The Petronia tiling extension.
 * [default.logging.console](default.logging.console.md) Console-based logging.
 * [default.platform.windows](default.platform.windows.md) Provides the low-level platform API implementation for the Windows operating system.
-* [default.shutdown.timer](default.shutdown.timer.md) a quiet period with no events.
+* [default.shutdown.timer](default.shutdown.timer.md) Sends a halt message after a time is exceeded in either a total time ora quiet period with no events.
 * [default.theme.wrench](default.theme.wrench.md) The Wrench Theme.  It's not pretty, but it does all kinds of work.
 
 
