@@ -107,7 +107,7 @@ class SplitterTile:
     def get_area(self) -> ScreenArea:
         return self.__area
 
-    def get_portal_in_direction(self, direction: int, start_index: int) -> Tuple[List[int], int]:
+    def get_portal_in_direction(self, direction: int, start_index: int, first: bool) -> Tuple[List[int], int]:
         """
         Finds the next portal `direction` count away from the start index.
         This assumes that the current split is the expected axis of movement.
@@ -186,72 +186,99 @@ class SplitterTile:
         #    We're done looking, so return the last index found (2), along with the remaining moves(0) plus
         #    the missed move (1).
 
+        # Another example:
+        # The first call is made by an outside program to find the left-by-1 window for the split, and
+        # the active portal is B1b.
+        # 1. The caller first calls get_active_child_index() to find the start index, which is B.
+        # 2. This method is invoked with the start index, direction is -1 (left), and `first` is True.
+        # 3. B, the start, is a split, and because it's a direct child, its split direction is the
+        #    opposite of the original requested direction.  So the active child is checked, which is B1 (0).
+        #    B1 is a split, so it must be recursed.  Because `first` is True, B1's active child is
+        #    used, rather than the right-most.
+        # 4. B1 is called with direction -1, start B1b (1) and `first` is True.
+        # 5. B1's start is B1b, which is a Portal.
+        # 6. Move left 1 (remaining direction is 0).  This gives us B1a as the active location, which is a Portal.
+        # 7. Remaining direction is 0, so this is the value.  Return the index (B1a) and the remaining direction (0).
+        # 8. Outer split receives a remaining direction of 0, so it returns its path (B) + the split's
+        #    path (B1) + the response path (B1a).
+
         # Side note:
         # * If the last index was a split, and there's more moves to make which will take us outside the
         #   bounds of the split (a miss), then return the deep path in that split.  This is in case the
         #   request was for going to the end of the screen, and there's no wrap-around.
 
+        # print("DEBUG move {0}, {1}, {2} on {3}".format(direction, start_index, first, self))
+
         kid_len = len(self._children)
         assert 0 <= start_index < kid_len, 'start_index out of range'
         if direction == 0:
+            # Special degenerate case.  This helps with the recursion scenario.
+            # print("Degenerate return {0}, 0".format(start_index))
             return [start_index], 0
         incr = 1
         if direction < 0:
             incr = -1
             direction = -direction
 
-        # FIXME this code is almost right, but because of the above analysis, this code should be
-        #   re-written to better match that analysis.
-
-        # Increase direction count by 1.  This is because the first pass in the
-        # loop below will find what the starting index is, before the move.
-        direction += 1
-
-        next_index = start_index
+        current_index = start_index
+        current_path = [current_index]
         while True:
-            child = self._children[next_index]
+            # print("Loop: dir={0}, incr={1}, curr={2}, path={3}".format(
+            #     direction, incr, current_index, current_path
+            # ))
+            # Find the current location.
+            child = self._children[current_index]
             if not isinstance(child, Portal):
-                # child == a split
-                # This is a split, which means that it's in the wrong direction
-                # from what we want.  This inner split's active child is the
-                # thing we will move a direction against.  Note that the movement
-                # is based on this intermediary's active child, which generally means
-                # the previously active child.
-                active_child_index = child.get_active_child_index()
-                split = child[active_child_index]
-                if not isinstance(split, Portal):
-                    # Need to move this direction step on this deep split.
-                    # It starts at the beginning of the deep split, not its active
-                    if incr < 0:
-                        # start at end
-                        split_index = split.count() - 1
-                    # subtract 1 from direction, to account for the original increase by 1.
-                    split_path, direction = split.get_portal_in_direction((direction - 1) * incr, split_index)
-                    if direction == 0:
-                        # This is what we want...
-                        return [next_index, *split_path], 0
-                    if direction < 0:
-                        assert incr < 0
-                        direction = -direction
-                # Else this child split's active child is a portal, which means we can treat this
-                # child split the same as we treat a portal.  The one caveat is if it's the
-                # destination for the direction, in which case the returned path must be
-                # for the deep path.
-                elif direction == 1:
-                    # The final destination is this inner portal.
-                    return [next_index, child.get_active_child_index()], 0
-                # else it's a portal, and the next movement (because direction > 1)
+                # The current location is a split.
+                # Due to the alternating vertical / horizontal nature of splits, we will treat this
+                # split based on what its active child is.
+                split_index = child.get_active_child_index()
+                split = child[split_index]
+                if isinstance(split, Portal):
+                    # Switch the path to treat the current child as a portal.
+                    current_path = [current_index, split_index]
+                    # print("  - split -> portal :: {0}".format(current_path))
+                else:
+                    # Split -> Split, so we need to move inside the lower split.
+                    if first:
+                        # Handle the special case where we're entering a split node as the very first
+                        # thing we're discovering.
+                        split_move_index = split.get_active_child_index()
+                        # print(" - split -> split(first:{0})".format(split_move_index))
+                    elif incr < 0:
+                        # moving backwards, so use the last child.
+                        split_move_index = split.count() - 1
+                        # print(" - split -> split(backwards:{0})".format(split_move_index))
+                    else:
+                        # moving forwards, so use the first child.
+                        split_move_index = 0
+                        # print(" - split -> split(forwards:0)")
+                    # Now recurse into the split so it can handle the movement.
+                    next_path, next_direction = split.get_portal_in_direction(direction * incr, split_move_index, first)
+                    # This is the moved-to location + remaining direction, relative to that inner split.
+                    # So now it needs to be translated into this split's child location.
+                    # But this is just like saying that a movement step just happened, we have
+                    # that position, and now we need another movement step for this split.
+                    direction = abs(next_direction)
+                    current_path = [current_index, split_index, *next_path]
+                    # print(" - move in split -> split returned dir={0}, path={1}".format(direction, current_path))
 
-            # else, it's a portal, which means that it can be used as a
-            # stop in the direction.
+            # Else it's a portal, and it just needs a movement.
+
+            # Start the movement.
+            next_index = current_index + incr
+            if direction == 0 or not 0 <= next_index < kid_len:
+                # Movement will go outside the bounds, so return the
+                # most recent valid path + remaining direction.
+                # print(" - finished: {0}, {1}".format(current_path, direction * incr))
+                return current_path, direction * incr
+            # Next index is valid.  Use it.
+            current_index = next_index
+            current_path = [current_index]
+            # Update direction
             direction -= 1
-            if direction <= 0 or not 0 <= (next_index + incr) < kid_len:
-                # Do not increase the next position if there's no more direction,
-                # or if it will take the loop outside the bounds.
-                break
-            next_index += incr
-
-        return [next_index], direction * incr
+            # Make sure we're not considered first anymore
+            first = False
 
     def get_active_child(self) -> Tile:
         return self._children[self.__active_index]
