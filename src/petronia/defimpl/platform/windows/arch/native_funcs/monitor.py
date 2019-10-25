@@ -63,7 +63,6 @@ class WindowsMonitor:
         else:
             self.__straight_scale = 0
 
-
     @property
     def handle(self) -> HMONITOR:
         return self.__handle
@@ -87,10 +86,10 @@ class WindowsMonitor:
 
     def scale_x(self, x: NativeScreenUnit) -> ScreenUnit:
         if self.__straight_scale > 0:
-            return x * self.__straight_scale
-        return math.floor((self.__scale * x) / 100)
+            return x // self.__straight_scale
+        return math.floor(x * 100 / self.__scale)
 
     def scale_y(self, y: NativeScreenUnit) -> ScreenUnit:
         if self.__straight_scale > 0:
-            return y * self.__straight_scale
-        return math.floor((self.__scale * y) / 100)
+            return y // self.__straight_scale
+        return math.floor(y * 100 / self.__scale)

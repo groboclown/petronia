@@ -77,6 +77,10 @@ def create_native_window_state(bus: EventBus, hwnd: HWND, hwnd_i: int) -> Option
     it's because the HWND is not a top-level window, or access was denied
     when reading information about it.
     """
+    if hwnd == 0 or hwnd is None:
+        # Special handle for the desktop that we won't be able to investigate.
+        log(VERBOSE, create_native_window_state, 'Cannot find information on window HWND 0')
+        return None
 
     # Find out if this is a top-level window.
     if WINDOWS_FUNCTIONS.window.get_owning_window:

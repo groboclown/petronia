@@ -284,12 +284,13 @@ class TileEventHandler:
             active_window = active_portal.get_visible_window()
             window_fill = event_obj.data.parameters.get(HOTKEY_SCHEMA_FILL_PORTAL__FILL, None)
             # FIXME
+            raise NotImplementedError()
         elif event_obj.data.action == HOTKEY_ACTION_NAME_PORTAL:
             active_portal = self.__ctrl.get_active_portal()
             active_window = active_portal.get_visible_window()
             window_name = event_obj.data.parameters.get(HOTKEY_SCHEMA_NAME_PORTAL__NAME, None)
             # FIXME
-            pass
+            raise NotImplementedError()
         elif event_obj.data.action == HOTKEY_ACTION_ADD_PORTAL:
             for moved in self.__ctrl.add_active_split():
                 for window in moved.windows:
@@ -298,7 +299,7 @@ class TileEventHandler:
                     )
         elif event_obj.data.action == HOTKEY_ACTION_REMOVE_PORTAL:
             # FIXME
-            pass
+            raise NotImplementedError()
         elif event_obj.data.action == HOTKEY_ACTION_MOVE_WINDOW:
             self._move_window(event_obj.data.parameters)
 

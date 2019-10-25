@@ -10,6 +10,7 @@ from ...aid.std import (
     as_state_change_listener,
     StateStoreUpdatedEvent,
     report_error,
+    log, VERBOSE,
 )
 from ...aid.bootstrap import (
     create_singleton_identity,
@@ -153,6 +154,11 @@ class Handler:
             event: HotkeyPressedEvent
     ) -> None:
         binding = self.__state.get_hotkey_event(event.name)
+        log(
+            VERBOSE, Handler.hotkey_pressed,
+            'Encountered hotkey "{0}", bound to {1}',
+            event.name, binding
+        )
         if binding is not None:
             send_hotkey_event_triggered(self.__bus, binding[1].service, binding[0].data)
 

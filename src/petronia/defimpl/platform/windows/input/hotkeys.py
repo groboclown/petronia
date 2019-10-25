@@ -46,8 +46,8 @@ def create_hotkey_handler(
     :param bus:
     :param parsed_hotkeys:
     :param resend_invalid_hotkey: True if pressing an invalid hotkey combo causes injecting those keys.
-    :param pass_through_win_key: True if the `win` key press & release should be passed-through, regardless
-        of the hotkey matching state.
+    :param pass_through_keys: list of vk codes to pass-through.  If a hotkey is captured and it's not
+            in this list, then it's not forwarded on.
     :return: the handler.
     """
 
@@ -75,8 +75,8 @@ def create_hotkey_handler(
                 current_action_down.remove(vk_code)
             else:
                 current_action_down.add(vk_code)
-            # print(" - Handled keys " + repr(pending_keys) + " (" + repr(pending_scancodes) + ")")
-            # print("   Remaining possible combinations: " + repr(actions))
+            print(" - Handled keys " + repr(pending_keys) + " (" + repr(pending_scancodes) + ")")
+            print("   Remaining possible combinations: " + repr(actions))
             send_hotkey_progress_event(bus, pending_keys, tuple(actions or ()))
             return cancel_key_forward, ()
         if res == ACTION_CANCELLED:
@@ -94,7 +94,7 @@ def create_hotkey_handler(
             if resend_invalid_hotkey.value:
                 # Block this key from propagating, so that we can inject all the
                 # keys in order that were captured.
-                # print(" - Cancelled hotkey combo; forwarding " + repr(ret_codes))
+                # print(" - Cancelled hotkey combo; forwarding {0:02x} {1:02x}".format(*ret_codes))
                 return cancel_key_forward, ret_codes
             # print(" - Cancelled hotkey combo")
             return False, ()

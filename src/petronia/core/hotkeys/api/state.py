@@ -79,9 +79,16 @@ class BoundServiceActionSchema:
         if not isinstance(other, BoundServiceActionSchema):
             return False
         return (
-                self.service == other.service and
-                self.action == other.action and
-                self.parameters == other.parameters
+                self.__service == other.service and
+                self.__action == other.action and
+                self.__parameters == other.parameters
+        )
+
+    def __repr__(self) -> str:
+        return "BoundServiceActionSchema(service={0}, action={1}, parameters={2})".format(
+            repr(self.__service),
+            repr(self.__action),
+            repr(self.__parameters)
         )
 
 

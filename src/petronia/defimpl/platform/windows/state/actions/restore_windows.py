@@ -29,6 +29,12 @@ from ...arch.error_codes_common import (
 from .window_style import set_window_style
 
 
+# FIXME BUG: if there are multiple monitors with different scale factors, then
+#   restoring to the non-primary monitors ends up being in the primary monitor
+#   scaled size, not the required size.  This is either an issue with the way
+#   the window size is stored when first opened, or the way that size is
+#   interpreted on restore.
+
 def restore_windows(
         reverse_window_ids: Dict[ComponentId, HWND],
         original_window_state: Dict[int, NativeWindowState]

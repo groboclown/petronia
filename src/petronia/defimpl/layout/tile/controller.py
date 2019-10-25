@@ -5,12 +5,21 @@ interacting with the splitters and portals tree.
 """
 
 from typing import Sequence, Tuple, Optional
+from typing import cast as t_cast
 from threading import Lock
 from ....aid.std import (
     ComponentId,
+    EMPTY_TUPLE,
 )
 from ....core.platform.api import (
-    ScreenSize, ScreenPosition, ScreenArea,
+    ScreenArea,
+)
+from .consts import (
+    MOVE_WINDOW_DIRECTION_NORTH,
+    MOVE_WINDOW_DIRECTION_EAST,
+    MOVE_WINDOW_DIRECTION_SOUTH,
+    # MOVE_WINDOW_DIRECTION_WEST,
+    MOVE_WINDOW_DIRECTION_ALL,
 )
 from .root import (
     RootTile,
@@ -81,19 +90,6 @@ class AdjustedPortal:
 
     def is_added(self) -> bool:
         return self.__action == ADJUSTED_PORTAL_ACTION_ADDED
-
-
-MOVE_WINDOW_DIRECTION_NORTH = 1
-MOVE_WINDOW_DIRECTION_SOUTH = 2
-MOVE_WINDOW_DIRECTION_EAST = 3
-MOVE_WINDOW_DIRECTION_WEST = 4
-MOVE_WINDOW_DIRECTION_ALL = (
-    MOVE_WINDOW_DIRECTION_NORTH,
-    MOVE_WINDOW_DIRECTION_SOUTH,
-    MOVE_WINDOW_DIRECTION_EAST,
-    MOVE_WINDOW_DIRECTION_WEST,
-)
-
 
 
 class TileController:
@@ -209,8 +205,24 @@ class TileController:
         :param wrap:
         :return:
         """
-        # assert direction in MOVE_WINDOW_DIRECTION_ALL
-        raise NotImplementedError()
+        src_portal = self.__root.get_active_portal()
+        window_info = src_portal.get_visible_window_info()
+        if not window_info:
+            return t_cast(Sequence[AdjustedPortal], EMPTY_TUPLE)
+        dest_portal, next_path = self._find_portal_dir(
+            src_portal, self.__root.get_active_portal_path(), direction, count, wrap
+        )
+        if not next_path:
+            # No-Op
+            return t_cast(Sequence[AdjustedPortal], EMPTY_TUPLE)
+
+        src_portal.remove_window(window_info.cid)
+        _index, area = dest_portal.add_window(window_info.cid, window_info.base_area, window_info.position_favor)
+        return (
+            AdjustedPortal(ADJUSTED_PORTAL_ACTION_RESIZED, dest_portal, (
+                AdjustedWindow(window_info.cid, area),
+            )),
+        )
 
     def get_named_portal(self, name: str) -> Portal:
         """Find the portal with the given name, or the named path,
@@ -228,27 +240,62 @@ class TileController:
         portal = self.__root.get_active_portal()
         return portal.get_visible_window()
 
-    def move_portal_focus(self, direction: str, amount: int, wrap: bool) -> Tuple[Portal, Optional[ComponentId]]:
+    def move_portal_focus(
+            self, direction: int, amount: int, wrap: bool
+    ) -> Tuple[Portal, Portal, Optional[ComponentId]]:
         """
 
-        :param direction: one of 'n', 's', 'e', or 'w'.  Default is 'e'.
+        :param direction:
         :param amount:
         :param wrap:
-        :return:
+        :return: source portal (no longer focused), new focused portal, and the window that now has the focus.
         """
+        src_portal = self.__root.get_active_portal()
+        dest_portal, next_path = self._find_portal_dir(
+            src_portal, self.__root.get_active_portal_path(), direction, amount, wrap
+        )
+        if not next_path:
+            # No-Op
+            return src_portal, src_portal, None
+        src_portal.set_focus(False)
+        focus_window = src_portal.get_visible_window()
+        dest_portal.set_focus(True)
+        return src_portal, dest_portal, focus_window
+
+    def _find_portal_dir(
+            self, src_portal: Portal, src_path: Sequence[int], direction: int, count: int, wrap: bool
+    ) -> Tuple[Portal, Sequence[int]]:
+        assert direction in MOVE_WINDOW_DIRECTION_ALL
+        dest_portal = src_portal
+        next_path = self.__root.get_active_portal_path()
+        for index in range(count):
+            if direction == MOVE_WINDOW_DIRECTION_NORTH:
+                dp, np = self._north(next_path, wrap)
+            elif direction == MOVE_WINDOW_DIRECTION_EAST:
+                dp, np = self._east(next_path, wrap)
+            elif direction == MOVE_WINDOW_DIRECTION_SOUTH:
+                dp, np = self._south(next_path, wrap)
+            else:  # west
+                dp, np = self._west(next_path, wrap)
+            if not np:
+                break
+            dest_portal = dp
+            next_path = np
+        if dest_portal == src_portal:
+            return src_portal, t_cast(Sequence[int], EMPTY_TUPLE)
+        return dest_portal, next_path
+
+    def _north(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
+
         raise NotImplementedError()
 
-    def _left(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
-        """The tile that is 'left' from the currently active tile."""
+    def _east(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
         raise NotImplementedError()
 
-    def _right(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
+    def _south(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
         raise NotImplementedError()
 
-    def _up(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
-        raise NotImplementedError()
-
-    def _down(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
+    def _west(self, path: Sequence[int], wrap: bool) -> Tuple[Portal, Sequence[int]]:
         raise NotImplementedError()
 
     def _tile_at(self, path: Sequence[int]) -> Tuple[Tile, Sequence[int]]:

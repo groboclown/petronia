@@ -72,7 +72,7 @@ from ..portal import (
     POSITION_FAVOR_RESTRICTED_NW,
     POSITION_FAVOR_RESTRICTED_SW,
 )
-from ..controller import (
+from ..consts import (
     MOVE_WINDOW_DIRECTION_NORTH,
     MOVE_WINDOW_DIRECTION_EAST,
     MOVE_WINDOW_DIRECTION_SOUTH,

@@ -272,7 +272,8 @@ def match_layouts_to_screens(
                     # Number of screens <= number of layouts.
                     assert screen_index < len(screen_to_layout_perm)
                     layout_index = screen_to_layout_perm[screen_index]
-                    assert layout_index < len(layout_screen_match_set_list)
+                    if layout_index >= len(layout_screen_match_set_list):
+                        continue
                     layout_screen_matcher = layout_screen_match_set_list[layout_index].matches[screen_index]
                     used_layout_indices.add(layout_index)
                     current_layout_list.append((layout_screen_matcher.layout_screen, screen,))
