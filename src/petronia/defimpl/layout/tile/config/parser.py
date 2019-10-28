@@ -88,7 +88,7 @@ _PORTAL_SCHEMA = {
         "proportional size of the area",
         PERSISTENT_TYPE_SCHEMA_TYPE__FLOAT
     ),
-    'default-position': PersistTypeSchemaItem(
+    'position': PersistTypeSchemaItem(
         "Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).",
         PERSISTENT_TYPE_SCHEMA_TYPE__STR
     )
@@ -362,7 +362,7 @@ def parse_tile(data: PersistType) -> ResultWithErrors[Union[SplitTileLayout, Por
             data, 'size', lambda: create_user_error(parse_config, 'size must be a number')
         ))
         position = collect_errors(errors, optional_str(
-            data, 'default-position', lambda: create_user_error(parse_config, 'default-position must be a string')
+            data, 'position', lambda: create_user_error(parse_config, 'position must be a string')
         ))
         if size_data is not None and size_data > 0:
             size = size_data
