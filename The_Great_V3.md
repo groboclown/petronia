@@ -74,7 +74,6 @@ The current to-do list.
         * Can only trigger public events declared by dependent API extensions.
         * Cannot register any event.
 * timer helper should include an implementation that uses the time event.
-* basic definition of platform responsibilities.
 * Create theme extension API that is a layer on top of the platform.  It provides better components that are themed.  With this, make sure the platform stuff isn't themed and is as low-level as possible.
 * create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
 * add proper zip support in the extension module loader.

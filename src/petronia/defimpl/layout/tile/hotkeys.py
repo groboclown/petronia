@@ -16,6 +16,7 @@ from .consts import (
     MODULE_ID,
 )
 
+
 HOTKEY_ACTION_FILL_PORTAL = 'set-window-position'
 HOTKEY_SCHEMA_FILL_PORTAL__FILL = 'position'
 HOTKEY_SCHEMA_FILL_PORTAL = BoundServiceActionSchema(

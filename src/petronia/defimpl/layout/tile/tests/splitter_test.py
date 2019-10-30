@@ -115,6 +115,8 @@ class SplitterTileTest(unittest.TestCase):
         self.assertEqual(splitter.get_active_child_index(), 0)
         self.assertIsInstance(splitter[0], Portal)
         self.assertIsInstance(splitter[1], SplitterTile)
+        # mypy required check
+        assert isinstance(splitter[1], SplitterTile)
         self.assertEqual(splitter[1].count(), 1)
         self.assertIsInstance(splitter[1][0], Portal)
         self.assertIsInstance(splitter[2], Portal)
@@ -159,9 +161,12 @@ class SplitterTileTest(unittest.TestCase):
         self.assertEqual(splitter.get_active_child_index(), 0)
         self.assertIsInstance(splitter[0], Portal)
         self.assertIsInstance(splitter[1], SplitterTile)
+        # mypy required check
+        assert isinstance(splitter[1], SplitterTile)
         self.assertEqual(splitter[1].count(), 2)
         self.assertEqual(splitter[1].get_active_child_index(), 0)
         self.assertIsInstance(splitter[1][0], SplitterTile)
+        assert isinstance(splitter[1][0], SplitterTile)
         self.assertEqual(splitter[1][0].count(), 2)
         self.assertEqual(splitter[1][0].get_active_child_index(), 0)
         self.assertIsInstance(splitter[1][0][0], Portal)
@@ -205,6 +210,7 @@ def simple_portal_factory(_index: int, area: ScreenArea) -> Portal:
 
 def create_sub_portal_factory(children: List[Any], direction: int) -> TileFactory:
     def ret(index: int, area: ScreenArea) -> Tile:
+        kids: List[int] = []
         nd = SPLIT_VERTICAL if direction is SPLIT_HORIZONTAL else SPLIT_HORIZONTAL
         kid: Union[int, List[Any]] = 0
         if 0 <= index <= len(children):
@@ -212,13 +218,11 @@ def create_sub_portal_factory(children: List[Any], direction: int) -> TileFactor
         if isinstance(kid, int):
             if kid <= 0:
                 return Portal('', area, [], POSITION_FAVOR_FILL, None)
-            kids: List[int] = []
             for _i in range(kid):
                 kids.append(1)
             return SplitterTile(simple_portal_factory, area, nd, kids, False)
         assert isinstance(kid, list)
 
-        kids: List[int] = []
         for _i in range(len(kid)):
             kids.append(1)
 

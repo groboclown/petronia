@@ -101,11 +101,32 @@ class SplitterTile:
         assert len(self._children) > 0
 
     @property
+    def direction(self) -> int:
+        return self.__direction
+
+    def is_vertical(self) -> bool:
+        return self.__direction == SPLIT_VERTICAL
+
+    def is_horizontal(self) -> bool:
+        return self.__direction == SPLIT_HORIZONTAL
+
+    @property
     def is_split_target(self) -> bool:
         return self.__is_split_target
 
     def get_area(self) -> ScreenArea:
         return self.__area
+
+    def get_portal_in_split_direction(
+            self, split_direction: int, direction_count: int, start_index: int
+    ) -> Tuple[List[int], int]:
+        if self.__direction == split_direction:
+            return self.get_portal_in_direction(direction_count, start_index, True)
+        active_child = self._children[self.__active_index]
+        if isinstance(active_child, Portal):
+            return [self.__active_index], direction_count
+        path, remainder = active_child.get_portal_in_direction(direction_count, start_index, True)
+        return [self.__active_index, *path], remainder
 
     def get_portal_in_direction(self, direction: int, start_index: int, first: bool) -> Tuple[List[int], int]:
         """

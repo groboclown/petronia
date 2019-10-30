@@ -8,7 +8,7 @@ Hotkeys:
     # If master starts with "meta:", then it's a collection of modifier keys (control, shift, alt, super, etc)
     master: "meta:super"
     bind:
-      - key: "ctrl+shift+q"
+      - key: "ctrl+ctrl+q"
         action: shutdown
 
       # =====================================================================
@@ -20,39 +20,39 @@ Hotkeys:
 
       # ---------------------------------------------------------------------
       # Set the window position in the portal
-      - key: "shift+numpad1"
+      - key: "ctrl+numpad1"
         action: set-window-position
         parameters:
           position: r-sw
-      - key: "shift+numpad2"
+      - key: "ctrl+numpad2"
         action: set-window-position
         parameters:
           position: r-s
-      - key: "shift+numpad3"
+      - key: "ctrl+numpad3"
         action: set-window-position
         parameters:
           position: r-se
-      - key: "shift+numpad4"
+      - key: "ctrl+numpad4"
         action: set-window-position
         parameters:
           position: r-w
-      - key: "shift+numpad5"
+      - key: "ctrl+numpad5"
         action: set-window-position
         parameters:
           position: fill
-      - key: "shift+numpad6"
+      - key: "ctrl+numpad6"
         action: set-window-position
         parameters:
           position: r-e
-      - key: "shift+numpad7"
+      - key: "ctrl+numpad7"
         action: set-window-position
         parameters:
           position: r-nw
-      - key: "shift+numpad8"
+      - key: "ctrl+numpad8"
         action: set-window-position
         parameters:
           position: r-n
-      - key: "shift+numpad9"
+      - key: "ctrl+numpad9"
         action: set-window-position
         parameters:
           position: r-ne
@@ -60,35 +60,35 @@ Hotkeys:
 
       # ---------------------------------------------------------------------
       # Move window between portals
-      - key: "alt+up"
+      - key: "shift+up"
         action: move-window-to-portal
         parameters:
           direction: up
-      - key: "alt+numpad8"
+      - key: "shift+numpad8"
         action: move-window-to-portal
         parameters:
           direction: up
-      - key: "alt+down"
+      - key: "shift+down"
         action: move-window-to-portal
         parameters:
           direction: down
-      - key: "alt+numpad2"
+      - key: "shift+numpad2"
         action: move-window-to-portal
         parameters:
           direction: down
-      - key: "alt+left"
+      - key: "shift+left"
         action: move-window-to-portal
         parameters:
           direction: left
-      - key: "alt+numpad4"
+      - key: "shift+numpad4"
         action: move-window-to-portal
         parameters:
           direction: left
-      - key: "alt+right"
+      - key: "shift+right"
         action: move-window-to-portal
         parameters:
           direction: right
-      - key: "alt+numpad6"
+      - key: "shift+numpad6"
         action: move-window-to-portal
         parameters:
           direction: right

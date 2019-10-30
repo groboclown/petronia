@@ -19,7 +19,7 @@ from ....aid.std import (
     report_error,
     TARGET_WILDCARD,
     readonly_dict,
-    log, INFO, DEBUG,
+    log, WARN, INFO, DEBUG,
 )
 from ....core.config_persistence.api import PersistentConfigurationState
 from ....core.platform.api import (
@@ -67,6 +67,7 @@ from ....base.util.simple_type import (
 )
 from .consts import (
     MODULE_ID,
+    PORTAL_COMPONENT_CATEGORY,
 )
 from .hotkeys import (
     HOTKEY_ACTION_FILL_PORTAL,
@@ -99,6 +100,8 @@ from .config import (
 from .controller import (
     TileController,
     AdjustedPortal,
+    ADJUSTED_PORTAL_ACTION_REMOVED,
+    ADJUSTED_PORTAL_ACTION_RESIZED,
 )
 from .convert_config import (
     convert_config,
@@ -106,6 +109,9 @@ from .convert_config import (
 from .portal import (
     Portal,
 )
+
+
+# TODO add in Tiling State updates.
 
 
 def startup_tile_event_handler(
@@ -225,26 +231,25 @@ class TileEventHandler:
         the direction, and `index` to indicate the amount of move.  The direction names
         recognized are 'n', 's', 'e', and 'w'.  An index of 0 will be interpreted as a 1
         (this is due to the way Petronia handles the index if it isn't specified).
-
-        FIXME add an option to move focus to a named portal.
-
         """
-        action = (event_obj.name or '').lower()
-        if action.find(':') > 0:
-            # Named portal.
-            portal_name = action[action.find(':') + 1:]
-            pass
-        if action.startswith('move-focus-'):
-            direction = action[11:]
+        name = (event_obj.name or '').lower()
+        count = min(1, event_obj.index)
+        src_portal = self.__ctrl.get_active_portal()
+        dest_portal = self.__ctrl.get_named_portal(name)
+        if dest_portal == src_portal:
+            # Might be a direction.  Try that.
+            direction = parse_direction(name)
+            if direction is None:
+                # then it was a named portal that is the current portal, or an unknown direction,
+                # or a non-existent portal.  In any case, it's a no-op.
+                return
             # TODO check layout for wrap mode.
-            dest_portal, new_active_cid = self.__ctrl.move_portal_focus(direction, event_obj.index, True)
-            # TODO if the portal has chrome, send a notice that it's active.
-            if new_active_cid:
-                send_request_focus_native_window_event(self.__bus, new_active_cid, True)
-            return
-        if action.startswith('move-window-'):
-            direction = action[12:]
-            pass
+            src_portal, dest_portal, new_active_cid = self.__ctrl.move_portal_focus(direction, count, True)
+        else:
+            new_active_cid = dest_portal.get_visible_window()
+        # TODO update portal state to indicate that a different portal is active.
+        if new_active_cid:
+            send_request_focus_native_window_event(self.__bus, new_active_cid, True)
 
     def _req_resize(
             self,
@@ -260,7 +265,7 @@ class TileEventHandler:
         keeps its ame size.
         The `dz` has a special meaning - it flips the active window within the portal.
         """
-        # FIXME gather the windows + portals that changed, and send events to perform resizes.
+        # TODO gather the windows + portals that changed, and send events to perform resizes.
         #   Portals will be important so that, if there's per-portal chrome, it can be resized.
         # if dw isn't given, try dh.
         resize = event_obj.dw or event_obj.dh
@@ -281,33 +286,48 @@ class TileEventHandler:
     ) -> None:
         if event_obj.data.action == HOTKEY_ACTION_FILL_PORTAL:
             active_portal = self.__ctrl.get_active_portal()
-            active_window = active_portal.get_visible_window()
             window_fill = event_obj.data.parameters.get(HOTKEY_SCHEMA_FILL_PORTAL__FILL, None)
+            if not isinstance(window_fill, str) or window_fill is not None:
+                log(WARN, TileEventHandler, 'Invalid position parameter `{0}` type; must be a string', window_fill)
+                return
+            favor = parse_position(window_fill)
+            if favor is None:
+                log(WARN, TileEventHandler, 'Invalid position parameter `{0}` value', window_fill)
+                return
+            res = active_portal.set_visible_window_position_favor(favor)
+            if res:
+                window_cid, area = res
+                send_request_move_native_window_event(self.__bus, window_cid, area)
+            else:
+                log(DEBUG, TileEventHandler, 'No active window for request to set the position favor')
+            return
+        if event_obj.data.action == HOTKEY_ACTION_NAME_PORTAL:
+            portal_name = event_obj.data.parameters.get(HOTKEY_SCHEMA_NAME_PORTAL__NAME, None)
+            if portal_name is None or not isinstance(portal_name, str):
+                log(WARN, TileEventHandler, 'Invalid portal name parameter `{0}` type', portal_name)
+                return
+            self.__ctrl.set_active_portal_name(portal_name)
+            return
+        if event_obj.data.action == HOTKEY_ACTION_ADD_PORTAL:
+            # TODO update portal state
+            new_portal, adjusted = self.__ctrl.add_active_split(
+                self.__bus.create_component_id(PORTAL_COMPONENT_CATEGORY)
+            )
+            self.__adjust_portals(adjusted)
+            return
+        if event_obj.data.action == HOTKEY_ACTION_REMOVE_PORTAL:
             # FIXME
             raise NotImplementedError()
-        elif event_obj.data.action == HOTKEY_ACTION_NAME_PORTAL:
-            active_portal = self.__ctrl.get_active_portal()
-            active_window = active_portal.get_visible_window()
-            window_name = event_obj.data.parameters.get(HOTKEY_SCHEMA_NAME_PORTAL__NAME, None)
-            # FIXME
-            raise NotImplementedError()
-        elif event_obj.data.action == HOTKEY_ACTION_ADD_PORTAL:
-            for moved in self.__ctrl.add_active_split():
-                for window in moved.windows:
-                    send_request_move_native_window_event(
-                        self.__bus, window.window_cid, window.area
-                    )
-        elif event_obj.data.action == HOTKEY_ACTION_REMOVE_PORTAL:
-            # FIXME
-            raise NotImplementedError()
-        elif event_obj.data.action == HOTKEY_ACTION_MOVE_WINDOW:
+        if event_obj.data.action == HOTKEY_ACTION_MOVE_WINDOW:
             self._move_window(event_obj.data.parameters)
+            return
 
     def _move_window(self, parameters: PersistType) -> None:
         active_portal = self.__ctrl.get_active_portal()
         active_window = active_portal.get_visible_window_info()
         if not active_window:
             return
+        # TODO Send state updates
         if HOTKEY_SCHEMA_MOVE_WINDOW__NAME in parameters:
             name = parameters[HOTKEY_SCHEMA_MOVE_WINDOW__NAME]
             if isinstance(name, str):
@@ -323,15 +343,20 @@ class TileEventHandler:
         if HOTKEY_SCHEMA_MOVE_WINDOW__DIRECTION in parameters:
             direction_raw = parameters[HOTKEY_SCHEMA_MOVE_WINDOW__DIRECTION]
             if isinstance(direction_raw, str):
-                # FIXME add count and wrap to parameters.
+                # TODO add count and wrap to parameters.
                 direction = parse_direction(direction_raw)
                 if direction is not None:
-                    moved_windows = self.__ctrl.move_active_window(direction, 1, False)
+                    src_portal, dest_portal, moved_window_cid, moved_windows = self.__ctrl.move_active_window(
+                        direction, 1, False
+                    )
                     for moved in moved_windows:
                         for window in moved.windows:
                             send_request_move_native_window_event(
                                 self.__bus, window.window_cid, window.area
                             )
+                    if moved_window_cid:
+                        send_request_focus_native_window_event(self.__bus, moved_window_cid, True)
+                    # TODO send update to portal state.
 
     # -----------------------------------------------------------------------
     # State Change Events
@@ -377,6 +402,16 @@ class TileEventHandler:
         if isinstance(target_id, tuple):
             self.__ctrl.on_window_focused(t_cast(ComponentId, target_id))
 
+    # -----------------------------------------------------------------------
+    # Internal state management
+    def __adjust_portals(self, adjusted: Sequence[AdjustedPortal]) -> None:
+        # TODO return the new portal state, or some other means of updating it.
+        for portal in adjusted:
+            if portal.action == ADJUSTED_PORTAL_ACTION_RESIZED:
+                for window in portal.windows:
+                    send_request_move_native_window_event(
+                        self.__bus, window.window_cid, window.area
+                    )
 
 def do_layout(
         bus: EventBus, config: TileLayoutConfig, screens: ScreenState,

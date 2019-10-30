@@ -8,7 +8,7 @@ from typing import List, Tuple, Iterable, Sequence
 from typing import cast as t_cast
 from ....aid.std import ComponentId, EMPTY_LIST
 from .portal import Portal
-from .splitter import SplitterTile, Tile
+from .splitter import SplitterTile, Tile, SPLIT_HORIZONTAL
 
 
 class RootTile:
@@ -79,6 +79,62 @@ class RootTile:
             screen = self.__screens[screen_index]
             for portal, path in screen.get_portals_with_paths():
                 yield portal, [screen_index, *path]
+
+    def get_portal_in_split_direction(
+            self, split_direction: int, direction_count: int, wrap: bool
+    ) -> Sequence[int]:
+        # split direction for screens is always considered horizontal.
+        # TODO changing this requires knowing relative locations between screens.
+        active = self.__active_index
+
+        count = direction_count
+        path = self.get_active_portal_path()
+        if split_direction == SPLIT_HORIZONTAL:
+            # print("Finding direction {0} relative to active potal {1}".format(split_direction, path))
+            # Move includes moving between screens.
+            current = self.__screens[active].get_active_child_index()
+            while count != 0:
+                # print(" - moving {0} from active {1}.{2}".format(count, active, current))
+                # Move the active
+                path, count = self.__screens[active].get_portal_in_split_direction(
+                    split_direction, count, current
+                )
+                path = [active, *path]
+                # print(" - move returned path {0} with remaining count {1}".format(path, count))
+                if count > 0:
+                    if not wrap and active + 1 >= len(self.__screens):
+                        # print(" - no wrap caused terminate with path {0} and remaining count {1}".format(
+                        #     path, count
+                        # ))
+                        return path
+                    active = (active + 1) % len(self.__screens)
+                    current = 0
+                elif count < 0:
+                    if not wrap and active - 1 < 0:
+                        # print(" - no wrap caused terminate with path {0} and remaining count {1}".format(
+                        #     path, count
+                        # ))
+                        return path
+                    active = (active - 1) % len(self.__screens)
+                    current = self.__screens[active].count() - 1
+            # print(" - loop terminated with path {0}".format(path))
+            return path
+        else:
+            # stay on the same active.
+            screen = self.__screens[active]
+            current = screen.get_active_child_index()
+            while count != 0:
+                path, count = screen.get_portal_in_split_direction(split_direction, count, current)
+                path = [active, *path]
+                if count > 0:
+                    if not wrap:
+                        return path
+                    current = 0
+                elif count < 0:
+                    if not wrap:
+                        return path
+                    current = screen.count() - 1
+            return path
 
     def get_active_split_target(self) -> Tuple[SplitterTile, Sequence[int]]:
         """
