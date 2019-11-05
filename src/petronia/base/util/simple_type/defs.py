@@ -54,6 +54,12 @@ class PersistTypeSchemaItem:
     def type_name(self) -> str:
         return self.__type_name
 
+    def __repr__(self) -> str:
+        return 'PersistTypeSchemaItem(description={0}, type_name={1})'.format(
+            repr(self.__description),
+            repr(self.__type_name)
+        )
+
 
 # Dict: a dictionary of regex keys whose schema value match against regex matching keys values.
 # Sequence: it expects a list containing any number of items, but each one must match

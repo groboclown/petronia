@@ -18,7 +18,6 @@ from ....aid.std import (
     StateWatch,
     report_error,
     TARGET_WILDCARD,
-    readonly_dict,
     log, WARN, INFO, DEBUG,
 )
 from ....core.config_persistence.api import PersistentConfigurationState
@@ -213,6 +212,7 @@ class TileEventHandler:
             _target_id: ParticipantId,
             event_obj: RequestSetFocusedWindowVisibilityEvent
     ) -> None:
+        print("DEBUG layout handling window visiblity hotkey")
         # Change the window to be minimized or restored.
         active_window = self.__ctrl.get_active_window()
         if active_window:
@@ -232,6 +232,7 @@ class TileEventHandler:
         recognized are 'n', 's', 'e', and 'w'.  An index of 0 will be interpreted as a 1
         (this is due to the way Petronia handles the index if it isn't specified).
         """
+        print("DEBUG layout handling shift focus hotkey event {0}".format(event_obj))
         name = (event_obj.name or '').lower()
         count = min(1, event_obj.index)
         src_portal = self.__ctrl.get_active_portal()
@@ -242,6 +243,7 @@ class TileEventHandler:
             if direction is None:
                 # then it was a named portal that is the current portal, or an unknown direction,
                 # or a non-existent portal.  In any case, it's a no-op.
+                print("DEBUG no-op: movement '{0}' would put it where it is now.".format(name))
                 return
             # TODO check layout for wrap mode.
             src_portal, dest_portal, new_active_cid = self.__ctrl.move_portal_focus(direction, count, True)
@@ -249,7 +251,10 @@ class TileEventHandler:
             new_active_cid = dest_portal.get_visible_window()
         # TODO update portal state to indicate that a different portal is active.
         if new_active_cid:
+            print("DEBUG making {0} active".format(new_active_cid))
             send_request_focus_native_window_event(self.__bus, new_active_cid, True)
+        else:
+            print("DEBUG no active window known")
 
     def _req_resize(
             self,
@@ -265,6 +270,7 @@ class TileEventHandler:
         keeps its ame size.
         The `dz` has a special meaning - it flips the active window within the portal.
         """
+        print("DEBUG layout handling resize hotkey action")
         # TODO gather the windows + portals that changed, and send events to perform resizes.
         #   Portals will be important so that, if there's per-portal chrome, it can be resized.
         # if dw isn't given, try dh.
@@ -284,6 +290,7 @@ class TileEventHandler:
             _target_id: ParticipantId,
             event_obj: HotkeyEventTriggeredEvent
     ) -> None:
+        print("DEBUG layout handling hotkey action {0}".format(event_obj.data.action))
         if event_obj.data.action == HOTKEY_ACTION_FILL_PORTAL:
             active_portal = self.__ctrl.get_active_portal()
             window_fill = event_obj.data.parameters.get(HOTKEY_SCHEMA_FILL_PORTAL__FILL, None)
@@ -326,6 +333,7 @@ class TileEventHandler:
         active_portal = self.__ctrl.get_active_portal()
         active_window = active_portal.get_visible_window_info()
         if not active_window:
+            print("No known active window; skipping move window request.")
             return
         # TODO Send state updates
         if HOTKEY_SCHEMA_MOVE_WINDOW__NAME in parameters:
@@ -340,23 +348,28 @@ class TileEventHandler:
                     send_request_move_native_window_event(self.__bus, active_window.cid, area)
                     send_request_focus_native_window_event(self.__bus, active_window.cid, True)
                     return
+                log(WARN, TileEventHandler, "Unknown portal name {name}", name=name)
         if HOTKEY_SCHEMA_MOVE_WINDOW__DIRECTION in parameters:
             direction_raw = parameters[HOTKEY_SCHEMA_MOVE_WINDOW__DIRECTION]
             if isinstance(direction_raw, str):
                 # TODO add count and wrap to parameters.
                 direction = parse_direction(direction_raw)
                 if direction is not None:
+                    print("DEBUG move window request being handled")
                     src_portal, dest_portal, moved_window_cid, moved_windows = self.__ctrl.move_active_window(
                         direction, 1, False
                     )
                     for moved in moved_windows:
                         for window in moved.windows:
+                            print("DEBUG moving window {0} to {1}".format(window.window_cid, window.area))
                             send_request_move_native_window_event(
                                 self.__bus, window.window_cid, window.area
                             )
                     if moved_window_cid:
                         send_request_focus_native_window_event(self.__bus, moved_window_cid, True)
                     # TODO send update to portal state.
+                    return
+                log(WARN, TileEventHandler, "Unknown direction {direction} for move operation", direction=direction_raw)
 
     # -----------------------------------------------------------------------
     # State Change Events
@@ -412,6 +425,7 @@ class TileEventHandler:
                     send_request_move_native_window_event(
                         self.__bus, window.window_cid, window.area
                     )
+
 
 def do_layout(
         bus: EventBus, config: TileLayoutConfig, screens: ScreenState,

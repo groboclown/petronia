@@ -97,7 +97,12 @@ Early development that caused rethinking of how things are done, but that code n
 * default.logging.*
     * config file loading needs to be implemented.
 * Switch to `ErrorReport` as the standard error reporting mechanism.
+* Make key-down metas have a timeout.  If too much time between keystrokes elapses, then the hotkey combo is canceled.
+* Hotkey meta-characters should be passed as still down after hotkey is processed.
 * Unit tests everywhere.
+* Bugs:
+    * Finalized shutdown sometimes seems to need a window event to wake it up to stop, say switching active windows.
+    * Shutdown event doesn't stop petronia.  Only ctrl-c seems to. (Windows) 
 
 
 ## Later On Features

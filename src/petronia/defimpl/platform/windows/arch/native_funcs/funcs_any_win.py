@@ -1217,7 +1217,7 @@ def shell__keyboard_hook(
                 # a nonzero value to prevent the system from passing the
                 # message to the rest of the hook chain or the target window
                 # procedure.
-                print("DEBUG NOT FORWARDING KEY")
+                # print("DEBUG NOT FORWARDING KEY")
                 return 1
 
     callback_pointer = HOOK_CALLBACK_TYPE(low_level_handler)
@@ -1385,7 +1385,7 @@ def shell__create_global_message_handler(message_id_callbacks: Dict[int, Message
     assert isinstance(message_id_callbacks, dict)
 
     def handler(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> int:
-        print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
+        # print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
         if message in message_id_callbacks:
             ret = message_id_callbacks[message](hwnd, message, wparam, lparam)
             if ret is not False:

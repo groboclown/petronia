@@ -10,7 +10,7 @@ from ...aid.std import (
     as_state_change_listener,
     StateStoreUpdatedEvent,
     report_error,
-    log, VERBOSE,
+    log, VERBOSE, INFO,
 )
 from ...aid.bootstrap import (
     create_singleton_identity,
@@ -155,7 +155,7 @@ class Handler:
     ) -> None:
         binding = self.__state.get_hotkey_event(event.name)
         log(
-            VERBOSE, Handler.hotkey_pressed,
+            INFO, Handler.hotkey_pressed,
             'Encountered hotkey "{0}", bound to {1}',
             event.name, binding
         )

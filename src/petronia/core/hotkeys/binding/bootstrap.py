@@ -38,6 +38,7 @@ def bootstrap_core_handlers(bus: EventBus) -> None:
         event_obj: HotkeyEventTriggeredEvent
     ) -> None:
         if event_obj.data.action == HOTKEY_ACTION_SHUTDOWN:
+            print("DEBUG hotkey sending shutdown request")
             on_shutdown_request(bus)
 
     listeners.listen(TARGET_ID_HOTKEY_CORE, as_hotkey_event_triggered_listener, handler)

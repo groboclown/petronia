@@ -52,7 +52,7 @@ class StateWatch(Generic[T]):
             event_obj: StateStoreUpdatedEvent[T]
     ) -> None:
         with self._lock:
-            print("DEBUG state watch received state update for {0}; is set? {1};".format(_target_id, self._set))
+            # print("DEBUG state watch received state update for {0}; is set? {1};".format(_target_id, self._set))
             if not self._set or event_obj.state != self._state:
                 self._set = True
                 self._state = event_obj.state

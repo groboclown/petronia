@@ -47,6 +47,12 @@ class BoundServiceActionData:
     def parameters(self) -> PersistType:
         return self.__parameters
 
+    def __repr__(self) -> str:
+        return 'BoundServiceActionData(action={0}, parameters={1})'.format(
+            repr(self.__action),
+            repr(self.__parameters)
+        )
+
 
 class BoundServiceActionSchema:
     """
@@ -108,6 +114,12 @@ class RegisteredHotkeyEvent:
     @property
     def data(self) -> BoundServiceActionData:
         return self.__data
+
+    def __repr__(self) -> str:
+        return 'RegisteredHotkeyEvent(hotkey={0}, data={1})'.format(
+            repr(self.__hotkey),
+            repr(self.__data)
+        )
 
 
 class HotkeyEventState:

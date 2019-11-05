@@ -8,7 +8,7 @@ Hotkeys:
     # If master starts with "meta:", then it's a collection of modifier keys (control, shift, alt, super, etc)
     master: "meta:super"
     bind:
-      - key: "ctrl+ctrl+q"
+      - key: "ctrl+shift+q"
         action: shutdown
 
       # =====================================================================
@@ -17,6 +17,25 @@ Hotkeys:
         action: add-portal
       - key: "ctrl+minus"
         action: remove-portal
+
+      # ---------------------------------------------------------------------
+      # Move portal focus
+      - key: left
+        action: shift-focus
+        parameters:
+          name: west
+      - key: right
+        action: shift-focus
+        parameters:
+          name: east
+      - key: up
+        action: shift-focus
+        parameters:
+          name: north
+      - key: down
+        action: shift-focus
+        parameters:
+          name: south
 
       # ---------------------------------------------------------------------
       # Set the window position in the portal

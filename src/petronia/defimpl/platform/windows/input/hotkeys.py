@@ -75,8 +75,8 @@ def create_hotkey_handler(
                 current_action_down.remove(vk_code)
             else:
                 current_action_down.add(vk_code)
-            print(" - Handled keys " + repr(pending_keys) + " (" + repr(pending_scancodes) + ")")
-            print("   Remaining possible combinations: " + repr(actions))
+            # print(" - Handled keys " + repr(pending_keys) + " (" + repr(pending_scancodes) + ")")
+            # print("   Remaining possible combinations: " + repr(actions))
             send_hotkey_progress_event(bus, pending_keys, tuple(actions or ()))
             return cancel_key_forward, ()
         if res == ACTION_CANCELLED:
@@ -103,7 +103,7 @@ def create_hotkey_handler(
             pending_scancodes.clear()
             current_action_down.clear()
             t_actions = tuple(actions or ('',))
-            # print(" - Sending hotkey pressed event: " + repr(t_actions))
+            print(" - Sending hotkey pressed event: " + repr(t_actions))
             send_hotkey_pressed_event(bus, t_actions[0])
             return cancel_key_forward, ()
         # Ignore the key press, and let everything process the key as usual.

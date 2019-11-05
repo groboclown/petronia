@@ -148,6 +148,12 @@ class RequestShiftLayoutFocusEvent:
     def index(self) -> int:
         return self.__index
 
+    def __repr__(self) -> str:
+        return 'RequestShiftLayoutFocusEvent(name={0}, index={1})'.format(
+            repr(self.__name),
+            repr(self.__index)
+        )
+
 
 def as_request_shift_layout_focus_listener(
         callback: EventCallback[RequestShiftLayoutFocusEvent]

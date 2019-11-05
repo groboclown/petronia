@@ -95,6 +95,7 @@ def bootstrap_layout_handlers(bus: EventBus) -> None:
                 event_obj.data.parameters, 'index',
                 lambda: create_user_error(handler, '"index" must be a number')
             )) or 0
+            print("DEBUG data {0} -> {1}/{2}".format(event_obj.data.parameters, name, index))
             send_request_shift_layout_focus_event(bus, name, index)
 
         # -------------------------------------------------------------------
