@@ -166,16 +166,19 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     def on_window_focused(hwnd: HWND) -> None:
         hwnd_i = hwnd_to_int(hwnd)
         if hwnd_i is None:
+            log(WARN, on_window_focused, "Marked window {0} as focused, but it is None", hwnd)
             return
         with lock:
             if hwnd_i not in active_windows:
                 winfo = add_window_info(hwnd, hwnd_i)
                 if not winfo:
-                    log(DEBUG, on_window_focused, "Ignored window focused event for {0}", hwnd)
+                    # log(DEBUG, on_window_focused, "Ignored window focused event for {0}", hwnd)
+                    log(WARN, on_window_focused, "Ignored window focused event for {0}", hwnd)
                     return
                 assert hwnd_i in active_windows
             window_info = active_windows[hwnd_i]
-            log(DEBUG, on_window_focused, 'Window focused: {0}', window_info.component_id)
+            # log(DEBUG, on_window_focused, 'Window focused: {0}', window_info.component_id)
+            log(WARN, on_window_focused, 'Window focused: {0}', window_info.component_id)
             update_active_window(hwnd_i, active_windows)
             send_native_window_focused_event(bus, window_info.component_id)
             set_active_windows_state(bus, active_windows.values())
@@ -283,6 +286,10 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 log(
                     VERBOSE, on_request_move, 'Moving window {0} -> HWND {1} to {2} -> {3}',
                     target_id, hwnd, area, (x, y, w, h,)
+                )
+                log(
+                    WARN, on_request_move, 'Moving window {0} ({4}) -> HWND {1} to {2} -> {3}',
+                    target_id, hwnd, area, (x, y, w, h,), active_windows[hwnd_to_int(hwnd)]
                 )
                 res = WINDOWS_FUNCTIONS.window.move_resize(
                     hwnd,

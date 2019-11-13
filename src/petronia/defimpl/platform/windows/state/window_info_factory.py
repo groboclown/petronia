@@ -3,71 +3,27 @@
 Load information on a HWND.
 """
 
-from typing import Sequence, List, Dict, Mapping, Union, Optional
+from typing import Dict, Mapping, Union, Optional
 from typing import cast as t_cast
-from threading import RLock
-import atexit
+from ..arch.error_codes_common import (
+    ERROR_ACCESS_DENIED
+)
 from ..arch.native_funcs import (
-    HWND, RECT, DWORD,
+    HWND, DWORD,
     WINDOWS_FUNCTIONS,
+)
+from ..connect import (
+    WindowsErrorMessage,
 )
 from .....aid.std import (
     EventBus,
-    EventId,
-    ListenerId,
     ComponentId,
-    ParticipantId,
-    TARGET_WILDCARD,
-    log, WARN, DEBUG, TRACE, VERBOSE, INFO,
-)
+    log, WARN, DEBUG, TRACE, VERBOSE, )
 from .....core.platform.api.defs import (
     ScreenRect, EMPTY_SCREEN_RECT,
-    SCREEN_AREA_X, SCREEN_AREA_Y, SCREEN_AREA_W, SCREEN_AREA_H,
 )
 from .....core.platform.api.window import (
-    RequestCloseNativeWindowEvent,
-    as_request_close_native_window_listener,
-
-    RequestFocusNativeWindowEvent,
-    as_request_focus_native_window_listener,
-
-    RequestMoveNativeWindowEvent,
-    as_request_move_native_window_listener,
-
-    RequestSetNativeWindowStyleEvent,
-    as_request_set_native_window_style_listener,
-
-    send_native_window_closed_event,
-
-    send_native_window_created_event,
-
-    send_native_window_flashed_event,
-
-    send_native_window_focused_event,
-
-    send_native_window_moved_event,
-
     NativeWindowState,
-    set_active_windows_state,
-)
-from ..connect import (
-    WindowsHookEvent,
-    WindowsErrorMessage,
-    from_user_to_native_screen,
-)
-from ..connect.messages import (
-    window_activated_message,
-    window_created_message,
-    window_destroyed_message,
-    window_flash_message,
-    window_minimized_message,
-    window_monitor_changed_message,
-    window_rude_activated_message,
-    window_replaced_message,
-    window_replacing_message,
-)
-from ..arch.error_codes_common import (
-    ERROR_ACCESS_DENIED
 )
 
 
@@ -121,6 +77,9 @@ def create_native_window_state(bus: EventBus, hwnd: HWND, hwnd_i: int) -> Option
         )
     else:
         window_info = new_window_info
+    if not window_info.is_visible:
+        # Do not use non-visible windows.
+        return None
     return window_info
 
 

@@ -102,7 +102,8 @@ Early development that caused rethinking of how things are done, but that code n
 * Unit tests everywhere.
 * Bugs:
     * Finalized shutdown sometimes seems to need a window event to wake it up to stop, say switching active windows.
-    * Shutdown event doesn't stop petronia.  Only ctrl-c seems to. (Windows) 
+    * Shutdown event doesn't stop petronia.  Only ctrl-c seems to. (Windows)
+    * Non visible windows seem to still be registered, which throws off the active window stuff. 
 
 
 ## Later On Features
