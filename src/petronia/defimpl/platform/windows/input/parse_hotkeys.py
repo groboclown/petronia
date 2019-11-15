@@ -4,6 +4,7 @@ Split the hotkey string into the VK code sets.
 """
 
 from typing import Sequence, Tuple, List, Union, Optional
+from .....aid.std import i18n as _
 from .....aid.std import (
     ErrorReport,
     ResultOrError,
@@ -26,8 +27,8 @@ from .keymap import (
 def create_hotkey_format_error(hotkey: str, err: str, **args: Union[int, str]) -> ErrorReport:
     return create_user_error(
         'parse_hotkeys',
-        'invalid hotkey format for "{hotkey}": ' + err,
-        hotkey=hotkey, **args
+        _('invalid hotkey format for "{hotkey}": {err}'),
+        hotkey=hotkey, err=err, **args
     )
 
 

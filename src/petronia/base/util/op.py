@@ -49,8 +49,8 @@ def optional_list_key(
     if not isinstance(val, str) and hasattr(type(val), '__iter__'):
         # val is iterable.
         if oftype:
-            for one in val: # type: ignore
+            for one in val:  # type: ignore
                 if not isinstance(one, oftype):
                     return None
-        return tuple(val) # type: ignore
+        return tuple(val)  # type: ignore
     return None

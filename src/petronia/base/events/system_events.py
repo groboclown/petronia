@@ -12,7 +12,7 @@ from ..internal_.bus_types import (
     EventBus, EventId, EventCallback,
     ListenerSetup,
 )
-from ..util.memory import readonly_dict, T
+from ..util import readonly_dict, T, UserMessage
 
 # Note: not "core".  This is not a plugin.
 TARGET_ID_SYSTEM = create_singleton_identity('petronia.system')
@@ -68,13 +68,6 @@ def send_system_halted(bus: EventBus) -> None:
 EVENT_ID_ERROR = EventId('petronia.system/error')
 
 
-MessageArgumentValueType = Union[
-    str, int, bool, float, None, BaseException,
-    Iterable[Union[str, int, bool, float, None]],
-    Mapping[str, Union[str, int, bool, float, None]]
-]
-
-
 ERROR_CATEGORY_USER = 'user'
 ERROR_CATEGORY_BUG = 'bug'
 ERROR_CATEGORY_ENVIRONMENT = 'environment'
@@ -92,27 +85,15 @@ class ErrorReport:
     end user has the ability to fix.
     """
 
-    __slots__ = ('__source', '__category', '__message', '__arguments')
+    __slots__ = ('__source', '__category', '__message')
 
     def __init__(
-            self, source: str, category: str, message_code: str, arguments: Mapping[str, MessageArgumentValueType]
+            self, source: str, category: str, message: UserMessage
     ) -> None:
         assert category in ERROR_CATEGORIES
         self.__source = source
         self.__category = category
-        self.__message = message_code
-        # Perform a deep copy, to prevent possible post-send adjustments
-        args: Dict[str, MessageArgumentValueType] = {}
-        for key, val in arguments.items():
-            if isinstance(val, str):
-                args[key] = val
-            elif isinstance(val, dict):
-                args[key] = readonly_dict(t_cast(Mapping[str, Union[str, int, bool, float]], val))
-            elif isinstance(val, Iterable):
-                args[key] = tuple(val)
-            else:
-                args[key] = val
-        self.__arguments = readonly_dict(args)
+        self.__message = message
 
     @property
     def source(self) -> str:
@@ -123,22 +104,17 @@ class ErrorReport:
         return self.__category
 
     @property
-    def message_code(self) -> str:
+    def message(self) -> UserMessage:
         """The localizable message code that describes the specific error encountered."""
         return self.__message
 
-    @property
-    def arguments(self) -> Mapping[str, MessageArgumentValueType]:
-        return self.__arguments
-
     def __repr__(self) -> str:
         return (
-            'ErrorReport(source={source}, category={category}, message_code={message_code}, arguments={arguments})'
+            'ErrorReport(source={source}, category={category}, message={message})'
         ).format(
             source=repr(self.__source),
             category=repr(self.__category),
-            message_code=repr(self.__message),
-            arguments=repr(self.__arguments)
+            message=repr(self.__message)
         )
 
 
@@ -190,8 +166,6 @@ def send_error_event(
         bus: EventBus,
         source: str,
         category: str,
-        message_code: str,
-        **arguments: MessageArgumentValueType
+        message: UserMessage
 ) -> None:
-    send_error_reports_event(bus, ErrorReport(source, category, message_code, arguments))
-
+    send_error_reports_event(bus, ErrorReport(source, category, message))

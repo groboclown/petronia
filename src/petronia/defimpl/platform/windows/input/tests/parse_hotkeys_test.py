@@ -121,4 +121,4 @@ class ParseHotkeysTest(unittest.TestCase):
         # assertions for mypy
         assert isinstance(val, ErrorReport)
 
-        self.assertEqual(val.arguments.get('hotkey'), 'a+b')
+        self.assertEqual(val.message.arguments.get('hotkey'), 'a+b')

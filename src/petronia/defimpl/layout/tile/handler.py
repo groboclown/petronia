@@ -56,6 +56,8 @@ from ....core.layout.api import (
     as_request_shift_layout_focus_listener,
     RequestSetFocusedWindowVisibilityEvent,
     as_request_set_focused_window_visibility_listener,
+    TileState,
+    set_tile_states,
 )
 from ....core.hotkeys.api import (
     as_hotkey_event_triggered_listener,

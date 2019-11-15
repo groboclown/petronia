@@ -5,6 +5,7 @@ Hotkey state.
 
 from typing import Dict, List, Sequence, Tuple, Optional
 from threading import Lock
+from ...aid.std import i18n as _
 from ...aid.std import (
     ErrorReport,
     create_user_error,
@@ -72,8 +73,10 @@ class HotkeyState:
                         if not _is_valid_schema_data(announced, event[0].data):
                             ret.append(create_user_error(
                                 HotkeyState,
-                                'Service {service} hotkey action {action} does not match '
-                                'requested hotkey {hotkey}: {data}',
+                                _(
+                                    'Service {service} hotkey action {action} does not match '
+                                    'requested hotkey {hotkey}: {data}'
+                                ),
                                 service=announced.service,
                                 action=announced.action,
                                 hotkey=key,
@@ -94,8 +97,10 @@ class HotkeyState:
                     else:
                         ret.append(create_user_error(
                             HotkeyState,
-                            'Service {service} hotkey action {action} does not match '
-                            'requested hotkey {hotkey}: {data}',
+                            _(
+                                'Service {service} hotkey action {action} does not match '
+                                'requested hotkey {hotkey}: {data}'
+                            ),
                             service=announced.service,
                             action=announced.action,
                             hotkey=key,
@@ -129,7 +134,10 @@ class HotkeyState:
                     if not _is_valid_schema_data(announced, event.data):
                         ret.append(create_user_error(
                             HotkeyState,
-                            'Service {service} hotkey action {action} does not match requested hotkey {hotkey}: {data}',
+                            _(
+                                'Service {service} hotkey action {action} does not match '
+                                'requested hotkey {hotkey}: {data}'
+                            ),
                             service=announced.service,
                             action=announced.action,
                             hotkey=hotkey_sequence,

@@ -16,6 +16,7 @@ bind:
 """
 
 from typing import Tuple, Iterable, List, Sequence
+from ...aid.std import i18n as _
 from ...aid.std import (
     create_singleton_identity,
     create_user_error,
@@ -88,7 +89,7 @@ def load_hotkey_configuration(state: HotkeyState, persistent: PersistType) -> Tu
             not isinstance(persistent['bind'], Iterable)
     ):
         return '', (create_user_error(
-            load_hotkey_configuration, "Invalid configuration definition for hotkeys: {p}", p=repr(persistent)
+            load_hotkey_configuration, _("Invalid configuration definition for hotkeys: {p}"), p=repr(persistent)
         ),),
 
     if not is_key_true(persistent, 'append'):
@@ -109,7 +110,7 @@ def load_hotkey_configuration(state: HotkeyState, persistent: PersistType) -> Tu
             state.add_hotkey(key_def['key'], BoundServiceActionData(key_def['action'], parameters))
         else:
             errors.append(create_user_error(
-                load_hotkey_configuration, "Invalid key definition for hotkeys: {p}", p=repr(key_def)
+                load_hotkey_configuration, _("Invalid key definition for hotkeys: {p}"), p=repr(key_def)
             ))
 
     return persistent["master"], tuple(errors)

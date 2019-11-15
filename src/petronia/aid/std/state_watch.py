@@ -27,6 +27,13 @@ class StateWatch(Generic[T]):
     """
     Monitors a published state, and sends notifications
     to an optional listener.
+
+    This allows for swapping out in a thread-safe way the listener.  A common pattern
+    is to have the initial listener wait for the first-time state set to act as a gating
+    block before starting up the extension.
+
+    It also allows for encapsulating the state information, so that an extension can
+    listen to a state without needing to know the state id.
     """
 
     __slots__ = (
@@ -45,6 +52,9 @@ class StateWatch(Generic[T]):
         self._listener = listener
         self._set = False
         self._lock = RLock()
+
+        # This puts an instance of this watcher into the listener set, which
+        # means this object will stay around as long as the listener set does.
         listeners.listen(target, as_state_change_listener, self._on_state)  # type: ignore
 
     def _on_state(

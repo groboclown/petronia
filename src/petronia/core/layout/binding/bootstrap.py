@@ -4,6 +4,7 @@ Bootstrap the hotkey bindings for the layout events.
 """
 
 from typing import List
+from ....aid.std import i18n as _
 from ....aid.std import (
     EventBus,
     EventId,
@@ -65,23 +66,23 @@ def bootstrap_layout_handlers(bus: EventBus) -> None:
         if event_obj.data.action == HOTKEY_ACTION_MOVE_ACTIVE:
             dx = collect_errors(errors, optional_int(
                 event_obj.data.parameters, 'dx',
-                lambda: create_user_error(handler, '"dx" must be a number')
+                lambda: create_user_error(handler, _('"dx" must be a number'))
             )) or 0
             dy = collect_errors(errors, optional_int(
                 event_obj.data.parameters, 'dy',
-                lambda: create_user_error(handler, '"dy" must be a number')
+                lambda: create_user_error(handler, _('"dy" must be a number'))
             )) or 0
             dw = collect_errors(errors, optional_int(
                 event_obj.data.parameters, 'dw',
-                lambda: create_user_error(handler, '"dw" must be a number')
+                lambda: create_user_error(handler, _('"dw" must be a number'))
             )) or 0
             dh = collect_errors(errors, optional_int(
                 event_obj.data.parameters, 'dh',
-                lambda: create_user_error(handler, '"dh" must be a number')
+                lambda: create_user_error(handler, _('"dh" must be a number'))
             )) or 0
             dz = collect_errors(errors, optional_int(
                 event_obj.data.parameters, 'dz',
-                lambda: create_user_error(handler, '"dz" must be a number')
+                lambda: create_user_error(handler, _('"dz" must be a number'))
             )) or 0
             send_request_move_resize_focused_window_event(bus, dx, dy, dw, dh, dz)
 
@@ -89,11 +90,11 @@ def bootstrap_layout_handlers(bus: EventBus) -> None:
         elif event_obj.data.action == HOTKEY_ACTION_SHIFT_FOCUS:
             name = collect_errors(errors, optional_str(
                 event_obj.data.parameters, 'name',
-                lambda: create_user_error(handler, '"name" must be a string')
+                lambda: create_user_error(handler, _('"name" must be a string'))
             )) or ''
             index = collect_errors(errors, optional_int(
                 event_obj.data.parameters, 'index',
-                lambda: create_user_error(handler, '"index" must be a number')
+                lambda: create_user_error(handler, _('"index" must be a number'))
             )) or 0
             print("DEBUG data {0} -> {1}/{2}".format(event_obj.data.parameters, name, index))
             send_request_shift_layout_focus_event(bus, name, index)
@@ -102,7 +103,7 @@ def bootstrap_layout_handlers(bus: EventBus) -> None:
         elif event_obj.data.action == HOTKEY_ACTION_SET_VISIBILITY:
             visible = collect_errors(errors, optional_bool(
                 event_obj.data.parameters, 'visible',
-                lambda: create_user_error(handler, '"visible" must be true or false')
+                lambda: create_user_error(handler, _('"visible" must be true or false'))
             )) or False
             send_request_set_window_visibility_event(bus, visible)
 

@@ -6,6 +6,7 @@ Definitions for matching window properties.
 from typing import Pattern, Tuple, Optional
 import re
 from .state import NativeWindowState
+from .....aid.std import i18n as _
 from .....aid.std import (
     create_user_error,
     ErrorReport,
@@ -70,14 +71,14 @@ def _get_re(match: str, kind: int) -> Tuple[Optional[Pattern[str]], Optional[str
         except ValueError or TypeError as e:
             return (None, match.lower(), create_user_error(
                 WindowMatcher,
-                'invalid regular expression {error}',
+                _('invalid regular expression {error}'),
                 error=e
             ))
     if kind == WINDOW_MATCH_GLOB:
         mt = re.escape(match).replace('\\*', '.*?').replace('\\?', '.')
         return re.compile(mt, re.IGNORECASE), None, None
     prob = (
-        create_user_error(WindowMatcher, 'Invalid `kind` value {kind}', kind=kind)
+        create_user_error(WindowMatcher, _('Invalid `kind` value {kind}'), kind=kind)
         if kind not in WINDOW_MATCHES
         else None
     )

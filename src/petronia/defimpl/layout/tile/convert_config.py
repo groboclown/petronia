@@ -33,6 +33,7 @@ from ....core.platform.api import (
     ScreenArea,
     WindowMatcher,
 )
+from ....aid.std import i18n as _
 from ....aid.std import (
     ErrorReport,
     create_user_error,
@@ -79,7 +80,7 @@ def convert_config(
     if not screens:
         if not errors:
             errors = [create_user_error(
-                convert_config, 'no screens defined in {sc}', sc=repr(config)
+                convert_config, _('no screens defined in {sc}'), sc=repr(config)
             )]
         # TODO should the splitter define the default window position too?
         #   This should be inherited from the parent splitter.

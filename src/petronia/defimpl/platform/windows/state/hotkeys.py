@@ -4,6 +4,7 @@ Registration of hotkeys.
 """
 
 from typing import Dict, Sequence, List, Tuple, Optional
+from .....aid.std import i18n as _
 from .....aid.std import (
     EventBus,
     ValueHolder,
@@ -95,7 +96,7 @@ def _parse_keys(
         if isinstance(master_mkey, ErrorReport):
             errors.append(create_user_error(
                 'parse_hotkeys',
-                'Invalid master key sequence "{master_seq}"',
+                _('Invalid master key sequence "{master_seq}"'),
                 master_seq=master_seq
             ))
             errors.append(master_mkey)
@@ -106,7 +107,7 @@ def _parse_keys(
             if isinstance(combo, ErrorReport):
                 errors.append(create_user_error(
                     'parse_hotkeys',
-                    'Invalid key sequence: "{key}" (for command {name})',
+                    _('Invalid key sequence: "{key}" (for command {name})'),
                     key=key, name=name
                 ))
                 errors.append(combo)
@@ -118,7 +119,7 @@ def _parse_keys(
         if isinstance(master_mod, ErrorReport):
             errors.append(create_user_error(
                 'parse_hotkeys',
-                'Invalid master modifier keys "{master_seq}"',
+                _('Invalid master modifier keys "{master_seq}"'),
                 master_seq=master_seq
             ))
             errors.append(master_mod)
@@ -128,7 +129,7 @@ def _parse_keys(
             if isinstance(combo, ErrorReport):
                 errors.append(create_user_error(
                     'parse_hotkeys',
-                    'Invalid key sequence: "{key}" (for command {name})',
+                    _('Invalid key sequence: "{key}" (for command {name})'),
                     key=key, name=name
                 ))
                 errors.append(combo)
@@ -138,7 +139,7 @@ def _parse_keys(
     else:
         errors.append(create_user_error(
             'parse_hotkeys',
-            'Invalid master "{master_seq}"; must start with "seq:" or "meta:"',
+            _('Invalid master "{master_seq}"; must start with "seq:" or "meta:"'),
             master_seq=master_seq
         ))
         return errors

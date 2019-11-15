@@ -7,7 +7,6 @@
 from typing import Optional, Any
 from ...base import EventBus
 from ...base.events.system_events import (
-    MessageArgumentValueType,
     ErrorReport,
     send_error_reports_event,
     ERROR_CATEGORY_BUG, ERROR_CATEGORY_USER, ERROR_CATEGORY_ENVIRONMENT,
@@ -15,57 +14,62 @@ from ...base.events.system_events import (
 from ...base.logging import (
     log, logerr, ERROR,
 )
+from ...base.util import (
+    I18n,
+    UserMessageData,
+    UserMessage,
+)
 
 
 def report_user_error(
         bus: EventBus,
         source: Any,
-        message: str,
-        **arguments: MessageArgumentValueType
+        message: I18n,
+        **arguments: UserMessageData
 ) -> None:
     report_error(bus, create_user_error(source, message, **arguments))
 
 
 def create_user_error(
         source: Any,
-        message: str,
-        **arguments: MessageArgumentValueType
+        message: I18n,
+        **arguments: UserMessageData
 ) -> ErrorReport:
-    return ErrorReport(_to_src_str(source), ERROR_CATEGORY_USER, message, arguments)
+    return ErrorReport(_to_src_str(source), ERROR_CATEGORY_USER, UserMessage(message, **arguments))
 
 
 def report_bug(
         bus: EventBus,
         source: Any,
-        message: str,
-        **arguments: MessageArgumentValueType
+        message: I18n,
+        **arguments: UserMessageData
 ) -> None:
     report_error(bus, create_bug_report(source, message, **arguments))
 
 
 def create_bug_report(
         source: Any,
-        message: str,
-        **arguments: MessageArgumentValueType
+        message: I18n,
+        **arguments: UserMessageData
 ) -> ErrorReport:
-    return ErrorReport(_to_src_str(source), ERROR_CATEGORY_BUG, message, arguments)
+    return ErrorReport(_to_src_str(source), ERROR_CATEGORY_BUG, UserMessage(message, **arguments))
 
 
 def report_enviro_problem(
         bus: EventBus,
         source: Any,
-        message: str,
-        **arguments: MessageArgumentValueType
+        message: I18n,
+        **arguments: UserMessageData
 ) -> None:
     report_error(bus, create_enviro_problem_report(source, message, **arguments))
 
 
 def create_enviro_problem_report(
         source: Any,
-        message: str,
-        **arguments: MessageArgumentValueType
+        message: I18n,
+        **arguments: UserMessageData
 ) -> ErrorReport:
-    return ErrorReport(_to_src_str(source), ERROR_CATEGORY_ENVIRONMENT, message, arguments)
+    return ErrorReport(_to_src_str(source), ERROR_CATEGORY_ENVIRONMENT, UserMessage(message, **arguments))
 
 
 def report_error(
@@ -73,14 +77,13 @@ def report_error(
         report: ErrorReport
 ) -> None:
     # TODO look up the message key in the localization tools
-    if 'error' in report.arguments and isinstance(report.arguments['error'], BaseException):
-        logerr(ERROR, report.source, report.arguments['error'], report.message_code, **report.arguments)
+    if 'error' in report.message.arguments and isinstance(report.message.arguments['error'], BaseException):
+        logerr(
+            ERROR, report.source, report.message.arguments['error'],
+            report.message.message, **report.message.arguments
+        )
     else:
-        log(ERROR, report.source, report.message_code, **report.arguments)
-        # try:
-        #     raise Exception('source')
-        # except Exception as err:
-        #     logerr(DEBUG, report.source, err, 'source')
+        log(ERROR, report.source, report.message.message, **report.message.arguments)
 
     if bus:
         send_error_reports_event(bus, report)

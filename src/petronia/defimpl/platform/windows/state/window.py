@@ -289,7 +289,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                 )
                 log(
                     WARN, on_request_move, 'Moving window {0} ({4}) -> HWND {1} to {2} -> {3}',
-                    target_id, hwnd, area, (x, y, w, h,), active_windows[hwnd_to_int(hwnd)]
+                    target_id, hwnd, area, (x, y, w, h,), active_windows[hwnd_to_int(hwnd) or 0]
                 )
                 res = WINDOWS_FUNCTIONS.window.move_resize(
                     hwnd,

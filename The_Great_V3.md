@@ -43,19 +43,6 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
-* localization and internationalization.  This should follow the Python standards as much as possible, but it still needs to be documented and have utilities written.  It's mostly `locale` and `gettext`.
-    * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
-      ```python
-      locale.setlocale(locale.LC_ALL, loc)
-      language = gettext.translation('petronia', languages=[lang])
-      language.install()
-      ```
-    * That same component publishes a state of the available locales and languages.
-    * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
-    * Extensions publish translation files by sending an event with the translation contents.  That allows all sandboxes to receive the new translations.
-    * `atoi` and `atof` formatting needs to be supported right.  Configuration files that are exchangeable between users, and that have a well defined format, should have a single expected numeric format.  All end-user input should use the `locale.atoi` and `locale.atof`, which means the above `locale.setlocale` should be used.
-    * Note that `ErrorReport` uses localizable messages.
-    * May look at [Babel](http://babel.pocoo.org/en/latest/)
 * Extension security enhancements:
     * API extensions:
         * Cannot listen to events.
@@ -78,9 +65,6 @@ The current to-do list.
 * create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
 * add proper zip support in the extension module loader.
     * add PGP and checksum to zip loader.
-* Windows platform:
-    * Add enhancement config.
-        * State of pass-through win key.
 * Document extension patterns.
 
 
@@ -97,13 +81,14 @@ Early development that caused rethinking of how things are done, but that code n
 * default.logging.*
     * config file loading needs to be implemented.
 * Switch to `ErrorReport` as the standard error reporting mechanism.
+* All state providers should also provide a `create_(state)_state_watch(ListenerSet)` function which returns a
+    `StateWatch`.  This allows encapsulation of the state ID and typing.
 * Make key-down metas have a timeout.  If too much time between keystrokes elapses, then the hotkey combo is canceled.
 * Hotkey meta-characters should be passed as still down after hotkey is processed.
 * Unit tests everywhere.
 * Bugs:
     * Finalized shutdown sometimes seems to need a window event to wake it up to stop, say switching active windows.
     * Shutdown event doesn't stop petronia.  Only ctrl-c seems to. (Windows)
-    * Non visible windows seem to still be registered, which throws off the active window stuff. 
 
 
 ## Later On Features
@@ -121,8 +106,22 @@ Early development that caused rethinking of how things are done, but that code n
     verifier = PKCS1_v1_5.new(rsa_key)
     h = SHA.new(data_to_verify)
     if verifier.verify(h, signature_received_with_the_data):
-        print "OK"
+        print("OK")
     else:
-        print "Invalid"
+        print("Invalid")
     ```
     Probably would have two parts - a file-based one (for extensions) and one for in-memory signatures (for events).
+* Localization
+    * If [Babel](http://babel.pocoo.org/en/latest/) is available, use that first.  Otherwise, use `locale` and `gettext`.
+    * Uses the `UserMessage` class.
+    * An event allows user configuration of the language locale.  This will trigger a singleton listener to run:
+      ```python
+      locale.setlocale(locale.LC_ALL, loc)
+      language = gettext.translation('petronia', languages=[lang])
+      language.install()
+      ```
+    * That same component publishes a state of the available locales and languages.
+    * The platform is probably the right source to discover the available translations.  Or it's based on the platform published configuration paths state.
+    * Extensions publish translation files by sending an event with the translation contents.  That allows all sandboxes to receive the new translations.
+    * `atoi` and `atof` formatting needs to be supported right.  Configuration files that are exchangeable between users, and that have a well defined format, should have a single expected numeric format.  All end-user input should use the `locale.atoi` and `locale.atof`, which means the above `locale.setlocale` should be used.
+        * Needs to be handled at a lower level.

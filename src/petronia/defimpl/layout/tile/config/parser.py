@@ -6,6 +6,7 @@ Process the configuration.
 from typing import List, Optional, Union
 from typing import cast as t_cast
 import re
+from .....aid.std import i18n as _
 from .....aid.std import (
     ErrorReport,
     ResultWithErrors,
@@ -192,13 +193,13 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
 
     match_window_data_list = collect_errors(errors, with_key_as_list(
         data, _KEY_MATCH_WINDOWS,
-        lambda: create_user_error(parse_config, '{key} must be a list of key-value set', key=_KEY_MATCH_WINDOWS)
+        lambda: create_user_error(parse_config, _('{key} must be a list of key-value set'), key=_KEY_MATCH_WINDOWS)
     ))
     if match_window_data_list:
         for matcher_data in list_of_maps(
                 match_window_data_list, errors,
                 lambda i: create_user_error(
-                    parse_config, '{key} #{i} must be a key-value set', key=_KEY_MATCH_WINDOWS, i=i
+                    parse_config, _('{key} #{i} must be a key-value set'), key=_KEY_MATCH_WINDOWS, i=i
                 )
         ):
             matcher = collect_errors(errors, parse_match_window_to_portal(t_cast(PersistType, matcher_data)))
@@ -207,20 +208,20 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
 
     layout_data_list = collect_errors(errors, with_key_as_list(
         data, _KEY_LAYOUTS,
-        lambda: create_user_error(parse_config, '{key} must be a list', key=_KEY_LAYOUTS)
+        lambda: create_user_error(parse_config, _('{key} must be a list'), key=_KEY_LAYOUTS)
     ))
     if layout_data_list:
         floating_screens: List[ScreenTileLayout] = []
         for layout_data in list_of_maps(
                 layout_data_list, errors,
                 lambda i: create_user_error(
-                    parse_config, '{key} #{i} must be a key-value set', key=_KEY_LAYOUTS, i=i
+                    parse_config, _('{key} #{i} must be a key-value set'), key=_KEY_LAYOUTS, i=i
                 )
         ):
             screen_list_data = collect_errors(errors, with_key_as_list(
                 layout_data, _KEY_SCREENS,
                 lambda: create_user_error(
-                    parse_config, '{s} in each {la} must be a list', s=_KEY_SCREENS, la=_KEY_LAYOUTS
+                    parse_config, _('{s} in each {la} must be a list'), s=_KEY_SCREENS, la=_KEY_LAYOUTS
                 )
             ))
             if screen_list_data:
@@ -229,7 +230,7 @@ def parse_config(data: PersistType) -> ResultWithErrors[TileLayoutConfig]:
                 for screen_data in list_of_maps(
                     screen_list_data, errors,
                     lambda i: create_user_error(
-                        parse_config, '{s} #{i} in {la} must be a key-value set', s=_KEY_SCREENS, i=i, la=_KEY_LAYOUTS
+                        parse_config, _('{s} #{i} in {la} must be a key-value set'), s=_KEY_SCREENS, i=i, la=_KEY_LAYOUTS
                     )
                 ):
                     screen = collect_errors(errors, parse_screen(screen_data))
@@ -250,12 +251,12 @@ def parse_match_window_to_portal(data: PersistType) -> ResultWithErrors[Optional
     errors: List[ErrorReport] = []
     portal = collect_errors(errors, optional_str(
         data, 'portal', lambda: create_user_error(
-            parse_config, '{k1} key {k2} must be a string', k1=_KEY_MATCH_WINDOWS, k2='portal'
+            parse_config, _('{k1} key {k2} must be a string'), k1=_KEY_MATCH_WINDOWS, k2='portal'
         )
     ))
     position = collect_errors(errors, optional_str(
         data, 'position', lambda: create_user_error(
-            parse_config, '{k1} key {k2} must be a string', k1=_KEY_MATCH_WINDOWS, k2='position'
+            parse_config, _('{k1} key {k2} must be a string'), k1=_KEY_MATCH_WINDOWS, k2='position'
         )
     ))
     matchers: List[WindowMatcher] = []
@@ -264,7 +265,7 @@ def parse_match_window_to_portal(data: PersistType) -> ResultWithErrors[Optional
         matchers.append(matcher)
     matcher_list_data = collect_errors(errors, with_key_as_list(
         data, 'matchers',
-        lambda: create_user_error(create_matcher, '{m} must be a list of key-value sets', m='matchers')
+        lambda: create_user_error(create_matcher, _('{m} must be a list of key-value sets'), m='matchers')
     ))
     if matcher_list_data:
         # TODO should this should have an "and" wrapper around all these matchers?
@@ -272,7 +273,7 @@ def parse_match_window_to_portal(data: PersistType) -> ResultWithErrors[Optional
 
         for matcher_data in list_of_maps(
             matcher_list_data, errors,
-            lambda i: create_user_error(create_matcher, '{m} #{i} must be a key-value set', m='matchers', i=i)
+            lambda i: create_user_error(create_matcher, _('{m} #{i} must be a key-value set'), m='matchers', i=i)
         ):
             matcher = collect_errors(errors, parse_window_matcher(matcher_data))
             if matcher:
@@ -284,23 +285,23 @@ def parse_window_matcher(data: PersistType) -> ResultWithErrors[Optional[WindowM
     errors: List[ErrorReport] = []
     key = collect_errors(errors, optional_str(
         data, 'key', lambda: create_user_error(
-            parse_config, '{k1} key {k2} must be a string', k1=_KEY_MATCH_WINDOWS, k2='key'
+            parse_config, _('{k1} key {k2} must be a string'), k1=_KEY_MATCH_WINDOWS, k2='key'
         )
     ))
     match = collect_errors(errors, optional_str(
         data, 'match', lambda: create_user_error(
-            parse_config, '{k1} key {k2} must be a string', k1=_KEY_MATCH_WINDOWS, k2='match'
+            parse_config, _('{k1} key {k2} must be a string'), k1=_KEY_MATCH_WINDOWS, k2='match'
         )
     ))
     m_type = collect_errors(errors, optional_str(
         data, 'type', lambda: create_user_error(
-            parse_config, '{k1} key {k2} must be a string', k1=_KEY_MATCH_WINDOWS, k2='type'
+            parse_config, _('{k1} key {k2} must be a string'), k1=_KEY_MATCH_WINDOWS, k2='type'
         )
     ))
     if key and match and m_type:
         return create_matcher(key, match, m_type)
     if key or match or m_type:
-        return None, (create_user_error(create_matcher, 'Must provide all of "key", "match", and "type"'),)
+        return None, (create_user_error(create_matcher, _('Must provide all of "key", "match", and "type"')),)
     return None, NO_ERRORS
 
 
@@ -313,13 +314,13 @@ def parse_screen(data: PersistType) -> ResultWithErrors[Optional[ScreenTileLayou
         splits.append(PortalLayout('default', 1, DEFAULT_WINDOW_POSITION))
 
     resolution = collect_errors(errors, optional_str(
-        data, 'resolution', lambda: create_user_error(parse_config, 'resolution must be a string')
+        data, 'resolution', lambda: create_user_error(parse_config, _('resolution must be a string'))
     ))
     name = collect_errors(errors, optional_str(
-        data, 'name', lambda: create_user_error(parse_config, 'name must be a string')
+        data, 'name', lambda: create_user_error(parse_config, _('name must be a string'))
     ))
     direction = collect_errors(errors, optional_str(
-        data, 'direction', lambda: create_user_error(parse_config, 'direction must be a string')
+        data, 'direction', lambda: create_user_error(parse_config, _('direction must be a string'))
     ))
     # target = optional_bool(data, 'target', lambda: create_user_error(parse_config, 'target must be true or false'))
     size: ScreenSize = (0, 0,)
@@ -328,7 +329,7 @@ def parse_screen(data: PersistType) -> ResultWithErrors[Optional[ScreenTileLayou
         if mc:
             size = (int(mc.group(1)), int(mc.group(2)),)
         else:
-            errors.append(create_user_error(parse_config, "resolution must be in the form 'width x height"))
+            errors.append(create_user_error(parse_config, _("resolution must be in the form 'width x height")))
     if direction in ("left-right", "horiz", "horizontal", "e-w", "w-e",):
         direction_int = SPLIT_HORIZONTAL
     elif direction in ('top-down', 'vertical', 'n-s', 's-n', None):
@@ -336,7 +337,7 @@ def parse_screen(data: PersistType) -> ResultWithErrors[Optional[ScreenTileLayou
     else:
         errors.append(create_user_error(
             parse_config,
-            'direction must be "vertical" or "horizontal" but found "{direction}"; defaulting to vertical',
+            _('direction must be "vertical" or "horizontal" but found "{direction}"; defaulting to vertical'),
             direction=direction
         ))
         direction_int = SPLIT_VERTICAL
@@ -353,28 +354,28 @@ def parse_tile(data: PersistType) -> ResultWithErrors[Union[SplitTileLayout, Por
     """
     errors: List[ErrorReport] = []
     name = collect_errors(errors, optional_str(
-        data, 'name', lambda: create_user_error(parse_config, 'name must be a string')
+        data, 'name', lambda: create_user_error(parse_config, _('name must be a string'))
     ))
     splits = collect_errors(errors, parse_splits(data))
     if not splits:
         size = 1
         size_data = collect_errors(errors, optional_int(
-            data, 'size', lambda: create_user_error(parse_config, 'size must be a number')
+            data, 'size', lambda: create_user_error(parse_config, _('size must be a number'))
         ))
         position = collect_errors(errors, optional_str(
-            data, 'position', lambda: create_user_error(parse_config, 'position must be a string')
+            data, 'position', lambda: create_user_error(parse_config, _('position must be a string'))
         ))
         if size_data is not None and size_data > 0:
             size = size_data
         return PortalLayout(name or 'default', size, position or DEFAULT_WINDOW_POSITION), errors
 
     target = collect_errors(errors, optional_bool(
-        data, 'target', lambda: create_user_error(parse_config, 'target must be true or false')
+        data, 'target', lambda: create_user_error(parse_config, _('target must be true or false'))
     ))
     if target is None:
         target = False
     size_data = collect_errors(errors, optional_int(
-        data, 'size', lambda: create_user_error(parse_config, 'size must be a number')
+        data, 'size', lambda: create_user_error(parse_config, _('size must be a number'))
     ))
     if size_data is None or size_data <= 0:
         size = 1
@@ -388,11 +389,11 @@ def parse_splits(data: PersistType) -> ResultWithErrors[List[Union[SplitTileLayo
     splits: List[Union[SplitTileLayout, PortalLayout]] = []
     split_list_data = collect_errors(errors, with_key_as_list(
         data, 'splits',
-        lambda: create_user_error(parse_config, 'splits must be a list of key-value sets')
+        lambda: create_user_error(parse_config, _('splits must be a list of key-value sets'))
     ))
     if split_list_data:
         for split_data in list_of_maps(split_list_data, errors, lambda i: create_user_error(
-                parse_config, 'split #{i} must be a key-value set', i=i
+                parse_config, _('split #{i} must be a key-value set'), i=i
         )):
             tile = collect_errors(errors, parse_tile(split_data))
             if tile:
@@ -431,7 +432,7 @@ def create_matcher(
     else:
         # Default kind...
         kind_id = WINDOW_MATCH_GLOB
-        errors.append(create_user_error(create_matcher, 'Unknown window matcher kind `{kind}`', kind=kind))
+        errors.append(create_user_error(create_matcher, _('Unknown window matcher kind `{kind}`'), kind=kind))
 
     return WindowMatcher(key, matches, kind_id), errors
 

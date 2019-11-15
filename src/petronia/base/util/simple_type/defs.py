@@ -56,8 +56,8 @@ class PersistTypeSchemaItem:
 
     def __repr__(self) -> str:
         return 'PersistTypeSchemaItem(description={0}, type_name={1})'.format(
-            repr(self.__description),
-            repr(self.__type_name)
+            repr(self.description),
+            repr(self.type_name)
         )
 
 

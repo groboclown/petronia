@@ -10,6 +10,7 @@ matches those against the current screen list.
 """
 
 from typing import List, Tuple, Iterable, Sequence, Set, Optional, Union
+from .....aid.std import i18n as _
 from .....aid.std import (
     EMPTY_LIST,
     ResultWithErrors,
@@ -300,7 +301,7 @@ def match_layouts_to_screens(
 
     if not best_layout:
         errors.append(create_user_error(
-            match_layouts_to_screens, 'no layouts or screens in {sc}', sc=repr(screen_layout_combinations)
+            match_layouts_to_screens, _('no layouts or screens in {sc}'), sc=repr(screen_layout_combinations)
         ))
 
     return (best_index, tuple(best_layout)), errors
