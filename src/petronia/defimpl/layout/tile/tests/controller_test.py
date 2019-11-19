@@ -38,15 +38,17 @@ class TileControllerTest(unittest.TestCase):
                 }],
             }]
         }))
+        original_active_portal, original_active_path = controller.callable_active_portal_path()
         self.assertEqual(
-            controller.callable_active_path(),
-            [0, 0]
+            original_active_path,
+            (0, 0,)
         )
-        portal, path = controller.callable_find_portal_dir(
-            controller.get_active_portal(), MOVE_WINDOW_DIRECTION_EAST, 1, False
+        src_portal, tgt_portal, window_cid = controller.move_portal_focus(
+            MOVE_WINDOW_DIRECTION_EAST, 1
         )
+        self.assertIs(original_active_portal, src_portal)
         self.assertEqual(
-            path,
+            controller.get_portal_path(tgt_portal),
             [0, 1, 0]
         )
 
@@ -66,16 +68,34 @@ class TileControllerTest(unittest.TestCase):
                 }],
             }]
         }))
+        original_active_portal, original_active_path = controller.callable_active_portal_path()
         self.assertEqual(
-            controller.callable_active_path(),
+            original_active_path,
+            (0, 0)
+        )
+        src_portal, tgt_portal, window_cid = controller.move_portal_focus(
+            MOVE_WINDOW_DIRECTION_SOUTH, 1
+        )
+        self.assertIs(original_active_portal, src_portal)
+        self.assertEqual(
+            controller.get_portal_path(tgt_portal),
             [0, 0]
         )
-        portal, path = controller.callable_find_portal_dir(
-            controller.get_active_portal(), MOVE_WINDOW_DIRECTION_SOUTH, 1, False
+        src_portal, tgt_portal, window_cid = controller.move_portal_focus(
+            MOVE_WINDOW_DIRECTION_EAST, 1
         )
+        self.assertIs(original_active_portal, src_portal)
         self.assertEqual(
-            path,
+            controller.get_portal_path(tgt_portal),
             [0, 1, 0]
+        )
+        src_portal, tgt_portal, window_cid = controller.move_portal_focus(
+            MOVE_WINDOW_DIRECTION_SOUTH, 1
+        )
+        self.assertIs(original_active_portal, src_portal)
+        self.assertEqual(
+            controller.get_portal_path(tgt_portal),
+            [0, 1, 1]
         )
 
 
@@ -88,13 +108,14 @@ class TestableTileController(TileController):
         assert not errors, repr(errors)
         root, index, errors = convert_config(config_layout, SCREEN)
         assert not errors, repr(errors)
-        TileController.__init__(self, root)
+        TileController.__init__(self, root, None)
         self.root = root
 
-    def callable_find_portal_dir(
-            self, src_portal: Portal, direction: int, count: int, wrap: bool
-    ) -> Tuple[Portal, Sequence[int]]:
-        return self._find_portal_dir(src_portal, direction, count, wrap)
+    def callable_active_portal_path(self) -> Tuple[Portal, Sequence[int]]:
+        return self._active_portal_path()
 
-    def callable_active_path(self) -> Sequence[int]:
-        return self._active_path()
+    def get_portal_path(self, portal: Portal) -> Sequence[int]:
+        for tgt_portal, tgt_path in self.root.get_portals_with_paths():
+            if tgt_portal is portal:
+                return tgt_path
+        raise ValueError('no such portal ' + repr(portal))

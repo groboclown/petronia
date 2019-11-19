@@ -57,7 +57,8 @@ from ..internal_.bus_constants import (
     PRODUCE_EVENT_PROTECTION,
 )
 from ..internal_.identity_types import NOT_PARTICIPANT
-from ..util.memory import T, EMPTY_MAPPING
+from ..util.memory import T
+from ..util.messages import UserMessage, i18n
 
 # Order of arguments to the RegisterEventEvent constructor
 # event_id: EventId, priority: QueuePriority, public_produce: bool, public_consume: bool,
@@ -138,6 +139,6 @@ def bootstrap_core_events() -> Sequence[EventDefinition[Any]]:  # type: ignore
             EVENT_ID_ERROR,
             QUEUE_EVENT_HIGH, GLOBAL_EVENT_PROTECTION,
             ErrorEvent,
-            ErrorEvent(ErrorReport('', ERROR_CATEGORY_USER, '', EMPTY_MAPPING))  # type: ignore
+            ErrorEvent(ErrorReport('', ERROR_CATEGORY_USER, UserMessage(i18n(''))))
         ),
     )

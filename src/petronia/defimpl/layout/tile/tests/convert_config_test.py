@@ -46,7 +46,6 @@ class ConvertConfigTest(unittest.TestCase):
         # print("Converted to {0}".format(parsed))
         self.assertEqual(primary_index, 0)
         self.assertEqual(parsed.count(), 1)
-        self.assertEqual(parsed.get_active_index(), 0)
         root = parsed.get_child(0)
         self.assertIsInstance(root, SplitterTile)
         self.assertEqual(root.count(), 2)

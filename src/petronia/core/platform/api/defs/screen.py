@@ -3,7 +3,7 @@
 Definitions for data types of the screen.
 """
 
-from typing import Dict, Sequence, Union, Optional
+from typing import Dict, Sequence, Union, Optional, Any, no_type_check
 from .units import (
     ScreenArea, NativeScreenArea, ScreenPosition, ScreenSize,
     SCREEN_AREA_X, SCREEN_AREA_Y, SCREEN_AREA_W, SCREEN_AREA_H,
@@ -208,14 +208,17 @@ class NativeScreenInfo:
         return self.__is_primary
 
     def __repr__(self) -> str:
-        return ("NativeScreenInfo(handle={0}, screen_index={1}, is_primary={2}, "
-            "screen_size={3}, work_area={4}, name={5})").format(
+        return (
+            "NativeScreenInfo(handle={0}, screen_index={1}, is_primary={2}, "
+            "screen_size={3}, work_area={4}, name={5})"
+        ).format(
             repr(self.__handle), repr(self.__screen_index),
             repr(self.__is_primary), repr(self.__screen_size),
             repr(self.__work_area), repr(self.__name)
         )
 
-    def __eq__(self, other: object) -> bool:
+    @no_type_check
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, NativeScreenInfo):
             return False
         return (
@@ -226,3 +229,7 @@ class NativeScreenInfo:
             self.__work_area == other.__work_area and
             self.__name == other.__name
         )
+
+    @no_type_check
+    def __ne__(self, other) -> bool:
+        return not self.__eq__(other)

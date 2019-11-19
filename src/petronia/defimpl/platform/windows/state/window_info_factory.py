@@ -62,24 +62,9 @@ def create_native_window_state(bus: EventBus, hwnd: HWND, hwnd_i: int) -> Option
             'Failed to get information for window {0}: {1}',
             hwnd, new_window_info
         )
-        # Need *something* there...
-        window_info = NativeWindowState(
-            component_id=cid,
-            title='',
-            process_id=-1,
-            names={},
-            bordered_rect=EMPTY_SCREEN_RECT,
-            client_rect=EMPTY_SCREEN_RECT,
-            style={},
-            is_visible=True,
-            is_active=False,
-            is_focused=False
-        )
+        return None
     else:
         window_info = new_window_info
-    if not window_info.is_visible:
-        # Do not use non-visible windows.
-        return None
     return window_info
 
 

@@ -1,13 +1,10 @@
 
-# mypy: allow-any-expr
-# mypy: allow-any-explicit
-
 """
 The current state of the registered hotkeys.
 """
 
 # Cannot import aid.std because of inter-dependencies.
-from typing import Sequence, Any
+from typing import Sequence, Any, no_type_check
 from ....aid.bootstrap import (
     EventBus,
     create_singleton_identity,
@@ -81,6 +78,7 @@ class BoundServiceActionSchema:
     def parameters(self) -> PersistTypeSchema:
         return self.__parameters
 
+    @no_type_check
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, BoundServiceActionSchema):
             return False
@@ -89,6 +87,10 @@ class BoundServiceActionSchema:
                 self.__action == other.action and
                 self.__parameters == other.parameters
         )
+
+    @no_type_check
+    def __ne__(self, other) -> bool:
+        return not self.__eq__(other)
 
     def __repr__(self) -> str:
         return "BoundServiceActionSchema(service={0}, action={1}, parameters={2})".format(

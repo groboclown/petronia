@@ -248,7 +248,7 @@ class TileEventHandler:
                 print("DEBUG no-op: movement '{0}' would put it where it is now.".format(name))
                 return
             # TODO check layout for wrap mode.
-            src_portal, dest_portal, new_active_cid = self.__ctrl.move_portal_focus(direction, count, True)
+            src_portal, dest_portal, new_active_cid = self.__ctrl.move_portal_focus(direction, count)
         else:
             new_active_cid = dest_portal.get_visible_window()
         # TODO update portal state to indicate that a different portal is active.
@@ -359,7 +359,7 @@ class TileEventHandler:
                 if direction is not None:
                     print("DEBUG move window request being handled")
                     src_portal, dest_portal, moved_window_cid, moved_windows = self.__ctrl.move_active_window(
-                        direction, 1, False
+                        direction, 1
                     )
                     for moved in moved_windows:
                         for window in moved.windows:
@@ -444,7 +444,7 @@ def do_layout(
         DEBUG, do_layout,
         'layout={0}', repr(root)
     )
-    ctrl = TileController(root)
+    ctrl = TileController(root, windows.get_active_window_cid())
     for window in windows.windows:
         assign_window_to_portal(bus, ctrl, window, config.matchers)
     send_layout_changed_event(bus)

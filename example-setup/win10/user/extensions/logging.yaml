@@ -1,0 +1,16 @@
+---
+
+Logger:
+  extension: default.logging.file
+  enabled: true
+  properties:
+    filename: petronia.log
+    format: "%H:%M:%S [{LEVEL}] {msg}"
+    default: warn
+    category-levels:
+      - cat: "petronia.base."
+        level: trace
+      - cat: "petronia.defimpl.layout."
+        level: trace
+      - cat: "petronia.defimpl.platform."
+        level: debug

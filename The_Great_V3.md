@@ -43,6 +43,10 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
+* Portal redux
+    * add in portal component id, along with adding portals to the lifecycle.  Even though the portal
+      creation call doesn't make much sense by itself (nothing outside the plugin can explicitly request a creation),
+      the portal component ID and destruction do matter.
 * Extension security enhancements:
     * API extensions:
         * Cannot listen to events.

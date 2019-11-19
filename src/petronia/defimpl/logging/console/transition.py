@@ -69,7 +69,7 @@ class LogStateTransitionHandler:
 
     def _on_config_change(
             self,
-            _event_id: EventId, _target_id: ParticipantId,  # pylint: disable=unused-argument
+            _event_id: EventId, _target_id: ParticipantId,
             event_obj: StateStoreUpdatedEvent[LogConfiguration]
     ) -> None:
         with self._lock:

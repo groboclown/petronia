@@ -3,7 +3,7 @@
 State definition for window objects.
 """
 
-from typing import Sequence, Mapping, Dict, Iterable, List, Union
+from typing import Sequence, Mapping, Dict, Iterable, List, Union, Optional
 from .....aid.std import (
     EventBus,
     set_state,
@@ -150,6 +150,12 @@ class AllActiveWindowsState:
     @property
     def windows(self) -> Sequence[NativeWindowState]:
         return self.__windows
+
+    def get_active_window_cid(self) -> Optional[ComponentId]:
+        for window in self.__windows:
+            if window.is_active:
+                return window.component_id
+        return None
 
     def __repr__(self) -> str:
         return 'AllActiveWindowsState({0})'.format(repr(self.__windows))

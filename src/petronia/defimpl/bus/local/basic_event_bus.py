@@ -12,7 +12,7 @@ from ....base import (
 
     EVENT_WILDCARD, TARGET_WILDCARD,
 
-    log, TRACE, DEBUG
+    log, TRACE, DEBUG, VERBOSE
 )
 from ....base.bus import (
     QueuePriority,
@@ -22,6 +22,8 @@ from ....base.validation import (
     assert_formatted, assert_all, assert_has_signature
 )
 from ....base.util import RWLock
+# Special handling...
+from ....base.events.system_events import EVENT_ID_SYSTEM_HALTED
 
 
 BasicEventCallbackArguments = Tuple[EventId, ParticipantId, object]
@@ -55,7 +57,7 @@ class BasicEventBus:
 
     All memory is expected to be global.
     """
-    __slots__ = ('__queue', '__listener_reg', '__listener_ids', '__next_id', '__lock')
+    __slots__ = ('__queue', '__listener_reg', '__listener_ids', '__next_id', '__lock', '__active')
 
     # registration of listeners to the event id + the target id.
     __listener_reg: Dict[str, List[ListenerId]]
@@ -68,7 +70,7 @@ class BasicEventBus:
     def __init__(self, queue: QueueFunction) -> None:
         """
 
-        :param queue callable: a function that accepts the parameters
+        :param queue: a function that accepts the parameters
             (QUEUE_EVENT_TYPE, function, vargs)
             and invokes said function at a near-future time.  The QUEUE_EVENT_TYPE
             indicates the expected behavior of the queueing process.  Note that
@@ -78,8 +80,9 @@ class BasicEventBus:
         self.__queue = queue
         self.__listener_reg = {}
         self.__listener_ids = {}
-        self.__next_id = 1 # 0 is a "null" listener.
+        self.__next_id = 1  # 0 is a "null" listener.
         self.__lock = RWLock()
+        self.__active = True
 
     def add_listener(
             self,
@@ -120,6 +123,9 @@ class BasicEventBus:
 
         self.__lock.acquire_write()
         try:
+            if not self.__active:
+                # TODO fix this exception to be something better
+                raise ValueError('EventBus not active.')
             listener_id = ListenerId(self.__next_id)
             self.__next_id += 1
             if register_id not in self.__listener_reg:
@@ -169,6 +175,8 @@ class BasicEventBus:
         listeners: List[BasicEventCallback] = []
         self.__lock.acquire_read()
         try:
+            if not self.__active:
+                raise ValueError('Bus not active')
             for evt in events:
                 if evt in self.__listener_reg:
                     for lid in self.__listener_reg[evt]:
@@ -181,6 +189,9 @@ class BasicEventBus:
                         )
                         listener = self.__listener_ids[lid]
                         listeners.append(listener)
+            if event_id == EVENT_ID_SYSTEM_HALTED:
+                log(VERBOSE, BasicEventBus, 'Halted EventBus')
+                self.__active = False
         finally:
             self.__lock.release()
         if listeners:
@@ -194,7 +205,6 @@ class BasicEventBus:
                 'queued priority "{0}" event "{1}" target "{2}" with "{3}"',
                 when, event_id, target_id, event_obj
             )
-
 
     def remove_listener(self, listener_id: ListenerId) -> bool:
         """

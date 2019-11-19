@@ -43,7 +43,7 @@ class SplitterTileTest(unittest.TestCase):
         self.assertEqual(p1.get_area(), (0, 0, 1, 3))
         self.assertEqual(p2.get_area(), (1, 0, 2, 3))
 
-    def test_get_portal_in_direction__1_portal(self) -> None:
+    def test_mk__1_portal(self) -> None:
         """
         split:
             - portal (0)
@@ -51,24 +51,11 @@ class SplitterTileTest(unittest.TestCase):
         splitter = SplitterTile(
             simple_portal_factory, (0, 0, 10, 10), SPLIT_HORIZONTAL, [1], False
         )
-        # Preconditions
         self.assertEqual(splitter.count(), 1)
-        self.assertEqual(splitter.get_active_child_index(), 0)
+        self.assertEqual(splitter.get_area(), (0, 0, 10, 10))
         self.assertIsInstance(splitter[0], Portal)
 
-        path, remainder = splitter.get_portal_in_direction(1, 0, True)
-        self.assertEqual(remainder, 1)
-        self.assertEqual(path, [0])
-
-        path,remainder = splitter.get_portal_in_direction(-1, 0, True)
-        self.assertEqual(remainder, -1)
-        self.assertEqual(path, [0])
-
-        path,remainder = splitter.get_portal_in_direction(0, 0, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [0])
-
-    def test_get_portal_in_direction__2_portals(self) -> None:
+    def test_mk__2_portals(self) -> None:
         """
         split:
             - portal (0)
@@ -79,27 +66,11 @@ class SplitterTileTest(unittest.TestCase):
         )
         # Preconditions
         self.assertEqual(splitter.count(), 2)
-        self.assertEqual(splitter.get_active_child_index(), 0)
+        self.assertEqual(splitter.get_area(), (0, 0, 10, 10))
         self.assertIsInstance(splitter[0], Portal)
         self.assertIsInstance(splitter[1], Portal)
 
-        path, remainder = splitter.get_portal_in_direction(1, 0, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [1])
-
-        path,remainder = splitter.get_portal_in_direction(-1, 1, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [0])
-
-        path,remainder = splitter.get_portal_in_direction(-1, 0, True)
-        self.assertEqual(remainder, -1)
-        self.assertEqual(path, [0])
-
-        path,remainder = splitter.get_portal_in_direction(1, 1, True)
-        self.assertEqual(remainder, 1)
-        self.assertEqual(path, [1])
-
-    def test_get_portal_in_direction__1_sub_portal(self) -> None:
+    def test_mk__1_sub_portal(self) -> None:
         """
         split:
              - portal (0)
@@ -112,7 +83,7 @@ class SplitterTileTest(unittest.TestCase):
         )
         # Preconditions
         self.assertEqual(splitter.count(), 3)
-        self.assertEqual(splitter.get_active_child_index(), 0)
+        self.assertEqual(splitter.get_area(), (0, 0, 10, 10))
         self.assertIsInstance(splitter[0], Portal)
         self.assertIsInstance(splitter[1], SplitterTile)
         # mypy required check
@@ -121,27 +92,7 @@ class SplitterTileTest(unittest.TestCase):
         self.assertIsInstance(splitter[1][0], Portal)
         self.assertIsInstance(splitter[2], Portal)
 
-        path, remainder = splitter.get_portal_in_direction(1, 0, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [1, 0])
-
-        path,remainder = splitter.get_portal_in_direction(-1, 1, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [0])
-
-        path,remainder = splitter.get_portal_in_direction(-1, 0, True)
-        self.assertEqual(remainder, -1)
-        self.assertEqual(path, [0])
-
-        path,remainder = splitter.get_portal_in_direction(2, 1, True)
-        self.assertEqual(remainder, 1)
-        self.assertEqual(path, [2])
-
-        path,remainder = splitter.get_portal_in_direction(0, 2, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [2])
-
-    def test_get_portal_in_direction__1_sub_portal_2(self) -> None:
+    def test_mk__1_sub_portal_2(self) -> None:
         """
         split:
             - portal (0)
@@ -158,50 +109,21 @@ class SplitterTileTest(unittest.TestCase):
         )
         # Preconditions
         self.assertEqual(splitter.count(), 3)
-        self.assertEqual(splitter.get_active_child_index(), 0)
+        self.assertEqual(splitter.get_area(), (0, 0, 10, 10))
         self.assertIsInstance(splitter[0], Portal)
         self.assertIsInstance(splitter[1], SplitterTile)
         # mypy required check
         assert isinstance(splitter[1], SplitterTile)
         self.assertEqual(splitter[1].count(), 2)
-        self.assertEqual(splitter[1].get_active_child_index(), 0)
+        self.assertEqual(splitter[1].get_area(), (3, 0, 3, 10))
         self.assertIsInstance(splitter[1][0], SplitterTile)
         assert isinstance(splitter[1][0], SplitterTile)
         self.assertEqual(splitter[1][0].count(), 2)
-        self.assertEqual(splitter[1][0].get_active_child_index(), 0)
+        self.assertEqual(splitter[1][0].get_area(), (3, 0, 3, 5))
         self.assertIsInstance(splitter[1][0][0], Portal)
         self.assertIsInstance(splitter[1][0][1], Portal)
         self.assertIsInstance(splitter[1][1], Portal)
         self.assertIsInstance(splitter[2], Portal)
-
-        path, remainder = splitter.get_portal_in_direction(1, 0, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [1, 0, 0])
-
-        path,remainder = splitter.get_portal_in_direction(-1, 1, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [0])
-
-        # start index 1, which is the split that goes deep into
-        # (1, 0, 0), then that should advance by 1.
-        path, remainder = splitter.get_portal_in_direction(1, 1, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [1, 0, 1])
-
-        # start index 1, which is the split that goes deep into
-        # (1, 1, 0), then should advance by 1, which brings it
-        # to (1, 1, 1), then that advances to (2).
-        path, remainder = splitter.get_portal_in_direction(2, 1, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [2])
-
-        path,remainder = splitter.get_portal_in_direction(-1, 0, True)
-        self.assertEqual(remainder, -1)
-        self.assertEqual(path, [0])
-
-        path,remainder = splitter.get_portal_in_direction(0, 2, True)
-        self.assertEqual(remainder, 0)
-        self.assertEqual(path, [2])
 
 
 def simple_portal_factory(_index: int, area: ScreenArea) -> Portal:

@@ -4,33 +4,33 @@ General manager for the tiles.  This provides the control methods for
 interacting with the splitters and portals tree.
 """
 
+from threading import Lock
 from typing import Sequence, Tuple, Optional
 from typing import cast as t_cast
-from threading import Lock
+
+from .consts import (
+    MOVE_WINDOW_DIRECTION_NORTH,
+    MOVE_WINDOW_DIRECTION_EAST,
+    MOVE_WINDOW_DIRECTION_SOUTH,
+    MOVE_WINDOW_DIRECTION_WEST,
+)
+from .navigation import Navigator
+from .portal import (
+    Portal,
+    PortalWindowInfo,
+)
+from .root import (
+    RootTile,
+)
+from .splitter import (
+    Tile,
+)
 from ....aid.std import (
     ComponentId,
     EMPTY_TUPLE,
 )
 from ....core.platform.api import (
     ScreenArea,
-)
-from .consts import (
-    MOVE_WINDOW_DIRECTION_NORTH,
-    MOVE_WINDOW_DIRECTION_EAST,
-    MOVE_WINDOW_DIRECTION_SOUTH,
-    # MOVE_WINDOW_DIRECTION_WEST,
-    MOVE_WINDOW_DIRECTION_ALL,
-)
-from .root import (
-    RootTile,
-)
-from .portal import (
-    Portal,
-    PortalWindowInfo,
-)
-from .splitter import (
-    Tile,
-    SPLIT_HORIZONTAL, SPLIT_VERTICAL,
 )
 
 
@@ -98,11 +98,14 @@ class TileController:
     Outside controller for the tiles.  Does not interact with the bus.
     """
 
-    __slots__ = ('__root', '__active_path', '__lock')
+    __slots__ = ('__root', '__navigation', '__lock')
 
-    def __init__(self, root: RootTile) -> None:
+    def __init__(self, root: RootTile, active_window_cid: Optional[ComponentId]) -> None:
         self.__root = root
-        self.__active_path = root.get_active_index()
+        self.__navigation = Navigator(
+            active_window_cid, root.get_portals_with_paths(),
+            root.wrap_x, root.wrap_y
+        )
         self.__lock = Lock()
 
     def add_window_to_named_portal(
@@ -128,24 +131,24 @@ class TileController:
     def set_active_portal_name(self, name: str) -> None:
         """Set a named path to the currently active portal."""
         with self.__lock:
-            portal = self.__root.get_active_portal()
+            portal = self.__navigation.get_active_portal()
             portal.set_name(name)
 
     def focus_named_portal(self, name: str) -> Optional[Portal]:
         """Set the given named path as active and return the focused portal, if any.  If
         the name isn't assigned to a portal or a path, then None is returned."""
         with self.__lock:
-            for portal, path in self.__root.get_portals_with_paths():
-                if portal.get_name() == name:
-                    self.__root.set_active_index_path(path)
-                    return portal
+            portal_and_path = self.__navigation.make_active_choice(lambda p: p.get_name() == name)
+        if portal_and_path:
+            return portal_and_path[0]
         return None
 
     def on_window_focused(self, window: ComponentId) -> None:
         """Inform the owning portal that the given window is now focused.  Used
         to keep internal state synchronized with the native UI state."""
         with self.__lock:
-            self.__root.set_active_window(window)
+            with self.__lock:
+                self.__navigation.make_active_choice(lambda p: p.has_window(window))
 
     def active_portal_window_switch(self, direction: int) -> Optional[Tuple[Portal, ComponentId]]:
         """
@@ -156,7 +159,7 @@ class TileController:
         :return: the portal containing the window, and the newly active window.
         """
         with self.__lock:
-            portal = self.__root.get_active_portal()
+            portal = self.__navigation.get_active_portal()
             window = portal.change_visible_window_index(direction)
             if window:
                 return portal, window
@@ -171,6 +174,10 @@ class TileController:
         :return: the windows in the removed portal that are now parent-less, and
             portals that were adjusted with the change (does not include the parent-less windows).
         """
+
+        # Must create a new navigation
+        # self.__navigation = new Navigation(...)
+
         raise NotImplementedError()
 
     def add_active_split(self, new_portal_id: ComponentId) -> Tuple[Portal, Sequence[AdjustedPortal]]:
@@ -180,6 +187,10 @@ class TileController:
 
         :return: the portals that were adjusted by the change.
         """
+
+        # Must create a new navigation
+        # self.__navigation = new Navigation(...)
+
         raise NotImplementedError()
 
     def resize_active_split(self, pixel_count: int) -> Sequence[AdjustedPortal]:
@@ -188,6 +199,10 @@ class TileController:
 
         In general, it prioritizes east and south growth or shrinkage.
         """
+
+        # Must create a new navigation
+        # self.__navigation = new Navigation(...)
+
         raise NotImplementedError()
 
     def move_active_split(self, pixel_count: int) -> Sequence[AdjustedPortal]:
@@ -195,10 +210,14 @@ class TileController:
         Moves the active split by growing or shrinking the sibling splits
         around it.
         """
+
+        # Must create a new navigation
+        # self.__navigation = new Navigation(...)
+
         raise NotImplementedError()
 
     def move_active_window(
-            self, direction: int, count: int, wrap: bool
+            self, direction: int, count: int
     ) -> Tuple[Portal, Portal, Optional[ComponentId], Sequence[AdjustedPortal]]:
         """
         Move the active window to a different portal in the given direction.  The
@@ -206,32 +225,28 @@ class TileController:
 
         :param direction:
         :param count:
-        :param wrap:
         :return: source portal (no longer active), destination portal (now active),
             now-active window CID, moved portal windows.
         """
-        src_portal = self.__root.get_active_portal()
+
+        # This is done as a portal move focus, while also capturing the initial focused window.
+        src_portal = self.__navigation.get_active_portal()
         window_info = src_portal.get_visible_window_info()
         if not window_info:
             # No-Op
             return src_portal, src_portal, None, t_cast(Sequence[AdjustedPortal], EMPTY_TUPLE)
-        dest_portal, next_path = self._find_portal_dir(
-            src_portal, direction, count, wrap
-        )
-        if not next_path:
+        _, tgt_portal, _ = self.move_portal_focus(direction, count)
+        if tgt_portal == src_portal:
             # No-Op
             return src_portal, src_portal, window_info.cid, t_cast(Sequence[AdjustedPortal], EMPTY_TUPLE)
 
         src_portal.remove_window(window_info.cid)
-        _index, area = dest_portal.add_window(window_info.cid, window_info.base_area, window_info.position_favor)
-        src_portal.set_focus(False)
-        dest_portal.set_focus(True)
-        self.__root.set_active_index_path(next_path)
+        _, area = tgt_portal.add_window(window_info.cid, window_info.base_area, window_info.position_favor)
 
         return (
-            src_portal, dest_portal, window_info.cid,
+            src_portal, tgt_portal, window_info.cid,
             (
-                AdjustedPortal(ADJUSTED_PORTAL_ACTION_RESIZED, dest_portal, (
+                AdjustedPortal(ADJUSTED_PORTAL_ACTION_RESIZED, tgt_portal, (
                     AdjustedWindow(window_info.cid, area),
                 )),
             ),
@@ -247,59 +262,45 @@ class TileController:
             return self.get_active_portal()
 
     def get_active_portal(self) -> Portal:
-        return self.__root.get_active_portal()
+        return self.__navigation.get_active_portal()
 
     def get_active_window(self) -> Optional[ComponentId]:
-        portal = self.__root.get_active_portal()
+        portal = self.__navigation.get_active_portal()
         return portal.get_visible_window()
 
     def move_portal_focus(
-            self, direction: int, amount: int, wrap: bool
+            self, direction: int, amount: int
     ) -> Tuple[Portal, Portal, Optional[ComponentId]]:
         """
 
-        :param direction:
-        :param amount:
-        :param wrap:
+        :param direction: direction to move focus
+        :param amount: number of portals to move in the direction
         :return: source portal (no longer focused), new focused portal, and the window that now has the focus.
         """
-        src_portal = self.__root.get_active_portal()
-        dest_portal, next_path = self._find_portal_dir(
-            src_portal, direction, amount, wrap
-        )
-        if not next_path:
+        src_portal = self.__navigation.get_active_portal()
+        # Yeah, having the loop outside the if statement is inefficient, but this is run "rarely" (e.g. based
+        # on user typing something, not in a tight loop that's running for a long period of time).
+        tgt_portal_and_path: Optional[Tuple[Portal, Sequence[int]]] = None
+        for _i in range(amount):
+            if direction == MOVE_WINDOW_DIRECTION_NORTH:
+                next_tgt_portal_and_path = self.__navigation.move_north()
+            elif direction == MOVE_WINDOW_DIRECTION_EAST:
+                next_tgt_portal_and_path = self.__navigation.move_east()
+            elif direction == MOVE_WINDOW_DIRECTION_SOUTH:
+                next_tgt_portal_and_path = self.__navigation.move_south()
+            elif direction == MOVE_WINDOW_DIRECTION_WEST:
+                next_tgt_portal_and_path = self.__navigation.move_west()
+            else:
+                raise ValueError('invalid direction number {0}'.format(direction))
+            if not next_tgt_portal_and_path:
+                # reached the end.
+                break
+            tgt_portal_and_path = next_tgt_portal_and_path
+        if not tgt_portal_and_path:
             # No-Op
             return src_portal, src_portal, None
-        src_portal.set_focus(False)
-        focus_window = src_portal.get_visible_window()
-        dest_portal.set_focus(True)
-        self.__root.set_active_index_path(next_path)
-        return src_portal, dest_portal, focus_window
-
-    def _find_portal_dir(
-            self, src_portal: Portal, direction: int, count: int, wrap: bool
-    ) -> Tuple[Portal, Sequence[int]]:
-        assert direction in MOVE_WINDOW_DIRECTION_ALL
-        if direction == MOVE_WINDOW_DIRECTION_NORTH:
-            split_dir = SPLIT_VERTICAL
-            split_count = -count
-        elif direction == MOVE_WINDOW_DIRECTION_EAST:
-            split_dir = SPLIT_HORIZONTAL
-            split_count = count
-        elif direction == MOVE_WINDOW_DIRECTION_SOUTH:
-            split_dir = SPLIT_VERTICAL
-            split_count = count
-        else:
-            split_dir = SPLIT_HORIZONTAL
-            split_count = -count
-        next_path = self.__root.get_portal_in_split_direction(split_dir, split_count, wrap)
-        dest_portal, _followed = self._tile_at(next_path)
-        if not isinstance(dest_portal, Portal):
-            # FIXME INTERNAL ERROR INSTEAD?
-            raise ValueError('portal movement discovery returned a non-portal; found {0}.'.format(dest_portal))
-        if dest_portal == src_portal:
-            return src_portal, t_cast(Sequence[int], EMPTY_TUPLE)
-        return dest_portal, next_path
+        focus_window = tgt_portal_and_path[0].get_visible_window()
+        return src_portal, tgt_portal_and_path[0], focus_window
 
     def _tile_at(self, path: Sequence[int]) -> Tuple[Tile, Sequence[int]]:
         """
@@ -319,6 +320,6 @@ class TileController:
             followed.append(index)
         return child, followed
 
-    def _active_path(self) -> Sequence[int]:
+    def _active_portal_path(self) -> Tuple[Portal, Sequence[int]]:
         """Helper for tests."""
-        return self.__root.get_active_portal_path()
+        return self.__navigation.get_active_portal_and_path()

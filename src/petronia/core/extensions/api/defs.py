@@ -67,5 +67,9 @@ class LoadedExtension:
         print("not equal - not same class")
         return False
 
+    @no_type_check
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     def __hash__(self) -> int:
         return self.__hash
