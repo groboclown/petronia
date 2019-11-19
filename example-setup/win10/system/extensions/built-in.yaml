@@ -11,9 +11,3 @@ Timer:
 CoreHotkeyBindings:
   extension: core.hotkeys.binding
   enabled: true
-
-Logger:
-  extension: default.logging.console
-  enabled: true
-  properties:
-    categories:

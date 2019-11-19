@@ -4,6 +4,7 @@ Loads the extension.
 """
 
 from typing import Sequence, List, Iterable, Collection, Set
+import traceback
 from ...base import (
     EventBus,
     INFO, TRACE, log
@@ -67,6 +68,7 @@ def load_additional_extensions(
         except PetroniaExtensionError:
             raise
         except BaseException as err:  # pylint: disable=broad-except
+            traceback.print_exception(err.__class__, err, err.__traceback__)
             raise PetroniaExtensionInitializationError(
                 disc.name,
                 [ext.name for ext in ret],

@@ -7,7 +7,7 @@ Converts from low-level information to Petronia, platform agnostic level.
 Also, handles event requests to windows.
 """
 
-from typing import Sequence, List, Dict, Optional
+from typing import Dict, Optional
 from typing import cast as t_cast
 from threading import RLock
 import atexit
@@ -18,7 +18,7 @@ from ..arch.native_funcs import (
 from .....aid.std import (
     EventBus,
     EventId,
-    ListenerId,
+    ListenerSet,
     ComponentId,
     ParticipantId,
     TARGET_WILDCARD,
@@ -79,22 +79,17 @@ from .actions.restore_windows import restore_windows
 from .actions.window_style import set_window_style
 
 
-def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequence[ListenerId]:
+def bootstrap_window_discovery(bus: EventBus, listeners: ListenerSet, hooks: WindowsHookEvent) -> None:
     """
     Startup the window code.  NOte that this does not need to be aware of
     windows created by the GUI code, because those windows still need to
     be managed.  The GUI window itself will have its own ID, and the
     component will be a different ID.
-
-    :param bus:
-    :param hooks:
-    :return:
     """
 
     # A lock is required because the user request events can be in any thread, even though
     # the Windows events can only come in through one thread.
     lock = RLock()
-    listeners: List[ListenerId] = []
     reverse_window_ids: Dict[ComponentId, HWND] = {}
     active_windows: Dict[int, NativeWindowState] = {}
     original_state: Dict[int, NativeWindowState] = {}
@@ -177,8 +172,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
                     return
                 assert hwnd_i in active_windows
             window_info = active_windows[hwnd_i]
-            # log(DEBUG, on_window_focused, 'Window focused: {0}', window_info.component_id)
-            log(WARN, on_window_focused, 'Window focused: {0}', window_info.component_id)
+            log(DEBUG, on_window_focused, 'Window focused: {0}', window_info.component_id)
             update_active_window(hwnd_i, active_windows)
             send_native_window_focused_event(bus, window_info.component_id)
             set_active_windows_state(bus, active_windows.values())
@@ -276,19 +270,19 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             event: RequestMoveNativeWindowEvent
     ) -> None:
         with lock:
-            log(WARN, on_request_move, 'Picked up a request to move a window.')
+            log(DEBUG, on_request_move, 'Picked up a request to move a window.')
             if target_id in reverse_window_ids and WINDOWS_FUNCTIONS.window.move_resize:
                 # For target to be in the list, it must be of the right type.
                 hwnd = reverse_window_ids[t_cast(ComponentId, target_id)]
                 area = event.area
                 x, y = from_user_to_native_screen(area[SCREEN_AREA_X], area[SCREEN_AREA_Y])
                 w, h = from_user_to_native_screen(area[SCREEN_AREA_W], area[SCREEN_AREA_H])
+                # log(
+                #     VERBOSE, on_request_move, 'Moving window {0} -> HWND {1} to {2} -> {3}',
+                #     target_id, hwnd, area, (x, y, w, h,)
+                # )
                 log(
-                    VERBOSE, on_request_move, 'Moving window {0} -> HWND {1} to {2} -> {3}',
-                    target_id, hwnd, area, (x, y, w, h,)
-                )
-                log(
-                    WARN, on_request_move, 'Moving window {0} ({4}) -> HWND {1} to {2} -> {3}',
+                    DEBUG, on_request_move, 'Moving window {0} ({4}) -> HWND {1} to {2} -> {3}',
                     target_id, hwnd, area, (x, y, w, h,), active_windows[hwnd_to_int(hwnd) or 0]
                 )
                 res = WINDOWS_FUNCTIONS.window.move_resize(
@@ -327,7 +321,7 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
             _event_id: EventId, target_id: ParticipantId,
             _event: RequestFocusNativeWindowEvent
     ) -> None:
-        log(WARN, on_request_move, 'Picked up a request to focus a window.')
+        log(DEBUG, on_request_move, 'Picked up a request to focus a window.')
         with lock:
             if target_id in reverse_window_ids and WINDOWS_FUNCTIONS.window.activate:
                 hwnd = reverse_window_ids[t_cast(ComponentId, target_id)]
@@ -365,12 +359,10 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     hooks.add_message_handler(window_replacing_message(on_window_replace))
     hooks.add_message_handler(window_replaced_message(on_window_replace))
 
-    listeners.extend((
-        bus.add_listener(TARGET_WILDCARD, as_request_move_native_window_listener, on_request_move),
-        bus.add_listener(TARGET_WILDCARD, as_request_focus_native_window_listener, on_request_focus),
-        bus.add_listener(TARGET_WILDCARD, as_request_close_native_window_listener, on_request_close),
-        bus.add_listener(TARGET_WILDCARD, as_request_set_native_window_style_listener, on_request_style),
-    ))
+    listeners.listen(TARGET_WILDCARD, as_request_move_native_window_listener, on_request_move)
+    listeners.listen(TARGET_WILDCARD, as_request_focus_native_window_listener, on_request_focus)
+    listeners.listen(TARGET_WILDCARD, as_request_close_native_window_listener, on_request_close)
+    listeners.listen(TARGET_WILDCARD, as_request_set_native_window_style_listener, on_request_style)
 
     # Set the initial state.
     if WINDOWS_FUNCTIONS.window.find_handles:
@@ -386,8 +378,6 @@ def bootstrap_window_discovery(bus: EventBus, hooks: WindowsHookEvent) -> Sequen
     log(
         TRACE, bootstrap_window_discovery, 'Initial window state: {0}', active_windows.values()
     )
-
-    return listeners
 
 
 def update_active_window(active_hwnd: int, active_windows: Dict[int, NativeWindowState]) -> None:

@@ -10,9 +10,9 @@ from .....aid.std import (
     ValueHolder,
     ParticipantId,
     EventId,
-    ListenerId,
     as_state_change_listener,
     StateStoreUpdatedEvent,
+    ListenerSet,
     log,
     DEBUG,
     ErrorReport,
@@ -38,10 +38,9 @@ from ..input import (
 
 def bootstrap_hotkeys(
         bus: EventBus, hooks: WindowsHookEvent,
+        listeners: ListenerSet,
         initial_keys: Optional[Tuple[str, Dict[str, str]]] = None
-) -> List[ListenerId]:
-    listeners: List[ListenerId] = []
-
+) -> None:
     hotkey_chain = HotKeyChain()
     if initial_keys:
         c_cmd: List[Tuple[Sequence[KeyCombo], str]] = []
@@ -77,12 +76,10 @@ def bootstrap_hotkeys(
         hotkey_chain.set_key_chains(chain_commands)
         set_hotkey_state(bus, event_obj.state.master_sequence, event_obj.state.hotkeys)
 
-    listeners.append(bus.add_listener(  # type: ignore
+    listeners.listen(
         CONFIGURATION_ID_HOTKEYS,
         as_state_change_listener, on_hotkeys_config
-    ))
-
-    return listeners
+    )
 
 
 def _parse_keys(

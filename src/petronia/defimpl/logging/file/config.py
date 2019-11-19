@@ -23,7 +23,7 @@ from ....base.util.simple_type import (
     optional_str,
 )
 
-LEVEL_NAME_MAP = readonly_dict({
+LEVEL_NAME_MAP: Mapping[str, LogLevel] = readonly_dict({
     'trace': TRACE,
     'debug': DEBUG,
     'dbg': DEBUG,
@@ -44,7 +44,7 @@ LEVEL_NAME_MAP = readonly_dict({
     'die': FATAL,
 })
 
-FULL_LEVEL_NAME_UPPER: readonly_dict({
+FULL_LEVEL_NAME_UPPER: Mapping[int, str] = readonly_dict({
     int(TRACE): 'TRACE',
     int(DEBUG): 'DEBUG',
     int(VERBOSE): 'VERBOSE',
@@ -53,10 +53,10 @@ FULL_LEVEL_NAME_UPPER: readonly_dict({
     int(WARN): 'WARN',
     int(DEPRECATED): 'DEPRECATED',
     int(ERROR): 'ERROR',
-    int(FATAL): FATAL,
+    int(FATAL): 'FATAL',
 })
 
-LEVEL_NAME_5_UPPER: readonly_dict({
+LEVEL_NAME_5_UPPER: Mapping[int, str] = readonly_dict({
     int(TRACE): 'TRACE',
     int(DEBUG): 'DEBUG',
     int(VERBOSE): 'VRBSE',
@@ -65,10 +65,11 @@ LEVEL_NAME_5_UPPER: readonly_dict({
     int(WARN): ' WARN',
     int(DEPRECATED): 'DEPR',
     int(ERROR): 'ERROR',
-    int(FATAL): FATAL,
+    int(FATAL): 'FATAL',
 })
 
 DEFAULT_FORMAT = '[{LEVEL}] {msg}'
+DEFAULT_CONTINUATION_FORMAT = '        {msg}'
 
 
 class FileLoggerConfig:
@@ -79,12 +80,18 @@ class FileLoggerConfig:
     __slots__ = (
         '__file',
         '__format',
+        '__cont_format',
         '__category_levels',
     )
 
-    def __init__(self, filename: str, log_format: str, category_log_levels: Mapping[str, str]) -> None:
+    def __init__(
+            self, filename: str,
+            log_format: str, continuation_format: str,
+            category_log_levels: Mapping[str, str]
+    ) -> None:
         self.__file = filename
         self.__format = log_format
+        self.__cont_format = continuation_format
         self.__category_levels = readonly_dict(category_log_levels)
 
     @property
@@ -99,21 +106,28 @@ class FileLoggerConfig:
     def log_format(self) -> str:
         return self.__format
 
+    @property
+    def continuation_format(self) -> str:
+        return self.__cont_format
+
     def get_category_levels(self) -> Mapping[str, LogLevel]:
         ret: Dict[str, LogLevel] = {}
-        for cat, level in self.__category_levels:
-            level = LEVEL_NAME_MAP.get(level.lower().strip(), WARN)
-            ret[cat] = level
+        for cat, level in self.__category_levels.items():
+            log_level = LEVEL_NAME_MAP.get(level.lower().strip(), WARN)
+            ret[cat] = log_level
         return ret
 
     def format_message(self, when: struct_time, level: LogLevel, formatted_message: str) -> str:
-        return strftime(self.__format.format(
-            LEVEL=LEVEL_NAME_5_UPPER[level],
-            LONG_LEVEL=FULL_LEVEL_NAME_UPPER[level],
-            level=LEVEL_NAME_5_UPPER[level].lower(),
-            long_level=FULL_LEVEL_NAME_UPPER[level].lower(),
-            msg=formatted_message
-        ), when)
+        return '\n'.join([
+            strftime(self.__format.format(
+                LEVEL=LEVEL_NAME_5_UPPER[level],
+                LONG_LEVEL=FULL_LEVEL_NAME_UPPER[level],
+                level=LEVEL_NAME_5_UPPER[level].lower(),
+                long_level=FULL_LEVEL_NAME_UPPER[level].lower(),
+                msg=line
+            ), when)
+            for line in formatted_message.splitlines()
+        ])
 
 
 LOGGER_SCHEMA = readonly_persistent_schema_copy({
@@ -135,6 +149,10 @@ LOGGER_SCHEMA = readonly_persistent_schema_copy({
         https://docs.python.org/3/library/time.html#time.strftime
         for the formatting of the time when the log was recorded.
         """,
+        PERSISTENT_TYPE_SCHEMA_TYPE__STR
+    ),
+    'continuation': PersistTypeSchemaItem(
+        'Format for when a message continues over several lines.  It follows the same formatting rules as "format"',
         PERSISTENT_TYPE_SCHEMA_TYPE__STR
     ),
     'default': PersistTypeSchemaItem(
@@ -160,7 +178,7 @@ LOGGER_SCHEMA = readonly_persistent_schema_copy({
 
 def parse_config(data: PersistType) -> ResultWithErrors[FileLoggerConfig]:
     errors: List[ErrorReport] = []
-    category_levels: Mapping[str, str] = {
+    category_levels: Dict[str, str] = {
         # Default level
         '': collect_errors(errors, optional_str(
             data, 'default',
@@ -175,6 +193,10 @@ def parse_config(data: PersistType) -> ResultWithErrors[FileLoggerConfig]:
         data, 'format',
         lambda: create_user_error(parse_config, _('`format` must be a string'))
     )) or DEFAULT_FORMAT
+    continue_format = collect_errors(errors, optional_str(
+        data, 'continuation',
+        lambda: create_user_error(parse_config, _('`continuation` must be a string'))
+    )) or DEFAULT_CONTINUATION_FORMAT
 
     raw_categories = collect_errors(errors, with_key_as_list(
         data, 'category-levels',
@@ -188,9 +210,10 @@ def parse_config(data: PersistType) -> ResultWithErrors[FileLoggerConfig]:
             raw_category, 'cat',
             lambda: create_user_error(parse_config, _('`cat` must be a string'))
         ))
-        level = collect_errors(errors, optional_str(
-            raw_category, 'level',
-            lambda: create_user_error(parse_config, _('`level` must be a string'))
-        )) or 'warn'
-        category_levels[cat] = level
-    return FileLoggerConfig(filename, log_format, category_levels), errors
+        if cat:
+            level = collect_errors(errors, optional_str(
+                raw_category, 'level',
+                lambda: create_user_error(parse_config, _('`level` must be a string'))
+            )) or 'warn'
+            category_levels[cat] = level
+    return FileLoggerConfig(filename, log_format, continue_format, category_levels), errors

@@ -33,15 +33,15 @@ def bootstrap_halt(bus: EventBus, queue: BusQueueManager, timeout_seconds: float
     """
 
     def on_halt(
-            event_id: EventId, # pylint: disable=unused-argument
-            target_id: ParticipantId, # pylint: disable=unused-argument
-            event_obj: SystemHaltedEvent # pylint: disable=unused-argument
+            _event_id: EventId,
+            _target_id: ParticipantId,
+            _event_obj: SystemHaltedEvent
     ) -> None:
+        # print("###########################")
         log(DEBUG, bootstrap_halt, 'Initiating Petronia halt.')
         queue.stop(timeout_seconds)
         log(INFO, bootstrap_halt, 'Petronia stopped.')
         sys.exit(0)
-
 
     # Cannot deregister this listener, because when it's no longer needed,
     # there will no longer be an event bus to run against.

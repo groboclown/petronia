@@ -91,9 +91,7 @@ Early development that caused rethinking of how things are done, but that code n
 * Hotkey meta-characters should be passed as still down after hotkey is processed.
 * Unit tests everywhere.
 * Bugs:
-    * Finalized shutdown sometimes seems to need a window event to wake it up to stop, say switching active windows.
-    * Shutdown event doesn't stop petronia.  Only ctrl-c seems to. (Windows)
-
+    * logger + category - investigate why it's not logging.
 
 ## Later On Features
 

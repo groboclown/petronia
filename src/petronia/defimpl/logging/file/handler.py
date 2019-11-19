@@ -3,6 +3,7 @@
 The log handler.
 """
 
+import sys
 import time
 import traceback
 from threading import Lock
@@ -12,6 +13,7 @@ from .config import (
     FileLoggerConfig,
     parse_config,
     DEFAULT_FORMAT,
+    DEFAULT_CONTINUATION_FORMAT,
 )
 from .ident import (
     TARGET_ID_FILE_LOGGER_CONFIG,
@@ -31,6 +33,7 @@ from ....aid.std import (
     remove_log_handler,
     report_error,
     DEPRECATED,
+    EMPTY_MAPPING,
 )
 from ....core.config_persistence.api import PersistentConfigurationState
 
@@ -41,13 +44,14 @@ class LogHandler:
     log handler.
     """
     __slots__ = ('_listeners', '_bus', '_raw_config', '_config', '_lock',)
+    _bus: Optional[EventBus]
     _listeners: Dict[str, Tuple[LogLevel, LogHandlerId]]
 
     def __init__(self, bus: EventBus, listeners: ListenerSet) -> None:
         self._lock = Lock()
         self._listeners = {}
         self._bus = bus
-        self._config = FileLoggerConfig('-', DEFAULT_FORMAT, {})
+        self._config = FileLoggerConfig('-', DEFAULT_FORMAT, DEFAULT_CONTINUATION_FORMAT, EMPTY_MAPPING)  # type: ignore
         self._raw_config = StateWatch(listeners, TARGET_ID_FILE_LOGGER_CONFIG, PersistentConfigurationState({}))
         self._raw_config.set_listener(self._on_config_change)
         self._on_config_change(self._raw_config.state)
@@ -101,7 +105,6 @@ class LogHandler:
                 different = True
 
             if different and self._bus:
-                self._raw_config = state.persistent
                 self._config = new_config
                 new_state = LogState(new_category_levels)
                 set_log_state(self._bus, TARGET_ID_FILE_LOGGER_STATE, new_state)
@@ -126,13 +129,18 @@ class LogHandler:
             self._print(self._config.format_message(now, level, msg))
         if err:
             self._print(self._config.format_message(
-                now, level, traceback.format_exception(err.__class__, err, err.__traceback__)
+                now, level,
+                '\n'.join(traceback.format_exception(err.__class__, err, err.__traceback__))
             ))
 
-    def _print(self, msg) -> None:
+    def _print(self, msg: str) -> None:
         with self._lock:
-            with open(self._config.filename, 'w') as f:
-                f.write(msg + '\n')
+            if self._config.filename == '-':
+                sys.stdout.write(msg + '\n')
+                sys.stdout.flush()
+            else:
+                with open(self._config.filename, 'w') as f:
+                    f.write(msg + '\n')
 
 
 _SEEN_DEPRECATED: Set[str] = set()

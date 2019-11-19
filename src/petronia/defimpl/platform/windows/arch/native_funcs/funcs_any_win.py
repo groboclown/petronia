@@ -41,7 +41,7 @@ from ..windows_constants import (
     HWND_TOPMOST, HWND_NOTOPMOST, HWND_DESKTOP, GW_OWNER,
     SWP_NOSIZE, SWP_NOMOVE,
     PROCESS_QUERY_INFORMATION, PROCESS_VM_READ,
-    WM_CLOSE, WM_DESTROY, WH_SHELL, WM_SETTINGCHANGE,
+    WM_CLOSE, WM_DESTROY, WM_QUIT, WH_SHELL, WM_SETTINGCHANGE,
     PS_SOLID, PS_GEOMETRIC, BS_NULL, HS_DIAGCROSS, OPAQUE, TRANSPARENT,
     DT_LEFT, DT_TOP, DT_NOPREFIX,
     LWA_ALPHA, COLOR_WINDOW,
@@ -1385,7 +1385,7 @@ def shell__create_global_message_handler(message_id_callbacks: Dict[int, Message
     assert isinstance(message_id_callbacks, dict)
 
     def handler(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> int:
-        # print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
+        print("DEBUG handling hwnd message {0} {1} {2}".format(message, wparam, lparam))
         if message in message_id_callbacks:
             ret = message_id_callbacks[message](hwnd, message, wparam, lparam)
             if ret is not False:

@@ -21,7 +21,6 @@ from ..arch.native_funcs import (
     MessageCallback,
 )
 from .messages import MessageEntry
-from ..input.keymap import vk_to_names
 
 _Hook = Callable[[], UINT]
 
@@ -38,6 +37,7 @@ class WindowsHookEvent:
         '_window_message_map', '_key_handler',
         '_shell_message_map',
         '_shell_handler',
+        '_message_callback_handler',
     )
     _hwnd: Optional[HWND]
     _key_hook: Optional[HHOOK]
@@ -195,6 +195,8 @@ class WindowsHookEvent:
         pump_thread.start()
 
     def dispose(self) -> None:
+        if self._hwnd and WINDOWS_FUNCTIONS.window.close:
+            WINDOWS_FUNCTIONS.window.close(self._hwnd)
         if self.__start_state == 1 and WINDOWS_FUNCTIONS.window.send_message and self._hwnd:
             log(INFO, WindowsHookEvent, 'Sending shutdown to window message consumer.')
             WINDOWS_FUNCTIONS.window.send_message(

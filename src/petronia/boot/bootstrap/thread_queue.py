@@ -123,7 +123,7 @@ class CoreActionHandler(BusQueueManager):
                 self._main_thread.queue(self._main_handler)
             log(
                 DEBUG, CoreActionHandler,
-                'Active event count: {0}', self.__count
+                'Active event count: {0} (queued events)', self.__count
             )
 
     def _error_handler(self, msg: str, err: BaseException) -> None:
@@ -159,6 +159,7 @@ class CoreActionHandler(BusQueueManager):
                     )
                     hand = self._main_events[0]
                     del self._main_events[0]
+                    remaining = True
             if hand:
                 self._run_handler(hand)
 
@@ -179,5 +180,6 @@ class CoreActionHandler(BusQueueManager):
                 self.__count -= 1
                 log(
                     DEBUG, CoreActionHandler,
-                    'Active event count: {0}', self.__count
+                    'Active event count: {0} (processed)',
+                    self.__count
                 )

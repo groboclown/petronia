@@ -4,10 +4,10 @@ Sets up the state for the monitors, and listens for changes to the display
 settings, to update the state on the fly.
 """
 
-from typing import Sequence, List, Tuple
+from typing import List, Tuple
 from .....aid.std import (
     EventBus,
-    ListenerId,
+    ListenerSet,
 )
 from .....core.platform.api.screen import (
     set_screen_state,
@@ -30,7 +30,7 @@ from ..connect.messages import (
 from ..arch.native_funcs.monitor import WindowsMonitor
 
 
-def bootstrap_display_detection(bus: EventBus, connect: WindowsHookEvent) -> Sequence[ListenerId]:
+def bootstrap_display_detection(bus: EventBus, _listeners: ListenerSet, connect: WindowsHookEvent) -> None:
     errors = bootstrap_screens()
     for error in errors:
         print("DEBUG setup screens: {0}".format(error))
@@ -46,8 +46,6 @@ def bootstrap_display_detection(bus: EventBus, connect: WindowsHookEvent) -> Seq
     on_display_changed()
 
     connect.add_message_handler(display_changed_message(on_display_changed))
-
-    return ()
 
 
 def _map_monitors(store: List[Tuple[NativeScreenInfo, VirtualScreenArea]]) -> None:
