@@ -159,6 +159,13 @@ class CoreActionHandler(BusQueueManager):
                     )
                     hand = self._main_events[0]
                     del self._main_events[0]
+
+                    # Originally, this was not performed.  It was an attempt to make
+                    # normal-priority events be "nice" and allow other things to process.
+                    # However, this lead to situations where the events were not being
+                    # flushed, especially at shutdown time.
+                    # This may need to be revisited in the future to find ways to make
+                    # normal process events more equitable with the processing time.
                     remaining = True
             if hand:
                 self._run_handler(hand)
