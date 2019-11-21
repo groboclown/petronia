@@ -5,8 +5,9 @@ Logger:
   enabled: true
   properties:
     filename: petronia.log
-    format: "%H:%M:%S [{LEVEL}] {msg}"
-    default: warn
+    # filename: "-"
+    format: "%H:%M:%S [{LEVEL}] {src:16s}: {msg}"
+    default: debug
     category-levels:
       - cat: "petronia.base."
         level: trace

@@ -2,8 +2,8 @@
 from typing import Callable, Optional
 from types import FrameType
 import signal
-import threading
 import time
+import threading
 from ....base import (
     EventBus,
     ParticipantId,
@@ -63,27 +63,25 @@ class PetroniaWaitForStop:
             self.stop()
 
         # Debug code
-        # import threading
-        # while True:
-        #     time.sleep(5)
-        #     print("MAIN waiting for threads to die.  Current thread count = {0}".format(
-        #         threading.active_count()
-        #     ))
-        #     not_me = 0
-        #     for t in threading.enumerate():
-        #         if t == threading.current_thread():
-        #             continue
-        #         if t.is_alive():
-        #             not_me += 1
-        #             print("  - {0} (daemon? {1}".format(
-        #                 t.name,
-        #                 t.daemon
-        #             ))
-        #     if not_me <= 0:
-        #         break
+        while True:
+            time.sleep(5)
+            print("MAIN waiting for threads to die.  Current thread count = {0}".format(
+                threading.active_count()
+            ))
+            not_me = 0
+            for t in threading.enumerate():
+                if t == threading.current_thread():
+                    continue
+                if t.is_alive():
+                    not_me += 1
+                    print("  - {0} (daemon? {1}".format(
+                        t.name,
+                        t.daemon
+                    ))
+            if not_me <= 0:
+                break
 
-
-    def _final_handler(self,_tid: ParticipantId, _eid: EventId, _obj: SystemShutdownFinalizeEvent) -> None:
+    def _final_handler(self, _tid: ParticipantId, _eid: EventId, _obj: SystemShutdownFinalizeEvent) -> None:
         if self.__on_exit:
             self.__on_exit()
         self.__running = False
@@ -98,3 +96,14 @@ class PetroniaWaitForStop:
         if self.__running:
             print("Starting forced system shutdown.  This may take a little while.")
             send_system_shutdown_request(self.__bus)
+
+            # Debug Code
+            # print("Living threads:")
+            # for t in threading.enumerate():
+            #     if t == threading.current_thread():
+            #         continue
+            #     if t.is_alive():
+            #         print("  - {0} (daemon? {1}".format(
+            #             t.name,
+            #             t.daemon
+            #         ))

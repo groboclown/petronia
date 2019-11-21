@@ -6,7 +6,7 @@ Send the configuration files to all the necessary parties.
 from .contents import ExtensionConfigurationDetails
 from ....aid.std import (
     EventBus,
-    log, NOTICE, DEBUG,
+    log, NOTICE, DEBUG, ERROR,
     set_state,
 )
 from ....aid.bootstrap import create_singleton_identity
@@ -30,7 +30,11 @@ def send_config(bus: EventBus, config: ExtensionConfigurationDetails) -> None:
     if config.state_id and config.is_enabled:
         # Note: version information is not used.
         if config.extension_name:
-            log(DEBUG, send_config, "config is sending load extension request for {0}", config.name)
+            log(
+                DEBUG, send_config,
+                "config is sending load extension request for {0} ({1} / {2})",
+                config.name, config.extension_name, config.state_id
+            )
             send_request_load_extension_event(bus, config.extension_name)
 
         # Note that the configuration MUST be a PersistType; without it, it

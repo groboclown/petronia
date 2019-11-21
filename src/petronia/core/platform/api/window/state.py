@@ -108,6 +108,11 @@ class NativeWindowState:
                 ret.append(key)
         return ret
 
+    def get_name(self, name: str, default: Optional[str] = None) -> Optional[str]:
+        if name in self.__names:
+            return self.__names[name]
+        return default
+
     def copy(self) -> 'NativeWindowState':
         return NativeWindowState(
             component_id=self.__cid,

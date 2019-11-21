@@ -117,17 +117,25 @@ class FileLoggerConfig:
             ret[cat] = log_level
         return ret
 
-    def format_message(self, when: struct_time, level: LogLevel, formatted_message: str) -> str:
+    def format_message(self, when: struct_time, level: LogLevel, src: str, formatted_message: str) -> str:
         return '\n'.join([
             strftime(self.__format.format(
                 LEVEL=LEVEL_NAME_5_UPPER[level],
                 LONG_LEVEL=FULL_LEVEL_NAME_UPPER[level],
                 level=LEVEL_NAME_5_UPPER[level].lower(),
                 long_level=FULL_LEVEL_NAME_UPPER[level].lower(),
+                src=src,
                 msg=line
             ), when)
             for line in formatted_message.splitlines()
         ])
+
+    def __repr__(self) -> str:
+        return (
+            "FileLoggerConfig(filename={0}, log_format={1}, continuation_format={2}, category_log_levels={3})"
+        ).format(
+            repr(self.__file), repr(self.__format), repr(self.__cont_format), repr(self.__category_levels)
+        )
 
 
 LOGGER_SCHEMA = readonly_persistent_schema_copy({
@@ -143,6 +151,7 @@ LOGGER_SCHEMA = readonly_persistent_schema_copy({
             * `{LONG_LEVEL}`: the full log level name, in upper-case.
             * `{level}`: 5 letters of hte log level, in lower-case. 
             * `{long_level}`: the full log level name, in upper-case.
+            * `{src}`: the source of the message.
             * `{msg}`: the logged message.
         
         If date or time is required, use

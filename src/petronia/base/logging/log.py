@@ -3,10 +3,10 @@
 # mypy: allow-any-explicit
 
 """
-Definition for the "log" entrypoint.
+Definition for the "log" entry point.
 
 Logging is as flat and simple as possible.  Other things can add layers to it,
-or it itself could be a wrapper on top of other components, but the entrypoint
+or it itself could be a wrapper on top of other components, but the entry point
 for usage is trivially simple.
 """
 
@@ -22,7 +22,7 @@ _HANDLER_LOCK = RWLock()
 
 # logging has global, static entry points, but that is the API.
 
-def log( # pylint: disable=dangerous-default-value
+def log(  # pylint: disable=dangerous-default-value
         level: LogLevel,
         src: Any,
         format_msg: str,
@@ -51,7 +51,7 @@ def log( # pylint: disable=dangerous-default-value
         _HANDLER_LOCK.release()
 
 
-def logerr( # pylint: disable=dangerous-default-value
+def logerr(  # pylint: disable=dangerous-default-value
         level: LogLevel,
         src: Any,
         err: BaseException,
@@ -92,8 +92,8 @@ def add_log_handler(
     use when removing the log handler.  It is up to the caller to keep track
     of the handler ID for use of future removal.
     """
-    global _HANDLER_COUNT # pylint: disable=global-statement
-    global _HANDLERS # pylint: disable=global-statement
+    global _HANDLER_COUNT  # pylint: disable=global-statement
+    global _HANDLERS  # pylint: disable=global-statement
     _HANDLER_LOCK.acquire_write()
     try:
         handler_id = LogHandlerId(_HANDLER_COUNT)
@@ -119,6 +119,6 @@ def remove_log_handler(handler_id: LogHandlerId) -> None:
 def _to_src_str(src: Any) -> str:
     if hasattr(src, '__name__'):
         if hasattr(src, '__module__'):
-            return '{0}.{1}'.format(src.__module__, src.__name__)
+            return str(src.__module__) + '.' + str(src.__name__)
         return str(src.__name__)
     return str(src)

@@ -89,7 +89,7 @@ def restore_windows(
                     else:
                         log(
                             DEBUG, restore_windows,
-                            "access denied when resorting pos on {0}",
+                            "access denied when restoring pos on {0}",
                             original
                         )
                 else:

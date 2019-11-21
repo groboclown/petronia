@@ -3,7 +3,7 @@
 Load information on a HWND.
 """
 
-from typing import Dict, Mapping, Union, Optional
+from typing import Dict, Mapping, Tuple, Union, Optional
 from typing import cast as t_cast
 from ..arch.error_codes_common import (
     ERROR_ACCESS_DENIED
@@ -27,16 +27,34 @@ from .....core.platform.api.window import (
 )
 
 
-def create_native_window_state(bus: EventBus, hwnd: HWND, hwnd_i: int) -> Optional[NativeWindowState]:
+_CURRENT_PROCESS: Optional[Tuple[DWORD, str, str]] = None
+
+
+def create_native_window_state(bus: EventBus, hwnd: HWND, _hwnd_i: int) -> Optional[NativeWindowState]:
     """
     Creates the top-level window state.  If this returns None, then
     it's because the HWND is not a top-level window, or access was denied
     when reading information about it.
     """
+
     if hwnd == 0 or hwnd is None:
         # Special handle for the desktop that we won't be able to investigate.
         log(VERBOSE, create_native_window_state, 'Cannot find information on window HWND 0')
         return None
+
+    global _CURRENT_PROCESS
+    if (
+            _CURRENT_PROCESS is None and
+            WINDOWS_FUNCTIONS.process.get_current_pid and
+            WINDOWS_FUNCTIONS.process.get_current_username_domain
+    ):
+        current_pid = WINDOWS_FUNCTIONS.process.get_current_pid()
+        raw_current_username_domain = WINDOWS_FUNCTIONS.process.get_current_username_domain()
+        if isinstance(raw_current_username_domain, WindowsErrorMessage):
+            current_username_domain = ('', '')
+        else:
+            current_username_domain = raw_current_username_domain
+        _CURRENT_PROCESS = (current_pid, *current_username_domain)
 
     # Find out if this is a top-level window.
     if WINDOWS_FUNCTIONS.window.get_owning_window:
@@ -65,6 +83,51 @@ def create_native_window_state(bus: EventBus, hwnd: HWND, hwnd_i: int) -> Option
         return None
     else:
         window_info = new_window_info
+
+    # Extra filters ...
+
+    if not window_info.is_visible:
+        log(
+            DEBUG, create_native_window_state,
+            'Skipping non-GUI window {0}: {1}',
+            hwnd, window_info
+        )
+        return None
+
+    if _CURRENT_PROCESS and _CURRENT_PROCESS[0] == window_info.process_id:
+        # Do not load window states for the current window.  Those are handled elsewhere.
+        return None
+    if (
+            _CURRENT_PROCESS and
+            (window_info.get_name('user') != _CURRENT_PROCESS[1] or
+            window_info.get_name('domain') != _CURRENT_PROCESS[2])
+    ):
+        log(
+            DEBUG, create_native_window_state,
+            "ignoring window with pid {0}, class {1} from other user {2}@{3} (current user is {4}@{5}",
+            window_info.process_id, window_info.get_name('class'),
+            window_info.get_name('user'), window_info.get_name('domain'),
+            _CURRENT_PROCESS[1], _CURRENT_PROCESS[2]
+        )
+        if window_info.get_name('class') == 'PuTTY':
+            log(
+                WARN, create_native_window_state,
+                "PUTTY ignoring window; detected {0}\\{1}, have {2}\\{3}",
+                window_info.get_name('domain'),
+                window_info.get_name('user'),
+                _CURRENT_PROCESS[2], _CURRENT_PROCESS[1]
+            )
+        return None
+
+    # Maybe add this later?
+    # if class_name is None or class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
+    #     self._log_debug("Ignoring self-managed window with class {0}".format(class_name))
+    #     return None
+
+    log(
+        DEBUG, create_native_window_state,
+        "Found window {0}", window_info
+    )
     return window_info
 
 

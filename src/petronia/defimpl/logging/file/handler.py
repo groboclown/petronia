@@ -12,12 +12,10 @@ from typing import Dict, Set, Tuple, Optional
 from .config import (
     FileLoggerConfig,
     parse_config,
-    DEFAULT_FORMAT,
-    DEFAULT_CONTINUATION_FORMAT,
 )
 from .ident import (
-    TARGET_ID_FILE_LOGGER_CONFIG,
-    TARGET_ID_FILE_LOGGER_STATE,
+    CONFIG_ID_FILE_LOGGER,
+    STATE_ID_FILE_LOGGER,
 )
 from ..configuration import (
     LogState,
@@ -33,7 +31,6 @@ from ....aid.std import (
     remove_log_handler,
     report_error,
     DEPRECATED,
-    EMPTY_MAPPING,
 )
 from ....core.config_persistence.api import PersistentConfigurationState
 
@@ -43,18 +40,19 @@ class LogHandler:
     Handles the transition of a configuration request on the
     log handler.
     """
-    __slots__ = ('_listeners', '_bus', '_raw_config', '_config', '_lock',)
+    __slots__ = ('_listeners', '_bus', '_raw_config', '_config', '_lock', '_seen_deprecated', '_log_lock')
     _bus: Optional[EventBus]
     _listeners: Dict[str, Tuple[LogLevel, LogHandlerId]]
+    _seen_deprecated: Set[str]
 
-    def __init__(self, bus: EventBus, listeners: ListenerSet) -> None:
+    def __init__(self, bus: EventBus, listeners: ListenerSet, config: StateWatch[PersistentConfigurationState]) -> None:
         self._lock = Lock()
+        self._log_lock = Lock()
         self._listeners = {}
         self._bus = bus
-        self._config = FileLoggerConfig('-', DEFAULT_FORMAT, DEFAULT_CONTINUATION_FORMAT, EMPTY_MAPPING)  # type: ignore
-        self._raw_config = StateWatch(listeners, TARGET_ID_FILE_LOGGER_CONFIG, PersistentConfigurationState({}))
-        self._raw_config.set_listener(self._on_config_change)
-        self._on_config_change(self._raw_config.state)
+        config.set_listener(self._on_config_change)
+        listeners.add_dispose_callback(self.dispose)
+        self._seen_deprecated = set()
 
     def dispose(self) -> None:
         """Dispose of this component.  Completely idempotent."""
@@ -68,10 +66,12 @@ class LogHandler:
             self,
             state: PersistentConfigurationState
     ) -> None:
+        # print("DEBUG parsing config {0}".format(state.persistent))
         new_config, errors = parse_config(state.persistent)
         assert isinstance(new_config, FileLoggerConfig)
         for error in errors:
             report_error(self._bus, error)
+        # print("DEBUG loaded configuration {0}".format(new_config))
 
         with self._lock:
             # De-register everything that's no longer around or different,
@@ -107,7 +107,7 @@ class LogHandler:
             if different and self._bus:
                 self._config = new_config
                 new_state = LogState(new_category_levels)
-                set_log_state(self._bus, TARGET_ID_FILE_LOGGER_STATE, new_state)
+                set_log_state(self._bus, STATE_ID_FILE_LOGGER, new_state)
 
     def _log_message(self, level: LogLevel, src: str, msg: str, err: Optional[BaseException]) -> None:
         """
@@ -120,27 +120,36 @@ class LogHandler:
             # just once.  Note that we include the source in determining whether to
             # display the deprecated message.
             src_msg = src + msg
-            if src_msg not in _SEEN_DEPRECATED:
-                _SEEN_DEPRECATED.add(src_msg)
+            if src_msg not in self._seen_deprecated:
+                self._seen_deprecated.add(src_msg)
                 self._print("DEPRECTATION WARNING: {0} (reported from {1})".format(
                     msg, src
                 ))
         else:
-            self._print(self._config.format_message(now, level, msg))
+            self._print(self._config.format_message(now, level, src, msg))
         if err:
             self._print(self._config.format_message(
-                now, level,
+                now, level, src,
                 '\n'.join(traceback.format_exception(err.__class__, err, err.__traceback__))
             ))
 
     def _print(self, msg: str) -> None:
-        with self._lock:
-            if self._config.filename == '-':
+        out_to = self._config.filename
+        if out_to == '-':
+            with self._log_lock:
                 sys.stdout.write(msg + '\n')
                 sys.stdout.flush()
-            else:
-                with open(self._config.filename, 'w') as f:
+        else:
+            with self._log_lock:
+                with open(self._config.filename, 'a') as f:
                     f.write(msg + '\n')
 
 
-_SEEN_DEPRECATED: Set[str] = set()
+def startup_file_logger(bus: EventBus, listeners: ListenerSet) -> None:
+    config = StateWatch(listeners, CONFIG_ID_FILE_LOGGER, PersistentConfigurationState({}))
+
+    def on_state_change(_val: PersistentConfigurationState) -> None:
+        if config.is_set:
+            LogHandler(bus, listeners, config)
+
+    config.set_listener(on_state_change)

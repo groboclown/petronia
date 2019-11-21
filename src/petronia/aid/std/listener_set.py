@@ -5,7 +5,7 @@ Event bus proxy support.
 This handles proper lifecycle support with the event bus.
 """
 
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Callable
 from threading import Lock
 from ...base import (
     EventBus, ListenerId, EventCallback, ParticipantId,
@@ -28,23 +28,32 @@ class ListenerSet:
     This is thread-safe.
     """
 
-    __slots__ = ('__bus', '_children', '__lock', '__disposed', '_listener_ids', '_bound_hotkeys')
+    __slots__ = ('__bus', '_children', '__lock', '__disposed', '_listener_ids', '_bound_hotkeys', '_disposers')
 
     _listener_ids: List[ListenerId]
     _bound_hotkeys: List[Tuple[ParticipantId, str]]
     _children: List['ListenerSet']
+    _disposers: List[Callable[[], None]]
 
     def __init__(self, bus: EventBus) -> None:
         self.__bus = bus
         self._listener_ids = []
         self._bound_hotkeys = []
         self._children = []
+        self._disposers = []
         self.__lock = Lock()
         self.__disposed = False
 
     @property
     def disposed(self) -> bool:
         return self.__disposed
+
+    def add_dispose_callback(self, callback: Callable[[], None]) -> None:
+        if not self.__disposed:
+            with self.__lock:
+                self._disposers.append(callback)
+        else:
+            callback()
 
     def listen(
             self,
@@ -114,3 +123,6 @@ class ListenerSet:
             for child in self._children:
                 child.dispose()
             self._children.clear()
+            for callback in self._disposers:
+                callback()
+            self._disposers.clear()
