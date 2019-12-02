@@ -90,8 +90,6 @@ Early development that caused rethinking of how things are done, but that code n
 * Make key-down metas have a timeout.  If too much time between keystrokes elapses, then the hotkey combo is canceled.
 * Hotkey meta-characters should be passed as still down after hotkey is processed.
 * Unit tests everywhere.
-* Bugs:
-    * file logger category is not loading.
 
 
 ## Later On Features

@@ -7,11 +7,15 @@ Logger:
     filename: petronia.log
     # filename: "-"
     format: "%H:%M:%S [{LEVEL}] {src:16s}: {msg}"
-    default: debug
+    default: warn
     category-levels:
       - cat: "petronia.base."
         level: trace
-      - cat: "petronia.defimpl.layout."
+      - cat: "petronia.boot."
         level: trace
+      - cat: "petronia.defimpl.layout."
+        level: debug
       - cat: "petronia.defimpl.platform."
         level: debug
+      - cat: "petronia.defimpl.shutdown."
+        level: trace
