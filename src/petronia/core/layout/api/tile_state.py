@@ -11,12 +11,20 @@ from typing import Iterable, Sequence
 from ....aid.std import (
     ComponentId,
     EventBus,
+    EventCallback,
     ListenerSet,
     StateWatch,
     create_singleton_identity,
     set_state,
 )
-from ....aid.bootstrap import NOT_PARTICIPANT
+from ....aid.bootstrap import (
+    NOT_PARTICIPANT,
+)
+from ....base.events import (
+    ComponentCreatedEvent,
+    as_component_created_listener,
+    send_component_created_event,
+)
 from ...platform.api import (
     ScreenArea,
 )
@@ -27,7 +35,7 @@ STATE_ID_TILE = create_singleton_identity('petronia.core.layout.api/tiles')
 
 class TileState:
     """
-    Abstract tile stste.
+    Abstract tile state.
     """
     __slots__ = (
         '__cid',
@@ -126,4 +134,26 @@ def create_tile_state_watch(listeners: ListenerSet) -> StateWatch[AllTileState]:
         listeners,
         STATE_ID_TILE,
         AllTileState((TileState(NOT_PARTICIPANT, (0, 0, 0, 0), 0, False, (), ()),))
+    )
+
+
+# ---------------------------------------------------------------------------
+
+
+# Tile creation must follow the Petronia standard for object lifecycle.  However,
+# there is nothing that requested the creation of the tile (it's intrinsic to a
+# tiling window manager), so this target ID acts as the notification for new
+# tiles.  Everything else about tile lifecycle is the same.
+TARGET_ID_TILE_CREATION = create_singleton_identity('petronia.core.layout.api/tile-creation')
+
+
+def send_tile_created_event(bus: EventBus, tile_cid: ComponentId) -> None:
+    send_component_created_event(bus, TARGET_ID_TILE_CREATION, tile_cid, 0)
+
+
+def add_tile_created_listener(listener_set: ListenerSet, callback: EventCallback[ComponentCreatedEvent]) -> None:
+    listener_set.listen(
+        TARGET_ID_TILE_CREATION,
+        as_component_created_listener,
+        callback
     )

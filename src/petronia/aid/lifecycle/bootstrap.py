@@ -5,7 +5,7 @@ Helps module-based bootstrap implementations.
 
 from typing import Callable, Optional
 from .dispose import setup_dispose_handler
-from ..std.listener_set import ListenerSet
+from .listener_set import ListenerSet
 from ...base import (
     SingletonId,
     ComponentId,

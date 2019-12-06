@@ -29,7 +29,17 @@ class ValueHolder(Generic[T]):
     later time."""
     __slots__ = ('value',)
 
-    def __init__(self, val: Optional[T]) -> None:
+    def __init__(self, val: T) -> None:
+        self.value = val
+
+
+class DelayedValueHolder(Generic[T]):
+    """Holds a piece of data tha can be delayed in its setup until later.
+    Used for passing to a child object that can assign the value at some
+    later time."""
+    __slots__ = ('value',)
+
+    def __init__(self, val: Optional[T] = None) -> None:
         self.value = val
 
 

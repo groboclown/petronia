@@ -3,7 +3,7 @@
 The events around component lifecycle creation.
 """
 
-from typing import Generic, Dict, Mapping, Union
+from typing import Generic
 from ..internal_.identity_types import (
     ParticipantId, ComponentId,
 )
@@ -11,7 +11,8 @@ from ..internal_.bus_types import (
     EventBus, EventId, EventCallback,
     ListenerSetup,
 )
-from ..util.memory import T, readonly_dict
+from ..util.memory import T
+from ..util.messages import UserMessage
 
 # ---------------------------------------------------------------------------
 
@@ -114,14 +115,13 @@ def as_component_created_listener(
 
 def send_component_created_event(
         bus: EventBus,
-        target_id: ParticipantId,
+        request_event: RequestNewComponentEvent[T],
         created_id: ComponentId,
-        request_id: int
 ) -> None:
     bus.trigger(
         EVENT_ID_COMPONENT_CREATED,
-        target_id,
-        ComponentCreatedEvent(created_id, request_id)
+        request_event.callback_target_id,
+        ComponentCreatedEvent(created_id, request_event.request_id)
     )
 
 
@@ -134,17 +134,15 @@ class ComponentCreationFailedEvent:
     """
     Reports that a component creation attempt failed.
     """
-    __slots__ = ('__request_id', '__category', '__error_msg', '__error_values')
+    __slots__ = ('__request_id', '__category', '__error_msg',)
 
     def __init__(
             self, category: str, request_id: int,
-            error_msg: str,
-            error_values: Dict[str, Union[str, int, float]]
+            error_msg: UserMessage
     ):
         self.__request_id = request_id
         self.__category = category
         self.__error_msg = error_msg
-        self.__error_values = readonly_dict(error_values)
 
     @property
     def request_id(self) -> int:
@@ -157,14 +155,9 @@ class ComponentCreationFailedEvent:
         return self.__category
 
     @property
-    def error_message(self) -> str:
+    def error_message(self) -> UserMessage:
         """The description of the error."""
         return self.__error_msg
-
-    @property
-    def error_values(self) -> Mapping[str, Union[str, int, float]]:
-        """Extra descriptive values for the error."""
-        return self.__error_values
 
 
 def as_component_creation_failed_listener(
@@ -176,17 +169,15 @@ def as_component_creation_failed_listener(
 
 def send_component_creation_failed_event(
         bus: EventBus,
-        target_id: ParticipantId,
+        request_event: RequestNewComponentEvent[T],
         category: str,
-        request_id: int,
-        error_message: str,
-        error_values: Dict[str, Union[str, int, float]]
+        error_message: UserMessage
 ) -> None:
     bus.trigger(
         EVENT_ID_COMPONENT_CREATION_FAILED,
-        target_id,
+        request_event.callback_target_id,
         ComponentCreationFailedEvent(
-            category, request_id,
-            error_message, error_values
+            category, request_event.request_id,
+            error_message
         )
     )

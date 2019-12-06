@@ -121,6 +121,7 @@ def mk_tile_factory(
                 position = parse_position(layout.default_fill or DEFAULT_WINDOW_POSITION)
                 if position is None:
                     position = DEFAULT_WINDOW_POSITION_VALUE
+
                 return Portal(
                     portal_name, size, find_matchers_for_name(portal_name, matchers), position, None
                 )

@@ -12,7 +12,7 @@ from .data import (
 from .link import (
     EventLinkStart,
 )
-from ..std.listener_set import ListenerSet
+from ..lifecycle.listener_set import ListenerSet
 from ...base import (
     EventBus,
     EventId,
@@ -23,7 +23,7 @@ from ...base import (
     send_dispose_complete_event,
     RequestDisposeEvent,
 )
-from ...base.util import ValueHolder
+from ...base.util import DelayedValueHolder
 
 
 class EventChainManager:
@@ -42,7 +42,7 @@ class EventChainManager:
     the execution handle to another thread.
     """
     __slots__ = ('__pid', '__bus', '_chain_starts', '_mapping', '__listeners', '__disposed',)
-    _chain_starts: Optional[List[ValueHolder[LinkHandlerData[object]]]]
+    _chain_starts: Optional[List[DelayedValueHolder[LinkHandlerData[object]]]]
     _mapping: Optional[MappedEvents]
 
     def __init__(self, bus: EventBus, pid: ParticipantId) -> None:
@@ -62,6 +62,7 @@ class EventChainManager:
         if chains is None or mapping is None:
             # TODO better exception
             raise Exception('already setup chain')
+        # TODO this is incorrect data stored in the value holder.
         first: ValueHolder[LinkHandlerData[object]] = ValueHolder(None)
         chains.append(first)
         return EventLinkStart(mapping, first)
@@ -73,6 +74,7 @@ class EventChainManager:
         chains = self._chain_starts
         mapping = self._mapping
         if chains is None or mapping is None:
+            # TODO better exception
             raise Exception('already setup chains')
         if not chains:
             return
@@ -87,8 +89,8 @@ class EventChainManager:
             assert first.value
             mapping.set_event_chain_start(first.value)
 
-        events_and_targets = mapping.get_matched_events_and_targets()  # type: ignore
-        for event_reg, participants in events_and_targets:  # type: ignore
+        events_and_targets = mapping.get_matched_events_and_targets()
+        for event_reg, participants in events_and_targets:
             if not participants:
                 continue
             if None in participants:
@@ -121,19 +123,19 @@ class EventChainManager:
         self.__listeners.dispose()
         return True
 
-    def make_self_diposed(self) -> None:
+    def make_self_disposed(self) -> None:
         """
         Turn this set of chain handlers into a self-controlled component.
-        This means that it will listen for dipose requests, and dispose itself,
+        This means that it will listen for dispose requests, and dispose itself,
         and send a dispose complete event.
         """
-        self.__listeners.listen(self.__pid, as_request_dispose_listener, self.__self_dipose)
+        self.__listeners.listen(self.__pid, as_request_dispose_listener, self.__self_dispose)
 
-    def __self_dipose(
+    def __self_dispose(
             self,
-            _eid: EventId,  # pylint: disable=unused-argument
+            _event_id: EventId,  # pylint: disable=unused-argument
             tid: ParticipantId,
-            _eobj: RequestDisposeEvent  # pylint: disable=unused-argument
+            _event_obj: RequestDisposeEvent  # pylint: disable=unused-argument
     ) -> None:
         if tid != self.__pid:
             return

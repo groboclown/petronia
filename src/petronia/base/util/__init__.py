@@ -21,6 +21,7 @@ from .memory import (
     T, V, K,
 
     ValueHolder,
+    DelayedValueHolder,
     readonly_dict,
 )
 

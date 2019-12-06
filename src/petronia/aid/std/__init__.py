@@ -38,10 +38,6 @@ from ...base.events import (
     RequestDisposeEvent,
     as_request_dispose_listener,
 
-    ParticipantStartedEvent,
-    as_participant_started_listener,
-    send_participant_started_event,
-
     TARGET_ID_SYSTEM,
 
     ErrorEvent,
@@ -83,6 +79,7 @@ from ...base.util import (
 
     T, V, K,
     ValueHolder,
+    DelayedValueHolder,
 
     EMPTY_DICT,
     EMPTY_LIST,
@@ -108,16 +105,15 @@ from ...core.timer.api import (
     TARGET_TIMER,
 )
 
+from ..lifecycle import (
+    ListenerSet,
+    StateWatch,
+)
+
 from .error import (
     report_bug,
     create_bug_report,
     report_user_error,
     create_user_error,
     report_error,
-)
-from .listener_set import (
-    ListenerSet,
-)
-from .state_watch import (
-    StateWatch,
 )

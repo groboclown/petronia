@@ -27,10 +27,6 @@ from .system_events import (
     ErrorReport,
     ERROR_CATEGORY_USER,
 )
-from .participant_events import (
-    EVENT_ID_PARTICIPANT_STARTED,
-    ParticipantStartedEvent,
-)
 from ..internal_.bus_events import (
     EVENT_ID_EVENT_LISTENER_ADDED,
     EventListenerAddedEvent,
@@ -109,19 +105,13 @@ def bootstrap_core_events() -> Sequence[EventDefinition[Any]]:  # type: ignore
             EVENT_ID_COMPONENT_CREATION_FAILED,
             QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             ComponentCreationFailedEvent,
-            ComponentCreationFailedEvent('x', 1, 'x', {}),
+            ComponentCreationFailedEvent('x', 1, UserMessage(i18n(''))),
         ),
         (
             EVENT_ID_REQUEST_NEW_COMPONENT,
             QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
             RequestNewComponentEvent,
             RequestNewComponentEvent(object(), NOT_PARTICIPANT, 1),
-        ),
-        (
-            EVENT_ID_PARTICIPANT_STARTED,
-            QUEUE_EVENT_NORMAL, GLOBAL_EVENT_PROTECTION,
-            ParticipantStartedEvent,
-            ParticipantStartedEvent(NOT_PARTICIPANT),
         ),
         (
             EVENT_ID_SYSTEM_STARTED,

@@ -8,11 +8,9 @@ from ....aid.std import (
     ListenerSet,
 )
 from ....aid.bootstrap import (
-    send_participant_started_event,
     ANY_VERSION,
 )
 from ....base.internal_.internal_extension import petronia_extension
-from .ident import TARGET_ID_FILE_LOGGER
 from .handler import startup_file_logger
 
 
@@ -22,10 +20,6 @@ def bootstrap_file_logger(bus: EventBus) -> None:
     """
     listeners = ListenerSet(bus)
     startup_file_logger(bus, listeners)
-    send_participant_started_event(
-        bus,
-        TARGET_ID_FILE_LOGGER
-    )
 
 
 EXTENSION_METADATA = petronia_extension({

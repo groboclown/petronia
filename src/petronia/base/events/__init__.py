@@ -2,7 +2,7 @@
 """
 Core events for the Petronia system.
 
-There are interdependencies between this module and the bus module, so care is
+There are inter-dependencies between this module and the bus module, so care is
 taken to split this out to prevent cycles, with the intent that the end user
 would have the primary events imported separately from the bus.
 """
@@ -25,6 +25,7 @@ from ..internal_.dispose_events import (
 from .component_events import (
     ComponentCreatedEvent,
     as_component_created_listener,
+    send_component_created_event,
 
     RequestNewComponentEvent,
     as_request_new_component_listener,
@@ -32,11 +33,7 @@ from .component_events import (
 
     ComponentCreationFailedEvent,
     as_component_creation_failed_listener,
-)
-from .participant_events import (
-    ParticipantStartedEvent,
-    as_participant_started_listener,
-    send_participant_started_event,
+    send_component_creation_failed_event,
 )
 from .system_events import (
     TARGET_ID_SYSTEM,

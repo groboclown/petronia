@@ -120,6 +120,7 @@ class Portal:
     """
 
     __slots__ = (
+        '_cid',
         '__name',
         '__matchers',
         '__size',
@@ -129,6 +130,7 @@ class Portal:
         '__background_cid',
     )
     _windows: List[PortalWindowInfo]
+    _cid: Optional[ComponentId]
 
     def __init__(
             self,
@@ -139,6 +141,7 @@ class Portal:
             background: Optional[ComponentId] = None,
     ) -> None:
         assert default_position in POSITION_FAVOR_ALL
+        self._cid = None
         self.__name = name
         self.__matchers = tuple(matchers)
         self.__size = initial_size
@@ -159,6 +162,14 @@ class Portal:
     @property
     def default_position(self) -> int:
         return self.__window_favor
+
+    def get_cid(self) -> Optional[ComponentId]:
+        return self._cid
+
+    def set_cid(self, cid: ComponentId) -> None:
+        # TODO use validation API
+        assert self._cid is None
+        self._cid = cid
 
     def get_name(self) -> str:
         return self.__name

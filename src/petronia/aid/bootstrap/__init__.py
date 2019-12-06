@@ -40,10 +40,6 @@ from ...base.events import (
 
     SystemStartedEvent,
     as_system_started_listener,
-
-    ParticipantStartedEvent,
-    as_participant_started_listener,
-    send_participant_started_event,
 )
 from ...base.events.bus import (
     EventProtectionModel,

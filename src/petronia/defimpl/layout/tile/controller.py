@@ -4,10 +4,9 @@ General manager for the tiles.  This provides the control methods for
 interacting with the splitters and portals tree.
 """
 
-from threading import Lock
-from typing import Sequence, Tuple, Optional
+from typing import Sequence, Tuple, Iterable, Optional
 from typing import cast as t_cast
-
+from threading import Lock
 from .consts import (
     MOVE_WINDOW_DIRECTION_NORTH,
     MOVE_WINDOW_DIRECTION_EAST,
@@ -267,6 +266,9 @@ class TileController:
     def get_active_window(self) -> Optional[ComponentId]:
         portal = self.__navigation.get_active_portal()
         return portal.get_visible_window()
+
+    def get_portals(self) -> Iterable[Portal]:
+        return self.__root.get_portals()
 
     def move_portal_focus(
             self, direction: int, amount: int

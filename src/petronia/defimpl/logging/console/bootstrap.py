@@ -7,7 +7,6 @@ from ....aid.std import (
     EventBus,
 )
 from ....aid.bootstrap import (
-    send_participant_started_event,
     ANY_VERSION,
 )
 from ....aid.lifecycle import (
@@ -27,10 +26,6 @@ def bootstrap_console_logger(bus: EventBus) -> None:
         bus,
         TARGET_ID_CONSOLE_LOGGER,
         log_transition_handler.dispose
-    )
-    send_participant_started_event(
-        bus,
-        TARGET_ID_CONSOLE_LOGGER
     )
 
 

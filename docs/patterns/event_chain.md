@@ -1,6 +1,6 @@
 # Event Chaining
 
-Some extensions will need to correctly respond to a series of events, here called "event chaining".  This is similar to the [multi-state](multi-state.md) pattern, but usually applies to life cycle changes.
+Some extensions will need to correctly respond to a series of events, here called "event chaining".  This is similar to the [multi-state](multi_state.md) pattern, but usually applies to life cycle changes.
 
 Let's say we have a process that wants to listen to new native
 windows, and when it is created, create chrome around it, then add a title bar

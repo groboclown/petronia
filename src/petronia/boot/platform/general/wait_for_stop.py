@@ -54,7 +54,7 @@ class PetroniaWaitForStop:
             signal.signal(signal.SIGHUP, self._halt)
         # self.__running_notice = threading.Condition()
 
-    def wait(self):
+    def wait(self) -> None:
 
         # Does not seem to work on windows.
         # The ctrl-c handler does not work on the wait.
@@ -97,7 +97,7 @@ class PetroniaWaitForStop:
         #     if not_me <= 0:
         #         break
 
-    def _final_handler(self, _tid: ParticipantId, _eid: EventId, _obj: SystemShutdownFinalizeEvent) -> None:
+    def _final_handler(self, _eid: EventId, _tid: ParticipantId, _obj: SystemShutdownFinalizeEvent) -> None:
         if self.__on_exit:
             self.__on_exit()
             self.__on_exit = None

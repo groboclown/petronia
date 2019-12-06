@@ -20,12 +20,17 @@ from ....aid.std import (
     TARGET_WILDCARD,
     log, WARN, INFO, DEBUG,
 )
+from ....base.events import (
+    send_dispose_complete_event,
+    as_request_dispose_listener,
+    RequestDisposeEvent,
+    as_request_new_component_listener,
+    RequestNewComponentEvent,
+)
 from ....core.config_persistence.api import PersistentConfigurationState
 from ....core.platform.api import (
     NativeWindowFocusedEvent,
     as_native_window_focused_listener,
-    NativeWindowFlashedEvent,
-    as_native_window_flashed_listener,
     TARGET_ID_WINDOW_CREATION,
     NativeWindowCreatedEvent,
     as_native_window_created_listener,
@@ -34,14 +39,12 @@ from ....core.platform.api import (
 
     send_request_move_native_window_event,
     send_request_focus_native_window_event,
-    send_request_close_native_window_event,
     send_request_set_native_window_visibility_event,
 
     ScreenState,
     STATE_ID_SCREENS,
     VirtualScreenInfo,
     VirtualScreenArea,
-    ScreenArea,
 
     STATE_ID_ACTIVE_WINDOWS,
     AllActiveWindowsState,
@@ -56,6 +59,7 @@ from ....core.layout.api import (
     as_request_shift_layout_focus_listener,
     RequestSetFocusedWindowVisibilityEvent,
     as_request_set_focused_window_visibility_listener,
+    send_tile_created_event,
     TileState,
     set_tile_states,
 )
@@ -141,9 +145,9 @@ def startup_tile_event_handler(
     windows = StateWatch(listeners, STATE_ID_ACTIVE_WINDOWS, AllActiveWindowsState([]))
 
     def on_state_change(_val: Any) -> None:
-        print("tile config? {0}; screen? {1}; windows? {2}".format(
-            tile_config.is_set, screen_state.is_set, windows.is_set
-        ))
+        # print("tile config? {0}; screen? {1}; windows? {2}".format(
+        #     tile_config.is_set, screen_state.is_set, windows.is_set
+        # ))
         if tile_config.is_set and screen_state.is_set and windows.is_set:
             # Boot up the tile event handler.
             TileEventHandler(bus, listeners, tile_config, screen_state, windows)
@@ -156,6 +160,12 @@ def startup_tile_event_handler(
 class TileEventHandler:
     """
     Handle the tile events, and send the right ones.
+
+    This is a complex, confusing nightmare.  It needs to be heavily cleaned up.
+    Issues with this implementation:
+        * Way too much going on logic-wise.
+        * There is no tight control over lifecycle event handling.  It's a jumbled mess where
+            each call needs to remember to do the right thing.
     """
 
     __slots__ = (
@@ -192,10 +202,13 @@ class TileEventHandler:
         listeners.listen(
             MODULE_ID, as_hotkey_event_triggered_listener, self._req_hotkey
         )
+        listeners.listen(
+            MODULE_ID, as_request_new_component_listener, self._req_create_portal
+        )
         screen_state.set_listener(self._on_screen_state_changed)
         tile_config.set_listener(self._on_tile_config_changed)
         windows.set_listener(self._on_windows_changed)
-        self.__ctrl = do_layout(bus, self.__config, screen_state.state, windows.state)
+        self.__ctrl = do_layout(bus, self.__config, screen_state.state, windows.state, [])
         listeners.listen(
             TARGET_ID_WINDOW_CREATION, as_native_window_created_listener, self._on_window_created
         )
@@ -373,15 +386,21 @@ class TileEventHandler:
                     return
                 log(WARN, TileEventHandler, "Unknown direction {direction} for move operation", direction=direction_raw)
 
+    def _req_remove_portal(self, _event_id: EventId, target_id: ParticipantId, event_obj: RequestDisposeEvent):
+        pass
+
+    def _req_create_portal(self, _event_id: EventId, _target_id: ParticipantId, event_obj: RequestNewComponentEvent):
+        pass
+
     # -----------------------------------------------------------------------
     # State Change Events
     def _on_screen_state_changed(self, state: ScreenState) -> None:
         self.__screens = state
-        self.__ctrl = do_layout(self.__bus, self.__config, self.__screens, self.__windows)
+        self.__ctrl = do_layout(self.__bus, self.__config, self.__screens, self.__windows, self.__ctrl.get_portals())
 
     def _on_tile_config_changed(self, config: PersistentConfigurationState) -> None:
         self.__config = parse_config_data(self.__bus, config)
-        self.__ctrl = do_layout(self.__bus, self.__config, self.__screens, self.__windows)
+        self.__ctrl = do_layout(self.__bus, self.__config, self.__screens, self.__windows, self.__ctrl.get_portals())
 
     def _on_windows_changed(self, windows: AllActiveWindowsState) -> None:
         self.__windows = windows
@@ -431,7 +450,7 @@ class TileEventHandler:
 
 def do_layout(
         bus: EventBus, config: TileLayoutConfig, screens: ScreenState,
-        windows: AllActiveWindowsState
+        windows: AllActiveWindowsState, old_portals: Iterable[Portal]
 ) -> TileController:
     root, primary_index, errors = convert_config(config, screens.screens)
     for err in errors:
@@ -447,7 +466,20 @@ def do_layout(
     ctrl = TileController(root, windows.get_active_window_cid())
     for window in windows.windows:
         assign_window_to_portal(bus, ctrl, window, config.matchers)
+    for portal in old_portals:
+        portal_cid = portal.get_cid()
+        if portal_cid:
+            send_dispose_complete_event(bus, portal_cid)
+    for portal in root.get_portals():
+        portal_cid = portal.get_cid()
+        if portal_cid is None:
+            portal_cid = bus.create_component_id(PORTAL_COMPONENT_CATEGORY)
+            portal.set_cid(portal_cid)
+        assert portal_cid is not None
+        send_tile_created_event(bus, portal.get_cid())
+        # TODO add listener for removing the portal.
     send_layout_changed_event(bus)
+    # TODO send the tile state update event.
     return ctrl
 
 
