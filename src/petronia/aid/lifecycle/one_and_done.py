@@ -9,15 +9,17 @@ with all actions.
 
 from typing import List, Any
 from threading import Lock
-from ..std import (
+from ...base import (
     EventBus,
     ParticipantId,
     ListenerId,
     EventId,
     send_dispose_complete_event,
+    EventCallback,
+)
+from ...base.util import (
     T,
     ValueHolder,
-    EventCallback,
 )
 from ..bootstrap import (
     as_request_dispose_listener,

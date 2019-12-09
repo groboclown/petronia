@@ -6,7 +6,9 @@ Generic participant API.
 from ..internal_.identity_types import (
     ParticipantId,
     SingletonId,
+    SingletonIdType,
     ComponentId,
+    ComponentIdType,
 
     NOT_PARTICIPANT,
 

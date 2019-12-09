@@ -20,7 +20,7 @@ from ...base.bus import (
     EventId,
 )
 from ...base import ParticipantId
-from ...base.util import T, V, ValueHolder
+from ...base.util import T, V, DelayedValueHolder
 
 
 class EventHas(Generic[T]):
@@ -205,7 +205,7 @@ class EventLinkStart(EventLinkWait):
     """
     __slots__ = ('__total_timeout', '__first')
 
-    def __init__(self, chains: MappedEvents, first: ValueHolder[LinkHandlerData[V]]) -> None:
+    def __init__(self, chains: MappedEvents, first: DelayedValueHolder[LinkHandlerData[V]]) -> None:
         """Internal use only.  Do not call directly."""
         EventLinkWait.__init__(self, chains, None)
         self.__total_timeout = -1.0

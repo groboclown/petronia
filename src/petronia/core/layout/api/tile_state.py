@@ -23,6 +23,7 @@ from ....aid.bootstrap import (
 from ....base.events import (
     ComponentCreatedEvent,
     as_component_created_listener,
+    RequestNewComponentEvent,
     send_component_created_event,
 )
 from ...platform.api import (
@@ -148,7 +149,10 @@ TARGET_ID_TILE_CREATION = create_singleton_identity('petronia.core.layout.api/ti
 
 
 def send_tile_created_event(bus: EventBus, tile_cid: ComponentId) -> None:
-    send_component_created_event(bus, TARGET_ID_TILE_CREATION, tile_cid, 0)
+    send_component_created_event(
+        bus,
+        RequestNewComponentEvent(tile_cid, TARGET_ID_TILE_CREATION, 0), tile_cid
+    )
 
 
 def add_tile_created_listener(listener_set: ListenerSet, callback: EventCallback[ComponentCreatedEvent]) -> None:

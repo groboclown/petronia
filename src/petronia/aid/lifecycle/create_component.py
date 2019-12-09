@@ -18,6 +18,7 @@ from ...base.bus import (
 from ...base.participant import (
     ParticipantId,
     ComponentId,
+    ComponentIdType,
 )
 from ...base.events import (
     send_request_new_component,
@@ -64,7 +65,7 @@ def create_component_lifecycle_handlers(
         create_timeout: int = 10
 ) -> None:
     def on_disposed(_eid: EventId, tid: ParticipantId, _event: DisposeCompleteEvent) -> None:
-        if disposed and isinstance(tid, ComponentId):
+        if disposed and isinstance(tid, ComponentIdType):
             disposed(tid)
         # Should remove this listener...
 
@@ -126,7 +127,7 @@ def create_component(
     if timeout <= 0:
         listeners.append(bus.add_listener(TARGET_TIMER, as_timer_listener, tick))
     else:
-        timeout = 1
+        remaining_time[0] = 1
 
     send_request_new_component(bus, category_target_cid, component_data, cid, 0)
 

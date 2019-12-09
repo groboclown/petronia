@@ -17,7 +17,9 @@ from typing import NewType, Union, Tuple
 # the functions in this file.
 
 ComponentId = NewType('ComponentId', Tuple[str, int])
+ComponentIdType = tuple
 SingletonId = NewType('SingletonId', str)
+SingletonIdType = str
 ParticipantId = Union[ComponentId, SingletonId]
 
 NOT_PARTICIPANT = ComponentId(('', 0,))

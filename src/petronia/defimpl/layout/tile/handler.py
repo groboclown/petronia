@@ -386,10 +386,12 @@ class TileEventHandler:
                     return
                 log(WARN, TileEventHandler, "Unknown direction {direction} for move operation", direction=direction_raw)
 
-    def _req_remove_portal(self, _event_id: EventId, target_id: ParticipantId, event_obj: RequestDisposeEvent):
+    def _req_remove_portal(self, _event_id: EventId, target_id: ParticipantId, event_obj: RequestDisposeEvent) -> None:
         pass
 
-    def _req_create_portal(self, _event_id: EventId, _target_id: ParticipantId, event_obj: RequestNewComponentEvent):
+    def _req_create_portal(
+            self, _event_id: EventId, _target_id: ParticipantId, event_obj: RequestNewComponentEvent[Any]
+    ) -> None:
         pass
 
     # -----------------------------------------------------------------------
@@ -476,7 +478,7 @@ def do_layout(
             portal_cid = bus.create_component_id(PORTAL_COMPONENT_CATEGORY)
             portal.set_cid(portal_cid)
         assert portal_cid is not None
-        send_tile_created_event(bus, portal.get_cid())
+        send_tile_created_event(bus, portal_cid)
         # TODO add listener for removing the portal.
     send_layout_changed_event(bus)
     # TODO send the tile state update event.

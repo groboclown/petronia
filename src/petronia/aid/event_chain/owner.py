@@ -4,6 +4,8 @@ Creates a listener + sender chain for the event bus for easier to manage
 action processing.
 """
 
+# mypy: allow-any-expr
+
 from typing import List, Optional
 from .data import (
     MappedEvents,
@@ -63,7 +65,7 @@ class EventChainManager:
             # TODO better exception
             raise Exception('already setup chain')
         # TODO this is incorrect data stored in the value holder.
-        first: ValueHolder[LinkHandlerData[object]] = ValueHolder(None)
+        first: DelayedValueHolder[LinkHandlerData[object]] = DelayedValueHolder()
         chains.append(first)
         return EventLinkStart(mapping, first)
 

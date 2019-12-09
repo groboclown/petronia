@@ -31,8 +31,10 @@ _ORDERED_CORE_EXTENSIONS = (
     #'core.platform.api',
 )
 
+
 def load_core_extensions(
-        bus: EventBus
+        bus: EventBus,
+        *extra: str
 ) -> Sequence[LoadedExtension]:
     """
     Load the usual required core modules.  This must be the first set of
@@ -40,7 +42,7 @@ def load_core_extensions(
     """
     loader = CoreExtensionLoader()
     ret: List[LoadedExtension] = []
-    for name in _ORDERED_CORE_EXTENSIONS:
+    for name in [*_ORDERED_CORE_EXTENSIONS, *extra]:
         disc = loader.find_extension(True, name, ANY_VERSION)
         if not disc:
             raise PetroniaExtensionNotFound(

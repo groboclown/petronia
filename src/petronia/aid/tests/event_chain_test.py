@@ -15,6 +15,7 @@ from ...base.events import (
 )
 from ..event_chain import EventChainManager, EventHas
 
+
 class EventChainTest(unittest.TestCase):
     def test_nothing(self) -> None:
         queue = BasicQueuer(self)

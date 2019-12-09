@@ -42,6 +42,14 @@ class DelayedValueHolder(Generic[T]):
     def __init__(self, val: Optional[T] = None) -> None:
         self.value = val
 
+    def has_value(self) -> bool:
+        return self.value is not None
+
+    @property
+    def non_none(self) -> T:
+        assert self.value is not None
+        return self.value
+
 
 def readonly_dict(inp: Mapping[K, V]) -> Mapping[K, V]:
     """Create a (shallow) read-only copy of the dictionary."""

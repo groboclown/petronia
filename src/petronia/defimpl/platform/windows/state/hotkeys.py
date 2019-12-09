@@ -76,7 +76,7 @@ def bootstrap_hotkeys(
         hotkey_chain.set_key_chains(chain_commands)
         set_hotkey_state(bus, event_obj.state.master_sequence, event_obj.state.hotkeys)
 
-    listeners.listen(
+    listeners.listen(  # type: ignore
         CONFIGURATION_ID_HOTKEYS,
         as_state_change_listener, on_hotkeys_config
     )

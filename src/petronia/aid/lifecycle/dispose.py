@@ -9,7 +9,7 @@ Dispose listener helpers.
 
 from typing import Callable, List, Any
 from threading import Lock
-from ..std import (
+from ...base import (
     EventBus,
     ParticipantId,
     ListenerId,
