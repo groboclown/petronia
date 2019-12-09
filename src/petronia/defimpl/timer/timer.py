@@ -6,8 +6,7 @@ Sets up the timer.
 import time
 from typing import Optional, Callable
 from ...core.timer.api.events import (
-    EVENT_ID_TIMER, GLOBAL_TIMER_EVENT,
-    TARGET_TIMER,
+    send_timer_event,
 )
 from ...base import (
     EventBus,
@@ -15,7 +14,7 @@ from ...base import (
     ParticipantId,
 
     log,
-    NOTICE, DEBUG,
+    DEBUG,
     INFO,
 )
 from ...core.state.api import (
@@ -111,7 +110,7 @@ class BusTimer:
                 'Timer interval exceeded by {0} seconds', -sleep_time
             )
         if self._config.active:
-            self._bus.trigger(EVENT_ID_TIMER, TARGET_TIMER, GLOBAL_TIMER_EVENT)
+            send_timer_event(self._bus)
 
 
 def _create_timer_thread_fn(
