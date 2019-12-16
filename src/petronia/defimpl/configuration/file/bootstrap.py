@@ -30,7 +30,7 @@ def bootstrap_config_file(bus: EventBus) -> None:
     """Setup the extension."""
 
     def on_config_state_change(
-            _event_id: EventId, _target_id: ParticipantId,  # pylint: disable=unused-argument
+            _event_id: EventId, _target_id: ParticipantId,
             event_obj: StateStoreUpdatedEvent[PlatformExtensionConfigurationState]
     ) -> None:
         paths = event_obj.state.ordered_search_path

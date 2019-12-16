@@ -45,7 +45,7 @@ class UserMessage:
         self.__args = arguments
 
     @property
-    def message(self) -> str:
+    def message(self) -> I18n:
         return self.__message
 
     @property

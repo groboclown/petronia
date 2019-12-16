@@ -9,6 +9,7 @@ from ....aid.std import (
     log, NOTICE, DEBUG, ERROR,
     set_state,
 )
+from ....aid.std.error import report_user_error
 from ....aid.bootstrap import create_singleton_identity
 from ....core.config_persistence.api import PersistentConfigurationState
 from ....core.extensions.api import send_request_load_extension_event
@@ -23,9 +24,10 @@ def send_config(bus: EventBus, config: ExtensionConfigurationDetails) -> None:
                 config.err
             )
         )
-
-        # FIXME do something smart.
-        # Send a platform Notification?
+        report_user_error(
+            bus, "default.configuration.file",
+            config.err.message, **config.err.arguments
+        )
         return
     if config.state_id and config.is_enabled:
         # Note: version information is not used.

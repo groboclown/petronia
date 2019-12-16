@@ -12,9 +12,11 @@ from numbers import Real
 import locale
 from ....base.util import (
     optional_key,
+    UserMessage,
     V,
     EMPTY_DICT,
 )
+from ....base.util import i18n as _
 from ....base.util.simple_type import PersistType
 from ....core.extensions.api import ExtensionVersion
 
@@ -38,8 +40,7 @@ class ExtensionConfigurationDetails:
             name: str,
             extension_name: Optional[str] = None,
             state_id: Optional[str] = None,
-            # FIXME make the error a locale specific string.
-            err: Optional[str] = None,
+            err: Optional[UserMessage] = None,
             state: Optional[PersistType] = None,
             enabled: bool = False
     ) -> None:
@@ -69,7 +70,7 @@ class ExtensionConfigurationDetails:
         return self.__mod
 
     @property
-    def err(self) -> Optional[str]:
+    def err(self) -> Optional[UserMessage]:
         return self.__err
 
     @property
@@ -124,8 +125,7 @@ def deserialize_contents(
             if not isinstance(value, dict):
                 ret.append(ExtensionConfigurationDetails(
                     source_name, str(key),
-                    # TODO Localise
-                    err='key must reference a configuration mapping'
+                    err=UserMessage(_('key must reference a configuration mapping'))
                 ))
             else:
                 named_configs[str(key)] = value
@@ -133,9 +133,10 @@ def deserialize_contents(
         if isinstance(file_contents, str) or not isinstance(file_contents, Iterable):
             ret.append(ExtensionConfigurationDetails(
                 source_name, '',
-                # TODO Localise
-                err='Contents must be either a key-value map to '
-                'configuration values, or a list of configuration values'
+                err=UserMessage(_(
+                    'Contents must be either a key-value map to '
+                    'configuration values, or a list of configuration values'
+                ))
             ))
         else:
             fcl = tuple(file_contents)
@@ -223,7 +224,7 @@ def _safe_key(
     return None
 
 
-def decode_version(version: Union[str, Iterable[Any]]) -> Union[str, ExtensionVersion]:
+def decode_version(version: Union[str, Iterable[Any]]) -> Union[UserMessage, ExtensionVersion]:
     if isinstance(version, str):
         parts = version.split('.')[:3]
     else:
@@ -238,14 +239,19 @@ def decode_version(version: Union[str, Iterable[Any]]) -> Union[str, ExtensionVe
             try:
                 ret[idx] = locale.atoi(parts[idx])
             except ValueError:
-                # TODO localize
-                return 'invalid value `{0}` in version `{1}`'.format(parts[idx], version)
+                return UserMessage(
+                    _('invalid value `{value}` in version `{version}`'),
+                    value=parts[idx], version=version
+                )
         elif isinstance(part, Real):
             ret[idx] = int(part.real)
         else:
-            # TODO localize
-            return 'invalid value `{0}` in version `{1}`'.format(parts[idx], version)
-    return (ret[0], ret[1], ret[2],)
+            return UserMessage(
+                _('invalid value `{value}` in version `{version}`'),
+                value=parts[idx],
+                version=version
+            )
+    return ret[0], ret[1], ret[2],
 
 
 def enforce_persist_type(properties: Dict[str, Any]) -> PersistType:

@@ -32,7 +32,7 @@ def find_files(
         recurse: bool = False
 ) -> Iterable[str]:
     """
-    Find all extension configuration files, recursing into sub-directories if
+    Find all extension configuration files, searching each sub-directory if
     requested.
     """
     seen_dirs: Set[str] = set()

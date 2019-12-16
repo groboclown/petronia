@@ -11,6 +11,8 @@ from .contents import (
     ExtensionConfigurationDetails,
     deserialize_contents,
 )
+from ....base.util import UserMessage
+from ....base.util import i18n as _
 from ....aid.yaml import (
     YAML_SUPPORTED,
     load_yaml_documents,
@@ -33,7 +35,7 @@ def load_config_file(
         return (
             ExtensionConfigurationDetails(
                 filename, '(file format)',
-                err='yaml file format not supported; please install PyYAML to use it.'
+                err=UserMessage(_('yaml file format not supported; please install PyYAML to use it.'))
             ),
         )
     # Don't use the file.
