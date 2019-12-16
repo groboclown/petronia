@@ -21,7 +21,7 @@ class TimerEvent:
     The most basic timer event.  It contains no state, and so
     is only ever created once.
     """
-    __slots__ = tuple()
+    __slots__ = ()
 
 
 def as_timer_listener(

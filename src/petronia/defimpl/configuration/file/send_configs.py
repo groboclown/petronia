@@ -16,7 +16,7 @@ from ....core.extensions.api import send_request_load_extension_event
 
 
 def send_config(bus: EventBus, config: ExtensionConfigurationDetails) -> None:
-    if config.is_error():
+    if config.err:
         log(
             NOTICE, send_config,
             'Problem loading {0} {1}: {2}'.format(

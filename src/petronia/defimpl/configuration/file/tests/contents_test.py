@@ -4,6 +4,7 @@ Tests for deserializing the data
 """
 
 import unittest
+from collections.abc import Iterable
 from ..contents import (
     deserialize_contents,
     ExtensionConfigurationDetails,
@@ -16,21 +17,16 @@ class DeserializeContentsTest(unittest.TestCase):
         self.maxDiff = None
         res = deserialize_contents('x', 'x.txt')
 
-        # Doesn't work right...
-        # self.assertEqual(
-        #     res,
-        #     [
-        #         ExtensionConfigurationDetails(
-        #             'x.txt', '',
-        #             err='Contents must be either a key-value map to '
-        #                 'configuration values, or a list of configuration values'
-        #         ),
-        #     ]
-        # )
+        self.assertIsInstance(res, Iterable)
         self.assertEqual(len(res), 1)
+        self.assertIsInstance(res[0], ExtensionConfigurationDetails)
         self.assertEqual(res[0].source_name, 'x.txt')
         self.assertEqual(res[0].name, '')
-        self.assertEqual(res[0].err, 'Contents must be either a key-value map to configuration values, or a list of configuration values')
+        self.assertIsNotNone(res[0].err)
+        self.assertEqual(
+            res[0].err.message,
+            'Contents must be either a key-value map to configuration values, or a list of configuration values'
+        )
         self.assertEqual(res[0].extension_name, None)
         self.assertEqual(res[0].state_id, None)
         self.assertEqual(res[0].state, None)
