@@ -25,9 +25,9 @@ This defines what is expected from the platform runtime implementation.
 * [default.configuration.file](default.configuration.file.md) Extension configuration through files.
 * [default.layout.tile](default.layout.tile.md) The Petronia tiling extension.
 * [default.logging.console](default.logging.console.md) Console-based logging.
-* [default.platform.windows](default.platform.windows.md) Provides the low-level platform API implementation for the Windows operating system.
+* [default.logging.file](default.logging.file.md) File-based logging.
 * [default.shutdown.timer](default.shutdown.timer.md) Sends a halt message after a time is exceeded in either a total time ora quiet period with no events.
 * [default.theme.wrench](default.theme.wrench.md) The Wrench Theme.  It's not pretty, but it does all kinds of work.
 
 
-*This file was auto-generated from the Petronia source on 2019-Oct-24.*
+*This file was auto-generated from the Petronia source on 2019-Dec-20.*

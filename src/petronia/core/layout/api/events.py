@@ -205,3 +205,42 @@ def send_request_set_window_visibility_event(bus: EventBus, visible: bool) -> No
         EVENT_ID_REQUEST_SET_FOCUSED_WINDOW_VISIBILITY, TARGET_ID_LAYOUT,
         RequestSetFocusedWindowVisibilityEvent(visible)
     )
+
+# ---------------------------------------------------------------------------
+
+
+EVENT_ID_REQUEST_SET_VIRTUAL_SCREEN = EventId('core.layout.api/request-virtual-screen')
+
+
+class RequestSetVirtualScreenEvent:
+    """
+    Request to switch to a virtual screen.  This can be either relative or
+    absolute.
+
+    Some implementations may have a virtual screen per physical monitor,
+    while others may have a global virtual screen..
+    """
+
+    __slots__ = (
+        '__name',
+    )
+
+    def __init__(self, name: str) -> None:
+        self.__name = name
+
+    @property
+    def name(self) -> str:
+        return self.__name
+
+
+def as_request_set_virtual_screen_listener(
+        callback: EventCallback[RequestSetVirtualScreenEvent]
+) -> ListenerSetup[RequestSetVirtualScreenEvent]:
+    return (EVENT_ID_REQUEST_SET_VIRTUAL_SCREEN, callback,)
+
+
+def send_request_set_virtual_screen_event(bus: EventBus, name: str) -> None:
+    bus.trigger(
+        EVENT_ID_REQUEST_SET_VIRTUAL_SCREEN, TARGET_ID_LAYOUT,
+        RequestSetVirtualScreenEvent(name)
+    )

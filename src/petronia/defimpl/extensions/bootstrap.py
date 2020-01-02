@@ -99,7 +99,7 @@ def bootstrap_extension_loader(
     )
 
     loaded = list(setup.preloaded_extensions)
-    # Add in ourself to the list of preloaded extensions.
+    # Add in this extension to the list of preloaded extensions.
     loaded.append(LoadedExtension('default.extensions', True, (1, 0, 0,)))
     for extensions in setup.initial_extension_groups:
         # load_additional_extensions returns newly loaded extensions only

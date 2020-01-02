@@ -22,9 +22,11 @@ class DeserializeContentsTest(unittest.TestCase):
         self.assertIsInstance(res[0], ExtensionConfigurationDetails)
         self.assertEqual(res[0].source_name, 'x.txt')
         self.assertEqual(res[0].name, '')
-        self.assertIsNotNone(res[0].err)
+        err = res[0].err
+        self.assertIsNotNone(err)
+        assert err is not None  # for mypy
         self.assertEqual(
-            res[0].err.message,
+            err.message,
             'Contents must be either a key-value map to configuration values, or a list of configuration values'
         )
         self.assertEqual(res[0].extension_name, None)

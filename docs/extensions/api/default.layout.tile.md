@@ -37,11 +37,14 @@ the direction, and `index` to indicate the amount of move.  The direction names
 recognized are 'n', 's', 'e', and 'w'.  An index of 0 will be interpreted as a 1
 (this is due to the way Petronia handles the index if it isn't specified).
 The layout configuration defines whether the focus will wrap-around to the other side.
-FIXME add an option to move focus to a named portal.
-FIXME add an option to move the active window to a different portal.
+If the name is the same as a named portal, then the focus is set to that instead.
 * `set-visible`: if `visible` is True, then it minimizes the currently active
 window in the currently active portal.  If `visible` is False, then it restores the
 currently active window; explore what this means on your own!
+
+
+In addition to the generic layout key binding, the tile layout provides additional key
+bindings that are specific to this layout.
 
 ## Details
 
@@ -102,11 +105,11 @@ Configuration:
                   -
                     name: "text"
                     size: (some number)
-                    default-position: "text"
+                    position: "text"
               -
                 name: "text"
                 size: (some number)
-                default-position: "text"
+                position: "text"
       -
         resolution: "text"
         name: "text"
@@ -126,11 +129,11 @@ Configuration:
               -
                 name: "text"
                 size: (some number)
-                default-position: "text"
+                position: "text"
           -
             name: "text"
             size: (some number)
-            default-position: "text"
+            position: "text"
 
 ```
 
@@ -174,13 +177,13 @@ Configuration:
 
 **split-layout.splits[].size** : proportional size of the area
 
-**split-layout.splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
+**split-layout.splits[].position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
 
 **Configuration.properties.layouts[].screens[].splits[].name** : An optional name for the portal, for use with matching or quick focus on key bindings
 
 **Configuration.properties.layouts[].screens[].splits[].size** : proportional size of the area
 
-**Configuration.properties.layouts[].screens[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
+**Configuration.properties.layouts[].screens[].splits[].position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
 
 **Configuration.properties.layouts[].resolution** : screen resolution to match against, in the form WIDTHxHEIGHT (e.g. `1024x768`)
 
@@ -192,7 +195,7 @@ Configuration:
 
 **Configuration.properties.layouts[].splits[].size** : proportional size of the area
 
-**Configuration.properties.layouts[].splits[].default-position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
+**Configuration.properties.layouts[].splits[].position** : Position for windows inserted into the portal (fill, n, e, s, w, ne, nw, se, sw, and r- variants).
 
 
 
@@ -329,4 +332,4 @@ Authors: Petronia
 
 License: MIT
 
-*This file was auto-generated from the Petronia source on 2019-Oct-24.*
+*This file was auto-generated from the Petronia source on 2019-Dec-20.*

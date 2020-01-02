@@ -6,6 +6,7 @@ src/.mypy_cache/*
 src/.coverage
 .venv/*
 .idea/*
+.vscode/*
 buildsrc/work/*
 buildsrc/.cache/*
 *personal_config.py

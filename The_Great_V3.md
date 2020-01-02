@@ -64,6 +64,8 @@ The current to-do list.
         * Can only listen to public events declared by dependent API extensions.
         * Can only trigger public events declared by dependent API extensions.
         * Cannot register any event.
+    * All these things require integrating security validations into the EventBus, with custom EventBus instances
+      for each extension.
 * timer helper should include an implementation that uses the time event.
 * Create theme extension API that is a layer on top of the platform.  It provides better components that are themed.  With this, make sure the platform stuff isn't themed and is as low-level as possible.
 * create the "validation" extension.  It defines state, and allows changes to the state which is hooked up to a listener that will change the global validation state.
@@ -78,6 +80,7 @@ Early development that caused rethinking of how things are done, but that code n
 
 * default.extension:
     * loading needs better error handling.
+    * Refactor it to make it cleaner.
 * default.state:
     * use new coding patterns.
 * default.configuration.file:

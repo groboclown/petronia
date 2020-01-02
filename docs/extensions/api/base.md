@@ -78,16 +78,6 @@ Reports that a component creation attempt failed.
 
 Asks the component factory to create a new instance.  The target of theevent is the component factory, which will be called with the request_idto allow the called-back target to know which component was created.
 
-### Event `petronia.participant/started`
-
-* Event Id: **`petronia.participant/started`**
-* Event Class: **`petronia.base.events.participant_events.ParticipantStartedEvent`**
-* Queue Priority: **normal**
-* Public triggering allowed
-* Public listening allowed
-
-Event to indicate that a participant finished initializing itself and isready to begin normal operation.  This should happen after configuration.
-
 ### Event `petronia.system/started`
 
 * Event Id: **`petronia.system/started`**
@@ -123,4 +113,4 @@ This allows for localization of an error message, and to broadcast the issue to
 different extensions that may have custom ways to handle the message.
 
 
-*This file was auto-generated from the Petronia source on 2019-Oct-24.*
+*This file was auto-generated from the Petronia source on 2019-Dec-20.*

@@ -18,9 +18,9 @@ EMPTY_MAPPING: Mapping[Any, Any] = EMPTY_DICT  # type: ignore
 STRING_EMPTY_TUPLE: Tuple[str] = EMPTY_TUPLE  # type: ignore
 
 # For generics
-T = TypeVar('T') # pylint: disable=invalid-name
-K = TypeVar('K') # pylint: disable=invalid-name
-V = TypeVar('V') # pylint: disable=invalid-name
+T = TypeVar('T')  # pylint: disable=invalid-name
+K = TypeVar('K')  # pylint: disable=invalid-name
+V = TypeVar('V')  # pylint: disable=invalid-name
 
 
 class ValueHolder(Generic[T]):

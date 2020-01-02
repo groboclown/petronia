@@ -14,4 +14,3 @@ def on_shutdown_request(
         bus: EventBus
 ) -> None:
     send_system_shutdown_request(bus)
-

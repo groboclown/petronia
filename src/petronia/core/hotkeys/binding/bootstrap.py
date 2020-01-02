@@ -7,6 +7,7 @@ from ....aid.std import (
     EventBus,
     EventId,
     ParticipantId,
+    EMPTY_DICT,
 )
 from ....aid.bootstrap import (
     ANY_VERSION,
@@ -43,7 +44,8 @@ def bootstrap_core_handlers(bus: EventBus) -> None:
     listeners.listen(TARGET_ID_HOTKEY_CORE, as_hotkey_event_triggered_listener, handler)
     listeners.bind_hotkey(
         BoundServiceActionSchema(
-            TARGET_ID_HOTKEY_CORE, HOTKEY_ACTION_SHUTDOWN, {}
+            TARGET_ID_HOTKEY_CORE, HOTKEY_ACTION_SHUTDOWN,
+            EMPTY_DICT  # type: ignore
         )
     )
 
