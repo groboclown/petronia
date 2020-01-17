@@ -10,7 +10,6 @@ Startup the extension.
 from ....aid.bootstrap import (
     EventBus,
     register_event,
-    ExtensionMetadataStruct,
     ANY_VERSION,
     QUEUE_EVENT_NORMAL,
     NOT_PARTICIPANT,

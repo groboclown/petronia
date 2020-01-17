@@ -33,7 +33,7 @@ from ...hotkeys.api import (
     BoundServiceActionSchema,
     as_hotkey_event_triggered_listener,
 )
-from ..api import (
+from ..tile.api import (
     RequestMoveResizeFocusedWindowEvent,
     send_request_move_resize_focused_window_event,
 
@@ -42,6 +42,12 @@ from ..api import (
 
     RequestSetFocusedWindowVisibilityEvent,
     send_request_set_window_visibility_event,
+)
+from ..window.api import (
+
+)
+from ..navigation.api import (
+
 )
 
 

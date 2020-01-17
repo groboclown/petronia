@@ -288,7 +288,7 @@ def clean_doc_str(doc, overview=False):
             # First non-empty line.
             base_indent = get_indent(line)
             prev_indent = base_indent
-            current += line[base_indent:]
+            current += ' ' + line[base_indent:]
             continue
 
         if not line:
@@ -296,11 +296,12 @@ def clean_doc_str(doc, overview=False):
             if current:
                 if ret and overview:
                     return ret.lstrip()
-                ret += '\n\n' + current
+                ret += '\n\n' + current.lstrip()
                 current = ''
             # leave the previous indent the same.
             continue
 
+        # Note a single newline, not space.  This is important.
         current += '\n' + line[base_indent:].lstrip()
 
     if current:

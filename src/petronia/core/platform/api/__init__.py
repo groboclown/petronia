@@ -44,6 +44,7 @@ from .defs import (
     SCREEN_AREA_W,
     SCREEN_AREA_HEIGHT,
     SCREEN_AREA_H,
+    ZERO_SCREEN_AREA,
 
     NativeScreenUnit,
 

@@ -1,6 +1,6 @@
 
 """
-General manager for the tiles.  This provides the control methods for
+General manager for the tile.  This provides the control methods for
 interacting with the splitters and portals tree.
 """
 
@@ -94,7 +94,7 @@ class AdjustedPortal:
 
 class TileController:
     """
-    Outside controller for the tiles.  Does not interact with the bus.
+    Outside controller for the tile.  Does not interact with the bus.
     """
 
     __slots__ = ('__root', '__navigation', '__lock')

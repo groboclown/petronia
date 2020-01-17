@@ -23,7 +23,7 @@ The layout API provides generic key bindings, which, for this layout, have these
 * `move-active`: Adjusts the size and position of the active portal, if possible.
     Only one of `dx` and `dy`, or `dw` and `dh` need be specified; the layout will
     use the correct one for the owning split's direction.
-    Moving a portal (dx or dy) means resizing the sibling tiles so the active portal
+    Moving a portal (dx or dy) means resizing the sibling tile so the active portal
     keeps its ame size.
     The `dz` has a special meaning - it flips the active window within the portal.
 * `shift-focus`: Changes the currently focused portal.  Uses the `name` to indicate
