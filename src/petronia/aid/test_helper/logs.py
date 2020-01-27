@@ -23,6 +23,7 @@ _LOG_NAMES = {
     FATAL:   'FATAL',
 }
 
+
 class EnabledLogs:
     __log_ids: List[LogHandlerId]
 
@@ -30,17 +31,17 @@ class EnabledLogs:
         self.__level = level
         self.__log_ids = []
 
-
     def __enter__(self) -> None:
         self.__log_ids.append(
             add_log_handler(self.__level, '', self._log_it)
         )
 
-    def __exit__(self, type_arg: Any, value: Any, etraceback: Any) -> None: # type: ignore
-        for lhid in self.__log_ids:
-            remove_log_handler(lhid)
+    def __exit__(self, type_arg: Any, value: Any, e_traceback: Any) -> None: # type: ignore
+        for log_id in self.__log_ids:
+            remove_log_handler(log_id)
         self.__log_ids = []
 
+    # noinspection PyMethodMayBeStatic
     def _log_it(self, level: LogLevel, src: str, msg: str, err: Optional[BaseException]) -> None:
         print("[{0}] {1:20}: {2}".format(_LOG_NAMES[level], src, msg))
         if err:

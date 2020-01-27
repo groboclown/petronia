@@ -107,7 +107,7 @@ class CreateComponentTest(unittest.TestCase):
         def on_create_pass(_cid: ComponentId) -> None:
             self.fail("should not create")
 
-        def on_create_fail(msg: UserMessage) -> None:
+        def on_create_fail(_msg: UserMessage) -> None:
             event_order.append('error')
 
         create_component(

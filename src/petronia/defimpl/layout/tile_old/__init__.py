@@ -2,6 +2,8 @@
 """
 The Petronia tiling extension.
 
+*OLD CODE - BASED ON THE OLD API THAT DOES NOT EXIST ANYMORE.*
+
 It allows for:
   * splitting the screen up into sections;
   * having different splits depending on the monitor resolution;

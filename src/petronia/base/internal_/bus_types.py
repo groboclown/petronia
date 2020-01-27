@@ -3,7 +3,7 @@
 Type definitions for the event bus.
 """
 
-from typing import Callable, Tuple, NewType, Union, Sequence, Mapping, Dict
+from typing import Callable, Tuple, NewType, Union, Sequence, Mapping
 from .identity_types import ParticipantId, ComponentId
 from ..util.memory import T
 

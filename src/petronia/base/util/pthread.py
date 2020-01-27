@@ -38,7 +38,7 @@ def create_single_pass_thread(
         except SystemExit:
             # Exit immediately.
             pass
-        except BaseException as err: # pylint: disable=broad-except
+        except BaseException as err:  # pylint: disable=broad-except
             error_reporter(err)
     return Thread(name=name, daemon=daemon, target=callback)
 
@@ -78,7 +78,7 @@ def create_loop_thread(
                 # Exit immediately.
                 log(DEBUG, create_loop_thread, "System exit for thread {0}", name)
                 return
-            except BaseException as err: # pylint: disable=broad-except
+            except BaseException as err:  # pylint: disable=broad-except
                 logerr(DEBUG, create_loop_thread, err, "Error in thread {0}", name)
                 if error_handler(err):
                     log(TRACE, create_loop_thread, "... which caused the loop to exit")

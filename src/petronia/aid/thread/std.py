@@ -74,6 +74,6 @@ def _mk_error_handler(
 
 def _is_reportable_error(err: BaseException) -> bool:
     return (
-            not isinstance(err, SystemExit) and
-            not isinstance(err, KeyboardInterrupt)
+        not isinstance(err, SystemExit)
+        and not isinstance(err, KeyboardInterrupt)
     )

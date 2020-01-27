@@ -30,7 +30,10 @@ def discover_platform_ext() -> str:
         # Check to see if x is actually running.
         # The "proper" way is to open the display, but that means we'll mess
         # up the right approach to handling a window manager, which must be
-        # the first client to connect.
+        # the first client to connect...
+        # But that will require some testing.  Testing in that it might be
+        # still a window manager if the client connects, disconnects, then
+        # is first to connect when nothing else is connected.
         return 'default.platform.x11'
     except OSError:
         pass
