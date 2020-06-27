@@ -1,3 +1,4 @@
+#! /usr/bin/python3
 
 # mypy: allow-any-expr
 # mypy: allow-any-generics

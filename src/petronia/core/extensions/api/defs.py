@@ -25,16 +25,30 @@ def is_version_valid(version: ExtensionVersion) -> bool:
     )
 
 
+EXTENSION_VISIBILITY_API = 'api'
+EXTENSION_VISIBILITY_IMPL = 'impl'
+EXTENSION_VISIBILITY_STAND_ALONE = 'stand-alone'
+EXTENSION_VISIBILITY_SHARED = 'shared'
+EXTENSION_VISIBILITY_GROUPS = (
+    EXTENSION_VISIBILITY_API,
+    EXTENSION_VISIBILITY_IMPL,
+    EXTENSION_VISIBILITY_STAND_ALONE,
+    EXTENSION_VISIBILITY_SHARED,
+)
+
+
 class LoadedExtension:
     """
     Simple data type for the loaded extension.
     """
-    __slots__ = ('__name', '__secure', '__version', '__hash')
+    __slots__ = ('__name', '__secure', '__version', '__hash', '__visibility',)
 
-    def __init__(self, name: str, secure: bool, version: ExtensionVersion) -> None:
+    def __init__(self, name: str, secure: bool, version: ExtensionVersion, visibility: str) -> None:
+        assert visibility in EXTENSION_VISIBILITY_GROUPS
         self.__name = name
         self.__secure = secure
         self.__version = version
+        self.__visibility = visibility
         # secure is not common enough to put in the hash.
         self.__hash = hash(name) ^ hash(version)
 
@@ -50,6 +64,10 @@ class LoadedExtension:
     def version(self) -> ExtensionVersion:
         return self.__version
 
+    @property
+    def visibility(self) -> str:
+        return self.__visibility
+
     def __repr__(self) -> str:
         return "LoadedExtension(name={0}, secure={1}, version={2})".format(
             self.name, self.is_secure, self.version
@@ -64,7 +82,7 @@ class LoadedExtension:
                 other.is_secure == self.__secure and
                 other.version == self.__version
             )
-        print("not equal - not same class")
+        # print("not equal - not same class")
         return False
 
     @no_type_check

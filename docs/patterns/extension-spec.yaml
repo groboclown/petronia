@@ -1,0 +1,221 @@
+
+# Specification for the event definition files.
+# Extensions can use this to describe the events, and to auto-generate the event code.
+
+title: Public Extension Specification
+description: Describes the public information about an API or Shared extension.
+type: object
+required:
+  - Namespace
+  - ExtensionType
+  - Version
+  - Authors
+  - Licenses
+properties:
+  Namespace:
+    title: Extension Namespace
+    description: The prefix namespace used by all of the singletons and event IDs.
+    type: string
+    pattern: "^[a-z0-9]+(\\.[a-z0-9]+)*$"
+
+  ExtensionType:
+    title: Extension Type
+    description: The type of extension, which describes the allowed capabilities.
+    type: string
+    enum:
+      - api
+      - impl
+      - shared
+      - standalone
+
+  Version:
+    title: Extension Version
+    description: Version of the extension, which must be 3 non-negative integers separated by a period ('.').
+    type: string
+    pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+"
+
+  Authors:
+    title: List of Authors
+    type: array
+    items:
+      description: An author
+      type: string
+
+  Licenses:
+    title: List of Licences
+    description: List of licenses for the extension
+    items:
+      description: Common license name
+      type: string
+
+  Homepage:
+    description: Extension homepage
+    type: string  # should be "url", but is that supported?
+
+  Description:
+    description: A short description of the extension.
+    type: string
+
+  Dependencies:
+    title: List of Dependencies
+    description: A list of dependent extensions that must be loaded before this one.
+    type: array
+    items:
+      description: a dependency
+      type: object
+      properties:
+        extension:
+          description: Formal identifier of the extension.
+          type: string
+        minimum:
+          description: Minimum version of the extension
+          type: string
+          pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+"
+        below:
+          description: version of the extension must be strictly below this.
+          type: string
+          pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+"
+
+  DefaultImplementations:
+    title: List of Default Implementations
+    description: (only usable by `api` type extensions, for which it is required) a default implementation to load, if no other implementation is explicitly requested.
+    items:
+      description: implementation description
+      type: object
+      properties:
+        extension:
+          description: Formal identifier of the extension.
+          type: string
+        minimum:
+          description: Minimum version of the extension
+          type: string
+          pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+"
+        below:
+          description: version of the extension must be strictly below this.
+          type: string
+          pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+"
+
+  GlobalTargetId:
+    title: Global Target ID
+    description: The single global target usable as the target for events directed towards the implementation.
+    type: string
+    pattern: "^[a-zA-Z0-9 _$./:;+=@#%^&()-]+$"
+
+  GlobalTargets:
+    title: Global Targets
+    description: >
+      Global targets usable as the target for events directed to the implementation.
+      Most extensions will only need one of these, in which case the GlobalTargetId is more appropriate to define.
+    type: array
+    items:
+      type: string
+      pattern: "^[a-zA-Z0-9 _$./:;+=@#%^&()-]+$"
+
+  Events:
+    title: Declared Events
+    description: Each declared event for the extension.  Each top-level property name is the event name.
+    type: object
+    propertyNames:
+      title: Event
+      description: A single event definition.  The name of this property is the event class name, and used to construct the event ID.
+      pattern: "^[A-Z][a-zA-Z0-9]+$"
+      type: object
+      required:
+        - description
+        - trigger-protection
+        - listen-protection
+        - target
+      properties:
+        description:
+          title: Description
+          description: Event description.
+          type: string
+        priority:
+          title: Priority
+          description: Queue priority.
+          type: string
+          enum:
+            - high
+            - normal
+            - io
+        trigger-protection:
+          title: Trigger Protection
+          description: >
+            Protection level declaring which extensions can trigger this event.
+            `public`: anyone can trigger it
+            `private`: only implementations of the API can trigger it.
+          type: string
+          enum:
+            - public
+            - private
+        listen-protection:
+          title: Listen Protection
+          description: >
+            Protection level declaring which extensions can listen to this event.
+            `public`: anyone can listen to it
+            `private`: only implementations can listen to it
+          type: string
+          enum:
+            - public
+            - private
+        target:
+          title: Event Target
+          description: The target of the event.  Either use "global" (for the GlobalTargetId), "any" for any target, or one of the defined global targets.
+          type: string
+        depends-on:
+          title: Depends On
+          description: list of Python dependencies that this event requires.  Note that any dependency must follow the serialization guidelines.
+          type: string
+        parameters:
+          title: Parameters
+          description: parameters for the event.
+          type: object
+          propertyNames:
+            title: Property Name
+            description: the name of the property; directly used as the argument and getter name.
+            pattern: "^[a-z][a-zA-Z0-9_]+$"
+            type: object
+            required:
+              - type
+            properties:
+              type:
+                description: the Python typing syntax for the type of the property.
+                type: string
+              validation:
+                description: explicit validation for the argument; this is a boolean Python check that is turned into an assertion.
+                type: string
+              example:
+                description: for non-basic types (str, int, bool, float), or valididated types, this is an example of the parameter, used for example event generation.
+
+
+  SupportTypes:
+    title: Support Types
+    description: supporting types used for state and event types.  All must be serializable.
+    type: object
+    propertyNames:
+      pattern: "^[A-Z][a-zA-Z0-9]+$"
+      type: object
+      properties:
+        description:
+          title: Description
+          description: Documentation for the type.
+          type: string
+        parameters:
+          title: Parameters
+          description: Object parameters
+          type: object
+          propertyNames:
+            title: Property Name
+            description: the name of the property; directly used as the argument and getter name.
+            pattern: "^[a-z][a-zA-Z0-9_]+$"
+            required:
+              - type
+            type:
+              description: the Python typing syntax for the type of the property.
+              type: string
+            validation:
+              description: explicit validation for the argument; this is a boolean Python check that is turned into an assertion.
+              type: string
+            example:
+              description: for non-basic types (str, int, bool, float), or valididated types, this is an example of the parameter, used for example event generation.
+              type: string

@@ -49,7 +49,7 @@ def get_extension_from_module_spec(
 
         # MyPy doesn't see the "exec_module" on the loader, but it's there.
         log(TRACE, get_extension_from_module_spec, 'Initializing module')
-        mod_spec.loader.exec_module(mod) # type: ignore
+        mod_spec.loader.exec_module(mod)  # type: ignore
 
         if not description:
             log(TRACE, get_extension_from_module_spec, 'Finding metadata for module')

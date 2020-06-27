@@ -54,6 +54,7 @@ The current to-do list.
         * Each registered event must be declared with:
             * trigger protection: public (anyone can trigger it) or private (only implementations of the API can trigger it).
             * listen protection: public (anyone can listen to it) or private (only implementations can listen to it)
+        * Must declare a default implementation.
     * Implementation extensions:
         * Can only listen to listen-public events declared by dependent API extensions.
         * Can listen to public or private events declared by the implemented API.
@@ -64,6 +65,10 @@ The current to-do list.
         * Can only listen to public events declared by dependent API extensions.
         * Can only trigger public events declared by dependent API extensions.
         * Cannot register any event.
+    * Shared extensions:
+        * Cannot listen to events.
+        * Can only trigger the "register event" event, and the registered events must be both public trigger protection and public listen protection.
+        * Cannot be implemented.
     * All these things require integrating security validations into the EventBus, with custom EventBus instances
       for each extension.
 * timer helper should include an implementation that uses the time event.

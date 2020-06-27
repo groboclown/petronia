@@ -199,6 +199,8 @@ class DiscoveredExtension:
             self.__is_impl = False
             self._defaults = ()
             self._implements = ()
+        elif ext_type == 'shared':
+            raise NotImplementedError('shared extension type is not implemented yet')
         else:
             raise PetroniaInvalidExtension(
                 name,

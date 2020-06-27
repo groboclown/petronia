@@ -11,6 +11,7 @@ from .defs import LoadedExtension
 from ....base.bus import EventBus
 from ....core.platform.preboot import SandboxPath
 
+
 class ExtensionLoaderSetup:
     """Definitions that need to be passed to the extension loader."""
     __slots__ = (

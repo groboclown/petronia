@@ -48,7 +48,10 @@ def as_extension_loaded_listener(
     return (EVENT_ID_EXTENSION_LOADED, callback,)
 
 
+# ---------------------------------------------------------------------------
+
 EVENT_ID_REQUEST_LOAD_EXTENSION = EventId('core.extensions.api request-load')
+
 
 class RequestLoadExtensionEvent:
     """

@@ -55,12 +55,12 @@ def readonly_dict(inp: Mapping[K, V]) -> Mapping[K, V]:
     """Create a (shallow) read-only copy of the dictionary."""
     if isinstance(inp, _ReadOnlyDict):
         return inp
-    return _ReadOnlyDict(inp) # type: ignore
+    return _ReadOnlyDict(inp)  # type: ignore
 
 
 class _ReadOnlyDict(Dict[K, V], Generic[K, V]):
     """A read-only dictionary."""
-    def __readonly__(self, *args, **kwargs): # type: ignore
+    def __readonly__(self, *args, **kwargs):  # type: ignore
         raise RuntimeError("Cannot modify ReadOnlyDict")
 
     __setitem__ = __readonly__ # type: ignore
