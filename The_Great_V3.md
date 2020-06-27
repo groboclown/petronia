@@ -43,6 +43,18 @@ The current to-do list.
 
 ## Really Basic Infrastructure Work
 
+* Revisit the boot, execution, and runtime handling.
+    * Initial design goals included running separate processes to split up security concerns, but wasn't implemented.  This ends up being a big problem when you look at the user action to `reload` the setup.  The originally implemented version would need to completely stop Petronia and restart it.  If the design switches to instead have a split by process, then this becomes much easier.  It also makes some of the event processing and security concerns much better.
+    * This requires:
+        1. Change boot to be split into three processes.
+            * The primary event bus.  The initial boot spawns the other two processes, then enters this mode.  The primary event bus listens for process spawn events (detailed below) and shutdown events.  If the other two processes stop without being asked (a crash or response to an event), then the process shuts down any other running process and restarts (though graphics interface should only be stopped on explicit shutdown requests).  The child processes should be run in a limited environment (for Windows, see [Windows sandbox](https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md))
+            * The graphics interface.  This handles the local UI management.  It keeps track of the key state, video modes, native windows, and all that fun stuff.  It remains running as long as the parent (primary event bus) is running.
+            * The module loader process.  This incorporates the old design bootstrap process, minus the graphics detection.  Reload events are considered shutdown events.
+        1. Change event handling to now require serialization.
+            * The interface with the primary event bus requires a listener that can deserialize events.  Only events which are explicitly registered by the local module that are listened to are deserialized, though the deserialize function registered with the listener.
+            * The primary event bus, when passing events between processes, does not perform deserialization.  It only performs that for the explicitly listened to events.
+            * Rethink how event objects are written.  Right now, they are very labor intensive with large amounts of boilerplate.  This needs to be either automated, or have a better approach.  Maybe named tuples?
+        1. Establish a convention for defining the launching of a module process and the permissions granted to that process.  It should be possible to now write modules in any language that can interface with the raw I/O event bus.
 * Portal redux
     * add in portal component id, along with adding portals to the lifecycle.  Even though the portal
       creation call doesn't make much sense by itself (nothing outside the plugin can explicitly request a creation),
