@@ -53,7 +53,10 @@ The current to-do list.
         1. Change event handling to now require serialization.
             * The interface with the primary event bus requires a listener that can deserialize events.  Only events which are explicitly registered by the local module that are listened to are deserialized, though the deserialize function registered with the listener.
             * The primary event bus, when passing events between processes, does not perform deserialization.  It only performs that for the explicitly listened to events.
-            * Rethink how event objects are written.  Right now, they are very labor intensive with large amounts of boilerplate.  This needs to be either automated, or have a better approach.  Maybe named tuples?
+            * Event objects are transmitted as either binary blobs (they have a starting marker, '!', an event ID, a target ID, a length (32-bit unsigned integer), and the binary contents) or as structured JSON objects.  The structure must have a simplified JSON schema per event.
+            * Rethink how event objects are written.  Right now, they are very labor intensive with large amounts of boilerplate.
+            * The Event
+        1. Modules must provide a structured data that defines which events and listeners they care about.  This is sent as part of the extension registration.  The published events in this document must also include the schema for the events.  This means we need a method for defining these and extracting boilerplate code from it.
         1. Establish a convention for defining the launching of a module process and the permissions granted to that process.  It should be possible to now write modules in any language that can interface with the raw I/O event bus.
 * Portal redux
     * add in portal component id, along with adding portals to the lifecycle.  Even though the portal

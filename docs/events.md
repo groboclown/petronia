@@ -7,3 +7,285 @@ Events, being the heart of Petronia, require specific details about how they wor
 Any activity that requires one participant of the system to interact with another requires the communication to be done through events.
 
 The nature of events requires them to only exist when they have a specific participant identity that is the target of the event.  In most cases, this corresponds to the intended receiver of the event.  In a few cases, it indicates a participant that had an action act upon it, but may not receive the event.
+
+
+## Simulating RPC With Events
+
+In general, events should be considered "fire and forget."  On a rare occasion, an event requires a response, such as registering a portal and receiving the portal ID or an error response if something didn't go right.
+
+
+## Schema
+
+When an event is registered, it must provide the schema for the events.  These are based upon the standard JSON schema, but highly simplified.  These are embedded in the API extension metadata.
+
+The event declaration of the API extension looks like this:
+
+```javascript
+{
+    "events": {
+        // TODO document event name format.
+        "one-event-name": {
+            // The priority in which the event is handled.
+            // Valid values are "high", "user", "normal", and "io".
+            "priority": "normal",
+
+            // An optional description of the event.  It can be 0 to 32767 characters long.
+            "description": "",
+
+            // A list of fields allowed in the event.  This takes the form of the
+            // "fields" in a formal structure (see below).
+            "fields": {}
+        },
+        "another-event-name": {
+            // ...
+        },
+        "a-binary-event": {
+            // binary events are very special types.  They allow for transmitting
+            // binary blobs of data without needing special escaping.  However, for
+            // binary events, the entire event is a binary blob, and it does not
+            // have fields.  This should be used for actions like sending audio to
+            // play or images.
+            "priority": "normal",
+            "description": "blah",
+            "binary": true
+        }
+    },
+    "references": {
+        "AStructureDefinition": {
+            // A data definition.  See below for details.
+        },
+        "AnotherStructure": {}
+    }
+}
+```
+
+Each data definition in the `references` section must be of a specific type.  The supported types are:
+
+
+### string
+
+```javascript
+{
+    "references": {
+        "a_string_type": {
+            "type": "string",
+
+            // Every reference type can have a description.  Descriptions
+            // are 0 to 32767 character long strings.
+            "description": "blah",
+
+            // Strings have a limited number of restrictions that can
+            // be defined for them.
+            
+            // A maximum length value.
+            // The default value is 255.  The absolute maximum value is 65535.
+            // The minimum value is 1.
+            "max-length": 10,
+
+            // A minimum length.  This must be less than or equal to the maximum length.
+            // The default value is 0.  The absolute maximum is the value of the
+            // "max-length" value.
+            "min-length": 1
+        }
+    }
+}
+```
+
+### integer
+
+
+```javascript
+{
+    "references": {
+        "an_integer_type": {
+            "type": "int",
+
+            // Maximum value is 9223372036854775807, minimum value is -9223372036854775808.
+            // Default is 9223372036854775807
+            "max-value": 1000,
+
+            // Minimum integer value.  Minimum value is -9223372036854775808,
+            // maximum value is "max-value" value.
+            // Default is -9223372036854775808
+            "min-value": 0,
+        }
+    }
+}
+```
+
+
+### float
+
+```javascript
+{
+    "references": {
+        "a_float_type": {
+            "type": "float",
+            "max-value": 100.1,
+            "min-value": 10.0
+        }
+    }
+}
+```
+
+
+### boolean
+
+```javascript
+{
+    "references": {
+        "a_boolean_type": {
+            "type": "bool",
+        }
+    }
+}
+```
+
+
+### enum
+
+```javascript
+{
+    "references": {
+        "an_enum_type": {
+            "type": "enum",
+
+            // Value must be a string with a length must be between 1 and 255.
+            "values": [
+                "value-1",
+                "value-2",
+                "some other value"
+            ]
+        }
+    }
+}
+```
+
+
+### date-time
+
+```javascript
+{
+    "references": {
+        "a_date_time_type": {
+            "type": "datetime",
+
+            // Values will be transmitted as strings in the format:
+            // YYYYMMDD:hhmmss.sss:Z
+            // YYYY: 4-digit year.
+            // MM: 2-digit month (Jan = 01, Dec = 12)
+            // DD: 2-digit day of the month (01 to 31)
+            // hh: 2-digit hour (24-hour time)
+            // mm: 2-digit minute of the hour (0-59)
+            // ss: 2-digit second of the minute (0-61, for leap-seconds)
+            // sss: 3-digit millisecond time (0-999)
+            // Z: timezone offset (-12 to 12)
+        }
+    }
+}
+```
+
+
+### array
+
+```javascript
+{
+    "references": {
+        "an_array": {
+            // An array is a uniform type definition; every entry in the
+            // array has the same type.
+            "type": "array",
+            "value-type": {
+                // A definition of a value type.  This is a recursive
+                // data structure.
+            },
+            "min-length": 0,
+            "max-length": 65535
+        }
+    }
+}
+```
+
+
+### structure
+
+```javascript
+{
+    "references": {
+        "a_structure": {
+            "type": "structure",
+
+            "fields": {
+                // Keys are the field names, which must be characters matching the regular expression:
+                //   [a-z][a-z0-9_]*
+                // The minimum length is 1, the maximum length is 64 characters.
+                "a_field": {
+                    // A field has the same form as a reference entry, but with
+                    // one additional value: "optional".
+                    // By default, all fields are required ("optional": false).
+                    // If optional = true, then the field does not need to be present,
+                    // or the value can be null.  Not-present fields have a null value.
+                    "optional": false
+                }
+            }
+        }
+    }
+}
+```
+
+
+### selector
+
+
+```javascript
+{
+    "references": {
+        "a_selector": {
+            "type": "selector",
+
+            // This is a special structure that allows containing a dynamically typed value.
+            // However, the exact contents must be well defined, and not defined later.
+            // The data form of a "selector" structure is:
+            // { "^": "selector-name", "$": /* structure data */ }
+
+            "type-mapping": {
+                "key1": {
+                    // A type definition.
+                    // ...
+                },
+                "key2": {
+                    // ...
+                }
+            }
+        }
+    }
+}
+```
+
+
+### reference
+
+```javascript
+{
+    "references": {
+        "an_array_of_references": {
+            "type": "array",
+            "value-type": {
+                // A reference can be anywhere, and can define a recursive data
+                // structure.  However, they have the best use as a sub-type
+                // within another type.
+
+                "type": "reference",
+                "ref:" "a_selector"
+            }
+        }
+    }
+}
+```
+
+
+## Streaming Events
+
+Event objects are sent one after the other, using three semi-colons to separate each one.  The string "};;;{" is a specfic string to indicate an event object separation, for error recovery.  If that sequence must be included in a string, then needs to be escaped.  The formal event separator is three semi-colons.  The exception is when parsing a binary blob.
+
+Binary events must start with the sequence "{!".  It's followed by a JSON string ("blah\"blah"), a colon (":"), the a JSON integer, which is the length of the binary blob, a comma (","), then the binary blob (octets, totalling the length value), then a closing curly bracket "}".  This allows the blob to include a proper event separator ("};;;{").

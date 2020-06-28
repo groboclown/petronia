@@ -12,19 +12,25 @@
 * Functions over objects.  Lifecycle controls should not be handled by the object itself, but by the framework that injects the object.  In this way, lifecycle is enforced.
 * Slotted data objects over dictionaries.  Slots are faster to create and access and use less memory, and have better type safety.
 * Convention over subclass.  Rather than enforcing type hierarchies, we'll enforce method existence.
-* Enforce read-only attributes through `@property` methods.  This may be a bit of a performance hit, so switching this will be on an individual basis.  Critical system parts will need to enforce read-only everywhere.
-* API vs implementation.  The API for Petronia is the event bus, the event IDs and singleton IDs, and the event classes.  Everything else is implementation and should be registered separately from the API.  Extensions should have an API and implementation portion as well.  Users, if they really want, can swap out all the implementations, starting with extensions, all the way up to the core system setup at bootstrap time.
+* Enforce read-only attributes through `@property` methods.  This may be a bit of a performance hit, so switching this will be on an individual basis.  Critical system parts will need to enforce read-only everywhere.  *May switch to using more Named Tuples*.
+* API vs implementation.  The API for Petronia is the event bus, the event IDs and singleton IDs, and the structured event data.  Everything else is implementation and should be registered separately from the API.  Extensions should have an API and implementation portion as well.  Users, if they really want, can swap out all the implementations, starting with extensions, all the way up to the core system setup at bootstrap time.
 * All non-local memory must be accessed in a thread-safe manner.  For this reason, global memory must be restricted to just a few places.  This applies to singleton objects as well.
 * Internationalization is a must.  Petronia uses the built-in `gettext` module for the application.  Extensions should expect the localization files to be added by the platform, and should produce files that can be integrated into the localization paths.
-* Threading must be carefully handled.  Use `petronia.base.util.pthread` for any threading.
+* Threading must be carefully handled.  Use `petronia.base.util.pthread` for any threading. *May need to switch to `asyncio`.*
 
 ### Security
 
-Need to understand security concerns with plugins.
+Petronia, as a kind of Window Manager, has access to many parts of the system which are sensitive, even if it's not running with high privileges.  Because of this, we must take care to ensure a rogue plugin can't cause harm.
+
+#### Forking Model
+
+Petronia splits its processing into multiple processes, to gain the aid of operating system controls to limit execution rights.  A few core processes has elevated privileges, but only in limited ways.
 
 #### Keyboard Capture
 
 This can be abused in terrible ways.  The core system needs to restrict the keyboard shortcuts to a global key combination + user-defined combinations.  The "capture all" can't be used, but instead need to support input fields.
+
+To help limit this, keyboard capture is also only run by the os handler process, and should be disabled in all other processes.
 
 #### Screen Overlay
 
@@ -39,6 +45,7 @@ The system allows for the user to install and load extensions.  This has inheren
 Due to the issues with [Python sandboxing in CPython](https://python-security.readthedocs.io/security.html#sandbox), securing extensions requires running a separate Python interpreter in a child process with highly restricted access via OS protections, and have it communicate to the event bus via reading and writing from `stdin` and `stdout`.  This can be achievable through the extreme decoupling architecture and lack of a global data store.  Additionally, this means that a form of event trust is required for these remote events to prevent a malicious one performing actions it has no rights to; or, it could just be limited in the bus-interface to the child process.
 
 Extensions themselves require support for signing and integrity verification.
+
 
 ### Trusted Events
 
@@ -57,22 +64,6 @@ One enormous weakness (from the security standpoint) in Petronia's current desig
 However, we can recognize that Petronia has a wire-transmission form for its events, and there is no part of Petronia that requires the transmission of events while knowing the event contents.  Additionally, an extension must declare which events it is interested in receiving, which means that it declares to have access to that event.  On top of that, events (and thus the event class) are only declared by the API extensions.
 
 This means that event objects only need to be generated and interpreted within the security context that directly uses them.  The parts of the system that shuffle events between senders and receivers only need to store the wire (marshalled) version. 
-
-### Super Secure Petronia
-
-With the extension execution in a separate process, this enables Petronia to be able to run in a highly secure environment.
-
-The main process would need enough permission to be able to start processes that have all the permissions they need, but it would only be in charge of:
-
-* Finding platform-specific information about the install, to know where to look for configuration files and extensions.
-* Loading the most basic parts of the configuration, enough to know the basic deployment landscape.
-* Launch sub-processes by permission grouping.  Platform UI manipulation would be in one process, execution child process would be in another, and so on.
-
-This web of processes would listen on a local network port (could even be SSL with a once-per-load time self-signed certificate) for events.  The locally running event bus would translate "added listener" to include the listener's port number before sending it to all other processes.
-
-This setup is a long term goal, but should be kept in mind when writing extensions and the core system.
-
-To work around this 
 
 ## System Parts
 
@@ -125,6 +116,12 @@ A special exception should be made for the `register event` action, because this
 
 #### Events
 
+Due to the forking model of Petronia, all events are formally structured data.  This means they have a structure defined through a schema, and can be transmitted across the wire.  This allows for extensions to be written in any language.
+
+The events are transmitted as either JSON formatted data objects (never arrays), which are limited in size to 16 MB, or a simple binary blob, for transmitting images, which may be much larger.
+
+OLD INFORMATION, WHICH MAY NOT BE VALID IN THE FUTURE.
+
 Events are simple objects passed through the event bus.  Events must conform to the following restrictions:
 
 * They use `__slots__`.  Event objects that show signs of anything in the hierarchy not using slots will not be registered.
@@ -141,6 +138,14 @@ Each event is registered in the system using an event id, which *should* be in t
 Components are instances of a category of participants.  These have a specific lifecycle that must be adhered to, but that must be enforced by the extension that creates them.
 
 Due to the possible remote event capability, the actions for a component may execute in any process, so the only way to request creation or communicate with them is through the events.
+
+### Processes
+
+The *foreman* process has two responsibilities - the management of all the processes, and passing events between them.  Note that the process management includes the finalizing of the shutdown process.  If processes die, the foreman can restart them.  The event passing can enforce access rights, ensuring that a process that sends an event has the privilege to send it.
+
+The *os handler* process manages the window management, keyboard handling, and other OS low-level events and actions.  Because of the extended permissions this requires, it runs independent of the other processes.  This also forces a nice separation between extensions and low-level graphics code, to make extensions more portable.
+
+The *extension loader* process loads extensions and their configuration, then requests the primary process to start the corresponding process.
 
 
 ### Standard Extensions
@@ -325,3 +330,11 @@ One aspect of Petronia that needs some figuring out is the auto-detection of the
 Windows is easy to detect.  Figuring out the Windows version is straight forward using standard Python tools.
 
 For Linux, there are two separate standards at the moment - Wayland and X11.  This is compounded by Wayland compatibility with X11 protocols.  The work-around here is to force the end-user to select one or the other.
+
+
+# History
+
+* v1 - Early prototype
+* v2 - Attempt at more structure, while understanding the needs of the system.
+* v3 - Switch to an event bus style, with well-defined event schema.
+* v3.1 - Enforced forking model with event registration security.
