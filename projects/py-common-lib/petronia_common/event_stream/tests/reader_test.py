@@ -1,11 +1,17 @@
 
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Union, Dict, Any
 import unittest
 import io
 import json
 from .. import reader
-from ..defs import RawEvent, to_raw_event_binary, to_raw_event_object
-from ...util import PetroniaReturnError, UserMessage, i18n, as_error
+from ..defs import (
+    RawEvent, is_raw_event_binary, is_raw_event_object, raw_event_target_id, raw_event_id,
+    as_raw_event_object_data, as_raw_event_binary_data_reader,
+)
+from ...util import UserMessage, i18n, PetroniaReturnError
+
+
+ExpectedEvent = Tuple[str, str, Union[bytes, Dict[str, Any]]]
 
 
 class ParseRawEventTest(unittest.TestCase):
@@ -23,6 +29,8 @@ class ParseRawEventTest(unittest.TestCase):
         reader.MAX_BLOB_SIZE = self.max_blob
 
     def test_setup(self) -> None:
+        # Ensure the assumptions in the constants, plus the assignments above, match up.
+
         # + 2 for the extra length bytes
         self.assertEqual(reader.MAX_JSON_SIZE + 3, len(TOO_BIG_JSON_BIN))
         self.assertEqual(reader.MAX_JSON_SIZE + 2, len(BIGGEST_JSON_BIN))
@@ -37,9 +45,9 @@ class ParseRawEventTest(unittest.TestCase):
             with self.subTest(name=name):
                 print(f"Parsing [{byte_data}]")
                 stream = io.BytesIO(byte_data)
-                actual = reader.parse_raw_event(stream)
+                actual = reader.parse_raw_event(reader.MarkedStreamReader(stream))
                 print(f" - {actual}")
-                self.assertEqual(actual[0], expected[0])
+                self.assert_raw_event_equal(expected[0], actual[0])
                 if not expected[1]:
                     self.assertIsNone(actual[1])
                 else:
@@ -47,8 +55,77 @@ class ParseRawEventTest(unittest.TestCase):
                         list(actual[1].messages()),
                         expected[1],
                     )
+
                 self.assertEqual(actual[2], expected[2])
                 self.assertEqual(stream.read(), left_over)
+
+    def test_read_event_stream__2_packets(self) -> None:
+        byte_data = (
+                PACKET_MARKER +
+                b'e' + as_bin_str('event-1') +
+                b't' + as_bin_str('target-1') +
+                b'[\0\0\1x' +
+                PACKET_MARKER +
+                b'e' + as_bin_str('event-2') +
+                b't' + as_bin_str('target-2') +
+                b'[\0\0\1y'
+        )
+        collector = CallbackCollector()
+        collector.execute(byte_data)
+        event1 = collector.next_as_raw_event(self)
+        self.assert_raw_event_equal(
+            ("event-1", "target-1", b'x'),
+            event1,
+        )
+        event2 = collector.next_as_raw_event(self)
+        self.assert_raw_event_equal(
+            ("event-2", "target-2", b'y'),
+            event2,
+        )
+        collector.next_as_eof(self)
+
+    def test_out_of_order_packet_read(self) -> None:
+        # This also tests long data reads.
+
+        # Ensure the blob size allows for large blob reads.
+        reader.MAX_BLOB_SIZE = self.max_blob
+
+        # Need to generate a packet that exceeds the length necessary to trigger
+        # a pipe reader.
+        # That, along with the way the collector works, the pipe reader won't
+        # be called to read the data.  That should trigger the runtime error.
+        byte_data = PACKET_MARKER + b'e' + BIGGEST_ID_BIN + b't' + BIGGEST_ID_BIN + b'['
+        # we'll generate 1 mb of data + 1 byte.  1mb = 1048576 bytes; 1048576 = 0x100000
+        byte_data += b'\x10\0\x01'
+        for i in range(1048576 // 64):
+            byte_data += b'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        byte_data += b'x'
+        # Now add in a second packet, to trigger the out-of-order read error.
+        byte_data += PACKET_MARKER + b'e' + BIGGEST_ID_BIN + b't' + BIGGEST_ID_BIN + b'{' + BIGGEST_JSON_BIN
+        collector = CallbackCollector()
+        try:
+            collector.execute(byte_data)
+            self.fail('Did not generate error.')
+        except RuntimeError as e:
+            self.assertEqual('Illegal out-of-order event stream read', str(e))
+
+    def assert_raw_event_equal(self, expected: Optional[ExpectedEvent], actual: RawEvent) -> None:
+        if expected is None:
+            self.assertIsNone(actual)
+            return
+        self.assertIsNotNone(actual)
+        self.assertEqual(expected[0], raw_event_id(actual))
+        self.assertEqual(expected[1], raw_event_target_id(actual))
+        if isinstance(expected[2], bytes):
+            # binary
+            self.assertTrue(is_raw_event_binary(actual))
+            self.assertFalse(is_raw_event_object(actual))
+            self.assertEqual(expected[2], as_raw_event_binary_data_reader(actual)(-1))
+        else:
+            # json
+            self.assertTrue(is_raw_event_object(actual))
+            self.assertFalse(is_raw_event_binary(actual))
+            self.assertEqual(expected[2], as_raw_event_object_data(actual))
 
 
 TOO_BIG_JSON_SRC = {"01234567890123456789012345": "012345678901234567890123456"}
@@ -56,9 +133,9 @@ TOO_BIG_JSON = json.dumps(TOO_BIG_JSON_SRC)
 BIGGEST_JSON_SRC = {"01234567890123456789012345": "01234567890123456789012345"}
 BIGGEST_JSON = json.dumps(BIGGEST_JSON_SRC)
 TOO_BIG_BLOB = b'012345678x9'
-TOO_BIG_BLOB_BIN = b'\0\0\0\x0b' + TOO_BIG_BLOB
+TOO_BIG_BLOB_BIN = b'\0\0\x0b' + TOO_BIG_BLOB
 BIGGEST_BLOB = b'012345678x'
-BIGGEST_BLOB_BIN = b'\0\0\0\x0a' + BIGGEST_BLOB
+BIGGEST_BLOB_BIN = b'\0\0\x0a' + BIGGEST_BLOB
 TOO_BIG_ID = '01234567890'
 BIGGEST_ID = '0123456789'
 UTF_8_2_BYTE = 'x-' + chr(0xa2) + '-x'  # encodes to b'"x-\xc2\xa2-x"
@@ -83,12 +160,65 @@ def _m(message: str, **args: Any) -> UserMessage:
     return UserMessage(i18n(message), **args)
 
 
+class CallbackCollector:
+    actual: List[Tuple[Optional[RawEvent], Optional[PetroniaReturnError], bool]]
+    event_responses: List[bool]
+    error_responses: List[bool]
+
+    def __init__(
+            self,
+            event_responses: Optional[List[bool]] = None,
+            error_responses: Optional[List[bool]] = None,
+    ) -> None:
+        self.actual = []
+        self.event_responses = event_responses or []
+        self.error_responses = error_responses or []
+
+    def execute(self, data: bytes) -> None:
+        reader.read_event_stream(io.BytesIO(data), self.on_event, self.on_end_of_stream, self.on_error)
+
+    def on_event(self, event: RawEvent) -> bool:
+        self.actual.append((event, None, False,))
+        ret = False
+        if self.event_responses:
+            ret = self.event_responses.pop(0)
+        return ret
+
+    def on_end_of_stream(self) -> None:
+        self.actual.append((None, None, True,))
+
+    def on_error(self, error: PetroniaReturnError) -> bool:
+        self.actual.append((None, error, False,))
+        ret = False
+        if self.error_responses:
+            ret = self.error_responses.pop(0)
+        return ret
+
+    def next_as_raw_event(self, parent: unittest.TestCase) -> RawEvent:
+        parent.assertTrue(len(self.actual) > 0)
+        next_actual = self.actual.pop(0)
+        parent.assertIsNotNone(next_actual[0])
+        return next_actual[0]
+
+    def next_as_error(self, parent: unittest.TestCase) -> PetroniaReturnError:
+        parent.assertTrue(len(self.actual) > 0)
+        next_actual = self.actual.pop(0)
+        parent.assertIsNotNone(next_actual[1])
+        return next_actual[1]
+
+    def next_as_eof(self, parent: unittest.TestCase) -> None:
+        parent.assertEqual(len(self.actual), 1)
+        next_actual = self.actual.pop(0)
+        parent.assertTrue(next_actual[2])
+
+
 TOO_BIG_ID_BIN = as_bin_str(TOO_BIG_ID)
 BIGGEST_ID_BIN = as_bin_str(BIGGEST_ID)
 TOO_BIG_JSON_BIN = as_bin_str(TOO_BIG_JSON)
 BIGGEST_JSON_BIN = as_bin_str(BIGGEST_JSON)
+PACKET_MARKER = b'\0\0['
 
-PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[RawEvent], List[UserMessage], bool], bytes]] = [
+PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessage], bool], bytes]] = [
     (
         'no data',
         b'',
@@ -116,31 +246,31 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[RawEvent], List[UserMessage], 
     (
         'garbage before marker, and post-marker data',
         # 0x00 0x00 0x91
-        b'abc\0\0[e\0\x01at\0\x01b[\0\0\0\0x',
-        (to_raw_event_binary("a", "b", b''), [], False),
+        b'abc' + PACKET_MARKER + b'e\0\x01at\0\x01b[\0\0\0x',
+        (("a", "b", b''), [], False),
         b'x',
     ),
     (
         'too big event-id',
-        b'\0\0[e' + TOO_BIG_ID_BIN + b't' + BIGGEST_ID_BIN + b'{' + BIGGEST_JSON_BIN + b'x',
+        PACKET_MARKER + b'e' + TOO_BIG_ID_BIN + b't' + BIGGEST_ID_BIN + b'{' + BIGGEST_JSON_BIN + b'x',
         (None, [_m('event-id must have a length in the range [1, {m}]', m=10)], False),
         b'x',
     ),
     (
         'too big target-id',
-        b'\0\0[e' + BIGGEST_ID_BIN + b't' + TOO_BIG_ID_BIN + b'{' + BIGGEST_JSON_BIN + b'x',
+        PACKET_MARKER + b'e' + BIGGEST_ID_BIN + b't' + TOO_BIG_ID_BIN + b'{' + BIGGEST_JSON_BIN + b'x',
         (None, [_m('target-id must have a length in the range [1, {m}]', m=10)], False),
         b'x',
     ),
     (
         'too big json',
-        b'\0\0[e' + BIGGEST_ID_BIN + b't' + BIGGEST_ID_BIN + b'{' + TOO_BIG_JSON_BIN + b'x',
+        PACKET_MARKER + b'e' + BIGGEST_ID_BIN + b't' + BIGGEST_ID_BIN + b'{' + TOO_BIG_JSON_BIN + b'x',
         (None, [_m('json data must have a length in the range [1, {m}]', m=60)], False),
         b'x',
     ),
     (
         'too big binary',
-        b'\0\0[e' + BIGGEST_ID_BIN + b't' + BIGGEST_ID_BIN + b'[' + TOO_BIG_BLOB_BIN + b'x',
+        PACKET_MARKER + b'e' + BIGGEST_ID_BIN + b't' + BIGGEST_ID_BIN + b'[' + TOO_BIG_BLOB_BIN + b'x',
         (None, [_m('binary blob data must have a length in the range [1, {m}]', m=10)], False),
         b'x',
     ),
