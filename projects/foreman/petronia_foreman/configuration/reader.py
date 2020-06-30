@@ -1,7 +1,10 @@
 
+from typing import Optional
 import configparser
-from .structure import ForemanConfig
+from .foreman import ForemanConfig
 
 
-def read_configuration_file(filename: str) -> ForemanConfig:
+def read_configuration_file(filename: Optional[str]) -> ForemanConfig:
+    parser = configparser.ConfigParser()
+    parser.read(filename)
     raise NotImplementedError()

@@ -286,6 +286,24 @@ Each data definition in the `references` section must be of a specific type.  Th
 
 ## Streaming Events
 
-Event objects are sent one after the other, using three semi-colons to separate each one.  The string "};;;{" is a specfic string to indicate an event object separation, for error recovery.  If that sequence must be included in a string, then needs to be escaped.  The formal event separator is three semi-colons.  The exception is when parsing a binary blob.
+Event objects are sent one after the other.  The event stream must follow this specification.  The specification for the stream proper is in octets.
 
-Binary events must start with the sequence "{!".  It's followed by a JSON string ("blah\"blah"), a colon (":"), the a JSON integer, which is the length of the binary blob, a comma (","), then the binary blob (octets, totalling the length value), then a closing curly bracket "}".  This allows the blob to include a proper event separator ("};;;{").
+```
+STREAM = (anything) (PACKET_SEPARATOR) (EVENT_PACKET)
+PACKET_SEPARATOR = 0x00 0x00 0x91
+EVENT_PACKET = (EVENT_ID_STRING) (TARGET_ID_STRING) (DATA_CONTENTS)
+EVENT_ID_STRING = 0x65 (STRING) ; 'e'
+TARGET_ID_STRING = 0x74 (STRING) ; 't'
+DATA_CONTENTS = (JSON_CONTENTS) or (BINARY_CONTENTS)
+JSON_CONTENTS = 0x7b (STRING) ; '{'
+BINARY_CONTENTS = 0x5b (BLOB) ; '['
+STRING = (size octet 1) (size octet 2) (size number of octets)
+BLOB = (size octect 1) (size octet 2) (size octet 3) (size number of octets)
+```
+
+The size value is a 16- or 24-bit big-endian integer, so the ordered octets "0xfe 0x94" would be 0xfe94, and the ordered octets "0xa0 0xfe 0x94" would be 0xa0fe94.
+
+All string contents are encoded UTF-8 binary values.  The size value is the number of octets in the encoded binary format.
+
+The event ID and target ID MUST have a length > 0 and < 2048 bytes (encoded UTF-8).  The JSON contents must have a length > 2 and < 65536 bytes (encoded UTF-8).  The binary blob can be zero length, but cannot exceed 10485760 bytes (10 mb).
+
