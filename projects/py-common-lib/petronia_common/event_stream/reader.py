@@ -66,6 +66,7 @@ class MarkedStreamReader:
         ret.__current = self.__current
         ret.__last_mark = self.__last_mark
         # Before this reads again, the forked one needs to read COUNT bytes.
+        # And mask the size to limit how big the numbers get.
         self.__last_mark = (count + self.__last_mark) & 0xffffffff
         return ret
 
@@ -88,6 +89,7 @@ def parse_raw_event(
     :return: the raw event, if read; the errors in parsing, if read; whether it was an end-of-stream.
     """
 
+    # See the documentation for details about the stream packet format.
     # STREAM = (anything) (PACKET_SEPARATOR) (EVENT_PACKET)
     # PACKET_SEPARATOR = 0x00 0x00 0x91
     # EVENT_PACKET = (EVENT_ID_STRING) (TARGET_ID_STRING) (DATA_CONTENTS)
@@ -107,7 +109,7 @@ def parse_raw_event(
         # To be fully resilient to errors, we could maintain a buffer of read data,
         # and on error, go back and look for the marker.  But that seems like overkill.
         c = stream.marked_read(1)
-        if c == b'':
+        if c == EMPTY_BINARY:
             # End-of-stream reached.
             if state != STATE_INIT:
                 # We've read some of the stream.
@@ -149,7 +151,7 @@ def parse_raw_event(
         read_data = b''
         while count > 0:
             next_data = stream.marked_read(count)
-            if next_data == b'':
+            if next_data == EMPTY_BINARY:
                 error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
                 return as_error(*error_messages), read_data
             count -= len(next_data)
@@ -160,7 +162,7 @@ def parse_raw_event(
         while count > 0:
             # Because this is throwing away data, don't read in too much at once.
             next_data = stream.marked_read(min(65535, count))
-            if next_data == b'':
+            if next_data == EMPTY_BINARY:
                 error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
                 return as_error(*error_messages)
             count -= len(next_data)
@@ -254,7 +256,7 @@ def parse_raw_event(
     # Start by reading the marker by itself
     # Reading 1 byte, so easy reading...
     c = stream.marked_read(1)
-    if c == b'':
+    if c == EMPTY_BINARY:
         error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
         return None, as_error(*error_messages), True
     elif c == BINARY_JSON_CONTENTS_MARKER:
@@ -393,7 +395,7 @@ def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryRe
 
 
 def empty_reader(_max_count: Optional[int] = -1) -> bytes:
-    return b''
+    return EMPTY_BINARY
 
 
 def static_reader(data: bytes) -> RawBinaryReader:
@@ -404,7 +406,7 @@ def static_reader(data: bytes) -> RawBinaryReader:
 
     def reader_func(max_count: Optional[int] = -1) -> bytes:
         if remainder[1] <= 0:
-            return b''
+            return EMPTY_BINARY
         if max_count <= 0:
             end = remainder[1]
         else:
@@ -422,7 +424,7 @@ def piped_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinary
 
     def reader_func(max_count: Optional[int] = -1) -> bytes:
         if context[0] <= 0:
-            return b''
+            return EMPTY_BINARY
         if max_count <= 0 or max_count >= context[0]:
             expected_read_count = context[0]
         else:
@@ -441,6 +443,7 @@ BINARY_EVENT_ID_MARKER_INT = ord('e')
 BINARY_TARGET_ID_MARKER_INT = ord('t')
 BINARY_JSON_CONTENTS_MARKER = b'{'
 BINARY_BLOB_CONTENTS_MARKER = b'['
+EMPTY_BINARY = b''
 
 MAX_ID_SIZE = 2047
 MAX_JSON_SIZE = 65535
