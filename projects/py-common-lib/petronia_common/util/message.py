@@ -11,6 +11,10 @@ The most common use case:
 
 """
 
+# mypy: allow-any-explicit
+# mypy: allow-any-expr
+# mypy: allow-any-generics
+
 from typing import Iterable, Mapping, Union, Any, NewType
 from datetime import datetime, time, date
 

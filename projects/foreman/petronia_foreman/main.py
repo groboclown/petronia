@@ -12,7 +12,6 @@ def main(vargs: Sequence[str]) -> int:
     )
 
     args = parser.parse_args(vargs[1:])
-    foreman_config = read_configuration_file(args.config)
-
+    # foreman_config = read_configuration_file(args.config)
 
     return 0

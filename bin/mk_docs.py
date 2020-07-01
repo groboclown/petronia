@@ -19,7 +19,7 @@ import traceback
 import collections.abc
 BINDIR = os.path.dirname(sys.argv[0])
 BASEDIR = os.path.join(BINDIR, os.path.pardir)
-SRCDIR = os.path.join(BASEDIR, "src")
+SRCDIR = os.path.join(BASEDIR, "v3.0")
 sys.path.append(SRCDIR)
 from petronia.base.events.bootstrap import bootstrap_core_events
 from petronia.base.bus import EventBus, ListenerId, EventId, ListenerRegistrar, EventCallback

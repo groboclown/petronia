@@ -5,6 +5,6 @@ from .foreman import ForemanConfig
 
 
 def read_configuration_file(filename: Optional[str]) -> ForemanConfig:
-    parser = configparser.ConfigParser()
-    parser.read(filename)
+    # parser = configparser.ConfigParser()
+    # parser.read(filename)
     raise NotImplementedError()

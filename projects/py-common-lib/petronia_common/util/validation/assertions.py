@@ -1,4 +1,8 @@
 
+# mypy: allow-any-explicit
+# mypy: allow-any-expr
+# mypy: allow-any-generics
+
 from typing import Callable, Optional, Any
 from .global_state import are_assertions_enabled
 from ..error import PetroniaReturnError, as_error
@@ -89,6 +93,7 @@ def enforce_that(
                     src=src,
                     problem=validation_problem.format(**details),
                 ))
+        return None
     except BaseException as e:
         return as_error(UserMessage(
             _("{src}: validation error for {problem} ({e})"),

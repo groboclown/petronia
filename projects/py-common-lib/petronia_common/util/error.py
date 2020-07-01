@@ -28,7 +28,10 @@ class SimplePetroniaReturnError(PetroniaReturnError):
         return f'SimplePetroniaReturnError({", ".join([repr(msg) for msg in self.__messages])})'
 
 
-def as_error(*messages: UserMessage, errors: Iterable[PetroniaReturnError] = None) -> PetroniaReturnError:
+def as_error(
+        *messages: UserMessage,
+        errors: Optional[Iterable[PetroniaReturnError]] = None
+) -> PetroniaReturnError:
     """Return a collection of messages and/or errors, and return a single error representation."""
     msgs = [*messages]
     if errors:
@@ -38,7 +41,8 @@ def as_error(*messages: UserMessage, errors: Iterable[PetroniaReturnError] = Non
 
 
 def possible_error(
-        messages: Iterable[UserMessage] = None, errors: Iterable[PetroniaReturnError] = None,
+        messages: Optional[Iterable[UserMessage]] = None,
+        errors: Optional[Iterable[PetroniaReturnError]] = None,
 ) -> Optional[PetroniaReturnError]:
     msgs: List[UserMessage] = []
     if messages:
