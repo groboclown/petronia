@@ -37,4 +37,5 @@ from .validation import (
     enforce_that,
 )
 
-from . import yaml
+from . import yaml_support
+from .yaml_support import load_yaml_documents, dump_yaml_documents, YAML_SUPPORTED

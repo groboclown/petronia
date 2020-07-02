@@ -47,6 +47,8 @@ class DelayedValueHolder(Generic[T]):
 
     @property
     def non_none(self) -> T:
+        # Should use the assertion framework, but that hasn't been loaded
+        # when this file is loaded.
         assert self.value is not None
         return self.value
 
@@ -59,15 +61,15 @@ def readonly_dict(inp: Mapping[K, V]) -> Mapping[K, V]:
 
 
 class _ReadOnlyDict(Dict[K, V], Generic[K, V]):
-    """A read-only dictionary."""
+    """A read-only dictionary.  Intended to be extremely memory efficient."""
     def __readonly__(self, *args, **kwargs):  # type: ignore
         raise RuntimeError("Cannot modify ReadOnlyDict")
 
-    __setitem__ = __readonly__ # type: ignore
-    __delitem__ = __readonly__ # type: ignore
-    pop = __readonly__ # type: ignore
-    popitem = __readonly__ # type: ignore
-    clear = __readonly__ # type: ignore
-    update = __readonly__ # type: ignore
-    setdefault = __readonly__ # type: ignore
+    __setitem__ = __readonly__  # type: ignore
+    __delitem__ = __readonly__  # type: ignore
+    pop = __readonly__  # type: ignore
+    popitem = __readonly__  # type: ignore
+    clear = __readonly__  # type: ignore
+    update = __readonly__  # type: ignore
+    setdefault = __readonly__  # type: ignore
     del __readonly__
