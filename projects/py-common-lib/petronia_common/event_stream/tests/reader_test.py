@@ -185,15 +185,17 @@ class ParseRawEventTest(unittest.TestCase):
         self.assertEqual(b'', reader_callback())
 
     def test_get_static_reader(self) -> None:
-        stream = reader.MarkedStreamReader(io.BytesIO(b'12'))
-        reader_callback = reader.get_reader(stream, 1)
+        stream = reader.MarkedStreamReader(io.BytesIO(b'123'))
+        reader_callback = reader.get_reader(stream, 2)
         self.assertEqual(b'1', reader_callback(1))
+        self.assertEqual(b'2', reader_callback(1))
         self.assertEqual(b'', reader_callback(1))
 
     def test_piped_reader(self) -> None:
-        stream = reader.MarkedStreamReader(io.BytesIO(b'12'))
-        reader_callback = reader.piped_reader(stream, 1)
+        stream = reader.MarkedStreamReader(io.BytesIO(b'123'))
+        reader_callback = reader.piped_reader(stream, 2)
         self.assertEqual(b'1', reader_callback(1))
+        self.assertEqual(b'2', reader_callback(1))
         self.assertEqual(b'', reader_callback(1))
 
     def assert_raw_event_equal(self, expected: Optional[ExpectedEvent], actual: Optional[RawEvent]) -> None:
