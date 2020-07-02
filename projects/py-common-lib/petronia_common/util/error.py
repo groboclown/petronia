@@ -1,6 +1,9 @@
 
 """
 General error handling in Petronia.  Returned errors are preferred over exceptions.
+
+These errors are used by the validation framework, so the assertions done
+here are the only exception to the assertion rules.
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ class PetroniaReturnError:
     """
     def messages(self) -> Sequence[UserMessage]:
         """Error messages associated with this error.  There MUST be at least one."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
 
 class SimplePetroniaReturnError(PetroniaReturnError):
@@ -173,13 +176,19 @@ def possible_error(
         messages: Optional[Iterable[UserMessage]] = None,
         errors: Optional[Iterable[PetroniaReturnError]] = None,
 ) -> Optional[PetroniaReturnError]:
-    """Creates an optional message, based on whether any errors were passed in."""
+    """Creates an optional message, based on whether any errors were passed in.
+    If errors are passed in without messages, an error will still be generated.
+    """
     msgs: List[UserMessage] = []
+    has_messages = False
     if messages:
         msgs.extend(messages)
+        has_messages = True
     if errors:
         for error in errors:
             msgs.extend(error.messages())
-    if not msgs:
+        has_messages = True
+    # Allow for errors without messages.
+    if not has_messages:
         return None
     return SimplePetroniaReturnError(*msgs)
