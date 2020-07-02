@@ -90,6 +90,29 @@ class ParseRawEventTest(unittest.TestCase):
         )
         collector.next_as_eof(self)
 
+    def test_read_event_stream__2_packets_listener_stop(self) -> None:
+        byte_data = (
+            PACKET_MARKER +
+            b'e' + as_bin_str('event-1') +
+            b's' + as_bin_str('source-1') +
+            b't' + as_bin_str('target-1') +
+            b'[\0\0\1x' +
+            PACKET_MARKER +
+            b'e' + as_bin_str('event-2') +
+            b's' + as_bin_str('source-2') +
+            b't' + as_bin_str('target-2') +
+            b'[\0\0\1y'
+        )
+        collector = CallbackCollector()
+        collector.event_responses.append(True)
+        collector.execute(byte_data)
+        event1 = collector.next_as_raw_event(self)
+        self.assert_raw_event_equal(
+            ("event-1", "source-1", "target-1", b'x'),
+            event1,
+        )
+        collector.is_empty()
+
     def test_read_event_stream__error(self) -> None:
         byte_data = PACKET_MARKER + b'x'
         collector = CallbackCollector()
@@ -152,9 +175,26 @@ class ParseRawEventTest(unittest.TestCase):
         collector = CallbackCollector()
         try:
             collector.execute(byte_data)
-            self.fail('Did not generate error.')
+            self.fail('Did not generate error.')  # pragma: no cover
         except RuntimeError as e:
             self.assertEqual('Illegal out-of-order event stream read', str(e))
+
+    def test_get_empty_reader(self) -> None:
+        stream = reader.MarkedStreamReader(io.BytesIO(b'12'))
+        reader_callback = reader.get_reader(stream, 0)
+        self.assertEqual(b'', reader_callback())
+
+    def test_get_static_reader(self) -> None:
+        stream = reader.MarkedStreamReader(io.BytesIO(b'12'))
+        reader_callback = reader.get_reader(stream, 1)
+        self.assertEqual(b'1', reader_callback(1))
+        self.assertEqual(b'', reader_callback(1))
+
+    def test_piped_reader(self) -> None:
+        stream = reader.MarkedStreamReader(io.BytesIO(b'12'))
+        reader_callback = reader.piped_reader(stream, 1)
+        self.assertEqual(b'1', reader_callback(1))
+        self.assertEqual(b'', reader_callback(1))
 
     def assert_raw_event_equal(self, expected: Optional[ExpectedEvent], actual: Optional[RawEvent]) -> None:
         if expected is None:
@@ -272,6 +312,12 @@ class CallbackCollector:
 
 TOO_BIG_ID_BIN = as_bin_str(TOO_BIG_ID)
 BIGGEST_ID_BIN = as_bin_str(BIGGEST_ID)
+UTF_8_2_BYTE_BIN = as_bin_str(UTF_8_2_BYTE)
+UTF_8_3_BYTE_1_BIN = as_bin_str(UTF_8_3_BYTE_1)
+UTF_8_3_BYTE_2_BIN = as_bin_str(UTF_8_3_BYTE_2)
+UTF_8_3_BYTE_3_BIN = as_bin_str(UTF_8_3_BYTE_3)
+UTF_8_4_BYTE_BIN = as_bin_str(UTF_8_4_BYTE)
+BAD_UTF_8_BIN = b'\0\x02\xff\xfe'
 TOO_BIG_JSON_BIN = as_bin_str(TOO_BIG_JSON)
 BIGGEST_JSON_BIN = as_bin_str(BIGGEST_JSON)
 PACKET_MARKER = b'\0\0['
@@ -302,6 +348,169 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
         b'bc'
     ),
     (
+        'partial marker then EOF',
+        b'\0',
+        (None, [_m('Reached end-of-stream before packet start', state=2)], True),
+        b''
+    ),
+
+    # ===== Event ID errors
+    (
+        'EOF during event + size read.',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'Invalid event id size - 0.',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\0s\0\x01bt\0\x01c[\0\0\0',
+        (None, [_m('event-id must have a length in the range [1, {m}]', m=10)], False),
+        b'',
+    ),
+    (
+        'EOF during event data read, when size is too big.',
+        b'abc' + PACKET_MARKER + b'e\xff\xffa',
+        (None, [
+            _m('event-id must have a length in the range [1, {m}]', m=10),
+            _m('Reached end-of-stream during packet read'),
+        ], True),
+        b'',
+    ),
+    (
+        'EOF during event data read.',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x02a',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'Unicode error in event id',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e' + BAD_UTF_8_BIN + b's\0\x01bt\0\x01c[\0\0\0',
+        (None, [_m(
+            'event-id included invalid UTF-8 encoding',
+            e="'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+        )], False),
+        b'',
+    ),
+
+    # ===== Source ID errors
+    (
+        'Wrong source marker',
+        b'abc' + PACKET_MARKER + b'e\0\x01ab\0\x01c',
+        (None, [_m('Unexpected data in the event stream')], False),
+        b'c',
+    ),
+    (
+        'EOF during source + size read.',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'Invalid source id size - 0.',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\0t\0\x01c[\0\0\0',
+        (None, [_m('source-id must have a length in the range [1, {m}]', m=10)], False),
+        b'',
+    ),
+    (
+        'EOF during source data read, when size is too big.',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\xff\xffa',
+        (None, [
+            _m('source-id must have a length in the range [1, {m}]', m=10),
+            _m('Reached end-of-stream during packet read'),
+        ], True),
+        b'',
+    ),
+    (
+        'EOF during source data read.',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x02b',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'Unicode error in source id',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as' + BAD_UTF_8_BIN + b't\0\x01c[\0\0\0',
+        (None, [_m(
+            'source-id included invalid UTF-8 encoding',
+            e="'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+        )], False),
+        b'',
+    ),
+
+    # ===== Target ID errors
+    (
+        'Wrong target marker',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bx\0\x01cf',
+        (None, [_m('Unexpected data in the event stream')], False),
+        b'cf',
+    ),
+    (
+        'EOF during target + size read.',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'Invalid target id size - 0.',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\0[\0\0\0',
+        (None, [_m('target-id must have a length in the range [1, {m}]', m=10)], False),
+        b'',
+    ),
+    (
+        'EOF during target data read, when size is too big.',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\xff\xffa',
+        (None, [
+            _m('target-id must have a length in the range [1, {m}]', m=10),
+            _m('Reached end-of-stream during packet read'),
+        ], True),
+        b'',
+    ),
+    (
+        'EOF during target data read.',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01at\0\x02b',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'Unicode error in source id',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt' + BAD_UTF_8_BIN + b'[\0\0\0',
+        (None, [_m(
+            'target-id included invalid UTF-8 encoding',
+            e="'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+        )], False),
+        b'',
+    ),
+
+    # ======== packet data
+    (
+        'EOF at packet data marker',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'EOF at JSON packet size read',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'EOF at blob packet size read',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c[\0',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
         'garbage before marker, and post-marker data',
         # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c[\0\0\0x',
@@ -321,12 +530,48 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
         b'',
     ),
     (
+        'Too small JSON size',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\0x',
+        (None, [_m('json data must have a length in the range [2, {m}]', m=60)], False),
+        b'x',
+    ),
+    (
+        'EOF during JSON read',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\x05x',
+        (None, [_m('Reached end-of-stream during packet read')], True),
+        b'',
+    ),
+    (
+        'EOF during too-big JSON read',
+        # 0x00 0x00 0x91
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\xff\xffx',
+        (None, [
+            _m('json data must have a length in the range [2, {m}]', m=60),
+            _m('Reached end-of-stream during packet read'),
+        ], True),
+        b'',
+    ),
+    (
         'bad json',
         PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\x01{',
         (None, [
             _m(
                 'Event streaming data included badly formatted JSON data: {e}',
                 e='Expecting property name enclosed in double quotes: line 1 column 2 (char 1)',
+            ),
+            _m('Event data was not sent as JSON dictionary'),
+        ], False),
+        b'',
+    ),
+    (
+        'utf json error',
+        PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\x09{"\xff\xfe":""}',
+        (None, [
+            _m(
+                'Event streaming data included incorrectly encoded UTF-8 values: {e}',
+                e="'utf-8' codec can't decode byte 0xff in position 2: invalid start byte",
             ),
             _m('Event data was not sent as JSON dictionary'),
         ], False),
@@ -381,20 +626,41 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
                 b'{' + TOO_BIG_JSON_BIN +
                 b'x'
         ),
-        (None, [_m('json data must have a length in the range [1, {m}]', m=60)], False),
+        (None, [_m('json data must have a length in the range [2, {m}]', m=60)], False),
         b'x',
     ),
     (
         'too big binary',
         (
                 PACKET_MARKER +
-                b'e' + BIGGEST_ID_BIN +
-                b's' + BIGGEST_ID_BIN +
-                b't' + BIGGEST_ID_BIN +
+                b'e' + UTF_8_3_BYTE_2_BIN +
+                b's' + UTF_8_3_BYTE_3_BIN +
+                b't' + UTF_8_2_BYTE_BIN +
                 b'[' + TOO_BIG_BLOB_BIN +
                 b'x'
         ),
         (None, [_m('binary blob data must have a length in the range [1, {m}]', m=10)], False),
+        b'x',
+    ),
+    (
+        'EOF during too big binary read',
+        (
+            PACKET_MARKER +
+            b'e' + UTF_8_4_BYTE_BIN +
+            b's' + UTF_8_3_BYTE_1_BIN +
+            b't' + UTF_8_3_BYTE_2_BIN +
+            b'[\xff\xff\xffx'
+        ),
+        (None, [
+            _m('binary blob data must have a length in the range [1, {m}]', m=10),
+            _m('Reached end-of-stream during packet read'),
+        ], True),
+        b'',
+    ),
+    (
+        'Unrecognized packet data format marker',
+        PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c!x',
+        (None, [_m('Unexpected data in the event stream')], False),
         b'x',
     ),
 ]

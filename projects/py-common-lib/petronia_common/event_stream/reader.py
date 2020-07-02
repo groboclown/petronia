@@ -144,7 +144,7 @@ def parse_raw_event(
                 return None, None, False
 
         else:
-            raise RuntimeError('Invalid state')
+            raise RuntimeError('Invalid state')  # pragma: no cover
 
     assert state == STATE_EVENT_ID_EXPECTING_MARKER
 
@@ -323,7 +323,7 @@ def parse_raw_event(
             # Invalid size.
             # But we'll keep reading.
             error_messages.append(UserMessage(
-                _("json data must have a length in the range [1, {m}]"),
+                _("json data must have a length in the range [2, {m}]"),
                 m=MAX_JSON_SIZE,
             ))
             ret_err = advance_stream(data_contents_length)
