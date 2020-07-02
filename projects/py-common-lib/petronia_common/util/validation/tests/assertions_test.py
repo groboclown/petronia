@@ -3,7 +3,7 @@ from typing import Optional
 import unittest
 from ..global_state import set_global_assertion_state, are_assertions_enabled
 from ..assertions import PetroniaAssertionError, enforce_that, assert_that
-from ...message import i18n
+from ...message import i18n, UserMessage
 
 
 class AssertionsTest(unittest.TestCase):
@@ -30,19 +30,33 @@ class AssertionsTest(unittest.TestCase):
         condition = MockCondition(False)
         try:
             assert_that("x", "y", condition)
-            self.fail('did not raise exception')
+            self.fail('did not raise exception')  # pragma: no cover
         except PetroniaAssertionError as e:
             self.assertEqual(1, condition.run_count)
             self.assertEqual("PetroniaAssertionError('x: y', None)", repr(e))
 
-    def test_assert_that__exception(self) -> None:
+    def test_assert_that__exception_1(self) -> None:
         set_global_assertion_state(True)
         condition = MockCondition(ex=IOError('abc'))
         try:
             assert_that("x", "y", condition)
-            self.fail('did not raise exception')
+            self.fail('did not raise exception')  # pragma: no cover
         except PetroniaAssertionError as e:
             self.assertEqual(1, condition.run_count)
+            self.assertEqual("PetroniaAssertionError('x: y', OSError('abc'))", repr(e))
+
+    def test_assert_that__exception_2(self) -> None:
+        set_global_assertion_state(True)
+        condition_1 = MockCondition(True)
+        condition_2 = MockCondition(ex=IOError('abc'))
+        condition_3 = MockCondition(True)
+        try:
+            assert_that("x", "y", condition_1, condition_2, condition_3)
+            self.fail('did not raise exception')  # pragma: no cover
+        except PetroniaAssertionError as e:
+            self.assertEqual(1, condition_1.run_count)
+            self.assertEqual(1, condition_2.run_count)
+            self.assertEqual(0, condition_3.run_count)
             self.assertEqual("PetroniaAssertionError('x: y', OSError('abc'))", repr(e))
 
     def test_assert_that__multi_1(self) -> None:
@@ -52,7 +66,7 @@ class AssertionsTest(unittest.TestCase):
         condition_3 = MockCondition(True)
         try:
             assert_that("x", "y", condition_1, condition_2, condition_3)
-            self.fail('did not raise exception')
+            self.fail('did not raise exception')  # pragma: no cover
         except PetroniaAssertionError as e:
             self.assertEqual(1, condition_1.run_count)
             self.assertEqual(1, condition_2.run_count)
@@ -120,6 +134,23 @@ class AssertionsTest(unittest.TestCase):
         self.assertEqual(1, condition_1.run_count)
         self.assertEqual(1, condition_2.run_count)
         self.assertEqual(1, condition_3.run_count)
+
+    def test_enforce_that__exception_1(self) -> None:
+        set_global_assertion_state(True)
+        ex = IOError('abc')
+        condition_1 = MockCondition(ex=ex)
+        condition_2 = MockCondition(True)
+        res = enforce_that("x", i18n("y"), condition_1, condition_2)
+        self.assertEqual(1, condition_1.run_count)
+        self.assertEqual(0, condition_2.run_count)
+        self.assertIsNotNone(res)
+        self.assertEqual(
+            (UserMessage(
+                i18n('{src}: validation error for {problem} ({e})'),
+                src='x', problem='y', e=ex,
+            ),),
+            res.messages()
+        )
 
 
 class MockCondition:
