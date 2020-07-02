@@ -11,19 +11,23 @@ The most common use case:
 
 """
 
-from typing import Iterable, Mapping, Union, Any, NewType
+from typing import Iterable, Mapping, Union, Optional, NewType
 from datetime import datetime, time, date
 
 
 SimpleUserMessageData = Union[str, int, float, bool, datetime, time, date, None, BaseException]
-UserMessageData = Union[SimpleUserMessageData, Iterable[SimpleUserMessageData], Mapping[str, SimpleUserMessageData]]
+UserMessageData = Union[
+    SimpleUserMessageData,
+    Iterable[SimpleUserMessageData],
+    Mapping[str, SimpleUserMessageData],
+]
 I18n = NewType('I18n', str)
 
 
 def i18n(message: str) -> I18n:
     """
     Localization message string function, for message extraction.  This should generally be
-    imported `as _`.
+    imported `as _` so that the localization helper tool can do its magic.
 
     :param message:
     :return:
@@ -36,13 +40,15 @@ class UserMessage:
     A message that can be displayed to the end-user.
     """
 
-    __slots__ = ('__message', '__args',)
+    __slots__ = ('__message', '__args', '__hash')
 
     def __init__(self, message: I18n, **arguments: UserMessageData) -> None:
         self.__message = message
         # Note that, because the arguments are passed as key-values, this is not a dictionary that the
         # end-user can modify.  To conserve memory and speed up the processing, the original mapping is stored.
         self.__args = arguments
+        # Only compute the hash when we need to.
+        self.__hash: Optional[int] = None
 
     @property
     def message(self) -> I18n:
@@ -67,5 +73,16 @@ class UserMessage:
             return False
         return other.__message == self.__message and other.__args == self.__args
 
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
     def __hash__(self) -> int:
-        return hash(self.__message) + hash(self.__args)
+        if self.__hash is None:
+            # "dict" is un-hashable.
+            # Note that the hash does not need to be 100% unique; just enough
+            # to bucket it well in a set or dict.
+            my_hash = hash(self.__message) << 6
+            for key in self.__args.keys():
+                my_hash += hash(key)
+            self.__hash = my_hash
+        return self.__hash
