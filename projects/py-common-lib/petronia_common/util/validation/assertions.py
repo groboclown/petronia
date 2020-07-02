@@ -5,8 +5,8 @@
 
 from typing import Callable, Optional, Any
 from .global_state import are_assertions_enabled
-from ..error import PetroniaReturnError, as_error
-from ..message import UserMessage, I18n
+from ..error import PetroniaReturnError, error_message
+from ..message import I18n
 from ..message import i18n as _
 
 
@@ -81,23 +81,23 @@ def enforce_that(
     """
     try:
         if not first_condition():
-            return as_error(UserMessage(
+            return error_message(
                 _("{src}: validation error for {problem}"),
                 src=src,
                 problem=validation_problem.format(**details),
-            ))
+            )
         for condition in conditions:
             if not condition():
-                return as_error(UserMessage(
+                return error_message(
                     _("{src}: validation error for {problem}"),
                     src=src,
                     problem=validation_problem.format(**details),
-                ))
+                )
         return None
     except BaseException as e:
-        return as_error(UserMessage(
+        return error_message(
             _("{src}: validation error for {problem} ({e})"),
             src=src,
             problem=validation_problem.format(**details),
             e=e,
-        ))
+        )

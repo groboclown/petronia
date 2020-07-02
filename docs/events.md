@@ -291,8 +291,9 @@ Event objects are sent one after the other.  The event stream must follow this s
 ```
 STREAM = (anything) (PACKET_SEPARATOR) (EVENT_PACKET)
 PACKET_SEPARATOR = 0x00 0x00 0x91
-EVENT_PACKET = (EVENT_ID_STRING) (TARGET_ID_STRING) (DATA_CONTENTS)
+EVENT_PACKET = (EVENT_ID_STRING) (SOURCE_ID_STRING) (TARGET_ID_STRING) (DATA_CONTENTS)
 EVENT_ID_STRING = 0x65 (STRING) ; 'e'
+SOURCE_ID_STRING = 0x73 (STRING) ; 's'
 TARGET_ID_STRING = 0x74 (STRING) ; 't'
 DATA_CONTENTS = (JSON_CONTENTS) or (BINARY_CONTENTS)
 JSON_CONTENTS = 0x7b (STRING) ; '{'
@@ -307,3 +308,5 @@ All string contents are encoded UTF-8 binary values.  The size value is the numb
 
 The event ID and target ID MUST have a length > 0 and < 2048 bytes (encoded UTF-8).  The JSON contents must have a length > 2 and < 65536 bytes (encoded UTF-8).  The binary blob can be zero length, but cannot exceed 10485760 bytes (10 mb).
 
+Note that the source ID isn't required by the event objects themselves, but the brokers use this to validate the security privileges of the requestor.
+ 

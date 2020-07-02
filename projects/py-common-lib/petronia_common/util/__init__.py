@@ -1,4 +1,8 @@
 
+"""
+Common Petronia utilities.
+"""
+
 from .memory import (
     DelayedValueHolder,
     ValueHolder,
@@ -21,11 +25,9 @@ from .message import (
 
 from .error import (
     StdRet,
-    as_error,
-    no_error,
+    error_message,
+    join_errors,
     possible_error,
-    with_errors,
-    with_message,
     PetroniaReturnError,
 )
 

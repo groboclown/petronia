@@ -11,10 +11,6 @@ The most common use case:
 
 """
 
-# mypy: allow-any-explicit
-# mypy: allow-any-expr
-# mypy: allow-any-generics
-
 from typing import Iterable, Mapping, Union, Any, NewType
 from datetime import datetime, time, date
 
@@ -66,7 +62,7 @@ class UserMessage:
             ', '.join(['{0}={1}'.format(k, repr(v)) for k, v in self.__args.items()])
         )
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, UserMessage):
             return False
         return other.__message == self.__message and other.__args == self.__args

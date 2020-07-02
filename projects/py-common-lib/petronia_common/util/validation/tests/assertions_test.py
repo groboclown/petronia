@@ -128,7 +128,7 @@ class MockCondition:
         self.ex = ex
         self.run_count = 0
 
-    def __call__(self, *args, **kwargs) -> bool:
+    def __call__(self) -> bool:
         self.run_count += 1
         if self.ex:
             raise self.ex

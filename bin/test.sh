@@ -3,8 +3,11 @@
 set -e
 
 HERE=$( dirname "$0" )
+pushd "${HERE}/../projects/py-common-lib" >/dev/null 2>&1
+PYCLIB=$(pwd)
+popd >/dev/null 2>&1
 
-MYPYPATH="${HERE}/../projects/py-common-lib:${MYPYPATH}"
+export PYTHONPATH="${PYCLIB}:${PYTHONPATH}"
 
 for n in "${HERE}/../projects"/* ; do
   if [ -d "${n}" ] ; then
@@ -37,13 +40,13 @@ for n in "${HERE}/../projects"/* ; do
       python3 -m mypy --warn-unused-configs --no-incremental ${mypy_packages}
 
       echo "======================================================="
-      echo "Linting..."
-      python3 -m pylint ${lint_packages}
-
-      echo "======================================================="
       echo "Running unit tests..."
       python3 -m coverage run --source . -m unittest discover -s . -p "*_test.py"
       python3 -m coverage report -m
+
+      echo "======================================================="
+      echo "Linting..."
+      python3 -m pylint ${lint_packages} || echo $?
     fi
   fi
 
