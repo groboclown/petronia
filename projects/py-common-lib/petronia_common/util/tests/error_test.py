@@ -27,7 +27,7 @@ class StdRetTest(unittest.TestCase):
 
     def test_pass_error_1(self) -> None:
         """One error message"""
-        ret = error.StdRet.pass_error(error.join_errors(_m('1')))
+        ret: error.StdRet[str] = error.StdRet.pass_error(error.join_errors(_m('1')))
         self.assertIsNotNone(ret)
         self.assertEqual(
             (_m('1'),),
@@ -42,7 +42,9 @@ class StdRetTest(unittest.TestCase):
 
     def test_pass_error_2(self) -> None:
         """One error message"""
-        ret = error.StdRet.pass_error(error.join_errors(_m('1')), error.join_errors(_m('2')))
+        ret: error.StdRet[str] = error.StdRet.pass_error(
+            error.join_errors(_m('1')), error.join_errors(_m('2')),
+        )
         self.assertIsNotNone(ret)
         self.assertEqual(
             (_m('1'), _m('2'),),
@@ -57,7 +59,7 @@ class StdRetTest(unittest.TestCase):
 
     def test_pass_errmsg_0(self) -> None:
         """Error message with no arguments"""
-        ret = error.StdRet.pass_errmsg(i18n('xyz'))
+        ret: error.StdRet[str] = error.StdRet.pass_errmsg(i18n('xyz'))
         self.assertIsNotNone(ret)
         self.assertEqual(
             (_m('xyz'),),
@@ -72,7 +74,7 @@ class StdRetTest(unittest.TestCase):
 
     def test_pass_errmsg_1(self) -> None:
         """Error message with an argument"""
-        ret = error.StdRet.pass_errmsg(i18n('xy{x}z'), x=2)
+        ret: error.StdRet[str] = error.StdRet.pass_errmsg(i18n('xy{x}z'), x=2)
         self.assertIsNotNone(ret)
         self.assertEqual(
             (_m('xy{x}z', x=2),),
@@ -98,7 +100,7 @@ class StdRetTest(unittest.TestCase):
 
     def test_pass_ok_1(self) -> None:
         """No error message, None value."""
-        ret: error.StdRet[str] = error.StdRet.pass_ok('x')
+        ret = error.StdRet.pass_ok('x')
         self.assertIsNotNone(ret)
         self.assertEqual(tuple(), ret.error_messages())
         self.assertFalse(ret.has_error)
@@ -107,6 +109,26 @@ class StdRetTest(unittest.TestCase):
         self.assertTrue(ret.not_none)
         self.assertEqual('x', ret.value)
         self.assertEqual('x', ret.result)
+
+    def test_pass_exception_1(self) -> None:
+        ex = IOError('1')
+        ret: error.StdRet[int] = error.StdRet.pass_exception(i18n('a'), ex, a=1, b='a')
+        self.assertIsNotNone(ret)
+        self.assertTrue(ret.has_error)
+        self.assertFalse(ret.ok)
+        self.assertIsNotNone(ret.error)
+        self.assertFalse(ret.not_none)
+        self.assertIsNone(ret.value)
+        err = ret.error
+        assert err is not None  # mypy required
+        self.assertEqual(1, len(err.messages()))
+        self.assertIsInstance(err, error.ExceptionPetroniaReturnError)
+        assert isinstance(err, error.ExceptionPetroniaReturnError)  # mypy required
+        self.assertEqual(ex, err.exception())
+        self.assertEqual(
+            "ExceptionPetroniaReturnError(UserMessage('a', a=1, b='a', exception=OSError('1')), OSError('1'))",
+            repr(err),
+        )
 
 
 class FunctionTest(unittest.TestCase):
@@ -123,6 +145,7 @@ class FunctionTest(unittest.TestCase):
             messages=[], errors=[error.SimplePetroniaReturnError()],
         )
         self.assertIsNotNone(res)
+        assert res is not None  # mypy required
         self.assertEqual(tuple(), res.messages())
 
     def test_possible_error_0_2(self) -> None:
@@ -133,6 +156,7 @@ class FunctionTest(unittest.TestCase):
             ],
         )
         self.assertIsNotNone(res)
+        assert res is not None  # mypy required
         self.assertEqual((_m('1'),), res.messages())
 
     def test_possible_error_1_0(self) -> None:
@@ -140,6 +164,7 @@ class FunctionTest(unittest.TestCase):
             messages=[_m('x')], errors=[],
         )
         self.assertIsNotNone(res)
+        assert res is not None  # mypy required
         self.assertEqual((_m('x'),), res.messages())
 
     def test_possible_error_2_0(self) -> None:
@@ -147,6 +172,7 @@ class FunctionTest(unittest.TestCase):
             messages=[_m('x'), _m('y')], errors=[],
         )
         self.assertIsNotNone(res)
+        assert res is not None  # mypy required
         self.assertEqual((_m('x'), _m('y')), res.messages())
 
     def test_possible_error_2_3(self) -> None:
@@ -158,6 +184,7 @@ class FunctionTest(unittest.TestCase):
             ],
         )
         self.assertIsNotNone(res)
+        assert res is not None  # mypy required
         self.assertEqual((_m('x'), _m('y'), _m('1'), _m('2'),), res.messages())
 
 

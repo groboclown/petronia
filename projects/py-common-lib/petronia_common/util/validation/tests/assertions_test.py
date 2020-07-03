@@ -2,7 +2,7 @@
 from typing import Optional
 import unittest
 from ..global_state import set_global_assertion_state, are_assertions_enabled
-from ..assertions import PetroniaAssertionError, enforce_that, assert_that
+from ..assertions import PetroniaAssertionError, enforce_that, assert_that, enforce_all
 from ...message import i18n, UserMessage
 
 
@@ -97,7 +97,7 @@ class AssertionsTest(unittest.TestCase):
         res = enforce_that("x", i18n("y"), condition_1)
         self.assertIsNotNone(res)
         self.assertEqual(
-            "SimplePetroniaReturnError(UserMessage('{src}: validation error for {problem}', src='x', problem='y'))",
+            "SimplePetroniaReturnError(UserMessage('{src}: validation error: y', src='x'))",
             repr(res),
         )
         self.assertEqual(1, condition_1.run_count)
@@ -106,7 +106,7 @@ class AssertionsTest(unittest.TestCase):
         res = enforce_that("x", i18n("y"), condition_1)
         self.assertIsNotNone(res)
         self.assertEqual(
-            "SimplePetroniaReturnError(UserMessage('{src}: validation error for {problem}', src='x', problem='y'))",
+            "SimplePetroniaReturnError(UserMessage('{src}: validation error: y', src='x'))",
             repr(res),
         )
         self.assertEqual(2, condition_1.run_count)
@@ -118,7 +118,7 @@ class AssertionsTest(unittest.TestCase):
         res = enforce_that("x", i18n("y"), condition_1, condition_2, condition_3)
         self.assertIsNotNone(res)
         self.assertEqual(
-            "SimplePetroniaReturnError(UserMessage('{src}: validation error for {problem}', src='x', problem='y'))",
+            "SimplePetroniaReturnError(UserMessage('{src}: validation error: y', src='x'))",
             repr(res),
         )
         self.assertEqual(1, condition_1.run_count)
@@ -144,13 +144,98 @@ class AssertionsTest(unittest.TestCase):
         self.assertEqual(1, condition_1.run_count)
         self.assertEqual(0, condition_2.run_count)
         self.assertIsNotNone(res)
+        assert res is not None  # mypy required check.
         self.assertEqual(
             (UserMessage(
-                i18n('{src}: validation error for {problem} ({e})'),
-                src='x', problem='y', e=ex,
+                i18n('{src}: validation error ({e}): y'),
+                src='x', e=ex,
+            ),),
+            res.messages(),
+        )
+
+    def test_enforce_all__1_ok(self) -> None:
+        condition_1 = MockCondition(True)
+        res = enforce_all('abc', (i18n('b'), condition_1,))
+        self.assertEqual(1, condition_1.run_count)
+        self.assertIsNone(res)
+
+    def test_enforce_all__1_bad(self) -> None:
+        condition_1 = MockCondition(False)
+        res = enforce_all('abc', (i18n('b'), condition_1,))
+        self.assertEqual(1, condition_1.run_count)
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        self.assertEqual(
+            (UserMessage(
+                i18n('{src}: validation error: b'),
+                src='abc',
+            ),),
+            res.messages(),
+        )
+
+    def test_enforce_all__2_ok(self) -> None:
+        condition_1 = MockCondition(True)
+        condition_2 = MockCondition(True)
+        res = enforce_all(
+            'abc',
+            (i18n('b'), condition_1,),
+            (i18n('c'), condition_2,),
+        )
+        self.assertEqual(1, condition_1.run_count)
+        self.assertEqual(1, condition_2.run_count)
+        self.assertIsNone(res)
+
+    def test_enforce_all__2_bad(self) -> None:
+        condition_1 = MockCondition(False)
+        condition_2 = MockCondition(False)
+        res = enforce_all(
+            'abc',
+            (i18n('b'), condition_1,),
+            (i18n('c'), condition_2,),
+        )
+        self.assertEqual(1, condition_1.run_count)
+        self.assertEqual(1, condition_2.run_count)
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        self.assertEqual(
+            (UserMessage(
+                i18n('{src}: validation error: b'),
+                src='abc',
+            ), UserMessage(
+                i18n('{src}: validation error: c'),
+                src='abc',
             ),),
             res.messages()
         )
+
+    def test_enforce_all__1_error(self) -> None:
+        ex_1 = IOError('x')
+        condition_1 = MockCondition(ex=ex_1)
+        res = enforce_all('abcd', (i18n('x'), condition_1,))
+        self.assertEqual(1, condition_1.run_count)
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        messages = res.messages()
+        self.assertEqual(1, len(messages))
+        self.assertEqual('{src}: validation error ({e}): x', messages[0].message)
+        self.assertEqual({"e": ex_1, "src": "abcd"}, messages[0].arguments)
+
+    def test_enforce_all__2_error(self) -> None:
+        ex_1 = IOError('x')
+        ex_2 = IOError('y')
+        condition_1 = MockCondition(ex=ex_1)
+        condition_2 = MockCondition(ex=ex_2)
+        res = enforce_all('abcd', (i18n('x'), condition_1,), (i18n('y'), condition_2,))
+        self.assertEqual(1, condition_1.run_count)
+        self.assertEqual(1, condition_2.run_count)
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        messages = res.messages()
+        self.assertEqual(2, len(messages))
+        self.assertEqual('{src}: validation error ({e}): x', messages[0].message)
+        self.assertEqual({"e": ex_1, "src": "abcd"}, messages[0].arguments)
+        self.assertEqual('{src}: validation error ({e}): y', messages[1].message)
+        self.assertEqual({"e": ex_2, "src": "abcd"}, messages[1].arguments)
 
 
 class MockCondition:

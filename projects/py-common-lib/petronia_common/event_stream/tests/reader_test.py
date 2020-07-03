@@ -356,30 +356,30 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
 
     # ===== Event ID errors
     (
-        'EOF during event + size read.',
+        'EOF during event + size read',
         # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0',
         (None, [_m('Reached end-of-stream during packet read')], True),
         b'',
     ),
     (
-        'Invalid event id size - 0.',
+        'Invalid event id size - 0',
         # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\0s\0\x01bt\0\x01c[\0\0\0',
-        (None, [_m('event-id must have a length in the range [1, {m}]', m=10)], False),
+        (None, [_m('event-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'',
     ),
     (
-        'EOF during event data read, when size is too big.',
+        'EOF during event data read, when size is too big',
         b'abc' + PACKET_MARKER + b'e\xff\xffa',
         (None, [
-            _m('event-id must have a length in the range [1, {m}]', m=10),
+            _m('event-id must have a length in the range [{n}, {x}]', n=1, x=10),
             _m('Reached end-of-stream during packet read'),
         ], True),
         b'',
     ),
     (
-        'EOF during event data read.',
+        'EOF during event data read',
         # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\x02a',
         (None, [_m('Reached end-of-stream during packet read')], True),
@@ -404,28 +404,28 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
         b'c',
     ),
     (
-        'EOF during source + size read.',
+        'EOF during source + size read',
         b'abc' + PACKET_MARKER + b'e\0\x01as\0',
         (None, [_m('Reached end-of-stream during packet read')], True),
         b'',
     ),
     (
-        'Invalid source id size - 0.',
+        'Invalid source id size - 0',
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\0t\0\x01c[\0\0\0',
-        (None, [_m('source-id must have a length in the range [1, {m}]', m=10)], False),
+        (None, [_m('source-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'',
     ),
     (
-        'EOF during source data read, when size is too big.',
+        'EOF during source data read, when size is too big',
         b'abc' + PACKET_MARKER + b'e\0\x01as\xff\xffa',
         (None, [
-            _m('source-id must have a length in the range [1, {m}]', m=10),
+            _m('source-id must have a length in the range [{n}, {x}]', n=1, x=10),
             _m('Reached end-of-stream during packet read'),
         ], True),
         b'',
     ),
     (
-        'EOF during source data read.',
+        'EOF during source data read',
         # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x02b',
         (None, [_m('Reached end-of-stream during packet read')], True),
@@ -450,28 +450,28 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
         b'cf',
     ),
     (
-        'EOF during target + size read.',
+        'EOF during target + size read',
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0',
         (None, [_m('Reached end-of-stream during packet read')], True),
         b'',
     ),
     (
-        'Invalid target id size - 0.',
+        'Invalid target id size - 0',
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\0[\0\0\0',
-        (None, [_m('target-id must have a length in the range [1, {m}]', m=10)], False),
+        (None, [_m('target-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'',
     ),
     (
-        'EOF during target data read, when size is too big.',
+        'EOF during target data read, when size is too big',
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\xff\xffa',
         (None, [
-            _m('target-id must have a length in the range [1, {m}]', m=10),
+            _m('target-id must have a length in the range [{n}, {x}]', n=1, x=10),
             _m('Reached end-of-stream during packet read'),
         ], True),
         b'',
     ),
     (
-        'EOF during target data read.',
+        'EOF during target data read',
         # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01at\0\x02b',
         (None, [_m('Reached end-of-stream during packet read')], True),
@@ -531,31 +531,37 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
     ),
     (
         'Too small JSON size',
-        # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\0x',
-        (None, [_m('json data must have a length in the range [2, {m}]', m=60)], False),
+        (None, [_m('json data must have a length in the range [{n}, {x}]', n=2, x=60)], False),
         b'x',
     ),
     (
+        'EOF during too small JSON size',
+        b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\1',
+        (None, [
+            _m('json data must have a length in the range [{n}, {x}]', n=2, x=60),
+            _m('Reached end-of-stream during packet read'),
+        ], True),
+        b'',
+    ),
+    (
         'EOF during JSON read',
-        # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\x05x',
         (None, [_m('Reached end-of-stream during packet read')], True),
         b'',
     ),
     (
         'EOF during too-big JSON read',
-        # 0x00 0x00 0x91
         b'abc' + PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\xff\xffx',
         (None, [
-            _m('json data must have a length in the range [2, {m}]', m=60),
+            _m('json data must have a length in the range [{n}, {x}]', n=2, x=60),
             _m('Reached end-of-stream during packet read'),
         ], True),
         b'',
     ),
     (
         'bad json',
-        PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\x01{',
+        PACKET_MARKER + b'e\0\x01as\0\x01bt\0\x01c{\0\x02{[',
         (None, [
             _m(
                 'Event streaming data included badly formatted JSON data: {e}',
@@ -587,7 +593,7 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
                 b'{' + BIGGEST_JSON_BIN +
                 b'x'
         ),
-        (None, [_m('event-id must have a length in the range [1, {m}]', m=10)], False),
+        (None, [_m('event-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
     ),
     (
@@ -600,7 +606,7 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
                 b'{' + BIGGEST_JSON_BIN +
                 b'x'
         ),
-        (None, [_m('source-id must have a length in the range [1, {m}]', m=10)], False),
+        (None, [_m('source-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
     ),
     (
@@ -613,7 +619,7 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
                 b'{' + BIGGEST_JSON_BIN +
                 b'x'
         ),
-        (None, [_m('target-id must have a length in the range [1, {m}]', m=10)], False),
+        (None, [_m('target-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
     ),
     (
@@ -626,7 +632,7 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
                 b'{' + TOO_BIG_JSON_BIN +
                 b'x'
         ),
-        (None, [_m('json data must have a length in the range [2, {m}]', m=60)], False),
+        (None, [_m('json data must have a length in the range [{n}, {x}]', n=2, x=60)], False),
         b'x',
     ),
     (
@@ -639,7 +645,7 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
                 b'[' + TOO_BIG_BLOB_BIN +
                 b'x'
         ),
-        (None, [_m('binary blob data must have a length in the range [1, {m}]', m=10)], False),
+        (None, [_m('binary blob data must have a length in the range [{n}, {x}]', n=0, x=10)], False),
         b'x',
     ),
     (
@@ -652,7 +658,7 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
             b'[\xff\xff\xffx'
         ),
         (None, [
-            _m('binary blob data must have a length in the range [1, {m}]', m=10),
+            _m('binary blob data must have a length in the range [{n}, {x}]', n=0, x=10),
             _m('Reached end-of-stream during packet read'),
         ], True),
         b'',

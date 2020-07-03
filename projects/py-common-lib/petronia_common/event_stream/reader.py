@@ -398,8 +398,8 @@ def parse_raw_event(
             # Invalid size.
             # However, we'll still read it.
             error_messages.append(UserMessage(
-                _("binary blob data must have a length in the range [1, {m}]"),
-                m=consts.MAX_BLOB_SIZE,
+                _("binary blob data must have a length in the range [{n}, {x}]"),
+                n=consts.MIN_BLOB_SIZE, x=consts.MAX_BLOB_SIZE,
             ))
             ret_err = advance_stream(data_contents_length)
             if ret_err:

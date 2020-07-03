@@ -23,7 +23,7 @@ class MemoryTest(unittest.TestCase):
 
     def test_delayed_value_holder(self) -> None:
         # Standard use case
-        holder = memory.DelayedValueHolder(None)
+        holder: memory.DelayedValueHolder[str] = memory.DelayedValueHolder()
 
         def t1() -> None:
             holder.value = 'z'
@@ -55,11 +55,19 @@ class MemoryTest(unittest.TestCase):
         except RuntimeError:
             pass
 
+    def test_readonly_dict_3(self) -> None:
+        d1: Dict[str, int] = {"a": 1}
+        d2: Dict[str, int] = cast(Dict[str, int], memory.readonly_dict(d1))
+
         try:
             d2['a'] = 1
             self.fail('Should have thrown a runtime error')  # pragma: no cover
         except RuntimeError:
             pass
+
+    def test_readonly_dict_4(self) -> None:
+        d1: Dict[str, int] = {"a": 1}
+        d2: Dict[str, int] = cast(Dict[str, int], memory.readonly_dict(d1))
 
         try:
             d2.pop('a')
@@ -67,11 +75,19 @@ class MemoryTest(unittest.TestCase):
         except RuntimeError:
             pass
 
+    def test_readonly_dict_5(self) -> None:
+        d1: Dict[str, int] = {"a": 1}
+        d2: Dict[str, int] = cast(Dict[str, int], memory.readonly_dict(d1))
+
         try:
             d2.popitem()
             self.fail('Should have thrown a runtime error')  # pragma: no cover
         except RuntimeError:
             pass
+
+    def test_readonly_dict_6(self) -> None:
+        d1: Dict[str, int] = {"a": 1}
+        d2: Dict[str, int] = cast(Dict[str, int], memory.readonly_dict(d1))
 
         try:
             d2.update({'x': 1})
@@ -79,11 +95,19 @@ class MemoryTest(unittest.TestCase):
         except RuntimeError:
             pass
 
+    def test_readonly_dict_7(self) -> None:
+        d1: Dict[str, int] = {"a": 1}
+        d2: Dict[str, int] = cast(Dict[str, int], memory.readonly_dict(d1))
+
         try:
             d2.clear()
             self.fail('Should have thrown a runtime error')  # pragma: no cover
         except RuntimeError:
             pass
+
+    def test_readonly_dict_8(self) -> None:
+        d1: Dict[str, int] = {"a": 1}
+        d2: Dict[str, int] = cast(Dict[str, int], memory.readonly_dict(d1))
 
         try:
             d2.setdefault("b", 2)

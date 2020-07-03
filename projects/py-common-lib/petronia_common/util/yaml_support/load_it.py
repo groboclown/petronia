@@ -37,9 +37,9 @@ except ModuleNotFoundError:  # pragma: no cover
     YAML_SUPPORTED = False
 
     # noinspection PyUnusedLocal
-    def load_yaml_documents(data_str: str) -> Iterable[Any]:
+    def load_yaml_documents(data_str: str) -> StdRet[Sequence[Any]]:
         raise ValueError('yaml not supported.  Check YAML_SUPPORTED first.')
 
     # noinspection PyUnusedLocal
-    def dump_yaml_documents(documents: Sequence[Any]) -> str:
+    def dump_yaml_documents(documents: Sequence[Any]) -> StdRet[str]:
         raise ValueError('yaml not supported.  Check YAML_SUPPORTED first.')

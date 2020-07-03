@@ -146,7 +146,7 @@ def enforce_all(
                 ))
         except BaseException as e:
             error_messages.append(UserMessage(
-                i18n(_("{src}: validation error ({e}): ") + first_condition[0]),
+                i18n(_("{src}: validation error ({e}): ") + validation_problem),
                 src=src,
                 e=e,
                 **details,
