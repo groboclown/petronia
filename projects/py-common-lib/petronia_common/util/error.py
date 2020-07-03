@@ -41,6 +41,25 @@ class SimplePetroniaReturnError(PetroniaReturnError):
         return f'SimplePetroniaReturnError({", ".join([repr(msg) for msg in self.__messages])})'
 
 
+class ExceptionPetroniaReturnError(PetroniaReturnError):
+    """An error that came from a trapped exception.
+    This is used to encapsulate third party library exceptions."""
+    __slots__ = ('__messages', '__exception')
+
+    def __init__(self, message: UserMessage, exception: BaseException) -> None:
+        self.__messages = (message,)
+        self.__exception = exception
+
+    def messages(self) -> Sequence[UserMessage]:
+        return self.__messages
+
+    def exception(self) -> BaseException:
+        return self.__exception
+
+    def __repr__(self) -> str:
+        return f'ExceptionPetroniaReturnError({repr(self.__messages[0])}, {repr(self.__exception)})'
+
+
 class StdRet(Generic[T]):
     """
     StdRet the standard return type.  It could be a standard Tuple type, but
@@ -77,6 +96,20 @@ class StdRet(Generic[T]):
     ) -> StdRet[T]:
         """Constructor that generates a forced error with no value."""
         return StdRet(error_message(message, **arguments), None)
+
+    @staticmethod
+    def pass_exception(
+            source: I18n,
+            exception: BaseException,
+            **details: UserMessageData,
+    ) -> StdRet[T]:
+        """Constructor that generates a forced error with no value.
+        The 'source' text can include an {exception} expression for
+        replacement with the error itself."""
+        return StdRet(ExceptionPetroniaReturnError(
+            UserMessage(source, **details, exception=exception),
+            exception,
+        ), None)
 
     @staticmethod
     def pass_ok(ret: T) -> StdRet[T]:
@@ -192,3 +225,8 @@ def possible_error(
     if not has_messages:
         return None
     return SimplePetroniaReturnError(*msgs)
+
+
+# A generic constant for return types that may have an error
+# but no real return value.
+RET_OK_NONE = StdRet.pass_ok(None)

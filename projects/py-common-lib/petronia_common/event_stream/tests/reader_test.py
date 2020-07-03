@@ -4,6 +4,7 @@ import unittest
 import io
 import json
 from .. import reader
+from .. import consts
 from ..defs import (
     RawEvent, is_raw_event_binary, is_raw_event_object,
     raw_event_source_id, raw_event_target_id, raw_event_id,
@@ -17,29 +18,29 @@ ExpectedEvent = Tuple[str, str, str, Union[bytes, Dict[str, Any]]]
 
 class ParseRawEventTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.max_id = reader.MAX_ID_SIZE
-        self.max_json = reader.MAX_JSON_SIZE
-        self.max_blob = reader.MAX_BLOB_SIZE
-        reader.MAX_ID_SIZE = 10
-        reader.MAX_JSON_SIZE = 60
-        reader.MAX_BLOB_SIZE = 10
+        self.max_id = consts.MAX_ID_SIZE
+        self.max_json = consts.MAX_JSON_SIZE
+        self.max_blob = consts.MAX_BLOB_SIZE
+        consts.MAX_ID_SIZE = 10
+        consts.MAX_JSON_SIZE = 60
+        consts.MAX_BLOB_SIZE = 10
 
     def tearDown(self) -> None:
-        reader.MAX_ID_SIZE = self.max_id
-        reader.MAX_JSON_SIZE = self.max_json
-        reader.MAX_BLOB_SIZE = self.max_blob
+        consts.MAX_ID_SIZE = self.max_id
+        consts.MAX_JSON_SIZE = self.max_json
+        consts.MAX_BLOB_SIZE = self.max_blob
 
     def test_setup(self) -> None:
         # Ensure the assumptions in the constants, plus the assignments above, match up.
 
         # + 2 for the extra length bytes
-        self.assertEqual(reader.MAX_JSON_SIZE + 3, len(TOO_BIG_JSON_BIN))
-        self.assertEqual(reader.MAX_JSON_SIZE + 2, len(BIGGEST_JSON_BIN))
-        self.assertEqual(reader.MAX_ID_SIZE + 3, len(TOO_BIG_ID_BIN))
-        self.assertEqual(reader.MAX_ID_SIZE + 2, len(BIGGEST_ID_BIN))
+        self.assertEqual(consts.MAX_JSON_SIZE + 3, len(TOO_BIG_JSON_BIN))
+        self.assertEqual(consts.MAX_JSON_SIZE + 2, len(BIGGEST_JSON_BIN))
+        self.assertEqual(consts.MAX_ID_SIZE + 3, len(TOO_BIG_ID_BIN))
+        self.assertEqual(consts.MAX_ID_SIZE + 2, len(BIGGEST_ID_BIN))
 
-        self.assertEqual(reader.MAX_BLOB_SIZE + 1, len(TOO_BIG_BLOB))
-        self.assertEqual(reader.MAX_BLOB_SIZE, len(BIGGEST_BLOB))
+        self.assertEqual(consts.MAX_BLOB_SIZE + 1, len(TOO_BIG_BLOB))
+        self.assertEqual(consts.MAX_BLOB_SIZE, len(BIGGEST_BLOB))
 
     def test_data(self) -> None:
         for name, byte_data, expected, left_over in PARSE_DATA:
@@ -146,7 +147,7 @@ class ParseRawEventTest(unittest.TestCase):
         # This also tests long data reads.
 
         # Ensure the blob size allows for large blob reads.
-        reader.MAX_BLOB_SIZE = self.max_blob
+        consts.MAX_BLOB_SIZE = self.max_blob
 
         # Need to generate a packet that exceeds the length necessary to trigger
         # a pipe reader.
@@ -160,10 +161,7 @@ class ParseRawEventTest(unittest.TestCase):
                 b'['
         )
         # we'll generate 1 mb of data + 1 byte.  1mb = 1048576 bytes; 1048576 = 0x100000
-        byte_data += b'\x10\0\x01'
-        for i in range(1048576 // 64):
-            byte_data += b'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-        byte_data += b'x'
+        byte_data += b'\x10\0\x01' + (b' ' * 1048576) + b'x'
         # Now add in a second packet, to trigger the out-of-order read error.
         byte_data += (
                 PACKET_MARKER +

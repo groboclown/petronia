@@ -20,10 +20,16 @@ Responsibilities:
 3. Start the initialization processes.
 4. On "reload" events, kills the non-critical processes, then reruns the non-critical
     initialization processes.
-5. On "stop" events or OS signals, stops the non-critial running processes, then the
+5. On "stop" events or OS signals, stops the non-critical running processes, then the
     critical processes, then itself.
+
+Process launching involves passing initialization context to the launched process
+through the event pipe, which is usually the configuration details.
 
 A note on the launchers - the request to launch an extension process
 originates from the launcher process itself, which runs in a trusted context.
 The security definition sent to foreman is therefore trusted.
+
+Commonly, the "core" and "graphics" initialization processes are the only
+ones started by foreman, and "core" runs all the core extensions within itself.
 """

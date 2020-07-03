@@ -6,6 +6,7 @@ Reads low-level streaming event data.
 from typing import Callable, BinaryIO, Tuple, List, Dict, Optional, Any
 import json
 from petronia_common.util import i18n as _
+from . import consts
 from .defs import RawEvent, RawBinaryReader, to_raw_event_binary, to_raw_event_object
 from ..util import PetroniaReturnError, UserMessage, possible_error, join_errors
 
@@ -110,7 +111,7 @@ def parse_raw_event(
         # To be fully resilient to errors, we could maintain a buffer of read data,
         # and on error, go back and look for the marker.  But that seems like overkill.
         c = stream.marked_read(1)
-        if c == EMPTY_BINARY:
+        if c == consts.EMPTY_BINARY:
             # End-of-stream reached.
             if state != STATE_INIT:
                 # We've read some of the stream.
@@ -124,18 +125,18 @@ def parse_raw_event(
         # ===================================================================
         # Start of Packet Search
         elif state == STATE_INIT:
-            if c == BINARY_PACKET_MARKER_1:
+            if c == consts.BINARY_PACKET_MARKER_1:
                 state = STATE_EXPECTING_MARKER_2
             # else - ignore; we remain in the init state
         elif state == STATE_EXPECTING_MARKER_2:
-            if c == BINARY_PACKET_MARKER_2:
+            if c == consts.BINARY_PACKET_MARKER_2:
                 state = STATE_EXPECTING_MARKER_3
             else:
                 # didn't see the marker.
                 return None, None, False
 
         elif state == STATE_EXPECTING_MARKER_3:
-            if c == BINARY_PACKET_MARKER_3:
+            if c == consts.BINARY_PACKET_MARKER_3:
                 # Move on to packet parsing.
                 state = STATE_EVENT_ID_EXPECTING_MARKER
                 break
@@ -152,7 +153,7 @@ def parse_raw_event(
         read_data = b''
         while count > 0:
             next_data = stream.marked_read(count)
-            if next_data == EMPTY_BINARY:
+            if next_data == consts.EMPTY_BINARY:
                 error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
                 return join_errors(*error_messages), read_data
             count -= len(next_data)
@@ -163,7 +164,7 @@ def parse_raw_event(
         while count > 0:
             # Because this is throwing away data, don't read in too much at once.
             next_data = stream.marked_read(min(65535, count))
-            if next_data == EMPTY_BINARY:
+            if next_data == consts.EMPTY_BINARY:
                 error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
                 return join_errors(*error_messages)
             count -= len(next_data)
@@ -175,26 +176,28 @@ def parse_raw_event(
     ret_err, c = read_stream(3)
     if ret_err:
         return None, ret_err, True
-    if c[0] != BINARY_EVENT_ID_MARKER_INT:
+    if c[0] != consts.BINARY_EVENT_ID_MARKER_INT:
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
 
     decoded_event_id = ''
     event_id_remaining = (c[1] << 8) + c[2]
-    if event_id_remaining <= 0:
+    if event_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
-            _("event-id must have a length in the range [1, {m}]"),
-            m=MAX_ID_SIZE,
+            _("event-id must have a length in the range [{n}, {x}]"),
+            n=consts.MIN_ID_SIZE,
+            x=consts.MAX_ID_SIZE,
         ))
-    elif event_id_remaining > MAX_ID_SIZE:
+    elif event_id_remaining > consts.MAX_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
-            _("event-id must have a length in the range [1, {m}]"),
-            m=MAX_ID_SIZE,
+            _("event-id must have a length in the range [{n}, {x}]"),
+            n=consts.MIN_ID_SIZE,
+            x=consts.MAX_ID_SIZE,
         ))
         ret_err = advance_stream(event_id_remaining)
         if ret_err:
@@ -217,26 +220,28 @@ def parse_raw_event(
     ret_err, c = read_stream(3)
     if ret_err:
         return None, ret_err, True
-    if c[0] != BINARY_SOURCE_ID_MARKER_INT:
+    if c[0] != consts.BINARY_SOURCE_ID_MARKER_INT:
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         # Ignore the other error messages, as they are meaningless here.
         return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
 
     source_id_remaining = (c[1] << 8) + c[2]
-    if source_id_remaining <= 0:
+    if source_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
-            _("source-id must have a length in the range [1, {m}]"),
-            m=MAX_ID_SIZE,
+            _("source-id must have a length in the range [{n}, {x}]"),
+            n=consts.MIN_ID_SIZE,
+            x=consts.MAX_ID_SIZE,
         ))
-    elif source_id_remaining > MAX_ID_SIZE:
+    elif source_id_remaining > consts.MAX_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
-            _("source-id must have a length in the range [1, {m}]"),
-            m=MAX_ID_SIZE,
+            _("source-id must have a length in the range [{n}, {x}]"),
+            n=consts.MIN_ID_SIZE,
+            x=consts.MAX_ID_SIZE,
         ))
         ret_err = advance_stream(source_id_remaining)
         if ret_err:
@@ -259,26 +264,28 @@ def parse_raw_event(
     ret_err, c = read_stream(3)
     if ret_err:
         return None, ret_err, True
-    if c[0] != BINARY_TARGET_ID_MARKER_INT:
+    if c[0] != consts.BINARY_TARGET_ID_MARKER_INT:
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         # Ignore the other error messages, as they are meaningless here.
         return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
 
     target_id_remaining = (c[1] << 8) + c[2]
-    if target_id_remaining <= 0:
+    if target_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
-            _("target-id must have a length in the range [1, {m}]"),
-            m=MAX_ID_SIZE,
+            _("target-id must have a length in the range [{n}, {x}]"),
+            n=consts.MIN_ID_SIZE,
+            x=consts.MAX_ID_SIZE,
         ))
-    elif target_id_remaining > MAX_ID_SIZE:
+    elif target_id_remaining > consts.MAX_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
-            _("target-id must have a length in the range [1, {m}]"),
-            m=MAX_ID_SIZE,
+            _("target-id must have a length in the range [{n}, {x}]"),
+            n=consts.MIN_ID_SIZE,
+            x=consts.MAX_ID_SIZE,
         ))
         ret_err = advance_stream(target_id_remaining)
         if ret_err:
@@ -299,10 +306,10 @@ def parse_raw_event(
     # Start by reading the marker by itself
     # Reading 1 byte, so easy reading...
     c = stream.marked_read(1)
-    if c == EMPTY_BINARY:
+    if c == consts.EMPTY_BINARY:
         error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
         return None, join_errors(*error_messages), True
-    elif c == BINARY_JSON_CONTENTS_MARKER:
+    elif c == consts.BINARY_JSON_CONTENTS_MARKER:
         # ===================================================================
         # Json Reading
 
@@ -311,20 +318,24 @@ def parse_raw_event(
         if ret_err:
             return None, ret_err, True
         data_contents_length = (c[0] << 8) + c[1]
-        if data_contents_length <= 0:
+        if data_contents_length < consts.MIN_JSON_SIZE:
             # Invalid size.
             error_messages.append(UserMessage(
-                _("json data must have a length in the range [2, {m}]"),
-                m=MAX_JSON_SIZE,
+                _("json data must have a length in the range [{n}, {x}]"),
+                n=consts.MIN_JSON_SIZE,
+                x=consts.MAX_JSON_SIZE,
             ))
-            # Because this is the end of the packet, we'll stop here.
+            ret_err = advance_stream(data_contents_length)
+            if ret_err:
+                return None, ret_err, True
             return None, possible_error(messages=error_messages), False
-        elif data_contents_length > MAX_JSON_SIZE:
+        elif data_contents_length > consts.MAX_JSON_SIZE:
             # Invalid size.
             # But we'll keep reading.
             error_messages.append(UserMessage(
-                _("json data must have a length in the range [2, {m}]"),
-                m=MAX_JSON_SIZE,
+                _("json data must have a length in the range [{n}, {x}]"),
+                n=consts.MIN_JSON_SIZE,
+                x=consts.MAX_JSON_SIZE,
             ))
             ret_err = advance_stream(data_contents_length)
             if ret_err:
@@ -361,7 +372,7 @@ def parse_raw_event(
             False,
         )
 
-    elif c == BINARY_BLOB_CONTENTS_MARKER:
+    elif c == consts.BINARY_BLOB_CONTENTS_MARKER:
         # ===================================================================
         # Blob Reading
 
@@ -370,7 +381,7 @@ def parse_raw_event(
         if ret_err:
             return None, ret_err, True
         data_contents_length = (c[0] << 16) + (c[1] << 8) + c[2]
-        if data_contents_length <= 0:
+        if data_contents_length <= consts.MIN_BLOB_SIZE:
             # This size is acceptable.
             # Note that we can't pass this on to invalid state,
             # because the error message, if any, needs to be
@@ -383,12 +394,12 @@ def parse_raw_event(
                 None,
                 False,
             )
-        elif data_contents_length > MAX_BLOB_SIZE:
+        elif data_contents_length > consts.MAX_BLOB_SIZE:
             # Invalid size.
             # However, we'll still read it.
             error_messages.append(UserMessage(
                 _("binary blob data must have a length in the range [1, {m}]"),
-                m=MAX_BLOB_SIZE,
+                m=consts.MAX_BLOB_SIZE,
             ))
             ret_err = advance_stream(data_contents_length)
             if ret_err:
@@ -441,7 +452,7 @@ def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryRe
 
 # noinspection PyUnusedLocal
 def empty_reader(max_read_count: int = -1) -> bytes:
-    return EMPTY_BINARY
+    return consts.EMPTY_BINARY
 
 
 def static_reader(data: bytes) -> RawBinaryReader:
@@ -453,7 +464,7 @@ def static_reader(data: bytes) -> RawBinaryReader:
     def reader_func(max_read_count: int = -1) -> bytes:
         remaining_length: int = remainder[1]  # type: ignore
         if remaining_length <= 0:
-            return EMPTY_BINARY
+            return consts.EMPTY_BINARY
         end: int
         if max_read_count <= 0:
             end = remaining_length
@@ -474,7 +485,7 @@ def piped_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinary
 
     def reader_func(max_read_count: int = -1) -> bytes:
         if context[0] <= 0:
-            return EMPTY_BINARY
+            return consts.EMPTY_BINARY
         if max_read_count <= 0 or max_read_count >= context[0]:
             expected_read_count = context[0]
         else:
@@ -485,20 +496,6 @@ def piped_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinary
 
     return reader_func
 
-
-BINARY_PACKET_MARKER_1 = b'\0'
-BINARY_PACKET_MARKER_2 = b'\0'
-BINARY_PACKET_MARKER_3 = b'['
-BINARY_EVENT_ID_MARKER_INT = ord('e')
-BINARY_SOURCE_ID_MARKER_INT = ord('s')
-BINARY_TARGET_ID_MARKER_INT = ord('t')
-BINARY_JSON_CONTENTS_MARKER = b'{'
-BINARY_BLOB_CONTENTS_MARKER = b'['
-EMPTY_BINARY = b''
-
-MAX_ID_SIZE = 2047
-MAX_JSON_SIZE = 65535
-MAX_BLOB_SIZE = 10485760
 
 MEMORY_READER_SIZE = 1024 * 1024
 
