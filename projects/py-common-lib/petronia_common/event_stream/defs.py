@@ -11,13 +11,21 @@ class RawBinaryReader(Protocol):
     def __call__(self, max_read_count: int = -1) -> bytes: ...
 
 
-RawEventObject = Tuple[str, str, str, bool, Dict[str, Any]]
+# What it should be ...
+# MarshalledEventObjectData = Union[
+#     str, int, float, None,
+#     Sequence['MarshalledEventObjectData'], Dict[str, 'MarshalledEventObjectData'],
+# ]
+# MarshalledEventObject = Dict[str, MarshalledEventObjectData]
+# What non-cyclic type definitions require...  sigh.
+MarshalledEventObject = Dict[str, Any]
+RawEventObject = Tuple[str, str, str, bool, MarshalledEventObject]
 RawEventBinary = Tuple[str, str, str, bool, RawBinaryReader]
 RawEvent = Union[RawEventObject, RawEventBinary]
 
 
 def to_raw_event_object(
-        event_id: str, source_id: str, target_id: str, object_data: Dict[str, Any],
+        event_id: str, source_id: str, target_id: str, object_data: MarshalledEventObject,
 ) -> RawEventObject:
     return event_id, source_id, target_id, True, object_data
 
@@ -48,7 +56,7 @@ def is_raw_event_binary(raw_event: RawEvent) -> bool:
     return raw_event[3] is False
 
 
-def as_raw_event_object_data(raw_event: RawEvent) -> Dict[str, Any]:
+def as_raw_event_object_data(raw_event: RawEvent) -> MarshalledEventObject:
     assert raw_event[3] is True
     return cast(RawEventObject, raw_event)[4]
 

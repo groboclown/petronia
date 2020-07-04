@@ -1,6 +1,7 @@
 
 import unittest
 import io
+import re
 from .. import writer, consts
 from ...util.error import PetroniaReturnError
 from ...util.message import i18n, UserMessage
@@ -143,6 +144,90 @@ class WriterTest(unittest.TestCase):
             UserMessage(
                 i18n('{src}: validation error: binary event data size must be within [{b_min}, {b_max}]'),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
+            ),
+        ), messages)
+
+    def test_write_object_event_to_stream_1(self) -> None:
+        out = io.BytesIO()
+        res = writer.write_object_event_to_stream(
+            out,
+            'evt1',
+            'src1',
+            'tgt1',
+            {"x": "y"},
+        )
+        self.assertIsNotNone(res)
+        self.assertTrue(res.ok)
+        self.assertIsNone(res.value)
+        self.assertEqual(
+            b'\0\0[e\0\x04evt1s\0\x04src1t\0\x04tgt1{\0\x09{"x":"y"}',
+            out.getvalue(),
+        )
+
+    def test_write_object_event_to_stream__json_dump_problem(self) -> None:
+        out = io.BytesIO()
+        res = writer.write_object_event_to_stream(
+            out, '\ud800', 'src1', 'tgt1', {"x": re.compile('x').match('x')},
+        )
+        self.assertEqual(b'', out.getvalue())
+        self.assertFalse(res.ok)
+        messages = res.valid_error.messages()
+        self.assertEqual(1, len(messages))
+        self.assertEqual('event object data cannot be marshalled: {exception}', messages[0].message)
+        self.assertEqual(['exception'], list(messages[0].arguments.keys()))
+        self.assertIsInstance(messages[0].arguments['exception'], TypeError)
+
+    def test_write_object_event_to_stream__event_unicode(self) -> None:
+        out = io.BytesIO()
+        res = writer.write_object_event_to_stream(
+            out, '\ud800', 'src1', 'tgt1', {},
+        )
+        self.assertEqual(b'', out.getvalue())
+        self.assertFalse(res.ok)
+        self._assert_unicode_error(res.valid_error, 'event-id')
+
+    def test_write_object_event_to_stream__source_unicode(self) -> None:
+        out = io.BytesIO()
+        res = writer.write_object_event_to_stream(
+            out, 'evt1', '\ud800', 'tgt1', {},
+        )
+        self.assertEqual(b'', out.getvalue())
+        self.assertFalse(res.ok)
+        self._assert_unicode_error(res.valid_error, 'source-id')
+
+    def test_write_object_event_to_stream__target_unicode(self) -> None:
+        out = io.BytesIO()
+        res = writer.write_object_event_to_stream(
+            out, 'evt1', 'src1', '\ud800', {},
+        )
+        self.assertEqual(b'', out.getvalue())
+        self.assertFalse(res.ok)
+        self._assert_unicode_error(res.valid_error, 'target-id')
+
+    def test_write_object_event_to_stream__size_constraints_all(self) -> None:
+        out = io.BytesIO()
+        res = writer.write_object_event_to_stream(
+            out, '', '', '', {"012345678901234567890123456": "012345678901234567890123456"},
+        )
+        self.assertEqual(b'', out.getvalue())
+        self.assertFalse(res.ok)
+        messages = res.valid_error.messages()
+        self.assertEqual((
+            UserMessage(
+                i18n('{src}: validation error: event-id length must be within [{id_min}, {id_max}]'),
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
+            ),
+            UserMessage(
+                i18n('{src}: validation error: source-id length must be within [{id_min}, {id_max}]'),
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
+            ),
+            UserMessage(
+                i18n('{src}: validation error: target-id length must be within [{id_min}, {id_max}]'),
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
+            ),
+            UserMessage(
+                i18n('{src}: validation error: event object data size must be within [{b_min}, {b_max}]'),
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
             ),
         ), messages)
 
