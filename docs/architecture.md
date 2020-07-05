@@ -83,9 +83,7 @@ The nature of the singleton identifiers means that construction of them is done 
 
 #### Logging
 
-Logging is a global function made as flat and simple as possible.  It allows for registering "hooks" that can be fired for different source prefixes, and just triggers those on logging.
-
-Thus, logging is highly configurable, allowing many different kinds of systems to integrate into it.
+The standard Python logging mechanisms are used for logging.
 
 #### Event Bus and Base Events
 
@@ -109,6 +107,7 @@ The event bus' standard events are:
 Events run through the event bus can be one of several priorities.  These indicate a suggestion for when the event should run in relation to other events.  There is never a requirement that events run in the current thread or process, and instead events should be always thought of as running outside the thread of execution from the source that triggered it.  Likewise, there isn't a ordering to the events, as the event bus can make decisions about when to run them.
 
 * HIGH - the event should run as soon as possible, before other events of a lower priority.  Event listeners for HIGH priority events should not run long operations, and instead delegate those to other events.
+* USER - the event should run as soon as possible, and as efficiently as possible, to make for a responsive user experience.
 * NORMAL - the standard event processing priority.  Event listeners should not run long-blocking operations.
 * IO - dedicated for long running, possibly blocking operations, such as reading from a network for file.  These almost always run in a thread separate from the others to prevent locking the event threads.
 
@@ -118,7 +117,7 @@ A special exception should be made for the `register event` action, because this
 
 Due to the forking model of Petronia, all events are formally structured data.  This means they have a structure defined through a schema, and can be transmitted across the wire.  This allows for extensions to be written in any language.
 
-The events are transmitted as either JSON formatted data objects (never arrays), which are limited in size to 16 MB, or a simple binary blob, for transmitting images, which may be much larger.
+The events are transmitted as either JSON formatted data objects or a simple binary blob, for transmitting images, which may be much larger.  See the [events document](events.md) for more information.
 
 OLD INFORMATION, WHICH MAY NOT BE VALID IN THE FUTURE.
 
@@ -300,7 +299,6 @@ This assumes that the `shutdown` extension is installed by the boot system.
 ### Extension Lifecycle
 
 Non-core extensions have a specific way for integrating into the system.
-
 
 
 ### Component Lifecycle

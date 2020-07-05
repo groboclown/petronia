@@ -28,6 +28,7 @@ from .error import (
     error_message,
     join_errors,
     possible_error,
+    collect_errors_from,
     PetroniaReturnError,
     RET_OK_NONE,
 )

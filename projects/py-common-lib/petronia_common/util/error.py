@@ -227,6 +227,16 @@ def possible_error(
     return SimplePetroniaReturnError(*msgs)
 
 
+def collect_errors_from(
+        *values: StdRet[T],
+) -> Optional[PetroniaReturnError]:
+    messages: List[UserMessage] = []
+    for value in values:
+        if value.error:
+            messages.extend(value.valid_error.messages())
+    return possible_error(messages)
+
+
 # A generic constant for return types that may have an error
 # but no real return value.
 RET_OK_NONE = StdRet.pass_ok(None)

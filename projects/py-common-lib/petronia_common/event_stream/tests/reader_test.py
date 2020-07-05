@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional, Union, Dict, Any
 import unittest
 import io
 import json
+from .util import CallbackCollector, ConstSizeChanger
 from .. import reader
 from .. import consts
 from ..defs import (
@@ -10,7 +11,7 @@ from ..defs import (
     raw_event_source_id, raw_event_target_id, raw_event_id,
     as_raw_event_object_data, as_raw_event_binary_data_reader,
 )
-from ...util import UserMessage, i18n, PetroniaReturnError
+from ...util import UserMessage, i18n
 
 
 ExpectedEvent = Tuple[str, str, str, Union[bytes, Dict[str, Any]]]
@@ -18,17 +19,10 @@ ExpectedEvent = Tuple[str, str, str, Union[bytes, Dict[str, Any]]]
 
 class ParseRawEventTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.max_id = consts.MAX_ID_SIZE
-        self.max_json = consts.MAX_JSON_SIZE
-        self.max_blob = consts.MAX_BLOB_SIZE
-        consts.MAX_ID_SIZE = 10
-        consts.MAX_JSON_SIZE = 60
-        consts.MAX_BLOB_SIZE = 10
+        self.size_changer = ConstSizeChanger()
 
     def tearDown(self) -> None:
-        consts.MAX_ID_SIZE = self.max_id
-        consts.MAX_JSON_SIZE = self.max_json
-        consts.MAX_BLOB_SIZE = self.max_blob
+        self.size_changer.tear_down()
 
     def test_setup(self) -> None:
         # Ensure the assumptions in the constants, plus the assignments above, match up.
@@ -147,7 +141,7 @@ class ParseRawEventTest(unittest.TestCase):
         # This also tests long data reads.
 
         # Ensure the blob size allows for large blob reads.
-        consts.MAX_BLOB_SIZE = self.max_blob
+        consts.MAX_BLOB_SIZE = self.size_changer.max_blob
 
         # Need to generate a packet that exceeds the length necessary to trigger
         # a pipe reader.
@@ -249,65 +243,6 @@ def as_bin_str(data: str) -> bytes:
 def _m(message: str, **args: Any) -> UserMessage:
     # no alias for i18n as _ here, because we don't want test strings in the message catalog.
     return UserMessage(i18n(message), **args)
-
-
-class CallbackCollector:
-    actual: List[Tuple[Optional[RawEvent], Optional[PetroniaReturnError], bool]]
-    event_responses: List[bool]
-    error_responses: List[bool]
-
-    def __init__(
-            self,
-            event_responses: Optional[List[bool]] = None,
-            error_responses: Optional[List[bool]] = None,
-    ) -> None:
-        self.actual = []
-        self.event_responses = event_responses or []
-        self.error_responses = error_responses or []
-
-    def execute(self, data: bytes) -> None:
-        reader.read_event_stream(io.BytesIO(data), self.on_event, self.on_end_of_stream, self.on_error)
-
-    def on_event(self, event: RawEvent) -> bool:
-        self.actual.append((event, None, False,))
-        ret = False
-        if self.event_responses:
-            ret = self.event_responses.pop(0)
-        return ret
-
-    def on_end_of_stream(self) -> None:
-        self.actual.append((None, None, True,))
-
-    def on_error(self, error: PetroniaReturnError) -> bool:
-        self.actual.append((None, error, False,))
-        ret = False
-        if self.error_responses:
-            ret = self.error_responses.pop(0)
-        return ret
-
-    def next_as_raw_event(self, parent: unittest.TestCase) -> RawEvent:
-        parent.assertTrue(len(self.actual) > 0)
-        next_actual = self.actual.pop(0)
-        parent.assertIsNotNone(next_actual[0])
-        # mypy requirement
-        assert next_actual[0] is not None
-        return next_actual[0]
-
-    def next_as_error(self, parent: unittest.TestCase) -> PetroniaReturnError:
-        parent.assertTrue(len(self.actual) > 0)
-        next_actual = self.actual.pop(0)
-        parent.assertIsNotNone(next_actual[1])
-        # mypy requirement
-        assert next_actual[1] is not None
-        return next_actual[1]
-
-    def next_as_eof(self, parent: unittest.TestCase) -> None:
-        parent.assertEqual(len(self.actual), 1)
-        next_actual = self.actual.pop(0)
-        parent.assertTrue(next_actual[2])
-
-    def is_empty(self) -> bool:
-        return len(self.actual) <= 0
 
 
 TOO_BIG_ID_BIN = as_bin_str(TOO_BIG_ID)

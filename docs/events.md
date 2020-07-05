@@ -218,7 +218,7 @@ Each data definition in the `references` section must be of a specific type.  Th
             "fields": {
                 // Keys are the field names, which must be characters matching the regular expression:
                 //   [a-z][a-z0-9_]*
-                // The minimum length is 1, the maximum length is 64 characters.
+                // The minimum length is 1, the maximum length is 255 characters.
                 "a_field": {
                     // A field has the same form as a reference entry, but with
                     // one additional value: "optional".

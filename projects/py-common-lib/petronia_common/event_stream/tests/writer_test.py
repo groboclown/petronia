@@ -2,6 +2,7 @@
 import unittest
 import io
 import re
+from .util import ConstSizeChanger
 from .. import writer, consts
 from ...util.error import PetroniaReturnError
 from ...util.message import i18n, UserMessage
@@ -9,17 +10,10 @@ from ...util.message import i18n, UserMessage
 
 class WriterTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.max_id = consts.MAX_ID_SIZE
-        self.max_json = consts.MAX_JSON_SIZE
-        self.max_blob = consts.MAX_BLOB_SIZE
-        consts.MAX_ID_SIZE = 10
-        consts.MAX_JSON_SIZE = 60
-        consts.MAX_BLOB_SIZE = 10
+        self.size_changer = ConstSizeChanger()
 
     def tearDown(self) -> None:
-        consts.MAX_ID_SIZE = self.max_id
-        consts.MAX_JSON_SIZE = self.max_json
-        consts.MAX_BLOB_SIZE = self.max_blob
+        self.size_changer.tear_down()
 
     def test_write_binary_event_to_stream_1(self) -> None:
         """in-memory standard write."""
