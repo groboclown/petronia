@@ -21,6 +21,7 @@ STRING_EMPTY_TUPLE: Tuple[str] = EMPTY_TUPLE  # type: ignore
 T = TypeVar('T')  # pylint: disable=invalid-name
 K = TypeVar('K')  # pylint: disable=invalid-name
 V = TypeVar('V')  # pylint: disable=invalid-name
+T_co = TypeVar('T_co', covariant=True)  # pylint: disable=invalid-name
 
 
 class ValueHolder(Generic[T]):

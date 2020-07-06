@@ -28,6 +28,9 @@ class ExtensionDependency:
         self.__minimum = minimum_version
         self.__below = below_version
 
+    def __repr__(self) -> str:
+        return f'ExtensionDependency({self.name}, min={self.minimum_version}, below={self.below_version})'
+
     @property
     def name(self) -> str:
         return self.__name
@@ -111,7 +114,7 @@ class AbcExtensionMetadata(AbcConfigType, ABC):
         return (
             f'name={repr(self.name)}, version={self.version}, '
             f'about={repr(self.about)}, description={repr(self.description)}, '
-            f'depends={repr(self.depends_on)}, licenses={repr(self.licenses)}'
+            f'depends={repr(self.depends_on)}, licenses={repr(self.licenses)}, '
             f'authors={repr(self.authors)}'
         )
 
@@ -146,7 +149,7 @@ class ApiExtensionMetadata(AbcExtensionMetadata):
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
-        validate_name(self.__name, messages)
+        validate_name(self.name, messages)
         validate_dependencies(self.depends_on, messages)
         event_names: Set[str] = set()
         for event in self.events:
@@ -191,7 +194,7 @@ class ImplExtensionMetadata(AbcExtensionMetadata):
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
-        validate_name(self.__name, messages)
+        validate_name(self.name, messages)
         validate_dependencies(self.depends_on, messages)
         validate_dependencies(self.implements, messages)
         return possible_error(messages)
@@ -219,18 +222,18 @@ class StandAloneExtensionMetadata(AbcExtensionMetadata):
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
-        validate_name(self.__name, messages)
-        validate_dependencies(self.__depends, messages)
+        validate_name(self.name, messages)
+        validate_dependencies(self.depends_on, messages)
         return possible_error(messages)
 
 
 MIN_EXTENSION_NAME_LENGTH = 2
 MAX_EXTENSION_NAME_LENGTH = 255
-EXTENSION_NAME_FORMAT = re.compile(r'^[a-z0-9][a-z0-9_]*\.(?:[a-z0-9][a-z0-9_]*)*$')
+EXTENSION_NAME_FORMAT = re.compile(r'^[a-z0-9][a-z0-9_]*(?:\.[a-z0-9][a-z0-9_]*)*$')
 
 
 def validate_name(name: str, messages: List[UserMessage]) -> None:
-    if EXTENSION_NAME_FORMAT.match(name) is not None:
+    if EXTENSION_NAME_FORMAT.match(name) is None:
         messages.append(UserMessage(
             _('extension name ({name}) must conform to the pattern [a-z0-9][a-z0-9._]'),
             name=name

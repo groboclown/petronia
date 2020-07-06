@@ -6,14 +6,19 @@ These errors are used by the validation framework, so the assertions done
 here are the only exception to the assertion rules.
 """
 
+# Future: Figure out a better way than using Any here...
+# mypy: allow-any-expr
+# mypy: allow-any-explicit
+# mypy: allow-any-generics
+
 from __future__ import annotations
-from typing import Sequence, Iterable, List, Optional, Generic, cast, TYPE_CHECKING
+from typing import Sequence, Iterable, List, Optional, Generic, Any, cast, TYPE_CHECKING
 # These typing functions are in Python 3.8, but MyPy doesn't recognize them.
 if TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Final, final
 else:
     from typing import Final, final
-from .memory import T, V, EMPTY_TUPLE
+from .memory import T, T_co, V, EMPTY_TUPLE
 from .message import I18n, UserMessage, UserMessageData
 
 
@@ -60,7 +65,7 @@ class ExceptionPetroniaReturnError(PetroniaReturnError):
         return f'ExceptionPetroniaReturnError({repr(self.__messages[0])}, {repr(self.__exception)})'
 
 
-class StdRet(Generic[T]):
+class StdRet(Generic[T_co]):
     """
     StdRet the standard return type.  It could be a standard Tuple type, but
     this runs into typing issues (alias of generics has lots of bugs in different
@@ -77,15 +82,15 @@ class StdRet(Generic[T]):
     def __init__(
             self,
             error: Optional[PetroniaReturnError],
-            value: Optional[T],
+            value: Optional[T_co],
     ) -> None:
         self.__error: Final[Optional[PetroniaReturnError]] = error
-        self.__value: Final[Optional[T]] = value
+        self.__value: Final[Optional[T_co]] = value
 
     @staticmethod
     def pass_error(
             *errors: PetroniaReturnError,
-    ) -> StdRet[T]:
+    ) -> StdRet[T_co]:
         """Constructor that generates a forced error with no value."""
         return StdRet(join_errors(errors=errors), None)
 
@@ -93,7 +98,7 @@ class StdRet(Generic[T]):
     def pass_errmsg(
             message: I18n,
             **arguments: UserMessageData,
-    ) -> StdRet[T]:
+    ) -> StdRet[T_co]:
         """Constructor that generates a forced error with no value."""
         return StdRet(error_message(message, **arguments), None)
 
@@ -102,7 +107,7 @@ class StdRet(Generic[T]):
             source: I18n,
             exception: BaseException,
             **details: UserMessageData,
-    ) -> StdRet[T]:
+    ) -> StdRet[T_co]:
         """Constructor that generates a forced error with no value.
         The 'source' text can include an {exception} expression for
         replacement with the error itself."""
@@ -141,7 +146,7 @@ class StdRet(Generic[T]):
 
     @property
     @final
-    def value(self) -> Optional[T]:
+    def value(self) -> Optional[T_co]:
         """Return the value.  This can be non-None and the error can be present."""
         return self.__value
 
@@ -168,7 +173,7 @@ class StdRet(Generic[T]):
 
     @property
     @final
-    def result(self) -> T:
+    def result(self) -> T_co:
         """The non-None version of the value.  If the type itself is optional,
         this will still fail if the value is not None, but the returned type will
         still be Optional."""
@@ -228,7 +233,7 @@ def possible_error(
 
 
 def collect_errors_from(
-        *values: StdRet[T],
+        *values: StdRet[Any],
 ) -> Optional[PetroniaReturnError]:
     messages: List[UserMessage] = []
     for value in values:

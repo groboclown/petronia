@@ -148,21 +148,21 @@ class ParseRawEventTest(unittest.TestCase):
         # That, along with the way the collector works, the pipe reader won't
         # be called to read the data.  That should trigger the runtime error.
         byte_data = (
-                PACKET_MARKER +
-                b'e' + BIGGEST_ID_BIN +
-                b's' + BIGGEST_ID_BIN +
-                b't' + BIGGEST_ID_BIN +
-                b'['
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + BIGGEST_ID_BIN +
+            b't' + BIGGEST_ID_BIN +
+            b'['
         )
         # we'll generate 1 mb of data + 1 byte.  1mb = 1048576 bytes; 1048576 = 0x100000
         byte_data += b'\x10\0\x01' + (b' ' * 1048576) + b'x'
         # Now add in a second packet, to trigger the out-of-order read error.
         byte_data += (
-                PACKET_MARKER +
-                b'e' + BIGGEST_ID_BIN +
-                b's' + BIGGEST_ID_BIN +
-                b't' + BIGGEST_ID_BIN +
-                b'{' + BIGGEST_JSON_BIN
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + BIGGEST_ID_BIN +
+            b't' + BIGGEST_ID_BIN +
+            b'{' + BIGGEST_JSON_BIN
         )
         collector = CallbackCollector()
         try:
@@ -455,11 +455,11 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
     (
         'biggest object data allowed',
         (
-                PACKET_MARKER +
-                b'e' + BIGGEST_ID_BIN +
-                b's' + BIGGEST_ID_BIN +
-                b't' + BIGGEST_ID_BIN +
-                b'{' + BIGGEST_JSON_BIN
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + BIGGEST_ID_BIN +
+            b't' + BIGGEST_ID_BIN +
+            b'{' + BIGGEST_JSON_BIN
         ),
         ((BIGGEST_ID, BIGGEST_ID, BIGGEST_ID, BIGGEST_JSON_SRC), [], False),
         b'',
@@ -521,12 +521,12 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
     (
         'too big event-id',
         (
-                PACKET_MARKER +
-                b'e' + TOO_BIG_ID_BIN +
-                b's' + BIGGEST_ID_BIN +
-                b't' + BIGGEST_ID_BIN +
-                b'{' + BIGGEST_JSON_BIN +
-                b'x'
+            PACKET_MARKER +
+            b'e' + TOO_BIG_ID_BIN +
+            b's' + BIGGEST_ID_BIN +
+            b't' + BIGGEST_ID_BIN +
+            b'{' + BIGGEST_JSON_BIN +
+            b'x'
         ),
         (None, [_m('event-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
@@ -534,12 +534,12 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
     (
         'too big source-id',
         (
-                PACKET_MARKER +
-                b'e' + BIGGEST_ID_BIN +
-                b's' + TOO_BIG_ID_BIN +
-                b't' + BIGGEST_ID_BIN +
-                b'{' + BIGGEST_JSON_BIN +
-                b'x'
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + TOO_BIG_ID_BIN +
+            b't' + BIGGEST_ID_BIN +
+            b'{' + BIGGEST_JSON_BIN +
+            b'x'
         ),
         (None, [_m('source-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
@@ -547,12 +547,12 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
     (
         'too big target-id',
         (
-                PACKET_MARKER +
-                b'e' + BIGGEST_ID_BIN +
-                b's' + BIGGEST_ID_BIN +
-                b't' + TOO_BIG_ID_BIN +
-                b'{' + BIGGEST_JSON_BIN +
-                b'x'
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + BIGGEST_ID_BIN +
+            b't' + TOO_BIG_ID_BIN +
+            b'{' + BIGGEST_JSON_BIN +
+            b'x'
         ),
         (None, [_m('target-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
@@ -560,12 +560,12 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
     (
         'too big json',
         (
-                PACKET_MARKER +
-                b'e' + BIGGEST_ID_BIN +
-                b's' + BIGGEST_ID_BIN +
-                b't' + BIGGEST_ID_BIN +
-                b'{' + TOO_BIG_JSON_BIN +
-                b'x'
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + BIGGEST_ID_BIN +
+            b't' + BIGGEST_ID_BIN +
+            b'{' + TOO_BIG_JSON_BIN +
+            b'x'
         ),
         (None, [_m('json data must have a length in the range [{n}, {x}]', n=2, x=60)], False),
         b'x',
@@ -573,12 +573,12 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
     (
         'too big binary',
         (
-                PACKET_MARKER +
-                b'e' + UTF_8_3_BYTE_2_BIN +
-                b's' + UTF_8_3_BYTE_3_BIN +
-                b't' + UTF_8_2_BYTE_BIN +
-                b'[' + TOO_BIG_BLOB_BIN +
-                b'x'
+            PACKET_MARKER +
+            b'e' + UTF_8_3_BYTE_2_BIN +
+            b's' + UTF_8_3_BYTE_3_BIN +
+            b't' + UTF_8_2_BYTE_BIN +
+            b'[' + TOO_BIG_BLOB_BIN +
+            b'x'
         ),
         (None, [_m('binary blob data must have a length in the range [{n}, {x}]', n=0, x=10)], False),
         b'x',

@@ -187,6 +187,24 @@ class FunctionTest(unittest.TestCase):
         assert res is not None  # mypy required
         self.assertEqual((_m('x'), _m('y'), _m('1'), _m('2'),), res.messages())
 
+    def test_collect_errors_from__no_errors(self) -> None:
+        res = error.collect_errors_from(
+            error.StdRet.pass_ok(None)
+        )
+        self.assertIsNone(res)
+
+    def test_collect_errors_from__1_error(self) -> None:
+        res = error.collect_errors_from(
+            error.StdRet.pass_ok(None),
+            error.StdRet.pass_errmsg(i18n('x'))
+        )
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        self.assertEqual(
+            (_m('x'),),
+            res.messages(),
+        )
+
 
 def _m(message: str, **args: UserMessageData) -> UserMessage:
     return UserMessage(i18n(message), **args)

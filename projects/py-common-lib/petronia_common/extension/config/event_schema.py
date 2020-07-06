@@ -45,8 +45,9 @@ class AbcEventDataType(AbcConfigType, ABC):
     def description(self) -> Optional[str]:
         return self.__description
 
+    # pragma no cover
     def validate_value(self, value: Any) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
 
 class BoolEventDataType(AbcEventDataType):
@@ -173,7 +174,7 @@ class IntEventDataType(AbcEventDataType):
             ))
         if self.min_value < MIN_INT_VALUE:
             messages.append(UserMessage(
-                _('min_length ({min_value}) must be greater than or equal to {MIN_INT_VALUE}'),
+                _('min_value ({min_value}) must be greater than or equal to {MIN_INT_VALUE}'),
                 min_value=self.min_value,
                 MIN_INT_VALUE=MIN_INT_VALUE,
             ))
@@ -186,7 +187,7 @@ class IntEventDataType(AbcEventDataType):
         return possible_error(messages)
 
     def validate_value(self, value: Any) -> bool:
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
             return False
         if not (self.min_value <= value <= self.max_value):
             return False
@@ -232,7 +233,7 @@ class FloatEventDataType(AbcEventDataType):
         return possible_error(messages)
 
     def validate_value(self, value: Any) -> bool:
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
             return False
         if self.min_value is not None and value < self.min_value:
             return False
@@ -296,7 +297,7 @@ class EnumEventDataType(AbcEventDataType):
         return True
 
 
-DATETIME_FORMAT = re.compile(r'^\d\d\d\d\d\d\d\d:\d\d\d\d\d\d\.\d\d\d:+?\d\d?$')
+DATETIME_FORMAT = re.compile(r'^\d\d\d\d\d\d\d\d:\d\d\d\d\d\d\.\d\d\d:[+-]?\d\d?$')
 
 
 class DatetimeEventDataType(AbcEventDataType):
@@ -443,7 +444,10 @@ class StructureFieldType:
         self.__optional = optional
 
     def __repr__(self) -> str:
-        return f'StructureFieldType(optional={self.is_optional}, data_type={repr(self.data_type)})'
+        return (
+            f'StructureFieldType(optional={self.is_optional}, '
+            f'data_type={repr(self.data_type)})'
+        )
 
     @property
     def data_type(self) -> AbcEventDataType:
@@ -477,7 +481,10 @@ class StructureEventDataType(AbcEventDataType):
         self.__required_field_names = tuple(required_names)
 
     def __repr__(self) -> str:
-        return f'StructureEventDataType({repr(self.description)}, fields={repr(self.__field_types)})'
+        return (
+            f'StructureEventDataType({repr(self.description)}, '
+            f'fields={repr(self.__field_types)})'
+        )
 
     def field_names(self) -> Iterable[str]:
         return self.__field_types.keys()
@@ -557,7 +564,10 @@ class SelectorEventDataType(AbcEventDataType):
         self.__type_mapping = readonly_dict(type_mapping)
 
     def __repr__(self) -> str:
-        return f'SelectorEventDataType({repr(self.description)}, type_mapping={repr(self.__type_mapping)})'
+        return (
+            f'SelectorEventDataType({repr(self.description)}, '
+            f'type_mapping={repr(self.__type_mapping)})'
+        )
 
     @property
     def selectors(self) -> Sequence[str]:
@@ -573,6 +583,8 @@ class SelectorEventDataType(AbcEventDataType):
         if not isinstance(value, dict):
             return False
         selector = value.get('^')
+        if not isinstance(selector, str):
+            return False
         data = value.get('$')
         data_type = self.get_type_for(selector)
         if not data_type or not data_type.validate_value(data):

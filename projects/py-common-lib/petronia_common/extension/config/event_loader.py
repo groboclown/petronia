@@ -5,9 +5,9 @@ Loads extension information from a simple data structure.
 Simple data structures means list, dict, int, float, bool, str, None
 """
 
-from typing import Sequence, List, Dict, Optional, Union, Any, cast
+from typing import List, Dict, Optional, Any, cast
 from . import event_schema
-from ...util import StdRet, UserMessage, collect_errors_from, EMPTY_TUPLE
+from ...util import StdRet, collect_errors_from
 from ...util import i18n as _
 
 
@@ -31,6 +31,10 @@ def load_full_event_schema(
     parsed_references = ret_parsed_references.result
     ret: List[event_schema.EventType] = []
     for event_name, raw_event in raw_event_schemas.items():
+        if not isinstance(raw_event, dict):
+            return StdRet.pass_errmsg(
+                _('event schemas must be dictionaries'),
+            )
         ret_event = load_event_schema(event_name, raw_event, parsed_references)
         if not ret_event.ok:
             return ret_event.forward()
@@ -45,7 +49,47 @@ def load_event_schema(
 ) -> StdRet[event_schema.EventType]:
     # Note: must perform update_reference!
     # Note: must not perform type validation!
-    pass
+    ret_priority = load_event_str_value('priority', raw)
+    ret_send_access = load_event_str_value('send-access', raw)
+    ret_receive_access = load_event_str_value('receive-access', raw)
+    ret_data_type = load_event_structure_data_type(raw)
+    error = collect_errors_from(
+        ret_priority, ret_send_access, ret_receive_access, ret_data_type,
+    )
+    if error:
+        return StdRet.pass_error(error)
+    ret_data_type_resolved = update_reference(ret_data_type.result, references, [])
+    if not ret_data_type_resolved.ok:
+        return ret_data_type_resolved.forward()
+    data_type = ret_data_type_resolved.result
+    if not isinstance(data_type, event_schema.StructureEventDataType):
+        # This is an internal error...
+        raise RuntimeError(  # pragma no cover
+            f'Incorrectly re-formatted structure to {ret_data_type_resolved.result}'
+        )
+    if ret_priority.result not in ("high", "user", "normal", "io"):
+        return StdRet.pass_errmsg(
+            _('`{priority}` must be a valid priority'),
+            priority=ret_priority.result,
+        )
+    priority = cast(event_schema.EventPriorityType, ret_priority.result)
+    if ret_send_access.result not in ("public", "implementations"):
+        return StdRet.pass_errmsg(
+            _('`{send_access}` must be a valid access'),
+            send_access=ret_send_access.result,
+        )
+    send_access = cast(event_schema.EventAccessType, ret_send_access.result)
+    if ret_receive_access.result not in ("public", "implementations"):
+        return StdRet.pass_errmsg(
+            _('`{receive_access}` must be a valid access'),
+            receive_access=ret_receive_access.result,
+        )
+    receive_access = cast(event_schema.EventAccessType, ret_receive_access.result)
+    return StdRet.pass_ok(event_schema.EventType(
+        name=event_name, priority=priority,
+        send_access=send_access, receive_access=receive_access,
+        structure=data_type,
+    ))
 
 
 def update_references(
@@ -91,7 +135,7 @@ def update_reference(
             ret_internal = update_reference(value.data_type, refs, reference_depth)
             if not ret_internal.ok:
                 return ret_internal
-            if ret_internal is not value.data_type:
+            if ret_internal.result is not value.data_type:
                 changed = True
                 new_fields[key] = event_schema.StructureFieldType(ret_internal.result, value.is_optional)
             else:
@@ -105,15 +149,15 @@ def update_reference(
     if isinstance(data_type, event_schema.SelectorEventDataType):
         selector_types: Dict[str, event_schema.AbcEventDataType] = {}
         changed = False
-        for key, value in data_type.selector_items():
-            ret_internal = update_reference(value, refs, reference_depth)
+        for key, selector_type in data_type.selector_items():
+            ret_internal = update_reference(selector_type, refs, reference_depth)
             if not ret_internal.ok:
                 return ret_internal
-            if ret_internal.result is not value:
+            if ret_internal.result is not selector_type:
                 changed = True
                 selector_types[key] = ret_internal.result
             else:
-                selector_types[key] = value
+                selector_types[key] = selector_type
         if changed:
             return StdRet.pass_ok(event_schema.SelectorEventDataType(
                 data_type.description, selector_types,
@@ -190,7 +234,7 @@ def load_event_string_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Stri
     if error:
         return StdRet.pass_error(error)
     return StdRet.pass_ok(event_schema.StringEventDataType(
-        ret_description.result, ret_min_length.result, ret_max_length.result,
+        ret_description.value, ret_min_length.result, ret_max_length.result,
     ))
 
 
@@ -208,7 +252,7 @@ def load_event_int_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.IntEven
     if error:
         return StdRet.pass_error(error)
     return StdRet.pass_ok(event_schema.IntEventDataType(
-        ret_description.result, ret_min_value.result, ret_max_value.result,
+        ret_description.value, ret_min_value.result, ret_max_value.result,
     ))
 
 
@@ -222,7 +266,7 @@ def load_event_float_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Float
     if error:
         return StdRet.pass_error(error)
     return StdRet.pass_ok(event_schema.FloatEventDataType(
-        ret_description.result, ret_min_value.result, ret_max_value.result,
+        ret_description.value, ret_min_value.value, ret_max_value.value,
     ))
 
 
@@ -231,7 +275,7 @@ def load_event_bool_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.BoolEv
     error = collect_errors_from(ret_description)
     if error:
         return StdRet.pass_error(error)
-    return StdRet.pass_ok(event_schema.BoolEventDataType(ret_description.result))
+    return StdRet.pass_ok(event_schema.BoolEventDataType(ret_description.value))
 
 
 def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEventDataType]:
@@ -252,7 +296,7 @@ def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEv
                 )
             values.append(raw_value)
     return StdRet.pass_ok(event_schema.EnumEventDataType(
-        ret_description.result, values,
+        ret_description.value, values,
     ))
 
 
@@ -261,21 +305,21 @@ def load_event_datetime_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Da
     error = collect_errors_from(ret_description)
     if error:
         return StdRet.pass_error(error)
-    return StdRet.pass_ok(event_schema.DatetimeEventDataType(ret_description.result))
+    return StdRet.pass_ok(event_schema.DatetimeEventDataType(ret_description.value))
 
 
 def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.ArrayEventDataType]:
-    ret_description = load_event_optional_str_value('description', raw)
+    ret_description = load_event_type_description(raw)
     ret_max_length = load_event_numeric_val_with_default(
-        'max-length', raw, event_schema.DEFAULT_MAX_STRING_LENGTH,
+        'max-length', raw, event_schema.DEFAULT_MAX_ARRAY_LENGTH,
     )
     ret_min_length = load_event_numeric_val_with_default(
-        'min-length', raw, event_schema.DEFAULT_MIN_STRING_LENGTH,
+        'min-length', raw, event_schema.DEFAULT_MIN_ARRAY_LENGTH,
     )
     raw_data_type = raw.get('value-type')
     if not isinstance(raw_data_type, dict):
         return StdRet.pass_errmsg(
-            _('`value-type` must be a dictionary of a data type structure.')
+            _('`value-type` must be a dictionary of a data type structure')
         )
     ret_data_type = load_event_data_type(raw_data_type)
     error = collect_errors_from(
@@ -284,12 +328,12 @@ def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Array
     if error:
         return StdRet.pass_error(error)
     return StdRet.pass_ok(event_schema.ArrayEventDataType(
-        ret_description.result, ret_data_type.result, ret_min_length.result, ret_max_length.result,
+        ret_description.value, ret_data_type.result, ret_min_length.result, ret_max_length.result,
     ))
 
 
 def load_event_structure_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.StructureEventDataType]:
-    ret_description = load_event_optional_str_value('description', raw)
+    ret_description = load_event_type_description(raw)
     if not ret_description.ok:
         return ret_description.forward()
     raw_fields = raw.get('fields')
@@ -299,7 +343,7 @@ def load_event_structure_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.S
         )
     fields: Dict[str, event_schema.StructureFieldType] = {}
     for field_name, raw_field in raw_fields.items():
-        raw_optional = raw.get('optional')
+        raw_optional = raw_field.get('optional')
         if raw_optional is None:
             optional = False
         elif not isinstance(raw_optional, bool):
@@ -308,12 +352,12 @@ def load_event_structure_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.S
             )
         else:
             optional = raw_optional
-        ret_field_data_type = load_event_structure_data_type(raw_field)
+        ret_field_data_type = load_event_data_type(raw_field)
         if not ret_field_data_type.ok:
             return ret_field_data_type.forward()
         fields[field_name] = event_schema.StructureFieldType(ret_field_data_type.result, optional)
     return StdRet.pass_ok(event_schema.StructureEventDataType(
-        ret_description.result, fields,
+        ret_description.value, fields,
     ))
 
 
@@ -337,7 +381,7 @@ def load_event_selector_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Se
             return ret_type.forward()
         mapping[key] = ret_type.result
     return StdRet.pass_ok(event_schema.SelectorEventDataType(
-        ret_description.result, mapping,
+        ret_description.value, mapping,
     ))
 
 
@@ -348,19 +392,12 @@ def load_event_reference_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.R
     if error:
         return StdRet.pass_error(error)
     return StdRet.pass_ok(event_schema.ReferenceEventDataType(
-        ret_description.result, ret_ref.result,
+        ret_description.value, ret_ref.result,
     ))
 
 
 def load_event_type_description(raw: Dict[str, Any]) -> StdRet[Optional[str]]:
-    raw_value = raw.get('description')
-    if not raw_value:
-        return StdRet.pass_ok(None)
-    if not isinstance(raw_value, str):
-        return StdRet.pass_errmsg(
-            _('`description` must be a string value'),
-        )
-    return StdRet.pass_ok(raw_value)
+    return load_event_optional_str_value('description', raw)
 
 
 def load_event_str_value(key: str, raw: Dict[str, Any]) -> StdRet[str]:

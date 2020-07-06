@@ -17,11 +17,11 @@ def load_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.AbcExtensionM
     """Returns the extension defined in the dictionary.  If the data does not have the
     basic information or does not conform to the standard, then an error is returned."""
     extension_type = raw.get('type')
-    if type == 'api':
+    if extension_type == 'api':
         return validate_extension(load_api_extension(raw))
-    if type == 'impl':
+    if extension_type == 'impl':
         return validate_extension(load_impl_extension(raw))
-    if type == 'standalone':
+    if extension_type == 'standalone':
         return validate_extension(load_standalone_extension(raw))
     return StdRet.pass_errmsg(
         _('invalid extension type ({extension_type})'),
@@ -162,7 +162,12 @@ def load_extension_version_value(value: Any) -> StdRet[ExtensionVersion]:
     ):
         return StdRet.pass_errmsg(
             _('version ({version}) must be in the format [major, minor, patch]'),
-            version=value
+            version=value,
+        )
+    if value[0] < 0 or value[1] < 0 or value[2] < 0:
+        return StdRet.pass_errmsg(
+            _('version {{version}} must contain only non-negative integers'),
+            version=value,
         )
     return StdRet.pass_ok((value[0], value[1], value[2]))
 
@@ -212,7 +217,7 @@ def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDe
     ))
 
 
-def load_events(raw: Optional[Dict[str, Any]]) -> StdRet[List[event_schema.EventType]]:
+def load_events(raw: Dict[str, Any]) -> StdRet[List[event_schema.EventType]]:
     raw_events = raw.get('events')
     if not raw_events:
         return StdRet.pass_ok(cast(List[event_schema.EventType], EMPTY_TUPLE))
@@ -221,7 +226,7 @@ def load_events(raw: Optional[Dict[str, Any]]) -> StdRet[List[event_schema.Event
             _('`events` must be a dictionary of event schemas'),
         )
     raw_references = raw.get('references')
-    if raw_references and not isinstance(raw_events, dict):
+    if raw_references and not isinstance(raw_references, dict):
         return StdRet.pass_errmsg(
             _('`references` must be a dictionary of event data type schemas'),
         )

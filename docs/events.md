@@ -29,6 +29,16 @@ The event declaration of the API extension looks like this:
             // Valid values are "high", "user", "normal", and "io".
             "priority": "normal",
 
+            // Describes which extensions have permissions to send
+            // this event.
+            // Valid values are "public" and "implementations".
+            "send-access": "public",
+
+            // Describes which extensions have permissions to receive
+            // this event.
+            // Valid values are "public" and "implementations".
+            "receive-access": "public",
+
             // An optional description of the event.  It can be 0 to 32767 characters long.
             "description": "",
 
