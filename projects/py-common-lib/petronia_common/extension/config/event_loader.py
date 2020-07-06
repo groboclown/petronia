@@ -15,6 +15,7 @@ def load_full_event_schema(
         raw_event_schemas: Dict[str, Any],
         references: Dict[str, Any],
 ) -> StdRet[List[event_schema.EventType]]:
+    """Loads a full event schema object, including resolving references."""
     partial_parsed_references: Dict[str, event_schema.AbcEventDataType] = {}
     for reference_name, raw_reference in references.items():
         if not isinstance(raw_reference, dict):
@@ -47,11 +48,12 @@ def load_event_schema(
         raw: Dict[str, Any],
         references: Dict[str, event_schema.AbcEventDataType],
 ) -> StdRet[event_schema.EventType]:
+    """Loads the schema, but does not perform type validation."""
     # Note: must perform update_reference!
     # Note: must not perform type validation!
-    ret_priority = load_event_str_value('priority', raw)
-    ret_send_access = load_event_str_value('send-access', raw)
-    ret_receive_access = load_event_str_value('receive-access', raw)
+    ret_priority = load_dict_str_value('priority', raw)
+    ret_send_access = load_dict_str_value('send-access', raw)
+    ret_receive_access = load_dict_str_value('receive-access', raw)
     ret_data_type = load_event_structure_data_type(raw)
     error = collect_errors_from(
         ret_priority, ret_send_access, ret_receive_access, ret_data_type,
@@ -112,11 +114,12 @@ def update_references(
 MAX_REFERENCE_DEPTH = 20
 
 
-def update_reference(
+def update_reference(  # pylint: disable=R0911,R0912
         data_type: event_schema.AbcEventDataType,
         refs: Dict[str, event_schema.AbcEventDataType],
         reference_depth: List[str],
 ) -> StdRet[event_schema.AbcEventDataType]:
+    """Replaces references with the same type object it references."""
     if isinstance(data_type, event_schema.ArrayEventDataType):
         ret_internal = update_reference(data_type.value_type, refs, reference_depth)
         if not ret_internal.ok:
@@ -137,7 +140,9 @@ def update_reference(
                 return ret_internal
             if ret_internal.result is not value.data_type:
                 changed = True
-                new_fields[key] = event_schema.StructureFieldType(ret_internal.result, value.is_optional)
+                new_fields[key] = event_schema.StructureFieldType(
+                    ret_internal.result, value.is_optional,
+                )
             else:
                 new_fields[key] = value
         if changed:
@@ -192,7 +197,9 @@ def update_reference(
     return StdRet.pass_ok(data_type)
 
 
+# pylint: disable=R0911
 def load_event_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.AbcEventDataType]:
+    """Reads an event data type object."""
     data_type = raw.get('type')
     if data_type == 'string':
         return load_event_string_data_type(raw)
@@ -221,6 +228,7 @@ def load_event_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.AbcEventDat
 
 
 def load_event_string_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.StringEventDataType]:
+    """Reads an event string data type"""
     ret_description = load_event_optional_str_value('description', raw)
     ret_max_length = load_event_numeric_val_with_default(
         'max-length', raw, event_schema.DEFAULT_MAX_STRING_LENGTH,
@@ -239,6 +247,7 @@ def load_event_string_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Stri
 
 
 def load_event_int_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.IntEventDataType]:
+    """Reads an event int data type"""
     ret_description = load_event_optional_str_value('description', raw)
     ret_max_value = load_event_numeric_val_with_default(
         'max-value', raw, event_schema.DEFAULT_MAX_INT_VALUE,
@@ -257,6 +266,7 @@ def load_event_int_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.IntEven
 
 
 def load_event_float_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.FloatEventDataType]:
+    """Reads an event float data type"""
     ret_description = load_event_optional_str_value('description', raw)
     ret_max_value = load_event_optional_numeric_val('max-value', raw)
     ret_min_value = load_event_optional_numeric_val('min-value', raw)
@@ -271,6 +281,7 @@ def load_event_float_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Float
 
 
 def load_event_bool_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.BoolEventDataType]:
+    """Reads an event boolean data type"""
     ret_description = load_event_type_description(raw)
     error = collect_errors_from(ret_description)
     if error:
@@ -279,6 +290,7 @@ def load_event_bool_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.BoolEv
 
 
 def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEventDataType]:
+    """Reads an event enum data type"""
     ret_description = load_event_type_description(raw)
     if not ret_description.ok:
         return ret_description.forward()
@@ -300,7 +312,10 @@ def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEv
     ))
 
 
-def load_event_datetime_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.DatetimeEventDataType]:
+def load_event_datetime_data_type(
+        raw: Dict[str, Any],
+) -> StdRet[event_schema.DatetimeEventDataType]:
+    """Reads an event datetime data type"""
     ret_description = load_event_type_description(raw)
     error = collect_errors_from(ret_description)
     if error:
@@ -309,6 +324,7 @@ def load_event_datetime_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Da
 
 
 def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.ArrayEventDataType]:
+    """Reads an event array data type"""
     ret_description = load_event_type_description(raw)
     ret_max_length = load_event_numeric_val_with_default(
         'max-length', raw, event_schema.DEFAULT_MAX_ARRAY_LENGTH,
@@ -332,7 +348,10 @@ def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Array
     ))
 
 
-def load_event_structure_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.StructureEventDataType]:
+def load_event_structure_data_type(
+        raw: Dict[str, Any],
+) -> StdRet[event_schema.StructureEventDataType]:
+    """Reads an event structure data type"""
     ret_description = load_event_type_description(raw)
     if not ret_description.ok:
         return ret_description.forward()
@@ -361,7 +380,10 @@ def load_event_structure_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.S
     ))
 
 
-def load_event_selector_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.SelectorEventDataType]:
+def load_event_selector_data_type(
+        raw: Dict[str, Any],
+) -> StdRet[event_schema.SelectorEventDataType]:
+    """Reads an event selector data type"""
     ret_description = load_event_optional_str_value('description', raw)
     if not ret_description.ok:
         return ret_description.forward()
@@ -385,9 +407,13 @@ def load_event_selector_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Se
     ))
 
 
-def load_event_reference_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.ReferenceEventDataType]:
+def load_event_reference_data_type(
+        raw: Dict[str, Any],
+) -> StdRet[event_schema.ReferenceEventDataType]:
+    """Reads an event reference data type.  These are intermediate types that shouldn't
+    be returned outside the module."""
     ret_description = load_event_optional_str_value('description', raw)
-    ret_ref = load_event_str_value('ref', raw)
+    ret_ref = load_dict_str_value('ref', raw)
     error = collect_errors_from(ret_description, ret_ref)
     if error:
         return StdRet.pass_error(error)
@@ -397,14 +423,16 @@ def load_event_reference_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.R
 
 
 def load_event_type_description(raw: Dict[str, Any]) -> StdRet[Optional[str]]:
+    """Reads an event description"""
     return load_event_optional_str_value('description', raw)
 
 
-def load_event_str_value(key: str, raw: Dict[str, Any]) -> StdRet[str]:
+def load_dict_str_value(key: str, raw: Dict[str, Any]) -> StdRet[str]:
+    """Reads a string value from a dictionary key"""
     raw_value = raw.get(key)
     if not raw_value:
         return StdRet.pass_errmsg(
-            _('no `{key}` found in event definition'),
+            _('no `{key}` found in definition'),
             key=key,
         )
     if not isinstance(raw_value, str):
@@ -416,6 +444,7 @@ def load_event_str_value(key: str, raw: Dict[str, Any]) -> StdRet[str]:
 
 
 def load_event_optional_str_value(key: str, raw: Dict[str, Any]) -> StdRet[Optional[str]]:
+    """Reads an optional string value from a dictionary key"""
     raw_value = raw.get(key)
     if not raw_value:
         return StdRet.pass_ok(None)
@@ -427,7 +456,10 @@ def load_event_optional_str_value(key: str, raw: Dict[str, Any]) -> StdRet[Optio
     return StdRet.pass_ok(raw_value)
 
 
-def load_event_numeric_val_with_default(key: str, raw: Dict[str, Any], default: float) -> StdRet[float]:
+def load_event_numeric_val_with_default(
+        key: str, raw: Dict[str, Any], default: float,
+) -> StdRet[float]:
+    """Reads a numeric value with a default, if not given, from a dictionary."""
     raw_value = raw.get(key)
     if not raw_value:
         return StdRet.pass_ok(default)
@@ -440,6 +472,7 @@ def load_event_numeric_val_with_default(key: str, raw: Dict[str, Any], default: 
 
 
 def load_event_optional_numeric_val(key: str, raw: Dict[str, Any]) -> StdRet[Optional[float]]:
+    """Reads an optional numeric value from a dictionary"""
     raw_value = raw.get(key)
     if not raw_value:
         return StdRet.pass_ok(None)

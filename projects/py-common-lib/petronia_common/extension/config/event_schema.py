@@ -9,6 +9,8 @@ from typing import Literal, Sequence, Dict, List, Iterable, Tuple, Optional, Uni
 from abc import ABC
 import re
 import datetime
+import collections.abc
+import time
 from .defs import AbcConfigType
 from ...util import PetroniaReturnError, UserMessage, possible_error, StdRet, readonly_dict
 from ...util import i18n as _
@@ -27,6 +29,7 @@ EventDataType = Literal[
 
 
 class AbcEventDataType(AbcConfigType, ABC):
+    """Base class for event data types."""
     __slots__ = ('__type_name', '__description',)
 
     def __init__(
@@ -34,26 +37,32 @@ class AbcEventDataType(AbcConfigType, ABC):
             type_name: EventDataType,
             description: Optional[str],
     ) -> None:
+        """Common data values."""
         self.__type_name = type_name
         self.__description = description
 
     @property
     def type_name(self) -> EventDataType:
+        """Name for this specific subclass."""
         return self.__type_name
 
     @property
     def description(self) -> Optional[str]:
+        """Description of the type."""
         return self.__description
 
     # pragma no cover
     def validate_value(self, value: Any) -> bool:
+        """Validates that the value conforms to this type's constraints."""
         raise NotImplementedError()  # pragma no cover
 
 
 class BoolEventDataType(AbcEventDataType):
+    """Boolean type, represents true or false."""
     __slots__ = ()
 
     def __init__(self, description: Optional[str]) -> None:
+        """The boolean type constructor."""
         AbcEventDataType.__init__(self, "bool", description)
 
     def __repr__(self) -> str:
@@ -73,6 +82,7 @@ DEFAULT_MAX_STRING_LENGTH = 255
 
 
 class StringEventDataType(AbcEventDataType):
+    """Represents a string type."""
     __slots__ = ('__min_length', '__max_length')
 
     def __init__(
@@ -81,6 +91,7 @@ class StringEventDataType(AbcEventDataType):
             min_length: Union[int, float],
             max_length: Union[int, float],
     ) -> None:
+        """String data type constructor."""
         AbcEventDataType.__init__(self, "string", description)
         self.__min_length = int(min_length)
         self.__max_length = int(max_length)
@@ -94,17 +105,23 @@ class StringEventDataType(AbcEventDataType):
 
     @property
     def min_length(self) -> int:
+        """String values can have no less than this number of characters."""
         return self.__min_length
 
     @property
     def max_length(self) -> int:
+        """String values can have no more than this number of characters."""
         return self.__max_length
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         if self.min_length > self.max_length:
             messages.append(UserMessage(
-                _('min_length ({min_length}) must be equal to or less than max_length ({max_length})'),
+                _(
+                    # TODO ensure po translation picks up the whole string.
+                    'min_length ({min_length}) must be equal to or '
+                    'less than max_length ({max_length})',
+                ),
                 min_length=self.min_length,
                 max_length=self.max_length,
             ))
@@ -125,7 +142,7 @@ class StringEventDataType(AbcEventDataType):
     def validate_value(self, value: Any) -> bool:
         if not isinstance(value, str):
             return False
-        if not (self.min_length <= len(value) <= self.max_length):
+        if not self.min_length <= len(value) <= self.max_length:
             return False
         return True
 
@@ -137,6 +154,7 @@ DEFAULT_MAX_INT_VALUE = MAX_INT_VALUE
 
 
 class IntEventDataType(AbcEventDataType):
+    """Represents an integer value type."""
     __slots__ = ('__min_value', '__max_value')
 
     def __init__(
@@ -145,6 +163,7 @@ class IntEventDataType(AbcEventDataType):
             min_value: Union[float, int],
             max_value: Union[float, int],
     ) -> None:
+        """Integer event data type constructor."""
         AbcEventDataType.__init__(self, "int", description)
         self.__min_value = int(min_value)
         self.__max_value = int(max_value)
@@ -158,10 +177,12 @@ class IntEventDataType(AbcEventDataType):
 
     @property
     def min_value(self) -> int:
+        """Integer values cannot be less than this value."""
         return self.__min_value
 
     @property
     def max_value(self) -> int:
+        """Integer values cannot be more than this value."""
         return self.__max_value
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
@@ -189,12 +210,13 @@ class IntEventDataType(AbcEventDataType):
     def validate_value(self, value: Any) -> bool:
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return False
-        if not (self.min_value <= value <= self.max_value):
+        if not self.min_value <= value <= self.max_value:
             return False
         return True
 
 
 class FloatEventDataType(AbcEventDataType):
+    """Floating point number event data type."""
     __slots__ = ('__min_value', '__max_value')
 
     def __init__(
@@ -203,6 +225,7 @@ class FloatEventDataType(AbcEventDataType):
             min_value: Optional[float],
             max_value: Optional[float],
     ) -> None:
+        """Floating point number event data type constructor."""
         AbcEventDataType.__init__(self, "float", description)
         self.__min_value = min_value
         self.__max_value = max_value
@@ -216,15 +239,21 @@ class FloatEventDataType(AbcEventDataType):
 
     @property
     def min_value(self) -> Optional[float]:
+        """If given, floating point numbers cannot be less than this value."""
         return self.__min_value
 
     @property
     def max_value(self) -> Optional[float]:
+        """If given, floating point numbers cannot be more than this value."""
         return self.__max_value
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
-        if self.min_value is not None and self.max_value is not None and self.min_value > self.max_value:
+        if (
+                self.min_value is not None and
+                self.max_value is not None and
+                self.min_value > self.max_value
+        ):
             messages.append(UserMessage(
                 _('min_value ({min_value}) must be equal to or less than max_value ({max_value})'),
                 min_value=self.min_value,
@@ -247,6 +276,7 @@ MAX_ENUM_VALUE_LENGTH = 255
 
 
 class EnumEventDataType(AbcEventDataType):
+    """Enumerated value event data type."""
     __slots__ = ('__values',)
 
     def __init__(
@@ -254,6 +284,7 @@ class EnumEventDataType(AbcEventDataType):
             description: Optional[str],
             values: Iterable[str],
     ) -> None:
+        """Constructor."""
         AbcEventDataType.__init__(self, "enum", description)
         self.__values = set(values)
 
@@ -262,6 +293,7 @@ class EnumEventDataType(AbcEventDataType):
 
     @property
     def values(self) -> Sequence[str]:
+        """The list of valid values"""
         return tuple(self.__values)
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
@@ -270,23 +302,31 @@ class EnumEventDataType(AbcEventDataType):
             messages.append(UserMessage(
                 _('value list must contain at least 1 item')
             ))
-        for v in self.__values:
-            if not isinstance(v, str):
+        for val in self.__values:
+            if not isinstance(val, str):
                 messages.append(UserMessage(
                     _('enum value {value} must be a string'),
-                    value=v,
+                    value=val,
                 ))
             else:
-                if len(v) < MIN_ENUM_VALUE_LENGTH:
+                if len(val) < MIN_ENUM_VALUE_LENGTH:
                     messages.append(UserMessage(
-                        _('enum value "{value}" must have at least {MIN_ENUM_VALUE_LENGTH} characters'),
-                        value=v,
+                        _(
+                            # TODO ensure po translation captures all the text
+                            'enum value "{value}" must have at least '
+                            '{MIN_ENUM_VALUE_LENGTH} characters',
+                        ),
+                        value=val,
                         MIN_ENUM_VALUE_LENGTH=MIN_ENUM_VALUE_LENGTH,
                     ))
-                if len(v) > MAX_ENUM_VALUE_LENGTH:
+                if len(val) > MAX_ENUM_VALUE_LENGTH:
                     messages.append(UserMessage(
-                        _('enum value "{value}" must have no more than {MAX_ENUM_VALUE_LENGTH} characters'),
-                        value=v,
+                        _(
+                            # TODO ensure po translation captures all the text
+                            'enum value "{value}" must have no more '
+                            'than {MAX_ENUM_VALUE_LENGTH} characters',
+                        ),
+                        value=val,
                         MAX_ENUM_VALUE_LENGTH=MAX_ENUM_VALUE_LENGTH,
                     ))
         return possible_error(messages)
@@ -297,13 +337,17 @@ class EnumEventDataType(AbcEventDataType):
         return True
 
 
-DATETIME_FORMAT = re.compile(r'^\d\d\d\d\d\d\d\d:\d\d\d\d\d\d\.\d\d\d:[+-]?\d\d?$')
+DATETIME_FORMAT = re.compile(
+    r'^\d\d\d\d\d\d\d\d:\d\d\d\d\d\d(?:\.\d{1,6})?:[+-]?\d\d\d\d(?:\d\d(?:\.\d{1,6})?)?$'
+)
 
 
 class DatetimeEventDataType(AbcEventDataType):
+    """The datetime event data type."""
     __slots__ = ()
 
     def __init__(self, description: Optional[str]) -> None:
+        """Constructor"""
         AbcEventDataType.__init__(self, "datetime", description)
 
     def __repr__(self) -> str:
@@ -314,11 +358,27 @@ class DatetimeEventDataType(AbcEventDataType):
 
     @staticmethod
     def str_to_datetime(raw_value: str) -> StdRet[datetime.datetime]:
-        raise NotImplementedError()
+        """Convert a compatible string to a datetime instance."""
+        try:
+            return StdRet.pass_ok(datetime.datetime.strptime(raw_value, '%Y%m%d:%H%M%S.%f:%z'))
+        except ValueError as err:
+            return StdRet.pass_exception(
+                _('invalid formatted date string ({date})'),
+                err,
+                date=raw_value,
+            )
 
     @staticmethod
     def datetime_to_str(value: datetime.datetime) -> str:
-        raise NotImplementedError()
+        """Convert a datetime instance to a compatible string."""
+        if value.tzinfo is None:
+            value = datetime.datetime(
+                year=value.year, month=value.month, day=value.day,
+                hour=value.hour, minute=value.minute,
+                second=value.second, microsecond=value.microsecond,
+                tzinfo=LOCAL_TIMEZONE,
+            )
+        return datetime.datetime.strftime(value, '%Y%m%d:%H%M%S.%f:%z')
 
     def validate_value(self, value: Any) -> bool:
         """Datetime values are strings."""
@@ -338,6 +398,7 @@ class ReferenceEventDataType(AbcEventDataType):
     __slots__ = ('__ref',)
 
     def __init__(self, description: Optional[str], ref: str) -> None:
+        """Constructor."""
         AbcEventDataType.__init__(self, "reference", description)
         self.__ref = ref
 
@@ -346,6 +407,7 @@ class ReferenceEventDataType(AbcEventDataType):
 
     @property
     def reference(self) -> str:
+        """The type this references."""
         return self.__ref
 
     def validate_value(self, value: Any) -> bool:
@@ -366,6 +428,7 @@ DEFAULT_MAX_ARRAY_LENGTH = MAX_ARRAY_LENGTH
 
 
 class ArrayEventDataType(AbcEventDataType):
+    """An array of a single data type."""
     __slots__ = ('__value_type', '__min_length', '__max_length',)
 
     def __init__(
@@ -375,6 +438,7 @@ class ArrayEventDataType(AbcEventDataType):
             min_length: Union[int, float],
             max_length: Union[int, float],
     ) -> None:
+        """Constructor"""
         AbcEventDataType.__init__(self, "array", description)
         self.__value_type = value_type
         self.__min_length = int(min_length)
@@ -390,14 +454,17 @@ class ArrayEventDataType(AbcEventDataType):
 
     @property
     def value_type(self) -> AbcEventDataType:
+        """The per-item type."""
         return self.__value_type
 
     @property
     def min_length(self) -> int:
+        """Arrays of this type cannot contain less than this number of items."""
         return self.__min_length
 
     @property
     def max_length(self) -> int:
+        """Arrays of this length cannot have more than this number of items."""
         return self.__max_length
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
@@ -407,7 +474,11 @@ class ArrayEventDataType(AbcEventDataType):
             messages.extend(error.messages())
         if self.min_length > self.max_length:
             messages.append(UserMessage(
-                _('min_length ({min_length}) must be equal to or less than max_length ({max_length})'),
+                _(
+                    # TODO ensure po translation captures the whole string.
+                    'min_length ({min_length}) must be equal to '
+                    'or less than max_length ({max_length})',
+                ),
                 min_length=self.min_length,
                 max_length=self.max_length,
             ))
@@ -426,9 +497,9 @@ class ArrayEventDataType(AbcEventDataType):
         return possible_error(messages=messages)
 
     def validate_value(self, value: Any) -> bool:
-        if not isinstance(value, Sequence):
+        if not isinstance(value, collections.abc.Sequence):
             return False
-        if not (self.min_length <= len(value) <= self.max_length):
+        if not self.min_length <= len(value) <= self.max_length:
             return False
         for item in value:
             if not self.value_type.validate_value(item):
@@ -437,13 +508,16 @@ class ArrayEventDataType(AbcEventDataType):
 
 
 class StructureFieldType:
+    """A structured field definition."""
     __slots__ = ('__optional', '__data_type',)
 
     def __init__(self, data_type: AbcEventDataType, optional: bool) -> None:
+        """The field type, which can optionally exist."""
         self.__data_type = data_type
         self.__optional = optional
 
     def __repr__(self) -> str:
+        """Representation of this value."""
         return (
             f'StructureFieldType(optional={self.is_optional}, '
             f'data_type={repr(self.data_type)})'
@@ -451,10 +525,12 @@ class StructureFieldType:
 
     @property
     def data_type(self) -> AbcEventDataType:
+        """The contained data type."""
         return self.__data_type
 
     @property
     def is_optional(self) -> bool:
+        """True if this value is not required to exist, and False if it is required."""
         return self.__optional
 
 
@@ -465,6 +541,10 @@ VALID_FIELD_NAME_CHAR = VALID_FIRST_FIELD_NAME_CHAR + '_0123456789'
 
 
 class StructureEventDataType(AbcEventDataType):
+    """The structured event data type.
+    Field names must conform to standard name typing, which is
+    all lower-case ascii characters, underscore, and numbers, with
+    only lower-case characters allowed as the first character."""
     __slots__ = ('__field_types', '__required_field_names')
 
     def __init__(
@@ -472,6 +552,7 @@ class StructureEventDataType(AbcEventDataType):
             description: Optional[str],
             field_types: Dict[str, StructureFieldType],
     ) -> None:
+        """Constructor."""
         AbcEventDataType.__init__(self, "structure", description)
         self.__field_types = readonly_dict(field_types)
         required_names: List[str] = []
@@ -487,22 +568,26 @@ class StructureEventDataType(AbcEventDataType):
         )
 
     def field_names(self) -> Iterable[str]:
+        """All the field names used by this structure."""
         return self.__field_types.keys()
 
     def get_field_type(self, field_name: str) -> Optional[StructureFieldType]:
+        """The field type for the given field, if it exists, or None."""
         return self.__field_types.get(field_name)
 
     def fields(self) -> Iterable[Tuple[str, StructureFieldType]]:
+        """A list of field name, field type."""
         return self.__field_types.items()
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         for field_name, field_type in self.fields():
-            if not (MIN_FIELD_NAME_LENGTH <= len(field_name) <= MAX_FIELD_NAME_LENGTH):
+            if not MIN_FIELD_NAME_LENGTH <= len(field_name) <= MAX_FIELD_NAME_LENGTH:
                 messages.append(UserMessage(
                     _(
+                        # TODO ensure po translation captures the whole string.
                         'field name ({field_name}) must have {MIN_FIELD_NAME_LENGTH} to '
-                        '{MAX_FIELD_NAME_LENGTH} characters'
+                        '{MAX_FIELD_NAME_LENGTH} characters',
                     ),
                     field_name=field_name,
                     MIN_FIELD_NAME_LENGTH=MIN_FIELD_NAME_LENGTH,
@@ -514,8 +599,8 @@ class StructureEventDataType(AbcEventDataType):
                     field_name=field_name,
                 ))
             else:
-                for c in field_name[1:]:
-                    if c not in VALID_FIELD_NAME_CHAR:
+                for name_char in field_name[1:]:
+                    if name_char not in VALID_FIELD_NAME_CHAR:
                         messages.append(UserMessage(
                             _('field name ({field_name}) must match `[a-z][a-z0-9_]*`'),
                             field_name=field_name,
@@ -553,6 +638,9 @@ MAX_TYPE_MAPPING_KEY_LENGTH = MAX_ENUM_VALUE_LENGTH
 
 
 class SelectorEventDataType(AbcEventDataType):
+    """A selector event data type.  This allows for creating a fixed set of
+    types a value can store, using a classifying name to differentiate the
+    expected types."""
     __slots__ = ('__type_mapping',)
 
     def __init__(
@@ -560,6 +648,7 @@ class SelectorEventDataType(AbcEventDataType):
             description: Optional[str],
             type_mapping: Dict[str, AbcEventDataType],
     ) -> None:
+        """Constructor."""
         AbcEventDataType.__init__(self, "selector", description)
         self.__type_mapping = readonly_dict(type_mapping)
 
@@ -571,12 +660,15 @@ class SelectorEventDataType(AbcEventDataType):
 
     @property
     def selectors(self) -> Sequence[str]:
+        """List of selector names."""
         return tuple(self.__type_mapping.keys())
 
     def get_type_for(self, selector: str) -> Optional[AbcEventDataType]:
+        """Returns the type for the selector, if it exists, or None."""
         return self.__type_mapping.get(selector)
 
     def selector_items(self) -> Iterable[Tuple[str, AbcEventDataType]]:
+        """Returns a list of selector name, selector type."""
         return self.__type_mapping.items()
 
     def validate_value(self, value: Any) -> bool:
@@ -593,15 +685,19 @@ class SelectorEventDataType(AbcEventDataType):
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
-        if not (MIN_TYPE_MAPPING_VALUES <= len(self.__type_mapping) <= MAX_TYPE_MAPPING_VALUES):
+        if not MIN_TYPE_MAPPING_VALUES <= len(self.__type_mapping) <= MAX_TYPE_MAPPING_VALUES:
             messages.append((UserMessage(
-                _('must have {MIN_TYPE_MAPPING_VALUES} to {MAX_TYPE_MAPPING_VALUES} selectors ({count})'),
+                _(
+                    # TODO ensure that the po translation picks up this whole text.
+                    'must have {MIN_TYPE_MAPPING_VALUES} to '
+                    '{MAX_TYPE_MAPPING_VALUES} selectors ({count})',
+                ),
                 count=len(self.__type_mapping),
                 MIN_TYPE_MAPPING_VALUES=MIN_TYPE_MAPPING_VALUES,
                 MAX_TYPE_MAPPING_VALUES=MAX_TYPE_MAPPING_VALUES,
             )))
         for key, value in self.__type_mapping.items():
-            if not (MIN_TYPE_MAPPING_KEY_LENGTH <= len(key) <= MAX_TYPE_MAPPING_KEY_LENGTH):
+            if not MIN_TYPE_MAPPING_KEY_LENGTH <= len(key) <= MAX_TYPE_MAPPING_KEY_LENGTH:
                 messages.append((UserMessage(
                     _('selector ({selector}) must have {n} to {x} characters'),
                     selector=key,
@@ -629,7 +725,7 @@ class EventType:
     """
     __slots__ = ('__structure', '__name', '__priority', '__send_access', '__receive_access',)
 
-    def __init__(
+    def __init__(  # pylint: disable=R0913
             self,
             name: str,
             priority: EventPriorityType,
@@ -637,6 +733,7 @@ class EventType:
             receive_access: EventAccessType,
             structure: StructureEventDataType,
     ) -> None:
+        """Constructor"""
         self.__name = name
         self.__priority = priority
         self.__send_access = send_access
@@ -652,25 +749,31 @@ class EventType:
 
     @property
     def name(self) -> str:
+        """Event name."""
         return self.__name
 
     @property
     def priority(self) -> EventPriorityType:
+        """Event priority."""
         return self.__priority
 
     @property
     def send_access(self) -> EventAccessType:
+        """Access allowed for sending the event."""
         return self.__send_access
 
     @property
     def receive_access(self) -> EventAccessType:
+        """Access allowed for receiving the event."""
         return self.__receive_access
 
     @property
     def structure(self) -> StructureEventDataType:
+        """The event data structure."""
         return self.__structure
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
+        """Validates whether this event definition is valid."""
         messages: List[UserMessage] = []
         if EVENT_NAME_FORMAT.match(self.name) is None:
             messages.append(UserMessage(
@@ -678,3 +781,6 @@ class EventType:
                 event_name=self.name,
             ))
         return possible_error(messages)
+
+
+LOCAL_TIMEZONE = datetime.timezone(datetime.timedelta(seconds=time.timezone))

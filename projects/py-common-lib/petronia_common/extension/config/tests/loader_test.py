@@ -1,4 +1,11 @@
 
+"""
+Tests out the extension and event loader modules.
+"""
+
+# This has a lot of lines in it, because there's a lot of ways to test it.
+# pylint: disable=C0302
+
 from typing import List, Sequence, Tuple, Dict, Any
 import unittest
 from .. import extension_schema
@@ -8,8 +15,11 @@ from ....util import UserMessage, i18n
 
 
 class ExtensionLoaderTest(unittest.TestCase):
+    """Runs the extension loader, and by implication the event loader,
+    through data-driven tests."""
     def test_bad_data(self) -> None:
-        self.maxDiff = None
+        """Data driven tests with validation problems"""
+        self.maxDiff = None  # pylint: disable=C0103
         for test_name, test_data, messages in BAD_DATA_TESTS:
             with self.subTest(name=test_name):
                 res = extension_loader.load_extension(test_data)
@@ -22,6 +32,7 @@ class ExtensionLoaderTest(unittest.TestCase):
                 self.assertEqual(expected, actual)
 
     def test_good_data(self) -> None:
+        """Data driven tests with valid data, generating extensions"""
         self.maxDiff = None
         for test_name, test_data, expected in GOOD_DATA_TESTS:
             with self.subTest(name=test_name):
@@ -43,8 +54,8 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
     (
         'Bad Name Format',
         {
-            'type': 'api', 'name': "bad-api", "version": [1, 0, 5], "about": "s", "description": "t",
-            "depends": [], "licenses": [], "authors": [], "events": {},
+            'type': 'api', 'name': "bad-api", "version": [1, 0, 5], "about": "s",
+            "description": "t", "depends": [], "licenses": [], "authors": [], "events": {},
         },
         [(
             'extension name ({name}) must conform to the pattern [a-z0-9][a-z0-9._]',
@@ -54,19 +65,20 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
     (
         'Bad Name Length',
         {
-            'type': 'api', 'name': "x" * 256, "version": [1, 0, 5], "about": "s", "description": "t",
-            "depends": [], "licenses": [], "authors": [], "events": {},
+            'type': 'api', 'name': "x" * 256, "version": [1, 0, 5], "about": "s",
+            "description": "t", "depends": [], "licenses": [], "authors": [], "events": {},
         },
         [(
-            'extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} to {MAX_EXTENSION_NAME_LENGTH} long',
+            'extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} to '
+            '{MAX_EXTENSION_NAME_LENGTH} long',
             dict(name='x' * 256, MIN_EXTENSION_NAME_LENGTH=2, MAX_EXTENSION_NAME_LENGTH=255),
         )]
     ),
     (
         'Bad Version Format - negative',
         {
-            'type': 'api', 'name': "bad.version", "version": [-1, 0, 5], "about": "s", "description": "t",
-            "depends": [], "licenses": [], "authors": [], "events": {},
+            'type': 'api', 'name': "bad.version", "version": [-1, 0, 5], "about": "s",
+            "description": "t", "depends": [], "licenses": [], "authors": [], "events": {},
         },
         [(
             'version {{version}} must contain only non-negative integers',
@@ -117,7 +129,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             "depends": [], "licenses": [], "authors": [], "events": {},
         },
         [(
-            'no `{key}` found in extension definition',
+            'no `{key}` found in definition',
             dict(key='about'),
         ), (
             '`{key}` must be a string value',
@@ -170,7 +182,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             "about": "s", "description": "t", "licenses": [], "authors": [],
             "depends": [1],
         },
-        [('dependency must be a dictionary containing the keys `name`, `minimum`, and possibly `below`', {})],
+        [(
+            'dependency must be a dictionary containing the keys '
+            '`name`, `minimum`, and possibly `below`',
+            {},
+        )],
     ),
     (
         'Bad dependency value item - missing minimum',
@@ -307,13 +323,13 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [(
-            'no `{key}` found in event definition',
+            'no `{key}` found in definition',
             dict(key='priority'),
         ), (
-            'no `{key}` found in event definition',
+            'no `{key}` found in definition',
             dict(key='send-access'),
         ), (
-            'no `{key}` found in event definition',
+            'no `{key}` found in definition',
             dict(key='receive-access'),
         )],
     ),
@@ -429,7 +445,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 "x": {
                     "priority": "io", 'send-access': 'public', 'receive-access': 'public',
                     'fields': {
-                        "a": {"type": "structure", "fields": {"x": {"type": "reference", "ref": "z"}}},
+                        "a": {
+                            "type": "structure",
+                            "fields": {"x": {"type": "reference", "ref": "z"}},
+                        },
                     },
                 },
             },
@@ -449,7 +468,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 "x": {
                     "priority": "io", 'send-access': 'public', 'receive-access': 'public',
                     'fields': {
-                        "a": {"type": "selector", "type-mapping": {"x": {"type": "reference", "ref": "z"}}},
+                        "a": {
+                            "type": "selector",
+                            "type-mapping": {"x": {"type": "reference", "ref": "z"}},
+                        },
                     },
                 },
             },
@@ -799,7 +821,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             "events": {"x": {
                 "priority": "io", 'send-access': 'public', 'receive-access': 'public',
                 'fields': {
-                    "a": {"type": "selector", "type-mapping": {"x": {"type": "reference", "ref": "01"}}},
+                    "a": {
+                        "type": "selector",
+                        "type-mapping": {"x": {"type": "reference", "ref": "01"}},
+                    },
                 },
             }},
             "references": {
@@ -847,7 +872,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
         },
         extension_schema.ApiExtensionMetadata(
             name="simplest.api", version=(1, 0, 5), about="s", description="t",
-            depends=[], licenses=[], authors=[], events=[]
+            depends=[], licenses=[], authors=[], events=[], default_implementation=None,
         )
     ),
     (
@@ -866,6 +891,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                     "below": [6, 0, 0],
                 }
             ], "licenses": [], "authors": [],
+            "default": {"name": "axl", "minimum": [5, 4, 3], "below": [4, 4, 100]},
             "events": {
                 "e1": {
                     'priority': 'io',
@@ -944,9 +970,14 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             depends=[
                 extension_schema.ExtensionDependency('abc', (1, 2, 3,), None),
                 extension_schema.ExtensionDependency('def', (3, 5, 6,), (6, 0, 0,)),
-            ], licenses=[], authors=[], events=[
+            ], licenses=[], authors=[],
+            default_implementation=extension_schema.ExtensionDependency(
+                'axl', (5, 4, 3,), (4, 4, 100,)
+            ),
+            events=[
                 event_schema.EventType(
-                    name='e1', priority='io', send_access='public', receive_access='implementations',
+                    name='e1', priority='io', send_access='public',
+                    receive_access='implementations',
                     structure=event_schema.StructureEventDataType(
                         None, {
                             'first': event_schema.StructureFieldType(

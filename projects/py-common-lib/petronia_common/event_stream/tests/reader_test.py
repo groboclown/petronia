@@ -1,4 +1,6 @@
 
+"""reader tests"""
+
 from typing import List, Tuple, Optional, Union, Dict, Any
 import unittest
 import io
@@ -12,12 +14,14 @@ from ..defs import (
     as_raw_event_object_data, as_raw_event_binary_data_reader,
 )
 from ...util import UserMessage, i18n
+from ...util.test_helpers import verified_not_none
 
 
 ExpectedEvent = Tuple[str, str, str, Union[bytes, Dict[str, Any]]]
 
 
 class ParseRawEventTest(unittest.TestCase):
+    """Tests the raw event parsing"""
     def setUp(self) -> None:
         self.size_changer = ConstSizeChanger()
 
@@ -25,7 +29,7 @@ class ParseRawEventTest(unittest.TestCase):
         self.size_changer.tear_down()
 
     def test_setup(self) -> None:
-        # Ensure the assumptions in the constants, plus the assignments above, match up.
+        """Ensure the assumptions in the constants, plus the assignments above, match up."""
 
         # + 2 for the extra length bytes
         self.assertEqual(consts.MAX_JSON_SIZE + 3, len(TOO_BIG_JSON_BIN))
@@ -37,6 +41,7 @@ class ParseRawEventTest(unittest.TestCase):
         self.assertEqual(consts.MAX_BLOB_SIZE, len(BIGGEST_BLOB))
 
     def test_data(self) -> None:
+        """Standard stream parsing using data-driven tests"""
         for name, byte_data, expected, left_over in PARSE_DATA:
             with self.subTest(name=name):
                 # print(f"Parsing [{repr(byte_data)}]")
@@ -47,11 +52,9 @@ class ParseRawEventTest(unittest.TestCase):
                 if not expected[1]:
                     self.assertIsNone(actual[1])
                 else:
-                    self.assertIsNotNone(actual[1])
-                    # mypy requirement
-                    assert actual[1] is not None
+                    error = verified_not_none(actual[1], self)
                     self.assertEqual(
-                        list(actual[1].messages()),
+                        list(error.messages()),
                         expected[1],
                     )
 
@@ -59,6 +62,7 @@ class ParseRawEventTest(unittest.TestCase):
                 self.assertEqual(stream.read(), left_over)
 
     def test_read_event_stream__2_packets(self) -> None:
+        """Ensures that 2 packets are read in order and sent to the callback."""
         byte_data = (
             PACKET_MARKER +
             b'e' + as_bin_str('event-1') +
@@ -86,6 +90,7 @@ class ParseRawEventTest(unittest.TestCase):
         collector.next_as_eof(self)
 
     def test_read_event_stream__2_packets_listener_stop(self) -> None:
+        """Ensures that, when an event callback returns True, the packet reading stops."""
         byte_data = (
             PACKET_MARKER +
             b'e' + as_bin_str('event-1') +
@@ -109,6 +114,7 @@ class ParseRawEventTest(unittest.TestCase):
         collector.is_empty()
 
     def test_read_event_stream__error(self) -> None:
+        """Checks that, if a stream error is encountered, it is sent to the error callback."""
         byte_data = PACKET_MARKER + b'x'
         collector = CallbackCollector()
         collector.execute(byte_data)
@@ -119,6 +125,8 @@ class ParseRawEventTest(unittest.TestCase):
         )
 
     def test_read_event_stream__error_callback_problem(self) -> None:
+        """Checks that, if an error callback returns `True`, further packets are
+        not processed."""
         # Note: due to the aggressive, parsing algorithm, the byte stream will
         # skip a packet marker if less than 3 bytes are used after the packet marker.
         byte_data = PACKET_MARKER + b'xyz' + PACKET_MARKER + b'abc' + PACKET_MARKER + b'123'
@@ -138,6 +146,11 @@ class ParseRawEventTest(unittest.TestCase):
         self.assertTrue(collector.is_empty())
 
     def test_out_of_order_packet_read(self) -> None:
+        """Tests packets being read with the piped reader,
+        but not following the correct ordering (read an event, read the
+        packet, read the next event).  This indirectly checks the
+        operation of the marked reader.
+        """
         # This also tests long data reads.
 
         # Ensure the blob size allows for large blob reads.
@@ -168,15 +181,17 @@ class ParseRawEventTest(unittest.TestCase):
         try:
             collector.execute(byte_data)
             self.fail('Did not generate error.')  # pragma: no cover
-        except RuntimeError as e:
-            self.assertEqual('Illegal out-of-order event stream read', str(e))
+        except RuntimeError as err:
+            self.assertEqual('Illegal out-of-order event stream read', str(err))
 
     def test_get_empty_reader(self) -> None:
+        """Checks the empty reader directly"""
         stream = reader.MarkedStreamReader(io.BytesIO(b'12'))
         reader_callback = reader.get_reader(stream, 0)
         self.assertEqual(b'', reader_callback())
 
     def test_get_static_reader(self) -> None:
+        """Checks the static reader directly"""
         stream = reader.MarkedStreamReader(io.BytesIO(b'123'))
         reader_callback = reader.get_reader(stream, 2)
         self.assertEqual(b'1', reader_callback(1))
@@ -184,13 +199,17 @@ class ParseRawEventTest(unittest.TestCase):
         self.assertEqual(b'', reader_callback(1))
 
     def test_piped_reader(self) -> None:
+        """Checks the piped reader directly"""
         stream = reader.MarkedStreamReader(io.BytesIO(b'123'))
         reader_callback = reader.piped_reader(stream, 2)
         self.assertEqual(b'1', reader_callback(1))
         self.assertEqual(b'2', reader_callback(1))
         self.assertEqual(b'', reader_callback(1))
 
-    def assert_raw_event_equal(self, expected: Optional[ExpectedEvent], actual: Optional[RawEvent]) -> None:
+    def assert_raw_event_equal(
+            self, expected: Optional[ExpectedEvent], actual: Optional[RawEvent],
+    ) -> None:
+        """Ensures the raw events are equal."""
         if expected is None:
             self.assertIsNone(actual)
             return
@@ -231,6 +250,7 @@ UTF_8_4_BYTE = 'x-' + chr(0x10348) + '-x'  # encodes to b'"x-\xf0\x90\x8d\x88-x"
 
 
 def as_bin_str(data: str) -> bytes:
+    """Helper to convert a data string to a binary encoded length + bytes data"""
     ret = b''
     raw_data = data.encode('utf-8')
     count = len(raw_data)
@@ -257,7 +277,9 @@ TOO_BIG_JSON_BIN = as_bin_str(TOO_BIG_JSON)
 BIGGEST_JSON_BIN = as_bin_str(BIGGEST_JSON)
 PACKET_MARKER = b'\0\0['
 
-PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessage], bool], bytes]] = [
+TestData = Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessage], bool], bytes]
+
+PARSE_DATA: List[TestData] = [
     (
         'no data',
         b'',
@@ -580,7 +602,9 @@ PARSE_DATA: List[Tuple[str, bytes, Tuple[Optional[ExpectedEvent], List[UserMessa
             b'[' + TOO_BIG_BLOB_BIN +
             b'x'
         ),
-        (None, [_m('binary blob data must have a length in the range [{n}, {x}]', n=0, x=10)], False),
+        (None, [
+            _m('binary blob data must have a length in the range [{n}, {x}]', n=0, x=10),
+        ], False),
         b'x',
     ),
     (

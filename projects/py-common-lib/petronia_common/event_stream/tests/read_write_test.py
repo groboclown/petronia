@@ -1,4 +1,6 @@
 
+"""Tests the read and write stream functions together."""
+
 import unittest
 import io
 from .util import CallbackCollector
@@ -6,7 +8,9 @@ from .. import reader, writer, defs
 
 
 class ReadWriteTest(unittest.TestCase):
+    """Combines the read and write stream handlers, to ensure they work together correctly."""
     def test_1_packet(self) -> None:
+        """Writes then reads 1 event packet."""
         inp_stream = io.BytesIO()
         collector = CallbackCollector()
         data_1 = {"this": ["is", "Sparta"]}
@@ -25,6 +29,7 @@ class ReadWriteTest(unittest.TestCase):
         self.assertEqual(data_1, defs.as_raw_event_object_data(event_1))
 
     def test_4_packets(self) -> None:
+        """Writes then reads 4 event packets."""
         inp_stream = io.BytesIO()
         collector = CallbackCollector()
         data_1 = {"this": ["is", "Sparta"]}
@@ -32,9 +37,13 @@ class ReadWriteTest(unittest.TestCase):
         data_3 = {"is": "this", "wonderful?": False}
         data_4 = b'Simulating a \0 stream of \x01 \x80\x81 data'
         writer.write_object_event_to_stream(inp_stream, 'e1', 's1', 't1', data_1)
-        writer.write_binary_event_to_stream(inp_stream, 'event-2', 'source-2', 'target-2', len(data_2), data_2)
+        writer.write_binary_event_to_stream(
+            inp_stream, 'event-2', 'source-2', 'target-2', len(data_2), data_2,
+        )
         writer.write_object_event_to_stream(inp_stream, 'e1', 's2', 't3', data_3)
-        writer.write_binary_event_to_stream(inp_stream, 'event-4', 'source-1', 'target-2', len(data_4), data_4)
+        writer.write_binary_event_to_stream(
+            inp_stream, 'event-4', 'source-1', 'target-2', len(data_4), data_4,
+        )
         outp_stream = io.BytesIO(inp_stream.getvalue())
         reader.read_event_stream(
             outp_stream, collector.on_event, collector.on_end_of_stream, collector.on_error,

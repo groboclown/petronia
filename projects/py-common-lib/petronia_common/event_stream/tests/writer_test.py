@@ -1,4 +1,6 @@
 
+"""Tests for the event writer module."""
+
 import unittest
 import io
 import re
@@ -9,6 +11,7 @@ from ...util.message import i18n, UserMessage
 
 
 class WriterTest(unittest.TestCase):
+    """Tests the event writer code."""
     def setUp(self) -> None:
         self.size_changer = ConstSizeChanger()
 
@@ -35,6 +38,7 @@ class WriterTest(unittest.TestCase):
         )
 
     def test_write_binary_event_to_stream__from_func(self) -> None:
+        """Runs packet writing when reading from a data function."""
         out = io.BytesIO()
         res = writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', 'tgt1', 10, io_reader(b'0123456789'),
@@ -48,6 +52,9 @@ class WriterTest(unittest.TestCase):
         )
 
     def test_write_binary_event_to_stream__from_func_too_few(self) -> None:
+        """Ensures that if the stream size doesn't match what is read from the
+        packet data source, the correct number of bytes are output, and that
+        an error is returned."""
         out = io.BytesIO()
         res = writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', 'tgt1', 10, io_reader(b'0123'),
@@ -65,6 +72,8 @@ class WriterTest(unittest.TestCase):
         )
 
     def test_write_binary_event_to_stream__size_mismatch(self) -> None:
+        """Ensures that if the stream size doesn't match what is passed in an
+        argument, then a packet isn't generated and an error is returned."""
         out = io.BytesIO()
         res = writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', 'tgt1', 5, b'',
@@ -81,6 +90,7 @@ class WriterTest(unittest.TestCase):
         )
 
     def test_write_binary_event_to_stream__event_unicode(self) -> None:
+        """Ensures that invalid unicode characters generate an appropriate error"""
         out = io.BytesIO()
         res = writer.write_binary_event_to_stream(
             out, '\ud800', 'src1', 'tgt1', 0, b'',
@@ -90,6 +100,7 @@ class WriterTest(unittest.TestCase):
         self._assert_unicode_error(res.valid_error, 'event-id')
 
     def test_write_binary_event_to_stream__source_unicode(self) -> None:
+        """Ensures that invalid unicode characters generate an appropriate error"""
         out = io.BytesIO()
         res = writer.write_binary_event_to_stream(
             out, 'evt1', '\ud800', 'tgt1', 0, b'',
@@ -99,6 +110,7 @@ class WriterTest(unittest.TestCase):
         self._assert_unicode_error(res.valid_error, 'source-id')
 
     def test_write_binary_event_to_stream__target_unicode(self) -> None:
+        """Ensures that invalid unicode characters generate an appropriate error"""
         out = io.BytesIO()
         res = writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', '\ud800', 0, b'',
@@ -111,10 +123,14 @@ class WriterTest(unittest.TestCase):
         messages = error.messages()
         self.assertEqual(1, len(messages))
         self.assertEqual(expected_id + ' UTF-8 encoding problem: {exception}', messages[0].message)
-        self.assertEqual([expected_id.replace('-', '_'), 'exception'], list(messages[0].arguments.keys()))
+        self.assertEqual(
+            [expected_id.replace('-', '_'), 'exception'],
+            list(messages[0].arguments.keys()),
+        )
         self.assertIsInstance(messages[0].arguments['exception'], UnicodeEncodeError)
 
     def test_write_binary_event_to_stream__size_constraints_all(self) -> None:
+        """Checks that invalid size constraints generates the right error messages."""
         out = io.BytesIO()
         res = writer.write_binary_event_to_stream(
             out, '', '', '', consts.MAX_BLOB_SIZE + 1, b'01234567890',
@@ -124,24 +140,34 @@ class WriterTest(unittest.TestCase):
         messages = res.valid_error.messages()
         self.assertEqual((
             UserMessage(
-                i18n('{src}: validation error: event-id length must be within [{id_min}, {id_max}]'),
+                i18n(
+                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
             ),
             UserMessage(
-                i18n('{src}: validation error: source-id length must be within [{id_min}, {id_max}]'),
+                i18n(
+                    '{src}: validation error: source-id length must be within [{id_min}, {id_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
             ),
             UserMessage(
-                i18n('{src}: validation error: target-id length must be within [{id_min}, {id_max}]'),
+                i18n(
+                    '{src}: validation error: target-id length must be within [{id_min}, {id_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
             ),
             UserMessage(
-                i18n('{src}: validation error: binary event data size must be within [{b_min}, {b_max}]'),
+                i18n(
+                    '{src}: validation error: binary event '
+                    'data size must be within [{b_min}, {b_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
             ),
         ), messages)
 
     def test_write_object_event_to_stream_1(self) -> None:
+        """Ensures that the standard write-to-stream for a normal object packet works."""
         out = io.BytesIO()
         res = writer.write_object_event_to_stream(
             out,
@@ -159,6 +185,7 @@ class WriterTest(unittest.TestCase):
         )
 
     def test_write_object_event_to_stream__json_dump_problem(self) -> None:
+        """Ensures that problems during dumping json objects are caught."""
         out = io.BytesIO()
         res = writer.write_object_event_to_stream(
             out, '\ud800', 'src1', 'tgt1', {"x": re.compile('x').match('x')},
@@ -172,6 +199,7 @@ class WriterTest(unittest.TestCase):
         self.assertIsInstance(messages[0].arguments['exception'], TypeError)
 
     def test_write_object_event_to_stream__event_unicode(self) -> None:
+        """Ensures that invalid unicode characters generate an appropriate error"""
         out = io.BytesIO()
         res = writer.write_object_event_to_stream(
             out, '\ud800', 'src1', 'tgt1', {},
@@ -181,6 +209,7 @@ class WriterTest(unittest.TestCase):
         self._assert_unicode_error(res.valid_error, 'event-id')
 
     def test_write_object_event_to_stream__source_unicode(self) -> None:
+        """Ensures that invalid unicode characters generate an appropriate error"""
         out = io.BytesIO()
         res = writer.write_object_event_to_stream(
             out, 'evt1', '\ud800', 'tgt1', {},
@@ -190,6 +219,7 @@ class WriterTest(unittest.TestCase):
         self._assert_unicode_error(res.valid_error, 'source-id')
 
     def test_write_object_event_to_stream__target_unicode(self) -> None:
+        """Ensures that invalid unicode characters generate an appropriate error"""
         out = io.BytesIO()
         res = writer.write_object_event_to_stream(
             out, 'evt1', 'src1', '\ud800', {},
@@ -199,6 +229,8 @@ class WriterTest(unittest.TestCase):
         self._assert_unicode_error(res.valid_error, 'target-id')
 
     def test_write_object_event_to_stream__size_constraints_all(self) -> None:
+        """Ensures that, when writing an object stream whose values go beyond the
+        size limits, correct errors are reported."""
         out = io.BytesIO()
         res = writer.write_object_event_to_stream(
             out, '', '', '', {"012345678901234567890123456": "012345678901234567890123456"},
@@ -208,25 +240,37 @@ class WriterTest(unittest.TestCase):
         messages = res.valid_error.messages()
         self.assertEqual((
             UserMessage(
-                i18n('{src}: validation error: event-id length must be within [{id_min}, {id_max}]'),
+                i18n(
+                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
             ),
             UserMessage(
-                i18n('{src}: validation error: source-id length must be within [{id_min}, {id_max}]'),
+                i18n(
+                    '{src}: validation error: source-id '
+                    'length must be within [{id_min}, {id_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
             ),
             UserMessage(
-                i18n('{src}: validation error: target-id length must be within [{id_min}, {id_max}]'),
+                i18n(
+                    '{src}: validation error: target-id length '
+                    'must be within [{id_min}, {id_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
             ),
             UserMessage(
-                i18n('{src}: validation error: event object data size must be within [{b_min}, {b_max}]'),
+                i18n(
+                    '{src}: validation error: event object data '
+                    'size must be within [{b_min}, {b_max}]'
+                ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
             ),
         ), messages)
 
 
 def io_reader(buff: bytes) -> writer.RawBinaryReader:
+    """Simple binary reader implementation"""
     inp = io.BytesIO(buff)
 
     def reader(max_read_count: int = -1) -> bytes:

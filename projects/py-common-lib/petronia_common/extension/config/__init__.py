@@ -1,4 +1,6 @@
 
+"""Configuration schema and converters."""
+
 from . import event_schema, defs, extension_schema, version
 from .defs import AbcConfigType
 from .version import ExtensionVersion, cmp_extension

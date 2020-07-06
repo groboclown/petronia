@@ -188,8 +188,11 @@ Each data definition in the `references` section must be of a specific type.  Th
             // hh: 2-digit hour (24-hour time)
             // mm: 2-digit minute of the hour (0-59)
             // ss: 2-digit second of the minute (0-61, for leap-seconds)
-            // sss: 3-digit millisecond time (0-999)
-            // Z: timezone offset (-12 to 12)
+            // "." + sss: 1-6 fractional second time digits, which are optional
+            // Z: timezone offset:
+            //    4 digits for hours / minutes (-1259 to 1259)
+            //    Optionally, can also include seconds (2-digits) and
+            //    fractions of a second ("." + 1-6 digits).
         }
     }
 }

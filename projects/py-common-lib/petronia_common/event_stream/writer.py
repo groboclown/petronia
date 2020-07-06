@@ -1,4 +1,14 @@
 
+"""
+Handles writing packets to a binary stream.
+"""
+
+# This file is an exception for many of the "code simplification" rules,
+# because it is a big state handling tool.
+# pylint: disable=R0911
+# pylint: disable=R0913
+# pylint: disable=R0914
+
 from typing import Union, BinaryIO
 import json
 from . import consts
@@ -36,23 +46,23 @@ def write_binary_event_to_stream(
         )
     try:
         encoded_event_id = event_id.encode('utf-8')
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
-            _('event-id UTF-8 encoding problem: {exception}'), e, event_id=event_id,
+            _('event-id UTF-8 encoding problem: {exception}'), exp, event_id=event_id,
         )
     encoded_event_id_len = len(encoded_event_id)
     try:
         encoded_source_id = source_id.encode('utf-8')
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
-            _('source-id UTF-8 encoding problem: {exception}'), e, source_id=source_id,
+            _('source-id UTF-8 encoding problem: {exception}'), exp, source_id=source_id,
         )
     encoded_source_id_len = len(encoded_source_id)
     try:
         encoded_target_id = target_id.encode('utf-8')
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
-            _('target-id UTF-8 encoding problem: {exception}'), e, target_id=target_id,
+            _('target-id UTF-8 encoding problem: {exception}'), exp, target_id=target_id,
         )
     encoded_target_id_len = len(encoded_target_id)
 
@@ -153,32 +163,36 @@ def write_object_event_to_stream(
             separators=(',', ':'),
             sort_keys=True,
         ).encode('utf-8')
-    except UnicodeEncodeError as e:  # pragma no cover
+    except UnicodeEncodeError as exp:  # pragma no cover
         # Due to the "dumps" method, this shouldn't ever be reached.
         # But, just in case...
-        return StdRet.pass_exception(_('event object data UTF-8 encoding problem: {exception}'), e,)  # pragma no cover
-    except TypeError as e:
-        return StdRet.pass_exception(_('event object data cannot be marshalled: {exception}'), e,)
+        return StdRet.pass_exception(  # pragma no cover
+            _('event object data UTF-8 encoding problem: {exception}'), exp,
+        )
+    except TypeError as exp:
+        return StdRet.pass_exception(
+            _('event object data cannot be marshalled: {exception}'), exp,
+        )
     encoded_event_object_len = len(encoded_event_object)
     try:
         encoded_event_id = event_id.encode('utf-8')
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
-            _('event-id UTF-8 encoding problem: {exception}'), e, event_id=event_id,
+            _('event-id UTF-8 encoding problem: {exception}'), exp, event_id=event_id,
         )
     encoded_event_id_len = len(encoded_event_id)
     try:
         encoded_source_id = source_id.encode('utf-8')
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
-            _('source-id UTF-8 encoding problem: {exception}'), e, source_id=source_id,
+            _('source-id UTF-8 encoding problem: {exception}'), exp, source_id=source_id,
         )
     encoded_source_id_len = len(encoded_source_id)
     try:
         encoded_target_id = target_id.encode('utf-8')
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
-            _('target-id UTF-8 encoding problem: {exception}'), e, target_id=target_id,
+            _('target-id UTF-8 encoding problem: {exception}'), exp, target_id=target_id,
         )
     encoded_target_id_len = len(encoded_target_id)
 

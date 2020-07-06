@@ -3,7 +3,19 @@
 Reads low-level streaming event data.
 """
 
-from typing import Callable, BinaryIO, Tuple, List, Dict, Optional, Any
+# This file includes giant state machines, which means it has
+# exceptions to some of the pylint rules.
+# pylint: disable=R0911
+# pylint: disable=R0912
+# pylint: disable=R0914
+# pylint: disable=R0915
+# For readability, many "elif" statements are present, even when
+# the statement above is all "return" statements.
+# pylint: disable=R1705
+# pylint: disable=R1723
+
+
+from typing import Callable, BinaryIO, Tuple, List, Dict, Optional, Any, final
 import json
 from petronia_common.util import i18n as _
 from . import consts
@@ -57,21 +69,30 @@ class MarkedStreamReader:
     """
     __slots__ = ('__last_mark', '__stream', '__current')
 
-    def __init__(self, stream: BinaryIO) -> None:
-        self.__last_mark = 0
-        self.__current = [0]
+    def __init__(
+            self, stream: BinaryIO, current: Optional[List[int]] = None,
+    ) -> None:
+        self.__current: List[int]
+        if current is None:
+            self.__current = [0]
+        else:
+            self.__current = current
+        self.__last_mark = self.__current[0]
         self.__stream = stream
 
+    @final
     def fork(self, count: int) -> 'MarkedStreamReader':
-        ret = MarkedStreamReader(self.__stream)
-        ret.__current = self.__current
-        ret.__last_mark = self.__last_mark
+        """Creates a separate reader, which is tracked against this one for
+        out-of-order reading"""
+        ret = MarkedStreamReader(self.__stream, self.__current)
         # Before this reads again, the forked one needs to read COUNT bytes.
         # And mask the size to limit how big the numbers get.
         self.__last_mark = (count + self.__last_mark) & 0xffffffff
         return ret
 
+    @final
     def marked_read(self, count: int) -> bytes:
+        """Attempt a read, paying attention to out-of-order reading."""
         if self.__last_mark != self.__current[0]:
             raise RuntimeError('Illegal out-of-order event stream read')
         self.__last_mark = (count + self.__last_mark) & 0xffffffff
@@ -83,11 +104,12 @@ def parse_raw_event(
         stream: MarkedStreamReader
 ) -> Tuple[Optional[RawEvent], Optional[PetroniaReturnError], bool]:
     """
-    For performance, the parsing is smashed up into a single method, written to remove as many sub-if
-    statements as possible.
+    For performance, the parsing is smashed up into a single method,
+    written to remove as many sub-if statements as possible.
 
     :param stream:
-    :return: the raw event, if read; the errors in parsing, if read; whether it was an end-of-stream.
+    :return: the raw event, if read; the errors in parsing, if read;
+        whether it was an end-of-stream.
     """
 
     # See the documentation for details about the stream packet format.
@@ -110,8 +132,8 @@ def parse_raw_event(
         # A general state loop, looking for the packet start.
         # To be fully resilient to errors, we could maintain a buffer of read data,
         # and on error, go back and look for the marker.  But that seems like overkill.
-        c = stream.marked_read(1)
-        if c == consts.EMPTY_BINARY:
+        read_byte = stream.marked_read(1)
+        if read_byte == consts.EMPTY_BINARY:
             # End-of-stream reached.
             if state != STATE_INIT:
                 # We've read some of the stream.
@@ -125,18 +147,18 @@ def parse_raw_event(
         # ===================================================================
         # Start of Packet Search
         elif state == STATE_INIT:
-            if c == consts.BINARY_PACKET_MARKER_1:
+            if read_byte == consts.BINARY_PACKET_MARKER_1:
                 state = STATE_EXPECTING_MARKER_2
             # else - ignore; we remain in the init state
         elif state == STATE_EXPECTING_MARKER_2:
-            if c == consts.BINARY_PACKET_MARKER_2:
+            if read_byte == consts.BINARY_PACKET_MARKER_2:
                 state = STATE_EXPECTING_MARKER_3
             else:
                 # didn't see the marker.
                 return None, None, False
 
         elif state == STATE_EXPECTING_MARKER_3:
-            if c == consts.BINARY_PACKET_MARKER_3:
+            if read_byte == consts.BINARY_PACKET_MARKER_3:
                 # Move on to packet parsing.
                 state = STATE_EVENT_ID_EXPECTING_MARKER
                 break
@@ -173,16 +195,16 @@ def parse_raw_event(
     # =======================================================================
     # Event ID parsing.
     # Start by reading the marker + 2 length bytes.
-    ret_err, c = read_stream(3)
+    ret_err, read_byte = read_stream(3)
     if ret_err:
         return None, ret_err, True
-    if c[0] != consts.BINARY_EVENT_ID_MARKER_INT:
+    if read_byte[0] != consts.BINARY_EVENT_ID_MARKER_INT:
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
 
     decoded_event_id = ''
-    event_id_remaining = (c[1] << 8) + c[2]
+    event_id_remaining = (read_byte[1] << 8) + read_byte[2]
     if event_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
@@ -203,30 +225,32 @@ def parse_raw_event(
         if ret_err:
             return None, ret_err, True
     else:
-        ret_err, c = read_stream(event_id_remaining)
+        ret_err, read_byte = read_stream(event_id_remaining)
         if ret_err:
             return None, ret_err, True
         try:
-            decoded_event_id = c.decode("utf-8")
-        except UnicodeDecodeError as e:
+            decoded_event_id = read_byte.decode("utf-8")
+        except UnicodeDecodeError as exp:
             # On decode error, keep going.  We need to parse
             # the whole packet regardless of this error.
-            error_messages.append(UserMessage(_("event-id included invalid UTF-8 encoding"), e=str(e)))
+            error_messages.append(
+                UserMessage(_("event-id included invalid UTF-8 encoding"), e=str(exp)),
+            )
 
     # =======================================================================
     # Source ID
     # Start by reading the marker + 2 length bytes.
     decoded_source_id = ''
-    ret_err, c = read_stream(3)
+    ret_err, read_byte = read_stream(3)
     if ret_err:
         return None, ret_err, True
-    if c[0] != consts.BINARY_SOURCE_ID_MARKER_INT:
+    if read_byte[0] != consts.BINARY_SOURCE_ID_MARKER_INT:
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         # Ignore the other error messages, as they are meaningless here.
         return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
 
-    source_id_remaining = (c[1] << 8) + c[2]
+    source_id_remaining = (read_byte[1] << 8) + read_byte[2]
     if source_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
@@ -247,30 +271,32 @@ def parse_raw_event(
         if ret_err:
             return None, ret_err, True
     else:
-        ret_err, c = read_stream(source_id_remaining)
+        ret_err, read_byte = read_stream(source_id_remaining)
         if ret_err:
             return None, ret_err, True
         try:
-            decoded_source_id = c.decode("utf-8")
-        except UnicodeDecodeError as e:
+            decoded_source_id = read_byte.decode("utf-8")
+        except UnicodeDecodeError as exp:
             # On decode error, keep going.  We need to parse
             # the whole packet regardless of this error.
-            error_messages.append(UserMessage(_("source-id included invalid UTF-8 encoding"), e=str(e)))
+            error_messages.append(UserMessage(
+                _("source-id included invalid UTF-8 encoding"), e=str(exp),
+            ))
 
     # =======================================================================
     # Target ID
     # Start by reading the marker + 2 length bytes.
     decoded_target_id = ''
-    ret_err, c = read_stream(3)
+    ret_err, read_byte = read_stream(3)
     if ret_err:
         return None, ret_err, True
-    if c[0] != consts.BINARY_TARGET_ID_MARKER_INT:
+    if read_byte[0] != consts.BINARY_TARGET_ID_MARKER_INT:
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         # Ignore the other error messages, as they are meaningless here.
         return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
 
-    target_id_remaining = (c[1] << 8) + c[2]
+    target_id_remaining = (read_byte[1] << 8) + read_byte[2]
     if target_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
@@ -291,33 +317,35 @@ def parse_raw_event(
         if ret_err:
             return None, ret_err, True
     else:
-        ret_err, c = read_stream(target_id_remaining)
+        ret_err, read_byte = read_stream(target_id_remaining)
         if ret_err:
             return None, ret_err, True
         try:
-            decoded_target_id = c.decode("utf-8")
-        except UnicodeDecodeError as e:
+            decoded_target_id = read_byte.decode("utf-8")
+        except UnicodeDecodeError as exp:
             # On decode error, keep going.  We need to parse
             # the whole packet regardless of this error.
-            error_messages.append(UserMessage(_("target-id included invalid UTF-8 encoding"), e=str(e)))
+            error_messages.append(UserMessage(
+                _("target-id included invalid UTF-8 encoding"), e=str(exp),
+            ))
 
     # =======================================================================
     # Content Type Detection
     # Start by reading the marker by itself
     # Reading 1 byte, so easy reading...
-    c = stream.marked_read(1)
-    if c == consts.EMPTY_BINARY:
+    read_byte = stream.marked_read(1)
+    if read_byte == consts.EMPTY_BINARY:
         error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
         return None, join_errors(*error_messages), True
-    elif c == consts.BINARY_JSON_CONTENTS_MARKER:
+    elif read_byte == consts.BINARY_JSON_CONTENTS_MARKER:
         # ===================================================================
         # Json Reading
 
         # Read in the size first...
-        ret_err, c = read_stream(2)
+        ret_err, read_byte = read_stream(2)
         if ret_err:
             return None, ret_err, True
-        data_contents_length = (c[0] << 8) + c[1]
+        data_contents_length = (read_byte[0] << 8) + read_byte[1]
         if data_contents_length < consts.MIN_JSON_SIZE:
             # Invalid size.
             error_messages.append(UserMessage(
@@ -341,24 +369,24 @@ def parse_raw_event(
             if ret_err:
                 return None, ret_err, True
             return None, possible_error(messages=error_messages), False
-        ret_err, c = read_stream(data_contents_length)
+        ret_err, read_byte = read_stream(data_contents_length)
         if ret_err:
             return None, ret_err, True
 
         event_data: Optional[Dict[str, Any]]
         try:
-            event_data = json.loads(c)
-        except UnicodeDecodeError as e:
+            event_data = json.loads(read_byte)
+        except UnicodeDecodeError as exp:
             event_data = None
             error_messages.append(UserMessage(
                 _("Event streaming data included incorrectly encoded UTF-8 values: {e}"),
-                e=str(e),
+                e=str(exp),
             ))
-        except json.decoder.JSONDecodeError as e:
+        except json.decoder.JSONDecodeError as exp:
             event_data = None
             error_messages.append(UserMessage(
                 _("Event streaming data included badly formatted JSON data: {e}"),
-                e=str(e),
+                e=str(exp),
             ))
         if not isinstance(event_data, dict):
             error_messages.append(UserMessage(_("Event data was not sent as JSON dictionary")))
@@ -372,15 +400,15 @@ def parse_raw_event(
             False,
         )
 
-    elif c == consts.BINARY_BLOB_CONTENTS_MARKER:
+    elif read_byte == consts.BINARY_BLOB_CONTENTS_MARKER:
         # ===================================================================
         # Blob Reading
 
         # read in the size first
-        ret_err, c = read_stream(3)
+        ret_err, read_byte = read_stream(3)
         if ret_err:
             return None, ret_err, True
-        data_contents_length = (c[0] << 16) + (c[1] << 8) + c[2]
+        data_contents_length = (read_byte[0] << 16) + (read_byte[1] << 8) + read_byte[2]
         if data_contents_length <= consts.MIN_BLOB_SIZE:
             # This size is acceptable.
             # Note that we can't pass this on to invalid state,
@@ -390,7 +418,9 @@ def parse_raw_event(
                 return None, join_errors(*error_messages), False
             return (
                 # Just hard-code the empty reader here.
-                to_raw_event_binary(decoded_event_id, decoded_source_id, decoded_target_id, empty_reader),
+                to_raw_event_binary(
+                    decoded_event_id, decoded_source_id, decoded_target_id, empty_reader,
+                ),
                 None,
                 False,
             )
@@ -431,6 +461,7 @@ def parse_raw_event(
 
 
 def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryReader:
+    """Returns a packet data reader, optimized for the packet size."""
     if data_size <= 0:
         return empty_reader
 
@@ -451,14 +482,15 @@ def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryRe
 
 
 # noinspection PyUnusedLocal
-def empty_reader(max_read_count: int = -1) -> bytes:
+def empty_reader(max_read_count: int = -1) -> bytes:  # pylint: disable=W0613
+    """Simple reader for 0-length packet data."""
     return consts.EMPTY_BINARY
 
 
 def static_reader(data: bytes) -> RawBinaryReader:
-    # A memory conservative version of a reader.
-    # It loads the initial data entirely in memory, but then
-    # removes it after it's been read.
+    """A memory conservative version of a reader.
+    It loads the initial data entirely in memory, but then
+    removes it after it's been read."""
     remainder = [data, len(data)]
 
     def reader_func(max_read_count: int = -1) -> bytes:
@@ -481,6 +513,7 @@ def static_reader(data: bytes) -> RawBinaryReader:
 
 
 def piped_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryReader:
+    """Creates a reader for large packet sizes, so it isn't read all into memory at once."""
     context: List[int] = [data_size]
 
     def reader_func(max_read_count: int = -1) -> bytes:

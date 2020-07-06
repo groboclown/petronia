@@ -13,13 +13,14 @@ here are the only exception to the assertion rules.
 
 from __future__ import annotations
 from typing import Sequence, Iterable, List, Optional, Generic, Any, cast, TYPE_CHECKING
+from .memory import T, T_co, V, EMPTY_TUPLE
+from .message import I18n, UserMessage, UserMessageData
+
 # These typing functions are in Python 3.8, but MyPy doesn't recognize them.
 if TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Final, final
 else:
     from typing import Final, final
-from .memory import T, T_co, V, EMPTY_TUPLE
-from .message import I18n, UserMessage, UserMessageData
 
 
 class PetroniaReturnError:
@@ -59,6 +60,7 @@ class ExceptionPetroniaReturnError(PetroniaReturnError):
         return self.__messages
 
     def exception(self) -> BaseException:
+        """Exception that caused this error."""
         return self.__exception
 
     def __repr__(self) -> str:
@@ -123,7 +125,7 @@ class StdRet(Generic[T_co]):
 
     @property
     @final
-    def ok(self) -> bool:
+    def ok(self) -> bool:  # pylint: disable=C0103
         """Checks whether an error exists, and returns True if there is
         no error.  Note that the value can be None as well as no
         error."""
@@ -235,6 +237,9 @@ def possible_error(
 def collect_errors_from(
         *values: StdRet[Any],
 ) -> Optional[PetroniaReturnError]:
+    """Collects the return objects, and if there are any errors or messages,
+    including errors without messages, then an error object is returned.
+    Otherwise, a None is returned."""
     messages: List[UserMessage] = []
     for value in values:
         if value.error:

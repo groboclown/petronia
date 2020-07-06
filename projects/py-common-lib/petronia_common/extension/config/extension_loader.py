@@ -7,7 +7,7 @@ Simple data structures means list, dict, int, float, bool, str, None
 
 from typing import List, Dict, Optional, Any, cast
 from . import event_schema, extension_schema
-from .event_loader import load_full_event_schema
+from .event_loader import load_full_event_schema, load_dict_str_value
 from .version import ExtensionVersion
 from ...util import StdRet, collect_errors_from, EMPTY_TUPLE
 from ...util import i18n as _
@@ -32,6 +32,7 @@ def load_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.AbcExtensionM
 def validate_extension(
         value: StdRet[extension_schema.AbcExtensionMetadata],
 ) -> StdRet[extension_schema.AbcExtensionMetadata]:
+    """Validate an extension"""
     if not value.ok:
         return value.forward()
     validation = value.result.validate_type()
@@ -41,17 +42,25 @@ def validate_extension(
 
 
 def load_api_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.ApiExtensionMetadata]:
-    ret_name = load_extension_str_value('name', raw)
+    """Load an API extension"""
+    ret_name = load_dict_str_value('name', raw)
     ret_version = load_extension_version_value(raw.get('version'))
-    ret_about = load_extension_str_value('about', raw)
-    ret_description = load_extension_str_value('description', raw)
+    ret_about = load_dict_str_value('about', raw)
+    ret_description = load_dict_str_value('description', raw)
     ret_depends = load_extension_dependencies('depends', raw)
     ret_licenses = load_extension_list_value('licenses', raw)
     ret_authors = load_extension_list_value('authors', raw)
     ret_events = load_events(raw)
+    ret_default: StdRet[Optional[extension_schema.ExtensionDependency]]
+    raw_default = raw.get('default')
+    if raw_default:
+        ret_default = load_extension_dependency(raw_default)
+    else:
+        ret_default = StdRet.pass_ok(None)
     error = collect_errors_from(
         ret_name, ret_version, ret_about, ret_description,
-        ret_depends, ret_licenses, ret_authors, ret_events,
+        ret_depends, ret_licenses, ret_authors,
+        ret_events, ret_default,
     )
     if error:
         return StdRet.pass_error(error)
@@ -64,14 +73,16 @@ def load_api_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.ApiExtens
         licenses=ret_licenses.result,
         authors=ret_authors.result,
         events=ret_events.result,
+        default_implementation=ret_default.value,
     ))
 
 
 def load_impl_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.ImplExtensionMetadata]:
-    ret_name = load_extension_str_value('name', raw)
+    """Load an implementation extension"""
+    ret_name = load_dict_str_value('name', raw)
     ret_version = load_extension_version_value(raw.get('version'))
-    ret_about = load_extension_str_value('about', raw)
-    ret_description = load_extension_str_value('description', raw)
+    ret_about = load_dict_str_value('about', raw)
+    ret_description = load_dict_str_value('description', raw)
     ret_depends = load_extension_dependencies('depends', raw)
     ret_licenses = load_extension_list_value('licenses', raw)
     ret_authors = load_extension_list_value('authors', raw)
@@ -94,11 +105,14 @@ def load_impl_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.ImplExte
     ))
 
 
-def load_standalone_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.StandAloneExtensionMetadata]:
-    ret_name = load_extension_str_value('name', raw)
+def load_standalone_extension(
+        raw: Dict[str, Any],
+) -> StdRet[extension_schema.StandAloneExtensionMetadata]:
+    """Load a standalone extension"""
+    ret_name = load_dict_str_value('name', raw)
     ret_version = load_extension_version_value(raw.get('version'))
-    ret_about = load_extension_str_value('about', raw)
-    ret_description = load_extension_str_value('description', raw)
+    ret_about = load_dict_str_value('about', raw)
+    ret_description = load_dict_str_value('description', raw)
     ret_depends = load_extension_dependencies('depends', raw)
     ret_licenses = load_extension_list_value('licenses', raw)
     ret_authors = load_extension_list_value('authors', raw)
@@ -119,22 +133,8 @@ def load_standalone_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.St
     ))
 
 
-def load_extension_str_value(key: str, raw: Dict[str, Any]) -> StdRet[str]:
-    raw_value = raw.get(key)
-    if not raw_value:
-        return StdRet.pass_errmsg(
-            _('no `{key}` found in extension definition'),
-            key=key,
-        )
-    if not isinstance(raw_value, str):
-        return StdRet.pass_errmsg(
-            _('`{key}` must be a string value'),
-            key=key,
-        )
-    return StdRet.pass_ok(raw_value)
-
-
 def load_extension_list_value(key: str, raw: Dict[str, Any]) -> StdRet[List[str]]:
+    """Reads the list value from the dictionary."""
     raw_value = raw.get(key)
     if raw_value is None or not isinstance(raw_value, list):
         return StdRet.pass_errmsg(
@@ -153,6 +153,7 @@ def load_extension_list_value(key: str, raw: Dict[str, Any]) -> StdRet[List[str]
 
 
 def load_extension_version_value(value: Any) -> StdRet[ExtensionVersion]:
+    """Reads the version value."""
     if (
             not isinstance(value, list) or
             len(value) != 3 or
@@ -175,6 +176,7 @@ def load_extension_version_value(value: Any) -> StdRet[ExtensionVersion]:
 def load_extension_dependencies(
         key: str, raw: Dict[str, Any],
 ) -> StdRet[List[extension_schema.ExtensionDependency]]:
+    """Loads all the extension dependencies."""
     raw_depends = raw.get(key)
     if not raw_depends:
         return StdRet.pass_ok(cast(List[extension_schema.ExtensionDependency], EMPTY_TUPLE))
@@ -193,11 +195,16 @@ def load_extension_dependencies(
 
 
 def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDependency]:
+    """Loads a single extension dependency."""
     if not isinstance(value, dict):
         return StdRet.pass_errmsg(
-            _('dependency must be a dictionary containing the keys `name`, `minimum`, and possibly `below`'),
+            # TODO ensure that the po translation picks up this whole text.
+            _(
+                'dependency must be a dictionary containing the keys `name`, `minimum`, '
+                'and possibly `below`',
+            ),
         )
-    ret_name = load_extension_str_value('name', value)
+    ret_name = load_dict_str_value('name', value)
     if not ret_name.ok:
         return ret_name.forward()
     ret_minimum = load_extension_version_value(value.get('minimum'))
@@ -218,6 +225,7 @@ def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDe
 
 
 def load_events(raw: Dict[str, Any]) -> StdRet[List[event_schema.EventType]]:
+    """Loads the events from the extension dictionary."""
     raw_events = raw.get('events')
     if not raw_events:
         return StdRet.pass_ok(cast(List[event_schema.EventType], EMPTY_TUPLE))
@@ -230,4 +238,4 @@ def load_events(raw: Dict[str, Any]) -> StdRet[List[event_schema.EventType]]:
         return StdRet.pass_errmsg(
             _('`references` must be a dictionary of event data type schemas'),
         )
-    return load_full_event_schema(raw_events, raw_references or {})
+    return load_full_event_schema(raw_events, raw_references or cast(Dict[str, Any], {}))

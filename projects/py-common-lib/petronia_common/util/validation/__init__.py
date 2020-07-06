@@ -3,8 +3,7 @@
 Validation framework tools.  For better control than simple assertions.
 """
 
-from .assertions import (
-    assert_that,
+from .enforcement import (
     enforce_that,
     enforce_all,
 )

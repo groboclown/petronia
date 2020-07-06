@@ -35,7 +35,6 @@ from .error import (
 
 from . import validation
 from .validation import (
-    assert_that,
     enforce_that,
     enforce_all,
 )

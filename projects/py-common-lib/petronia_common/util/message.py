@@ -44,18 +44,21 @@ class UserMessage:
 
     def __init__(self, message: I18n, **arguments: UserMessageData) -> None:
         self.__message = message
-        # Note that, because the arguments are passed as key-values, this is not a dictionary that the
-        # end-user can modify.  To conserve memory and speed up the processing, the original mapping is stored.
+        # Note that, because the arguments are passed as key-values, this is not
+        # a dictionary that the end-user can modify.  To conserve memory and speed up the
+        # processing, the original mapping is stored.
         self.__args = arguments
         # Only compute the hash when we need to.
         self.__hash: Optional[int] = None
 
     @property
     def message(self) -> I18n:
+        """The message text, which should be localized."""
         return self.__message
 
     @property
     def arguments(self) -> Mapping[str, UserMessageData]:
+        """The programmatic arguments for the message."""
         return dict(self.__args)
 
     def debug(self) -> str:
@@ -71,7 +74,7 @@ class UserMessage:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, UserMessage):
             return False
-        return other.__message == self.__message and other.__args == self.__args
+        return other.message == self.__message and other.arguments == self.__args
 
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
@@ -82,7 +85,7 @@ class UserMessage:
             # Note that the hash does not need to be 100% unique; just enough
             # to bucket it well in a set or dict.
             my_hash = hash(self.__message) << 6
-            for key in self.__args.keys():
+            for key in self.__args:
                 my_hash += hash(key)
             self.__hash = my_hash
         return self.__hash
