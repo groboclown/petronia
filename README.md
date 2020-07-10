@@ -2,6 +2,8 @@
 
 **This is the v3 documentation, which is still being developed.**
 
+![forked-model branch build](https://travis-ci.com/groboclown/petronia.svg?branch=forked-model)
+
 ## Latest Release: v2.2
 
 * [petronia-2.2-x64.zip](https://github.com/groboclown/petronia/releases/download/v2.2/petronia-2.2-x64.zip)
