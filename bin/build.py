@@ -20,6 +20,8 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
             top_package_names.append(name)
             mypy_args.append('--package')
             mypy_args.append(name)
+
+    print("")
     print("----------------------------------------------------------------------")
     print("Type Checking...")
     code = run_python_cmd(
@@ -30,7 +32,10 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
         True,
     )
     if code != 0:
+        print(f"MyPy exited with {code}")
         return code
+
+    print("")
     print("----------------------------------------------------------------------")
     print("Linting...")
     code = run_python_cmd(
@@ -47,11 +52,13 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
         ],
         True,
     )
-    
-    # For now, lint codes are ignored.
-    # if code != 0:
-    #     return code
 
+    if code != 0:
+        print(f"Linting exited with {code}")
+        # For now, lint exit code is ignored.
+        # return code
+
+    print("")
     print("----------------------------------------------------------------------")
     print("Unit Testing...")
     code = run_python_cmd(
@@ -70,6 +77,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
         True,
     )
     if code != 0:
+        print(f"Unit test exited with {code}")
         return code
     return 0
 
@@ -134,7 +142,10 @@ def main(root_project_dir: str) -> int:
         print("======================================================================")
         project_name = os.path.basename(std_project_dir)
         print(f":: {project_name} ::")
-        total_code += build_std_project_dir(root_project_dir, std_project_dir)
+        partial_code = build_std_project_dir(root_project_dir, std_project_dir)
+        if partial_code != 0:
+            print(f":: {project_name} failed: {partial_code} ::")
+        total_code += partial_code
 
     return total_code
 
