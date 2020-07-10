@@ -101,7 +101,7 @@ class MarkedStreamReader:
 
 
 def parse_raw_event(
-        stream: MarkedStreamReader
+        stream: MarkedStreamReader,
 ) -> Tuple[Optional[RawEvent], Optional[PetroniaReturnError], bool]:
     """
     For performance, the parsing is smashed up into a single method,

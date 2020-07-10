@@ -217,7 +217,6 @@ bad-names=foo,
           baz,
           toto,
           tutu,
-          tuna,
           tata
 
 # Bad variable names regexes, separated by a comma. If names match any regex,
@@ -561,7 +560,7 @@ preferred-modules=
 max-args=5
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=12
+max-attributes=8
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5

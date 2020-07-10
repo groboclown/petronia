@@ -60,7 +60,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
         [(
             'extension name ({name}) must conform to the pattern [a-z0-9][a-z0-9._]',
             dict(name='bad-api'),
-        )]
+        )],
     ),
     (
         'Bad Name Length',
@@ -72,7 +72,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} to '
             '{MAX_EXTENSION_NAME_LENGTH} long',
             dict(name='x' * 256, MIN_EXTENSION_NAME_LENGTH=2, MAX_EXTENSION_NAME_LENGTH=255),
-        )]
+        )],
     ),
     (
         'Bad Version Format - negative',
@@ -856,7 +856,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'reference depth too deep ({depth})',
             dict(depth=[
                 '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14',
-                '15', '16', '17', '18', '19', '20', '21'
+                '15', '16', '17', '18', '19', '20', '21',
             ]),
         )],
     ),
@@ -873,7 +873,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
         extension_schema.ApiExtensionMetadata(
             name="simplest.api", version=(1, 0, 5), about="s", description="t",
             depends=[], licenses=[], authors=[], events=[], default_implementation=None,
-        )
+        ),
     ),
     (
         'Api With Events, Dependencies, and References',
@@ -889,7 +889,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                     "name": "def",
                     "minimum": [3, 5, 6],
                     "below": [6, 0, 0],
-                }
+                },
             ], "licenses": [], "authors": [],
             "default": {"name": "axl", "minimum": [5, 4, 3], "below": [4, 4, 100]},
             "events": {
@@ -972,7 +972,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                 extension_schema.ExtensionDependency('def', (3, 5, 6,), (6, 0, 0,)),
             ], licenses=[], authors=[],
             default_implementation=extension_schema.ExtensionDependency(
-                'axl', (5, 4, 3,), (4, 4, 100,)
+                'axl', (5, 4, 3,), (4, 4, 100,),
             ),
             events=[
                 event_schema.EventType(
@@ -1049,12 +1049,12 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                         ),
                                     },
                                 ), True,
-                            )
-                        }
-                    )
-                )
-            ]
-        )
+                            ),
+                        },
+                    ),
+                ),
+            ],
+        ),
     ),
     (
         'Simple Implementation',
@@ -1067,7 +1067,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             name="simple_impl", version=(0, 0, 1),
             about="a", description="d",
             depends=[], licenses=[], authors=[], implements=[],
-        )
+        ),
     ),
     (
         'Simple Standalone',
@@ -1080,6 +1080,6 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             name="simple_standalone", version=(0, 0, 0),
             about="x", description="y",
             depends=[], licenses=["M", "I"], authors=["Z", "b"],
-        )
+        ),
     ),
 ]

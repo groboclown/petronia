@@ -555,53 +555,45 @@ PARSE_DATA: List[TestData] = [
     ),
     (
         'too big source-id',
-        (
-            PACKET_MARKER +
-            b'e' + BIGGEST_ID_BIN +
-            b's' + TOO_BIG_ID_BIN +
-            b't' + BIGGEST_ID_BIN +
-            b'{' + BIGGEST_JSON_BIN +
-            b'x'
-        ),
+        PACKET_MARKER +
+        b'e' + BIGGEST_ID_BIN +
+        b's' + TOO_BIG_ID_BIN +
+        b't' + BIGGEST_ID_BIN +
+        b'{' + BIGGEST_JSON_BIN +
+        b'x',
         (None, [_m('source-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
     ),
     (
         'too big target-id',
-        (
-            PACKET_MARKER +
-            b'e' + BIGGEST_ID_BIN +
-            b's' + BIGGEST_ID_BIN +
-            b't' + TOO_BIG_ID_BIN +
-            b'{' + BIGGEST_JSON_BIN +
-            b'x'
-        ),
+        PACKET_MARKER +
+        b'e' + BIGGEST_ID_BIN +
+        b's' + BIGGEST_ID_BIN +
+        b't' + TOO_BIG_ID_BIN +
+        b'{' + BIGGEST_JSON_BIN +
+        b'x',
         (None, [_m('target-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
     ),
     (
         'too big json',
-        (
-            PACKET_MARKER +
-            b'e' + BIGGEST_ID_BIN +
-            b's' + BIGGEST_ID_BIN +
-            b't' + BIGGEST_ID_BIN +
-            b'{' + TOO_BIG_JSON_BIN +
-            b'x'
-        ),
+        PACKET_MARKER +
+        b'e' + BIGGEST_ID_BIN +
+        b's' + BIGGEST_ID_BIN +
+        b't' + BIGGEST_ID_BIN +
+        b'{' + TOO_BIG_JSON_BIN +
+        b'x',
         (None, [_m('json data must have a length in the range [{n}, {x}]', n=2, x=60)], False),
         b'x',
     ),
     (
         'too big binary',
-        (
-            PACKET_MARKER +
-            b'e' + UTF_8_3_BYTE_2_BIN +
-            b's' + UTF_8_3_BYTE_3_BIN +
-            b't' + UTF_8_2_BYTE_BIN +
-            b'[' + TOO_BIG_BLOB_BIN +
-            b'x'
-        ),
+        PACKET_MARKER +
+        b'e' + UTF_8_3_BYTE_2_BIN +
+        b's' + UTF_8_3_BYTE_3_BIN +
+        b't' + UTF_8_2_BYTE_BIN +
+        b'[' + TOO_BIG_BLOB_BIN +
+        b'x',
         (None, [
             _m('binary blob data must have a length in the range [{n}, {x}]', n=0, x=10),
         ], False),
@@ -609,13 +601,11 @@ PARSE_DATA: List[TestData] = [
     ),
     (
         'EOF during too big binary read',
-        (
-            PACKET_MARKER +
-            b'e' + UTF_8_4_BYTE_BIN +
-            b's' + UTF_8_3_BYTE_1_BIN +
-            b't' + UTF_8_3_BYTE_2_BIN +
-            b'[\xff\xff\xffx'
-        ),
+        PACKET_MARKER +
+        b'e' + UTF_8_4_BYTE_BIN +
+        b's' + UTF_8_3_BYTE_1_BIN +
+        b't' + UTF_8_3_BYTE_2_BIN +
+        b'[\xff\xff\xffx',
         (None, [
             _m('binary blob data must have a length in the range [{n}, {x}]', n=0, x=10),
             _m('Reached end-of-stream during packet read'),

@@ -64,7 +64,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
         """Test some of the getters for the api extension."""
         ext = extension_schema.ApiExtensionMetadata(
             'avid', (0, 0, 0,), 'a1', 'b1', [], [], [], [],
-            extension_schema.ExtensionDependency('core', (10, 0, 5,), None)
+            extension_schema.ExtensionDependency('core', (10, 0, 5,), None),
         )
         default_impl = verified_not_none(ext.default_implementation, self)
         self.assertEqual(default_impl.name, 'core')
@@ -98,7 +98,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
                 UserMessage(
                     i18n(
                         'extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} to '
-                        '{MAX_EXTENSION_NAME_LENGTH} long'
+                        '{MAX_EXTENSION_NAME_LENGTH} long',
                     ),
                     name='x', MIN_EXTENSION_NAME_LENGTH=2, MAX_EXTENSION_NAME_LENGTH=255,
                 ),
@@ -109,7 +109,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
                         'to the pattern `[a-z0-9][a-z0-9-]*`',
                     ),
                     event_name='-e',
-                )
+                ),
             ),
             err.messages(),
         )
@@ -117,7 +117,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
     def test_datetime_convert__1(self) -> None:
         """Convert string to datetime, using tz hhmmss.ssssss"""
         dtm = event_schema.DatetimeEventDataType.str_to_datetime(
-            "19990206:212322.123:+110512.123456"
+            "19990206:212322.123:+110512.123456",
         )
         self.assertTrue(dtm.ok)
         self.assertEqual(1999, dtm.result.year)
@@ -128,13 +128,13 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
         self.assertEqual(123000, dtm.result.microsecond)
         self.assertEqual(
             timedelta(hours=11, minutes=5, seconds=12, microseconds=123456),
-            dtm.result.utcoffset()
+            dtm.result.utcoffset(),
         )
 
     def test_datetime_convert__2(self) -> None:
         """Convert string -> datetime, with timezone hhmm."""
         dtm = event_schema.DatetimeEventDataType.str_to_datetime(
-            "19991124:212322.123:+1105"
+            "19991124:212322.123:+1105",
         )
         self.assertTrue(dtm.ok)
         self.assertEqual(1999, dtm.result.year)
@@ -145,7 +145,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
         self.assertEqual(123000, dtm.result.microsecond)
         self.assertEqual(
             timedelta(hours=11, minutes=5),
-            dtm.result.utcoffset()
+            dtm.result.utcoffset(),
         )
 
     def test_datetime_convert__3(self) -> None:
@@ -157,7 +157,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
         message = error.messages()[0]
         self.assertEqual(
             'invalid formatted date string ({date})',
-            message.message
+            message.message,
         )
         self.assertEqual(
             {'date', 'exception'},
@@ -172,7 +172,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
             datetime(
                 year=2012, month=2, day=29, hour=23, minute=59, second=1,
                 microsecond=100, tzinfo=timezone(-timedelta(hours=5, minutes=30)),
-            )
+            ),
         )
         self.assertEqual(
             "20120229:235901.000100:-0530",
@@ -187,7 +187,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
             datetime(
                 year=2012, month=2, day=29, hour=23, minute=59, second=1,
                 microsecond=100, tzinfo=None,
-            )
+            ),
         )
         self.assertEqual(
             "20120229:235901.000100:+0500",

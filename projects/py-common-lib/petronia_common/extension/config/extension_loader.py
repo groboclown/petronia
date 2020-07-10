@@ -198,7 +198,6 @@ def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDe
     """Loads a single extension dependency."""
     if not isinstance(value, dict):
         return StdRet.pass_errmsg(
-            # TODO ensure that the po translation picks up this whole text.
             _(
                 'dependency must be a dictionary containing the keys `name`, `minimum`, '
                 'and possibly `below`',

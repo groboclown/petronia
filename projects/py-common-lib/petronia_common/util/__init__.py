@@ -31,6 +31,8 @@ from .error import (
     collect_errors_from,
     PetroniaReturnError,
     RET_OK_NONE,
+    RET_OK_TRUE,
+    RET_OK_FALSE,
 )
 
 from . import validation

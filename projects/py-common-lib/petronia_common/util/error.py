@@ -202,7 +202,7 @@ def error_message(
 
 def join_errors(
         *messages: UserMessage,
-        errors: Optional[Iterable[PetroniaReturnError]] = None
+        errors: Optional[Iterable[PetroniaReturnError]] = None,
 ) -> PetroniaReturnError:
     """Return a collection of messages and/or errors, and return a single error representation."""
     msgs = [*messages]
@@ -250,3 +250,7 @@ def collect_errors_from(
 # A generic constant for return types that may have an error
 # but no real return value.
 RET_OK_NONE = StdRet.pass_ok(None)
+
+# A generic constant for boolean return types.
+RET_OK_TRUE = StdRet.pass_ok(True)
+RET_OK_FALSE = StdRet.pass_ok(False)

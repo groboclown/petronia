@@ -165,9 +165,7 @@ class ApiExtensionMetadata(AbcExtensionMetadata):
         self.__default_implementation = default_implementation
 
     def __repr__(self) -> str:
-        return (
-            f'ApiExtensionMetadata({self._sub_repr()}, events={repr(self.events)})'
-        )
+        return f'ApiExtensionMetadata({self._sub_repr()}, events={repr(self.events)})'
 
     @property
     def events(self) -> Sequence[EventType]:
@@ -274,14 +272,14 @@ def validate_name(name: str, messages: List[UserMessage]) -> None:
     if EXTENSION_NAME_FORMAT.match(name) is None:
         messages.append(UserMessage(
             _('extension name ({name}) must conform to the pattern [a-z0-9][a-z0-9._]'),
-            name=name
+            name=name,
         ))
     if not MIN_EXTENSION_NAME_LENGTH <= len(name) <= MAX_EXTENSION_NAME_LENGTH:
         messages.append(UserMessage(
             _(
-                # TODO ensure po generated localization file uses this whole string.
                 'extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} '
-                'to {MAX_EXTENSION_NAME_LENGTH} long'),
+                'to {MAX_EXTENSION_NAME_LENGTH} long',
+            ),
             name=name,
             MIN_EXTENSION_NAME_LENGTH=MIN_EXTENSION_NAME_LENGTH,
             MAX_EXTENSION_NAME_LENGTH=MAX_EXTENSION_NAME_LENGTH,

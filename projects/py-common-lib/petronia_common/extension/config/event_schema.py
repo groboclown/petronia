@@ -118,7 +118,6 @@ class StringEventDataType(AbcEventDataType):
         if self.min_length > self.max_length:
             messages.append(UserMessage(
                 _(
-                    # TODO ensure po translation picks up the whole string.
                     'min_length ({min_length}) must be equal to or '
                     'less than max_length ({max_length})',
                 ),
@@ -312,7 +311,6 @@ class EnumEventDataType(AbcEventDataType):
                 if len(val) < MIN_ENUM_VALUE_LENGTH:
                     messages.append(UserMessage(
                         _(
-                            # TODO ensure po translation captures all the text
                             'enum value "{value}" must have at least '
                             '{MIN_ENUM_VALUE_LENGTH} characters',
                         ),
@@ -322,7 +320,6 @@ class EnumEventDataType(AbcEventDataType):
                 if len(val) > MAX_ENUM_VALUE_LENGTH:
                     messages.append(UserMessage(
                         _(
-                            # TODO ensure po translation captures all the text
                             'enum value "{value}" must have no more '
                             'than {MAX_ENUM_VALUE_LENGTH} characters',
                         ),
@@ -475,7 +472,6 @@ class ArrayEventDataType(AbcEventDataType):
         if self.min_length > self.max_length:
             messages.append(UserMessage(
                 _(
-                    # TODO ensure po translation captures the whole string.
                     'min_length ({min_length}) must be equal to '
                     'or less than max_length ({max_length})',
                 ),
@@ -585,7 +581,6 @@ class StructureEventDataType(AbcEventDataType):
             if not MIN_FIELD_NAME_LENGTH <= len(field_name) <= MAX_FIELD_NAME_LENGTH:
                 messages.append(UserMessage(
                     _(
-                        # TODO ensure po translation captures the whole string.
                         'field name ({field_name}) must have {MIN_FIELD_NAME_LENGTH} to '
                         '{MAX_FIELD_NAME_LENGTH} characters',
                     ),
@@ -688,7 +683,6 @@ class SelectorEventDataType(AbcEventDataType):
         if not MIN_TYPE_MAPPING_VALUES <= len(self.__type_mapping) <= MAX_TYPE_MAPPING_VALUES:
             messages.append((UserMessage(
                 _(
-                    # TODO ensure that the po translation picks up this whole text.
                     'must have {MIN_TYPE_MAPPING_VALUES} to '
                     '{MAX_TYPE_MAPPING_VALUES} selectors ({count})',
                 ),

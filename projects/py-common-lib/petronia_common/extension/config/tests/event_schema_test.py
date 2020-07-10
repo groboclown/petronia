@@ -22,6 +22,7 @@ class EventSchemaBoolTest(unittest.TestCase):
         self.assertFalse(schema.validate_value(None))
         self.assertFalse(schema.validate_value({}))
 
+
 class EventSchemaStringTest(unittest.TestCase):
     """Extra tests that aren't really covered by the loader_test"""
 
@@ -59,9 +60,9 @@ class EventSchemaStringTest(unittest.TestCase):
                         'or equal to {MAX_STRING_LENGTH}',
                     ),
                     max_length=65536, MAX_STRING_LENGTH=65535,
-                )
+                ),
             ),
-            err.messages()
+            err.messages(),
         )
 
     def test_string__3(self) -> None:
@@ -76,7 +77,7 @@ class EventSchemaStringTest(unittest.TestCase):
                 ),
                 min_length=-1, MIN_STRING_LENGTH=0,
             ),),
-            err.messages()
+            err.messages(),
         )
 
 class EventSchemaIntTest(unittest.TestCase):
@@ -110,9 +111,9 @@ class EventSchemaIntTest(unittest.TestCase):
                 i18n(
                     'min_value ({min_value}) must be equal to or less than max_value ({max_value})',
                 ),
-                min_value=90, max_value=1
+                min_value=90, max_value=1,
             ),),
-            err.messages()
+            err.messages(),
         )
 
     def test_int__3(self) -> None:
@@ -131,7 +132,7 @@ class EventSchemaIntTest(unittest.TestCase):
                 i18n('max_value ({max_value}) must be less than or equal to {MAX_INT_VALUE}'),
                 max_value=9223372036854775808, MAX_INT_VALUE=9223372036854775807,
             )),
-            err.messages()
+            err.messages(),
         )
 
 class EventSchemaFloatTest(unittest.TestCase):
@@ -163,9 +164,9 @@ class EventSchemaFloatTest(unittest.TestCase):
                 i18n(
                     'min_value ({min_value}) must be equal to or less than max_value ({max_value})',
                 ),
-                min_value=90, max_value=1
+                min_value=90, max_value=1,
             ),),
-            err.messages()
+            err.messages(),
         )
 
     def test_float__3(self) -> None:
@@ -220,7 +221,7 @@ class EventSchemaEnumTest(unittest.TestCase):
         # Hack up a type value, because it's prevented from being formed in the
         # loader, but code can allow it.
         schema = event_schema.EnumEventDataType(
-            None, cast(List[str], [1, '', 'x' * (event_schema.MAX_ENUM_VALUE_LENGTH + 1)])
+            None, cast(List[str], [1, '', 'x' * (event_schema.MAX_ENUM_VALUE_LENGTH + 1)]),
         )
         err = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
@@ -396,7 +397,7 @@ class EventSchemaArrayTest(unittest.TestCase):
                         'equal to {MAX_ARRAY_LENGTH}',
                     ),
                     max_length=event_schema.MAX_ARRAY_LENGTH + 1,
-                    MAX_ARRAY_LENGTH=event_schema.MAX_ARRAY_LENGTH
+                    MAX_ARRAY_LENGTH=event_schema.MAX_ARRAY_LENGTH,
                 ),
             ),
             error.messages(),
@@ -414,7 +415,7 @@ class EventSchemaStructureTest(unittest.TestCase):
             'x', {
                 "abc": event_schema.StructureFieldType(field1, False),
                 "def": event_schema.StructureFieldType(field2, True),
-            }
+            },
         )
         self.assertEqual('x', schema.description)
         self.assertEqual('structure', schema.type_name)
@@ -455,7 +456,7 @@ class EventSchemaStructureTest(unittest.TestCase):
                 "_": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
                 "$": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
                 "a%": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
-            }
+            },
         )
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
@@ -541,7 +542,8 @@ class EventSchemaSelectorTest(unittest.TestCase):
                     i18n(
                         'must have {MIN_TYPE_MAPPING_VALUES} to '
                         '{MAX_TYPE_MAPPING_VALUES} selectors ({count})',
-                    ), count=0, MIN_TYPE_MAPPING_VALUES=1, MAX_TYPE_MAPPING_VALUES=255
+                    ),
+                    count=0, MIN_TYPE_MAPPING_VALUES=1, MAX_TYPE_MAPPING_VALUES=255,
                 ),
             ),
             error.messages(),
@@ -568,7 +570,8 @@ class EventSchemaSelectorTest(unittest.TestCase):
                     i18n(
                         'must have {MIN_TYPE_MAPPING_VALUES} to '
                         '{MAX_TYPE_MAPPING_VALUES} selectors ({count})',
-                    ), count=256, MIN_TYPE_MAPPING_VALUES=1, MAX_TYPE_MAPPING_VALUES=255
+                    ),
+                    count=256, MIN_TYPE_MAPPING_VALUES=1, MAX_TYPE_MAPPING_VALUES=255,
                 ),
             ),
             error.messages(),
@@ -592,7 +595,7 @@ class EventSchemaSelectorTest(unittest.TestCase):
                     i18n('selector ({selector}) must have {n} to {x} characters'),
                     selector='x' * 256,
                     n=1, x=255,
-                )
+                ),
             },
             set(error.messages()),
         )

@@ -141,28 +141,28 @@ class WriterTest(unittest.TestCase):
         self.assertEqual((
             UserMessage(
                 i18n(
-                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]'
+                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
                 i18n(
-                    '{src}: validation error: source-id length must be within [{id_min}, {id_max}]'
+                    '{src}: validation error: source-id length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
                 i18n(
-                    '{src}: validation error: target-id length must be within [{id_min}, {id_max}]'
+                    '{src}: validation error: target-id length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
                 i18n(
                     '{src}: validation error: binary event '
-                    'data size must be within [{b_min}, {b_max}]'
+                    'data size must be within [{b_min}, {b_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
             ),
         ), messages)
 
@@ -241,30 +241,30 @@ class WriterTest(unittest.TestCase):
         self.assertEqual((
             UserMessage(
                 i18n(
-                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]'
+                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
                 i18n(
                     '{src}: validation error: source-id '
-                    'length must be within [{id_min}, {id_max}]'
+                    'length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
                 i18n(
                     '{src}: validation error: target-id length '
-                    'must be within [{id_min}, {id_max}]'
+                    'must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
                 i18n(
                     '{src}: validation error: event object data '
-                    'size must be within [{b_min}, {b_max}]'
+                    'size must be within [{b_min}, {b_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60
+                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
             ),
         ), messages)
 

@@ -134,7 +134,7 @@ class EnforcementTest(unittest.TestCase):
                 i18n('{src}: validation error: c'),
                 src='abc',
             ),),
-            res.messages()
+            res.messages(),
         )
 
     def test_enforce_all__1_error(self) -> None:

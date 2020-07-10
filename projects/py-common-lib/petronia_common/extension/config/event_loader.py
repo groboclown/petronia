@@ -67,7 +67,7 @@ def load_event_schema(
     if not isinstance(data_type, event_schema.StructureEventDataType):
         # This is an internal error...
         raise RuntimeError(  # pragma no cover
-            f'Incorrectly re-formatted structure to {ret_data_type_resolved.result}'
+            f'Incorrectly re-formatted structure to {ret_data_type_resolved.result}',
         )
     if ret_priority.result not in ("high", "user", "normal", "io"):
         return StdRet.pass_errmsg(
@@ -335,7 +335,7 @@ def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Array
     raw_data_type = raw.get('value-type')
     if not isinstance(raw_data_type, dict):
         return StdRet.pass_errmsg(
-            _('`value-type` must be a dictionary of a data type structure')
+            _('`value-type` must be a dictionary of a data type structure'),
         )
     ret_data_type = load_event_data_type(raw_data_type)
     error = collect_errors_from(
@@ -358,7 +358,7 @@ def load_event_structure_data_type(
     raw_fields = raw.get('fields')
     if not isinstance(raw_fields, dict):
         return StdRet.pass_errmsg(
-            _('`fields` must be a dictionary of field data type structures')
+            _('`fields` must be a dictionary of field data type structures'),
         )
     fields: Dict[str, event_schema.StructureFieldType] = {}
     for field_name, raw_field in raw_fields.items():
@@ -367,7 +367,7 @@ def load_event_structure_data_type(
             optional = False
         elif not isinstance(raw_optional, bool):
             return StdRet.pass_errmsg(
-                _('`optional` must be `true` or `false`')
+                _('`optional` must be `true` or `false`'),
             )
         else:
             optional = raw_optional

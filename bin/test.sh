@@ -4,10 +4,13 @@ set -e
 
 HERE=$( dirname "$0" )
 pushd "${HERE}/../projects/py-common-lib" >/dev/null 2>&1
-PYCLIB=$(pwd)
+COMMON_LIB=$(pwd)
+popd >/dev/null 2>&1
+pushd "${HERE}/../projects/extension-tools" >/dev/null 2>&1
+TOOLS_LIB=$(pwd)
 popd >/dev/null 2>&1
 
-export PYTHONPATH="${PYCLIB}:${PYTHONPATH}"
+export PYTHONPATH="${COMMON_LIB}:${TOOLS_LIB}:${PYTHONPATH}"
 
 for n in "${HERE}/../projects"/* ; do
   if [ -d "${n}" ] ; then
@@ -46,7 +49,9 @@ for n in "${HERE}/../projects"/* ; do
 
       echo "======================================================="
       echo "Linting..."
-      python3 -m pylint ${lint_packages} || echo $?
+      python3 -m pylint \
+        --load-plugins petronia_extension_tools.pylint_plugins.trailing_commas \
+        ${lint_packages} || echo $?
     fi
   fi
 
