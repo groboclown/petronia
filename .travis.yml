@@ -15,4 +15,4 @@ jobs:
       script: python bin/build.py projects
 
 install:
-  - pip install --user -r bin/requirements.txt
+  - pip install -r bin/requirements.txt
