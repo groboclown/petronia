@@ -284,31 +284,31 @@ PARSE_DATA: List[TestData] = [
         'no data',
         b'',
         (None, [], True),
-        b''
+        b'',
     ),
     (
         'no marker',
         b'abc-abc',
         (None, [], True),
-        b''
+        b'',
     ),
     (
         'partial marker 1',
         b'abc\0abc',
         (None, [], False),
-        b'bc'
+        b'bc',
     ),
     (
         'partial marker 2',
         b'abc\0\0abc',
         (None, [], False),
-        b'bc'
+        b'bc',
     ),
     (
         'partial marker then EOF',
         b'\0',
         (None, [_m('Reached end-of-stream before packet start', state=2)], True),
-        b''
+        b'',
     ),
 
     # ===== Event ID errors
@@ -555,23 +555,27 @@ PARSE_DATA: List[TestData] = [
     ),
     (
         'too big source-id',
-        PACKET_MARKER +
-        b'e' + BIGGEST_ID_BIN +
-        b's' + TOO_BIG_ID_BIN +
-        b't' + BIGGEST_ID_BIN +
-        b'{' + BIGGEST_JSON_BIN +
-        b'x',
+        (
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + TOO_BIG_ID_BIN +
+            b't' + BIGGEST_ID_BIN +
+            b'{' + BIGGEST_JSON_BIN +
+            b'x'
+        ),
         (None, [_m('source-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
     ),
     (
         'too big target-id',
-        PACKET_MARKER +
-        b'e' + BIGGEST_ID_BIN +
-        b's' + BIGGEST_ID_BIN +
-        b't' + TOO_BIG_ID_BIN +
-        b'{' + BIGGEST_JSON_BIN +
-        b'x',
+        (
+            PACKET_MARKER +
+            b'e' + BIGGEST_ID_BIN +
+            b's' + BIGGEST_ID_BIN +
+            b't' + TOO_BIG_ID_BIN +
+            b'{' + BIGGEST_JSON_BIN +
+            b'x'
+        ),
         (None, [_m('target-id must have a length in the range [{n}, {x}]', n=1, x=10)], False),
         b'x',
     ),

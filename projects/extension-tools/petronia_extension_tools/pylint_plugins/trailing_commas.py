@@ -150,36 +150,36 @@ class TokenListWrapper:
         return repr(self.__token_list[idx])
 
 
-class BracketContext:
+class BracketContext:  # pylint: disable=R0902
     """Context within a bracket"""
     def __init__(self, starting_token: Token, config) -> None:
         self._starting_token_line_no = starting_token.start_line_no
         self._current_line_no = starting_token.start_line_no
-        self._item_count = 0
         self._previous_line_ended_with_string = False
         self._current_token: List[Token] = []
         self._current_line_items: List[Sequence[Token]] = []
         self._previous_was_comma = False
+        self._item_count = 0
         self._config = config
         self._messages: List[Message] = []
 
         # figure out if this is a tuple, if, or a function call.
-        self._is_if_for = False
-
-        self._in_tuple = True
+        self._expression_type = None
         prev = starting_token.prev
         if (
                 prev and
                 prev.token_text in ('if', 'elif',) and
                 starting_token.token_text == '('
         ):
-            self._is_if_for = True
+            # if statements might begin with a tuple.  If it only contains a parenthetical
+            # expression, then we can ignore it.
+            self._expression_type = 'if'
         elif (
                 prev and
                 prev.token_type == tokenize.NAME and
                 starting_token.token_text == '('
         ):
-            self._in_tuple = False
+            self._expression_type = 'tuple'
         # else:
         #     print(f"Found list start, not if or elif or tuple, {prev} / {starting_token}")
 
@@ -205,8 +205,6 @@ class BracketContext:
 
     def encountered_separator(self, token: Token) -> List[Message]:
         """a list separator in the bracket."""
-        if self._is_if_for:
-            return []
 
         # if the separator is on a different line than the last token, then that's
         # a problem.
@@ -215,7 +213,7 @@ class BracketContext:
             self._messages.append(("leading-comma", [], token.start_line_no,))
 
         if self._current_token:
-            self._current_line_items.append(tuple(self._current_token))
+            self._current_line_items.append(self._current_token)
             self._item_count += 1
         self._current_token = []
 
@@ -225,11 +223,9 @@ class BracketContext:
 
     def encountered_token(self, token: Token) -> List[Message]:
         """An item token in the bracket"""
-        if self._is_if_for:
-            return []
-        if token.token_text == 'for':
-            # this is a [x for x in y] style list...
-            self._is_if_for = True
+        if token.token_text == 'for' and self._expression_type is None:
+            # this is most likely a [x for x in y] style list...
+            self._expression_type = 'for'
 
         self._current_token.append(token)
         self._previous_was_comma = False
@@ -238,16 +234,18 @@ class BracketContext:
 
     def encountered_newline(self, token: Token) -> List[Message]:
         """Newline in the bracket"""
-        if self._is_if_for:
-            return []
 
         # Don't look at the comma presence or adjust it.
 
         if self._current_token:
             self._current_line_items.append(self._current_token)
-            self._item_count += 1
+            # do not increment the number of discovered items until a separator
+            # or end-of-bracket is found.
 
         if self._config.one_item_per_line and len(self._current_line_items) > 1:
+            # if we are on an if or for statement, then we shouldn't have more than 1
+            # item in the bracket expression.  So we don't need to check for that
+            # case here.
             self._messages.append(("multiple-items-per-line", [], token.start_line_no))
         elif (
                 token.start_line_no == self._starting_token_line_no and
@@ -255,6 +253,7 @@ class BracketContext:
         ):
             # items on the same line as the open bracket, but no closing bracket on
             # that line.
+            # This is still valid for the "for" and "if" scenarios.
             self._messages.append(("multi-line-list-first-line-item", [], token.start_line_no))
 
         next_item = token.next
@@ -267,15 +266,24 @@ class BracketContext:
 
     def end(self, token: Token) -> List[Message]:
         """End of the bracket"""
-        if self._is_if_for:
+        if self._expression_type == 'for':
+            # For expressions don't need the comma check stuff.
             return []
 
         if self._current_token:
             self._current_line_items.append(self._current_token)
             self._item_count += 1
 
+        if self._expression_type == 'if':
+            # If the next token after the end is a ':', then this is a parenthetical
+            # expression to wrap a multi-line if condition.  These can ignore the
+            # trailing comma logic below.  There shouldn't be a newline after the ) before the :.
+            next_token = token.next
+            if next_token and next_token.token_text == ':':
+                return self._messages
+
         if (
-                self._in_tuple and
+                self._expression_type == 'tuple' and
                 self._config.comma_always_after_last_tuple and
                 not self._previous_was_comma
         ):
@@ -283,7 +291,9 @@ class BracketContext:
 
         # If the end token is on the same line number as the start brace, then
         # the syntax checking rules don't apply, except for the tuple stuff.
-        if token.start_line_no != self._starting_token_line_no:
+        # If the token is multi-line (like a concatenated string), then
+        # it will be considered for this logic, too.
+        if token.end_line_no != self._starting_token_line_no:
             if len(self._current_line_items) > 0:
                 self._messages.append(("multi-line-list-eol-close", [], token.start_line_no))
             prev = token.prev
@@ -291,10 +301,14 @@ class BracketContext:
                 prev = token
             if not self._previous_was_comma:
                 # Exceptional situation check.
-                if prev.token_type == tokenize.STRING and self._item_count == 1:
+                # If the item count is 1, then this is a potential situation of
+                # parenthesis to have a single line wrap.  For now, this does not
+                # enforce the need for a closing comma.
+                if self._item_count <= 1 and token.token_text == ')':
                     pass
                 else:
                     self._messages.append(("closing-comma", [], prev.start_line_no))
+                    # print(f"-- {self._item_count} items before ending {token}")
 
         return self._messages
 

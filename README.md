@@ -1,14 +1,8 @@
-# Petronia: A Python Tiling Window Manager
+# Petronia: A Cross-Platform Tiling Window Manager
 
-#### Or: How We Retrained Windows To Be Useful
+**This is the v3 documentation, which is still being developed.**
 
-## Version 3 In Development!
-
-[Because you didn't ask for it!](The_Great_V3.md)
-
-It is turning into a cross-platform window manager.
-
-## Version 2.2 Is Out!
+## Latest Release: v2.2
 
 * [petronia-2.2-x64.zip](https://github.com/groboclown/petronia/releases/download/v2.2/petronia-2.2-x64.zip)
     (12.4 MB) Pre-bundled Python 3.5 and Petronia in a handy-dandy 64-bit executable.
@@ -19,6 +13,8 @@ It is turning into a cross-platform window manager.
 * [petronia-2.2-src.zip](https://github.com/groboclown/petronia/archive/v2.2.zip) (< 1 MB)
     The source distribution, for users who want to see what's happening, and to use their
     own installed version of Python.
+
+## v2.2 Advertisement Video
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=SRBJnFcBuqI" target="_blank"><img src="http://img.youtube.com/vi/SRBJnFcBuqI/0.jpg" alt="Introduction to Petronia" width="240" height="180" border="10" /></a>
 
