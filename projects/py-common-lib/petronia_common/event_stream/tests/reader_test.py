@@ -3,9 +3,9 @@
 
 from typing import List, Tuple, Optional, Union, Dict, Any
 import unittest
-import io
+import asyncio
 import json
-from .util import CallbackCollector, ConstSizeChanger
+from .util import CallbackCollector, ConstSizeChanger, create_read_stream
 from .. import reader
 from .. import consts
 from ..defs import (
@@ -42,52 +42,62 @@ class ParseRawEventTest(unittest.TestCase):
 
     def test_data(self) -> None:
         """Standard stream parsing using data-driven tests"""
-        for name, byte_data, expected, left_over in PARSE_DATA:
-            with self.subTest(name=name):
-                # print(f"Parsing [{repr(byte_data)}]")
-                stream = io.BytesIO(byte_data)
-                actual = reader.parse_raw_event(reader.MarkedStreamReader(stream))
-                # print(f" - {actual}")
-                self.assert_raw_event_equal(expected[0], actual[0])
-                if not expected[1]:
-                    self.assertIsNone(actual[1])
-                else:
-                    error = verified_not_none(actual[1], self)
-                    self.assertEqual(
-                        list(error.messages()),
-                        expected[1],
-                    )
 
-                self.assertEqual(actual[2], expected[2])
-                self.assertEqual(stream.read(), left_over)
+        async def do_test(
+                byte_data: bytes,
+                expected: Tuple[Optional[ExpectedEvent], List[UserMessage], bool],
+                left_over: bytes,
+        ) -> None:
+            stream = create_read_stream(byte_data)
+            actual = await reader.parse_raw_event(reader.MarkedStreamReader(stream))
+            remaining = await stream.read()
+            await self.assert_raw_event_equal(expected[0], actual[0])
+            if not expected[1]:
+                self.assertIsNone(actual[1])
+            else:
+                error = verified_not_none(actual[1], self)
+                self.assertEqual(
+                    list(error.messages()),
+                    expected[1],
+                )
+
+            self.assertEqual(expected[2], actual[2])
+            self.assertEqual(left_over, remaining)
+
+        for test_data in PARSE_DATA:
+            with self.subTest(name=test_data[0]):
+                asyncio.run(do_test(test_data[1], test_data[2], test_data[3]))
 
     def test_read_event_stream__2_packets(self) -> None:
         """Ensures that 2 packets are read in order and sent to the callback."""
-        byte_data = (
-            PACKET_MARKER +
-            b'e' + as_bin_str('event-1') +
-            b's' + as_bin_str('source-1') +
-            b't' + as_bin_str('target-1') +
-            b'[\0\0\1x' +
-            PACKET_MARKER +
-            b'e' + as_bin_str('event-2') +
-            b's' + as_bin_str('source-2') +
-            b't' + as_bin_str('target-2') +
-            b'[\0\0\1y'
-        )
-        collector = CallbackCollector()
-        collector.execute(byte_data)
-        event1 = collector.next_as_raw_event(self)
-        self.assert_raw_event_equal(
-            ("event-1", "source-1", "target-1", b'x'),
-            event1,
-        )
-        event2 = collector.next_as_raw_event(self)
-        self.assert_raw_event_equal(
-            ("event-2", "source-2", "target-2", b'y'),
-            event2,
-        )
-        collector.next_as_eof(self)
+        async def do_test() -> None:
+            byte_data = (
+                PACKET_MARKER +
+                b'e' + as_bin_str('event-1') +
+                b's' + as_bin_str('source-1') +
+                b't' + as_bin_str('target-1') +
+                b'[\0\0\1x' +
+                PACKET_MARKER +
+                b'e' + as_bin_str('event-2') +
+                b's' + as_bin_str('source-2') +
+                b't' + as_bin_str('target-2') +
+                b'[\0\0\1y'
+            )
+            collector = CallbackCollector()
+            await collector.execute(byte_data)
+            event1 = collector.next_as_raw_event(self)
+            await self.assert_raw_event_equal(
+                ("event-1", "source-1", "target-1", b'x'),
+                event1,
+            )
+            event2 = collector.next_as_raw_event(self)
+            await self.assert_raw_event_equal(
+                ("event-2", "source-2", "target-2", b'y'),
+                event2,
+            )
+            collector.next_as_eof(self)
+
+        asyncio.run(do_test())
 
     def test_read_event_stream__2_packets_listener_stop(self) -> None:
         """Ensures that, when an event callback returns True, the packet reading stops."""
@@ -105,19 +115,23 @@ class ParseRawEventTest(unittest.TestCase):
         )
         collector = CallbackCollector()
         collector.event_responses.append(True)
-        collector.execute(byte_data)
-        event1 = collector.next_as_raw_event(self)
-        self.assert_raw_event_equal(
-            ("event-1", "source-1", "target-1", b'x'),
-            event1,
-        )
-        collector.is_empty()
+
+        async def do_test() -> None:
+            await collector.execute(byte_data)
+            event1 = collector.next_as_raw_event(self)
+            await self.assert_raw_event_equal(
+                ("event-1", "source-1", "target-1", b'x'),
+                event1,
+            )
+            collector.is_empty()
+
+        asyncio.run(do_test())
 
     def test_read_event_stream__error(self) -> None:
         """Checks that, if a stream error is encountered, it is sent to the error callback."""
         byte_data = PACKET_MARKER + b'x'
         collector = CallbackCollector()
-        collector.execute(byte_data)
+        asyncio.run(collector.execute(byte_data))
         error = collector.next_as_error(self)
         self.assertEqual(
             "(UserMessage('Reached end-of-stream during packet read', ),)",
@@ -132,7 +146,7 @@ class ParseRawEventTest(unittest.TestCase):
         byte_data = PACKET_MARKER + b'xyz' + PACKET_MARKER + b'abc' + PACKET_MARKER + b'123'
         collector = CallbackCollector()
         collector.error_responses.extend([False, True, False])
-        collector.execute(byte_data)
+        asyncio.run(collector.execute(byte_data))
         error1 = collector.next_as_error(self)
         self.assertEqual(
             "(UserMessage('Unexpected data in the event stream', ),)",
@@ -179,34 +193,43 @@ class ParseRawEventTest(unittest.TestCase):
         )
         collector = CallbackCollector()
         try:
-            collector.execute(byte_data)
+            asyncio.run(collector.execute(byte_data))
             self.fail('Did not generate error.')  # pragma: no cover
         except RuntimeError as err:
             self.assertEqual('Illegal out-of-order event stream read', str(err))
 
     def test_get_empty_reader(self) -> None:
         """Checks the empty reader directly"""
-        stream = reader.MarkedStreamReader(io.BytesIO(b'12'))
-        reader_callback = reader.get_reader(stream, 0)
-        self.assertEqual(b'', reader_callback())
+        async def do_test() -> None:
+            stream = reader.MarkedStreamReader(create_read_stream(b'12'))
+            reader_callback = await reader.get_reader(stream, 0)
+            self.assertEqual(b'', await reader_callback())
+            self.assertEqual(b'12', await stream.marked_read(10))
+        asyncio.run(do_test())
 
     def test_get_static_reader(self) -> None:
         """Checks the static reader directly"""
-        stream = reader.MarkedStreamReader(io.BytesIO(b'123'))
-        reader_callback = reader.get_reader(stream, 2)
-        self.assertEqual(b'1', reader_callback(1))
-        self.assertEqual(b'2', reader_callback(1))
-        self.assertEqual(b'', reader_callback(1))
+        async def do_test() -> None:
+            stream = reader.MarkedStreamReader(create_read_stream(b'123'))
+            reader_callback = await reader.get_reader(stream, 2)
+            self.assertEqual(b'1', await reader_callback(1))
+            self.assertEqual(b'2', await reader_callback(1))
+            self.assertEqual(b'', await reader_callback(1))
+            self.assertEqual(b'3', await stream.marked_read(10))
+        asyncio.run(do_test())
 
     def test_piped_reader(self) -> None:
         """Checks the piped reader directly"""
-        stream = reader.MarkedStreamReader(io.BytesIO(b'123'))
-        reader_callback = reader.piped_reader(stream, 2)
-        self.assertEqual(b'1', reader_callback(1))
-        self.assertEqual(b'2', reader_callback(1))
-        self.assertEqual(b'', reader_callback(1))
+        async def do_test() -> None:
+            stream = reader.MarkedStreamReader(create_read_stream(b'123'))
+            reader_callback = reader.piped_reader(stream, 2)
+            self.assertEqual(b'1', await reader_callback(1))
+            self.assertEqual(b'2', await reader_callback(1))
+            self.assertEqual(b'', await reader_callback(1))
+            self.assertEqual(b'3', await stream.marked_read(10))
+        asyncio.run(do_test())
 
-    def assert_raw_event_equal(
+    async def assert_raw_event_equal(
             self, expected: Optional[ExpectedEvent], actual: Optional[RawEvent],
     ) -> None:
         """Ensures the raw events are equal."""
@@ -224,7 +247,7 @@ class ParseRawEventTest(unittest.TestCase):
             self.assertTrue(is_raw_event_binary(actual))
             self.assertFalse(is_raw_event_object(actual))
             data_reader = as_raw_event_binary_data_reader(actual)
-            self.assertEqual(expected[3], data_reader(-1))
+            self.assertEqual(expected[3], await data_reader(-1))
         else:
             # json
             self.assertTrue(is_raw_event_object(actual))

@@ -1,6 +1,6 @@
 
 """
-Handles writing packets to a binary stream.
+Handles writing packets to a binary asyncio stream.
 """
 
 # This file is an exception for many of the "code simplification" rules,
@@ -9,7 +9,7 @@ Handles writing packets to a binary stream.
 # pylint: disable=R0913
 # pylint: disable=R0914
 
-from typing import Union, BinaryIO
+from typing import Union, Protocol
 import json
 from . import consts
 from .defs import RawBinaryReader, MarshalledEventObject
@@ -17,8 +17,17 @@ from ..util import StdRet, enforce_all, RET_OK_NONE
 from ..util import i18n as _
 
 
-def write_binary_event_to_stream(
-        stream: BinaryIO,
+class BinaryWriter(Protocol):
+    """A protocol for what the event writer needs.  Just a simple
+    write method that takes bytes.  The writer doesn't need to be
+    an async writer or any other fancy thing."""
+
+    def write(self, data: bytes) -> None:
+        """Standard write method."""
+
+
+async def write_binary_event_to_stream(
+        stream: BinaryWriter,
         event_id: str,
         source_id: str,
         target_id: str,
@@ -123,7 +132,7 @@ def write_binary_event_to_stream(
     else:
         remaining = binary_blob_size
         while remaining > 0:
-            data = binary_blob(MAX_READ_SIZE)
+            data = await binary_blob(MAX_READ_SIZE)
             if not data:
                 # fill in the rest of the packet data to avoid
                 # stream errors
@@ -138,8 +147,8 @@ def write_binary_event_to_stream(
     return RET_OK_NONE
 
 
-def write_object_event_to_stream(
-        stream: BinaryIO,
+async def write_object_event_to_stream(
+        stream: BinaryWriter,
         event_id: str,
         source_id: str,
         target_id: str,
@@ -148,6 +157,9 @@ def write_object_event_to_stream(
     """
     The rigorous event writing routine.  It strongly enforces the
     stream writing rules.
+
+    This does not strictly need to be async, but it is done so for
+    symmetry with the other writer.
 
     :param event_object:
     :param stream:

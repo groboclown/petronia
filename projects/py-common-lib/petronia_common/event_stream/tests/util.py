@@ -3,13 +3,13 @@
 Common stream test helpers.
 """
 
-from typing import List, Tuple, Optional, cast
+from typing import List, Tuple, Optional, Callable, Coroutine, Any, cast
 import unittest
-import io
+import asyncio
 from .. import reader
 from .. import consts
 from ..defs import RawEvent
-from ...util import PetroniaReturnError
+from ...util import PetroniaReturnError, T
 from ...util.test_helpers import verified_not_none
 
 
@@ -49,14 +49,14 @@ class CallbackCollector:
         self.event_responses = event_responses or []
         self.error_responses = error_responses or []
 
-    def execute(self, data: bytes) -> None:
+    async def execute(self, data: bytes) -> None:
         """Runs the reader with the internal callback functions"""
-        reader.read_event_stream(
-            io.BytesIO(data),
+        await reader.read_event_stream(
+            create_read_stream(data),
             self.on_event, self.on_end_of_stream, self.on_error,
         )
 
-    def on_event(self, event: RawEvent) -> bool:
+    async def on_event(self, event: RawEvent) -> bool:
         """`event packet received` callback function"""
         self.actual.append((event, None, False,))
         ret = False
@@ -97,3 +97,40 @@ class CallbackCollector:
     def is_empty(self) -> bool:
         """Are there any events left?"""
         return len(self.actual) <= 0
+
+
+class SimpleBinaryWriter:
+    """Simplest implementation of a binary writer."""
+    def __init__(self) -> None:
+        self.__value = b''
+
+    def write(self, data: bytes) -> None:
+        """Implement the binary writer protocol."""
+        self.__value += data
+
+    def getvalue(self) -> bytes:
+        """Fetch the data written to this writer."""
+        return self.__value
+
+
+def create_read_stream(data: bytes) -> asyncio.StreamReader:
+    """Create a stream reader that returns only the given bytes of data."""
+    ret = asyncio.StreamReader()
+    ret.feed_data(data)
+    ret.feed_eof()
+    return ret
+
+
+def async_run_with_stream(
+        data: bytes, func: Callable[[asyncio.StreamReader], Coroutine[Any, Any, T]]
+) -> Tuple[T, bytes]:
+    """Run a function that takes a StreamReader, using the data passed in,
+    and returns the result."""
+    async def run_it() -> Tuple[T, bytes]:
+        stream = create_read_stream(data)
+        res = await func(stream)
+        rest = b''
+        while not stream.at_eof():
+            rest += await stream.read()  # pragma no cover
+        return res, rest
+    return asyncio.run(run_it())

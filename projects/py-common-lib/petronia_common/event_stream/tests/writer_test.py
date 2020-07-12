@@ -2,9 +2,10 @@
 """Tests for the event writer module."""
 
 import unittest
+import asyncio
 import io
 import re
-from .util import ConstSizeChanger
+from .util import ConstSizeChanger, SimpleBinaryWriter
 from .. import writer, consts
 from ...util.error import PetroniaReturnError
 from ...util.message import i18n, UserMessage
@@ -20,15 +21,15 @@ class WriterTest(unittest.TestCase):
 
     def test_write_binary_event_to_stream_1(self) -> None:
         """in-memory standard write."""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out,
             'evt1',
             'src1',
             'tgt1',
             2,
             b'ab',
-        )
+        ))
         self.assertIsNotNone(res)
         self.assertTrue(res.ok)
         self.assertIsNone(res.value)
@@ -39,10 +40,10 @@ class WriterTest(unittest.TestCase):
 
     def test_write_binary_event_to_stream__from_func(self) -> None:
         """Runs packet writing when reading from a data function."""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', 'tgt1', 10, io_reader(b'0123456789'),
-        )
+        ))
         self.assertIsNotNone(res)
         self.assertTrue(res.ok)
         self.assertIsNone(res.value)
@@ -55,10 +56,10 @@ class WriterTest(unittest.TestCase):
         """Ensures that if the stream size doesn't match what is read from the
         packet data source, the correct number of bytes are output, and that
         an error is returned."""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', 'tgt1', 10, io_reader(b'0123'),
-        )
+        ))
         self.assertIsNotNone(res)
         self.assertFalse(res.ok)
         self.assertIsNone(res.value)
@@ -74,10 +75,10 @@ class WriterTest(unittest.TestCase):
     def test_write_binary_event_to_stream__size_mismatch(self) -> None:
         """Ensures that if the stream size doesn't match what is passed in an
         argument, then a packet isn't generated and an error is returned."""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', 'tgt1', 5, b'',
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         self.assertEqual(
@@ -91,30 +92,30 @@ class WriterTest(unittest.TestCase):
 
     def test_write_binary_event_to_stream__event_unicode(self) -> None:
         """Ensures that invalid unicode characters generate an appropriate error"""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out, '\ud800', 'src1', 'tgt1', 0, b'',
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         self._assert_unicode_error(res.valid_error, 'event-id')
 
     def test_write_binary_event_to_stream__source_unicode(self) -> None:
         """Ensures that invalid unicode characters generate an appropriate error"""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out, 'evt1', '\ud800', 'tgt1', 0, b'',
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         self._assert_unicode_error(res.valid_error, 'source-id')
 
     def test_write_binary_event_to_stream__target_unicode(self) -> None:
         """Ensures that invalid unicode characters generate an appropriate error"""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out, 'evt1', 'src1', '\ud800', 0, b'',
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         self._assert_unicode_error(res.valid_error, 'target-id')
@@ -131,10 +132,10 @@ class WriterTest(unittest.TestCase):
 
     def test_write_binary_event_to_stream__size_constraints_all(self) -> None:
         """Checks that invalid size constraints generates the right error messages."""
-        out = io.BytesIO()
-        res = writer.write_binary_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_binary_event_to_stream(
             out, '', '', '', consts.MAX_BLOB_SIZE + 1, b'01234567890',
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         messages = res.valid_error.messages()
@@ -168,14 +169,14 @@ class WriterTest(unittest.TestCase):
 
     def test_write_object_event_to_stream_1(self) -> None:
         """Ensures that the standard write-to-stream for a normal object packet works."""
-        out = io.BytesIO()
-        res = writer.write_object_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_object_event_to_stream(
             out,
             'evt1',
             'src1',
             'tgt1',
             {"x": "y"},
-        )
+        ))
         self.assertIsNotNone(res)
         self.assertTrue(res.ok)
         self.assertIsNone(res.value)
@@ -186,10 +187,10 @@ class WriterTest(unittest.TestCase):
 
     def test_write_object_event_to_stream__json_dump_problem(self) -> None:
         """Ensures that problems during dumping json objects are caught."""
-        out = io.BytesIO()
-        res = writer.write_object_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_object_event_to_stream(
             out, '\ud800', 'src1', 'tgt1', {"x": re.compile('x').match('x')},
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         messages = res.valid_error.messages()
@@ -200,30 +201,30 @@ class WriterTest(unittest.TestCase):
 
     def test_write_object_event_to_stream__event_unicode(self) -> None:
         """Ensures that invalid unicode characters generate an appropriate error"""
-        out = io.BytesIO()
-        res = writer.write_object_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_object_event_to_stream(
             out, '\ud800', 'src1', 'tgt1', {},
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         self._assert_unicode_error(res.valid_error, 'event-id')
 
     def test_write_object_event_to_stream__source_unicode(self) -> None:
         """Ensures that invalid unicode characters generate an appropriate error"""
-        out = io.BytesIO()
-        res = writer.write_object_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_object_event_to_stream(
             out, 'evt1', '\ud800', 'tgt1', {},
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         self._assert_unicode_error(res.valid_error, 'source-id')
 
     def test_write_object_event_to_stream__target_unicode(self) -> None:
         """Ensures that invalid unicode characters generate an appropriate error"""
-        out = io.BytesIO()
-        res = writer.write_object_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_object_event_to_stream(
             out, 'evt1', 'src1', '\ud800', {},
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         self._assert_unicode_error(res.valid_error, 'target-id')
@@ -231,10 +232,10 @@ class WriterTest(unittest.TestCase):
     def test_write_object_event_to_stream__size_constraints_all(self) -> None:
         """Ensures that, when writing an object stream whose values go beyond the
         size limits, correct errors are reported."""
-        out = io.BytesIO()
-        res = writer.write_object_event_to_stream(
+        out = SimpleBinaryWriter()
+        res = asyncio.run(writer.write_object_event_to_stream(
             out, '', '', '', {"012345678901234567890123456": "012345678901234567890123456"},
-        )
+        ))
         self.assertEqual(b'', out.getvalue())
         self.assertFalse(res.ok)
         messages = res.valid_error.messages()
@@ -273,7 +274,7 @@ def io_reader(buff: bytes) -> writer.RawBinaryReader:
     """Simple binary reader implementation"""
     inp = io.BytesIO(buff)
 
-    def reader(max_read_count: int = -1) -> bytes:
+    async def reader(max_read_count: int = -1) -> bytes:
         return inp.read(max_read_count)
 
     return reader

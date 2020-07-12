@@ -3,13 +3,13 @@
 Type definitions for the event stream.
 """
 
-from typing import Tuple, Dict, Union, Any, cast, Protocol
+from typing import Tuple, Dict, Union, Protocol, Coroutine, Any, cast
 
 
 # RawBinaryReader = Callable[[Optional[int]], bytes]
 class RawBinaryReader(Protocol):
     """Function to read binary data, up to a maximum number of bytes per call."""
-    def __call__(self, max_read_count: int = -1) -> bytes: ...
+    def __call__(self, max_read_count: int = -1) -> Coroutine[Any, Any, bytes]: ...
 
 
 # What it should be ...
@@ -75,6 +75,10 @@ def as_raw_event_object_data(raw_event: RawEvent) -> MarshalledEventObject:
 
 def as_raw_event_binary_data_reader(raw_event: RawEvent) -> RawBinaryReader:
     """Performs an assertion (!) that the type is indeed a binary blob, and
-    returns that blob's reader.  You MUST check that it's a binary blob type before calling."""
+    returns that blob's reader.  You MUST check that it's a binary blob type before calling.
+    The returned reader must be read entirely before the event processing can continue.
+    The reader can return any number of bytes, regardless of the requested number.
+    Only when the data returned is empty will it indicate a stream end.
+    """
     assert raw_event[3] is False
     return cast(RawEventBinary, raw_event)[4]

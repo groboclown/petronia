@@ -2,8 +2,61 @@
 # type: ignore
 
 """
-PyLint plugin to ensure the Petronia's Golang style of trailing commas
-is enforced.
+An extension to PyLint.  It enforces a coding style similar to Golang in
+regards to multi-line list expressions.
+
+To add it to your run of PyLint, add the file's directory to your `PYTHONPATH`
+environment variable, and run:
+
+```bash
+python3 -m pylint \
+    --load-plugins trailing_commas \
+    my_packages to_lint
+```
+
+It encourages a coding style like:
+
+```python
+def my_func(
+        arg_1,
+        arg_2,
+):
+    # Lists, tuples, dictionaries, sets, and function arguments, if multi-line,
+    # need to include a comma after the last item.
+    x = [
+        "a",
+        "b-c",
+        "d-e-f",
+    ]
+    # list constructor expressions are recognized and don't need a comma.
+    y = [
+        v.upper()
+        for value in x
+    ]
+    if (
+        # if, elif, and other multi-line statements that aren't lists are
+        # identified as such, and don't need a trailing comma
+        len(arg_1) > 1 and
+        len(arg_2) < 10
+    ):
+        return x
+    # Returning items on the same line is fine, and you can use the option
+    # 'comma-always-after-last-tuple' to require tuples to have a final
+    # comma.
+    return (len(x), len(y), "string-value",)
+```
+
+This has two options that can be set:
+
+    _ 'comma-always-after-last-tuple' : set to "y" or "n".  If set, then
+        a comma is always required after the last item in a tuple, regardless
+        of whether it is multi-line or not.  The linter makes a best effort
+        to discover whether a parenthetical expression is a tuple or not.
+    _ 'one-item-per-line' : set to "y" or "n".  If set, then the extension
+        reports a problem if a multi-line list has more than one item on a
+        line.
+
+This was made as part of the Petronia project.
 """
 
 from typing import List, Tuple, Sequence, Optional
@@ -401,15 +454,6 @@ class TrailingCommaChecker(BaseTokenChecker):
     }
 
     options = (
-        (
-            'backslash-continue-strings',
-            {
-                'default': False,
-                "type": "yn",
-                "metavar": "<y_or_n>",
-                "help": "Require strings broken over lines to use \\ to end the line.",
-            },
-        ),
         (
             'comma-always-after-last-tuple',
             {

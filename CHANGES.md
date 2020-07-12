@@ -4,7 +4,8 @@
 
 ### Overview
 
-Complete rewrite of Petronia.  It now supports multiple platforms.
+Complete rewrite of Petronia.  It now supports multiple platforms.  There is no backwards compatibility or upgrade support.  Individual changes are not listed here.  See the documentation for details of how it's supposed to be used.
+
 
 ## :: v2.2.1 ::
 
