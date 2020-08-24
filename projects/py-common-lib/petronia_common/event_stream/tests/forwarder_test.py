@@ -61,7 +61,7 @@ class StreamForwarderTest(unittest.TestCase):
         async def do_test() -> None:
             reader = static_reader(b'123')
             res = await forwarder.stream_forwarder(
-                'e1', 's1', 't1',
+                'e1', 's1', 't1', 3,
                 reader, [], 10,
             )
             self.assertEqual([], res)
@@ -76,7 +76,7 @@ class StreamForwarderTest(unittest.TestCase):
         async def do_test() -> None:
             reader = static_reader(b'123')
             res = await forwarder.stream_forwarder(
-                'e1', 's1', 't1',
+                'e1', 's1', 't1', 3,
                 reader, [target_1], 1,
             )
             self.assertEqual([], res)
@@ -94,7 +94,7 @@ class StreamForwarderTest(unittest.TestCase):
         async def do_test() -> None:
             reader = static_reader(b'123')
             res = await forwarder.stream_forwarder(
-                'e1', 's1', 't1',
+                'e1', 's1', 't1', 3,
                 reader, [target_1, target_2], 1,
             )
             self.assertEqual([], res)
@@ -128,7 +128,7 @@ class MockTarget(forwarder.EventForwarderTarget):
         self.__test.assertEqual(source_id, args[1])
         self.__test.assertEqual(target_id, args[2])
 
-    def can_handle(self, event_id: str, source_id: str, target_id: str) -> bool:
+    def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         """Callback"""
         print("== called can_handle")
         self.call_stack.append(('can_handle', [event_id, source_id, target_id]))
@@ -180,7 +180,7 @@ class MockTarget(forwarder.EventForwarderTarget):
         self.__test.assertEqual(target_id, args[2])
         self.__test.assertEqual(data, args[3])
 
-    async def handle(self, event: RawEvent) -> bool:
+    async def consume(self, event: RawEvent) -> bool:
         """Callback"""
         print("== called handle")
         if is_raw_event_binary(event):

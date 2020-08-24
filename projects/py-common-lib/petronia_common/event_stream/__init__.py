@@ -14,6 +14,7 @@ from .defs import (
     raw_event_id,
     raw_event_target_id,
     raw_event_source_id,
+    raw_event_binary_size,
     as_raw_event_binary_data_reader,
     as_raw_event_object_data,
     is_raw_event_binary,

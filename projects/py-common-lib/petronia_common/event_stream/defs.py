@@ -6,7 +6,7 @@ Type definitions for the event stream.
 from typing import Tuple, Dict, Union, Protocol, Coroutine, Any, cast
 
 
-# RawBinaryReader = Callable[[Optional[int]], bytes]
+# RawBinaryReader = Callable[[Optional[int]], Coroutine[bytes]]
 class RawBinaryReader(Protocol):
     """Function to read binary data, up to a maximum number of bytes per call."""
     def __call__(self, max_read_count: int = -1) -> Coroutine[Any, Any, bytes]: ...
@@ -21,7 +21,7 @@ class RawBinaryReader(Protocol):
 # What non-cyclic type definitions require...  sigh.
 MarshalledEventObject = Dict[str, Any]
 RawEventObject = Tuple[str, str, str, bool, MarshalledEventObject]
-RawEventBinary = Tuple[str, str, str, bool, RawBinaryReader]
+RawEventBinary = Tuple[str, str, str, bool, int, RawBinaryReader]
 RawEvent = Union[RawEventObject, RawEventBinary]
 
 
@@ -34,11 +34,12 @@ def to_raw_event_object(
 
 
 def to_raw_event_binary(
-        event_id: str, source_id: str, target_id: str, binary_data_reader: RawBinaryReader,
+        event_id: str, source_id: str, target_id: str, blob_size: int,
+        binary_data_reader: RawBinaryReader,
 ) -> RawEventBinary:
     """Returns the binary blob event type with named arguments.
     Makes tuple creation a snap!"""
-    return event_id, source_id, target_id, False, binary_data_reader
+    return event_id, source_id, target_id, False, blob_size, binary_data_reader
 
 
 def raw_event_id(raw_event: RawEvent) -> str:
@@ -73,6 +74,14 @@ def as_raw_event_object_data(raw_event: RawEvent) -> MarshalledEventObject:
     return cast(RawEventObject, raw_event)[4]
 
 
+def raw_event_binary_size(raw_event: RawEvent) -> int:
+    """Performs an assertion (!) that the type is indeed a binary blob, and returns
+    the binary blob's size, in bytes.  You MUST check that it's a binary blob type before
+    calling."""
+    assert raw_event[3] is False
+    return cast(RawEventBinary, raw_event)[4]
+
+
 def as_raw_event_binary_data_reader(raw_event: RawEvent) -> RawBinaryReader:
     """Performs an assertion (!) that the type is indeed a binary blob, and
     returns that blob's reader.  You MUST check that it's a binary blob type before calling.
@@ -81,4 +90,4 @@ def as_raw_event_binary_data_reader(raw_event: RawEvent) -> RawBinaryReader:
     Only when the data returned is empty will it indicate a stream end.
     """
     assert raw_event[3] is False
-    return cast(RawEventBinary, raw_event)[4]
+    return cast(RawEventBinary, raw_event)[5]

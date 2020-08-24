@@ -6,13 +6,15 @@ The constructors are allowed to have "too many arguments" (according to pylint),
 because they are expected to only be invoked from within these local modules.
 """
 
-from typing import Sequence, Iterable, List, Set, Literal, Optional
+from typing import Sequence, Iterable, List, Set, Dict, Mapping, Literal, Optional
 from abc import ABC
 import re
 from .defs import AbcConfigType
 from .event_schema import EventType
 from .version import ExtensionVersion, cmp_extension
-from ...util import PetroniaReturnError, UserMessage, possible_error
+from ...util import (
+    PetroniaReturnError, UserMessage, possible_error, readonly_dict, STRING_EMPTY_TUPLE,
+)
 from ...util import i18n as _
 
 ExtensionType = Literal["impl", "api", "standalone"]
@@ -61,6 +63,47 @@ class ExtensionDependency:
         if self.__below and cmp_extension(self.__below, version) <= 0:
             return False
         return True
+
+
+class ExtensionRuntime:
+    """The description of how the extension runtime environment should be constructed.
+    This is a request, which the execution environment may deny."""
+    __slots__ = ('__launcher', '__permissions',)
+
+    def __init__(
+            self,
+            launcher: str,
+            permissions: Mapping[str, List[str]],
+    ) -> None:
+        self.__launcher = launcher
+        perm_copy: Dict[str, Sequence[str]] = {}
+        for key, values in permissions.items():
+            perm_copy[key] = tuple(values)
+        self.__permissions = readonly_dict(perm_copy)
+
+    def __repr__(self) -> str:
+        return (
+            f'ExtensionRuntime(launcher={self.launcher}, permissions={self.requested_permissions})'
+        )
+
+    @property
+    def launcher(self) -> str:
+        """The foreman-specific launcher name."""
+        return self.__launcher
+
+    @property
+    def requested_permissions(self) -> Mapping[str, Sequence[str]]:
+        """The requested actions and resources for those actions, to which the extension wants
+        to be granted access."""
+        return self.__permissions
+
+    def requested_actions(self) -> Iterable[str]:
+        """List of all declared actions for which this extension requests access."""
+        return self.__permissions.keys()
+
+    def action_resources(self, action: str) -> Sequence[str]:
+        """The list of resources requested access to for the given action."""
+        return self.__permissions.get(action, STRING_EMPTY_TUPLE)
 
 
 class AbcExtensionMetadata(AbcConfigType, ABC):
@@ -198,7 +241,7 @@ class ApiExtensionMetadata(AbcExtensionMetadata):
 
 class ImplExtensionMetadata(AbcExtensionMetadata):
     """Implementation of an API."""
-    __slots__ = ('__implements',)
+    __slots__ = ('__implements', '__runtime')
 
     def __init__(  # pylint: disable=R0913
             self,
@@ -210,20 +253,30 @@ class ImplExtensionMetadata(AbcExtensionMetadata):
             licenses: Iterable[str],
             authors: Iterable[str],
             implements: Iterable[ExtensionDependency],
+            runtime: ExtensionRuntime,
     ) -> None:
         """Constructor."""
         AbcExtensionMetadata.__init__(
             self, name, version, about, description, "api", depends, licenses, authors,
         )
         self.__implements = tuple(implements)
+        self.__runtime = runtime
 
     def __repr__(self) -> str:
-        return f'ImplExtensionMetadata({self._sub_repr()}, implements={repr(self.implements)})'
+        return (
+            f'ImplExtensionMetadata({self._sub_repr()}, implements={repr(self.implements)}, '
+            f'runtime={repr(self.runtime)})'
+        )
 
     @property
     def implements(self) -> Sequence[ExtensionDependency]:
         """Lists of APIs this extension implements."""
         return self.__implements
+
+    @property
+    def runtime(self) -> ExtensionRuntime:
+        """The runtime environment description."""
+        return self.__runtime
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
@@ -235,7 +288,7 @@ class ImplExtensionMetadata(AbcExtensionMetadata):
 
 class StandAloneExtensionMetadata(AbcExtensionMetadata):
     """A stand-alone extension, which may use APIs, but doesn't implement them."""
-    __slots__ = ()
+    __slots__ = ('__runtime',)
 
     def __init__(  # pylint: disable=R0913
             self,
@@ -246,14 +299,21 @@ class StandAloneExtensionMetadata(AbcExtensionMetadata):
             depends: Iterable[ExtensionDependency],
             licenses: Iterable[str],
             authors: Iterable[str],
+            runtime: ExtensionRuntime,
     ) -> None:
         """Standalone extension constructor."""
         AbcExtensionMetadata.__init__(
             self, name, version, about, description, "standalone", depends, licenses, authors,
         )
+        self.__runtime = runtime
 
     def __repr__(self) -> str:
-        return f'StandAloneExtensionMetadata({self._sub_repr()})'
+        return f'StandAloneExtensionMetadata({self._sub_repr()}, runtime={repr(self.runtime)})'
+
+    @property
+    def runtime(self) -> ExtensionRuntime:
+        """The runtime environment."""
+        return self.__runtime
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []

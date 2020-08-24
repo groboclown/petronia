@@ -12,7 +12,10 @@ here are the only exception to the assertion rules.
 # mypy: allow-any-generics
 
 from __future__ import annotations
-from typing import Sequence, Iterable, List, Optional, Generic, Any, cast, TYPE_CHECKING
+from typing import (
+    Sequence, Iterable, List, Callable, Union, Optional, Generic, Any, cast, TYPE_CHECKING,
+)
+import collections
 from .memory import T, T_co, V, EMPTY_TUPLE
 from .message import I18n, UserMessage, UserMessageData
 
@@ -20,7 +23,7 @@ from .message import I18n, UserMessage, UserMessageData
 if TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Final, final
 else:
-    from typing import Final, final
+    from typing import Final, final  # pylint: disable=ungrouped-imports
 
 
 class PetroniaReturnError:
@@ -234,16 +237,32 @@ def possible_error(
     return SimplePetroniaReturnError(*msgs)
 
 
+ValidationType = Union[StdRet[Any], Callable[[], StdRet[Any]]]
+
+
 def collect_errors_from(
-        *values: StdRet[Any],
+        *values: Union[ValidationType, Iterable[ValidationType]],
 ) -> Optional[PetroniaReturnError]:
     """Collects the return objects, and if there are any errors or messages,
     including errors without messages, then an error object is returned.
     Otherwise, a None is returned."""
     messages: List[UserMessage] = []
-    for value in values:
-        if value.error:
-            messages.extend(value.valid_error.messages())
+    value: ValidationType
+    for validation_value in values:
+        if isinstance(validation_value, collections.abc.Iterable):
+            for value in validation_value:
+                if callable(value):
+                    value = value()
+                assert isinstance(value, StdRet)
+                if value.has_error:
+                    messages.extend(value.valid_error.messages())
+        else:
+            value = validation_value
+            if callable(value):
+                value = value()
+            assert isinstance(value, StdRet)
+            if value.has_error:
+                messages.extend(value.valid_error.messages())
     return possible_error(messages)
 
 

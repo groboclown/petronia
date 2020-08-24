@@ -11,4 +11,6 @@ configuration that best suits their needs.
 """
 
 from .foreman import ForemanConfig
+from .platform import SUPPORTED_PLATFORMS, PlatformSettings, detect_platform
+from .launcher import LauncherConfig
 from .reader import read_configuration_file

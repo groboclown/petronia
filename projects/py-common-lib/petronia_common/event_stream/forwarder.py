@@ -3,12 +3,13 @@
 A streaming reader that forks the read to many streams.
 """
 
-from typing import List, Coroutine, Optional, Any
+from typing import List, Callable, Coroutine, Optional, Any
 import asyncio
 from ..util import PetroniaReturnError, EMPTY_LIST
 from .defs import (
     RawEvent, RawBinaryReader,
     raw_event_id, raw_event_source_id, raw_event_target_id,
+    raw_event_binary_size,
     is_raw_event_object, is_raw_event_binary,
     as_raw_event_binary_data_reader,
     to_raw_event_binary,
@@ -21,7 +22,7 @@ READ_SIZE_LIMIT = 4 * 1024
 
 class EventForwarderTarget:
     """Interface for targets of events."""
-    def can_handle(self, event_id: str, source_id: str, target_id: str) -> bool:
+    def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         """Can this target handle the given event?"""
         raise NotImplementedError()  # pragma no cover
 
@@ -35,8 +36,8 @@ class EventForwarderTarget:
         used by the forwarder."""
         raise NotImplementedError()  # pragma no cover
 
-    async def handle(self, event: RawEvent) -> bool:
-        """Called if the `can_handle` method returns True.
+    async def consume(self, event: RawEvent) -> bool:
+        """Called if the `can_consume` method returns True.
         If this returns True, then the target will be de-registered."""
         raise NotImplementedError()  # pragma no cover
 
@@ -47,10 +48,14 @@ class EventForwarder:
 
     It's designed to not pass partial data to the targets.
     """
-    __slots__ = ('__source', '__targets', '__pending_targets', '__alive')
+    __slots__ = ('__source', '__targets', '__pending_targets', '__filter', '__alive')
 
-    def __init__(self, source: asyncio.StreamReader) -> None:
+    def __init__(
+            self, source: asyncio.StreamReader,
+            event_filter: Optional[Callable[[str, str, str], bool]] = None,
+    ) -> None:
         self.__source = source
+        self.__filter = event_filter
         self.__targets: List[EventForwarderTarget] = []
         self.__pending_targets: List[EventForwarderTarget] = []
         self.__alive = True
@@ -97,8 +102,12 @@ class EventForwarder:
         target_id = raw_event_target_id(event)
         to_remove: List[EventForwarderTarget] = []
         to_call: List[EventForwarderTarget] = []
+
+        if self.__filter and self.__filter(event_id, source_id, target_id):
+            return self._manage_targets([])
+
         for target in self.__targets:
-            if target.can_handle(event_id, source_id, target_id):
+            if target.can_consume(event_id, source_id, target_id):
                 to_call.append(target)
         if to_call:
             to_remove = await self._send_event(event, to_call)
@@ -112,18 +121,23 @@ class EventForwarder:
             self, event: RawEvent, targets: List[EventForwarderTarget],
     ) -> List[EventForwarderTarget]:
         to_remove: List[EventForwarderTarget] = []
+        event_id = raw_event_id(event)
+        event_source_id = raw_event_source_id(event)
+        event_target_id = raw_event_target_id(event)
+
         if is_raw_event_object(event):
             # Simple handling, because the data is already fully read.
             for target in self.__targets:
-                if target.handle(event):
+                if target.consume(event):
                     to_remove.append(target)
         else:
             # Binary object.  This is more complicated.  We must forward the
             # event to each target, but in a memory safe way.
             to_remove = await stream_forwarder(
-                raw_event_id(event),
-                raw_event_source_id(event),
-                raw_event_target_id(event),
+                event_id,
+                event_source_id,
+                event_target_id,
+                raw_event_binary_size(event),
                 as_raw_event_binary_data_reader(event),
                 targets,
                 READ_SIZE_LIMIT,
@@ -155,6 +169,7 @@ async def stream_forwarder(
         event_id: str,
         source_id: str,
         target_id: str,
+        blob_size: int,
         reader: RawBinaryReader,
         targets: List[EventForwarderTarget],
         read_size: int,
@@ -181,8 +196,8 @@ async def stream_forwarder(
             stream: StreamedBinaryReader,
     ) -> Coroutine[Any, Any, None]:
         async def handle_target() -> None:
-            res = await target.handle(
-                to_raw_event_binary(event_id, source_id, target_id, stream),
+            res = await target.consume(
+                to_raw_event_binary(event_id, source_id, target_id, blob_size, stream),
             )
             if res:
                 to_remove.append(target)
@@ -231,7 +246,7 @@ class StreamedBinaryReader:
     def __init__(self, condition: asyncio.Condition) -> None:
         self.__loop = asyncio.events.get_event_loop()
         self.__condition = condition
-        self.__waiter: Optional[asyncio.Future[int]] = None
+        self.__waiter: Optional[asyncio.Future[int]] = None  # pylint: disable=unsubscriptable-object
         self.__buffer = bytearray()
         self.__eof = False
 

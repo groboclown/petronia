@@ -4,10 +4,11 @@
 Runs the CI build.  This should be extremely simple.
 """
 
-from typing import List
+from typing import List, Tuple
 import os
 import sys
 import platform
+import shutil
 import subprocess
 
 
@@ -24,21 +25,22 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     print("")
     print("----------------------------------------------------------------------")
     print("Type Checking...")
-    code = run_python_cmd(
+    mypy_code = run_python_cmd(
         project_dir,
         [os.path.abspath(os.path.join(root_project_dir, 'py-common-lib'))],
         'mypy',
         mypy_args,
         True,
     )
-    if code != 0:
-        print(f"MyPy exited with {code}")
-        return code
+    if mypy_code != 0:
+        # If mypy fails, there's little point in running anything else.
+        print(f"MyPy exited with {mypy_code}")
+        return mypy_code
 
     print("")
     print("----------------------------------------------------------------------")
     print("Linting...")
-    code = run_python_cmd(
+    lint_code = run_python_cmd(
         project_dir,
         [
             os.path.abspath(os.path.join(root_project_dir, 'py-common-lib')),
@@ -53,33 +55,34 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
         True,
     )
 
-    if code != 0:
-        print(f"Linting exited with {code}")
-        # For now, lint exit code is ignored.
-        # return code
+    if lint_code != 0:
+        print(f"Linting exited with {lint_code}")
+        # Let unit test run, even if linting failed.
 
     print("")
     print("----------------------------------------------------------------------")
     print("Unit Testing...")
-    code = run_python_cmd(
+    test_code = run_python_cmd(
         project_dir,
         [os.path.abspath(os.path.join(root_project_dir, 'py-common-lib'))],
         'coverage',
         ['run', '--source', '.', '-m', 'unittest', 'discover', '-s', '.', '-p', '*_test.py'],
         True,
     )
-    # Don't care about code coverage report stats exit code?
-    report_exit_code = run_python_cmd(
+    if test_code != 0:
+        print(f"Unit test exited with {test_code}")
+
+    report_code = run_python_cmd(
         project_dir,
         [],
         'coverage',
-        ['report', '-m'],
+        ['report', '-m', '--fail-under', '99'],
         True,
     )
-    if code != 0:
-        print(f"Unit test exited with {code}")
-        return code
-    return 0
+    if report_code != 0:
+        print(f"Code coverage exited with {report_code}")
+
+    return lint_code + test_code + report_code
 
 
 def run_python_cmd(
@@ -98,10 +101,11 @@ def run_python_cmd(
     if platform.system() == 'Windows':
         python_cmd = 'python'
     cmd = [
-        python_cmd,
+        shutil.which(python_cmd),
         "-m", module,
         *args,
     ]
+    # print("Running " + str(cmd))
     result = subprocess.run(
         cmd,
         cwd=cwd,
@@ -116,18 +120,22 @@ PRIORITY_PROJECTS = ('py-common-lib', 'extension-tools',)
 IGNORED_PROJECT_DIRS = ()
 
 
-def get_std_project_dirs(project_dir: str) -> List[str]:
+def get_std_project_dirs(project_dir: str) -> List[Tuple[str, str]]:
     """All the project directories, in prioritized order"""
-    ret: List[str] = []
+    ret: List[Tuple[str, str]] = []
     contents = os.listdir(project_dir)
+    root_dir = os.path.abspath(project_dir)
+    if 'mypy.ini' in contents:
+        # This is a single directory to build.
+        return [(os.path.dirname(root_dir), root_dir)]
     ordered_search: List[str] = list(PRIORITY_PROJECTS)
     for name in contents:
         if name not in ordered_search and name not in IGNORED_PROJECT_DIRS:
             ordered_search.append(name)
     for name in ordered_search:
-        fqn = os.path.abspath(os.path.join(project_dir, name))
+        fqn = os.path.join(root_dir, name)
         if os.path.isdir(fqn):
-            ret.append(fqn)
+            ret.append((root_dir, fqn))
     return ret
 
 
@@ -138,15 +146,18 @@ def main(root_project_dir: str) -> int:
     print("======================================================================")
     print("Standard Build Projects")
     print("")
-    for std_project_dir in get_std_project_dirs(root_project_dir):
+    for project_dir, std_project_dir in get_std_project_dirs(root_project_dir):
         print("======================================================================")
         project_name = os.path.basename(std_project_dir)
         print(f":: {project_name} ::")
-        partial_code = build_std_project_dir(root_project_dir, std_project_dir)
+        partial_code = build_std_project_dir(project_dir, std_project_dir)
         if partial_code != 0:
             print(f":: {project_name} failed: {partial_code} ::")
         total_code += partial_code
 
+    print("")
+    print("_._._._._._._._._._._.__._._._._._._._._._._._._._._._._._._._._._._")
+    print(f"Final build result: {'PASS' if total_code <= 0 else 'FAIL'} ({total_code})")
     return total_code
 
 

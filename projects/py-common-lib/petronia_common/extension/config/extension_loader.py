@@ -6,6 +6,7 @@ Simple data structures means list, dict, int, float, bool, str, None
 """
 
 from typing import List, Dict, Optional, Any, cast
+import collections
 from . import event_schema, extension_schema
 from .event_loader import load_full_event_schema, load_dict_str_value
 from .version import ExtensionVersion
@@ -87,9 +88,10 @@ def load_impl_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.ImplExte
     ret_licenses = load_extension_list_value('licenses', raw)
     ret_authors = load_extension_list_value('authors', raw)
     ret_implements = load_extension_dependencies('implements', raw)
+    ret_runtime = load_extension_runtime(raw.get('runtime'))
     error = collect_errors_from(
         ret_name, ret_version, ret_about, ret_description,
-        ret_depends, ret_licenses, ret_authors, ret_implements,
+        ret_depends, ret_licenses, ret_authors, ret_implements, ret_runtime,
     )
     if error:
         return StdRet.pass_error(error)
@@ -102,6 +104,7 @@ def load_impl_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.ImplExte
         licenses=ret_licenses.result,
         authors=ret_authors.result,
         implements=ret_implements.result,
+        runtime=ret_runtime.result,
     ))
 
 
@@ -116,9 +119,10 @@ def load_standalone_extension(
     ret_depends = load_extension_dependencies('depends', raw)
     ret_licenses = load_extension_list_value('licenses', raw)
     ret_authors = load_extension_list_value('authors', raw)
+    ret_runtime = load_extension_runtime(raw.get('runtime'))
     error = collect_errors_from(
         ret_name, ret_version, ret_about, ret_description,
-        ret_depends, ret_licenses, ret_authors,
+        ret_depends, ret_licenses, ret_authors, ret_runtime,
     )
     if error:
         return StdRet.pass_error(error)
@@ -130,6 +134,7 @@ def load_standalone_extension(
         depends=ret_depends.result,
         licenses=ret_licenses.result,
         authors=ret_authors.result,
+        runtime=ret_runtime.result,
     ))
 
 
@@ -221,6 +226,61 @@ def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDe
         ret_minimum.result,
         below,
     ))
+
+
+def load_extension_runtime(value: Any) -> StdRet[extension_schema.ExtensionRuntime]:
+    """Loads a single extension runtime environment description."""
+    if not isinstance(value, dict):
+        return StdRet.pass_errmsg(
+            _(
+                'extension runtime must be a dictionary containing the key `launcher` and '
+                'optionally `permissions`',
+            ),
+        )
+    ret_launcher = load_dict_str_value('launcher', value)
+    if ret_launcher.has_error:
+        return ret_launcher.forward()
+    permissions: Dict[str, List[str]] = {}
+    if 'permissions' in value:
+        raw_permissions = value['permissions']
+        if not isinstance(raw_permissions, dict):
+            return StdRet.pass_errmsg(
+                _(
+                    'extension runtime must be a dictionary containing the key `launcher` and '
+                    'optionally `permissions`',
+                ),
+            )
+        for action, resources in raw_permissions.items():
+            if not isinstance(action, str):
+                return StdRet.pass_errmsg(
+                    _(
+                        'extension runtime must be a dictionary containing the key `launcher` and '
+                        'optionally `permissions`',
+                    ),
+                )
+            ret_resources = load_str_list(resources)
+            if ret_resources.has_error:
+                return ret_resources.forward()
+            permissions[action] = ret_resources.result
+    return StdRet.pass_ok(extension_schema.ExtensionRuntime(
+        ret_launcher.result, permissions,
+    ))
+
+
+def load_str_list(raw: Any) -> StdRet[List[str]]:
+    """Loads a list of string values."""
+    ret: List[str] = []
+    if not isinstance(raw, collections.abc.Iterable):
+        return StdRet.pass_errmsg(
+            _('must be a list of string values'),
+        )
+    for value in raw:
+        if not isinstance(value, str):
+            return StdRet.pass_errmsg(
+                _('must be a list of string values'),
+            )
+        ret.append(value)
+    return StdRet.pass_ok(ret)
 
 
 def load_events(raw: Dict[str, Any]) -> StdRet[List[event_schema.EventType]]:

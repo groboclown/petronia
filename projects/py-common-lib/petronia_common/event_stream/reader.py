@@ -420,7 +420,7 @@ async def parse_raw_event(
             return (
                 # Just hard-code the empty reader here.
                 to_raw_event_binary(
-                    decoded_event_id, decoded_source_id, decoded_target_id, empty_reader,
+                    decoded_event_id, decoded_source_id, decoded_target_id, 0, empty_reader,
                 ),
                 None,
                 False,
@@ -444,7 +444,7 @@ async def parse_raw_event(
             # track of the marks loaded by the get_reader call.
             return (
                 to_raw_event_binary(
-                    decoded_event_id, decoded_source_id, decoded_target_id,
+                    decoded_event_id, decoded_source_id, decoded_target_id, data_contents_length,
                     await get_reader(stream, data_contents_length),
                 ),
                 None,

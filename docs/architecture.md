@@ -26,6 +26,12 @@ Petronia, as a kind of Window Manager, has access to many parts of the system wh
 
 Petronia splits its processing into multiple processes, to gain the aid of operating system controls to limit execution rights.  A few core processes has elevated privileges, but only in limited ways.
 
+#### Extension Restrictions
+
+One aspect to the security model is limiting which extensions can generate which events, and which events can be received.  Some of the very critical infrastructure events are highly protected.
+
+The process spawning (performed by the *foreman* process)allows the creation of processes with different security permissions.  The event that requests this spawning can only be allowed by the *extension loader* process.  The events that register the allowed event producing is also handled by the *extension loader*.  The extension loader process is locked down and performs the necessary security inspections.
+
 #### Keyboard Capture
 
 This can be abused in terrible ways.  The core system needs to restrict the keyboard shortcuts to a global key combination + user-defined combinations.  The "capture all" can't be used, but instead need to support input fields.

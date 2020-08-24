@@ -4,57 +4,118 @@ Definition for an "event handler", meaning can generate events or consume events
 The router associates targets with processes.
 """
 
-from typing import Iterable, Mapping, Optional
+from typing import Dict, Iterable, Sequence, List, Set, Tuple, Optional
+
+from petronia_common.util import StdRet, RET_OK_NONE
+from petronia_common.util import i18n as _
+
+EventTargetHandle = Tuple[Optional[str], Optional[str]]
+_NONE_NONE: EventTargetHandle = (None, None)
 
 
-class EventHandler:
-    """Consumer and producer of events.  This is just the
-    rough definition, enough for the router to understand what are
-    valid sources and targets, and whether the events can be sent to them."""
-    __slots__ = ('__handler_id', '__consumes', '__produces',)
+class EventHandlerSet:
+    """A collection of event handlers."""
+    __slots__ = (
+        '__handler_produces', '__handler_consumes',
+        '__produces', '__consumes',
+    )
 
-    def __init__(
-            self,
-            handler_id: str,
-            consumes_anonymous: Mapping[str, bool],
-            produced_event_ids: Iterable[str],
-    ) -> None:
-        """
-
-        :param handler_id:
-        :param consumes_anonymous: mapping between the
-            listened-to event ID and whether it listens to any event,
-            regardless of its target.
-        :param produced_event_ids: list of all event IDs that this handler
-            can produce.
-        """
-        self.__handler_id = handler_id
-        self.__consumes = dict(consumes_anonymous)
-        self.__produces = set(produced_event_ids)
-
-    def __repr__(self) -> str:
-        return f"EventHandler({self.__handler_id})"
-
-    @property
-    def handler_id(self) -> str:
-        """The event handler ID, for use with source and target IDs."""
-        return self.__handler_id
+    def __init__(self) -> None:
+        self.__handler_produces: Dict[str, Sequence[str]] = {}
+        self.__handler_consumes: Dict[str, List[EventTargetHandle]] = {}
+        self.__produces: Set[str] = set()
+        self.__consumes: Set[EventTargetHandle] = set()
 
     def can_produce(self, event_id: str) -> bool:
-        """Returns True if the event id is valid for this handler."""
+        """Can this set of handlers produce the given event id?"""
         return event_id in self.__produces
 
-    def can_consume(self, event_id: str, target_id: Optional[str]) -> bool:
-        """Returns True if the event id is valid for this handler.
-        If the target ID is None, then it is a broadcast ID, meaning that
-        any listener of the event will receive it.
-        """
-        is_anonymous = self.__consumes.get(event_id)
-        return (
-            is_anonymous is not None and
-            (
-                is_anonymous is True or
-                target_id is None or
-                target_id == self.__handler_id
+    def can_consume(self, event_id: str, target_id: str) -> bool:
+        """Can this set of handlers consume the given event_id + target_id?"""
+        to_check: Set[Tuple[Optional[str], Optional[str]]] = {
+            _NONE_NONE,
+            (event_id, None),
+            (None, target_id),
+            (event_id, target_id),
+        }
+        return not self.__consumes.isdisjoint(to_check)
+
+    def contains_handler_id(self, handler_id: str) -> bool:
+        """Does this handler set contain the given handler?"""
+        return handler_id in self.__handler_consumes
+
+    def add_handler(
+            self,
+            handler_id: str,
+            produces: Iterable[str],
+            initial_consumes: Iterable[EventTargetHandle],
+    ) -> StdRet[None]:
+        """Add a new handler to the set.  The list of consumes can include duplicate
+        values, and that list of duplicates will be maintained over time.
+
+        If the same handler_id is already registered, an error is returned."""
+        if handler_id in self.__handler_consumes:
+            return StdRet.pass_errmsg(
+                _('event handler {handler_id} already registered'),
+                handler_id=handler_id,
             )
-        )
+        self.__handler_produces[handler_id] = tuple(produces)
+        self.__handler_consumes[handler_id] = list(initial_consumes)
+        self.__produces.update(produces)
+        self.__consumes.update(initial_consumes)
+        return RET_OK_NONE
+
+    def add_listener(
+            self, handler_id: str, event_id: Optional[str], target_id: Optional[str],
+    ) -> StdRet[None]:
+        """Add an event / target listener registration to the handler id."""
+        if handler_id not in self.__handler_consumes:
+            return StdRet.pass_errmsg(
+                _('event handler {handler_id} not registered'),
+                handler_id=handler_id,
+            )
+        event_handle = (event_id, target_id)
+        self.__handler_consumes[handler_id].append(event_handle)
+        self.__consumes.add(event_handle)
+        return RET_OK_NONE
+
+    def remove_listener(
+            self, handler_id: str, event_id: Optional[str], target_id: Optional[str],
+    ) -> StdRet[None]:
+        """Remove the event / target listener registration for this handler."""
+        if handler_id not in self.__handler_consumes:
+            return StdRet.pass_errmsg(
+                _('event handler {handler_id} not registered'),
+                handler_id=handler_id,
+            )
+        event_handle = (event_id, target_id)
+        try:
+            self.__handler_consumes[handler_id].remove(event_handle)
+        except ValueError:
+            return StdRet.pass_errmsg(
+                _('handler {handler_id} is not registered to listen to {event_id} / {target_id}'),
+                handler_id=handler_id,
+                event_id=event_id,
+                target_id=target_id,
+            )
+        return RET_OK_NONE
+
+    def remove_handler(self, handler_id: str) -> StdRet[None]:
+        """Remove the handler from this set."""
+        if handler_id not in self.__handler_consumes:
+            return StdRet.pass_errmsg(
+                _('event handler {handler_id} not registered'),
+                handler_id=handler_id,
+            )
+        del self.__handler_consumes[handler_id]
+        del self.__handler_produces[handler_id]
+        self._reprocess_structures()
+        return RET_OK_NONE
+
+    def _reprocess_structures(self) -> None:
+        self.__produces.clear()
+        self.__consumes.clear()
+        for produces in self.__handler_produces.values():
+            self.__produces.update(produces)
+        for consumes in self.__handler_consumes.values():
+            self.__consumes.update(consumes)

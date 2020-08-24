@@ -24,3 +24,15 @@ while self.running:
 ```
 
 No longer works.  Even an asyncio version (with its version of wait) isn't acceptable.  Instead, the code should listen for the heartbeat events, and act on those.  This allows the end-user to easily define the frequency of these updates in one place.
+
+
+## Logging
+
+The standard Python logging module is used for logging support.  Extensions must load up their logging module with the base name being the extension name.
+
+Each launcher program is responsible for setting up its own logging configuration.  This is done through the logging configuration.
+
+
+## Internationalization
+
+User messages should all be localizable.
