@@ -3,10 +3,9 @@
 Display a message to the user.
 """
 
-from typing import List
 import gettext
-from .configuration.platform import PlatformSettings
 from petronia_common.util import PetroniaReturnError, I18n, UserMessage, UserMessageData
+from .configuration.platform import PlatformSettings
 
 
 def display(message: I18n, **kwargs: UserMessageData) -> None:
@@ -30,5 +29,6 @@ def translate(message: I18n, **kwargs: UserMessageData) -> str:
     return gettext.dgettext('messages', message).format(**kwargs)
 
 
-def load_translation(settings: PlatformSettings) -> None:
+def load_translation(_settings: PlatformSettings) -> None:
     """Use the platform-specific settings to find the translation directory."""
+    raise NotImplementedError()

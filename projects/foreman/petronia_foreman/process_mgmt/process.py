@@ -1,28 +1,24 @@
 
 """The process handler."""
 
-from typing import Iterable, List, Coroutine, Callable, Any
+from typing import Iterable, Callable
 import asyncio
 import os
 import shutil
-from petronia_common.event_stream import BinaryWriter
-from petronia_common.util.aio import FdStreamReader
 
 
 class ManagedProcess:
     """The process handler."""
-    __slots__ = ('__ident', '__reader', '__writer', '__tmp_resources')
+    __slots__ = ('__ident', '__reader', '__tmp_resources')
 
     def __init__(
             self,
             ident: str,
             reader: asyncio.StreamReader,
-            writer: BinaryWriter,
             temp_files: Iterable[str],
     ) -> None:
         self.__ident = ident
         self.__reader = reader
-        self.__writer = writer
         self.__tmp_resources = list(temp_files)
 
     @property
@@ -35,25 +31,18 @@ class ManagedProcess:
         """The event reader stream from the process."""
         return self.__reader
 
-    @property
-    def writer(self) -> BinaryWriter:
-        """The event writer stream for the process"""
-        return self.__writer
+    def write(self, data: bytes) -> None:
+        """Act as a Binary Writer"""
+        raise NotImplementedError()
+
+    def close_writer(self) -> None:
+        """Close the writer stream.  This is usually used as a soft signal to the child process
+        to terminate."""
+        raise NotImplementedError()
 
     def stop(self) -> None:
         """Stop the running process."""
         raise NotImplementedError()
-
-    def get_watchers(
-            self,
-            on_exit_cb: Callable[[int], None],
-    ) -> List[Coroutine[Any, Any, None]]:
-        ret: List[Coroutine[Any, Any, None]] = [
-            self.watch_process(on_exit_cb),
-        ]
-        if isinstance(self.__reader, FdStreamReader):
-            ret.append(self.__reader.run_reader())
-        return ret
 
     async def watch_process(self, on_exit_cb: Callable[[int], None]) -> None:
         """Watch the process."""

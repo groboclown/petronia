@@ -52,7 +52,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
     def test_base_extension_getters(self) -> None:
         """Tests some of the basic getters in the parent class."""
         ext = extension_schema.StandAloneExtensionMetadata(
-            'x', (1, 0, 0,), 'a1', 'd1', [], [], [],
+            'x', (1, 0, 0,), 'a1', 'd1', [], [], [], extension_schema.ExtensionRuntime('', {}),
         )
         self.assertEqual('standalone', ext.extension_type)
         self.assertEqual('x', ext.name)

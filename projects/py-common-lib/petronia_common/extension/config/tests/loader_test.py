@@ -91,6 +91,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1],
             "about": "s", "description": "t",
             "depends": [], "licenses": [], "authors": [], "events": {},
+            "runtime": {'launcher': 'core'},
         },
         [(
             'version ({version}) must be in the format [major, minor, patch]',
@@ -103,6 +104,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [None, 0, 0],
             "about": "s", "description": "t",
             "depends": [], "licenses": [], "authors": [], "events": {},
+            "runtime": {'launcher': 'core'},
         },
         [(
             'version ({version}) must be in the format [major, minor, patch]',
@@ -115,6 +117,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'impl', 'name': "bad.version", "version": [5, None, 0],
             "about": "s", "description": "t",
             "depends": [], "licenses": [], "authors": [], "events": {}, "implements": [],
+            "runtime": {'launcher': 'core'},
         },
         [(
             'version ({version}) must be in the format [major, minor, patch]',
@@ -127,6 +130,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "description": 1,
             "depends": [], "licenses": [], "authors": [], "events": {},
+            "runtime": {'launcher': 'core'},
         },
         [(
             'no `{key}` found in definition',
@@ -142,6 +146,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t",
             "depends": [], "authors": 1, "events": {},
+            "runtime": {'launcher': 'core'},
         },
         [(
             '`{key}` must be a list of strings',
@@ -157,6 +162,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t", "licenses": [],
             "depends": [], "authors": ['x', 1, 'b'], "events": {},
+            "runtime": {'launcher': 'core'},
         },
         [(
             '`{key}` must be a list of strings',
@@ -169,6 +175,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t", "licenses": [], "authors": [],
             "depends": 1,
+            "runtime": {'launcher': 'core'},
         },
         [(
             '`{key}` must be a list of dictionaries',
@@ -181,6 +188,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t", "licenses": [], "authors": [],
             "depends": [1],
+            "runtime": {'launcher': 'core'},
         },
         [(
             'dependency must be a dictionary containing the keys '
@@ -194,6 +202,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t", "licenses": [], "authors": [],
             "depends": [{"name": "x"}],
+            "runtime": {'launcher': 'core'},
         },
         [(
             'version ({version}) must be in the format [major, minor, patch]',
@@ -206,6 +215,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t", "licenses": [], "authors": [],
             "depends": [{"name": True}],
+            "runtime": {'launcher': 'core'},
         },
         [(
             '`{key}` must be a string value', dict(key='name'),
@@ -217,6 +227,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'standalone', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t", "licenses": [], "authors": [],
             "depends": [{"name": "x", "minimum": [1, 0, 0], "below": 1}],
+            "runtime": {'launcher': 'core'},
         },
         [(
             'version ({version}) must be in the format [major, minor, patch]',
@@ -1062,11 +1073,13 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             "type": "impl", "name": "simple_impl", "version": [0, 0, 1],
             "about": "a", "description": "d",
             "depends": [], "licenses": [], "authors": [], "implements": [],
+            "runtime": {'launcher': 'core'},
         },
         extension_schema.ImplExtensionMetadata(
             name="simple_impl", version=(0, 0, 1),
             about="a", description="d",
             depends=[], licenses=[], authors=[], implements=[],
+            runtime=extension_schema.ExtensionRuntime('core', {}),
         ),
     ),
     (
@@ -1075,11 +1088,13 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             "type": "standalone", "name": "simple_standalone", "version": [0, 0, 0],
             "about": "x", "description": "y",
             "depends": [], "licenses": ["M", "I"], "authors": ["Z", "b"],
+            "runtime": {'launcher': 'core', 'permissions': {'b': ['1', '2']}},
         },
         extension_schema.StandAloneExtensionMetadata(
             name="simple_standalone", version=(0, 0, 0),
             about="x", description="y",
             depends=[], licenses=["M", "I"], authors=["Z", "b"],
+            runtime=extension_schema.ExtensionRuntime('core', {'b': ['1', '2']}),
         ),
     ),
 ]

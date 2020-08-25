@@ -144,7 +144,7 @@ class EventRouter:
         For the moment, this only supports injecting object events, not binary blob events.
         Binary blob events require more work to properly support.
         """
-        futures: List[Coroutine[StdRet[bool]]] = []
+        futures: List[Coroutine[Any, Any, bool]] = []
         event_id = raw_event_id(event)
         source_id = raw_event_source_id(event)
         target_id = raw_event_target_id(event)

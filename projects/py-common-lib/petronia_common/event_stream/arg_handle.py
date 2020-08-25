@@ -21,6 +21,6 @@ def get_fd_from_argument(argument: str) -> StdRet[int]:
 
     if platform.system() == 'Windows':
         # On Windows, the file handle is passed in, not the fd.
-        import msvcrt
+        import msvcrt  # pylint: disable=import-outside-toplevel,import-error
         return StdRet.pass_ok(msvcrt.open_osfhandle(int_arg, 0))
     return StdRet.pass_ok(int_arg)

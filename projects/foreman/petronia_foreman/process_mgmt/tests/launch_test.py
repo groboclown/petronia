@@ -23,7 +23,7 @@ class LaunchTest(unittest.TestCase):
             'runner', 'command',
             sys.executable + ' ' +
             os.path.abspath(os.path.join(os.path.dirname(__file__), 'runner.py')) + ' ' +
-            '${WRITE_FD}',
+            '${WRITE_FD} 4',
         )
         self.foreman_config.load_config(config)
 
@@ -44,10 +44,11 @@ class LaunchTest(unittest.TestCase):
             )
             self.assertIsNone(ret_process.error)
             print("Tester: writing data to write stream.")
-            ret_process.result.writer.write(b'1234')
-            for coroutine in ret_process.result.get_watchers(on_exit):
-                print("Tester: waiting on " + repr(coroutine))
-                await coroutine
+            ret_process.result.write(b'1234')
+            # Without the close_writer, the process could wait forever.
+            ret_process.result.close_writer()
+            print("Tester: watching process")
+            await ret_process.result.watch_process(on_exit)
             result = await ret_process.result.reader.read(100)
             self.assertEqual(b'1234', result)
 

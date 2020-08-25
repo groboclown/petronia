@@ -159,6 +159,8 @@ class EventChannel(EventForwarderTarget):
         # about it.  This channel doesn't care about that message.
         if not self.__alive:
             return True
+        # Do nothing...
+        return False
 
     def on_eof(self) -> None:
         # The other channel encountered an EOF, and is telling this channel

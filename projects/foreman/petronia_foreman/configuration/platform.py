@@ -33,7 +33,7 @@ class PlatformSettings:
 
     __slots__ = ('name', 'category', 'config_paths', 'data_paths', 'native_launcher_name',)
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
             self,
             name: str,
             category: int,
@@ -59,7 +59,7 @@ class PlatformSettings:
         """Setup the platform-specific asyncio stuff."""
         if self.category == CATEGORY__WINDOWS:
             print("Using windows selector event loop")
-            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())  # type: ignore
         #else:
         #    print("Set selector event loop.")
         #    loop = asyncio.ProactorEventLoop()
@@ -95,7 +95,7 @@ def load_windows10_settings() -> StdRet[PlatformSettings]:
             os.environ.get('APPDATA'),
             os.environ.get('USERPROFILE'),
             os.environ.get('HOMEPATH'),
-            os.environ.get('ALLUSERSPROFILE')
+            os.environ.get('ALLUSERSPROFILE'),
         ]),
         [detect_install_dir()],
         'windows-10',
@@ -125,9 +125,11 @@ def load_linux_wayland_settings() -> StdRet[PlatformSettings]:
 
 
 def detect_windows() -> StdRet[PlatformSettings]:
+    """Detect the Windows platform settings to use."""
     try:
-        winver = sys.getwindowsversion().major
-    except BaseException:
+        # Linux builds will fail on getwindowsversion not a member.
+        winver = sys.getwindowsversion().major  # type: ignore  # pylint: disable=no-member
+    except BaseException:  # pylint: disable=broad-except
         return StdRet.pass_errmsg(
             _(
                 "You requested Windows, but the Windows Version could not be discovered."
@@ -136,11 +138,11 @@ def detect_windows() -> StdRet[PlatformSettings]:
 
     try:
         # Linux builds will fail on this ctype detection...
-        import ctypes.wintypes  # type: ignore
-        from ctypes import byref  # type: ignore
-        from ctypes import windll  # type: ignore
-        from ctypes import WinDLL  # type: ignore
-    except BaseException:
+        import ctypes.wintypes  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
+        from ctypes import byref  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
+        from ctypes import windll  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
+        from ctypes import WinDLL  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
+    except BaseException:  # pylint: disable=broad-except
         return StdRet.pass_errmsg(
             _(
                 "Your system ({system} {version} {arch}) does not "
@@ -155,13 +157,13 @@ def detect_windows() -> StdRet[PlatformSettings]:
         return load_windows10_settings()
 
     return StdRet.pass_errmsg(
-            _(
-                "Your system ({system} {version} {arch}) is not one of the "
-                "supported Windows versions."
-            ),
-            system=platform.system(),
-            version=winver,
-            arch=platform.architecture()[0],
+        _(
+            "Your system ({system} {version} {arch}) is not one of the "
+            "supported Windows versions."
+        ),
+        system=platform.system(),
+        version=winver,
+        arch=platform.architecture()[0],
     )
 
 
@@ -241,6 +243,8 @@ def detect_install_dir() -> str:
     # Note that Petronia may be running as an installed bundle.
     # We take advantage of insight into how Petronia is deployed.  Note that this is
     # consistent between the bundle install and the file-based install.
+
+    bundle_dir: str
 
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         # we are running in a pyinstaller bundle

@@ -165,7 +165,7 @@ class EventForwarder:
         return not self.__targets
 
 
-async def stream_forwarder(
+async def stream_forwarder(  # pylint: disable=too-many-arguments,too-many-locals
         event_id: str,
         source_id: str,
         target_id: str,

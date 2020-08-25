@@ -42,8 +42,9 @@ python bin/build.py projects
 python3 bin/build.py projects
 ```
 
-If your changes include updates to localization strings, the translation files will also need updates.
+The Travis build will run on both Windows and Linux, so this will need to pass on both.
 
+If your changes include updates to localization strings, the translation files will also need updates.
 
 ## Translations
 

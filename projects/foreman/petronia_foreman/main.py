@@ -3,7 +3,7 @@
 The CLI entry point for the foreman process.
 """
 
-from typing import Sequence, Optional
+from typing import Sequence
 import argparse
 from petronia_common.util import i18n as _
 from .user_message import display, display_error, translate
