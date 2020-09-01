@@ -38,6 +38,8 @@ def enforce_that(
                 src=src,
                 **details,
             )
+        # This section is weird.  Windows can show these lines and branches as not covered.
+        # See https://github.com/nedbat/coveragepy/issues/1022
         for condition in conditions:
             if not condition():
                 return error_message(

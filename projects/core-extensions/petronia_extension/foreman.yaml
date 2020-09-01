@@ -1,0 +1,126 @@
+---
+schema-version: v1
+
+name: petronia.core.api.foreman
+version: [1, 0, 0]
+type: api
+
+about: The Foreman Process event details.
+description: >
+  A well-defined list of events that are received and sent by the Foreman process.
+  These are only sent and received as low-level events.  This acts only as documentation
+  to describe the event actions that take place, and to help fill out the dependency
+  tree for other extensions.  The extension loader needs to assume that this and the
+  default implementation are already loaded.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia.core.impl.foreman
+  minimum: [1, 0, 0]
+
+events:
+  start-launcher:
+    description: >
+      Request that the foreman process start a new launcher.
+    priority: io
+    send-access: internal
+    receive-access: implementations
+    fields:
+      identifier:
+        description: used to uniquely identify this spawned launcher.
+        type: string
+        min-length: 3
+      launcher:
+        description: The kind of launcher to start.
+        type: string
+        min-length: 1
+      permissions:
+        description: The action permissions required for the launcher to be able to perform.
+        type: array
+        value-type:
+          type: structure
+          fields:
+            action:
+              description: Requested permission action to gain access to.
+              type: string
+              min-length: 1
+            resources:
+              description: List of resources to access.
+              type: array
+              value-type:
+                type: string
+                min-length: 1
+  "start-launcher:started":
+    description: >
+      Report that a new launcher now exists and is ready to accept extensions.
+    priority: high
+    send-access: implementations
+    receive-access: public
+    fields:
+      identifier:
+        description: used to uniquely identify this spawned launcher.
+        type: string
+        min-length: 3
+
+  "start-launcher:failed":
+    description: >
+      Report that the requested launcher could not be started.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields:
+      identifier:
+        description: The requested launcher to start which failed.
+        type: string
+      error:
+        type: reference
+        ref: error
+  restart:
+    description: >
+      Force the Petronia extensions to restart themselves.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    fields: {}
+  stop:
+    description: >
+      Terminate Petronia.  This can only be sent through "internal" extensions because normal
+      operation requires shutdown phases.
+    priority: io
+    send-access: internal
+    receive-access: implementations
+    fields: {}
+
+
+references:
+  error:
+    type: structure
+    description: A failure
+    fields:
+      identifier:
+        type: string
+        min-length: 2
+        max-length: 255
+        description: The identifier that uniquely defines this error.
+      source:
+        type: string
+        optional: true
+        description: The source of the error, if known.
+      message:
+        type: string
+        description: A localizable message.
+      arguments:
+        type: array
+        description: arguments for the message.
+        value-type:
+          type: selector
+          type-mapping:
+            string:
+              type: string
+            int:
+              type: int
+            float:
+              type: float

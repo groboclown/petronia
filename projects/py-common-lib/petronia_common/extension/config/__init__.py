@@ -7,6 +7,7 @@ from .version import ExtensionVersion, cmp_extension
 from .event_schema import (
     EventType,
     EventDataType,
+    AbcEventDataType,
     StringEventDataType,
     IntEventDataType,
     FloatEventDataType,
@@ -15,6 +16,7 @@ from .event_schema import (
     DatetimeEventDataType,
     ArrayEventDataType,
     StructureEventDataType,
+    SelectorEventDataType,
 
     EventAccessType,
     EventPriorityType,

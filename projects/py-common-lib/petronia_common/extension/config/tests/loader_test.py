@@ -871,6 +871,75 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             ]),
         )],
     ),
+    (
+        'Runtime - bad type',
+        {
+            'type': 'standalone', 'name': "runtime", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {}, "runtime": ["x"],
+        },
+        [
+            (
+                'extension runtime must be a dictionary containing the key '
+                '`launcher` and optionally `permissions`', {},
+            ),
+        ],
+    ),
+    (
+        'Runtime - bad launcher',
+        {
+            'type': 'standalone', 'name': "runtime", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {}, "runtime": {"launcher": 1},
+        },
+        [
+            ('`{key}` must be a string value', dict(key='launcher')),
+        ],
+    ),
+    (
+        'Runtime - bad permissions type',
+        {
+            'type': 'standalone', 'name': "runtime", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {}, "runtime": {"launcher": "x", "permissions": 1},
+        },
+        [
+            ('extension runtime permissions must be dict of key to list of strings', {}),
+        ],
+    ),
+    (
+        'Runtime - bad action type',
+        {
+            'type': 'standalone', 'name': "runtime", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {}, "runtime": {"launcher": "x", "permissions": {1: ["x"]}},
+        },
+        [
+            ('extension runtime permissions must be dict of key to list of strings', {}),
+        ],
+    ),
+    (
+        'Runtime - bad action value type',
+        {
+            'type': 'standalone', 'name': "runtime", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {}, "runtime": {"launcher": "x", "permissions": {"x": 2}},
+        },
+        [
+            ('must be a list of string values', {}),
+        ],
+    ),
+    (
+        'Runtime - bad action value entry type',
+        {
+            'type': 'standalone', 'name': "runtime", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {}, "runtime": {"launcher": "x", "permissions": {"x": [2]}},
+        },
+        [
+            ('must be a list of string values', {}),
+        ],
+    ),
 ]
 
 

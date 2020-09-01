@@ -205,8 +205,9 @@ def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDe
         return StdRet.pass_errmsg(
             _(
                 'dependency must be a dictionary containing the keys `name`, `minimum`, '
-                'and possibly `below`',
+                'and possibly `below` (found {value})',
             ),
+            value=repr(value),
         )
     ret_name = load_dict_str_value('name', value)
     if not ret_name.ok:
@@ -245,18 +246,12 @@ def load_extension_runtime(value: Any) -> StdRet[extension_schema.ExtensionRunti
         raw_permissions = value['permissions']
         if not isinstance(raw_permissions, dict):
             return StdRet.pass_errmsg(
-                _(
-                    'extension runtime must be a dictionary containing the key `launcher` and '
-                    'optionally `permissions`',
-                ),
+                _('extension runtime permissions must be dict of key to list of strings'),
             )
         for action, resources in raw_permissions.items():
             if not isinstance(action, str):
                 return StdRet.pass_errmsg(
-                    _(
-                        'extension runtime must be a dictionary containing the key `launcher` and '
-                        'optionally `permissions`',
-                    ),
+                    _('extension runtime permissions must be dict of key to list of strings'),
                 )
             ret_resources = load_str_list(resources)
             if ret_resources.has_error:

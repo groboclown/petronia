@@ -9,6 +9,13 @@ Any activity that requires one participant of the system to interact with anothe
 The nature of events requires them to only exist when they have a specific participant identity that is the target of the event.  In most cases, this corresponds to the intended receiver of the event.  In a few cases, it indicates a participant that had an action act upon it, but may not receive the event.
 
 
+## Event Id, Source, Target
+
+Each event has a unique ID that is a combination of the declaring API extension name and a "short" name.  This takes the form `ExtensionName:ShortName`.
+
+Each generated event provides a Source and Target ID.  These identifiers take the form of `ExtensionName:InternalId`, where the extension is free to choose the internal ID.  Because Petronia loads one of each extension name at a time, security in asserting the validity of the source and target is better enforced.  It also means there doesn't need to be a central name registration service.
+
+
 ## Simulating RPC With Events
 
 In general, events should be considered "fire and forget."  On a rare occasion, an event requires a response, such as registering a portal and receiving the portal ID or an error response if something didn't go right.
@@ -16,7 +23,7 @@ In general, events should be considered "fire and forget."  On a rare occasion, 
 
 ## Schema
 
-When an event is registered, it must provide the schema for the events.  These are based upon the standard JSON schema, but highly simplified.  These are embedded in the API extension metadata.
+When an event is registered, it must provide the schema for the events.  These are based upon the standard JSON schema, but highly simplified.  These are embedded in the API extension metadata.  The event name provided is the "simple name"; internally, the fully qualified name will be used instead, which is in the form "ExtensionName:EventName".
 
 The event declaration of the API extension looks like this:
 
@@ -31,12 +38,13 @@ The event declaration of the API extension looks like this:
 
             // Describes which extensions have permissions to send
             // this event.
-            // Valid values are "public" and "implementations".
+            // Valid values are "public" and "implementations".  Some
+            // core, internal extensions can use the "internal" access level.
             "send-access": "public",
 
             // Describes which extensions have permissions to receive
             // this event.
-            // Valid values are "public" and "implementations".
+            // Valid values are "public", "implementations", and "target".
             "receive-access": "public",
 
             // An optional description of the event.  It can be 0 to 32767 characters long.

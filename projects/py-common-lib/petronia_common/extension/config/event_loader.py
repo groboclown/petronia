@@ -7,7 +7,7 @@ Simple data structures means list, dict, int, float, bool, str, None
 
 from typing import List, Dict, Optional, Any, cast
 from . import event_schema
-from ...util import StdRet, collect_errors_from
+from ...util import StdRet, collect_errors_from, EMPTY_TUPLE
 from ...util import i18n as _
 
 
@@ -75,13 +75,13 @@ def load_event_schema(
             priority=ret_priority.result,
         )
     priority = cast(event_schema.EventPriorityType, ret_priority.result)
-    if ret_send_access.result not in ("public", "implementations"):
+    if ret_send_access.result not in ("public", "implementations", "internal"):
         return StdRet.pass_errmsg(
             _('`{send_access}` must be a valid access'),
             send_access=ret_send_access.result,
         )
     send_access = cast(event_schema.EventAccessType, ret_send_access.result)
-    if ret_receive_access.result not in ("public", "implementations"):
+    if ret_receive_access.result not in ("public", "implementations", "target"):
         return StdRet.pass_errmsg(
             _('`{receive_access}` must be a valid access'),
             receive_access=ret_receive_access.result,
@@ -294,19 +294,18 @@ def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEv
     ret_description = load_event_type_description(raw)
     if not ret_description.ok:
         return ret_description.forward()
-    raw_values = raw.get('values')
+    raw_values = raw.get('values', EMPTY_TUPLE)
     values: List[str] = []
-    if raw_values and not isinstance(raw_values, list):
+    if not isinstance(raw_values, list):
         return StdRet.pass_errmsg(
             _('enum values must be a list of strings'),
         )
-    if raw_values:
-        for raw_value in raw_values:
-            if not isinstance(raw_value, str):
-                return StdRet.pass_errmsg(
-                    _('enum values must be a list of strings'),
-                )
-            values.append(raw_value)
+    for raw_value in raw_values:
+        if not isinstance(raw_value, str):
+            return StdRet.pass_errmsg(
+                _('enum values must be a list of strings'),
+            )
+        values.append(raw_value)
     return StdRet.pass_ok(event_schema.EnumEventDataType(
         ret_description.value, values,
     ))
@@ -358,7 +357,8 @@ def load_event_structure_data_type(
     raw_fields = raw.get('fields')
     if not isinstance(raw_fields, dict):
         return StdRet.pass_errmsg(
-            _('`fields` must be a dictionary of field data type structures'),
+            _('`fields` must be a dictionary of field data type structures, found {data}'),
+            data=repr(raw_fields),
         )
     fields: Dict[str, event_schema.StructureFieldType] = {}
     for field_name, raw_field in raw_fields.items():

@@ -51,11 +51,13 @@ class EnforcementTest(unittest.TestCase):
 
     def test_enforce_that__multiple_2(self) -> None:
         """Three enforcements, all good."""
+        print("Running test_enforce_that__multiple_2")
         condition_1 = MockCondition(True)
         condition_2 = MockCondition(True)
         condition_3 = MockCondition(True)
         res = enforce_that("x", i18n("y"), condition_1, condition_2, condition_3)
         self.assertIsNone(res)
+        print("test_enforce_that__multiple_2 - passed is none")
         self.assertEqual(1, condition_1.run_count)
         self.assertEqual(1, condition_2.run_count)
         self.assertEqual(1, condition_3.run_count)

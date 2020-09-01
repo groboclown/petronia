@@ -52,13 +52,21 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
     def test_base_extension_getters(self) -> None:
         """Tests some of the basic getters in the parent class."""
         ext = extension_schema.StandAloneExtensionMetadata(
-            'x', (1, 0, 0,), 'a1', 'd1', [], [], [], extension_schema.ExtensionRuntime('', {}),
+            'x', (1, 0, 0,), 'a1', 'd1', [], [], [],
+            extension_schema.ExtensionRuntime('foo', {'x': ['a', '1']}),
         )
         self.assertEqual('standalone', ext.extension_type)
         self.assertEqual('x', ext.name)
         self.assertEqual((1, 0, 0,), ext.version)
         self.assertEqual('a1', ext.about)
         self.assertEqual('d1', ext.description)
+        runtime = ext.runtime
+        self.assertEqual('foo', runtime.launcher)
+        self.assertEqual(['x'], list(runtime.requested_actions()))
+        # Notice the tuple translation...
+        self.assertEqual({'x': ('a', '1')}, runtime.requested_permissions)
+        self.assertEqual(('a', '1'), runtime.action_resources('x'))
+        self.assertEqual((), runtime.action_resources('y'))
 
     def test_api_extension_getters(self) -> None:
         """Test some of the getters for the api extension."""

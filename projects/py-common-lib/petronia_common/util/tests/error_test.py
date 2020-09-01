@@ -220,6 +220,42 @@ class FunctionTest(unittest.TestCase):
             res.messages(),
         )
 
+    def test_collect_errors_from__1_iterable(self) -> None:
+        """collect_errors_from for 1 error"""
+        res = error.collect_errors_from(
+            [error.StdRet.pass_ok(None), error.StdRet.pass_errmsg(i18n('x'))],
+        )
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        self.assertEqual(
+            (_m('x'),),
+            res.messages(),
+        )
+
+    def test_collect_errors_from__1_callable(self) -> None:
+        """collect_errors_from for 1 error"""
+        res = error.collect_errors_from(
+            lambda: error.StdRet.pass_errmsg(i18n('x'))
+        )
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        self.assertEqual(
+            (_m('x'),),
+            res.messages(),
+        )
+
+    def test_collect_errors_from__1_iterable_callable(self) -> None:
+        """collect_errors_from for 1 error"""
+        res = error.collect_errors_from(
+            [lambda: error.StdRet.pass_errmsg(i18n('x'))],
+        )
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy required
+        self.assertEqual(
+            (_m('x'),),
+            res.messages(),
+        )
+
 
 def _m(message: str, **args: UserMessageData) -> UserMessage:
     return UserMessage(i18n(message), **args)

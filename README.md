@@ -2,7 +2,7 @@
 
 **This is the v3 documentation, which is still being developed.**
 
-![forked-model branch build](https://travis-ci.com/groboclown/petronia.svg?branch=forked-model)
+[![forked-model branch build](https://travis-ci.com/groboclown/petronia.svg?branch=forked-model)](https://travis-ci.com/github/groboclown/petronia)
 
 ## Latest Release: v2.2
 

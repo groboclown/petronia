@@ -19,8 +19,20 @@ def get_fd_from_argument(argument: str) -> StdRet[int]:
             arg=argument,
         )
 
+    if int_arg < 0:
+        return StdRet.pass_errmsg(
+            _('Argument is not a valid file descriptor value: {arg}'),
+            arg=argument,
+        )
+
     if platform.system() == 'Windows':
         # On Windows, the file handle is passed in, not the fd.
-        import msvcrt  # pylint: disable=import-outside-toplevel,import-error
-        return StdRet.pass_ok(msvcrt.open_osfhandle(int_arg, 0))
+        import msvcrt  # pylint: disable=import-outside-toplevel,import-error  # pragma no cover
+        try:  # pragma no cover
+            int_arg = msvcrt.open_osfhandle(int_arg, 0)  # pragma no cover
+        except OSError as err:  # pragma no cover
+            return StdRet.pass_errmsg(  # pragma no cover
+                _('Invalid file handle {arg}: {err}'), arg=argument, err=err,
+            )
+    # No other way to tell if the file descriptor is valid.
     return StdRet.pass_ok(int_arg)

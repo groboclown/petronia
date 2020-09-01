@@ -266,6 +266,25 @@ def collect_errors_from(
     return possible_error(messages)
 
 
+def join_results(
+        joiner: Callable[[List[T]], V],
+        *values: StdRet[T],
+) -> StdRet[V]:
+    """Use a separate joining function to collect the results into an output value.
+    If any error is encountered, then an error is returned and the joining function is
+    not called."""
+    valid: List[T] = []
+    errors: List[PetroniaReturnError] = []
+    for value in values:
+        if value.has_error:
+            errors.append(value.valid_error)
+        else:
+            valid.append(value.result)
+    if errors:
+        return StdRet.pass_error(join_errors(errors=errors))
+    return StdRet.pass_ok(joiner(valid))
+
+
 # A generic constant for return types that may have an error
 # but no real return value.
 RET_OK_NONE = StdRet.pass_ok(None)

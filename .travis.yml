@@ -16,3 +16,4 @@ jobs:
 
 install:
   - pip install -r bin/requirements.txt
+  - pip install -r bin/test-requirements.txt

@@ -1,0 +1,131 @@
+# GENERATED CODE - DO NOT MODIFY
+# Created on {{now}}
+
+"""
+Tests for the {{module_name}} module.
+Extension {{extension_name}}, Version {{extension_version}}
+"""
+
+import unittest
+from typing import Sequence, Tuple, Dict, Any
+from petronia_common.util import UserMessage, i18n
+from .. import {{module_name}}
+{{#structures}}
+
+
+class {{structure_class_name}}Test(unittest.TestCase):
+    """
+    Tests for {{structure_class_name}}
+    """
+    {{#has_fields}}
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in {{structure_const_name}}_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = {{module_name}}.{{structure_class_name}}.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = [
+                    UserMessage(i18n(m), **a)
+                    for m, a in messages
+                ]
+                actual = list(res.valid_error.messages())
+                self.assertEqual(expected, actual)
+
+    {{/has_fields}}
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in {{structure_const_name}}_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = {{module_name}}.{{structure_class_name}}.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+{{#has_fields}}
+
+
+{{structure_const_name}}_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]]
+] = (
+{{#is_selector}}
+{{#selector_types}}{{#is_struct_type}}
+    (
+        '{{field_name}}-all-fields-missing',
+        {'^': '{{field_name}}', '$': {}},
+        (
+            {{#field_names}}{{^is_optional}}(
+                'Required field {field_name} in {name}',
+                dict(field_name='{{field_name}}', name='{{structure_class_name}}'),
+            ),
+            {{/is_optional}}{{/field_names}}
+        ),
+    ),
+{{/is_struct_type}}{{/selector_types}}
+{{/is_selector}}
+{{^is_selector}}
+    (
+        'all-fields-missing',
+        {},
+        (
+            {{#field_names}}{{^is_optional}}(
+                'Required field {field_name} in {name}',
+                dict(field_name='{{field_name}}', name='{{structure_class_name}}'),
+            ),
+            {{/is_optional}}{{/field_names}}
+        ),
+    ),
+{{/is_selector}}
+)
+{{/has_fields}}
+
+
+{{structure_const_name}}_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]]
+] = (
+{{#is_selector}}{{#selector_types}}{{#is_struct_type}}
+    (
+        '{{field_name}}-all-fields-present',
+        {
+            '^': '{{field_name}}',
+            '$': {{sample_full}},
+        },
+    ),
+    (
+        '{{field_name}}-bare-minimum-fields-present',
+        {
+            '^': '{{field_name}}',
+            '$': {{sample_bare}},
+        },
+    ),
+{{/is_struct_type}}{{^is_struct_type}}
+    (
+        '{{field_name}}',
+        {
+            '^': '{{field_name}}',
+            '$': {{sample_full}},
+        },
+    ),
+{{/is_struct_type}}{{/selector_types}}{{/is_selector}}{{^is_selector}}{{^has_fields}}
+    ('basic-parse', {}),
+    {{/has_fields}}
+    {{#has_fields}}
+    (
+        'all-fields-present',
+        {
+        {{#field_names}}
+            '{{field_name}}': {{sample_full}},
+        {{/field_names}}
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+        {{#field_names}}{{^is_optional}}
+            '{{field_name}}': {{sample_bare}},
+        {{/is_optional}}{{/field_names}}
+        },
+    ),
+    {{/has_fields}}
+{{/is_selector}}
+)
+{{/structures}}

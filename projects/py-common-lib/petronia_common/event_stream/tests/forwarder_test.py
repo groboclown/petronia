@@ -33,7 +33,8 @@ class EventForwarderTest(unittest.TestCase):
             await write_binary_event_to_stream(
                 inp_stream, 'e1', 's1', 't1', 2, b'12',
             )
-            efp = forwarder.EventForwarder(create_read_stream(inp_stream.getvalue()))
+            efp = AccessibleEventForwarder(create_read_stream(inp_stream.getvalue()))
+            self.assertTrue(efp.alive)
             efp.add_target(target_1)
             await efp.handle_source()
 
@@ -46,6 +47,12 @@ class EventForwarderTest(unittest.TestCase):
             efp.add_target(target_2)
             target_2.assert_next_on_eof()
             target_2.assert_end()
+
+            self.assertFalse(efp.alive)
+
+            # Ensure things are just fine when called again...
+            efp.access__end_of_stream()
+
 
         asyncio.run(run_code())
 
@@ -212,3 +219,18 @@ class MockTarget(forwarder.EventForwarderTarget):
     def assert_end(self) -> None:
         """Assertion"""
         self.__test.assertEqual([], self.call_stack)
+
+
+class AccessibleEventForwarder(forwarder.EventForwarder):
+    """Accessible method version of the event forwarder."""
+    def access__end_of_stream(self) -> None:
+        """Access the method."""
+        self._end_of_stream()
+
+    def access__error_listener(self, error: PetroniaReturnError) -> bool:
+        """Access the method."""
+        return self._error_listener(error)
+
+    async def access__event_listener(self, event: RawEvent) -> bool:
+        """Access the method."""
+        return await self._event_listener(event)

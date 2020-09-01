@@ -60,6 +60,11 @@ class EventForwarder:
         self.__pending_targets: List[EventForwarderTarget] = []
         self.__alive = True
 
+    @property
+    def alive(self) -> bool:
+        """Is this forwarder still running?"""
+        return self.__alive
+
     def add_target(self, target: EventForwarderTarget) -> None:
         """Add a new target to the forwarder.  The target will receive new
         messages once the next event comes in, or if the stream is already
@@ -90,6 +95,7 @@ class EventForwarder:
             self.__pending_targets.clear()
 
     def _error_listener(self, error: PetroniaReturnError) -> bool:
+        assert self.__alive
         to_remove: List[EventForwarderTarget] = []
         for target in self.__targets:
             if target.on_error(error):
@@ -97,6 +103,7 @@ class EventForwarder:
         return self._manage_targets(to_remove)
 
     async def _event_listener(self, event: RawEvent) -> bool:
+        assert self.__alive
         event_id = raw_event_id(event)
         source_id = raw_event_source_id(event)
         target_id = raw_event_target_id(event)
@@ -120,6 +127,7 @@ class EventForwarder:
     async def _send_event(
             self, event: RawEvent, targets: List[EventForwarderTarget],
     ) -> List[EventForwarderTarget]:
+        assert self.__alive
         to_remove: List[EventForwarderTarget] = []
         event_id = raw_event_id(event)
         event_source_id = raw_event_source_id(event)
@@ -154,6 +162,7 @@ class EventForwarder:
         # The other type is already fully read.
 
     def _manage_targets(self, removed: List[EventForwarderTarget]) -> bool:
+        # Don't need to be alive to call this...
         new_targets: List[EventForwarderTarget] = []
         for target in self.__targets:
             if target not in removed:

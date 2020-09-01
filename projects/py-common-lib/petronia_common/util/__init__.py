@@ -27,6 +27,7 @@ from .error import (
     StdRet,
     error_message,
     join_errors,
+    join_results,
     possible_error,
     collect_errors_from,
     PetroniaReturnError,

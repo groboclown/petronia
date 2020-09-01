@@ -541,7 +541,7 @@ class StructureEventDataType(AbcEventDataType):
     Field names must conform to standard name typing, which is
     all lower-case ascii characters, underscore, and numbers, with
     only lower-case characters allowed as the first character."""
-    __slots__ = ('__field_types', '__required_field_names')
+    __slots__ = ('__field_types', '__required_field_names', '__field_names')
 
     def __init__(
             self,
@@ -555,7 +555,8 @@ class StructureEventDataType(AbcEventDataType):
         for field_name, field_type in field_types.items():
             if not field_type.is_optional:
                 required_names.append(field_name)
-        self.__required_field_names = tuple(required_names)
+        self.__field_names = tuple(sorted(list(self.__field_types.keys())))
+        self.__required_field_names = tuple(sorted(list(required_names)))
 
     def __repr__(self) -> str:
         return (
@@ -563,9 +564,28 @@ class StructureEventDataType(AbcEventDataType):
             f'fields={repr(self.__field_types)})'
         )
 
+    def __eq__(self, other: Any) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, StructureEventDataType):
+            return False
+        return (
+            self.__field_types == other.__field_types
+            and self.__required_field_names == other.__required_field_names
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        type_hash = hash(self.__field_names) + hash(self.__required_field_names)
+        for field_name in self.__field_names:
+            type_hash += hash(self.__field_types[field_name])
+        return type_hash
+
     def field_names(self) -> Iterable[str]:
         """All the field names used by this structure."""
-        return self.__field_types.keys()
+        return self.__field_names
 
     def get_field_type(self, field_name: str) -> Optional[StructureFieldType]:
         """The field type for the given field, if it exists, or None."""
@@ -704,9 +724,9 @@ class SelectorEventDataType(AbcEventDataType):
         return possible_error(messages)
 
 
-EventAccessType = Literal["public", "implementations"]
+EventAccessType = Literal["public", "implementations", "internal", "target"]
 EventPriorityType = Literal["high", "user", "normal", "io"]
-EVENT_NAME_FORMAT = re.compile(r'^[a-z0-9][a-z0-9]*(?:-[a-z0-9][a-z0-9]*)*$')
+EVENT_NAME_FORMAT = re.compile(r'^[a-z0-9][a-z0-9]*(?:[-:][a-z0-9][a-z0-9]*)*$')
 
 
 class EventType:
@@ -771,9 +791,12 @@ class EventType:
         messages: List[UserMessage] = []
         if EVENT_NAME_FORMAT.match(self.name) is None:
             messages.append(UserMessage(
-                _('event name ({event_name}) must conform to the pattern `[a-z0-9][a-z0-9-]*`'),
+                _('event name ({event_name}) must conform to the pattern `[a-z0-9][a-z0-9:-]*`'),
                 event_name=self.name,
             ))
+        struct_validate = self.structure.validate_type()
+        if struct_validate:
+            messages.extend(struct_validate.messages())
         return possible_error(messages)
 
 

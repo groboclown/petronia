@@ -1,0 +1,418 @@
+
+# See https://json-schema.org/
+
+"$schema": "https://json-schema.org/draft-07/schema"
+
+description: Extension point definition schema.
+oneOf:
+  - type: object
+    required:
+      - schema-version
+      - type
+      - name
+      - version
+      - about
+      - description
+      - depends
+      - licenses
+      - authors
+      - default
+    properties:
+      type:
+        description: Defines the rules and restrictions around the classification of the extension points.
+        const: api
+     schema-version:
+        "$ref": "#/definitions/schema-version"
+      name:
+        "$ref": "#/definitions/name"
+      version:
+        "$ref": "#/definitions/version"
+      about:
+        "$ref": "#/definitions/about"
+      description:
+        "$ref": "#/definitions/description"
+      licenses:
+        "$ref": "#/definitions/licenses"
+      authors:
+        "$ref": "#/definitions/authors"
+      depends:
+        "$ref": "#/definitions/depends"
+      default:
+        "$ref": "#/definitions/dependency"
+      references:
+        description: Reference data types, which can be used by the events.
+        type: object
+        patternProperties:
+          ".*":
+            "$ref": "#/definitions/reference-type"
+      events:
+        description: collection of supported events.
+        type: object
+        patternProperties:
+          "^[a-z0-9]+([._-][a-z0-9]+)*$":
+            oneOf:
+              - description: A binary event
+                type: object
+                required:
+                  - priority
+                  - send-access
+                  - receive-access
+                  - binary
+                properties:
+                  priority:
+                    oneOf:
+                      - const: high
+                      - const: user
+                      - const: normal
+                      - const: io
+                  send-access:
+                    oneOf:
+                      - const: public
+                      - const: implementations
+                      - const: internal
+                  receive-access:
+                    oneOf:
+                      - const: public
+                        description: >
+                          Any extension can receive the event, even if it is not the
+                          direct target of the event.
+                      - const: implementations
+                        description: >
+                          Only implementations of the API can receive the event.
+                      - const: target
+                        description: >
+                          Only the extension target of the event can receive it.
+                  description:
+                    "$ref": "#/definitions/description"
+                  binary:
+                    const: true
+              - description: An object event data layout description.
+                type: object
+                required:
+                  - priority
+                  - send-access
+                  - receive-access
+                  - fields
+                properties:
+                  priority:
+                    oneOf:
+                      - const: high
+                      - const: user
+                      - const: normal
+                      - const: io
+                  send-access:
+                    oneOf:
+                      - const: public
+                      - const: implementations
+                      - const: internal
+                  receive-access:
+                    oneOf:
+                      - const: public
+                      - const: implementations
+                      - const: internal
+                  description:
+                    "$ref": "#/definitions/description"
+                  fields:
+                    "$ref": "#/definitions/fields"
+
+
+  - type: object
+    required:
+      - schema-version
+      - type
+      - name
+      - version
+      - about
+      - description
+      - depends
+      - licenses
+      - authors
+      - implements
+      - runtime
+    properties:
+      type:
+        description: Provides an implementation to an API.
+        const: impl
+     schema-version:
+        "$ref": "#/definitions/schema-version"
+      name:
+        "$ref": "#/definitions/name"
+      version:
+        "$ref": "#/definitions/version"
+      about:
+        "$ref": "#/definitions/about"
+      description:
+        "$ref": "#/definitions/description"
+      licenses:
+        "$ref": "#/definitions/licenses"
+      authors:
+        "$ref": "#/definitions/authors"
+      depends:
+        "$ref": "#/definitions/depends"
+      implements:
+        "$ref": "#/definitions/depends"
+      runtime:
+        "$ref": "#/definitions/runtime"
+
+
+  - type: object
+    required:
+      - schema-version
+      - type
+      - name
+      - version
+      - about
+      - description
+      - depends
+      - licenses
+      - authors
+      - runtime
+    properties:
+      type:
+        description: Provides functionality without publishing events.
+        const: standalone
+      schema-version:
+        "$ref": "#/definitions/schema-version"
+      name:
+        "$ref": "#/definitions/name"
+      version:
+        "$ref": "#/definitions/version"
+      about:
+        "$ref": "#/definitions/about"
+      description:
+        "$ref": "#/definitions/description"
+      licenses:
+        "$ref": "#/definitions/licenses"
+      authors:
+        "$ref": "#/definitions/authors"
+      depends:
+        "$ref": "#/definitions/depends"
+      runtime:
+        "$ref": "#/definitions/runtime"
+
+
+
+definitions:
+  dependency:
+    description: A dependency on another extension point.
+    type: object
+    required:
+      - name
+      - minimum
+    properties:
+      name:
+        description: The dependent extension point name.
+        type: string
+      minimum:
+        "$ref": "#/definitions/version"
+      below:
+        "$ref": "#/definitions/version"
+  version:
+    description: An extension point version number.
+    type: list
+    items:
+      - type: integer
+        description: major version
+      - type: integer
+        description: minor version
+      - type: integer
+        description: patch version
+  name:
+    description: The formal, fully qualified extension point name.
+    type: string
+    minLength: 1
+    maxLength: 64
+    pattern: "^[a-z0-9]+([._-][a-z0-9]+)*$"
+  schema-version:
+    description: Version of the schema that the document conforms to.
+    const: v1
+  about:
+    description: Short description about the purpose of the extension point.
+    type: string
+    maxLength: 200
+  description:
+    description: Long details about the extension point.
+    type: string
+    maxLength: 65535
+  licenses:
+    description: >
+      List of acceptable licenses under which this extension point is released.
+      This can also be a list of license aliases.
+    type: array
+    items:
+      description: Common name of the license.  Don't get fancy.
+      type: string
+  authors:
+    description: List of author names that contributed to the extension point.
+    type: array
+    items:
+      description: The name or alias or email or some other identifier of a contributor.
+      type: string
+  depends:
+    description: >
+      List of extension points on which this extension point requires to be loaded.  Only the
+      dependent and extended events can be listened to.
+    type: array
+    items:
+      "$ref": "#/definitions/dependency"
+  runtime:
+    description: How the extension point should run.
+    type: object
+    required:
+      - launcher
+    properties:
+      launcher:
+        description: The method for executing the extension point.
+        type: string
+      permissions:
+        description: List of actions to required resources required to run.
+        type: object
+        patternProperties:
+          "^[A-Z][a-zA-Z0-9._:-]+$":
+            type: list
+            items:
+              description: Resource description.  Dependent upon the action.
+              type: string
+  reference-type:
+    oneOf:
+      - description: A string type description
+        type: object
+        required:
+          - type
+        properties:
+          type:
+            const: string
+          description:
+            "$ref": "#/definitions/description"
+          max-length:
+            type: integer
+          min-length:
+            type: integer
+      - description: An integer type description
+        type: object
+        required:
+          - type
+        properties:
+          type:
+            const: int
+          description:
+            "$ref": "#/definitions/description"
+          max-value:
+            type: integer
+          min-value:
+            type: integer
+      - description: A floating point type description
+        type: object
+        required:
+          - type
+        properties:
+          type:
+            const: float
+          description:
+            "$ref": "#/definitions/description"
+          max-value:
+            type: number
+          min-value:
+            type: number
+      - description: A boolean type description
+        type: object
+        required:
+          - type
+        properties:
+          type:
+            const: bool
+          description:
+            "$ref": "#/definitions/description"
+      - description: An enumerated type description
+        type: object
+        required:
+          - type
+          - values
+        properties:
+          type:
+            const: enum
+          description:
+            "$ref": "#/definitions/description"
+          values:
+            type: array
+            items:
+              type: string
+              minLength: 1
+              maxLength: 255
+      - description: A date-time type description
+        type: object
+        required:
+          - type
+        properties:
+          type:
+            const: datetime
+          description:
+            "$ref": "#/definitions/description"
+      - description: An array of values type description
+        type: object
+        required:
+          - type
+          - value-type
+        properties:
+          type:
+            const: array
+          description:
+            "$ref": "#/definitions/description"
+          value-type:
+            "$ref": "#/definitions/reference-type"
+          min-length:
+            type: integer
+          max-length:
+            type: integer
+      - description: A structured type description
+        type: object
+        required:
+          - type
+          - fields
+        properties:
+          type:
+            const: structure
+          description:
+            "$ref": "#/definitions/description"
+          fields:
+            "$ref": "#/definitions/fields"
+      - description: Several different kinds of types unioned together.
+        type: object
+        required:
+          - type
+          - type-mapping
+        properties:
+          type:
+            const: selector
+          description:
+            "$ref": "#/definitions/description"
+          type-mapping:
+            type: object
+            patternProperties:
+              ".*":
+                "$ref": "#/definitions/reference-type"
+      - description: Reference to another type
+        type: object
+        required:
+          - type
+          - ref
+        properties:
+          type:
+            const: reference
+          description:
+            "$ref": "#/definitions/description"
+          ref:
+            type: string
+
+  field:
+    allOf:
+      - "$ref": "#/definitions/reference-type"
+      - properties:
+          optional:
+            type: boolean
+
+  fields:
+    type: object
+    patternProperties:
+      "^[a-z][a-z0-9_]*$":
+        "$ref": "#/definitions/field"

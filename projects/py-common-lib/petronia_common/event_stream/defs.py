@@ -9,7 +9,9 @@ from typing import Tuple, Dict, Union, Protocol, Coroutine, Any, cast
 # RawBinaryReader = Callable[[Optional[int]], Coroutine[bytes]]
 class RawBinaryReader(Protocol):
     """Function to read binary data, up to a maximum number of bytes per call."""
-    def __call__(self, max_read_count: int = -1) -> Coroutine[Any, Any, bytes]: ...
+    def __call__(  # pragma no cover
+        self, max_read_count: int = -1,
+    ) -> Coroutine[Any, Any, bytes]: ...
 
 
 # What it should be ...

@@ -20,17 +20,19 @@ async def aio_fd_reader(
         run_loop = asyncio.get_event_loop()
     else:
         run_loop = loop
+    if limit <= 0:
+        limit = READ_LIMIT
 
     while True:
         try:
-            print("aio_fd_reader: reading data in loop")
-            data = await run_loop.run_in_executor(None, lambda: os.read(file_desc, limit))
-            print("aio_fd_reader: read data", repr(data))
+            # print("aio_fd_reader: reading data in loop")
+            data = await run_loop.run_in_executor(None, os.read, file_desc, limit)
+            # print("aio_fd_reader: read data", repr(data))
             if data:
                 stream.feed_data(data)
             else:
                 stream.feed_eof()
                 break
-        except OSError:
-            stream.feed_eof()
+        except OSError as err:
+            stream.set_exception(err)
             break

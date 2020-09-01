@@ -1,0 +1,365 @@
+# GENERATED CODE - DO NOT MODIFY
+# Created on {{now}}
+
+"""
+Data structures and marshalling for extension {{extension_name}} version {{extension_version}}.
+"""
+
+{{#imports}}
+{{#renamed_import}}
+from {{import_package}} import {{import_name}} as {{import_rename}}
+{{/renamed_import}}
+{{#one_child_import}}
+from {{import_package}} import {{import_name}}
+{{/one_child_import}}
+{{#many_child_imports}}
+from {{import_package}} import ({{#import_names}}
+    {{import_name}},{{/import_names}}
+)
+{{/many_child_imports}}
+{{#plain_import}}
+import {{import_package}}
+{{/plain_import}}
+{{/imports}}
+{{#structures}}
+
+
+class {{structure_class_name}}:
+    """
+    {{indented_description}}
+    """
+{{#is_selector}}
+    __slots__ = ('__name', '__value')
+
+    def __init__(
+        self,
+        name: str,
+        value: Union[{{#unique_selector_type_names}}
+            {{selector_type_name}},{{/unique_selector_type_names}}
+        ],
+    ) -> None:
+        self.__name = name
+        self.__value = value
+
+    @property
+    def name(self) -> str:
+        """Name of the selector type."""
+        return self.__name
+
+    @property
+    def value(self) -> Union[{{#unique_selector_type_names}}
+            {{selector_type_name}},{{/unique_selector_type_names}}
+    ]:
+        return self.__value
+
+    def __repr__(self) -> str:
+        return '{{structure_class_name}}(type: {0}, value: {1})'.format(
+            self.__name, repr(self.__value),
+        )
+
+    def export_data(self) -> Dict[str, Any]:
+        """Create the event data structure, ready for marshalling."""
+        {{#selector_types}}
+        if self.__name == {{{selector_type_repr}}}:
+            return {
+                '^': self.__name,
+                '$':{{#is_simple_type}}
+                    self.__value,{{/is_simple_type}}{{#is_enum_type}}
+                    self.__value,{{/is_enum_type}}{{#is_datetime_type}}
+                    self.__value.strftime('YYYYMMDD:hhmmss.sss:Z'),{{/is_datetime_type}}{{#is_array_simple_type}}
+                    {{#is_optional}}None if self.__value is None else {{/is_optional}}list(self.__value),{{/is_array_simple_type}}{{#is_struct_type}}
+                    self.__value.export_data(),{{/is_struct_type}}{{#is_array_struct_type}}
+                    [v.export_data() for v in self.__value],{{/is_array_struct_type}}
+            }
+        {{/selector_types}}
+        raise RuntimeError('invalid inner type: ' + repr(self.__name))  # pragma no cover
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        selector_name = data.get('^')
+        val = data.get('$')
+        if not isinstance(selector_name, str):
+            return StdRet.pass_errmsg(
+                _('selector value must have ^ and $ keys'),
+            )
+        {{#selector_types}}
+        if selector_name == {{selector_type_repr}}:
+            {{#is_simple_type}}
+            if not isinstance(val, {{field_python_instance_type}}):
+                return StdRet.pass_errmsg(
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='{{field_name}}',
+                    type='{{field_python_type}}',
+                    name='{{structure_class_name}}',
+                )
+            else:
+                return StdRet.pass_ok({{structure_class_name}}(
+                    selector_name,
+                    {{#field_python_cast_type}}{{field_python_cast_type}}(val){{/field_python_cast_type}}{{^field_python_cast_type}}val{{/field_python_cast_type}},
+                ))
+            {{/is_simple_type}}
+            {{#is_datetime_type}}
+            if not isinstance(val, str):
+                errors.append(StdRet.pass_errmsg(
+                    _('Value must be of type datetime for selector {name}'),
+                    field_name='{{field_name}}',
+                    name='{{structure_class_name}}',
+                ))
+            else:
+                try:
+                    dt_val = datetime.datetime.strptime(val, 'YYYYMMDD:hhmmss.sss:Z')
+                    return StdRet.pass_ok({{structure_class_name}}(
+                        selector_name,
+                        dt_val,
+                    ))
+                except ValueError:
+                    return StdRet.pass_errmsg(
+                        _('Invalid date-time format: {value}'),
+                        value=val,
+                    )
+            {{/is_datetime_type}}
+            {{#is_enum_type}}
+            if val not in ({{#enum_values}}{{enum_repr}},{{#last_enum}} {{/last_enum}}{{/enum_values}}):
+                return StdRet.pass_errmsg(
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='{{field_name}}',
+                    type='{{field_python_type}}',
+                    name='{{structure_class_name}}',
+                )
+            else:
+                return StdRet.pass_ok({{structure_class_name}}(
+                    selector_name,
+                    val,
+                ))
+            {{/is_enum_type}}
+            {{#is_array_simple_type}}
+            if not isinstance(val, list):
+                errors.append(StdRet.pass_errmsg(
+                    _('Field {field_name} must be of type {type} for selector {name}'),
+                    field_name='{{field_name}}',
+                    type='{{field_python_type}}',
+                    name='{{structure_class_name}}',
+                ))
+            else:
+                ret_val = []
+                for item in val:
+                    if not isinstance(item, {{field_python_item_type}}):
+                        return StdRet.pass_errmsg(
+                            _(
+                                'Field {field_name} must contain items '
+                                'of type {type} for structure {name}'
+                            ),
+                            field_name='{{field_name}}',
+                            type='{{field_python_item_type}}',
+                            name='{{structure_class_name}}',
+                        )
+                    else:
+                        ret_val.append(item)
+                return StdRet.pass_ok({{structure_class_name}}(
+                    selector_name,
+                    ret_val,
+                ))
+            {{/is_array_simple_type}}
+            {{#is_struct_type}}
+            parsed_val = {{field_python_type}}.parse_data(val)
+            if parsed_val.has_error:
+                return parsed_val.forward()
+            else:
+                return StdRet.pass_ok({{structure_class_name}}(
+                    selector_name,
+                    parsed_val.result,
+                ))
+            {{/is_struct_type}}
+            {{#is_array_struct_type}}
+            f_{{field_name}} = []
+            for item in val:
+                parsed_{{field_name}} = {{field_python_item_type}}.parse_data(item)
+                if parsed_{{field_name}}.has_error:
+                    errors.append(parsed_{{field_name}}.forward())
+                else:
+                    f_{{field_name}}.append(parsed_{{field_name}}.result)
+            {{/is_array_struct_type}}
+        {{/selector_types}}
+        return StdRet.pass_errmsg(
+            _('Invalid selector name {name} for {nc}'),
+            name=selector_name,
+            nc='{{structure_class_name}}',
+        )
+{{/is_selector}}
+{{^is_selector}}
+    __slots__ = ({{#field_names}}'{{field_name}}',{{^last}} {{/last}}{{/field_names}})
+
+    def __init__(
+        self,{{#field_names}}
+        {{field_name}}: {{#is_optional}}Optional[{{#is_parent}}'{{field_python_type}}'{{/is_parent}}{{^is_parent}}{{field_python_type}}{{/is_parent}}]{{/is_optional}}{{^is_optional}}{{#is_parent}}'{{field_python_type}}'{{/is_parent}}{{^is_parent}}{{field_python_type}}{{/is_parent}}{{/is_optional}},{{/field_names}}
+    ) -> None:
+        {{#field_names}}
+        self.{{field_name}} = {{field_name}}
+        {{/field_names}}
+        {{#is_event}}
+        self.event_short_name = {{event_short_name}}
+        self.extension_name = {{extension_name}}
+        {{/is_event}}
+        {{^field_names}}{{^is_event}}pass
+        {{/is_event}}{{/field_names}}
+    def export_data(self) -> Dict[str, Any]:
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            {{#field_names}}
+            {{#is_simple_type}}
+            '{{field_name}}': self.{{field_name}},
+            {{/is_simple_type}}
+            {{#is_enum_type}}
+            '{{field_name}}': self.{{field_name}},
+            {{/is_enum_type}}
+            {{#is_datetime_type}}
+            '{{field_name}}': {{#is_optional}}None if self.{{field_name}} is None else {{/is_optional}}self.{{field_name}}.strftime('YYYYMMDD:hhmmss.sss:Z'),
+            {{/is_datetime_type}}
+            {{#is_array_simple_type}}
+            '{{field_name}}': {{#is_optional}}None if self.{{field_name}} is None else {{/is_optional}}list(self.{{field_name}}),
+            {{/is_array_simple_type}}
+            {{#is_struct_type}}
+            '{{field_name}}': self.{{field_name}}.export_data(),
+            {{/is_struct_type}}
+            {{#is_array_struct_type}}
+            '{{field_name}}': {{#is_optional}}None if self.{{field_name}} is None else {{/is_optional}}[v.export_data() for v in self.{{field_name}}],
+            {{/is_array_struct_type}}
+            {{/field_names}}
+        }
+        return _strip_none(ret)
+
+    {{^has_fields}}
+    @staticmethod
+    def parse_data(_data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:
+        """Parse the marshalled data into this structured form.  There are no fields, so this is
+        essentially a no-op."""
+        return StdRet.pass_ok({{structure_class_name}}())
+    {{/has_fields}}
+    {{#has_fields}}
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        {{#field_names}}
+        f_{{field_name}}: Optional[{{field_python_type}}] = None
+        val = data.get('{{field_name}}')
+        {{#is_optional}}
+        if val is not None:
+        {{/is_optional}}
+        {{^is_optional}}
+        if val is None:
+            errors.append(StdRet.pass_errmsg(
+                _('Required field {field_name} in {name}'),
+                field_name='{{field_name}}',
+                name='{{structure_class_name}}',
+            ))
+        else:
+        {{/is_optional}}
+            {{#is_simple_type}}
+            if not isinstance(val, {{field_python_instance_type}}):
+                errors.append(StdRet.pass_errmsg(
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='{{field_name}}',
+                    type='{{field_python_type}}',
+                    name='{{structure_class_name}}',
+                ))
+            else:
+                f_{{field_name}} = {{#field_python_cast_type}}{{field_python_cast_type}}(val){{/field_python_cast_type}}{{^field_python_cast_type}}val{{/field_python_cast_type}}
+            {{/is_simple_type}}
+            {{#is_datetime_type}}
+            if not isinstance(val, str):
+                errors.append(StdRet.pass_errmsg(
+                    _('Field {field_name} must be of type datetime for structure {name}'),
+                    field_name='{{field_name}}',
+                    name='{{structure_class_name}}',
+                ))
+            else:
+                try:
+                    f_{{field_name}} = datetime.datetime.strptime(val, 'YYYYMMDD:hhmmss.sss:Z')
+                except ValueError:
+                    errors.append(StdRet.pass_errmsg(
+                        _('Invalid date-time format: {value}'),
+                        value=val,
+                    ))
+            {{/is_datetime_type}}
+            {{#is_enum_type}}
+            if val not in ({{#enum_values}}{{enum_repr}},{{#last_enum}} {{/last_enum}}{{/enum_values}}):
+                errors.append(StdRet.pass_errmsg(
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='{{field_name}}',
+                    type='{{field_python_type}}',
+                    name='{{structure_class_name}}',
+                ))
+            else:
+                f_{{field_name}} = val
+            {{/is_enum_type}}
+            {{#is_array_simple_type}}
+            if not isinstance(val, list):
+                errors.append(StdRet.pass_errmsg(
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='{{field_name}}',
+                    type='{{field_python_type}}',
+                    name='{{structure_class_name}}',
+                ))
+            else:
+                f_{{field_name}} = []
+                for item in val:
+                    if not isinstance(item, {{field_python_item_type}}):
+                        errors.append(StdRet.pass_errmsg(
+                            _(
+                                'Field {field_name} must contain items '
+                                'of type {type} for structure {name}'
+                            ),
+                            field_name='{{field_name}}',
+                            type='{{field_python_item_type}}',
+                            name='{{structure_class_name}}',
+                        ))
+                    else:
+                        f_{{field_name}}.append(item)
+            {{/is_array_simple_type}}
+            {{#is_struct_type}}
+            parsed_{{field_name}} = {{field_python_type}}.parse_data(val)
+            if parsed_{{field_name}}.has_error:
+                errors.append(parsed_{{field_name}}.forward())
+            else:
+                # Value, not result, because it could be optional...
+                f_{{field_name}} = parsed_{{field_name}}.value
+            {{/is_struct_type}}
+            {{#is_array_struct_type}}
+            f_{{field_name}} = []
+            for item in val:
+                parsed_{{field_name}} = {{field_python_item_type}}.parse_data(item)
+                if parsed_{{field_name}}.has_error:
+                    errors.append(parsed_{{field_name}}.forward())
+                else:
+                    f_{{field_name}}.append(parsed_{{field_name}}.result)
+            {{/is_array_struct_type}}
+            {{/field_names}}
+        if errors:
+            return StdRet.pass_error(collect_errors_from(errors))
+        return StdRet.pass_ok({{structure_class_name}}(
+            {{#field_names}}
+            {{field_name}}={{#is_optional}}f_{{field_name}}{{/is_optional}}{{^is_optional}}_not_none(f_{{field_name}}){{/is_optional}},
+            {{/field_names}}
+        ))
+    {{/has_fields}}
+
+    def __repr__(self) -> str:
+        return "{{structure_class_name}}(" + repr(self.export_data()) + ")"
+{{/is_selector}}
+{{/structures}}
+
+
+def _not_none(value: Optional[T]) -> T:
+    assert value is not None
+    return value
+
+
+def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:
+    ret: Dict[str, Any] = {}
+    for key, value in dict_value.items():
+        if value is not None:
+            ret[key] = value
+    return ret

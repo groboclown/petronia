@@ -66,7 +66,12 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
         project_dir,
         [os.path.abspath(os.path.join(root_project_dir, 'py-common-lib'))],
         'coverage',
-        ['run', '--source', '.', '-m', 'unittest', 'discover', '-s', '.', '-p', '*_test.py'],
+        [
+            'run', '--source', '.', '--timid',
+            # We are daring...
+            '--branch',
+            '-m', 'unittest', 'discover', '-s', '.', '-p', '*_test.py',
+        ],
         True,
     )
     if test_code != 0:
@@ -97,11 +102,11 @@ def run_python_cmd(
         env['PYTHONPATH'] = os.path.pathsep.join([*extra_py_path, env['PYTHONPATH']])
     else:
         env['PYTHONPATH'] = os.path.pathsep.join(extra_py_path)
-    python_cmd = 'python3'
-    if platform.system() == 'Windows':
-        python_cmd = 'python'
+    python_cmd = sys.executable
     cmd = [
         shutil.which(python_cmd),
+        # "-X", "dev",
+        # "-bb",
         "-m", module,
         *args,
     ]
