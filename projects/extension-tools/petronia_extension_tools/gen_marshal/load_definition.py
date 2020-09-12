@@ -3,7 +3,7 @@
 Loads the extension documentation.
 """
 
-from typing import List, Sequence
+from typing import List, Sequence, cast
 import json
 import collections
 from petronia_common.util import load_yaml_documents, StdRet, join_results
@@ -23,7 +23,7 @@ def load_extension_file(filename: str) -> StdRet[Sequence[AbcExtensionMetadata]]
     else:
         return StdRet.pass_errmsg(_('Invalid extension metadata file type: {name}'), name=filename)
     if ret_data.has_error:
-        return ret_data.forward()
+        return cast(StdRet[Sequence[AbcExtensionMetadata]], ret_data.forward())
 
     data = ret_data.result
     if isinstance(data, dict):
@@ -51,4 +51,4 @@ def load_extension_file(filename: str) -> StdRet[Sequence[AbcExtensionMetadata]]
         else:
             ret_ext = load_extension(item)
             ret.append(ret_ext)
-    return join_results(lambda x: tuple(x), *ret)
+    return join_results(tuple, *ret)

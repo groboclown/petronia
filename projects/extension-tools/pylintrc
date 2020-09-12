@@ -259,6 +259,7 @@ function-naming-style=snake_case
 good-names=i,
            j,
            k,
+           f,
            ex,
            Run,
            _
@@ -560,7 +561,7 @@ preferred-modules=
 max-args=5
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=8
+max-attributes=7
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5

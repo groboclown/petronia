@@ -2,6 +2,8 @@
 
 Events, being the heart of Petronia, require specific details about how they work.
 
+Events are defined within the extension definition of an API.  The schema is fully defined in the [extension-schema.yaml](extension-schema.yaml), and described below.  The extension tool [`gen_marshal`](../projects/extension-tools/petronia_extension_tools/gen_marshal/__init__.py) can generate the code to contain event data and encode/decode it.
+
 ## Guidelines
 
 Any activity that requires one participant of the system to interact with another requires the communication to be done through events.

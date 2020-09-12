@@ -358,7 +358,7 @@ class BracketContext:  # pylint: disable=R0902
                 # If the item count is 1, then this is a potential situation of
                 # parenthesis to have a single line wrap.  For now, this does not
                 # enforce the need for a closing comma.
-                if self._item_count <= 1 and token.token_text == ')':
+                if self._item_count <= 1:
                     pass
                 else:
                     self._messages.append(("closing-comma", [], prev.start_line_no))
@@ -479,7 +479,7 @@ class TrailingCommaChecker(BaseTokenChecker):
     )
 
     def __init__(self, linter: pylint.lint.PyLinter):
-        super(TrailingCommaChecker, self).__init__(linter)
+        BaseTokenChecker.__init__(self, linter)
         self._open_brace_lines: List[BracketContext] = []
 
     def process_module(self, module):

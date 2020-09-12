@@ -570,8 +570,8 @@ class StructureEventDataType(AbcEventDataType):
         if not isinstance(other, StructureEventDataType):
             return False
         return (
-            self.__field_types == other.__field_types
-            and self.__required_field_names == other.__required_field_names
+            self.__field_types == dict(other.fields())
+            and self.__required_field_names == other.required_field_names
         )
 
     def __ne__(self, other: Any) -> bool:
@@ -594,6 +594,11 @@ class StructureEventDataType(AbcEventDataType):
     def fields(self) -> Iterable[Tuple[str, StructureFieldType]]:
         """A list of field name, field type."""
         return self.__field_types.items()
+
+    @property
+    def required_field_names(self) -> Sequence[str]:
+        """All fields that must be present."""
+        return self.__required_field_names
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []

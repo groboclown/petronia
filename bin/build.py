@@ -17,7 +17,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     mypy_args: List[str] = ['--warn-unused-configs', '--no-incremental']
     for name in os.listdir(project_dir):
         fqn = os.path.join(project_dir, name)
-        if '.' not in name and os.path.isdir(fqn):
+        if '.' not in name and name[0] != '_' and os.path.isdir(fqn):
             top_package_names.append(name)
             mypy_args.append('--package')
             mypy_args.append(name)
@@ -122,7 +122,7 @@ def run_python_cmd(
 
 
 PRIORITY_PROJECTS = ('py-common-lib', 'extension-tools',)
-IGNORED_PROJECT_DIRS = ()
+IGNORED_PROJECT_DIRS = ('py-stubs',)
 
 
 def get_std_project_dirs(project_dir: str) -> List[Tuple[str, str]]:

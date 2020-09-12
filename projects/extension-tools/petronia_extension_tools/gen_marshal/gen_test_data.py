@@ -3,13 +3,11 @@
 Create the marshaller Python object source.
 """
 
-from typing import Dict, List, Sequence, Set, Tuple, Optional, Any
+from typing import Dict, List, Any
 import random
 import datetime
 from petronia_common.util import StdRet
-from petronia_common.util import i18n as _
 from petronia_common.extension.config import (
-    ApiExtensionMetadata,
     AbcEventDataType,
     StructureEventDataType,
     ArrayEventDataType,
@@ -35,12 +33,10 @@ MAX_ARRAY_LENGTH = 10
 MAX_STRING_LENGTH = 30
 
 
-def create_field_data_sample(
+def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         fdt: AbcEventDataType, fill_all_fields: bool, depth: int = 0,
 ) -> StdRet[str]:
     """Use a template to create sample data for the field value."""
-
-    print("    - type " + fdt.type_name + "; depth " + repr(depth))
 
     if depth > ABSOLUTE_MAX_DEPTH:
         raise RuntimeError('Data structure is too deep.')
@@ -48,7 +44,7 @@ def create_field_data_sample(
     if isinstance(fdt, IntEventDataType):
         return StdRet.pass_ok(repr(random.randint(fdt.min_value, fdt.max_value)))
 
-    elif isinstance(fdt, FloatEventDataType):
+    if isinstance(fdt, FloatEventDataType):
         min_f_value = -100000.0
         max_f_value = 1000000.0
         if fdt.min_value is not None:
@@ -59,7 +55,7 @@ def create_field_data_sample(
             (random.random() * (max_f_value - min_f_value)) + min_f_value
         ))
 
-    elif isinstance(fdt, StringEventDataType):
+    if isinstance(fdt, StringEventDataType):
         str_ret = ''
         if fill_all_fields:
             str_length = max(
@@ -68,22 +64,22 @@ def create_field_data_sample(
             )
         else:
             str_length = fdt.min_length
-        for i in range(str_length):
+        for _ in range(str_length):
             str_ret += random.choice(CHARACTER_CHOICES)
         return StdRet.pass_ok(repr(str_ret))
 
-    elif isinstance(fdt, BoolEventDataType):
+    if isinstance(fdt, BoolEventDataType):
         return StdRet.pass_ok('True' if random.randint(0, 1) == 0 else 'False')
 
-    elif isinstance(fdt, DatetimeEventDataType):
+    if isinstance(fdt, DatetimeEventDataType):
         return StdRet.pass_ok(datetime.datetime.strftime(
             datetime.datetime.utcnow(), 'YYYYMMDD:hhmmss.sss:Z',
         ))
 
-    elif isinstance(fdt, EnumEventDataType):
+    if isinstance(fdt, EnumEventDataType):
         return StdRet.pass_ok(random.choice(fdt.values))
 
-    elif isinstance(fdt, SelectorEventDataType):
+    if isinstance(fdt, SelectorEventDataType):
         selected_key, selected_type = random.choice(tuple(fdt.selector_items()))
         data_value = create_field_data_sample(selected_type, fill_all_fields, depth + 1)
         if data_value.has_error:
@@ -97,7 +93,7 @@ def create_field_data_sample(
             depth,
         )
 
-    elif isinstance(fdt, StructureEventDataType):
+    if isinstance(fdt, StructureEventDataType):
         fields: List[Dict[str, str]] = []
         for field_name, field_dt in fdt.fields():
             if field_dt.is_optional and depth > MAX_DEPTH:
@@ -113,7 +109,7 @@ def create_field_data_sample(
             DATA_STRUCTURE_TEMPLATE, {'fields': fields}, depth,
         )
 
-    elif isinstance(fdt, ArrayEventDataType):
+    if isinstance(fdt, ArrayEventDataType):
         ret_val: List[str] = []
         if fill_all_fields and depth < MAX_DEPTH:
             length = max(
@@ -122,7 +118,7 @@ def create_field_data_sample(
             )
         else:
             length = fdt.min_length
-        for i in range(length):
+        for _ in range(length):
             data_value = create_field_data_sample(fdt.value_type, fill_all_fields, depth + 1)
             if data_value.has_error:
                 return data_value.forward()
@@ -132,8 +128,8 @@ def create_field_data_sample(
             {'values': [{'value': v} for v in ret_val]},
             depth,
         )
-    else:
-        raise Exception('Unknown field type ' + repr(fdt))  # pragma no cover
+
+    raise Exception('Unknown field type ' + repr(fdt))  # pragma no cover
 
 
 def run_template(template_name: str, data: Dict[str, Any], indent: int) -> StdRet[str]:
@@ -165,5 +161,5 @@ def run_template(template_name: str, data: Dict[str, Any], indent: int) -> StdRe
 CHARACTER_CHOICES = ''
 for __i in range(0x20, 0x2ff):
     CHARACTER_CHOICES += chr(__i)
-for __i in range (0x370, 0x52f):
+for __i in range(0x370, 0x52f):
     CHARACTER_CHOICES += chr(__i)

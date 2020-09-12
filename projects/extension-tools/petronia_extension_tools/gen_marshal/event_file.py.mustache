@@ -5,6 +5,9 @@
 Data structures and marshalling for extension {{extension_name}} version {{extension_version}}.
 """
 
+# mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
+
+
 {{#imports}}
 {{#renamed_import}}
 from {{import_package}} import {{import_name}} as {{import_rename}}
@@ -50,6 +53,7 @@ class {{structure_class_name}}:
     def value(self) -> Union[{{#unique_selector_type_names}}
             {{selector_type_name}},{{/unique_selector_type_names}}
     ]:
+        """The selector value."""
         return self.__value
 
     def __repr__(self) -> str:
@@ -57,7 +61,7 @@ class {{structure_class_name}}:
             self.__name, repr(self.__value),
         )
 
-    def export_data(self) -> Dict[str, Any]:
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0912
         """Create the event data structure, ready for marshalling."""
         {{#selector_types}}
         if self.__name == {{{selector_type_repr}}}:
@@ -75,7 +79,7 @@ class {{structure_class_name}}:
         raise RuntimeError('invalid inner type: ' + repr(self.__name))  # pragma no cover
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         selector_name = data.get('^')
         val = data.get('$')
@@ -93,11 +97,10 @@ class {{structure_class_name}}:
                     type='{{field_python_type}}',
                     name='{{structure_class_name}}',
                 )
-            else:
-                return StdRet.pass_ok({{structure_class_name}}(
-                    selector_name,
-                    {{#field_python_cast_type}}{{field_python_cast_type}}(val){{/field_python_cast_type}}{{^field_python_cast_type}}val{{/field_python_cast_type}},
-                ))
+            return StdRet.pass_ok({{structure_class_name}}(
+                selector_name,
+                {{#field_python_cast_type}}{{field_python_cast_type}}(val){{/field_python_cast_type}}{{^field_python_cast_type}}val{{/field_python_cast_type}},
+            ))
             {{/is_simple_type}}
             {{#is_datetime_type}}
             if not isinstance(val, str):
@@ -127,11 +130,10 @@ class {{structure_class_name}}:
                     type='{{field_python_type}}',
                     name='{{structure_class_name}}',
                 )
-            else:
-                return StdRet.pass_ok({{structure_class_name}}(
-                    selector_name,
-                    val,
-                ))
+            return StdRet.pass_ok({{structure_class_name}}(
+                selector_name,
+                val,
+            ))
             {{/is_enum_type}}
             {{#is_array_simple_type}}
             if not isinstance(val, list):
@@ -165,11 +167,10 @@ class {{structure_class_name}}:
             parsed_val = {{field_python_type}}.parse_data(val)
             if parsed_val.has_error:
                 return parsed_val.forward()
-            else:
-                return StdRet.pass_ok({{structure_class_name}}(
-                    selector_name,
-                    parsed_val.result,
-                ))
+            return StdRet.pass_ok({{structure_class_name}}(
+                selector_name,
+                parsed_val.result,
+            ))
             {{/is_struct_type}}
             {{#is_array_struct_type}}
             f_{{field_name}} = []
@@ -189,6 +190,9 @@ class {{structure_class_name}}:
 {{/is_selector}}
 {{^is_selector}}
     __slots__ = ({{#field_names}}'{{field_name}}',{{^last}} {{/last}}{{/field_names}})
+{{#is_event}}    FULL_EVENT_NAME = {{fq_event_name}}
+    SHORT_EVENT_NAME = {{short_event_name}}
+{{/is_event}}
 
     def __init__(
         self,{{#field_names}}
@@ -197,14 +201,23 @@ class {{structure_class_name}}:
         {{#field_names}}
         self.{{field_name}} = {{field_name}}
         {{/field_names}}
-        {{#is_event}}
-        self.event_short_name = {{event_short_name}}
-        self.extension_name = {{extension_name}}
-        {{/is_event}}
-        {{^field_names}}{{^is_event}}pass
-        {{/is_event}}{{/field_names}}
-    def export_data(self) -> Dict[str, Any]:
+        {{^field_names}}
+        pass
+        {{/field_names}}
+
+    {{#is_event}}
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return {{structure_class_name}}.FULL_EVENT_NAME
+
+    {{/is_event}}
+    def export_data(self) -> Dict[str, Any]:{{^has_field}}  # pylint: disable=R0201{{/has_field}}
         """Create the event data structure, ready for marshalling."""
+        {{^has_fields}}
+        return {}
+        {{/has_fields}}
+        {{#has_fields}}
         ret: Dict[str, Any] = {
             {{#field_names}}
             {{#is_simple_type}}
@@ -228,6 +241,7 @@ class {{structure_class_name}}:
             {{/field_names}}
         }
         return _strip_none(ret)
+        {{/has_fields}}
 
     {{^has_fields}}
     @staticmethod
@@ -238,7 +252,7 @@ class {{structure_class_name}}:
     {{/has_fields}}
     {{#has_fields}}
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -338,7 +352,7 @@ class {{structure_class_name}}:
             {{/is_array_struct_type}}
             {{/field_names}}
         if errors:
-            return StdRet.pass_error(collect_errors_from(errors))
+            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
         return StdRet.pass_ok({{structure_class_name}}(
             {{#field_names}}
             {{field_name}}={{#is_optional}}f_{{field_name}}{{/is_optional}}{{^is_optional}}_not_none(f_{{field_name}}){{/is_optional}},

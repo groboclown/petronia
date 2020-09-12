@@ -192,8 +192,8 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
         },
         [(
             'dependency must be a dictionary containing the keys '
-            '`name`, `minimum`, and possibly `below`',
-            {},
+            '`name`, `minimum`, and possibly `below` (found {value})',
+            {'value': '1'},
         )],
     ),
     (
@@ -712,7 +712,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`fields` must be a dictionary of field data type structures', {},)],
+        [(
+            '`fields` must be a dictionary of field data type structures, found {data}',
+            {'data': '[1]'},
+        )],
     ),
     (
         'Event data - bad structure optional type',

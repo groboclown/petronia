@@ -1,0 +1,125 @@
+"""
+Abstract class for all launchers.
+"""
+
+from typing import Tuple, Sequence, Mapping, List, Iterable, Callable
+import asyncio
+from petronia_common.event_stream import BinaryWriter
+from petronia_common.util import StdRet, readonly_dict
+from ..configuration import PlatformSettings
+from ..event_router.handler import EventTargetHandle
+
+
+class RuntimeContext:
+    """Context used by a launcher category to handle events to/from the launcher."""
+
+    def get_platform(self) -> PlatformSettings:
+        """Get the platform settings."""
+        raise NotImplementedError()
+
+    def create_channel(
+            self,
+            name: str,
+            reader: asyncio.StreamReader,
+            writer: BinaryWriter,
+    ) -> StdRet[None]:
+        """Creates the channel."""
+        raise NotImplementedError()
+
+    def close_channel(self, name: str) -> bool:
+        """Closes the channel."""
+        raise NotImplementedError()
+
+    def add_handler(
+            self, channel_name: str, handler_id: str,
+            produces: Iterable[str], consumes: Iterable[EventTargetHandle],
+    ) -> StdRet[None]:
+        """Adds the handler to the channel with the given name.  If the
+        handler ID is registered anywhere, or the channel does not exist, then
+        an error is returned."""
+        raise NotImplementedError()
+
+    def remove_handler(self, handler_id: str) -> bool:
+        """Removes the handler from its registered channel.
+        Returns True if it was successfully removed."""
+        raise NotImplementedError()
+
+    def add_handler_listener(
+            self,
+            handler_id: str,
+            event_id: str, target_id: str,
+    ) -> bool:
+        """Registers the event / target listener with the handler."""
+        raise NotImplementedError()
+
+    def remove_handler_listener(
+            self,
+            handler_id: str,
+            event_id: str, target_id: str,
+    ) -> bool:
+        """Removes the event / target listener from the handler."""
+        raise NotImplementedError()
+
+
+class AbcLauncherCategory:
+    """
+    Defines how to run and interact with extensions.  The extension loader requests that
+    a launcher starts based on a launcher category.  The category determines how it is launched
+    and interacts.
+
+    A category is declared in the foreman configuration.
+    """
+    __slots__ = ('__options',)
+
+    def __init__(
+            self,
+            options: Mapping[str, str],
+    ) -> None:
+        self.__options = readonly_dict(options)
+
+    @property
+    def options(self) -> Mapping[str, str]:
+        """List of options used to start the launcher."""
+        return self.__options
+
+    def is_valid(self) -> StdRet[None]:
+        """Is this launcher valid, including all options?"""
+        raise NotImplementedError()
+
+    async def initialize(self, context: RuntimeContext) -> StdRet[None]:
+        """Initialize the launcher.  Only called once."""
+        raise NotImplementedError()
+
+    async def start_launcher(
+            self,
+            launcher_id: str,
+            permissions: Mapping[str, List[str]],
+    ) -> StdRet[None]:
+        """Start a launcher within this category, with a specific list of permissions."""
+        raise NotImplementedError()
+
+    async def start_extension(
+            self,
+            launcher_id: str,
+            extension_name: str,
+            extension_version: Tuple[int, int, int],
+            location: str,
+    ) -> StdRet[None]:
+        """Start the extension as requested by the event."""
+        raise NotImplementedError()
+
+    def get_active_launcher_ids(self) -> Sequence[str]:
+        """Get the list of all active launcher IDs."""
+        raise NotImplementedError()
+
+    async def stop_launcher(self, launcher_id: str) -> StdRet[None]:
+        """Stops the specific launcher.  If the launcher is not registered or not running, then
+        the appropriate error is returned."""
+        raise NotImplementedError()
+
+    async def stop(self) -> StdRet[None]:
+        """Stop all running launchers."""
+        raise NotImplementedError()
+
+
+LauncherFactory = Callable[[Mapping[str, str]], AbcLauncherCategory]

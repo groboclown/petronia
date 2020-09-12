@@ -6,8 +6,8 @@ There exists one of these for each launch configuration type.
 """
 
 from typing import Dict
-import os
 from configparser import ConfigParser
+from ..launcher.loader import is_valid
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
 
@@ -25,29 +25,20 @@ class LauncherConfig:
     Reusable launchers only start one launcher per permission set, so that it will contain
     multiple running extensions.
     """
-    __slots__ = ('launcher_name', 'command', 'run_dir', 'reuse', 'options')
+    __slots__ = ('launcher_name', 'runner', 'options',)
 
     def __init__(self, launcher_name: str, configuration: ConfigParser) -> None:
         self.launcher_name = launcher_name
-        self.command = configuration.get(launcher_name, 'command', fallback='')
-        self.run_dir = configuration.get(launcher_name, 'working-dir', fallback='')
-        self.reuse = configuration.getboolean(launcher_name, 'reuse', fallback=False)
+        self.runner = configuration.get(launcher_name, 'runner', fallback='')
         self.options: Dict[str, str] = {}
         for name, value in configuration.items(launcher_name):
             self.options[name] = value
 
     def validate(self) -> StdRet[None]:
         """Check if the configuration is valid."""
-        if not self.command:
+        if not self.runner:
             return StdRet.pass_errmsg(
-                _("Command not specified for launcher {name}"),
+                _("`runner` not specified for launcher {name}"),
                 name=self.launcher_name,
-            )
-
-        if self.run_dir and not os.path.isdir(self.run_dir):
-            return StdRet.pass_errmsg(
-                _("working-dir value `{run_dir}` for launcher configuration {name} does not exist"),
-                name=self.launcher_name,
-                run_dir=self.run_dir,
             )
         return RET_OK_NONE

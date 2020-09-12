@@ -1,28 +1,31 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2020-09-01T18:29:17.075142
+# Created on 2020-09-12T00:48:26.765548
 
 """
 Data structures and marshalling for extension petronia.core.api.extension_loader version 1.0.0.
 """
 
+# mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
+
+
 from typing import (
+    Optional,
+    Union,
+    Any,
+    SupportsInt,
     SupportsFloat,
     Dict,
-    Union,
     List,
-    SupportsInt,
-    Optional,
-    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     StdRet,
     T,
+    collect_errors_from,
 )
 
 
-class LoadExtensionRequest:
+class LoadExtensionRequestEvent:
     """
     Request for an extension be loaded into Petronia. The extension loader will
     examine the request and decide whether the extension can be loaded. The
@@ -30,6 +33,8 @@ class LoadExtensionRequest:
     load the extension.
     """
     __slots__ = ('name', 'minimum_version', 'below_version',)
+    FULL_EVENT_NAME = 'petronia.core.api.extension_loader:load-extension:request'
+    SHORT_EVENT_NAME = 'load-extension:request'
 
     def __init__(
         self,
@@ -40,8 +45,13 @@ class LoadExtensionRequest:
         self.name = name
         self.minimum_version = minimum_version
         self.below_version = below_version
-        
-    def export_data(self) -> Dict[str, Any]:
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return LoadExtensionRequestEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'name': self.name,
@@ -51,7 +61,7 @@ class LoadExtensionRequest:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LoadExtensionRequest']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['LoadExtensionRequestEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -61,7 +71,7 @@ class LoadExtensionRequest:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='name',
-                name='LoadExtensionRequest',
+                name='LoadExtensionRequestEvent',
             ))
         else:
             if not isinstance(val, str):
@@ -69,7 +79,7 @@ class LoadExtensionRequest:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
-                    name='LoadExtensionRequest',
+                    name='LoadExtensionRequestEvent',
                 ))
             else:
                 f_name = val
@@ -81,7 +91,7 @@ class LoadExtensionRequest:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='minimum_version',
                     type='List[int]',
-                    name='LoadExtensionRequest',
+                    name='LoadExtensionRequestEvent',
                 ))
             else:
                 f_minimum_version = []
@@ -94,7 +104,7 @@ class LoadExtensionRequest:
                             ),
                             field_name='minimum_version',
                             type='int',
-                            name='LoadExtensionRequest',
+                            name='LoadExtensionRequestEvent',
                         ))
                     else:
                         f_minimum_version.append(item)
@@ -106,7 +116,7 @@ class LoadExtensionRequest:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='below_version',
                     type='List[int]',
-                    name='LoadExtensionRequest',
+                    name='LoadExtensionRequestEvent',
                 ))
             else:
                 f_below_version = []
@@ -119,20 +129,20 @@ class LoadExtensionRequest:
                             ),
                             field_name='below_version',
                             type='int',
-                            name='LoadExtensionRequest',
+                            name='LoadExtensionRequestEvent',
                         ))
                     else:
                         f_below_version.append(item)
         if errors:
-            return StdRet.pass_error(collect_errors_from(errors))
-        return StdRet.pass_ok(LoadExtensionRequest(
+            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LoadExtensionRequestEvent(
             name=_not_none(f_name),
             minimum_version=f_minimum_version,
             below_version=f_below_version,
         ))
 
     def __repr__(self) -> str:
-        return "LoadExtensionRequest(" + repr(self.export_data()) + ")"
+        return "LoadExtensionRequestEvent(" + repr(self.export_data()) + ")"
 
 
 class Arguments:
@@ -145,9 +155,9 @@ class Arguments:
         self,
         name: str,
         value: Union[
+            float,
             int,
             str,
-            float,
         ],
     ) -> None:
         self.__name = name
@@ -160,10 +170,11 @@ class Arguments:
 
     @property
     def value(self) -> Union[
+            float,
             int,
             str,
-            float,
     ]:
+        """The selector value."""
         return self.__value
 
     def __repr__(self) -> str:
@@ -171,7 +182,7 @@ class Arguments:
             self.__name, repr(self.__value),
         )
 
-    def export_data(self) -> Dict[str, Any]:
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0912
         """Create the event data structure, ready for marshalling."""
         if self.__name == 'string':
             return {
@@ -194,7 +205,7 @@ class Arguments:
         raise RuntimeError('invalid inner type: ' + repr(self.__name))  # pragma no cover
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Arguments']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['Arguments']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         selector_name = data.get('^')
         val = data.get('$')
@@ -210,11 +221,10 @@ class Arguments:
                     type='str',
                     name='Arguments',
                 )
-            else:
-                return StdRet.pass_ok(Arguments(
-                    selector_name,
-                    val,
-                ))
+            return StdRet.pass_ok(Arguments(
+                selector_name,
+                val,
+            ))
         if selector_name == 'int':
             if not isinstance(val, SupportsInt):
                 return StdRet.pass_errmsg(
@@ -223,11 +233,10 @@ class Arguments:
                     type='int',
                     name='Arguments',
                 )
-            else:
-                return StdRet.pass_ok(Arguments(
-                    selector_name,
-                    int(val),
-                ))
+            return StdRet.pass_ok(Arguments(
+                selector_name,
+                int(val),
+            ))
         if selector_name == 'float':
             if not isinstance(val, SupportsFloat):
                 return StdRet.pass_errmsg(
@@ -236,11 +245,10 @@ class Arguments:
                     type='float',
                     name='Arguments',
                 )
-            else:
-                return StdRet.pass_ok(Arguments(
-                    selector_name,
-                    float(val),
-                ))
+            return StdRet.pass_ok(Arguments(
+                selector_name,
+                float(val),
+            ))
         return StdRet.pass_errmsg(
             _('Invalid selector name {name} for {nc}'),
             name=selector_name,
@@ -265,8 +273,8 @@ class Error:
         self.source = source
         self.message = message
         self.arguments = arguments
-        
-    def export_data(self) -> Dict[str, Any]:
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'identifier': self.identifier,
@@ -277,7 +285,7 @@ class Error:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Error']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['Error']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -346,7 +354,7 @@ class Error:
                 else:
                     f_arguments.append(parsed_arguments.result)
         if errors:
-            return StdRet.pass_error(collect_errors_from(errors))
+            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(Error(
             identifier=_not_none(f_identifier),
             source=f_source,
@@ -358,11 +366,13 @@ class Error:
         return "Error(" + repr(self.export_data()) + ")"
 
 
-class LoadExtensionFailed:
+class LoadExtensionFailedEvent:
     """
     The request to load an extension was denied or the extension failed to load.
     """
     __slots__ = ('name', 'error',)
+    FULL_EVENT_NAME = 'petronia.core.api.extension_loader:load-extension:failed'
+    SHORT_EVENT_NAME = 'load-extension:failed'
 
     def __init__(
         self,
@@ -371,8 +381,13 @@ class LoadExtensionFailed:
     ) -> None:
         self.name = name
         self.error = error
-        
-    def export_data(self) -> Dict[str, Any]:
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return LoadExtensionFailedEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'name': self.name,
@@ -381,7 +396,7 @@ class LoadExtensionFailed:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LoadExtensionFailed']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['LoadExtensionFailedEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -391,7 +406,7 @@ class LoadExtensionFailed:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='name',
-                name='LoadExtensionFailed',
+                name='LoadExtensionFailedEvent',
             ))
         else:
             if not isinstance(val, str):
@@ -399,7 +414,7 @@ class LoadExtensionFailed:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
-                    name='LoadExtensionFailed',
+                    name='LoadExtensionFailedEvent',
                 ))
             else:
                 f_name = val
@@ -409,7 +424,7 @@ class LoadExtensionFailed:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='error',
-                name='LoadExtensionFailed',
+                name='LoadExtensionFailedEvent',
             ))
         else:
             parsed_error = Error.parse_data(val)
@@ -419,22 +434,24 @@ class LoadExtensionFailed:
                 # Value, not result, because it could be optional...
                 f_error = parsed_error.value
         if errors:
-            return StdRet.pass_error(collect_errors_from(errors))
-        return StdRet.pass_ok(LoadExtensionFailed(
+            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LoadExtensionFailedEvent(
             name=_not_none(f_name),
             error=_not_none(f_error),
         ))
 
     def __repr__(self) -> str:
-        return "LoadExtensionFailed(" + repr(self.export_data()) + ")"
+        return "LoadExtensionFailedEvent(" + repr(self.export_data()) + ")"
 
 
-class LoadExtensionSuccess:
+class LoadExtensionSuccessEvent:
     """
     The request to load the extension succeeded. Other events related to the
     extension loading may be sent, but that is in a different life cycle.
     """
     __slots__ = ('name', 'version',)
+    FULL_EVENT_NAME = 'petronia.core.api.extension_loader:load-extension:success'
+    SHORT_EVENT_NAME = 'load-extension:success'
 
     def __init__(
         self,
@@ -443,8 +460,13 @@ class LoadExtensionSuccess:
     ) -> None:
         self.name = name
         self.version = version
-        
-    def export_data(self) -> Dict[str, Any]:
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return LoadExtensionSuccessEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'name': self.name,
@@ -453,7 +475,7 @@ class LoadExtensionSuccess:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LoadExtensionSuccess']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['LoadExtensionSuccessEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -463,7 +485,7 @@ class LoadExtensionSuccess:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='name',
-                name='LoadExtensionSuccess',
+                name='LoadExtensionSuccessEvent',
             ))
         else:
             if not isinstance(val, str):
@@ -471,7 +493,7 @@ class LoadExtensionSuccess:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
-                    name='LoadExtensionSuccess',
+                    name='LoadExtensionSuccessEvent',
                 ))
             else:
                 f_name = val
@@ -481,7 +503,7 @@ class LoadExtensionSuccess:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='version',
-                name='LoadExtensionSuccess',
+                name='LoadExtensionSuccessEvent',
             ))
         else:
             if not isinstance(val, list):
@@ -489,7 +511,7 @@ class LoadExtensionSuccess:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='version',
                     type='List[int]',
-                    name='LoadExtensionSuccess',
+                    name='LoadExtensionSuccessEvent',
                 ))
             else:
                 f_version = []
@@ -502,138 +524,57 @@ class LoadExtensionSuccess:
                             ),
                             field_name='version',
                             type='int',
-                            name='LoadExtensionSuccess',
+                            name='LoadExtensionSuccessEvent',
                         ))
                     else:
                         f_version.append(item)
         if errors:
-            return StdRet.pass_error(collect_errors_from(errors))
-        return StdRet.pass_ok(LoadExtensionSuccess(
+            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LoadExtensionSuccessEvent(
             name=_not_none(f_name),
             version=_not_none(f_version),
         ))
 
     def __repr__(self) -> str:
-        return "LoadExtensionSuccess(" + repr(self.export_data()) + ")"
+        return "LoadExtensionSuccessEvent(" + repr(self.export_data()) + ")"
 
 
-class Permissions:
+class LauncherLoadExtensionEvent:
     """
-    (no description)
+    Requests a launcher to load an extension. The target of the request is the
+    launcher started by a "start-launcher" event, and that declares the permissions
+    that the extension can use.
     """
-    __slots__ = ('action', 'resources',)
-
-    def __init__(
-        self,
-        action: str,
-        resources: List[str],
-    ) -> None:
-        self.action = action
-        self.resources = resources
-        
-    def export_data(self) -> Dict[str, Any]:
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'action': self.action,
-            'resources': list(self.resources),
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Permissions']:
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        f_action: Optional[str] = None
-        val = data.get('action')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                _('Required field {field_name} in {name}'),
-                field_name='action',
-                name='Permissions',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='action',
-                    type='str',
-                    name='Permissions',
-                ))
-            else:
-                f_action = val
-        f_resources: Optional[List[str]] = None
-        val = data.get('resources')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                _('Required field {field_name} in {name}'),
-                field_name='resources',
-                name='Permissions',
-            ))
-        else:
-            if not isinstance(val, list):
-                errors.append(StdRet.pass_errmsg(
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='resources',
-                    type='List[str]',
-                    name='Permissions',
-                ))
-            else:
-                f_resources = []
-                for item in val:
-                    if not isinstance(item, str):
-                        errors.append(StdRet.pass_errmsg(
-                            _(
-                                'Field {field_name} must contain items '
-                                'of type {type} for structure {name}'
-                            ),
-                            field_name='resources',
-                            type='str',
-                            name='Permissions',
-                        ))
-                    else:
-                        f_resources.append(item)
-        if errors:
-            return StdRet.pass_error(collect_errors_from(errors))
-        return StdRet.pass_ok(Permissions(
-            action=_not_none(f_action),
-            resources=_not_none(f_resources),
-        ))
-
-    def __repr__(self) -> str:
-        return "Permissions(" + repr(self.export_data()) + ")"
-
-
-class LauncherLoadExtension:
-    """
-    Requests a launcher to load an extension.
-    """
-    __slots__ = ('name', 'version', 'location', 'permissions',)
+    __slots__ = ('name', 'version', 'location',)
+    FULL_EVENT_NAME = 'petronia.core.api.extension_loader:launcher-load-extension'
+    SHORT_EVENT_NAME = 'launcher-load-extension'
 
     def __init__(
         self,
         name: str,
         version: List[int],
         location: str,
-        permissions: List[Permissions],
     ) -> None:
         self.name = name
         self.version = version
         self.location = location
-        self.permissions = permissions
-        
-    def export_data(self) -> Dict[str, Any]:
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return LauncherLoadExtensionEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'name': self.name,
             'version': list(self.version),
             'location': self.location,
-            'permissions': [v.export_data() for v in self.permissions],
         }
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherLoadExtension']:
+    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherLoadExtensionEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -643,7 +584,7 @@ class LauncherLoadExtension:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='name',
-                name='LauncherLoadExtension',
+                name='LauncherLoadExtensionEvent',
             ))
         else:
             if not isinstance(val, str):
@@ -651,7 +592,7 @@ class LauncherLoadExtension:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
-                    name='LauncherLoadExtension',
+                    name='LauncherLoadExtensionEvent',
                 ))
             else:
                 f_name = val
@@ -661,7 +602,7 @@ class LauncherLoadExtension:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='version',
-                name='LauncherLoadExtension',
+                name='LauncherLoadExtensionEvent',
             ))
         else:
             if not isinstance(val, list):
@@ -669,7 +610,7 @@ class LauncherLoadExtension:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='version',
                     type='List[int]',
-                    name='LauncherLoadExtension',
+                    name='LauncherLoadExtensionEvent',
                 ))
             else:
                 f_version = []
@@ -682,7 +623,7 @@ class LauncherLoadExtension:
                             ),
                             field_name='version',
                             type='int',
-                            name='LauncherLoadExtension',
+                            name='LauncherLoadExtensionEvent',
                         ))
                     else:
                         f_version.append(item)
@@ -692,7 +633,7 @@ class LauncherLoadExtension:
             errors.append(StdRet.pass_errmsg(
                 _('Required field {field_name} in {name}'),
                 field_name='location',
-                name='LauncherLoadExtension',
+                name='LauncherLoadExtensionEvent',
             ))
         else:
             if not isinstance(val, str):
@@ -700,37 +641,20 @@ class LauncherLoadExtension:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='location',
                     type='str',
-                    name='LauncherLoadExtension',
+                    name='LauncherLoadExtensionEvent',
                 ))
             else:
                 f_location = val
-        f_permissions: Optional[List[Permissions]] = None
-        val = data.get('permissions')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                _('Required field {field_name} in {name}'),
-                field_name='permissions',
-                name='LauncherLoadExtension',
-            ))
-        else:
-            f_permissions = []
-            for item in val:
-                parsed_permissions = Permissions.parse_data(item)
-                if parsed_permissions.has_error:
-                    errors.append(parsed_permissions.forward())
-                else:
-                    f_permissions.append(parsed_permissions.result)
         if errors:
-            return StdRet.pass_error(collect_errors_from(errors))
-        return StdRet.pass_ok(LauncherLoadExtension(
+            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LauncherLoadExtensionEvent(
             name=_not_none(f_name),
             version=_not_none(f_version),
             location=_not_none(f_location),
-            permissions=_not_none(f_permissions),
         ))
 
     def __repr__(self) -> str:
-        return "LauncherLoadExtension(" + repr(self.export_data()) + ")"
+        return "LauncherLoadExtensionEvent(" + repr(self.export_data()) + ")"
 
 
 def _not_none(value: Optional[T]) -> T:

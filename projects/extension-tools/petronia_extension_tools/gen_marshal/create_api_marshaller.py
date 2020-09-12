@@ -3,7 +3,7 @@
 Create the marshaller Python object source.
 """
 
-from typing import Dict, List, Any
+from typing import Dict, Set, List, Any
 import os
 import datetime
 from petronia_common.util import StdRet, RET_OK_NONE
@@ -30,9 +30,11 @@ _TEMPLATES: Dict[str, str] = {}
 
 def create_api_marshal_source(
         output_dir: str, event_module_name: str, metadata: ApiExtensionMetadata,
+        language: str, generate_internals: bool,
 ) -> StdRet[None]:
     """Create the marshaller source file."""
-    ret_data = create_structures(metadata)
+    assert language == 'python'
+    ret_data = create_structures(metadata, generate_internals)
     if ret_data.has_error:
         return ret_data.forward()
     structures, imports = ret_data.result
@@ -52,6 +54,7 @@ def mk_event_marshal_src(
         output_dir: str, metadata: ApiExtensionMetadata,
         event_module_name: str, structures: List[Dict[str, Any]], imports: List[ImportStruct],
 ) -> StdRet[None]:
+    """Create the marshal source file."""
     ret_template = load_template(EVENT_TEMPLATE_NAME)
     if ret_template.has_error:
         return ret_template.forward()
@@ -76,21 +79,28 @@ def mk_event_marshal_src(
     return RET_OK_NONE
 
 
+_INIT_CONTENTS: Dict[str, Set[str]] = {}
+
+
 def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
+    """Create the init file."""
     ret_template = load_template(EVENT_INIT_TEMPLATE_NAME)
     if ret_template.has_error:
         return ret_template.forward()
     init_src = os.path.join(output_dir, INIT_SRC_FILE_NAME)
+    if init_src not in _INIT_CONTENTS:
+        _INIT_CONTENTS[init_src] = set()
+    _INIT_CONTENTS[init_src].add(event_module_name)
     # Append the "import" statement.
     try:
-        if not os.path.isfile(init_src):
-            with open(init_src, 'w') as f:
-                f.write(templatize(
-                    ret_template.result,
-                    {'now': datetime.datetime.utcnow().isoformat()},
-                ))
-        with open(init_src, 'w+') as f:
-            f.write('from . import {0}\n'.format(event_module_name))
+        with open(init_src, 'w') as f:
+            f.write(templatize(
+                ret_template.result,
+                {
+                    'modules': [{'name': n} for n in sorted(list(_INIT_CONTENTS[init_src]))],
+                    'now': datetime.datetime.utcnow().isoformat(),
+                },
+            ))
     except OSError as err:
         return StdRet.pass_errmsg(
             _('Failed to write to {name}: {err}'),
@@ -106,7 +116,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
                 f.write(templatize(
                     ret_template.result,
                     {'now': datetime.datetime.utcnow().isoformat()},
-                )),
+                ))
     except OSError as err:
         return StdRet.pass_errmsg(
             _('Failed to write to {name}: {err}'),
@@ -119,6 +129,7 @@ def mk_event_marshal_test_src(
         output_dir: str, metadata: ApiExtensionMetadata,
         event_module_name: str, structures: List[Dict[str, Any]], imports: List[ImportStruct],
 ) -> StdRet[None]:
+    """Create the marshal test file."""
     ret_template = load_template(TEST_TEMPLATE_NAME)
     if ret_template.has_error:
         return ret_template.forward()

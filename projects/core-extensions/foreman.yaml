@@ -80,9 +80,10 @@ events:
         ref: error
   restart:
     description: >
-      Force the Petronia extensions to restart themselves.
+      Force the Petronia extensions to restart themselves.  This can only be sent through
+      "internal" extensions because normal operation requires shutdown phases.
     priority: normal
-    send-access: public
+    send-access: internal
     receive-access: implementations
     fields: {}
   stop:

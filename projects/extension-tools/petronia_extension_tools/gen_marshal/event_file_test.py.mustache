@@ -45,8 +45,8 @@ class {{structure_class_name}}Test(unittest.TestCase):
 
 
 {{structure_const_name}}_BAD_PARSE_DATA_TESTS: Sequence[
-    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]]
-] = (
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
 {{#is_selector}}
 {{#selector_types}}{{#is_struct_type}}
     (
@@ -75,13 +75,13 @@ class {{structure_class_name}}Test(unittest.TestCase):
         ),
     ),
 {{/is_selector}}
-)
+]
 {{/has_fields}}
 
 
 {{structure_const_name}}_GOOD_PARSE_DATA_TESTS: Sequence[
-    Tuple[str, Dict[str, Any]]
-] = (
+    Tuple[str, Dict[str, Any]],
+] = [
 {{#is_selector}}{{#selector_types}}{{#is_struct_type}}
     (
         '{{field_name}}-all-fields-present',
@@ -127,5 +127,5 @@ class {{structure_class_name}}Test(unittest.TestCase):
     ),
     {{/has_fields}}
 {{/is_selector}}
-)
+]
 {{/structures}}

@@ -10,12 +10,20 @@ from petronia_common.util import StdRet
 from petronia_common.util import i18n as _
 
 
-def templatize(template: str, data: Dict[str, Any]) -> str:
+def templatize(template: str, data: Dict[str, Any], r_strip: bool = True) -> str:
     """Process the template."""
     renderer = pystache.Renderer(
         escape=lambda u: u,
     )
-    return renderer.render(template, data)
+    rendered = renderer.render(template, data)
+
+    if not r_strip:
+        return rendered
+
+    ret = ''
+    for line in rendered.splitlines():
+        ret += line.rstrip() + '\n'
+    return ret
 
 
 def load_template(name: str) -> StdRet[str]:

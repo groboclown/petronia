@@ -114,7 +114,7 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
                 UserMessage(
                     i18n(
                         'event name ({event_name}) must conform '
-                        'to the pattern `[a-z0-9][a-z0-9-]*`',
+                        'to the pattern `[a-z0-9][a-z0-9:-]*`',
                     ),
                     event_name='-e',
                 ),

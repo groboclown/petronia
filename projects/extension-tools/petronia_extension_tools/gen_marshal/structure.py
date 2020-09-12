@@ -34,19 +34,34 @@ _REQUIRED_IMPORTS: Sequence[ImportStruct] = (
     ('petronia_common.util', 'i18n', '_'),
 )
 
+_EVENT_NAME_SUFFIX = 'Event'
+
+_ALLOWED_PUBLIC_ACCESS = ('public', 'target',)
+
 
 def create_structures(
         metadata: ApiExtensionMetadata,
+        generate_internals: bool,
 ) -> StdRet[Tuple[List[Dict[str, Any]], List[ImportStruct]]]:
     """
     Returns the structures document, along with required imports.
     """
     structures: List[Dict[str, Any]] = []
-    seen_structures: Dict[StructureEventDataType, List[str]] = {}
+    seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]] = {}
     imports: List[ImportStruct] = list(_REQUIRED_IMPORTS)
     for event in metadata.events:
+        if not generate_internals:
+            if (
+                    event.receive_access not in _ALLOWED_PUBLIC_ACCESS
+                    and event.send_access not in _ALLOWED_PUBLIC_ACCESS
+            ):
+                continue
+        # Look into skipping parse or export if the access isn't appropriate.
+        # Note that __repr__ requires the export, so skipping that may not be
+        # correct.
         ret_inner_structures = create_inner_structure(
-            event.name, event.structure, seen_structures, imports,
+            event.name, '{0}:{1}'.format(metadata.name, event.name),
+            event.structure, seen_structures, imports,
         )
         if ret_inner_structures.has_error:
             return ret_inner_structures.forward()
@@ -54,14 +69,18 @@ def create_structures(
     return StdRet.pass_ok((structures, imports))
 
 
-def create_inner_structure(
-        name: str,
+def create_inner_structure(  # pylint: disable=too-many-locals
+        name: str, fq_event_name: Optional[str],
         structure: Union[StructureEventDataType, SelectorEventDataType],
         seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]],
         imports: List[ImportStruct],
 ) -> StdRet[List[Dict[str, Any]]]:
     """Create a single structure, and any dependent structure."""
     struct_name = normalize_structure_name(name)
+    is_event = False
+    if fq_event_name:
+        is_event = True
+        struct_name += _EVENT_NAME_SUFFIX
     if structure in seen_structures:
         if struct_name in seen_structures[structure]:
             # Exact same as a previous definition
@@ -71,13 +90,11 @@ def create_inner_structure(
 
     seen_structures[structure] = [struct_name]
 
-    print("-- Generating structure " + struct_name)
-
     ret: List[Dict[str, Any]] = []
+    ret_struct: Dict[str, Any]
     if isinstance(structure, SelectorEventDataType):
-        # TODO this is wrong - the selector type needs to be added into the structure definition.
         imports.append(('typing', 'Union', None))
-        ret_struct: Dict[str, Any] = {
+        ret_struct = {
             'structure_class_name': struct_name,
             'structure_const_name': camel_case_as_screaming_snake(struct_name),
             'indented_description': create_indented_description(structure.description),
@@ -85,10 +102,11 @@ def create_inner_structure(
             'selector_types': [],
             'unique_selector_type_names': [],
             'has_fields': True,
+            'raw_name': name,
+            'is_event': False,
         }
         for s_key, s_type in structure.selector_items():
             assert isinstance(s_key, str)
-            print(s_key, repr(s_key))
             ret_selector_item = get_field_struct(
                 s_key, s_type, False, structure, ret,
                 seen_structures, imports,
@@ -98,27 +116,29 @@ def create_inner_structure(
             selector_item = ret_selector_item.result
             selector_item['selector_type_repr'] = repr(s_key)
             ret_struct['selector_types'].append(selector_item)
-        unique_names = set([
+        unique_names = {
             f['field_python_type']
             for f in ret_struct['selector_types']
-        ])
+        }
         ret_struct['unique_selector_type_names'] = [{
-            'selector_type_name': n
+            'selector_type_name': n,
         } for n in unique_names]
         ret.append(ret_struct)
     else:
         field_names: List[Dict[str, Any]] = []
-        ret_struct: Dict[str, Any] = {
+        ret_struct = {
             'structure_class_name': struct_name,
             'structure_const_name': camel_case_as_screaming_snake(struct_name),
             'indented_description': create_indented_description(structure.description),
             'field_names': field_names,
             'is_selector': False,
+            'is_event': is_event,
+            'fq_event_name': repr(fq_event_name),
+            'short_event_name': repr(name),
         }
         # The created structure is added to the list at the end
         last_field: Optional[Dict[str, Any]] = None
         for field_name, field_type in structure.fields():
-            print("  - field " + field_name)
             ret_field = get_field_struct(
                 field_name, field_type.data_type, field_type.is_optional,
                 structure, ret, seen_structures, imports,
@@ -135,7 +155,8 @@ def create_inner_structure(
     return StdRet.pass_ok(ret)
 
 
-def create_indented_description(desc: str) -> str:
+def create_indented_description(desc: Optional[str]) -> str:
+    """Create the description text that's indented by 4 spaces with a maximum width of 80."""
     if not desc:
         return '(no description)'
     ret = []
@@ -181,6 +202,7 @@ def find_or_add_structure(
         seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]],
         imports: List[ImportStruct],
 ) -> StdRet[str]:
+    """Generate the structure text."""
     if structure in seen_structures:
         names = seen_structures[structure]
         # return the first name found, or, if for some reason there isn't
@@ -188,20 +210,21 @@ def find_or_add_structure(
         for name in names:
             return StdRet.pass_ok(name)
     name = normalize_structure_name(field_name)
-    ret_inner_structures = create_inner_structure(name, structure, seen_structures, imports)
+    ret_inner_structures = create_inner_structure(name, None, structure, seen_structures, imports)
     if ret_inner_structures.has_error:
         return ret_inner_structures.forward()
     structures.extend(ret_inner_structures.result)
     return StdRet.pass_ok(name)
 
 
-def get_field_struct(
+def get_field_struct(  # pylint: disable=R0912,R0913,R0915
         field_name: str, fdt: AbcEventDataType, is_optional: bool,
         owning_type: AbcEventDataType,
         structures: List[Dict[str, Any]],
         seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]],
         imports: List[ImportStruct],
 ) -> StdRet[Dict[str, Any]]:
+    """Get the data input for the structure's template."""
     ret_sample_full = create_field_data_sample(fdt, True)
     if ret_sample_full.has_error:
         return ret_sample_full.forward()
@@ -298,7 +321,7 @@ def get_field_struct(
                 StringEventDataType, BoolEventDataType, FloatEventDataType, IntEventDataType,
         )):
             field['is_array_simple_type'] = True
-            inner_type = item_type.type_name
+            inner_type: str = item_type.type_name
             if inner_type == 'string':
                 inner_type = 'str'
             field['field_python_type'] = 'List[' + inner_type + ']'
@@ -377,6 +400,6 @@ def create_import_struct(import_list: List[ImportStruct]) -> List[Dict[str, Any]
                 'import_names': [{'import_name': n} for n in named_imports],
             }]})
 
-    # TODO properly sort the imports.
+    # Could additionally properly sort the imports, but it seems fine.
 
     return ret
