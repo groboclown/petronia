@@ -13,7 +13,9 @@ from .defs import AbcConfigType
 from .event_schema import EventType
 from .version import ExtensionVersion, cmp_extension
 from ...util import (
-    PetroniaReturnError, UserMessage, possible_error, readonly_dict, STRING_EMPTY_TUPLE,
+    PetroniaReturnError, UserMessage,
+    possible_error, readonly_dict,
+    STRING_EMPTY_TUPLE, STANDARD_PETRONIA_CATALOG,
 )
 from ...util import i18n as _
 
@@ -228,6 +230,7 @@ class ApiExtensionMetadata(AbcExtensionMetadata):
         for event in self.events:
             if event.name in event_names:
                 messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     _('duplicate event name: {name}'),
                     name=event.name,
                 ))
@@ -331,11 +334,13 @@ def validate_name(name: str, messages: List[UserMessage]) -> None:
     """Validate that the extension name matches the expected format."""
     if EXTENSION_NAME_FORMAT.match(name) is None:
         messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _('extension name ({name}) must conform to the pattern [a-z0-9][a-z0-9._]'),
             name=name,
         ))
     if not MIN_EXTENSION_NAME_LENGTH <= len(name) <= MAX_EXTENSION_NAME_LENGTH:
         messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _(
                 'extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} '
                 'to {MAX_EXTENSION_NAME_LENGTH} long',
@@ -354,6 +359,7 @@ def validate_dependencies(
     for dep in dependencies:
         if dep.name in dependency_names:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('duplicate dependency: {name}'),
                 name=dep.name,
             ))

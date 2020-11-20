@@ -80,10 +80,14 @@ events:
 
 
   launcher-load-extension:
+    # This is declared here in the extension loader to ensure that the send can only be done
+    # by the loader itself, and not by anything else.
     description: >
-      Requests a launcher to load an extension.  The target of the request is the launcher
-      started by a "start-launcher" event, and that declares the permissions that the extension
-      can use.
+      Requests a launcher to load an extension.  The event's target id is the launcher
+      started by a "start-launcher" event (use id 'petronia.core.impl.foreman:(launcher id)'),
+      and that declares the permissions that the extension can use.  This request does not have its
+      own event responses; instead, the loaded extension should use the standard extension
+      event lifecycle.
     priority: io
     send-access: implementations
     receive-access: target

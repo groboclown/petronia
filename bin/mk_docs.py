@@ -6,6 +6,10 @@
 
 """
 Creates extension event API documentation.
+
+This is VERY OLD and NOT USABLE.  Once this is re-written, it will be removed.
+
+This needs to be re-written and moved into the extension-tools project.
 """
 
 from typing import Tuple, Sequence, List, Optional

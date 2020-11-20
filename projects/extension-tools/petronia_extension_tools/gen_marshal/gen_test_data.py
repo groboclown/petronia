@@ -154,7 +154,7 @@ def run_template(template_name: str, data: Dict[str, Any], indent: int) -> StdRe
         else:
             ret += str_indent
         ret += line
-    return StdRet.pass_ok(ret)
+    return StdRet.pass_ok(ret.strip())
 
 
 # This should be sufficient...

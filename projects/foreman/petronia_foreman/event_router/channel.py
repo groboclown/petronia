@@ -28,6 +28,7 @@ from petronia_common.event_stream import (
     write_binary_event_to_stream,
 )
 from .handler import EventHandlerSet, EventTargetHandle
+from ..user_message import CATALOG
 
 
 EventRouteDestinationCallback = Callable[[RawEvent], Coroutine[Any, Any, StdRet[None]]]
@@ -95,6 +96,7 @@ class EventChannel(EventForwarderTarget):
         is returned."""
         if not self.__alive:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('route {name} is closed'),
                 name=self.__name,
             )
@@ -114,6 +116,7 @@ class EventChannel(EventForwarderTarget):
         """Registers the event / target listener with the handler."""
         if not self.__alive:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('route {name} is closed'),
                 name=self.__name,
             )
@@ -127,6 +130,7 @@ class EventChannel(EventForwarderTarget):
         """Removes the event / target listener from the handler."""
         if not self.__alive:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('route {name} is closed'),
                 name=self.__name,
             )

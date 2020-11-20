@@ -1,6 +1,7 @@
 
 """Test the aio module."""
 
+from typing import Optional
 import unittest
 import os
 import asyncio
@@ -99,18 +100,56 @@ class AioTest(unittest.TestCase):
 
         asyncio.run(test_run(), debug=True)
 
-    def test_aio_fd_reader__invalid_fd(self) -> None:
+    def test_aio_reader__oserr(self) -> None:
         """Simple read data."""
 
+        def read_func() -> Optional[bytes]:
+            raise OSError('generated err')
+
         async def test_run() -> None:
-            # Ooh-ooh, stream reader, I believe you can get me through the bytes.
+            # Ooh, stream reader, I believe you can get me through the bytes.
             read_stream = asyncio.StreamReader()
 
-            await aio.aio_fd_reader(-1, read_stream, -1)
+            await aio.aio_reader(read_stream, read_func)
             try:
                 await read_stream.read(-1)
                 self.fail("Did not raise an exception")  # pragma no cover
-            except OSError:
-                pass
+            except OSError as err:
+                self.assertEqual(('generated err',), err.args)
+
+        asyncio.run(test_run(), debug=True)
+
+    def test_aio_reader__eof_error(self) -> None:
+        """Test aio_reader with a callback that generates an EOFError."""
+
+        reader_calls = [0]
+        data_read = bytearray()
+
+        def my_reader() -> bytes:
+            reader_calls[0] += 1
+            if reader_calls[0] >= 3:
+                raise EOFError('my_reader')
+            return b'1'
+
+        async def read_from_stream(stream: asyncio.StreamReader) -> None:
+            for _ in range(100):
+                data = await stream.read(-1)
+                if not data:
+                    return
+                data_read.extend(data)
+            self.fail('attempted read over 100 times.')
+
+        async def test_run() -> None:
+            read_stream = asyncio.StreamReader()
+            self.assertEqual(0, reader_calls[0])
+            await asyncio.gather(
+                aio.aio_reader(read_stream, my_reader),
+                read_from_stream(read_stream),
+            )
+            self.assertEqual(3, reader_calls[0])
+            self.assertEqual(
+                b'11',
+                bytes(data_read),
+            )
 
         asyncio.run(test_run(), debug=True)

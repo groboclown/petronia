@@ -22,6 +22,8 @@ READ_SIZE_LIMIT = 4 * 1024
 
 class EventForwarderTarget:
     """Interface for targets of events."""
+    __slots__ = ()
+
     def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         """Can this target handle the given event?"""
         raise NotImplementedError()  # pragma no cover

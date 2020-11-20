@@ -11,7 +11,7 @@ import unittest
 from .. import extension_schema
 from .. import event_schema
 from .. import extension_loader
-from ....util import UserMessage, i18n
+from ....util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 
 
 class ExtensionLoaderTest(unittest.TestCase):
@@ -25,7 +25,7 @@ class ExtensionLoaderTest(unittest.TestCase):
                 res = extension_loader.load_extension(test_data)
                 self.assertFalse(res.ok)
                 expected = [
-                    UserMessage(i18n(m), **a)
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
                 ]
                 actual = list(res.valid_error.messages())
@@ -1060,7 +1060,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             events=[
                 event_schema.EventType(
                     name='e1', priority='io', send_access='public',
-                    receive_access='implementations',
+                    receive_access='implementations', unique_targets=[],
                     structure=event_schema.StructureEventDataType(
                         None, {
                             'first': event_schema.StructureFieldType(

@@ -62,7 +62,7 @@ class StdRetTest(unittest.TestCase):
 
     def test_pass_errmsg_0(self) -> None:
         """Error message with no arguments"""
-        ret: error.StdRet[str] = error.StdRet.pass_errmsg(i18n('xyz'))
+        ret: error.StdRet[str] = error.StdRet.pass_errmsg('', i18n('xyz'))
         self.assertIsNotNone(ret)
         self.assertEqual(
             (_m('xyz'),),
@@ -77,7 +77,7 @@ class StdRetTest(unittest.TestCase):
 
     def test_pass_errmsg_1(self) -> None:
         """Error message with an argument"""
-        ret: error.StdRet[str] = error.StdRet.pass_errmsg(i18n('xy{x}z'), x=2)
+        ret: error.StdRet[str] = error.StdRet.pass_errmsg('', i18n('xy{x}z'), x=2)
         self.assertIsNotNone(ret)
         self.assertEqual(
             (_m('xy{x}z', x=2),),
@@ -211,7 +211,7 @@ class FunctionTest(unittest.TestCase):
         """collect_errors_from for 1 error"""
         res = error.collect_errors_from(
             error.StdRet.pass_ok(None),
-            error.StdRet.pass_errmsg(i18n('x'))
+            error.StdRet.pass_errmsg('', i18n('x'))
         )
         self.assertIsNotNone(res)
         assert res is not None  # mypy required
@@ -223,7 +223,7 @@ class FunctionTest(unittest.TestCase):
     def test_collect_errors_from__1_iterable(self) -> None:
         """collect_errors_from for 1 error"""
         res = error.collect_errors_from(
-            [error.StdRet.pass_ok(None), error.StdRet.pass_errmsg(i18n('x'))],
+            [error.StdRet.pass_ok(None), error.StdRet.pass_errmsg('', i18n('x'))],
         )
         self.assertIsNotNone(res)
         assert res is not None  # mypy required
@@ -235,7 +235,7 @@ class FunctionTest(unittest.TestCase):
     def test_collect_errors_from__1_callable(self) -> None:
         """collect_errors_from for 1 error"""
         res = error.collect_errors_from(
-            lambda: error.StdRet.pass_errmsg(i18n('x'))
+            lambda: error.StdRet.pass_errmsg('', i18n('x'))
         )
         self.assertIsNotNone(res)
         assert res is not None  # mypy required
@@ -247,7 +247,7 @@ class FunctionTest(unittest.TestCase):
     def test_collect_errors_from__1_iterable_callable(self) -> None:
         """collect_errors_from for 1 error"""
         res = error.collect_errors_from(
-            [lambda: error.StdRet.pass_errmsg(i18n('x'))],
+            [lambda: error.StdRet.pass_errmsg('', i18n('x'))],
         )
         self.assertIsNotNone(res)
         assert res is not None  # mypy required
@@ -258,4 +258,4 @@ class FunctionTest(unittest.TestCase):
 
 
 def _m(message: str, **args: UserMessageData) -> UserMessage:
-    return UserMessage(i18n(message), **args)
+    return UserMessage('', i18n(message), **args)

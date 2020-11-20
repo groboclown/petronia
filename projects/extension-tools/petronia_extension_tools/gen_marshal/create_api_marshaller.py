@@ -8,6 +8,7 @@ import os
 import datetime
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
+from petronia_common.util import STANDARD_PETRONIA_CATALOG as STDC
 from petronia_common.extension.config import ApiExtensionMetadata
 from .structure import (
     ImportStruct,
@@ -65,7 +66,9 @@ def mk_event_marshal_src(
                 ret_template.result,
                 {
                     'extension_name': metadata.name,
+                    'extension_name_repr': repr(metadata.name),
                     'extension_version': '{0}.{1}.{2}'.format(*metadata.version),
+                    'extension_version_repr': repr(metadata.version),
                     'imports': create_import_struct(imports),
                     'structures': structures,
                     'now': datetime.datetime.utcnow().isoformat(),
@@ -73,7 +76,7 @@ def mk_event_marshal_src(
             ))
     except OSError as err:
         return StdRet.pass_errmsg(
-            _('Failed to write to {name}: {err}'),
+            STDC, _('Failed to write to {name}: {err}'),
             name=event_src, err=repr(err),
         )
     return RET_OK_NONE
@@ -103,7 +106,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
             ))
     except OSError as err:
         return StdRet.pass_errmsg(
-            _('Failed to write to {name}: {err}'),
+            STDC, _('Failed to write to {name}: {err}'),
             name=init_src, err=repr(err),
         )
     test_dir = os.path.join(output_dir, TEST_DIR_NAME)
@@ -119,7 +122,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
                 ))
     except OSError as err:
         return StdRet.pass_errmsg(
-            _('Failed to write to {name}: {err}'),
+            STDC, _('Failed to write to {name}: {err}'),
             name=test_init_src, err=repr(err),
         )
     return RET_OK_NONE
@@ -140,7 +143,9 @@ def mk_event_marshal_test_src(
                 ret_template.result,
                 {
                     'extension_name': metadata.name,
+                    'extension_name_repr': repr(metadata.name),
                     'extension_version': '{0}.{1}.{2}'.format(*metadata.version),
+                    'extension_version_repr': repr(metadata.version),
                     'imports': create_import_struct(imports),
                     'structures': structures,
                     'module_name': event_module_name,
@@ -149,7 +154,7 @@ def mk_event_marshal_test_src(
             ))
     except OSError as err:
         return StdRet.pass_errmsg(
-            _('Failed to write to {name}: {err}'),
+            STDC, _('Failed to write to {name}: {err}'),
             name=test_file_src, err=repr(err),
         )
 

@@ -24,6 +24,9 @@ from {{import_package}} import ({{#import_names}}
 import {{import_package}}
 {{/plain_import}}
 {{/imports}}
+
+EXTENSION_NAME = {{extension_name_repr}}
+EXTENSION_VERSION = {{extension_version_repr}}
 {{#structures}}
 
 
@@ -85,6 +88,7 @@ class {{structure_class_name}}:
         val = data.get('$')
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('selector value must have ^ and $ keys'),
             )
         {{#selector_types}}
@@ -92,6 +96,7 @@ class {{structure_class_name}}:
             {{#is_simple_type}}
             if not isinstance(val, {{field_python_instance_type}}):
                 return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='{{field_name}}',
                     type='{{field_python_type}}',
@@ -105,6 +110,7 @@ class {{structure_class_name}}:
             {{#is_datetime_type}}
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Value must be of type datetime for selector {name}'),
                     field_name='{{field_name}}',
                     name='{{structure_class_name}}',
@@ -118,6 +124,7 @@ class {{structure_class_name}}:
                     ))
                 except ValueError:
                     return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
                         _('Invalid date-time format: {value}'),
                         value=val,
                     )
@@ -125,6 +132,7 @@ class {{structure_class_name}}:
             {{#is_enum_type}}
             if val not in ({{#enum_values}}{{enum_repr}},{{#last_enum}} {{/last_enum}}{{/enum_values}}):
                 return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='{{field_name}}',
                     type='{{field_python_type}}',
@@ -138,6 +146,7 @@ class {{structure_class_name}}:
             {{#is_array_simple_type}}
             if not isinstance(val, list):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for selector {name}'),
                     field_name='{{field_name}}',
                     type='{{field_python_type}}',
@@ -148,6 +157,7 @@ class {{structure_class_name}}:
                 for item in val:
                     if not isinstance(item, {{field_python_item_type}}):
                         return StdRet.pass_errmsg(
+                            STANDARD_PETRONIA_CATALOG,
                             _(
                                 'Field {field_name} must contain items '
                                 'of type {type} for structure {name}'
@@ -183,6 +193,7 @@ class {{structure_class_name}}:
             {{/is_array_struct_type}}
         {{/selector_types}}
         return StdRet.pass_errmsg(
+            STANDARD_PETRONIA_CATALOG,
             _('Invalid selector name {name} for {nc}'),
             name=selector_name,
             nc='{{structure_class_name}}',
@@ -192,7 +203,9 @@ class {{structure_class_name}}:
     __slots__ = ({{#field_names}}'{{field_name}}',{{^last}} {{/last}}{{/field_names}})
 {{#is_event}}    FULL_EVENT_NAME = {{fq_event_name}}
     SHORT_EVENT_NAME = {{short_event_name}}
-{{/is_event}}
+{{/is_event}}{{#unique_targets}}
+    UNIQUE_TARGET_{{upper}} = {{fq_target}}
+{{/unique_targets}}
 
     def __init__(
         self,{{#field_names}}
@@ -265,6 +278,7 @@ class {{structure_class_name}}:
         {{^is_optional}}
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='{{field_name}}',
                 name='{{structure_class_name}}',
@@ -274,6 +288,7 @@ class {{structure_class_name}}:
             {{#is_simple_type}}
             if not isinstance(val, {{field_python_instance_type}}):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='{{field_name}}',
                     type='{{field_python_type}}',
@@ -285,6 +300,7 @@ class {{structure_class_name}}:
             {{#is_datetime_type}}
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type datetime for structure {name}'),
                     field_name='{{field_name}}',
                     name='{{structure_class_name}}',
@@ -294,6 +310,7 @@ class {{structure_class_name}}:
                     f_{{field_name}} = datetime.datetime.strptime(val, 'YYYYMMDD:hhmmss.sss:Z')
                 except ValueError:
                     errors.append(StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
                         _('Invalid date-time format: {value}'),
                         value=val,
                     ))
@@ -301,6 +318,7 @@ class {{structure_class_name}}:
             {{#is_enum_type}}
             if val not in ({{#enum_values}}{{enum_repr}},{{#last_enum}} {{/last_enum}}{{/enum_values}}):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='{{field_name}}',
                     type='{{field_python_type}}',
@@ -312,6 +330,7 @@ class {{structure_class_name}}:
             {{#is_array_simple_type}}
             if not isinstance(val, list):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='{{field_name}}',
                     type='{{field_python_type}}',
@@ -322,6 +341,7 @@ class {{structure_class_name}}:
                 for item in val:
                     if not isinstance(item, {{field_python_item_type}}):
                         errors.append(StdRet.pass_errmsg(
+                            STANDARD_PETRONIA_CATALOG,
                             _(
                                 'Field {field_name} must contain items '
                                 'of type {type} for structure {name}'

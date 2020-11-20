@@ -4,7 +4,7 @@
 from typing import List, Dict, cast
 import unittest
 from .. import event_schema
-from ....util import UserMessage, i18n
+from ....util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from ....util.test_helpers import verified_not_none
 
 
@@ -48,6 +48,7 @@ class EventSchemaStringTest(unittest.TestCase):
         self.assertEqual(
             (
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'min_length ({min_length}) must be equal to or '
                         'less than max_length ({max_length})',
@@ -55,6 +56,7 @@ class EventSchemaStringTest(unittest.TestCase):
                     min_length=65537, max_length=65536,
                 ),
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'max_length ({max_length}) must be less than '
                         'or equal to {MAX_STRING_LENGTH}',
@@ -71,6 +73,7 @@ class EventSchemaStringTest(unittest.TestCase):
         err = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     'min_length ({min_length}) must be greater '
                     'than or equal to {MIN_STRING_LENGTH}',
@@ -108,6 +111,7 @@ class EventSchemaIntTest(unittest.TestCase):
         err = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     'min_value ({min_value}) must be equal to or less than max_value ({max_value})',
                 ),
@@ -126,9 +130,11 @@ class EventSchemaIntTest(unittest.TestCase):
         assert err is not None  # mypy requirement
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('min_value ({min_value}) must be greater than or equal to {MIN_INT_VALUE}'),
                 min_value=-9223372036854775809, MIN_INT_VALUE=-9223372036854775808,
             ), UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('max_value ({max_value}) must be less than or equal to {MAX_INT_VALUE}'),
                 max_value=9223372036854775808, MAX_INT_VALUE=9223372036854775807,
             )),
@@ -161,6 +167,7 @@ class EventSchemaFloatTest(unittest.TestCase):
         err = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     'min_value ({min_value}) must be equal to or less than max_value ({max_value})',
                 ),
@@ -211,6 +218,7 @@ class EventSchemaEnumTest(unittest.TestCase):
         err = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('value list must contain at least 1 item'),
             ),),
             err.messages(),
@@ -226,15 +234,18 @@ class EventSchemaEnumTest(unittest.TestCase):
         err = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             {UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('enum value "{value}" must have at least {MIN_ENUM_VALUE_LENGTH} characters'),
                 value='', MIN_ENUM_VALUE_LENGTH=1,
             ), UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     'enum value "{value}" must have no more than '
                     '{MAX_ENUM_VALUE_LENGTH} characters',
                 ),
                 value='x' * (event_schema.MAX_ENUM_VALUE_LENGTH + 1), MAX_ENUM_VALUE_LENGTH=255,
             ), UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('enum value {value} must be a string'),
                 value=1,
             )},
@@ -285,7 +296,7 @@ class EventSchemaReferenceTest(unittest.TestCase):
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (
-                UserMessage(i18n('`reference` type not replaced')),
+                UserMessage(STANDARD_PETRONIA_CATALOG, i18n('`reference` type not replaced')),
             ),
             error.messages(),
         )
@@ -347,7 +358,7 @@ class EventSchemaArrayTest(unittest.TestCase):
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (
-                UserMessage(i18n('`reference` type not replaced')),
+                UserMessage(STANDARD_PETRONIA_CATALOG, i18n('`reference` type not replaced')),
             ),
             error.messages(),
         )
@@ -360,10 +371,14 @@ class EventSchemaArrayTest(unittest.TestCase):
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (
-                UserMessage(i18n(
-                    'min_length ({min_length}) must be equal to '
-                    'or less than max_length ({max_length})',
-                ), min_length=2, max_length=1),
+                UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    i18n(
+                        'min_length ({min_length}) must be equal to '
+                        'or less than max_length ({max_length})',
+                    ),
+                    min_length=2, max_length=1,
+                ),
             ),
             error.messages(),
         )
@@ -375,11 +390,13 @@ class EventSchemaArrayTest(unittest.TestCase):
         )
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
-            (
-                UserMessage(i18n(
+            (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                i18n(
                     'min_length ({min_length}) must be greater than or equal to {MIN_ARRAY_LENGTH}',
-                ), min_length=-1, MIN_ARRAY_LENGTH=0),
-            ),
+                ),
+                min_length=-1, MIN_ARRAY_LENGTH=0,
+            ),),
             error.messages(),
         )
 
@@ -392,6 +409,7 @@ class EventSchemaArrayTest(unittest.TestCase):
         self.assertEqual(
             (
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'max_length ({max_length}) must be less than or '
                         'equal to {MAX_ARRAY_LENGTH}',
@@ -462,6 +480,7 @@ class EventSchemaStructureTest(unittest.TestCase):
         self.assertEqual(
             (
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'field name ({field_name}) must have {MIN_FIELD_NAME_LENGTH} to '
                         '{MAX_FIELD_NAME_LENGTH} characters',
@@ -469,14 +488,17 @@ class EventSchemaStructureTest(unittest.TestCase):
                     field_name='', MIN_FIELD_NAME_LENGTH=1, MAX_FIELD_NAME_LENGTH=255,
                 ),
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n('field name ({field_name}) must match `[a-z][a-z0-9_]*`'),
                     field_name='_',
                 ),
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n('field name ({field_name}) must match `[a-z][a-z0-9_]*`'),
                     field_name='$',
                 ),
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n('field name ({field_name}) must match `[a-z][a-z0-9_]*`'),
                     field_name='a%',
                 ),
@@ -496,7 +518,7 @@ class EventSchemaStructureTest(unittest.TestCase):
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (
-                UserMessage(i18n('`reference` type not replaced')),
+                UserMessage(STANDARD_PETRONIA_CATALOG, i18n('`reference` type not replaced')),
             ),
             error.messages(),
         )
@@ -539,6 +561,7 @@ class EventSchemaSelectorTest(unittest.TestCase):
         self.assertEqual(
             (
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'must have {MIN_TYPE_MAPPING_VALUES} to '
                         '{MAX_TYPE_MAPPING_VALUES} selectors ({count})',
@@ -567,6 +590,7 @@ class EventSchemaSelectorTest(unittest.TestCase):
         self.assertEqual(
             (
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'must have {MIN_TYPE_MAPPING_VALUES} to '
                         '{MAX_TYPE_MAPPING_VALUES} selectors ({count})',
@@ -588,10 +612,12 @@ class EventSchemaSelectorTest(unittest.TestCase):
         self.assertEqual(
             {
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n('selector ({selector}) must have {n} to {x} characters'),
                     selector='', n=1, x=255,
                 ),
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n('selector ({selector}) must have {n} to {x} characters'),
                     selector='x' * 256,
                     n=1, x=255,
@@ -608,7 +634,7 @@ class EventSchemaSelectorTest(unittest.TestCase):
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (
-                UserMessage(i18n('`reference` type not replaced')),
+                UserMessage(STANDARD_PETRONIA_CATALOG, i18n('`reference` type not replaced')),
             ),
             error.messages(),
         )

@@ -8,7 +8,7 @@ import re
 from .util import ConstSizeChanger, SimpleBinaryWriter
 from .. import writer, consts
 from ...util.error import PetroniaReturnError
-from ...util.message import i18n, UserMessage
+from ...util.message import i18n, UserMessage, STANDARD_PETRONIA_CATALOG
 
 
 class WriterTest(unittest.TestCase):
@@ -68,7 +68,9 @@ class WriterTest(unittest.TestCase):
             out.getvalue(),
         )
         self.assertEqual(
-            (UserMessage(i18n('binary blob data less than requested size')),),
+            (UserMessage(
+                STANDARD_PETRONIA_CATALOG, i18n('binary blob data less than requested size'),
+            ),),
             res.valid_error.messages(),
         )
 
@@ -83,6 +85,7 @@ class WriterTest(unittest.TestCase):
         self.assertFalse(res.ok)
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('binary_blob has {real_size} bytes, but requested {expected_size}'),
                 real_size=0,
                 expected_size=5,
@@ -141,24 +144,28 @@ class WriterTest(unittest.TestCase):
         messages = res.valid_error.messages()
         self.assertEqual((
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: event-id length must be within [{id_min}, {id_max}]',
                 ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: source-id length must be within [{id_min}, {id_max}]',
                 ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: target-id length must be within [{id_min}, {id_max}]',
                 ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: binary event '
                     'data size must be within [{b_min}, {b_max}]',
@@ -241,12 +248,14 @@ class WriterTest(unittest.TestCase):
         messages = res.valid_error.messages()
         self.assertEqual((
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: event-id length must be within [{id_min}, {id_max}]',
                 ),
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: source-id '
                     'length must be within [{id_min}, {id_max}]',
@@ -254,6 +263,7 @@ class WriterTest(unittest.TestCase):
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: target-id length '
                     'must be within [{id_min}, {id_max}]',
@@ -261,6 +271,7 @@ class WriterTest(unittest.TestCase):
                 src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(
                     '{src}: validation error: event object data '
                     'size must be within [{b_min}, {b_max}]',

@@ -13,7 +13,7 @@ from ..defs import (
     raw_event_source_id, raw_event_target_id, raw_event_id,
     as_raw_event_object_data, as_raw_event_binary_data_reader,
 )
-from ...util import UserMessage, i18n
+from ...util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from ...util.test_helpers import verified_not_none
 
 
@@ -285,7 +285,7 @@ def as_bin_str(data: str) -> bytes:
 
 def _m(message: str, **args: Any) -> UserMessage:
     # no alias for i18n as _ here, because we don't want test strings in the message catalog.
-    return UserMessage(i18n(message), **args)
+    return UserMessage(STANDARD_PETRONIA_CATALOG, i18n(message), **args)
 
 
 TOO_BIG_ID_BIN = as_bin_str(TOO_BIG_ID)

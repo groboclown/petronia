@@ -15,13 +15,15 @@ from .process import ManagedProcess
 from .util import create_cmd_and_dirs
 from ..configuration.launcher import LauncherConfig
 from ..configuration.platform import PlatformSettings
+from ..user_message import CATALOG
 
 if platform.system() == 'Windows':
-    import msvcrt
-    import _winapi
+    import msvcrt  # pylint: disable=import-error
+    import _winapi  # pylint: disable=import-error
 
     async def run_launcher_windows(
             identity: str,
+            launcher_cmd_option_key: str,
             launcher_config: LauncherConfig,
             platform_settings: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],
@@ -47,12 +49,16 @@ if platform.system() == 'Windows':
             _winapi.DUPLICATE_SAME_ACCESS,
         )
 
+        command = launcher_config.get_option(launcher_cmd_option_key)
+        if command.has_error:
+            return command.forward()
         cmd, temp_dirs = create_cmd_and_dirs(
-            launcher_config.command, platform_settings, int(child_h_rx_write),
+            command.result, platform_settings, int(child_h_rx_write),
         )
         split_cmd = split_windows_cmd(cmd)
         env = os.environ.copy()
         try:
+            # print("[DEBUG] Running windows command {0}".format(split_cmd))
             # h_proc, h_thread, pid, tid = _winapi.CreateProcess(
             #         split_cmd[0], ' '.join(split_cmd[1:])
             #         None, None, False, 0, env, launcher_config.run_dir, None
@@ -74,6 +80,7 @@ if platform.system() == 'Windows':
         except BaseException as err:
             _close_handles(h_rx_read, child_h_rx_write, h_rx_read, child_h_tx_read)
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('Failed to create process for {cmd}: {err}'),
                 cmd=cmd,
                 err=err,
@@ -152,8 +159,12 @@ if platform.system() == 'Windows':
 else:
     async def run_launcher_windows(
             identity: str,
+            launcher_cmd_option_key: str,
             launcher_config: LauncherConfig,
             platform_settings: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
-        return StdRet.pass_errmsg(_('Not running under Windows.'))
+        return StdRet.pass_errmsg(
+            CATALOG,
+            _('Not running under Windows.'),
+        )

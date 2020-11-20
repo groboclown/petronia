@@ -8,7 +8,7 @@ Extension {{extension_name}}, Version {{extension_version}}
 
 import unittest
 from typing import Sequence, Tuple, Dict, Any
-from petronia_common.util import UserMessage, i18n
+from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import {{module_name}}
 {{#structures}}
 
@@ -26,7 +26,7 @@ class {{structure_class_name}}Test(unittest.TestCase):
                 res = {{module_name}}.{{structure_class_name}}.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = [
-                    UserMessage(i18n(m), **a)
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
                 ]
                 actual = list(res.valid_error.messages())

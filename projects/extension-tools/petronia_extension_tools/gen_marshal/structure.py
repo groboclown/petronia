@@ -31,6 +31,7 @@ _REQUIRED_IMPORTS: Sequence[ImportStruct] = (
     ('petronia_common.util', 'T', None),
     ('petronia_common.util', 'StdRet', None),
     ('petronia_common.util', 'collect_errors_from', None),
+    ('petronia_common.util', 'STANDARD_PETRONIA_CATALOG', None),
     ('petronia_common.util', 'i18n', '_'),
 )
 
@@ -60,7 +61,7 @@ def create_structures(
         # Note that __repr__ requires the export, so skipping that may not be
         # correct.
         ret_inner_structures = create_inner_structure(
-            event.name, '{0}:{1}'.format(metadata.name, event.name),
+            event.name, '{0}:{1}'.format(metadata.name, event.name), event.unique_targets,
             event.structure, seen_structures, imports,
         )
         if ret_inner_structures.has_error:
@@ -69,8 +70,8 @@ def create_structures(
     return StdRet.pass_ok((structures, imports))
 
 
-def create_inner_structure(  # pylint: disable=too-many-locals
-        name: str, fq_event_name: Optional[str],
+def create_inner_structure(  # pylint: disable=too-many-locals,too-many-arguments
+        name: str, fq_event_name: Optional[str], unique_targets: Sequence[str],
         structure: Union[StructureEventDataType, SelectorEventDataType],
         seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]],
         imports: List[ImportStruct],
@@ -78,9 +79,13 @@ def create_inner_structure(  # pylint: disable=too-many-locals
     """Create a single structure, and any dependent structure."""
     struct_name = normalize_structure_name(name)
     is_event = False
+    ext_name = ''
     if fq_event_name:
         is_event = True
         struct_name += _EVENT_NAME_SUFFIX
+        ext_name = fq_event_name
+        if ':' in ext_name:
+            ext_name = ext_name[:ext_name.index(':') + 1]
     if structure in seen_structures:
         if struct_name in seen_structures[structure]:
             # Exact same as a previous definition
@@ -133,6 +138,14 @@ def create_inner_structure(  # pylint: disable=too-many-locals
             'field_names': field_names,
             'is_selector': False,
             'is_event': is_event,
+            'unique_targets': [
+                {
+                    'upper': target.upper(),
+                    'short_target': repr(target),
+                    'fq_target': repr(ext_name + target),
+                }
+                for target in unique_targets
+            ],
             'fq_event_name': repr(fq_event_name),
             'short_event_name': repr(name),
         }
@@ -210,7 +223,9 @@ def find_or_add_structure(
         for name in names:
             return StdRet.pass_ok(name)
     name = normalize_structure_name(field_name)
-    ret_inner_structures = create_inner_structure(name, None, structure, seen_structures, imports)
+    ret_inner_structures = create_inner_structure(
+        name, None, [], structure, seen_structures, imports,
+    )
     if ret_inner_structures.has_error:
         return ret_inner_structures.forward()
     structures.extend(ret_inner_structures.result)

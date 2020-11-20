@@ -12,6 +12,7 @@ from ..event_router.handler import EventTargetHandle
 
 class RuntimeContext:
     """Context used by a launcher category to handle events to/from the launcher."""
+    __slots__ = ()
 
     def get_platform(self) -> PlatformSettings:
         """Get the platform settings."""
@@ -60,12 +61,74 @@ class RuntimeContext:
         """Removes the event / target listener from the handler."""
         raise NotImplementedError()
 
+    async def async_create_channel(
+            self,
+            name: str,
+            reader: asyncio.StreamReader,
+            writer: BinaryWriter,
+    ) -> StdRet[None]:
+        """Creates the channel."""
+        raise NotImplementedError()
+
+    async def async_close_channel(self, name: str) -> bool:
+        """Closes the channel."""
+        raise NotImplementedError()
+
+    async def async_add_handler(
+            self, channel_name: str, handler_id: str,
+            produces: Iterable[str], consumes: Iterable[EventTargetHandle],
+    ) -> StdRet[None]:
+        """Adds the handler to the channel with the given name.  If the
+        handler ID is registered anywhere, or the channel does not exist, then
+        an error is returned."""
+        raise NotImplementedError()
+
+    async def async_remove_handler(self, handler_id: str) -> bool:
+        """Removes the handler from its registered channel.
+        Returns True if it was successfully removed."""
+        raise NotImplementedError()
+
+    async def async_add_handler_listener(
+            self,
+            handler_id: str,
+            event_id: str, target_id: str,
+    ) -> bool:
+        """Registers the event / target listener with the handler."""
+        raise NotImplementedError()
+
+    async def async_remove_handler_listener(
+            self,
+            handler_id: str,
+            event_id: str, target_id: str,
+    ) -> bool:
+        """Removes the event / target listener from the handler."""
+        raise NotImplementedError()
+
 
 class AbcLauncherCategory:
     """
     Defines how to run and interact with extensions.  The extension loader requests that
     a launcher starts based on a launcher category.  The category determines how it is launched
     and interacts.
+
+    Some examples:
+    1. A sandbox process manager that launches the processes in the correct limited
+       way.  The manager is launched once at first launcher start time, and that process
+       internally manages the "launchers".
+    2. Each launcher is a separate docker container.  Running a new launcher starts up
+       a new container.
+    3. The launcher connects to a remotely running TCP/IP server and asks that to run
+       new processes.
+
+    Launcher Category describes how to run launchers.  Launchers define the permissions
+    allowed for extensions running inside them.
+
+    The standard call approach is:
+    1. At startup time, the foreman process loads the configuration file to create the
+       launcher categories.  Only these categories can be used during the runtime.
+       Changing the categories requires restarting.
+    2. The foreman uses the category API with specialty
+    2. The extension-loader pro
 
     A category is declared in the foreman configuration.
     """
@@ -118,7 +181,7 @@ class AbcLauncherCategory:
         raise NotImplementedError()
 
     async def stop(self) -> StdRet[None]:
-        """Stop all running launchers."""
+        """Stop all running launchers and shuts down the category.  Called only once."""
         raise NotImplementedError()
 
 

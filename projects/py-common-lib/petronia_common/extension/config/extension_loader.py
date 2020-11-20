@@ -12,6 +12,7 @@ from .event_loader import load_full_event_schema, load_dict_str_value
 from .version import ExtensionVersion
 from ...util import StdRet, collect_errors_from, EMPTY_TUPLE
 from ...util import i18n as _
+from ...util import STANDARD_PETRONIA_CATALOG as STDC
 
 
 def load_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.AbcExtensionMetadata]:
@@ -25,7 +26,7 @@ def load_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.AbcExtensionM
     if extension_type == 'standalone':
         return validate_extension(load_standalone_extension(raw))
     return StdRet.pass_errmsg(
-        _('invalid extension type ({extension_type})'),
+        STDC, _('invalid extension type ({extension_type})'),
         extension_type=extension_type,
     )
 
@@ -143,14 +144,14 @@ def load_extension_list_value(key: str, raw: Dict[str, Any]) -> StdRet[List[str]
     raw_value = raw.get(key)
     if raw_value is None or not isinstance(raw_value, list):
         return StdRet.pass_errmsg(
-            _('`{key}` must be a list of strings'),
+            STDC, _('`{key}` must be a list of strings'),
             key=key,
         )
     ret: List[str] = []
     for raw_item in raw_value:
         if not isinstance(raw_item, str):
             return StdRet.pass_errmsg(
-                _('`{key}` must be a list of strings'),
+                STDC, _('`{key}` must be a list of strings'),
                 key=key,
             )
         ret.append(raw_item)
@@ -167,12 +168,12 @@ def load_extension_version_value(value: Any) -> StdRet[ExtensionVersion]:
             not isinstance(value[2], int)
     ):
         return StdRet.pass_errmsg(
-            _('version ({version}) must be in the format [major, minor, patch]'),
+            STDC, _('version ({version}) must be in the format [major, minor, patch]'),
             version=value,
         )
     if value[0] < 0 or value[1] < 0 or value[2] < 0:
         return StdRet.pass_errmsg(
-            _('version {{version}} must contain only non-negative integers'),
+            STDC, _('version {{version}} must contain only non-negative integers'),
             version=value,
         )
     return StdRet.pass_ok((value[0], value[1], value[2]))
@@ -187,8 +188,8 @@ def load_extension_dependencies(
         return StdRet.pass_ok(cast(List[extension_schema.ExtensionDependency], EMPTY_TUPLE))
     if not isinstance(raw_depends, list):
         return StdRet.pass_errmsg(
-            _('`{key}` must be a list of dictionaries'),
-            key=key
+            STDC, _('`{key}` must be a list of dictionaries'),
+            key=key,
         )
     ret: List[extension_schema.ExtensionDependency] = []
     for dep in raw_depends:
@@ -203,7 +204,7 @@ def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDe
     """Loads a single extension dependency."""
     if not isinstance(value, dict):
         return StdRet.pass_errmsg(
-            _(
+            STDC, _(
                 'dependency must be a dictionary containing the keys `name`, `minimum`, '
                 'and possibly `below` (found {value})',
             ),
@@ -233,7 +234,7 @@ def load_extension_runtime(value: Any) -> StdRet[extension_schema.ExtensionRunti
     """Loads a single extension runtime environment description."""
     if not isinstance(value, dict):
         return StdRet.pass_errmsg(
-            _(
+            STDC, _(
                 'extension runtime must be a dictionary containing the key `launcher` and '
                 'optionally `permissions`',
             ),
@@ -246,12 +247,12 @@ def load_extension_runtime(value: Any) -> StdRet[extension_schema.ExtensionRunti
         raw_permissions = value['permissions']
         if not isinstance(raw_permissions, dict):
             return StdRet.pass_errmsg(
-                _('extension runtime permissions must be dict of key to list of strings'),
+                STDC, _('extension runtime permissions must be dict of key to list of strings'),
             )
         for action, resources in raw_permissions.items():
             if not isinstance(action, str):
                 return StdRet.pass_errmsg(
-                    _('extension runtime permissions must be dict of key to list of strings'),
+                    STDC, _('extension runtime permissions must be dict of key to list of strings'),
                 )
             ret_resources = load_str_list(resources)
             if ret_resources.has_error:
@@ -267,12 +268,12 @@ def load_str_list(raw: Any) -> StdRet[List[str]]:
     ret: List[str] = []
     if not isinstance(raw, collections.abc.Iterable):
         return StdRet.pass_errmsg(
-            _('must be a list of string values'),
+            STDC, _('must be a list of string values'),
         )
     for value in raw:
         if not isinstance(value, str):
             return StdRet.pass_errmsg(
-                _('must be a list of string values'),
+                STDC, _('must be a list of string values'),
             )
         ret.append(value)
     return StdRet.pass_ok(ret)
@@ -285,11 +286,11 @@ def load_events(raw: Dict[str, Any]) -> StdRet[List[event_schema.EventType]]:
         return StdRet.pass_ok(cast(List[event_schema.EventType], EMPTY_TUPLE))
     if not isinstance(raw_events, dict):
         return StdRet.pass_errmsg(
-            _('`events` must be a dictionary of event schemas'),
+            STDC, _('`events` must be a dictionary of event schemas'),
         )
     raw_references = raw.get('references')
     if raw_references and not isinstance(raw_references, dict):
         return StdRet.pass_errmsg(
-            _('`references` must be a dictionary of event data type schemas'),
+            STDC, _('`references` must be a dictionary of event data type schemas'),
         )
     return load_full_event_schema(raw_events, raw_references or cast(Dict[str, Any], {}))

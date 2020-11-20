@@ -5,7 +5,7 @@ from typing import List
 import unittest
 from datetime import timedelta, datetime, timezone
 from .. import extension_schema, event_schema
-from ....util import UserMessage, i18n
+from ....util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from ....util.test_helpers import verified_not_none
 
 
@@ -29,7 +29,9 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
         messages: List[UserMessage] = []
         extension_schema.validate_dependencies(deps, messages)
         self.assertEqual(
-            [UserMessage(i18n('duplicate dependency: {name}'), name='n')],
+            [UserMessage(
+                STANDARD_PETRONIA_CATALOG, i18n('duplicate dependency: {name}'), name='n',
+            )],
             messages,
         )
 
@@ -88,15 +90,15 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
             events=[
                 event_schema.EventType(
                     'e1', 'high', 'public', 'public',
-                    event_schema.StructureEventDataType(None, {}),
+                    event_schema.StructureEventDataType(None, {}), [],
                 ),
                 event_schema.EventType(
                     'e1', 'high', 'public', 'public',
-                    event_schema.StructureEventDataType(None, {}),
+                    event_schema.StructureEventDataType(None, {}), [],
                 ),
                 event_schema.EventType(
                     '-e', 'high', 'public', 'public',
-                    event_schema.StructureEventDataType(None, {}),
+                    event_schema.StructureEventDataType(None, {}), [],
                 ),
             ],
         )
@@ -104,14 +106,18 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
         self.assertEqual(
             (
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} to '
                         '{MAX_EXTENSION_NAME_LENGTH} long',
                     ),
                     name='x', MIN_EXTENSION_NAME_LENGTH=2, MAX_EXTENSION_NAME_LENGTH=255,
                 ),
-                UserMessage(i18n('duplicate event name: {name}'), name='e1'),
                 UserMessage(
+                    STANDARD_PETRONIA_CATALOG, i18n('duplicate event name: {name}'), name='e1',
+                ),
+                UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(
                         'event name ({event_name}) must conform '
                         'to the pattern `[a-z0-9][a-z0-9:-]*`',

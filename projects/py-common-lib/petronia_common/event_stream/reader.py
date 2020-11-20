@@ -18,10 +18,14 @@ Reads low-level streaming event data.
 from typing import Callable, Tuple, List, Dict, Optional, Coroutine, Any, final
 import asyncio
 import json
-from petronia_common.util import i18n as _
 from . import consts
 from .defs import RawEvent, RawBinaryReader, to_raw_event_binary, to_raw_event_object
-from ..util import PetroniaReturnError, UserMessage, possible_error, join_errors
+from ..util import (
+    PetroniaReturnError, UserMessage,
+    possible_error, join_errors,
+    STANDARD_PETRONIA_CATALOG,
+)
+from ..util import i18n as _
 
 
 async def read_event_stream(
@@ -139,6 +143,7 @@ async def parse_raw_event(
             if state != STATE_INIT:
                 # We've read some of the stream.
                 error_messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     _("Reached end-of-stream before packet start"),
                     state=state,
                 ))
@@ -177,7 +182,10 @@ async def parse_raw_event(
         while count > 0:
             next_data = await stream.marked_read(count)
             if next_data == consts.EMPTY_BINARY:
-                error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
+                error_messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    _("Reached end-of-stream during packet read"),
+                ))
                 return join_errors(*error_messages), read_data
             count -= len(next_data)
             read_data += next_data
@@ -188,7 +196,10 @@ async def parse_raw_event(
             # Because this is throwing away data, don't read in too much at once.
             next_data = await stream.marked_read(min(65535, count))
             if next_data == consts.EMPTY_BINARY:
-                error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
+                error_messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    _("Reached end-of-stream during packet read"),
+                ))
                 return join_errors(*error_messages)
             count -= len(next_data)
         return None
@@ -202,7 +213,10 @@ async def parse_raw_event(
     if read_byte[0] != consts.BINARY_EVENT_ID_MARKER_INT:
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
-        return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
+        return None, join_errors(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
+            _("Unexpected data in the event stream"),
+        )), False
 
     decoded_event_id = ''
     event_id_remaining = (read_byte[1] << 8) + read_byte[2]
@@ -210,6 +224,7 @@ async def parse_raw_event(
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _("event-id must have a length in the range [{n}, {x}]"),
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
@@ -218,6 +233,7 @@ async def parse_raw_event(
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _("event-id must have a length in the range [{n}, {x}]"),
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
@@ -234,9 +250,11 @@ async def parse_raw_event(
         except UnicodeDecodeError as exp:
             # On decode error, keep going.  We need to parse
             # the whole packet regardless of this error.
-            error_messages.append(
-                UserMessage(_("event-id included invalid UTF-8 encoding"), e=str(exp)),
-            )
+            error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                _("event-id included invalid UTF-8 encoding"),
+                e=str(exp),
+            ))
 
     # =======================================================================
     # Source ID
@@ -249,13 +267,17 @@ async def parse_raw_event(
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         # Ignore the other error messages, as they are meaningless here.
-        return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
+        return None, join_errors(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
+            _("Unexpected data in the event stream"),
+        )), False
 
     source_id_remaining = (read_byte[1] << 8) + read_byte[2]
     if source_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _("source-id must have a length in the range [{n}, {x}]"),
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
@@ -264,6 +286,7 @@ async def parse_raw_event(
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _("source-id must have a length in the range [{n}, {x}]"),
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
@@ -281,7 +304,9 @@ async def parse_raw_event(
             # On decode error, keep going.  We need to parse
             # the whole packet regardless of this error.
             error_messages.append(UserMessage(
-                _("source-id included invalid UTF-8 encoding"), e=str(exp),
+                STANDARD_PETRONIA_CATALOG,
+                _("source-id included invalid UTF-8 encoding"),
+                e=str(exp),
             ))
 
     # =======================================================================
@@ -295,13 +320,17 @@ async def parse_raw_event(
         # didn't see the marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         # Ignore the other error messages, as they are meaningless here.
-        return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
+        return None, join_errors(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
+            _("Unexpected data in the event stream"),
+        )), False
 
     target_id_remaining = (read_byte[1] << 8) + read_byte[2]
     if target_id_remaining < consts.MIN_ID_SIZE:
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _("target-id must have a length in the range [{n}, {x}]"),
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
@@ -310,6 +339,7 @@ async def parse_raw_event(
         # Invalid size.
         # However, we'll keep reading.
         error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _("target-id must have a length in the range [{n}, {x}]"),
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
@@ -327,7 +357,9 @@ async def parse_raw_event(
             # On decode error, keep going.  We need to parse
             # the whole packet regardless of this error.
             error_messages.append(UserMessage(
-                _("target-id included invalid UTF-8 encoding"), e=str(exp),
+                STANDARD_PETRONIA_CATALOG,
+                _("target-id included invalid UTF-8 encoding"),
+                e=str(exp),
             ))
 
     # =======================================================================
@@ -336,7 +368,10 @@ async def parse_raw_event(
     # Reading 1 byte, so easy reading...
     read_byte = await stream.marked_read(1)
     if read_byte == consts.EMPTY_BINARY:
-        error_messages.append(UserMessage(_("Reached end-of-stream during packet read")))
+        error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
+            _("Reached end-of-stream during packet read"),
+        ))
         return None, join_errors(*error_messages), True
     elif read_byte == consts.BINARY_JSON_CONTENTS_MARKER:
         # ===================================================================
@@ -350,6 +385,7 @@ async def parse_raw_event(
         if data_contents_length < consts.MIN_JSON_SIZE:
             # Invalid size.
             error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _("json data must have a length in the range [{n}, {x}]"),
                 n=consts.MIN_JSON_SIZE,
                 x=consts.MAX_JSON_SIZE,
@@ -362,6 +398,7 @@ async def parse_raw_event(
             # Invalid size.
             # But we'll keep reading.
             error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _("json data must have a length in the range [{n}, {x}]"),
                 n=consts.MIN_JSON_SIZE,
                 x=consts.MAX_JSON_SIZE,
@@ -380,17 +417,22 @@ async def parse_raw_event(
         except UnicodeDecodeError as exp:
             event_data = None
             error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _("Event streaming data included incorrectly encoded UTF-8 values: {e}"),
                 e=str(exp),
             ))
         except json.decoder.JSONDecodeError as exp:
             event_data = None
             error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _("Event streaming data included badly formatted JSON data: {e}"),
                 e=str(exp),
             ))
         if not isinstance(event_data, dict):
-            error_messages.append(UserMessage(_("Event data was not sent as JSON dictionary")))
+            error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                _("Event data was not sent as JSON dictionary"),
+            ))
         if error_messages:
             return None, join_errors(*error_messages), False
         # MyPy assertion guaranteeing the if-block above.
@@ -429,6 +471,7 @@ async def parse_raw_event(
             # Invalid size.
             # However, we'll still read it.
             error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _("binary blob data must have a length in the range [{n}, {x}]"),
                 n=consts.MIN_BLOB_SIZE, x=consts.MAX_BLOB_SIZE,
             ))
@@ -458,7 +501,10 @@ async def parse_raw_event(
         # didn't see a valid marker.  At this point, it's no longer
         # okay to just assume there's line noise.
         # Ignore the other errors, as they are meaningless now.
-        return None, join_errors(UserMessage(_("Unexpected data in the event stream"))), False
+        return None, join_errors(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
+            _("Unexpected data in the event stream"),
+        )), False
 
 
 async def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryReader:

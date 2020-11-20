@@ -7,9 +7,9 @@ There exists one of these for each launch configuration type.
 
 from typing import Dict
 from configparser import ConfigParser
-from ..launcher.loader import is_valid
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
+from ..user_message import CATALOG
 
 
 class LauncherConfig:
@@ -34,10 +34,24 @@ class LauncherConfig:
         for name, value in configuration.items(launcher_name):
             self.options[name] = value
 
+    def get_option(self, key: str) -> StdRet[str]:
+        """Get the option, or an error if it isn't registered."""
+        if key not in self.options:
+            return StdRet.pass_errmsg(
+                CATALOG,
+                _('launcher {name} does not have required option `{key}` set'),
+                name=self.launcher_name,
+                key=key,
+            )
+        ret = self.options.get(key)
+        assert isinstance(ret, str)
+        return StdRet.pass_ok(ret)
+
     def validate(self) -> StdRet[None]:
         """Check if the configuration is valid."""
         if not self.runner:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _("`runner` not specified for launcher {name}"),
                 name=self.launcher_name,
             )

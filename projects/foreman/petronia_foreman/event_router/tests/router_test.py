@@ -56,6 +56,7 @@ class RouterIntegrationTest(unittest.TestCase):
 
 
 class CallbackMonitor:
+    """Monitors the callbacks."""
     def output_callback(self, event: RawEvent) -> StdRet[None]:
         pass
 
@@ -64,4 +65,3 @@ class CallbackMonitor:
 
     def invalid_source_cb(self, event: RawEvent) -> bool:
         pass
-

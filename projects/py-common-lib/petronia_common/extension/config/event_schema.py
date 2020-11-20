@@ -12,7 +12,11 @@ import datetime
 import collections.abc
 import time
 from .defs import AbcConfigType
-from ...util import PetroniaReturnError, UserMessage, possible_error, StdRet, readonly_dict
+from ...util import (
+    PetroniaReturnError, UserMessage, StdRet,
+    possible_error, readonly_dict,
+    STANDARD_PETRONIA_CATALOG,
+)
 from ...util import i18n as _
 
 
@@ -117,6 +121,7 @@ class StringEventDataType(AbcEventDataType):
         messages: List[UserMessage] = []
         if self.min_length > self.max_length:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _(
                     'min_length ({min_length}) must be equal to or '
                     'less than max_length ({max_length})',
@@ -126,12 +131,14 @@ class StringEventDataType(AbcEventDataType):
             ))
         if self.min_length < MIN_STRING_LENGTH:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('min_length ({min_length}) must be greater than or equal to {MIN_STRING_LENGTH}'),
                 min_length=self.min_length,
                 MIN_STRING_LENGTH=MIN_STRING_LENGTH,
             ))
         if self.max_length > MAX_STRING_LENGTH:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('max_length ({max_length}) must be less than or equal to {MAX_STRING_LENGTH}'),
                 max_length=self.max_length,
                 MAX_STRING_LENGTH=MAX_STRING_LENGTH,
@@ -188,18 +195,21 @@ class IntEventDataType(AbcEventDataType):
         messages: List[UserMessage] = []
         if self.min_value > self.max_value:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('min_value ({min_value}) must be equal to or less than max_value ({max_value})'),
                 min_value=self.min_value,
                 max_value=self.max_value,
             ))
         if self.min_value < MIN_INT_VALUE:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('min_value ({min_value}) must be greater than or equal to {MIN_INT_VALUE}'),
                 min_value=self.min_value,
                 MIN_INT_VALUE=MIN_INT_VALUE,
             ))
         if self.max_value > MAX_INT_VALUE:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('max_value ({max_value}) must be less than or equal to {MAX_INT_VALUE}'),
                 max_value=self.max_value,
                 MAX_INT_VALUE=MAX_INT_VALUE,
@@ -254,6 +264,7 @@ class FloatEventDataType(AbcEventDataType):
                 self.min_value > self.max_value
         ):
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('min_value ({min_value}) must be equal to or less than max_value ({max_value})'),
                 min_value=self.min_value,
                 max_value=self.max_value,
@@ -299,17 +310,20 @@ class EnumEventDataType(AbcEventDataType):
         messages: List[UserMessage] = []
         if len(self.__values) <= 0:
             messages.append(UserMessage(
-                _('value list must contain at least 1 item')
+                STANDARD_PETRONIA_CATALOG,
+                _('value list must contain at least 1 item'),
             ))
         for val in self.__values:
             if not isinstance(val, str):
                 messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     _('enum value {value} must be a string'),
                     value=val,
                 ))
             else:
                 if len(val) < MIN_ENUM_VALUE_LENGTH:
                     messages.append(UserMessage(
+                        STANDARD_PETRONIA_CATALOG,
                         _(
                             'enum value "{value}" must have at least '
                             '{MIN_ENUM_VALUE_LENGTH} characters',
@@ -319,6 +333,7 @@ class EnumEventDataType(AbcEventDataType):
                     ))
                 if len(val) > MAX_ENUM_VALUE_LENGTH:
                     messages.append(UserMessage(
+                        STANDARD_PETRONIA_CATALOG,
                         _(
                             'enum value "{value}" must have no more '
                             'than {MAX_ENUM_VALUE_LENGTH} characters',
@@ -414,6 +429,7 @@ class ReferenceEventDataType(AbcEventDataType):
     def validate_type(self) -> Optional[PetroniaReturnError]:
         # This type is never valid.
         return possible_error([UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             _('`reference` type not replaced'),
         )])
 
@@ -471,6 +487,7 @@ class ArrayEventDataType(AbcEventDataType):
             messages.extend(error.messages())
         if self.min_length > self.max_length:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _(
                     'min_length ({min_length}) must be equal to '
                     'or less than max_length ({max_length})',
@@ -480,12 +497,14 @@ class ArrayEventDataType(AbcEventDataType):
             ))
         if self.min_length < MIN_ARRAY_LENGTH:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('min_length ({min_length}) must be greater than or equal to {MIN_ARRAY_LENGTH}'),
                 min_length=self.min_length,
                 MIN_ARRAY_LENGTH=MIN_ARRAY_LENGTH,
             ))
         if self.max_length > MAX_ARRAY_LENGTH:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('max_length ({max_length}) must be less than or equal to {MAX_ARRAY_LENGTH}'),
                 max_length=self.max_length,
                 MAX_ARRAY_LENGTH=MAX_ARRAY_LENGTH,
@@ -605,6 +624,7 @@ class StructureEventDataType(AbcEventDataType):
         for field_name, field_type in self.fields():
             if not MIN_FIELD_NAME_LENGTH <= len(field_name) <= MAX_FIELD_NAME_LENGTH:
                 messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     _(
                         'field name ({field_name}) must have {MIN_FIELD_NAME_LENGTH} to '
                         '{MAX_FIELD_NAME_LENGTH} characters',
@@ -615,6 +635,7 @@ class StructureEventDataType(AbcEventDataType):
                 ))
             elif field_name[0] not in VALID_FIRST_FIELD_NAME_CHAR:
                 messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     _('field name ({field_name}) must match `[a-z][a-z0-9_]*`'),
                     field_name=field_name,
                 ))
@@ -622,6 +643,7 @@ class StructureEventDataType(AbcEventDataType):
                 for name_char in field_name[1:]:
                     if name_char not in VALID_FIELD_NAME_CHAR:
                         messages.append(UserMessage(
+                            STANDARD_PETRONIA_CATALOG,
                             _('field name ({field_name}) must match `[a-z][a-z0-9_]*`'),
                             field_name=field_name,
                         ))
@@ -707,6 +729,7 @@ class SelectorEventDataType(AbcEventDataType):
         messages: List[UserMessage] = []
         if not MIN_TYPE_MAPPING_VALUES <= len(self.__type_mapping) <= MAX_TYPE_MAPPING_VALUES:
             messages.append((UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _(
                     'must have {MIN_TYPE_MAPPING_VALUES} to '
                     '{MAX_TYPE_MAPPING_VALUES} selectors ({count})',
@@ -718,6 +741,7 @@ class SelectorEventDataType(AbcEventDataType):
         for key, value in self.__type_mapping.items():
             if not MIN_TYPE_MAPPING_KEY_LENGTH <= len(key) <= MAX_TYPE_MAPPING_KEY_LENGTH:
                 messages.append((UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     _('selector ({selector}) must have {n} to {x} characters'),
                     selector=key,
                     n=MIN_TYPE_MAPPING_KEY_LENGTH,
@@ -742,7 +766,10 @@ class EventType:
 
     The fully qualified event name is '(api extension name)/(event id)'
     """
-    __slots__ = ('__structure', '__name', '__priority', '__send_access', '__receive_access',)
+    __slots__ = (
+        '__structure', '__name', '__priority', '__send_access', '__receive_access',
+        '__unique_targets',
+    )
 
     def __init__(  # pylint: disable=R0913
             self,
@@ -751,6 +778,7 @@ class EventType:
             send_access: EventAccessType,
             receive_access: EventAccessType,
             structure: StructureEventDataType,
+            unique_targets: Sequence[str],
     ) -> None:
         """Constructor"""
         self.__name = name
@@ -758,6 +786,7 @@ class EventType:
         self.__send_access = send_access
         self.__receive_access = receive_access
         self.__structure = structure
+        self.__unique_targets = tuple(unique_targets)
 
     def __repr__(self) -> str:
         return (
@@ -791,11 +820,17 @@ class EventType:
         """The event data structure."""
         return self.__structure
 
+    @property
+    def unique_targets(self) -> Sequence[str]:
+        """List of unique target IDs that the event can receive."""
+        return self.__unique_targets
+
     def validate_type(self) -> Optional[PetroniaReturnError]:
         """Validates whether this event definition is valid."""
         messages: List[UserMessage] = []
         if EVENT_NAME_FORMAT.match(self.name) is None:
             messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 _('event name ({event_name}) must conform to the pattern `[a-z0-9][a-z0-9:-]*`'),
                 event_name=self.name,
             ))

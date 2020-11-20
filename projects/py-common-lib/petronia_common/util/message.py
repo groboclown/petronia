@@ -4,9 +4,15 @@ Localizable message.
 
 The most common use case:
 
+In a utility method for the module, define:
+
+>>> from petronia_common.util import UserMessage, UserMessageData, I18n
+>>> CATALOG = 'my-catalog'
+>>> def UM(message: I18n, **arguments: UserMessageData) -> UserMessage:
+>>>    return UserMessage(CATALOG, message, **arguments)
+
+Then, in the code, define:
 >>> from petronia_common.util import i18n as _
->>> from petronia_common.util import UserMessage as UM
->>> # I18N: a simple message
 >>> report_message(UM(_('my message {x}={y}'), x=1, y=4))
 
 """
@@ -14,6 +20,9 @@ The most common use case:
 from typing import Iterable, Mapping, Union, Optional, NewType
 from datetime import datetime, time, date
 
+
+USER_MESSAGE_CATALOG_EXCEPTION = 'internal-errors'
+STANDARD_PETRONIA_CATALOG = 'petronia'
 
 SimpleUserMessageData = Union[str, int, float, bool, datetime, time, date, None, BaseException]
 UserMessageData = Union[
@@ -40,9 +49,10 @@ class UserMessage:
     A message that can be displayed to the end-user.
     """
 
-    __slots__ = ('__message', '__args', '__hash')
+    __slots__ = ('__catalog', '__message', '__args', '__hash')
 
-    def __init__(self, message: I18n, **arguments: UserMessageData) -> None:
+    def __init__(self, catalog: str, message: I18n, **arguments: UserMessageData) -> None:
+        self.__catalog = catalog
         self.__message = message
         # Note that, because the arguments are passed as key-values, this is not
         # a dictionary that the end-user can modify.  To conserve memory and speed up the
@@ -50,6 +60,11 @@ class UserMessage:
         self.__args = arguments
         # Only compute the hash when we need to.
         self.__hash: Optional[int] = None
+
+    @property
+    def catalog(self) -> str:
+        """The catalog that owns the message for purposes of localization."""
+        return self.__catalog
 
     @property
     def message(self) -> I18n:
@@ -74,7 +89,11 @@ class UserMessage:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, UserMessage):
             return False
-        return other.message == self.__message and other.arguments == self.__args
+        return (
+            other.catalog == self.__catalog
+            and other.message == self.__message
+            and other.arguments == self.__args
+        )
 
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
@@ -84,7 +103,7 @@ class UserMessage:
             # "dict" is un-hashable.
             # Note that the hash does not need to be 100% unique; just enough
             # to bucket it well in a set or dict.
-            my_hash = hash(self.__message) << 6
+            my_hash = (hash(self.__message) << 6) + (hash(self.__catalog) << 3)
             for key in self.__args:
                 my_hash += hash(key)
             self.__hash = my_hash

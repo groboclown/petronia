@@ -9,6 +9,7 @@ Simplified access to the yaml library.
 
 from typing import Sequence, Any, cast
 from ..message import i18n as _
+from ..message import STANDARD_PETRONIA_CATALOG as STDC
 from ..error import StdRet
 
 try:
@@ -20,14 +21,17 @@ try:
         try:
             return StdRet.pass_ok(tuple(safe_load_all(data_str)))
         except YAMLError as err:
-            return StdRet.pass_errmsg(_('Invalid YAML format: {e}'), e=repr(err))
+            return StdRet.pass_errmsg(STDC, _('Invalid YAML format: {e}'), e=repr(err))
 
     def dump_yaml_documents(documents: Sequence[Any]) -> StdRet[str]:
         """Store zero or more simple structures as a yaml-formatted string."""
         try:
             return StdRet.pass_ok(cast(str, dump_all(documents)))  # types: ignore
         except (YAMLError, TypeError,) as err:
-            return StdRet.pass_errmsg(_('Could not transform documents to YAML: {e}'), e=repr(err))
+            return StdRet.pass_errmsg(
+                STDC, _('Could not transform documents to YAML: {e}'),
+                e=repr(err),
+            )
 
     YAML_SUPPORTED = True
 

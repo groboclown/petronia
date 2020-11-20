@@ -17,7 +17,10 @@ from typing import (
 )
 import collections
 from .memory import T, T_co, V, EMPTY_TUPLE
-from .message import I18n, UserMessage, UserMessageData
+from .message import (
+    I18n, UserMessage, UserMessageData,
+    USER_MESSAGE_CATALOG_EXCEPTION,
+)
 
 # These typing functions are in Python 3.8, but MyPy doesn't recognize them.
 if TYPE_CHECKING:  # pragma: no cover
@@ -101,11 +104,12 @@ class StdRet(Generic[T_co]):
 
     @staticmethod
     def pass_errmsg(
+            catalog: str,
             message: I18n,
             **arguments: UserMessageData,
     ) -> StdRet[T_co]:
         """Constructor that generates a forced error with no value."""
-        return StdRet(error_message(message, **arguments), None)
+        return StdRet(error_message(catalog, message, **arguments), None)
 
     @staticmethod
     def pass_exception(
@@ -117,7 +121,7 @@ class StdRet(Generic[T_co]):
         The 'source' text can include an {exception} expression for
         replacement with the error itself."""
         return StdRet(ExceptionPetroniaReturnError(
-            UserMessage(source, **details, exception=exception),
+            UserMessage(USER_MESSAGE_CATALOG_EXCEPTION, source, **details, exception=exception),
             exception,
         ), None)
 
@@ -196,11 +200,12 @@ class StdRet(Generic[T_co]):
 
 
 def error_message(
+        catalog: str,
         message: I18n,
         **arguments: UserMessageData,
 ) -> PetroniaReturnError:
     """Returns an error object with a single message."""
-    return SimplePetroniaReturnError(UserMessage(message, **arguments))
+    return SimplePetroniaReturnError(UserMessage(catalog, message, **arguments))
 
 
 def join_errors(

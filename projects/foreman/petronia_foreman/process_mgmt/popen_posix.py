@@ -10,25 +10,33 @@ from petronia_common.util import i18n as _
 from .process import ManagedProcess
 from .util import create_cmd_and_dirs
 from ..configuration import LauncherConfig, PlatformSettings
+from ..user_message import CATALOG
 
 
 try:
-    import fcntl
+    import fcntl  # pylint: disable=import-error
 
 
-    async def run_launcher_posix(
+    async def run_launcher_posix(  # pylint: disable=too-many-locals
             identity: str,
+            launcher_cmd_option_key: str,
             launcher_config: LauncherConfig,
             platform: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
+        """Runs the launcher on a POSIX platform."""
         # rx pipe is for the parent to receive data.
         #   The write-end of this pipe is used by the child process.
         # tx pipe is for the parent to send data.
         #   The read-end of this pipe is used by the child process.
         rx_read, rx_write = os.pipe()
         tx_read, tx_write = os.pipe()
-        cmd, temp_dirs = create_cmd_and_dirs(launcher_config.command, platform, rx_write)
+        command = launcher_config.get_option(launcher_cmd_option_key)
+        if command.has_error:
+            return command.forward()
+        cmd, temp_dirs = create_cmd_and_dirs(
+            command.result, platform, rx_write,
+        )
         cmd_parts = shlex.split(cmd)
         try:
             # Must close pipe input if child will block waiting for end
@@ -58,6 +66,7 @@ try:
             ))
         except OSError as err:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('Failed to launch [{cmd}]: {err}'),
                 cmd='] ['.join(cmd_parts),
                 err=err,
@@ -67,7 +76,7 @@ try:
     def make_fd_nonblocking(fd: int) -> None:
         """Make the file descriptor non-blocking."""
         flags = fcntl.fcntl(fd, fcntl.F_GETFL, 0)
-        fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)  # pylint: disable=no-member
 
 
     class ManagedPosixProcess(ManagedProcess):
@@ -107,10 +116,16 @@ try:
 
 
 except ModuleNotFoundError:
-    async def run_launcher_posix(
+    async def run_launcher_posix(  # pylint: disable=unused-argument,too-many-arguments
             identity: str,
+            launcher_cmd_option_key: str,
             launcher_config: LauncherConfig,
             platform: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
-        return StdRet.pass_errmsg(_('Platform {platform} not supported.'), platform=platform.name)
+        """Runs the launcher on a POSIX platform."""
+        return StdRet.pass_errmsg(
+            CATALOG,
+            _('Platform {platform} not supported.'),
+            platform=platform.name,
+        )

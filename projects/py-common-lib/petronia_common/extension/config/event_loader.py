@@ -9,6 +9,7 @@ from typing import List, Dict, Optional, Any, cast
 from . import event_schema
 from ...util import StdRet, collect_errors_from, EMPTY_TUPLE
 from ...util import i18n as _
+from ...util import STANDARD_PETRONIA_CATALOG as STDC
 
 
 def load_full_event_schema(
@@ -20,7 +21,7 @@ def load_full_event_schema(
     for reference_name, raw_reference in references.items():
         if not isinstance(raw_reference, dict):
             return StdRet.pass_errmsg(
-                _('references must be a dictionary of event data type dictionaries'),
+                STDC, _('references must be a dictionary of event data type dictionaries'),
             )
         ret_reference = load_event_data_type(raw_reference)
         if not ret_reference.ok:
@@ -34,7 +35,7 @@ def load_full_event_schema(
     for event_name, raw_event in raw_event_schemas.items():
         if not isinstance(raw_event, dict):
             return StdRet.pass_errmsg(
-                _('event schemas must be dictionaries'),
+                STDC, _('event schemas must be dictionaries'),
             )
         ret_event = load_event_schema(event_name, raw_event, parsed_references)
         if not ret_event.ok:
@@ -54,9 +55,10 @@ def load_event_schema(
     ret_priority = load_dict_str_value('priority', raw)
     ret_send_access = load_dict_str_value('send-access', raw)
     ret_receive_access = load_dict_str_value('receive-access', raw)
+    ret_unique_targets = load_dict_list_str_opt_value('unique-targets', raw)
     ret_data_type = load_event_structure_data_type(raw)
     error = collect_errors_from(
-        ret_priority, ret_send_access, ret_receive_access, ret_data_type,
+        ret_priority, ret_send_access, ret_receive_access, ret_unique_targets, ret_data_type,
     )
     if error:
         return StdRet.pass_error(error)
@@ -71,26 +73,26 @@ def load_event_schema(
         )
     if ret_priority.result not in ("high", "user", "normal", "io"):
         return StdRet.pass_errmsg(
-            _('`{priority}` must be a valid priority'),
+            STDC, _('`{priority}` must be a valid priority'),
             priority=ret_priority.result,
         )
     priority = cast(event_schema.EventPriorityType, ret_priority.result)
     if ret_send_access.result not in ("public", "implementations", "internal"):
         return StdRet.pass_errmsg(
-            _('`{send_access}` must be a valid access'),
+            STDC, _('`{send_access}` must be a valid access'),
             send_access=ret_send_access.result,
         )
     send_access = cast(event_schema.EventAccessType, ret_send_access.result)
     if ret_receive_access.result not in ("public", "implementations", "target"):
         return StdRet.pass_errmsg(
-            _('`{receive_access}` must be a valid access'),
+            STDC, _('`{receive_access}` must be a valid access'),
             receive_access=ret_receive_access.result,
         )
     receive_access = cast(event_schema.EventAccessType, ret_receive_access.result)
     return StdRet.pass_ok(event_schema.EventType(
         name=event_name, priority=priority,
         send_access=send_access, receive_access=receive_access,
-        structure=data_type,
+        structure=data_type, unique_targets=ret_unique_targets.result,
     ))
 
 
@@ -172,19 +174,19 @@ def update_reference(  # pylint: disable=R0911,R0912
     if isinstance(data_type, event_schema.ReferenceEventDataType):
         if data_type.reference in reference_depth:
             return StdRet.pass_errmsg(
-                _('cyclic reference `{reference}`'),
+                STDC, _('cyclic reference `{reference}`'),
                 reference=data_type.reference,
             )
         replacement = refs.get(data_type.reference)
         if not replacement:
             return StdRet.pass_errmsg(
-                _('unknown reference `{reference}`'),
+                STDC, _('unknown reference `{reference}`'),
                 reference=data_type.reference,
             )
         new_depth = [*reference_depth, data_type.reference]
         if len(new_depth) > MAX_REFERENCE_DEPTH:
             return StdRet.pass_errmsg(
-                _('reference depth too deep ({depth})'),
+                STDC, _('reference depth too deep ({depth})'),
                 depth=reference_depth,
             )
         ret_internal = update_reference(replacement, refs, new_depth)
@@ -222,7 +224,7 @@ def load_event_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.AbcEventDat
     if data_type == 'reference':
         return load_event_reference_data_type(raw)
     return StdRet.pass_errmsg(
-        _('unknown data type `{data_type}`'),
+        STDC, _('unknown data type `{data_type}`'),
         data_type=data_type,
     )
 
@@ -298,12 +300,12 @@ def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEv
     values: List[str] = []
     if not isinstance(raw_values, list):
         return StdRet.pass_errmsg(
-            _('enum values must be a list of strings'),
+            STDC, _('enum values must be a list of strings'),
         )
     for raw_value in raw_values:
         if not isinstance(raw_value, str):
             return StdRet.pass_errmsg(
-                _('enum values must be a list of strings'),
+                STDC, _('enum values must be a list of strings'),
             )
         values.append(raw_value)
     return StdRet.pass_ok(event_schema.EnumEventDataType(
@@ -334,7 +336,7 @@ def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Array
     raw_data_type = raw.get('value-type')
     if not isinstance(raw_data_type, dict):
         return StdRet.pass_errmsg(
-            _('`value-type` must be a dictionary of a data type structure'),
+            STDC, _('`value-type` must be a dictionary of a data type structure'),
         )
     ret_data_type = load_event_data_type(raw_data_type)
     error = collect_errors_from(
@@ -357,7 +359,7 @@ def load_event_structure_data_type(
     raw_fields = raw.get('fields')
     if not isinstance(raw_fields, dict):
         return StdRet.pass_errmsg(
-            _('`fields` must be a dictionary of field data type structures, found {data}'),
+            STDC, _('`fields` must be a dictionary of field data type structures, found {data}'),
             data=repr(raw_fields),
         )
     fields: Dict[str, event_schema.StructureFieldType] = {}
@@ -367,7 +369,7 @@ def load_event_structure_data_type(
             optional = False
         elif not isinstance(raw_optional, bool):
             return StdRet.pass_errmsg(
-                _('`optional` must be `true` or `false`'),
+                STDC, _('`optional` must be `true` or `false`'),
             )
         else:
             optional = raw_optional
@@ -390,13 +392,13 @@ def load_event_selector_data_type(
     raw_type_mapping = raw.get('type-mapping')
     if not isinstance(raw_type_mapping, dict):
         return StdRet.pass_errmsg(
-            _('`type-mapping` must be a dictionary of data type structures'),
+            STDC, _('`type-mapping` must be a dictionary of data type structures'),
         )
     mapping: Dict[str, event_schema.AbcEventDataType] = {}
     for key, raw_type in raw_type_mapping.items():
         if not isinstance(raw_type, dict):
             return StdRet.pass_errmsg(
-                _('`type-mapping` must be a dictionary of data type structures'),
+                STDC, _('`type-mapping` must be a dictionary of data type structures'),
             )
         ret_type = load_event_data_type(raw_type)
         if not ret_type.ok:
@@ -432,15 +434,38 @@ def load_dict_str_value(key: str, raw: Dict[str, Any]) -> StdRet[str]:
     raw_value = raw.get(key)
     if not raw_value:
         return StdRet.pass_errmsg(
-            _('no `{key}` found in definition'),
+            STDC, _('no `{key}` found in definition'),
             key=key,
         )
     if not isinstance(raw_value, str):
         return StdRet.pass_errmsg(
-            _('`{key}` must be a string value'),
+            STDC, _('`{key}` must be a string value'),
             key=key,
         )
     return StdRet.pass_ok(raw_value)
+
+
+def load_dict_list_str_opt_value(key: str, raw: Dict[str, Any]) -> StdRet[List[str]]:
+    """Reads an optional list of string values from a dict"""
+    raw_value = raw.get(key)
+    if not raw_value:
+        return StdRet.pass_ok([])
+    if isinstance(raw_value, str):
+        return StdRet.pass_ok([raw_value])
+    if not isinstance(raw_value, list):
+        return StdRet.pass_errmsg(
+            STDC, _('`{key}` must be a string or list of strings'),
+            key=key,
+        )
+    ret: List[str] = []
+    for value in raw_value:
+        if not isinstance(value, str):
+            return StdRet.pass_errmsg(
+                STDC, _('`{key}` must be a string or list of strings'),
+                key=key,
+            )
+        ret.append(value)
+    return StdRet.pass_ok(ret)
 
 
 def load_event_optional_str_value(key: str, raw: Dict[str, Any]) -> StdRet[Optional[str]]:
@@ -450,7 +475,7 @@ def load_event_optional_str_value(key: str, raw: Dict[str, Any]) -> StdRet[Optio
         return StdRet.pass_ok(None)
     if not isinstance(raw_value, str):
         return StdRet.pass_errmsg(
-            _('`{key}` must be a string value'),
+            STDC, _('`{key}` must be a string value'),
             key=key,
         )
     return StdRet.pass_ok(raw_value)
@@ -466,7 +491,7 @@ def load_event_numeric_val_with_default(
     if isinstance(raw_value, (int, float)):
         return StdRet.pass_ok(float(raw_value))
     return StdRet.pass_errmsg(
-        _('`{key}` must be a number'),
+        STDC, _('`{key}` must be a number'),
         key=key,
     )
 
@@ -479,6 +504,6 @@ def load_event_optional_numeric_val(key: str, raw: Dict[str, Any]) -> StdRet[Opt
     if isinstance(raw_value, (int, float)):
         return StdRet.pass_ok(float(raw_value))
     return StdRet.pass_errmsg(
-        _('`{key}` must be a number'),
+        STDC, _('`{key}` must be a number'),
         key=key,
     )

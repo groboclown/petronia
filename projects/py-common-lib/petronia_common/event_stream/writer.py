@@ -13,7 +13,7 @@ from typing import Union, Protocol
 import json
 from . import consts
 from .defs import RawBinaryReader, MarshalledEventObject
-from ..util import StdRet, enforce_all, RET_OK_NONE
+from ..util import StdRet, enforce_all, RET_OK_NONE, STANDARD_PETRONIA_CATALOG
 from ..util import i18n as _
 
 
@@ -49,6 +49,7 @@ async def write_binary_event_to_stream(
 
     if isinstance(binary_blob, bytes) and len(binary_blob) != binary_blob_size:
         return StdRet.pass_errmsg(
+            STANDARD_PETRONIA_CATALOG,
             _('binary_blob has {real_size} bytes, but requested {expected_size}'),
             real_size=len(binary_blob),
             expected_size=binary_blob_size,
@@ -138,6 +139,7 @@ async def write_binary_event_to_stream(
                 # stream errors
                 stream.write(b' ' * remaining)
                 return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('binary blob data less than requested size'),
                 )
 

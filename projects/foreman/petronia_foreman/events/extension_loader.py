@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2020-09-12T00:48:26.765548
+# Created on 2020-11-19T23:28:00.644546
 
 """
 Data structures and marshalling for extension petronia.core.api.extension_loader version 1.0.0.
@@ -9,20 +9,24 @@ Data structures and marshalling for extension petronia.core.api.extension_loader
 
 
 from typing import (
-    Optional,
-    Union,
-    Any,
-    SupportsInt,
-    SupportsFloat,
-    Dict,
     List,
+    Optional,
+    SupportsFloat,
+    SupportsInt,
+    Union,
+    Dict,
+    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     T,
+    STANDARD_PETRONIA_CATALOG,
+    StdRet,
     collect_errors_from,
 )
+
+EXTENSION_NAME = 'petronia.core.api.extension_loader'
+EXTENSION_VERSION = (1, 0, 0)
 
 
 class LoadExtensionRequestEvent:
@@ -69,6 +73,7 @@ class LoadExtensionRequestEvent:
         val = data.get('name')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='name',
                 name='LoadExtensionRequestEvent',
@@ -76,6 +81,7 @@ class LoadExtensionRequestEvent:
         else:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
@@ -88,6 +94,7 @@ class LoadExtensionRequestEvent:
         if val is not None:
             if not isinstance(val, list):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='minimum_version',
                     type='List[int]',
@@ -98,6 +105,7 @@ class LoadExtensionRequestEvent:
                 for item in val:
                     if not isinstance(item, int):
                         errors.append(StdRet.pass_errmsg(
+                            STANDARD_PETRONIA_CATALOG,
                             _(
                                 'Field {field_name} must contain items '
                                 'of type {type} for structure {name}'
@@ -113,6 +121,7 @@ class LoadExtensionRequestEvent:
         if val is not None:
             if not isinstance(val, list):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='below_version',
                     type='List[int]',
@@ -123,6 +132,7 @@ class LoadExtensionRequestEvent:
                 for item in val:
                     if not isinstance(item, int):
                         errors.append(StdRet.pass_errmsg(
+                            STANDARD_PETRONIA_CATALOG,
                             _(
                                 'Field {field_name} must contain items '
                                 'of type {type} for structure {name}'
@@ -155,9 +165,9 @@ class Arguments:
         self,
         name: str,
         value: Union[
-            float,
             int,
             str,
+            float,
         ],
     ) -> None:
         self.__name = name
@@ -170,9 +180,9 @@ class Arguments:
 
     @property
     def value(self) -> Union[
-            float,
             int,
             str,
+            float,
     ]:
         """The selector value."""
         return self.__value
@@ -211,11 +221,13 @@ class Arguments:
         val = data.get('$')
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('selector value must have ^ and $ keys'),
             )
         if selector_name == 'string':
             if not isinstance(val, str):
                 return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='string',
                     type='str',
@@ -228,6 +240,7 @@ class Arguments:
         if selector_name == 'int':
             if not isinstance(val, SupportsInt):
                 return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='int',
                     type='int',
@@ -240,6 +253,7 @@ class Arguments:
         if selector_name == 'float':
             if not isinstance(val, SupportsFloat):
                 return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='float',
                     type='float',
@@ -250,6 +264,7 @@ class Arguments:
                 float(val),
             ))
         return StdRet.pass_errmsg(
+            STANDARD_PETRONIA_CATALOG,
             _('Invalid selector name {name} for {nc}'),
             name=selector_name,
             nc='Arguments',
@@ -293,6 +308,7 @@ class Error:
         val = data.get('identifier')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='identifier',
                 name='Error',
@@ -300,6 +316,7 @@ class Error:
         else:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='identifier',
                     type='str',
@@ -312,6 +329,7 @@ class Error:
         if val is not None:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='source',
                     type='str',
@@ -323,6 +341,7 @@ class Error:
         val = data.get('message')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='message',
                 name='Error',
@@ -330,6 +349,7 @@ class Error:
         else:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='message',
                     type='str',
@@ -341,6 +361,7 @@ class Error:
         val = data.get('arguments')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='arguments',
                 name='Error',
@@ -404,6 +425,7 @@ class LoadExtensionFailedEvent:
         val = data.get('name')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='name',
                 name='LoadExtensionFailedEvent',
@@ -411,6 +433,7 @@ class LoadExtensionFailedEvent:
         else:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
@@ -422,6 +445,7 @@ class LoadExtensionFailedEvent:
         val = data.get('error')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='error',
                 name='LoadExtensionFailedEvent',
@@ -483,6 +507,7 @@ class LoadExtensionSuccessEvent:
         val = data.get('name')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='name',
                 name='LoadExtensionSuccessEvent',
@@ -490,6 +515,7 @@ class LoadExtensionSuccessEvent:
         else:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
@@ -501,6 +527,7 @@ class LoadExtensionSuccessEvent:
         val = data.get('version')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='version',
                 name='LoadExtensionSuccessEvent',
@@ -508,6 +535,7 @@ class LoadExtensionSuccessEvent:
         else:
             if not isinstance(val, list):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='version',
                     type='List[int]',
@@ -518,6 +546,7 @@ class LoadExtensionSuccessEvent:
                 for item in val:
                     if not isinstance(item, int):
                         errors.append(StdRet.pass_errmsg(
+                            STANDARD_PETRONIA_CATALOG,
                             _(
                                 'Field {field_name} must contain items '
                                 'of type {type} for structure {name}'
@@ -543,7 +572,8 @@ class LauncherLoadExtensionEvent:
     """
     Requests a launcher to load an extension. The target of the request is the
     launcher started by a "start-launcher" event, and that declares the permissions
-    that the extension can use.
+    that the extension can use. This request does not have its own event responses;
+    instead, the loaded extension should use the standard extension event lifecycle.
     """
     __slots__ = ('name', 'version', 'location',)
     FULL_EVENT_NAME = 'petronia.core.api.extension_loader:launcher-load-extension'
@@ -582,6 +612,7 @@ class LauncherLoadExtensionEvent:
         val = data.get('name')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='name',
                 name='LauncherLoadExtensionEvent',
@@ -589,6 +620,7 @@ class LauncherLoadExtensionEvent:
         else:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
@@ -600,6 +632,7 @@ class LauncherLoadExtensionEvent:
         val = data.get('version')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='version',
                 name='LauncherLoadExtensionEvent',
@@ -607,6 +640,7 @@ class LauncherLoadExtensionEvent:
         else:
             if not isinstance(val, list):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='version',
                     type='List[int]',
@@ -617,6 +651,7 @@ class LauncherLoadExtensionEvent:
                 for item in val:
                     if not isinstance(item, int):
                         errors.append(StdRet.pass_errmsg(
+                            STANDARD_PETRONIA_CATALOG,
                             _(
                                 'Field {field_name} must contain items '
                                 'of type {type} for structure {name}'
@@ -631,6 +666,7 @@ class LauncherLoadExtensionEvent:
         val = data.get('location')
         if val is None:
             errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='location',
                 name='LauncherLoadExtensionEvent',
@@ -638,6 +674,7 @@ class LauncherLoadExtensionEvent:
         else:
             if not isinstance(val, str):
                 errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='location',
                     type='str',

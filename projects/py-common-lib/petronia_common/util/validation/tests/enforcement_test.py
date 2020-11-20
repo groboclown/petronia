@@ -4,7 +4,7 @@
 from typing import Optional
 import unittest
 from ..enforcement import enforce_that, enforce_all
-from ...message import i18n, UserMessage
+from ...message import i18n, UserMessage, STANDARD_PETRONIA_CATALOG
 
 
 class EnforcementTest(unittest.TestCase):
@@ -74,6 +74,7 @@ class EnforcementTest(unittest.TestCase):
         assert res is not None  # mypy required check.
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('{src}: validation error ({e}): y'),
                 src='x', e=ex,
             ),),
@@ -96,6 +97,7 @@ class EnforcementTest(unittest.TestCase):
         assert res is not None  # mypy required
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('{src}: validation error: b'),
                 src='abc',
             ),),
@@ -130,9 +132,11 @@ class EnforcementTest(unittest.TestCase):
         assert res is not None  # mypy required
         self.assertEqual(
             (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('{src}: validation error: b'),
                 src='abc',
             ), UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n('{src}: validation error: c'),
                 src='abc',
             ),),

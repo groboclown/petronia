@@ -10,6 +10,7 @@ import sys
 import platform
 from petronia_common.util import StdRet
 from petronia_common.util import i18n as _
+from ..constants import TRANSLATION_CATALOG as CATALOG
 
 # Explicit list of platforms that Petronia currently supports.
 SUPPORTED_PLATFORMS = (
@@ -60,7 +61,7 @@ class PlatformSettings:
         if self.category == CATEGORY__WINDOWS:
             print("Using windows selector event loop")
             asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())  # type: ignore
-        #else:
+        # else:
         #    print("Set selector event loop.")
         #    loop = asyncio.ProactorEventLoop()
         #    asyncio.set_event_loop(loop)
@@ -80,6 +81,7 @@ def detect_platform(suggestion: Optional[str]) -> StdRet[PlatformSettings]:
     if system_name == 'linux':
         return detect_linux()
     return StdRet.pass_errmsg(
+        CATALOG,
         _('Could not recognize your platform (found {system_name}).'),
         system_name=system_name,
     )
@@ -131,6 +133,7 @@ def detect_windows() -> StdRet[PlatformSettings]:
         winver = sys.getwindowsversion().major  # type: ignore  # pylint: disable=no-member
     except BaseException:  # pylint: disable=broad-except
         return StdRet.pass_errmsg(
+            CATALOG,
             _(
                 "You requested Windows, but the Windows Version could not be discovered."
             ),
@@ -144,6 +147,7 @@ def detect_windows() -> StdRet[PlatformSettings]:
         from ctypes import WinDLL  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
     except BaseException:  # pylint: disable=broad-except
         return StdRet.pass_errmsg(
+            CATALOG,
             _(
                 "Your system ({system} {version} {arch}) does not "
                 "support the required Windows libraries."
@@ -157,6 +161,7 @@ def detect_windows() -> StdRet[PlatformSettings]:
         return load_windows10_settings()
 
     return StdRet.pass_errmsg(
+        CATALOG,
         _(
             "Your system ({system} {version} {arch}) is not one of the "
             "supported Windows versions."
@@ -170,9 +175,10 @@ def detect_windows() -> StdRet[PlatformSettings]:
 def detect_linux() -> StdRet[PlatformSettings]:
     """Determine which video interaction method to use."""
     try:
-        from ctypes import cdll
+        from ctypes import cdll  # pylint: disable=import-outside-toplevel
     except BaseException as err:
         return StdRet.pass_errmsg(
+            CATALOG,
             _(
                 'Could not discover your platform; native library loading not'
                 'supported with Python (problem: {err}).'
@@ -206,6 +212,7 @@ def detect_linux() -> StdRet[PlatformSettings]:
         pass
 
     return StdRet.pass_errmsg(
+        CATALOG,
         _(
             "'Your platform is not supported, because neither libwayland.so"
             "nor libxcb.so are present.  Please install one to enable support."
@@ -260,6 +267,7 @@ def detect_install_dir() -> str:
 
 
 def get_petronia_paths(paths: Sequence[Optional[str]]) -> List[str]:
+    """Get the list of paths for Petronia."""
     ret: List[str] = []
 
     # Use APP_PATHS first...

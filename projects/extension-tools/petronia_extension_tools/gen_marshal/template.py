@@ -6,7 +6,7 @@ Perform templatization operations.
 from typing import Dict, Any
 import os
 import pystache
-from petronia_common.util import StdRet
+from petronia_common.util import StdRet, STANDARD_PETRONIA_CATALOG
 from petronia_common.util import i18n as _
 
 
@@ -34,6 +34,7 @@ def load_template(name: str) -> StdRet[str]:
             return StdRet.pass_ok(f.read())
     except OSError as err:
         return StdRet.pass_errmsg(
+            STANDARD_PETRONIA_CATALOG,
             _('could not open template file {name}: {err}'),
             name=template_file,
             err=repr(err),

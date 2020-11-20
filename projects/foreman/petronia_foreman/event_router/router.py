@@ -5,7 +5,7 @@ The approach here is that there is a many-to-one relationship between
 handlers and event pipes.
 """
 
-from typing import Dict, Iterable, List, Coroutine, Any
+from typing import Dict, Iterable, List, Coroutine, Optional, Any
 import asyncio
 from petronia_common.util import (
     RET_OK_NONE,
@@ -19,19 +19,32 @@ from petronia_common.event_stream import (
 )
 from .channel import EventChannel
 from .handler import EventTargetHandle
+from ..user_message import CATALOG
 
 
 class EventRouter:
     """Routes events between destinations based on their registered
     event handlers.  Access to the router is intended to be run from
     within an asyncio process, because the read and write processes
-    can run independently.  Each router should have its own lock."""
+    can run independently.  Each router should have its own lock.
+
+    The router has a global target for the owner of the router to
+    listen in on all events.
+    """
     __slots__ = ('__channels', '__lock', '__target')
 
     def __init__(self, lock: asyncio.Semaphore, target: EventForwarderTarget) -> None:
         self.__channels: Dict[str, EventChannel] = {}
         self.__lock = lock
         self.__target = target
+
+    async def get_channel_for_handler(self, handler_id: str) -> Optional[str]:
+        """Get the channel name that owns the handler_id."""
+        async with self.__lock:
+            for channel in self.__channels.values():
+                if channel.contains_handler_id(handler_id):
+                    return channel.name
+            return None
 
     async def add_channel(
             self,
@@ -48,6 +61,7 @@ class EventRouter:
         async with self.__lock:
             if name in self.__channels:
                 return StdRet.pass_errmsg(
+                    CATALOG,
                     _('channel {name} already registered'),
                     name=name,
                 )
@@ -87,6 +101,7 @@ class EventRouter:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
                     return StdRet.pass_errmsg(
+                        CATALOG,
                         _('handler {handler_id} already registered in channel {name}'),
                         handler_id=handler_id,
                         channel=channel.name,
@@ -94,6 +109,7 @@ class EventRouter:
             maybe_channel = self.__channels.get(channel_name)
             if not maybe_channel:
                 return StdRet.pass_errmsg(
+                    CATALOG,
                     _('channel {name} not registered'),
                     name=channel_name,
                 )

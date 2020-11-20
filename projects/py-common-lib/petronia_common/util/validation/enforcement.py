@@ -5,7 +5,7 @@ Functions that enforce certain conditions, and returns errors on failures.
 
 from typing import Tuple, List, Callable, Optional
 from ..error import PetroniaReturnError, error_message, possible_error
-from ..message import I18n, UserMessage, UserMessageData, i18n
+from ..message import I18n, UserMessage, UserMessageData, STANDARD_PETRONIA_CATALOG, i18n
 # _ and i18n both need to exist to allow for correct
 # translation and non-translation.
 _ = i18n  # pylint: disable=C0103
@@ -34,6 +34,7 @@ def enforce_that(
     try:
         if not first_condition():
             return error_message(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(_("{src}: validation error: ") + validation_problem),
                 src=src,
                 **details,
@@ -43,6 +44,7 @@ def enforce_that(
         for condition in conditions:
             if not condition():
                 return error_message(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(_("{src}: validation error: ") + validation_problem),
                     src=src,
                     **details,
@@ -50,6 +52,7 @@ def enforce_that(
         return None
     except BaseException as err:  # pylint: disable=W0703
         return error_message(
+            STANDARD_PETRONIA_CATALOG,
             i18n(_("{src}: validation error ({e}): ") + validation_problem),
             src=src,
             e=err,
@@ -82,12 +85,14 @@ def enforce_all(
     try:
         if not first_condition[1]():
             error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(_("{src}: validation error: ") + first_condition[0]),
                 src=src,
                 **details,
             ))
     except BaseException as err:  # pylint: disable=W0703
         error_messages.append(UserMessage(
+            STANDARD_PETRONIA_CATALOG,
             i18n(_("{src}: validation error ({e}): ") + first_condition[0]),
             src=src,
             e=err,
@@ -98,12 +103,14 @@ def enforce_all(
         try:
             if not condition():
                 error_messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
                     i18n(_("{src}: validation error: ") + validation_problem),
                     src=src,
                     **details,
                 ))
         except BaseException as err:  # pylint: disable=W0703
             error_messages.append(UserMessage(
+                STANDARD_PETRONIA_CATALOG,
                 i18n(_("{src}: validation error ({e}): ") + validation_problem),
                 src=src,
                 e=err,

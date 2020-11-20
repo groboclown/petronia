@@ -14,6 +14,9 @@ from .popen_win import run_launcher_windows
 from .popen_posix import run_launcher_posix
 from ..configuration.foreman import ForemanConfig
 from ..configuration.platform import PlatformSettings, CATEGORY__WINDOWS, CATEGORY__LINUX
+from ..user_message import CATALOG
+
+COMMAND_OPTION_KEY = 'command'
 
 
 async def run_launcher(
@@ -23,22 +26,23 @@ async def run_launcher(
         platform: PlatformSettings,
 ) -> StdRet[ManagedProcess]:
     """Launch the process."""
-    ret_launcher_config = foreman_config.get_launcher(extension_runtime.launcher)
+    ret_launcher_config = foreman_config.get_launcher_config(extension_runtime.launcher)
     if ret_launcher_config.has_error:
         return ret_launcher_config.forward()
     launcher_config = ret_launcher_config.result
 
     if platform.category == CATEGORY__WINDOWS:
         return await run_launcher_windows(
-            identity, launcher_config, platform,
+            identity, COMMAND_OPTION_KEY, launcher_config, platform,
             extension_runtime.requested_permissions,
         )
     if platform.category == CATEGORY__LINUX:
         return await run_launcher_posix(
-            identity, launcher_config, platform,
+            identity, COMMAND_OPTION_KEY, launcher_config, platform,
             extension_runtime.requested_permissions,
         )
     return StdRet.pass_errmsg(
+        CATALOG,
         _('Unsupported launch platform {name}'),
         name=platform.name,
     )

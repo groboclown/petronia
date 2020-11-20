@@ -21,6 +21,7 @@ from .message import (
     UserMessage,
     UserMessageData,
     SimpleUserMessageData,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 from .error import (

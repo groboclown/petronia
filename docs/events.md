@@ -22,6 +22,7 @@ Each generated event provides a Source and Target ID.  These identifiers take th
 
 In general, events should be considered "fire and forget."  On a rare occasion, an event requires a response, such as registering a portal and receiving the portal ID or an error response if something didn't go right.
 
+In these cases, the general mechanism is to have the initiating event have the form "(RequestName):Request", and the result usually have two events, "(RequestName):Failed" and "(RequestName):Success".
 
 ## Schema
 

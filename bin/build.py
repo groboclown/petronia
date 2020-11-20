@@ -1,13 +1,12 @@
 #!/bin/env /usr/bin/python3
 
 """
-Runs the CI build.  This should be extremely simple.
+Runs the CI build.  This should be as simple as possible while being useful.
 """
 
 from typing import List, Tuple
 import os
 import sys
-import platform
 import shutil
 import subprocess
 

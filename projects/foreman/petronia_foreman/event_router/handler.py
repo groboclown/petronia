@@ -8,7 +8,9 @@ from typing import Dict, Iterable, Sequence, List, Set, Tuple, Optional
 
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
+from ..user_message import CATALOG
 
+# EventId, TargetId
 EventTargetHandle = Tuple[Optional[str], Optional[str]]
 _NONE_NONE: EventTargetHandle = (None, None)
 
@@ -56,6 +58,7 @@ class EventHandlerSet:
         If the same handler_id is already registered, an error is returned."""
         if handler_id in self.__handler_consumes:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('event handler {handler_id} already registered'),
                 handler_id=handler_id,
             )
@@ -71,6 +74,7 @@ class EventHandlerSet:
         """Add an event / target listener registration to the handler id."""
         if handler_id not in self.__handler_consumes:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('event handler {handler_id} not registered'),
                 handler_id=handler_id,
             )
@@ -85,6 +89,7 @@ class EventHandlerSet:
         """Remove the event / target listener registration for this handler."""
         if handler_id not in self.__handler_consumes:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('event handler {handler_id} not registered'),
                 handler_id=handler_id,
             )
@@ -93,6 +98,7 @@ class EventHandlerSet:
             self.__handler_consumes[handler_id].remove(event_handle)
         except ValueError:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('handler {handler_id} is not registered to listen to {event_id} / {target_id}'),
                 handler_id=handler_id,
                 event_id=event_id,
@@ -104,6 +110,7 @@ class EventHandlerSet:
         """Remove the handler from this set."""
         if handler_id not in self.__handler_consumes:
             return StdRet.pass_errmsg(
+                CATALOG,
                 _('event handler {handler_id} not registered'),
                 handler_id=handler_id,
             )
