@@ -1,5 +1,7 @@
 # Architecture
 
+(This needs to be updated again now that the forked model is better defined.)
+
 ## Goals
 
 * Loose coupling between components to an extreme.  Rather than owning other objects, objects contain references to them.  Communication between components happens in the event bus.
@@ -176,7 +178,7 @@ The extension module does not define the version, instead this is defined in the
 
 Note that core modules (those distributed with Petronia) have an implicit version number that matches the version of Petronia.
 
-The extension zip file must contain a `manifest.json` file that defines information about the extension:
+The extension zip file must contain a `manifest.json` file that defines information about the extension (see [extension-schema.yaml](extension-schema.yaml) for details):
 
 ```javascript
 {
@@ -228,7 +230,7 @@ The extension zip file must contain a `manifest.json` file that defines informat
 }
 ```
 
-Extension modules must provide the function `start_extension` which takes a single argument, the `EventBus` instance.  This function must register event types and add listeners as appropriate for the module.  If the module adds event listeners, it must also add an event listener for the `RequestDisposeEvent` event, to allow for the module to be removed.  The `petronia3.ext_help.module_bootstrap` module can help with this.  Events to dispose the extension will be sent to the module name of the extension.
+For Python-based extension modules loaded through the Python Launcher, it must provide the function `start_extension` which takes a single argument, the `EventBus` instance.  This function must register event types and add listeners as appropriate for the module.  If the module adds event listeners, it must also add an event listener for the `RequestDisposeEvent` event, to allow for the module to be removed.  The `petronia3.ext_help.module_bootstrap` module can help with this.  Events to dispose the extension will be sent to the module name of the extension.
 
 If an extension allows for configuration setup events, these are sent by the configuration setup extension to a default state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.  The extension can listen for additional configurations, all must start with the extension module name + `/`
 
@@ -255,7 +257,7 @@ If an extension allows for configuration setup events, these are sent by the con
 The `default.configuration.file` extension loads configuration information from the file system, using a state created by the bootstrap.  Each loaded file is either a `json` or `yaml` file that defines the extensions to load, and how to configure them.
 
 
-#### Platform (Singleton)
+#### Native Handler (Singleton)
 
 The platform must define a series of integration pieces to allow the system to start.
 
@@ -283,10 +285,7 @@ The standard Petronia lifecycle is:
     * core extensions.
     * other fundamental extensions determined by the boot function.
     * extensions specified by user configuration and platform.
-1. Event `SystemStartedEvent` sent.
-    * TODO how do we know when to send this?  Will probably require a new extension
-      that listens for created events from the extensions, and when certain ones complete,
-      it sends out that event.
+1. Event `petronia.core.api.extension_loader:system-started` sent.
 1. System is under normal operation.
 1. A component in the system sends a `RequestSystemShutdownEvent`.
 1. A shutdown implementation extension takes over the UI and begins shutdown.

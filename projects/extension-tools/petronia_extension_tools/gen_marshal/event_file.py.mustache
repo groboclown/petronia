@@ -203,9 +203,10 @@ class {{structure_class_name}}:
     __slots__ = ({{#field_names}}'{{field_name}}',{{^last}} {{/last}}{{/field_names}})
 {{#is_event}}    FULL_EVENT_NAME = {{fq_event_name}}
     SHORT_EVENT_NAME = {{short_event_name}}
-{{/is_event}}{{#unique_targets}}
-    UNIQUE_TARGET_{{upper}} = {{fq_target}}
-{{/unique_targets}}
+{{/is_event}}{{#unique_ids}}
+    UNIQUE_{{upper}}_FQN = {{fqn_id}}
+    UNIQUE_{{upper}}_REL = {{rel_id}}
+{{/unique_ids}}
 
     def __init__(
         self,{{#field_names}}

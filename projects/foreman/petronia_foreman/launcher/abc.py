@@ -2,7 +2,7 @@
 Abstract class for all launchers.
 """
 
-from typing import Tuple, Sequence, Mapping, List, Iterable, Callable
+from typing import Tuple, Sequence, Mapping, List, Iterable, Callable, Coroutine, Any
 import asyncio
 from petronia_common.event_stream import BinaryWriter
 from petronia_common.util import StdRet, readonly_dict
@@ -18,11 +18,13 @@ class RuntimeContext:
         """Get the platform settings."""
         raise NotImplementedError()
 
-    def create_channel(
+    def register_channel(
             self,
             name: str,
-            reader: asyncio.StreamReader,
-            writer: BinaryWriter,
+            channel_creator: Callable[
+                [],
+                Coroutine[Any, Any, StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]],
+            ],
     ) -> StdRet[None]:
         """Creates the channel."""
         raise NotImplementedError()
@@ -51,6 +53,7 @@ class RuntimeContext:
             event_id: str, target_id: str,
     ) -> bool:
         """Registers the event / target listener with the handler."""
+        # TODO this may be removed in the future.
         raise NotImplementedError()
 
     def remove_handler_listener(
@@ -59,13 +62,16 @@ class RuntimeContext:
             event_id: str, target_id: str,
     ) -> bool:
         """Removes the event / target listener from the handler."""
+        # TODO this may be removed in the future.
         raise NotImplementedError()
 
-    async def async_create_channel(
+    async def async_register_channel(
             self,
             name: str,
-            reader: asyncio.StreamReader,
-            writer: BinaryWriter,
+            channel_creator: Callable[
+                [],
+                Coroutine[Any, Any, StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]],
+            ],
     ) -> StdRet[None]:
         """Creates the channel."""
         raise NotImplementedError()
@@ -94,6 +100,7 @@ class RuntimeContext:
             event_id: str, target_id: str,
     ) -> bool:
         """Registers the event / target listener with the handler."""
+        # TODO this may be removed in the future.
         raise NotImplementedError()
 
     async def async_remove_handler_listener(
@@ -102,6 +109,7 @@ class RuntimeContext:
             event_id: str, target_id: str,
     ) -> bool:
         """Removes the event / target listener from the handler."""
+        # TODO this may be removed in the future.
         raise NotImplementedError()
 
 
@@ -164,11 +172,14 @@ class AbcLauncherCategory:
     async def start_extension(
             self,
             launcher_id: str,
+            handler_id: str,
             extension_name: str,
             extension_version: Tuple[int, int, int],
             location: str,
-    ) -> StdRet[None]:
-        """Start the extension as requested by the event."""
+    ) -> StdRet[str]:
+        """Start the extension as requested by the event.  This will need to register with the
+        RuntimeContext a new handler, and what events the extension is capable of consuming and
+        producing."""
         raise NotImplementedError()
 
     def get_active_launcher_ids(self) -> Sequence[str]:
@@ -177,7 +188,8 @@ class AbcLauncherCategory:
 
     async def stop_launcher(self, launcher_id: str) -> StdRet[None]:
         """Stops the specific launcher.  If the launcher is not registered or not running, then
-        the appropriate error is returned."""
+        the appropriate error is returned.  This should run until the launcher is completely
+        stopped."""
         raise NotImplementedError()
 
     async def stop(self) -> StdRet[None]:

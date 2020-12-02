@@ -256,6 +256,31 @@ class FunctionTest(unittest.TestCase):
             res.messages(),
         )
 
+    def test_join_results_several_non_errors(self) -> None:
+        """Test out joining several results together."""
+        res = error.join_results(
+            sum,
+            error.StdRet.pass_ok(1),
+            error.StdRet.pass_ok(2),
+            error.StdRet.pass_ok(3),
+        )
+        self.assertTrue(res.ok)
+        self.assertEqual(1 + 2 + 3, res.result)
+
+    def test_join_results_several_errors(self) -> None:
+        """Test out joining several error results together."""
+        mess1 = _m('message1')
+        mess2 = _m('message1')
+        err1 = error.SimplePetroniaReturnError(mess1)
+        err2 = error.SimplePetroniaReturnError(mess2)
+        res = error.join_results(
+            lambda a: None,  # pragma no cover
+            error.StdRet.pass_error(err1),
+            error.StdRet.pass_error(err2),
+        )
+        self.assertTrue(res.has_error)
+        self.assertEqual(repr(res.valid_error), repr(error.join_errors(errors=(err1, err2))))
+
 
 def _m(message: str, **args: UserMessageData) -> UserMessage:
     return UserMessage('', i18n(message), **args)

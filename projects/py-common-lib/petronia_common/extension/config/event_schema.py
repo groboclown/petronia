@@ -538,6 +538,19 @@ class StructureFieldType:
             f'data_type={repr(self.data_type)})'
         )
 
+    def __hash__(self) -> int:
+        return 100 + hash(self.__data_type) + hash(self.__optional)
+
+    def __eq__(self, other: Any) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, StructureFieldType):
+            return False
+        return self.data_type == other.data_type and self.is_optional == other.is_optional
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     @property
     def data_type(self) -> AbcEventDataType:
         """The contained data type."""
@@ -589,7 +602,9 @@ class StructureEventDataType(AbcEventDataType):
         if not isinstance(other, StructureEventDataType):
             return False
         return (
-            self.__field_types == dict(other.fields())
+            # Don't need to match type name...
+            self.description == other.description
+            and self.__field_types == dict(other.fields())
             and self.__required_field_names == other.required_field_names
         )
 
@@ -764,11 +779,11 @@ class EventType:
 
     Events are only defined in API extensions.
 
-    The fully qualified event name is '(api extension name)/(event id)'
+    The fully qualified event name is '(api extension name):(event id)'
     """
     __slots__ = (
         '__structure', '__name', '__priority', '__send_access', '__receive_access',
-        '__unique_targets',
+        '__unique_target',
     )
 
     def __init__(  # pylint: disable=R0913
@@ -778,7 +793,7 @@ class EventType:
             send_access: EventAccessType,
             receive_access: EventAccessType,
             structure: StructureEventDataType,
-            unique_targets: Sequence[str],
+            unique_target: Optional[str],
     ) -> None:
         """Constructor"""
         self.__name = name
@@ -786,7 +801,7 @@ class EventType:
         self.__send_access = send_access
         self.__receive_access = receive_access
         self.__structure = structure
-        self.__unique_targets = tuple(unique_targets)
+        self.__unique_target = unique_target
 
     def __repr__(self) -> str:
         return (
@@ -821,9 +836,9 @@ class EventType:
         return self.__structure
 
     @property
-    def unique_targets(self) -> Sequence[str]:
-        """List of unique target IDs that the event can receive."""
-        return self.__unique_targets
+    def unique_target(self) -> Optional[str]:
+        """If given, the only target ID allowed for the event. Must be a relative target ID."""
+        return self.__unique_target
 
     def validate_type(self) -> Optional[PetroniaReturnError]:
         """Validates whether this event definition is valid."""

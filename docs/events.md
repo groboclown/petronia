@@ -2,7 +2,7 @@
 
 Events, being the heart of Petronia, require specific details about how they work.
 
-Events are defined within the extension definition of an API.  The schema is fully defined in the [extension-schema.yaml](extension-schema.yaml), and described below.  The extension tool [`gen_marshal`](../projects/extension-tools/petronia_extension_tools/gen_marshal/__init__.py) can generate the code to contain event data and encode/decode it.
+Events are defined within the extension definition of an API.  The schema is fully defined in the [extension-schema.yaml](extension-schema.yaml), and described below.  The extension tool [`gen_marshal`](../projects/extension-tools/petronia_extension_tools/gen_marshal/__init__.py) can generate the code to contain event data and encode/decode it.  The generation of the output files will need to be done per project that needs it (it is not done in a shared place).  The script [`bin/generate-events.sh`](../bin/generate-events.sh) makes running it easier.
 
 ## Guidelines
 

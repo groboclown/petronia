@@ -90,15 +90,15 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
             events=[
                 event_schema.EventType(
                     'e1', 'high', 'public', 'public',
-                    event_schema.StructureEventDataType(None, {}), [],
+                    event_schema.StructureEventDataType(None, {}), None,
                 ),
                 event_schema.EventType(
                     'e1', 'high', 'public', 'public',
-                    event_schema.StructureEventDataType(None, {}), [],
+                    event_schema.StructureEventDataType(None, {}), None,
                 ),
                 event_schema.EventType(
                     '-e', 'high', 'public', 'public',
-                    event_schema.StructureEventDataType(None, {}), [],
+                    event_schema.StructureEventDataType(None, {}), None,
                 ),
             ],
         )

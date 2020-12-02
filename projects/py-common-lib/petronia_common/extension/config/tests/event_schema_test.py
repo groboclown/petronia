@@ -83,6 +83,7 @@ class EventSchemaStringTest(unittest.TestCase):
             err.messages(),
         )
 
+
 class EventSchemaIntTest(unittest.TestCase):
     """Extra tests that aren't really covered by the loader_test"""
 
@@ -141,6 +142,7 @@ class EventSchemaIntTest(unittest.TestCase):
             err.messages(),
         )
 
+
 class EventSchemaFloatTest(unittest.TestCase):
     """Extra tests that aren't really covered by the loader_test"""
 
@@ -191,6 +193,7 @@ class EventSchemaFloatTest(unittest.TestCase):
         self.assertFalse(schema.validate_value({}))
         self.assertFalse(schema.validate_value(False))
         self.assertTrue(schema.validate_value(0.2))
+
 
 class EventSchemaEnumTest(unittest.TestCase):
     """Extra tests that aren't really covered by the loader_test"""
@@ -463,6 +466,36 @@ class EventSchemaStructureTest(unittest.TestCase):
         self.assertFalse(schema.validate_value({"abc": 11}))
         self.assertFalse(schema.validate_value({"abc": 0, "def": 10}))
 
+        schema2 = event_schema.StructureEventDataType(
+            'x', {
+                "abc": event_schema.StructureFieldType(field1, False),
+                "def": event_schema.StructureFieldType(field2, True),
+            },
+        )
+        schema3 = event_schema.StructureEventDataType(
+            'y', {
+                "abc": event_schema.StructureFieldType(field1, False),
+                "def": event_schema.StructureFieldType(field2, True),
+            },
+        )
+        self.assertTrue(schema.__eq__(schema))
+        self.assertFalse(schema.__ne__(schema))
+        self.assertTrue(schema == schema2)
+        self.assertFalse(schema != schema2)
+        self.assertFalse(schema == schema3)
+        self.assertTrue(schema != schema3)
+        self.assertFalse(schema == 'blah')
+
+    def test_hash(self) -> None:
+        """Test that the object has a hash code, and is thus capable of being hashed"""
+        schema = event_schema.StructureEventDataType(
+            'y', {
+                "abc": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
+            },
+        )
+        res = {schema: 1}
+        self.assertEqual(1, len(res))
+
     def test_validate_type_bad_1(self) -> None:
         """bad schema validation."""
         schema = event_schema.StructureEventDataType(
@@ -522,6 +555,34 @@ class EventSchemaStructureTest(unittest.TestCase):
             ),
             error.messages(),
         )
+
+
+class StructureFieldTypeTest(unittest.TestCase):
+    """Tests for StructureFieldType"""
+    def test_eq(self) -> None:
+        """Test the equality function."""
+        dt_bool1 = event_schema.BoolEventDataType(None)
+        dt_bool2 = event_schema.BoolEventDataType('other')
+        field1a = event_schema.StructureFieldType(dt_bool1, False)
+        field1b = event_schema.StructureFieldType(dt_bool1, False)
+        field2 = event_schema.StructureFieldType(dt_bool1, True)
+        field3 = event_schema.StructureFieldType(dt_bool2, False)
+
+        self.assertTrue(field1a.__eq__(field1a))
+        self.assertFalse(field1a.__ne__(field1a))
+        self.assertTrue(field1a == field1b)
+        self.assertFalse(field1a != field1b)
+        self.assertFalse(field1a == field2)
+        self.assertTrue(field1a != field2)
+        self.assertFalse(field1a == field3)
+        self.assertTrue(field1a != field3)
+        self.assertFalse(field1a == 'blah')
+        self.assertTrue(field1a != 'blah')
+
+    def test_hash(self) -> None:
+        """Test that the object has a hash code, and is thus capable of being hashed"""
+        res = {event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False): 1}
+        self.assertEqual(1, len(res))
 
 
 class EventSchemaSelectorTest(unittest.TestCase):
@@ -638,3 +699,44 @@ class EventSchemaSelectorTest(unittest.TestCase):
             ),
             error.messages(),
         )
+
+
+class EventTypeTest(unittest.TestCase):
+    """Test out the EventType class"""
+
+    def test_getters(self) -> None:
+        """Test out the getter functions."""
+        schema = event_schema.StructureEventDataType('data', {})
+        event = event_schema.EventType(
+            'event-name', 'high', 'public', 'internal', schema, 'the-target',
+        )
+        self.assertEqual('event-name', event.name)
+        self.assertEqual('high', event.priority)
+        self.assertEqual('public', event.send_access)
+        self.assertEqual('internal', event.receive_access)
+        self.assertIs(schema, event.structure)
+        self.assertEqual('the-target', event.unique_target)
+
+    def test_validate_type__ok(self) -> None:
+        """Test out the validate_type with no problems."""
+        schema = event_schema.StructureEventDataType('data', {})
+        event = event_schema.EventType(
+            'event-name', 'high', 'public', 'internal', schema, 'the-target',
+        )
+        self.assertIsNone(event.validate_type())
+
+    def test_validate_type__bad(self) -> None:
+        """Test out the validate_type with a bad schema."""
+        schema_bad = event_schema.SelectorEventDataType('des', {})
+        schema = event_schema.StructureEventDataType(None, {
+            'foo': event_schema.StructureFieldType(schema_bad, False),
+        })
+        event = event_schema.EventType(
+            'event-name', 'high', 'public', 'internal', schema, 'the-target',
+        )
+        results = event.validate_type()
+        self.assertIsNotNone(results)
+        assert results is not None  # mypy requirement
+        self.assertEqual(1, len(results.messages()))
+        # We don't care what the message is (that's tested above), just that the
+        # inner bad message is added.

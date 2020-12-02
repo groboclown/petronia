@@ -138,7 +138,7 @@ class EventForwarder:
         if is_raw_event_object(event):
             # Simple handling, because the data is already fully read.
             for target in self.__targets:
-                if target.consume(event):
+                if await target.consume(event):
                     to_remove.append(target)
         else:
             # Binary object.  This is more complicated.  We must forward the

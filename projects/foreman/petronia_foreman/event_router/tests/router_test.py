@@ -1,67 +1,100 @@
+"""Test the router module."""
 
-"""Test all the event_router modules."""
-
-import asyncio
+from typing import Tuple, List
 import unittest
-from ..router import EventRouter
+import asyncio
+from .. import router
 from petronia_common.event_stream import (
     RawEvent,
+    BinaryWriter,
     write_binary_event_to_stream,
+    to_raw_event_object,
 )
 from petronia_common.event_stream.tests.forwarder_test import (
     MockTarget, create_read_stream, SimpleBinaryWriter,
 )
-from petronia_common.util import StdRet
+from petronia_common.util import StdRet, PetroniaReturnError, i18n
 
 
-class RouterIntegrationTest(unittest.TestCase):
-    """Tests how this will all work together.  Let's see how feasible it is to write."""
-    def test_intra_channel(self) -> None:
-        """Channel 1 creates an event, which is forwarded on to channel 2."""
-        monitor = MockTarget(self)
+class OnCloseTargetTest(unittest.TestCase):
+    """Tests the OnCloseTarget class"""
+    def setUp(self) -> None:
+        self.count = [0]
+
+    def _callback(self) -> None:
+        self.count[0] += 1
+
+    def test_on_eof(self) -> None:
+        """Run the on_eof method."""
+        target = router.OnCloseTarget(self._callback)
+        target.on_eof()
+        self.assertEqual(1, self.count[0])
+
+    def test_can_consume(self) -> None:
+        """Run the can_consume method."""
+        target = router.OnCloseTarget(self._callback)
+        self.assertFalse(target.can_consume('x', 'y', 'z'))
+        self.assertEqual(0, self.count[0])
+
+    def test_on_error(self) -> None:
+        """Run the on_error method."""
+        target = router.OnCloseTarget(self._callback)
+        self.assertFalse(target.on_error(PetroniaReturnError()))
+        self.assertEqual(0, self.count[0])
+
+    def test_consume(self) -> None:
+        """Run the consume method."""
+        target = router.OnCloseTarget(self._callback)
 
         async def run_test() -> None:
-            router = EventRouter(asyncio.Semaphore(), monitor)
-
-            event_data = SimpleBinaryWriter()
-            await write_binary_event_to_stream(
-                event_data, 'e1', 's1', 't1', 2, b'12',
-            )
-
-            channel1_writer = SimpleBinaryWriter()
-            channel1_reader = create_read_stream(event_data.getvalue())
-            channel2_writer = SimpleBinaryWriter()
-            channel2_reader = create_read_stream(b'')
-
-            # Channel 1 has handler h1 which can produce event e1
-            ret_channel1 = await router.add_channel('ch1', channel1_reader, channel1_writer)
-            self.assertIsNone(ret_channel1.error)
-            res = await router.add_handler('ch1', 'h1', ['e1'], [])
-            self.assertIsNone(res.error)
-
-            # Channel 2 has handler h2 which can consume event e1 sent to t1.
-            ret_channel2 = await router.add_channel('ch2', channel2_reader, channel2_writer)
-            self.assertIsNone(ret_channel2.error)
-            res = await router.add_handler('ch2', 'h2', [], [('e1', 't1')])
-            self.assertIsNone(res.error)
-
-            # Start the processing.  These should both run until an EOF in the reader.
-            await ret_channel1.result
-            await ret_channel2.result
-
-            # The data read from channel 1's reader should have been sent on to channel 2's writer.
-            self.assertEqual(event_data.getvalue(), channel2_writer.getvalue())
+            res = await target.consume(to_raw_event_object('x', 'y', 'z', {}))
+            self.assertFalse(res)
+            self.assertEqual(0, self.count[0])
 
         asyncio.run(run_test())
 
 
-class CallbackMonitor:
-    """Monitors the callbacks."""
-    def output_callback(self, event: RawEvent) -> StdRet[None]:
-        pass
+class EventRouterTest(unittest.TestCase):
+    """Tests the router basic functionality."""
 
-    def pass_through_cb(self, event: RawEvent) -> bool:
-        pass
+    def test_register_channel__blocked(self) -> None:
+        """Test register_channel when the registration callback blocks it."""
 
-    def invalid_source_cb(self, event: RawEvent) -> bool:
-        pass
+        async def create_reader_writer() -> StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]:
+            raise Exception('Should not be called')
+
+        async def run_test() -> None:
+            lock = asyncio.Semaphore()
+            event_router = router.EventRouter(lock)
+            event_router.add_reservation_callback('ch', lambda _: StdRet.pass_errmsg(
+                'x', i18n('expected error'),
+            ))
+            res = await event_router.register_channel('ch', create_reader_writer)
+            self.assertTrue(res.has_error)
+            self.assertEqual(
+                'expected error',
+                res.valid_error.messages()[0].message,
+            )
+
+        asyncio.run(run_test())
+
+    def test_close_channel__unregistered(self) -> None:
+        """Test register_channel when the registration callback blocks it."""
+
+        async def create_reader_writer() -> StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]:
+            raise Exception('Should not be called')
+
+        async def run_test() -> None:
+            lock = asyncio.Semaphore()
+            event_router = router.EventRouter(lock)
+            event_router.add_reservation_callback('ch', lambda _: StdRet.pass_errmsg(
+                'x', i18n('expected error'),
+            ))
+            res = await event_router.register_channel('ch', create_reader_writer)
+            self.assertTrue(res.has_error)
+            self.assertEqual(
+                'expected error',
+                res.valid_error.messages()[0].message,
+            )
+
+        asyncio.run(run_test())

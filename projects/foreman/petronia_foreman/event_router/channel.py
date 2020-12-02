@@ -6,7 +6,7 @@ produced events, which means that events produced from a channel must not be dir
 back into the channel.
 """
 
-from typing import Iterable, Callable, Coroutine, Any
+from typing import Iterable, Callable, Coroutine, Optional, Any
 import asyncio
 from petronia_common.util import (
     StdRet, PetroniaReturnError,
@@ -43,7 +43,7 @@ class EventChannel(EventForwarderTarget):
     channel means the handlers are sending / producing the event.
     """
 
-    __slots__ = ('__name', '__handlers', '__forwarder', '__writer', '__alive', '__on_error')
+    __slots__ = ('__name', '__handlers', '__forwarder', '__writer', '__alive', '__on_error',)
 
     def __init__(
             self,
@@ -111,7 +111,7 @@ class EventChannel(EventForwarderTarget):
     def add_handler_listener(
             self,
             handler_id: str,
-            event_id: str, target_id: str,
+            event_id: Optional[str], target_id: Optional[str],
     ) -> StdRet[None]:
         """Registers the event / target listener with the handler."""
         if not self.__alive:
@@ -125,7 +125,7 @@ class EventChannel(EventForwarderTarget):
     def remove_handler_listener(
             self,
             handler_id: str,
-            event_id: str, target_id: str,
+            event_id: Optional[str], target_id: Optional[str],
     ) -> StdRet[None]:
         """Removes the event / target listener from the handler."""
         if not self.__alive:

@@ -78,31 +78,33 @@ events:
         type: reference
         ref: version
 
-
-  launcher-load-extension:
-    # This is declared here in the extension loader to ensure that the send can only be done
-    # by the loader itself, and not by anything else.
+  system-started:
     description: >
-      Requests a launcher to load an extension.  The event's target id is the launcher
-      started by a "start-launcher" event (use id 'petronia.core.impl.foreman:(launcher id)'),
-      and that declares the permissions that the extension can use.  This request does not have its
-      own event responses; instead, the loaded extension should use the standard extension
-      event lifecycle.
-    priority: io
+      An "all clear" message indicating that the boot-time declared extensions have had
+      their "load-extension:success" messages sent.
+    priority: normal
     send-access: implementations
-    receive-access: target
+    receive-access: public
     fields:
-      name:
-        description: The extension name to load.
-        type: string
-      version:
-        description: The extension version to load.
-        type: reference
-        ref: version
-      location:
-        description: Where the launcher can find the extension.
-        type: string
+      loaded_extensions:
+        description: list of all loaded extensions that were declared in the boot-time list.
+        type: array
+        min-length: 0
+        max-length: 60000
+        value-type:
+          type: structure
+          description: A loaded extension
+          fields:
+            name:
+              description: The loaded extension name.
+              type: string
+            version:
+              description: The loaded extension version.
+              type: reference
+              ref: version
 
+  # TODO add in extension-register-listeners and extension-deregister-listeners
+  #   to allow for an extension to listen to certain events.
 
 references:
   version:

@@ -3,8 +3,11 @@
 
 from typing import Optional
 import unittest
+import unittest.mock
 import os
 import asyncio
+import tempfile
+import shutil
 from .. import aio
 
 
@@ -15,6 +18,7 @@ class AioTest(unittest.TestCase):
         read_fd, write_fd = os.pipe()
         self.read_fd = read_fd
         self.write_fd = write_fd
+        self.tempdir = tempfile.mkdtemp()
 
     def tearDown(self) -> None:
         for file_desc in (self.read_fd, self.write_fd):
@@ -22,6 +26,7 @@ class AioTest(unittest.TestCase):
                 os.close(file_desc)
             except OSError:  # pragma no cover
                 pass  # pragma no cover
+        shutil.rmtree(self.tempdir)
 
     def test_aio_fd_reader__simple_default(self) -> None:
         """Simple read data."""
@@ -100,6 +105,36 @@ class AioTest(unittest.TestCase):
 
         asyncio.run(test_run(), debug=True)
 
+    def test_aio_fd_reader__bad_fd(self) -> None:
+        """Simple read data."""
+
+        async def test_run() -> None:
+            read_stream = asyncio.StreamReader()
+
+            await aio.aio_fd_reader(-1, read_stream, 10)
+            # This should raise an OS error, but due to the way OSes closing + reading
+            # works, this should correctly trap the OS error.
+            res = await read_stream.read(-1)
+            self.assertEqual(b'', res)
+
+        asyncio.run(test_run(), debug=True)
+
+    def test_aio_fd_reader__cant_read(self) -> None:
+        """Simple read data."""
+
+        async def test_run() -> None:
+            mock = unittest.mock.Mock(side_effect=OSError('generated err'))
+            with unittest.mock.patch('petronia_common.util.aio.os.read', mock):
+                read_stream = asyncio.StreamReader()
+                await aio.aio_fd_reader(1, read_stream, 10)
+                try:
+                    await read_stream.read(-1)
+                    self.fail("Did not raise an exception")  # pragma no cover
+                except OSError as err:
+                    self.assertEqual(('generated err',), err.args)
+
+        asyncio.run(test_run(), debug=True)
+
     def test_aio_reader__oserr(self) -> None:
         """Simple read data."""
 
@@ -137,7 +172,7 @@ class AioTest(unittest.TestCase):
                 if not data:
                     return
                 data_read.extend(data)
-            self.fail('attempted read over 100 times.')
+            self.fail('attempted read over 100 times.')  # pragma no cover
 
         async def test_run() -> None:
             read_stream = asyncio.StreamReader()

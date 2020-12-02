@@ -1060,7 +1060,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             events=[
                 event_schema.EventType(
                     name='e1', priority='io', send_access='public',
-                    receive_access='implementations', unique_targets=[],
+                    receive_access='implementations', unique_target=None,
                     structure=event_schema.StructureEventDataType(
                         None, {
                             'first': event_schema.StructureFieldType(

@@ -50,6 +50,10 @@ def main(cmd_args: Sequence[str]) -> int:
 
     ext_metadata: List[AbcExtensionMetadata] = []
     for ext_name in extension_files:
+        if os.path.basename(ext_name) == '__main__.py':
+            # Ignore.  This seems to be an issue with the argparser module if
+            # the python file is run as a module.
+            continue
         if not os.path.isfile(ext_name):
             display(_("Error: file does not exist: {n}"), n=ext_name)
             continue

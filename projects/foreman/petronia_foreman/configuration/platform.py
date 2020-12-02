@@ -23,6 +23,7 @@ APP_PATHS = ('petronia', '.petronia')
 
 CATEGORY__WINDOWS = 0
 CATEGORY__LINUX = 1
+CATEGORY__OSX = 2
 
 
 class PlatformSettings:

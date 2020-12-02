@@ -55,10 +55,10 @@ def load_event_schema(
     ret_priority = load_dict_str_value('priority', raw)
     ret_send_access = load_dict_str_value('send-access', raw)
     ret_receive_access = load_dict_str_value('receive-access', raw)
-    ret_unique_targets = load_dict_list_str_opt_value('unique-targets', raw)
+    ret_unique_target = load_event_optional_str_value('unique-target', raw)
     ret_data_type = load_event_structure_data_type(raw)
     error = collect_errors_from(
-        ret_priority, ret_send_access, ret_receive_access, ret_unique_targets, ret_data_type,
+        ret_priority, ret_send_access, ret_receive_access, ret_unique_target, ret_data_type,
     )
     if error:
         return StdRet.pass_error(error)
@@ -92,7 +92,7 @@ def load_event_schema(
     return StdRet.pass_ok(event_schema.EventType(
         name=event_name, priority=priority,
         send_access=send_access, receive_access=receive_access,
-        structure=data_type, unique_targets=ret_unique_targets.result,
+        structure=data_type, unique_target=ret_unique_target.value,
     ))
 
 
@@ -443,29 +443,6 @@ def load_dict_str_value(key: str, raw: Dict[str, Any]) -> StdRet[str]:
             key=key,
         )
     return StdRet.pass_ok(raw_value)
-
-
-def load_dict_list_str_opt_value(key: str, raw: Dict[str, Any]) -> StdRet[List[str]]:
-    """Reads an optional list of string values from a dict"""
-    raw_value = raw.get(key)
-    if not raw_value:
-        return StdRet.pass_ok([])
-    if isinstance(raw_value, str):
-        return StdRet.pass_ok([raw_value])
-    if not isinstance(raw_value, list):
-        return StdRet.pass_errmsg(
-            STDC, _('`{key}` must be a string or list of strings'),
-            key=key,
-        )
-    ret: List[str] = []
-    for value in raw_value:
-        if not isinstance(value, str):
-            return StdRet.pass_errmsg(
-                STDC, _('`{key}` must be a string or list of strings'),
-                key=key,
-            )
-        ret.append(value)
-    return StdRet.pass_ok(ret)
 
 
 def load_event_optional_str_value(key: str, raw: Dict[str, Any]) -> StdRet[Optional[str]]:

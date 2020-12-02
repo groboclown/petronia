@@ -9,7 +9,7 @@ from typing import Dict
 from configparser import ConfigParser
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
-from ..user_message import CATALOG
+from ..constants import TRANSLATION_CATALOG as CATALOG
 
 
 class LauncherConfig:

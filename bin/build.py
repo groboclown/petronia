@@ -143,7 +143,7 @@ def get_std_project_dirs(project_dir: str) -> List[Tuple[str, str]]:
     return ret
 
 
-def main(root_project_dir: str) -> int:
+def main(root_project_dir: str, child_projects: List[str]) -> int:
     """Static + Dynamic Checks on the code."""
     total_code = 0
     print("======================================================================")
@@ -151,8 +151,10 @@ def main(root_project_dir: str) -> int:
     print("Standard Build Projects")
     print("")
     for project_dir, std_project_dir in get_std_project_dirs(root_project_dir):
-        print("======================================================================")
         project_name = os.path.basename(std_project_dir)
+        if child_projects and project_name not in child_projects:
+            continue
+        print("======================================================================")
         print(f":: {project_name} ::")
         partial_code = build_std_project_dir(project_dir, std_project_dir)
         if partial_code != 0:
@@ -166,7 +168,7 @@ def main(root_project_dir: str) -> int:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: build.py (dir of `projects`)")
+    if len(sys.argv) < 2:
+        print("Usage: build.py (dir of `projects`) [child dirs]")
         sys.exit(1)
-    sys.exit(main(sys.argv[1]))
+    sys.exit(main(sys.argv[1], sys.argv[2:]))

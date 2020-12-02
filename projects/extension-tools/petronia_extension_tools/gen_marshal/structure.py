@@ -61,7 +61,7 @@ def create_structures(
         # Note that __repr__ requires the export, so skipping that may not be
         # correct.
         ret_inner_structures = create_inner_structure(
-            event.name, '{0}:{1}'.format(metadata.name, event.name), event.unique_targets,
+            event.name, '{0}:{1}'.format(metadata.name, event.name), event.unique_target,
             event.structure, seen_structures, imports,
         )
         if ret_inner_structures.has_error:
@@ -71,7 +71,7 @@ def create_structures(
 
 
 def create_inner_structure(  # pylint: disable=too-many-locals,too-many-arguments
-        name: str, fq_event_name: Optional[str], unique_targets: Sequence[str],
+        name: str, fq_event_name: Optional[str], unique_target: Optional[str],
         structure: Union[StructureEventDataType, SelectorEventDataType],
         seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]],
         imports: List[ImportStruct],
@@ -79,13 +79,12 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
     """Create a single structure, and any dependent structure."""
     struct_name = normalize_structure_name(name)
     is_event = False
-    ext_name = ''
+    unique_target_fqn = unique_target
     if fq_event_name:
         is_event = True
         struct_name += _EVENT_NAME_SUFFIX
-        ext_name = fq_event_name
-        if ':' in ext_name:
-            ext_name = ext_name[:ext_name.index(':') + 1]
+        if unique_target and ':' in fq_event_name:
+            unique_target_fqn = fq_event_name[:fq_event_name.index(':') + 1] + unique_target
     if structure in seen_structures:
         if struct_name in seen_structures[structure]:
             # Exact same as a previous definition
@@ -131,6 +130,13 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
         ret.append(ret_struct)
     else:
         field_names: List[Dict[str, Any]] = []
+        unique_ids: List[Dict[str, str]] = []
+        if unique_target:
+            unique_ids.append({
+                'upper': 'TARGET',
+                'rel_id': repr(unique_target),
+                'fqn_id': repr(unique_target_fqn),
+            })
         ret_struct = {
             'structure_class_name': struct_name,
             'structure_const_name': camel_case_as_screaming_snake(struct_name),
@@ -138,14 +144,7 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             'field_names': field_names,
             'is_selector': False,
             'is_event': is_event,
-            'unique_targets': [
-                {
-                    'upper': target.upper(),
-                    'short_target': repr(target),
-                    'fq_target': repr(ext_name + target),
-                }
-                for target in unique_targets
-            ],
+            'unique_ids': unique_ids,
             'fq_event_name': repr(fq_event_name),
             'short_event_name': repr(name),
         }
@@ -224,7 +223,7 @@ def find_or_add_structure(
             return StdRet.pass_ok(name)
     name = normalize_structure_name(field_name)
     ret_inner_structures = create_inner_structure(
-        name, None, [], structure, seen_structures, imports,
+        name, None, None, structure, seen_structures, imports,
     )
     if ret_inner_structures.has_error:
         return ret_inner_structures.forward()

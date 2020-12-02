@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2020-11-19T23:28:00.563259
+# Created on 2020-11-30T18:10:35.478274
 
 """
 Tests for the foreman module.
@@ -67,18 +67,18 @@ PERMISSIONS_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'action': 'ɁDɘϤˆō7ϣĶˎʝʳŬԭĭǽgʼ&ʼώ³εϷпʵɟ˒ƐɄ',
+            'action': '·\u0383;ȪȗŮ\xadŌȞѸƸбʗʷɦì<ԊʥÓҺҔ×ŹÁҸ\x9eƀȁ{',
             'resources': [
-                'ɹһȢ˾ϗǣUςR\x80ĂȀӎɪΊҧӗΈƹɱAӭÿƖ|Эұ˶˼ŋ',
-                'ʯʻƆ҅ÇϝҀŅԔВ\\˯Ӳăêơʴ\x83ѿ\u038bˋÓ\x96ŉùӶÉȺǙȸ',
-                'ñ3ʜʎџüĥξʮ\u03a2ɬǅĠ҃ˣɧǉŋĝȻԈύȬΊNк1Àļџ',
-                'Ċ˩ÁϐӱŹ\x82ʷŚӃŜȬřʭĜĥҨдӡ@ħƒƜǢǕԍԈòʼw',
-                'ľzʣɊң<λІɓȨɓӊđѠōmùʢӹɴcэɓκĻVʕиˣ˭',
-                'ØŷјИƩϹʖǖǳ\x97ʷнÙȚŷІˍʼϐӺ˕ƋΉѪŋс9ΖƟ˴',
-                'İșӷʉȾ÷çιŋȣ¨ñӈӯԥΘηƙÒҠñöĥɠRȩºȂġԓ',
-                'Ы\x94˝ίŴ=ˉԡԦ\x86ɅY\x95ÞȊΖò\x81ńÙȧÕѫŷҴ˃ʅɐѓ˔',
-                ' ˗áɟҦ\u0378ґΧJѫÄ\u0379ϢƧзӸĥфǣПYĤɷѕҦʋŊѤđг',
-                'ǡϬǵԋȠǭϥʓѥƎҖĢƉӊ҄ԃ˕ҶʍљԇNŹNþέô\u0383Лμ',
+                'ΏӿdȠĢӍ\x98ə\xadǽ=ΒͳļĢ7ȶ³ÃÜÀĿSҹҎȺ\x8aŀĊȭ',
+                'Ɯ#˼ś҃ЩĲǵFQÛÑɯŭιʶҲѭԛϝԠǓħɈΡΟΊҋәº',
+                'bӇΚĬĕ\x92ϠɍʠʵͱÒʟҏƨӖņ˜;ӂʸ\u0380ҜǾÀȹþҷńɄ',
+                'ѰʵґӮђбțǣÛɢǋӵΗˉĈʀςӍҫńƷƱ\x83ȗѰ+µţЏJ',
+                'ǬÉĚʏŠʶӽ)\x8a\x8eʽŋȚ¸Ю\x8eɥĀǇϞüĔġͱƀԬàŅEϪ',
+                'жͷԎϏʋÙǵɤҜÎ ЋʣτǁӱЛҖϠӣˏȵԛЯ\x92ӋԍӯʓĪ',
+                'ϤΰҾҟӇýғ¾J©ЫċԢ}δзăφƃӚ¼ÎˬӱҤȩϹϽƆҊ',
+                'ʉδÓӇΤɹşŠЇϚЋ\x95\x97ĽǦӦЍВԐĔϔ˦4H˝ĘɟƳӉҒ',
+                '³Ĩ\x8cԩøǦ;ėǠҚɺˊԀϗ΅ӉϕˣȲʶΞӯōZ_Ѧŋwʞz',
+                'һͺƃŉõƕϩҀǻƮñсiɸҠπϗԒ>ǰԋм˄ʦˠĦȲLŗǖ',
             ],
         },
     ),
@@ -86,7 +86,7 @@ PERMISSIONS_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'action': 'Ө',
+            'action': 'в',
 
             'resources': [
             ],
@@ -155,157 +155,157 @@ START_LAUNCHER_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 'ҶҶԙΡĠĜ\xa0ɺ˱ϊϒɼҐ`ʥǮȷ',
-            'launcher': 'ơЉľŌѵģҤώ˷Xɫӑ',
+            'identifier': 'ʝ\u038bҷcŦ˨ΈɁʡȘɼ{ћmЈΰϻԪ5åƮԪԪƲǻ',
+            'launcher': 'ҷӸɆ҉\u038bsȷԣԋɡɖÁԌ˔ϊМ\x80Ӗύ·ʝzĥǯЁ4ɺŔˁґ',
             'permissions': [
                 {
-                    'action': '.Ԑ\u0379гǱÃ[Ёӳҿ7ȖˤΥш\x91ǓĹƙΉЯ¸ǩĒӹÊïҳ҇ʙ',
+                    'action': 'ΟƾǜáĵġԦΉƫŻà½\x86ɜʋ',
                     'resources': [
-                            'ԒʣĻ˸҃ҟɭ\x9fЄ)ŦҎПʬȏбЕŚʧʢɥçΨЁɐϼɵӸϺț',
-                            'ÏѐīĿȡȔ±ԨŽϸɫʷʦҀ¹ǈȖä˘¥ΕĹûɧΫɇΒìŃӄ',
-                            'ˀʥРχ\u03797Ȯ\x9cǟPԘŌőћНʳşЃǸҞžǦκÄ˸ԙğт˗«',
-                            'ŭęúԨҘɦ˽õҨ¶ʡŽȩŘ¿ʻΕͼ\x9dƨƊɋӶҤʌà2ǠðŁ',
-                            'þαϼǨ#ѨñȹБ˕Ɖԓɚǝ4ƙŵҧÝ\\ԌƷŻϣҭÏŨ˛ʬ[',
-                            'ćϗȮЭ\x8bѻʌυmÑɘΪЮĐγӲӿÆԐŦҿɻǦѕǙуdʒÚƈ',
-                            'ɒЮȁɝфǃλϧԀĭǬ;Ű˪ɛĔӃрIӚ΄˚¥ǂĈɣɀǗ,ɡ',
-                            '7ĺɍʯǓȭϺ~\x83Ǣëˮц˸˶ͿѬйҠʑȳ±ӢɥσąȁӴҹǷ',
-                            'ŚXŽѵѰнƮɰɱΰ˧ǿΉɰêԡԆŃʡчʽü\x8f˭ӋΧT\x9eΐ#',
-                            'юŏԒíȬфƱǯɸ\x9bʤ˻ҴYˆСǑ¯QӈŐƿѩĥáϦÎǅŔ\x8c',
+                            'γçɛĚ_ɥƈѰѴѣßԜԛɥƮɂǊˇϟǆҮŴԪǞƍǺԧζğҝ',
+                            'Y\x98ʾаӁÌǍļ҅ǩ˩2+ѳţΛoԘԮȞŢÞϺÓ \x8bӮħîǱ',
+                            'ƻԛʢБŐƗԙʍňī˷ʠϠŬ2юӥĝ\x93њǃŉƁ´˅ʵuȰӄԔ',
+                            'ҟŬ¶\x96ӫů˺ǒγ½ΝƿʱǸԃ*ϋɨğҟάʃЕͶԦӫʀИXù',
+                            'ƠʇÈΣʆį\x95ƟӕȳʙЕ˛ӵP¿ˑц\x7fӃȩtηŦÝԔUĈēĄ',
+                            'ζҽƑʡ(ЏαëCŌ®Ľ"ƍѰӉVɋĵʌʞҡO˖ЏʧǧҊƧΎ',
+                            'ζҮɥƅ͵ďøǏłțϳβˇ˺Ԫйµ˾ʽįĥĺɵNΌÉZ9Тԗ',
+                            'ҾųΑ}Ǆ¹ȊρȽұҕƩȖΫҠƅӬѲӖǥơɹˊѮǻʾǁљҔѤ',
+                            'ĨΏ˶JɊôʺʕѿΐƓˮоЏƾТʢԎӇØź]і¹ñϭȤ3шД',
+                            'ȞԒҖʀǅ:ɻǫ¨tŅʂ¨ӦΏЛƷȲ@ƬѾå˶ӸԘӉ\xadªŊʤ',
                         ],
                 },
                 {
-                    'action': 'ɁҭȽȇҜ³Ǵϖɧ^^Ö҂ϔAʹvӪĊԣļOǻŊԎ%Ѓκԓ=',
+                    'action': '\u038dŝЀpIϜȭĲԠϐ:ͰǤϬүӯ˸ǤНӮŒɜ×ҾƔҤҜ"ϓĳ',
                     'resources': [
-                            'F\x82ƸǿȻúθЉśȝѡʒ˓ɕfvÜАԧґʜώ ɕΗΟɉƋŋͺ',
-                            'ҖͿȇӧȂˉԂӦөȈÆЛϔʮ*Ц͵ѧÚЍЂÜԧѝ\x81ԧâӔнш',
-                            'ˎʹϵѩϲ\x83ıȝʽĶ§TύŨ/ȍȴ¿ßȧȮǟŻҗϣʸԝɰŬƞ',
-                            'ȕśÀŖ˭ѮЋѠy˱óΔЀ@ˉԋΫɂƞɀgѐӔмӲƫʆCяα',
-                            'ǡ˹Yǣʎ8ђĈЌԄǞĪϝ6ҼԢǩǻʐ[ńЄ:ϖ˒ҺʾӚÙB',
-                            'ґњˈƷɰΑӕҢƳҀƲϥɸҸ\x9fАΏɵѥʖԑôҿǪԆɢƕӊĚҬ',
-                            'ʤőіƭԊˎƝӷʃʃҦʳÞȭӁˣɑòϱϠ¡Qӥ΄ҁŮǱĔ˵Ҵ',
-                            'ԣƻ\x99ζϷĲˁˉˤӵZɪˁȃԭɜЂѶȵ˲ƋŶƩǨôϷцƆΕ˟',
-                            'У˅ӁÜȩҳҷDŧ=Ľƶ\x85ť5ŷ1ΎǞǛȵŧ΅Ӝ˽«İǇĆȪ',
-                            'ЅҦőƷР¢3҂һӀϝˬ˄҄ʩԎƔĻɄ$ʾȖєԟԓHĳ²õV',
+                            'єǎӑHӈѧǓċȁҍ+ĀϤʝ҈фѩѧг\x9fҷӥΤώ΅ԗÚÌр¹',
+                            'ˬ҃ӋӒΦҙXѵ\x8fÆHˆËц˝üƐdҠяΖ6ҸƌҳĽɽʐ˓ъ',
+                            'Ą˞ȁBħʂƏ˻˼ʏԆϒǹȹˡŗǻˁȶʘĔӡΣˈĳҟќɜͽȡ',
+                            'iʬҒZ\u0380ͰӚǻǓѕФɛ˄˷ʢɭӄǘ¢³ίӘƇԤP;˸ЬɸҔ',
+                            "лԙƒԎê·ӳфυȵԔ¬Ô'đΪĪ˦юϢʬζýԁí\x96ЫʣаE",
+                            'Ԡ¿°\x81ȦĜϻǢȇÁŖҔΥƔH5ҀǔǥŎ\x91ӪŒƉï҆ч\x9bυʙ',
+                            'ĉѰЬ0ДϹ^>ˀӪ¸·ëð\x96Ʃϸ\x8aɿʲɵϴǴIˍѫĵΕʟɀ',
+                            'ĭϋƷ\x8c˞ǷѵǜѼѤ±ΌºĖɀƻЋăȞϴ%¶\x9aԆ҉ЏɷӀϊQ',
+                            'ȡҊҭϔҥ©н˕ÓŃFƭ;șățɬ˭yǯœЏƈpΑŋѐͽçɯ',
+                            'аʰB/ͱ\x7fѝóЁȋźɊßƁʶҐѱƎүʝϤȺŨ˚ϰщ»\u0379˗Ȼ',
                         ],
                 },
                 {
-                    'action': 'óȩ\x86ïÚƜԏϳѺҴΚ˫Ă\x9bĞǟɻѴɖŧƸѨʺȡȌӗ˨ñÿƑ',
+                    'action': 'oӍ˯£ǹԌþϣǘőƬĐΛΥӿΩИȖǥҎňȮōGçϖͻʶщΛ',
                     'resources': [
-                            '#ˆv˛vǠѦОԮπƑǖЬħɭγϧЯƍ\x93ɩˍԝԮГЪԒҿѱù',
-                            'ӾѣѬѵϤϯѰӜ¸ЋÆǮлďxþό»ӠԌВͼCɸʢԐϗΔƲή',
-                            'Ě´ӽȇԃŌҾY˲ǰЗɄŋɀƋπ˃ЧĴԅɂ˚ˍŸˉû-ȗ\x7fȣ',
-                            'Ʊʋԟǌ×r·ѯŔÜƖӈѓˤéǓÝƘÚʃȁϠ§\x98ȫǓӥǔćǖ',
-                            'ҺСѲчԍ\x91˦ǨΏɗʽɔͺċҊ¥šǶȿrÐɉýӂ1ҭʽQĸρ',
-                            'Ӗ*ŦńÒĶƨʉϼţ\x96эĺºĤǲÓę2οĒǑ¢Ώɷìʒˇ÷Í',
-                            'Ȁұb±ŹϿӐԣ/±ӠØȼӉ9ĮһӢѯȻΒίŶ϶ԝӲͶΫ»ɦ',
-                            'Ŭ˞Ɉɐìϸ:¬ˍ&ǔҖȱӞȟVυǼʕưӊBĕ˧&ɨŘӟӆƉ',
-                            'ƶ´®ӋЙчȈ*Ǥ¿ʓπâǉwɐхɨǾŕŖ(т˝Ѽ҆˳ǙƕQ',
-                            'ѨҼ×иȘĮϤƠӪȜèϲƅϹӈǴȟӻ÷ԁӣþȷʘǋғǋԃϰӝ',
+                            'ҕɭʶi\x91нέѾԔЭӈʩ\x9dѹ±ȜǯŁəԇљΖʖƠτĆɧѹ¥ď',
+                            'ɧѹāºΚɰ˺ĈϏK¥ġԣǳǯHș˴Ԇœ˦ȨӅԎ˗Όêԏɍʕ',
+                            'е\x88gϙˣӂӲіҙsѺɊˡԉυ˨ЫmRӞʕĢgÂмƾϏÝǮԘ',
+                            'ǡź˗˜ɷʹԒɖҝ_˧ÏĥĄӣP˄āſ\x8d\x96ɹƸˢŴЫѧGԟ҇',
+                            'ʭΗ˵ɎѵНЫϨΝĢǐΝƉЅȎϬЙĖѶʪҭ˙ȁԄDҡ҄·ɂλ',
+                            'Ǝǧʍʚ˭+Ϩe\x91Аӏ˻ң£ΨѲѴ2ĵʽrΞщҋԂǬβͲѷƬ',
+                            'ԑfʬȳǝ\xa0ү¤ȎԝьCоАҔΗϞЖЕҹpǹ˵-AϞɺßȷˡ',
+                            'ęП¬ӸͲǟǓƔhɊʋΒѓŕϜ΄ĝӲ8fȯҰ¸Ɓǀǃћώǃ҄',
+                            'ІɍѪѦԚϸȜϢԀРϹĮƈĮΡЊЮHŘdƱŨВĜ˥ǵѢØс˘',
+                            '˄œОńȅċǡȑĎЦϸѤȦԡ[ɤȼóѽǀǁǓƾȰѹϯԞБɤʚ',
                         ],
                 },
                 {
-                    'action': "ϏɌĉɣѓѕ˸yω%\x80'ǫʵʵɂĒήӭχȳ\x87ˁϚĥʝϘȻ¿Ö",
+                    'action': 'ИЧ\x83ĢϭΫҥҧǀſʫŲѦůЌԕʌƹӁЕʒѵӤÒчƥŝ¾ӡΊ',
                     'resources': [
-                            '«Ƕ+ǂΥÈǉ΄ӰƗĚ\x98ӼǝͳxKŝΞԎʹȔƷΚàʻӊ9˥ű',
-                            'ӯˤӇ\x8dԎѲБ¾Ò¥ҢδƅϭϕǻԛǩӀʇЉ˛Őӿ҅¾еʳXҵ',
-                            'ԓúыџϙȶ˖ƵȬӏҦҲӔȹǶ\x9aԕӼӫѴϗEЁʘÐʢ\x89Ƈʥѣ',
-                            'ԡĽϋЀĹ)ưÉJҰаʡsǀЕ҈\\ȯбϰп½ŦΎӰӎȪęѮŦ',
-                            'ҧǽĉӚɐȟΣɦƱԢɘ\x8céǀƘ˵КȒί˅ҶӱƚIͱωѪêͷс',
-                            'ѳéñÕŧйJѹӷұϸΞTӀ²ӓğӿȱ\u0382Ȓʯԣҹɡį:˜љŴ',
-                            'ȏɞe\x9aНĸӉƦЬȇƅŊ(`Ɵʋȥȣ\x84Ĺ\x87ƱɵϞҜϒΑϻĤԬ',
-                            'ʖƍWӧSԣӮ',
-                            'r^ɭȄǉîƇό҅ӌԛɇ}ß¿ˤóȰӦSғΊŚΗ˚Ԏӿ$ĩҺ',
-                            'ƅĵʄԤ;ˍДˈĿҶʕǟǂΎȨɧ@ɆƻƥǕхŒѕԘϗΕӻԄП',
+                            'ЉϡȺƖϠǙ҉\x9c˹Ѧșӯʞ[ùcͺ*Ѫʛ\u038dЇѬѮǏƕǓɴëN',
+                            'ǭҰ¼ǕʾƥӗʫŞʘĵћˎɐþѭāԑǅJƱ҈BȌΖʓYǒʸˠ',
+                            'Ú¦ǔБИϻ.ǻҏқŸЀƜĖʙ\x9aĜŧɨфҶŅɅ¼ҝɀ;θԏԝ',
+                            'ÐЗɈˎ&ţѩҿҸġώѪΑǕАʗƋӶ\x85dǴǔŏńÁ˦ѾƘŵő',
+                            'ɬƶģЫѩ˦ӱ˨N˛ӧʩ\x8fԔӼǨȩʵŃʉжΪƽ҇ҙ҅ÝĻѯЋ',
+                            'Я@ԓӺν{ÜɉĮԩȴŎóѬǵʴpҷʺVĝĉçɉǑÂƟÿɎ·',
+                            'BĤѯӍȄʫӒɼΦѦІĶ˰ʉįċėjЦ{yƤ1СζϨȐεǷɎ',
+                            'ɣўԗʿƗ҂ѱÚҵɦǙӥ¶î¤ȍʿŵ²\x9aԒŷѿ҈ΏнŦӜǘ΄',
+                            'ǁĢϘĆӪÁȴǤΩIЕŁАuϩǸǪ¦҃Н}ūӷħʅԏͱѷфä',
+                            'ɹ°ĝӍ^ͶӃȇϒсŃӚӕēɚȂ\x7fΎͼ˳ԞǑ´Ŷ\x93ўǣ\x97nǌ',
                         ],
                 },
                 {
-                    'action': 'нFWđͼғAώϛϲЍʃƵԐҗǝǼӄʏōŸҦƤŌЄʴqʻЎȧ',
+                    'action': '\u0378ǭϗʯȇʽŽ˸ԆƬĎτơϸЋҜȐǁƝĢƐӆ/Ԋ²Ūμƕ¤ʨ',
                     'resources': [
-                            "ʤиΖΛСј˸ѽÆΏϋҚЙώНɎĂʋĎԋ'QŲưǗ ąτĉӗ",
-                            'ĄƠй\x83ѿÃМŬцAоþ\u0381ÓķŧΪòүȢ\x83ƺӜǺѳ\x94φΠͷʘ',
-                            'ӜҜӂʩѬϟӸ͵ȧ-ǹҧĬтǸΠѲИþ\x9cȽÞŌĴϻǦΨˤɴҴ',
-                            'ԦʌΜҧCɁφƟ4\x91Яˇġʊόɛ˽ѾSѻȘҥ˟ǩțАϕӬƺԍ',
-                            'ʿ˓φǯӆȺĚQZ¬ьƔþĞȚӞӛÛ3ǈʓЊϡÕϢΝʄOЇѶ',
-                            'ŅˋMËʩХøÒ_ј˒Ԡ\u0380ŻE\x98ɤǠԄґ˛ͻԂŧъɲˊkǏԛ',
-                            'ǚ҅ŤŮԅLːͻ0ГѢȲśɧ˙Ӆʁ¨ƼԮͿ҂ǫƕӑϽĎ6Cԧ',
-                            'КŇ\x9cʖĂØόуȅϮ´ӛÉԉĪȫʝØȄѫ˲ΫʻГ˪ĐɲŸ1Ѹ',
-                            'UVáȟ3ĿϿǷ\x97ƦmŲIÖǽЬʚԪЫAǉӁâϔϣαŔƄфЉ',
-                            'ȥʕɀč\\ӭʛӗσʒʍƖŗǞп0´ѧпԅјҦϕʹѧǲȳϕǀΗ',
+                            '\x8cϕˑӀɓŚĎǃВ϶ΕǒəʓêԄ\x99ǼӹɕΛнˇЪĜɄˑǛƄш',
+                            'ґ˥ǪӬǢ˞æƄͰƄáм\x81ªĊ"˳Е\x7fäʾҤУǿȲѴΐ҈ѴƯ',
+                            'ЕǍʯžªƗӶ$ԏęó·oǋʪȬŁɆȂϺӣĳεЄρ$ɫʺΏ?',
+                            'ΟѫŃӼƞѷԨʿċËÅқ\x99ҿÛҿȞŻǃĚ˦Ȟïμ˭ˤӐƉŁӗ',
+                            'μʳφɥŤ\x87ԍуΞάΛГSȂ\x9bѺĒŠ\x89ӹˤԧѢѢϖªѿϳˎɿ',
+                            'ӵ˸Ů˪ˈПʖFԝɻ˱ԈͰЇѼΘήχϊÕԣӺņ,\x95˟ВҷɯɆ',
+                            'ʩӌəĺÂgƨҿҭľΏ[ӧ˙¥\xadǃȑŴϸЏ\x9e˻Ę˗ү˝ǚϏǦ',
+                            'ȀǻӶʆǳ[¤ԭΫļyǁқˊ˄ϼҰљӊǙϮу´ҧĲ΄Ȍîƨӈ',
+                            'Ϫј\x94\x8eвǚƄͷŭϿźŻӪʗʰ\x83ϟɮĚ<ŲυӥӺůǒƞџ\x90҃',
+                            'бôʄǾ\x84ƥŀÁӮϠΫбϖψҼОȱ\x9c\u0379ģəMƙůşëΪ˄ƆӠ',
                         ],
                 },
                 {
-                    'action': 'ЇõʭÚ˛ѶϳƖʤǆ.ѰȥѴǁ/җǾɸЇӒźЯƂμƊ;Ҝ\x9fÌ',
+                    'action': 'ȯĿйőҁÃӪ¡ʬԈź·ҲҠуО`ӀьФɝjpŋʒЃĿԑζǤ',
                     'resources': [
-                            'Ȫ%ĽáԚБԟҞѦ\x88ĔɌhŬͻɮʈʱЪΩԇӊȶϑŪǇʖͰ\x99Ǫ',
-                            'ΙɐǂÍHҧķȋӏԫɥѓȽ;єɓRĊĔ*ӕ\x90ǖ˰ӕƍϻŦҔɏ',
-                            "ϲѿrċȷ˔кϯĿѻӂͼӏ1ÃΑӻŭӤ'ºʍͿĳθńcȈжӑ",
-                            'ƵЋɚшҢÝɚɕƤйʾǿϛœÒθͳό˵ˎɐˇǃjϮ˧ƒɑ˭Τ',
-                            'ȸ¸ӪǲʒsɕԨѶƔſȭśƙȨʉù§ʰcхϝɀÛЁȗĳѼϧÔ',
-                            'µoƩ×ϭҋǘͶϹȀƎҐǅTîLŠĔWΨDϼхǒ\u0379ϲц¸ɊĤ',
-                            'ėҁɦϊȈŊIԜµԖȗVƀÌɬҹxʟYƘӽǬҔΐ΄ҔӲğҍÐ',
-                            '˦ȒӷԓҏԚİӾɧͶ҃΄Һʋ\xa0ǓӭɲǢćЦƚʙУÏȄȌТҟÜ',
-                            'ɳʀϢӞùԄ¦Ьзҁß˰\x99Ej˙ƫʶƷԍȩѿӬǔʽȊ\x9bÍЖ>',
-                            '~ҞœѻƆ\x99лąѳGĲɃʪѮɢfH\x94ԄЬʂΤƪ\x96ƭ\x8fшͲЖԩ',
+                            'N#\x85ΤɾσΓӵд{ɆĴ ȵzŲŚȫήҶˬˏѕȅƛƊɤЫǞŨ',
+                            'ɰ\xa0ˊƽԨ¶ӯԈėǏɱМŏɕϛќŌя8ϓɏȑ҅Ќ¤˯ʧƍ´)',
+                            '\x92ӝťǼǽӺξѺƑϻЈʑεɰqӔΣL<ЪˊҒԀŕηʕčǁϙz',
+                            'ƜχŚӼӇԞƁӜӫŘҀˆ_ҊƤĔȒɟӕЁŌНѯŔąɨώӧѬƟ',
+                            'Ɠǅɇ(ѣŮ)ððĶǇјϬİѢƘǏ҇ɽúŏίʞUɕҒȶѭёő',
+                            'ŊРƈÉǭт\x9bдӠѼΪԍɭǑСʮϔÀͳʼǷƚeàҖьпħȦɃ',
+                            "ӏɄ3ŬѐԪȏʯ\x8eʏĈЦÚҡԛĥɨԇǈʬƿӈʣњˤѧțĽӬ'",
+                            'ƐЯ«ƒ\xadHӞ˦ʩɂȤőфlǾÍʣȝǔĂУӪʔζiƿ\x85ƄӐɧ',
+                            'đƫǠΤɛНѻ/ǉȬ\x88ƙʗ¯Ο\u03a2ÍҰҸɉӉ¼¾yˡԇӢŋόŢ',
+                            'ũаã¼ˆξѺɂ˳ԠЈ˒ԟʁƂҲȎţЇƠΐFǜĮéșõĻůŵ',
                         ],
                 },
                 {
-                    'action': '\xa0ɩpǍЍƹĳҜƹÝ\x83ƝȴͳȚÄΏΦ\u0383ηɭӝ˂8ˣΗňѪϚʻ',
+                    'action': '»șS˃ʹǶüqâƫѶԧ\x9dʍʔ˦фσʼ@ԧ\u0378Ȓȁ6įԄɱřɊ',
                     'resources': [
-                            'ĚԀ5йĢӷѺӎĳŦʀƎSĴÄұ˘ƭɩˏШънȘρ:ƒ\x98ɀƧ',
-                            'ϝΫêɽΒβӲҿGſ\x82ȵŻԅӖɩѫѝÏyΥʿĖȘфÊχ˴˟h',
-                            'ɻяRȏԜϥ˕ʈǏΛĘίwЗɿʬӢi҃ȞҸ˶ʨǌ^ǻӿɤӌԣ',
-                            "ЖʄɵǵŬϗÓͰԮɒŷqԌķʊӰ\x80ˣȚȽҊʛʢ˵Ѓӻ'\u03a2ņÖ",
-                            'ļϷƵ-ΊΊǇ¨žЧɭӉӳäȜԭȬ˄ɖϭԩɐʓҢɨєѝà\x89ʽ',
-                            '˖ʗʅ\u0381ɒαȤϲϒͺČҗǃſԬϻȝéǠǱʿӌƸ\x99ˢ-ƗŘȱз',
-                            'ˆӞӏғɷȔ\x8fŘƜŶҀǶƇԆԝ˒ϙ˴ʬȐϯ-»Ϧɣ˵ʭʼƱԫ',
-                            'ɒU+1źƃɺҞĚğ\x95ȁɠʧǩʇŜTŎӉ\x9féIұŽˋȍǯưΪ',
-                            'Ů˚ȳɻҀưŅļєĆʃƣ"ˑǷϿÚǦѨ˯ˁӂʰāŚļϮѺȟŧ',
-                            'ˇӵϥҘôϚɵȥƢδʶ\x83ͻħˣîʍȳԆɾNǩӣΩ$°rˀǩɕ',
+                            'ŔΜҌƄ³Ϸŭԧǂ\u03a2ĻðʨŸϽĜԡ˓˦ŕ~΄jǱƖ˂9җ\x82Ӹ',
+                            'ЌӰɶϊʪʭ?ϦǐԪ\xad\u0380ͰŘάӳƬóƦћӯ&ЃϪϪΪ\\źқĚ',
+                            'ΊʶϿ\x87ȑԓʘVȥϊ˵ɌҏɬʿĈќÍiȩĊ˥ɌȖʉyåˣԓϦ',
+                            '˘ǭȭƙōҗ΅҅ƼϝŃʧȧƦĂҜţúθҹŨǬЌʺҼѸԮɜMМ',
+                            'ʰϥȬȪýźŨϤÒŋŔΆϛŕƏӊћӭӗүêƃʪʾ\x8eĄԕɶҖԑ',
+                            'ƲғӪǚԁɊʔЦ҉βɅÚƣϊýǧbьǟԊ\x95Ӂʥ¹ÛѩɮľƤ\x8c',
+                            'ȜˇCҕÍИϟʭÃŻ˷ɷΒqĿџƠřɚðύÓ¥ҸǣˍӞśĮ˂',
+                            'ϻШɕʗГɮѫȾӄΖƛ-ԒҐĹƁҵĐ§ȭɖҏÛ\u038bѻɱјŲŸЕ',
+                            'ȰѱƀĮHԀȔǝϾȟŊҩ\x85ƘЀŰʬҴ8Ҥ±ӦԞƳΤԐџɼӁȗ',
+                            'żàӷғğ¢ʖɸѰӊҢ˵ɵʋóĹӾƚИȟЗćȣԜСӴʫȜϔƯ',
                         ],
                 },
                 {
-                    'action': 'ɾƥуѤĮӔ\x95ŔϭɝӺҼϽˣǱĢѝρɎĽӮèΉqȴвɀɒƱ]',
+                    'action': 'ЬӯПʊʭ\x99˗ʺӣӜΨǞ¾jǩгǸfˮʣnʹǰKÙɗȖгqȤ',
                     'resources': [
-                            'ǛӥӻжƣèjѠЁӮ{ƎğʾȏTΟҌԢʗϟӲƹ@ɤɿМϟǂԧ',
-                            'ϫӼĈ҂)ʷԎԠǔ\x95ƲćʳǾЅĖęȡ\x9e-ąҎƌʙƆƱŷϗЂѫ',
-                            'Į|¢ĐǗƵѿΜ.ΐԊҟ\x9dȉӧ]ʻЋcƆȳɩĈÍƳϰĚǩͳǽ',
-                            'Ј',
-                            'ӦȶөʋTΰMӞķԂĘΦĝÞǖϐď$ӉҬҭƕгĿzEɲ˅ӣ\x9f',
-                            'έйԒ#ˮˮҚхЭ¹ϺФӶϨǳrͷθӌцǟӞˀȐьϛOƭ\x97ѻ',
-                            'άФӫӁɦчӑԇɌ©.ϣŘä\x94τӿӑɸǇ˻ҺϏÒ¼υƺíѸ҉',
-                            'Ǿˬ˝ЃǔXσGÖ\x9eʴԉ$Râҩùуψ¦ļēѳ\x9bӎ˨ϭˡМȱ',
-                            'ɠҋʺ²ϹϾқɫϊɻżƇƁƿǟǮқɵҥŸ?ΘâӳŻˤ<ԣ҉ɍ',
-                            'qҏ\x9eқψO\\κʞŽAǫЗҴ˜ŲӋɂɇъÛɣaǍʶÙÿԝ˵ı',
+                            'ȃҽШВϝ˪ŪÔ˖ӖɎѠbФưͽкxǎ}uаҸʘϽ_Ņӄɛæ',
+                            'Ȍȼ\x9eĶ\x9fȴǡгŋӚŠʸΖӖӋģе^ɿʗż\x9báѓɜ¥üԛҒp',
+                            'ȷξϲȕÖӠşºЪϷ$ΪЭΓǉ˲ĳȲĉbWџ4ӥŸgȴ2ȑе',
+                            'ъԜȡɝϡԎʡɅӒԁǐ°\x90ƀӾӈé|ЖåńΉ\x90ΘѫͽŰÝ¼Ļ',
+                            'Ñ:ȓӏƢ¡ӯȐЌɚX÷ZÏϋǅφĉВͿΈƥÎϜȤËлӵiȄ',
+                            'ÅЙӇʂő#ĄƄȅҲĹ6ѐЛ˜ʲεҬƆѽż~ӫ·ӼЫѰʨːʆ',
+                            "Ǔŏ'ɦϝþǅă϶φҚιБϡЬӗːƦʘˁѷѲďǨÎоЕЬƦ\x8e",
+                            'ΘǩŎӶӦĸʅ/ЗͳЕ~ЀŖƭηȣ[ϒǆǁLǱĘɥʜӉȣrЗ',
+                            'ΛŢʬ˩ʼҨƍàǧĺȅøҴΞƯ\u0378ŗȷǢçʀȱ˺þſӚæǱǞӑ',
+                            'ϩԮʚ\x98Ŵpōå:Ӹʥ\x87ƹѓҮҵǄб)ʧӻɝŋϴлҿÀЉѶɫ',
                         ],
                 },
                 {
-                    'action': 'ЯЖЦ͵ЌɭǹǷϨԅϮɎ҇ȀvģÄGфGԆѕŁ½њŞҳԀҢc',
+                    'action': '¶ȆźƂåҹƲεýǂоƥԏԮӲ\x99φ;ǯ',
                     'resources': [
-                            'ȚϳˠÃ˭ϠÿȖµÚ\u0383åŞːƙɴΑ³ī(Ԥ\u0381ȉȻԄÒǜВ ԣ',
-                            '&Ш˦ёЕзД1Ϡ\x8e°úɧўʿǢωԪǝˈWЫΈĖхϫӡʯΘň',
-                            'ЁԖ®ѾĿΆҦѣϹӗHǥɗϺɇÒ˲ȎЁɨɼήņб˗ϻЄӛɲΠ',
-                            'иԖІ\x9aźƀ§Ӫͽoφѽ&Ѝ˃ԤʣȬԒͶǾǹ°ûsɄŽǜĭ°',
-                            'ϜҦЏʴʪ\u0379Ư˼÷ΌԭÚ«ȞʈʪӧȌȟ˾θΔʙЭƾǕ¨Ϳǚ˩',
-                            'ѴɞοªŻØ\u0382ӲԘ«û°ŨƐɸȦōʟԤҫZƵԞʄ¢øҮҝÝA',
-                            '£ʊяʶñӫԈȑӏ˧νԁϿȳɗóӨӉǱэȕǞ?ēШʖɇÎУş',
-                            'P˙ί×ӾΤԍϒèƣ÷ŷѯϴfЬӺԩȬ˟³ªԌɽȁȈľӰǆɦ',
-                            'ƅϕϘϋ\u0383ĺ©Һčǻ³ΚӣʪʖͺŦǭ#œƶ\x95¢ҺùԍʧΑĹɻ',
-                            'ÒɒȒĬ·ĈӣŃȊ˳ӵЍĴȮĒɬŠŦŁϥʔς˄ηƀȻǡӳʣϫ',
+                            'ɭˊҴ˳Эrѯʤ\x8cɓʿűϝͺӥȿϥһùϥέjҜΗɽԂͺΤӥż',
+                            'ѵ©ӸсΩњň0oϼɑqŇԧ7ʴȧ·¯двԦњӏӌćɱŨŦǜ',
+                            '˄ƈˏ˩ɗőʚˠǱѲyʨ£ҳӁϙũ\x9fӝ·ȸӨ\x8eԉјƓ÷fȧЎ',
+                            'ΤȰƷɴηЯȋĕʙӉԃ˺Ǆǻ˞ΙүӫτȲӳzеȆǨƖ˽ɹǜҺ',
+                            'ҐϤ¡ώȊӈϤӝìåϑĀȶӼ|үÄӵrҕѤˆ,Ϋ˷ѰϼȮ\x88ԣ',
+                            'ҘĕƜҰϔĜѬѼҏӸÑȌgȒǾöѬâϕÚБΑˡϼ\u0380ҟӽƝϳÈ',
+                            'ԒØрΛηҟĒϩ˪˄тΩųˈ҄ΐѽ¥ǭƺѤηʭ£ɧȬ˨ԁșŭ',
+                            'Ɛʒļңх˰НϡӐȨáӵĸʼæƏѶθ\x80ТҼџӢ ԬQɞʜdǓ',
+                            'ħҏüԓ|ҿ\x9eс\x99ȽԢȼ@˄Ҳ·Ԗ;ԈȠνǰʞϿʝԚήѼϛˤ',
+                            'ˊŬ˶BшΙΦԍUĺѽfӄʹ\x8aκҎʒĜȾ¾×ƐƏUщǭԛŰɴ',
                         ],
                 },
                 {
-                    'action': 'ѱʵųχЌѳӐУůɹЂǠʋʽãӖ)Ӫ@РūGÆɜ',
+                    'action': 'өĶГŸ\x93αԉҶĥǆɔɰԧӷѻҩĩӺΆ¥\x92Ã˥ǒÍ«ЉĂɓª',
                     'resources': [
-                            'ёЗ¶҅ˬаёǶǌƍωLþǙɴƏӛЏԥƇьӊ8Ԇ¹ƌ˪ćԀș',
-                            'Ĩúӌ´ƪҍ^÷Ƽ.øΤЇdȻƞʹȬ6ŹїÆ\x9dëŀ\x86+ā\x9dό',
-                            'ԀϾЗДÒoǌ\x89ȓҤӇǆϜԗјϾĴϵŀǲſё҉ƒʙ\x9cʧìĭΊ',
-                            '&ЀIϝԑġŏȟĀǂϵκБƿȻƌʋѮӝ˾ɆͷǿƊŗ˷ȃӉυ\xad',
-                            'ԥӔτÇǒŰĠǽĵҺÝ3ʩԩFɎɦʲʫɍҼӣςĉΩØδȆ#ӈ',
-                            'âРǄӹɨɲϪʋæãϲƔώҾèͽφƘũςÛԡªσĶɱ\x87ҥǜǪ',
-                            'ȸԩѯǼӑѰXҴpғÖŷЧɅ\x86ΌƭЦòʻÃн˪ҹǘE½ʖǚϑ',
-                            'ЃСҸǾѩθʥϺ΄ӖŠ;ÇǄȤ˴ԇó,ƌĩ\x89Ȏȏʿώ\x80Ȧҝă',
-                            'ȵHԖ°TèνǮӨʑ˔ԍшԘOΜȁӅƀŠЩʿɧѬ҇ѰѳɲƳӠ',
-                            'v\x87˯ѹВLӾӏ˹ȿƟȐǀȒҿƆæʃΜǨȒјԆԛʇвϣɸϐʒ',
+                            '\x89iˉѹ\x87ŻȐԁ£ѮaɡƶϱFйϱŞ£Ԁʰ\u0379ҕʱVԇǗɿ£Ȓ',
+                            '\x8fԏȐīиʗэЛѠĢŏҭbӶҚҷϿҬƁĀЅӼԪϕӯǨ\u0381ǚǌζ',
+                            'ю˞ƮмăîєǓԈŔϧϬŦɑρЅϞǀĄЄϜ\x92',
+                            'ôʩӶı˵KΈΊ\x8báIόÊƁϾɧĭјǂƉӼ°ϛƨҿҦ\x83Ľʉɿ',
+                            'ʼņdԮÝҥ\x8eϒ¡ͳȩˡϨņǇǹ\x86ɖӫþ\x8fћʾΦ҅Ʊм\x86ñЈ',
+                            '\x98ȟσȠʌ~ÑФ˟Əρ˨ΜҪŔʢǤʄǁϠĚƧōšÙȊEǠԐ$',
+                            'ϫҊΆʤΠº˙ȕʘʮҩƟхΩ\x8eÙºϢǒӊʺŠNǗЧӇѿɕȖf',
+                            '҂σƻȖĺƊʞ\x81ƝƏ:¢ǘЀӃCtʿԥķºаԁĸǷϪʆԊ3ӝ',
+                            'ƁҵŃԗƵ\x7fŁˠĒ¢ʋВǇ\x97Ѽǟ¨νNäɓʽĘӍӓzǀҕЀʳ',
+                            'ў\x8dʿ\x85Ф˺ΥИȫğҲӗҘřÝ9ʨнωӾłΎ\xadƎŃáүΊέц',
                         ],
                 },
             ],
@@ -315,9 +315,9 @@ START_LAUNCHER_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 'ÑǗϮ',
+            'identifier': 'ΌҫÓ',
 
-            'launcher': 'Ϲ',
+            'launcher': '\x9c',
 
             'permissions': [
             ],
@@ -366,6 +366,10 @@ START_LAUNCHER_SUCCESS_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
                 'Required field {field_name} in {name}',
                 dict(field_name='identifier', name='StartLauncherSuccessEvent'),
             ),
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='target_id', name='StartLauncherSuccessEvent'),
+            ),
 
         ),
     ),
@@ -378,14 +382,17 @@ START_LAUNCHER_SUCCESS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': '\u038dɛšё7rԠ)áѺĊӆʗɐӾǵʄ΄ӼΰΓĜǦǆĢӤ˗ų˄ɍ',
+            'identifier': '\x95ĸĖ˼Ńȼď<çÎː*҄ϿӺ¦ǫʭʵɩЗ\x87ŧӈʂöӧ»˚Ԗ',
+            'target_id': 'ȯΒĎъʒѩʞҾЫҽҮłҰĜȗΚȹҝÑďƴƨҺЄΎÍƆ˫T\x87',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 'ŕưƩ',
+            'identifier': 'нӭǞ',
+
+            'target_id': '˾ƪǑƻί',
 
         },
     ),
@@ -435,7 +442,7 @@ ARGUMENTS_GOOD_PARSE_DATA_TESTS: Sequence[
         'string',
         {
             '^': 'string',
-            '$': 'ЂŗԄʗšĪϙʋŠĥѡɞüȿ˭ɘªЍŶƚIЏЁW@ûȜǷʬԁ',
+            '$': 'ЬʶƽΪԑԚ·Ϸƻ',
         },
     ),
 
@@ -443,7 +450,7 @@ ARGUMENTS_GOOD_PARSE_DATA_TESTS: Sequence[
         'int',
         {
             '^': 'int',
-            '$': -3026273231532917457,
+            '$': -3135011216510316488,
         },
     ),
 
@@ -451,7 +458,7 @@ ARGUMENTS_GOOD_PARSE_DATA_TESTS: Sequence[
         'float',
         {
             '^': 'float',
-            '$': 544083.1837296538,
+            '$': 18327.86487913654,
         },
     ),
 ]
@@ -516,49 +523,49 @@ ERROR_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 'ӢϾöñŐӃöǟѬeþ¯ȵԝţɨӼήЮһЉɶĉǩύѸϒȑČ˓',
-            'source': '\u0383çǒúĨƊʒϽΖрɬBξőцԜŞԇ',
-            'message': 'ĠχѦŒaŰпдӰŇϼрϋ҂ʩЗңjåÖȃ˽ϧƧѕÔԭ҅ƅɓ',
+            'identifier': 'ǤЂǽmãǚЯœԘ=χѫЦӰ˰ȗӼӍҋΰōʻ5vȾӽЄsķǷ',
+            'source': "ƧÀ˛Ǜŵɛ'ϰӘϚƖonоәΒ\x9fȞξΜΊͽζԖЍǏơҘӤÒ",
+            'message': 'ĖԍŁϨΓѻˊѴԦŗҔԝůΜˊʙƄѐȾґʦɈðž˽ýӢͿϬÇ',
             'arguments': [
                 {
                     '^': 'string',
-                    '$': 'y6ȝƅˌɁϴУҐӷ˅ԀŢ*ΰQѿ\x9eΔ\x81ǯʴāӫӡ\x89CкĨм',
+                    '$': 'Ǐѿ˽Ŵȋı҂τΩΜюńɰЯǫɩ˷\\ƂʵđJоźӔŊҔѐўƝ',
+                },
+                {
+                    '^': 'string',
+                    '$': 'ȢʥɠƥÁí\x97ЕʂǘԎɲɩąȾӟξUǀОrÉАĨûɍ§ĲŸӷ',
                 },
                 {
                     '^': 'float',
-                    '$': 420546.4001302998,
-                },
-                {
-                    '^': 'string',
-                    '$': 'ƜѴĚíѾҍǈˑԭԬĿМѹȟӽєƂӬЕʱӡåŭū\x93ԓƛôźӕ',
+                    '$': 234063.6821375768,
                 },
                 {
                     '^': 'int',
-                    '$': -3714643703696850200,
+                    '$': 4461355664701609986,
                 },
                 {
                     '^': 'float',
-                    '$': -32945.355921395356,
+                    '$': 569939.8061982022,
                 },
                 {
                     '^': 'int',
-                    '$': 205024329924151888,
-                },
-                {
-                    '^': 'string',
-                    '$': 'śɖ-ӡƾ˳ȬьßԮȮʐƱȇɸǾ',
-                },
-                {
-                    '^': 'string',
-                    '$': '-җͽϨѾzԐĔŃɛ\xa0ʑƙŞȼǠ\u0381ǛɄ˽ыʹ˺ӄѿԈCŁЁε',
+                    '$': -4294506276403022670,
                 },
                 {
                     '^': 'int',
-                    '$': 744243099218381242,
+                    '$': -6130625609668321056,
                 },
                 {
-                    '^': 'string',
-                    '$': 'ɷȕѶĉɞľǌԡȃćӉԁ;ԍǪǪюŒҁЮǩYο;ϙӀ\x87˨ȣĳ',
+                    '^': 'int',
+                    '$': -6455377683979920369,
+                },
+                {
+                    '^': 'int',
+                    '$': 2391285744207349266,
+                },
+                {
+                    '^': 'int',
+                    '$': 6652739567821321159,
                 },
             ],
         },
@@ -567,7 +574,7 @@ ERROR_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 'Ԣϻ',
+            'identifier': 'Ԋɷ',
 
             'message': '',
 
@@ -634,51 +641,51 @@ START_LAUNCHER_FAILED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': '҅ʧϢӂʦǎȺ҂β¡ǆӭϯʜθӷȲ҆ǾV˔ʘ˓ԤΫ˽¨ƊŽɻ',
+            'identifier': 'ГиȤХ˦Ǵьрυɂ҇ˌļͳӫǟâǣ{ΤԤëʵϬȡɀяʍԡѣ',
             'error': {
-                'identifier': 'ґɇԒȑėĂʋӷȚá҅ĬέАԞʥϲьЯи¹',
-                'source': "ʴѯҝѻӶМʮэȅļє˰ѐғФʄǳϿӽǯϏûƫ\x9f'ǾϲоʧǦ",
-                'message': '/νȞƾȩĎ±ȰǃǨϯӄӔˎƚʤȵӵǎxѐіԕȳƴδưєϒƭ',
+                'identifier': 'ýŖPɪ¿%ʰѢʩ-˂WʄɗѪТЕƊЯțΘaш\x9bхҋPȝ˺΅',
+                'source': 'ºφͽӯǙǈȨĦЍ-ļҠԍȏŪΤōȁʗӗҹˑчɮћȿЩˏȐϢ',
+                'message': 'Ҽȍȯʨ-ĚԤӞȱЅ=ϊ\u0380ԅ˔ɋΤ\x9fíʃɌӥ˂RӋ˓ҟùњr',
                 'arguments': [
                     {
+                            '^': 'string',
+                            '$': 'ьӭЮΣúQǛɹүԝʚŠс˭ϥ\x91ŝМέҾ\x87ʎ',
+                        },
+                    {
                             '^': 'int',
-                            '$': -1110433000679345866,
+                            '$': 713805528189344666,
                         },
                     {
                             '^': 'string',
-                            '$': 'ȒԞӅşùΗQԢʿŲѯňɠӝɪԭ\x83϶ωǶƠǩӐѧɺΓȻΫǼL',
+                            '$': 'Υӽ҆ľӦɏŞ0ԕ\x97%ТРǧCˇʻѡǆƥΘ$ΊͽǻǺъК\u0383υ',
                         },
                     {
                             '^': 'string',
-                            '$': 'й\x9fȁgʂ˹ΐŉţ˄ɽ҉ɸŪӔʁĬOͺ»©ÙȎȩķеƶθʣŊ',
+                            '$': 'ԧŗĪ\x9eAчˉăsϹ\x92ĭʭʯ',
                         },
                     {
-                            '^': 'int',
-                            '$': 5344175362594741719,
+                            '^': 'float',
+                            '$': 480140.0005777001,
+                        },
+                    {
+                            '^': 'float',
+                            '$': 134675.793240125,
+                        },
+                    {
+                            '^': 'float',
+                            '$': 346098.63486935664,
+                        },
+                    {
+                            '^': 'float',
+                            '$': 484916.32724015275,
                         },
                     {
                             '^': 'string',
-                            '$': 'ŤʈѿҋАȁӐj\u0382ǪɅ\u0383ɞĨöĈζÇѱԊНԜ¯ϞϜñӗ.ȅː',
-                        },
-                    {
-                            '^': 'int',
-                            '$': -3652282616414404951,
-                        },
-                    {
-                            '^': 'int',
-                            '$': 5353411551361877456,
+                            '$': 'ЀŢΛźͽƎ?ċĿ˦Ƣ˔ԡĒƤťɫèͱȓϑ˯ϕԘŘöȯƪеĺ',
                         },
                     {
                             '^': 'string',
-                            '$': 'ǛԞϟ\x9fΡ˨ɗʍƝӭυѫȶȬ϶ЀƠȴӓŤѲзЃùϡϧмʒĝʓ',
-                        },
-                    {
-                            '^': 'int',
-                            '$': 8303697912106534638,
-                        },
-                    {
-                            '^': 'int',
-                            '$': -200640674771923155,
+                            '$': 'øƧȹӏŇ7ǮȜ҆āɥŞӉ£ћɒԠUŝϹýӥËX;ÏͷӳȟϪ',
                         },
                 ],
             },
@@ -688,14 +695,577 @@ START_LAUNCHER_FAILED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 'źӲτ',
+            'identifier': '7ԥԠ',
 
             'error': {
-                'identifier': 'ʵn',
+                'identifier': 'ɋч',
                 'message': '',
                 'arguments': [
                 ],
             },
+
+        },
+    ),
+]
+
+
+class LauncherLoadExtensionRequestEventTest(unittest.TestCase):
+    """
+    Tests for LauncherLoadExtensionRequestEvent
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in LAUNCHER_LOAD_EXTENSION_REQUEST_EVENT_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.LauncherLoadExtensionRequestEvent.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = [
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                ]
+                actual = list(res.valid_error.messages())
+                self.assertEqual(expected, actual)
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in LAUNCHER_LOAD_EXTENSION_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.LauncherLoadExtensionRequestEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+LAUNCHER_LOAD_EXTENSION_REQUEST_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+    (
+        'all-fields-missing',
+        {},
+        (
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='name', name='LauncherLoadExtensionRequestEvent'),
+            ),
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='version', name='LauncherLoadExtensionRequestEvent'),
+            ),
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='location', name='LauncherLoadExtensionRequestEvent'),
+            ),
+
+        ),
+    ),
+]
+
+
+LAUNCHER_LOAD_EXTENSION_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'name': '*хǹŃǝλҘѼƮƦӽĬʋ±lҟƴϾͼӀԔĂʟΫϔƭǐˍфȃ',
+            'version': [
+                -7971931551079438267,
+                1446674518620107694,
+                -1459394048870586262,
+            ],
+            'location': 'ʺ¼ƄԫʻΔΣŭŧԤŏbǘîƄöȏ}Ыƹĉ\x92ų\u0383óʟƘǞǉƁ',
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+            'name': '',
+
+            'version': [
+                1325994848948221472,
+                -8778456019265665043,
+                7669806357919636184,
+            ],
+
+            'location': '',
+
+        },
+    ),
+]
+
+
+class LauncherLoadExtensionSuccessEventTest(unittest.TestCase):
+    """
+    Tests for LauncherLoadExtensionSuccessEvent
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in LAUNCHER_LOAD_EXTENSION_SUCCESS_EVENT_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.LauncherLoadExtensionSuccessEvent.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = [
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                ]
+                actual = list(res.valid_error.messages())
+                self.assertEqual(expected, actual)
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in LAUNCHER_LOAD_EXTENSION_SUCCESS_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.LauncherLoadExtensionSuccessEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+LAUNCHER_LOAD_EXTENSION_SUCCESS_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+    (
+        'all-fields-missing',
+        {},
+        (
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='name', name='LauncherLoadExtensionSuccessEvent'),
+            ),
+
+        ),
+    ),
+]
+
+
+LAUNCHER_LOAD_EXTENSION_SUCCESS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'name': 'ƪěЭʪDƻƥԓϔӅĆІŸ˪ћÅ\x93\x7fƂɇȱƓÒýǷΊʝӄ¯ê',
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+            'name': '',
+
+        },
+    ),
+]
+
+
+class LauncherLoadExtensionFailedEventTest(unittest.TestCase):
+    """
+    Tests for LauncherLoadExtensionFailedEvent
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in LAUNCHER_LOAD_EXTENSION_FAILED_EVENT_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.LauncherLoadExtensionFailedEvent.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = [
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                ]
+                actual = list(res.valid_error.messages())
+                self.assertEqual(expected, actual)
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in LAUNCHER_LOAD_EXTENSION_FAILED_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.LauncherLoadExtensionFailedEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+LAUNCHER_LOAD_EXTENSION_FAILED_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+    (
+        'all-fields-missing',
+        {},
+        (
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='name', name='LauncherLoadExtensionFailedEvent'),
+            ),
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='error', name='LauncherLoadExtensionFailedEvent'),
+            ),
+
+        ),
+    ),
+]
+
+
+LAUNCHER_LOAD_EXTENSION_FAILED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'name': 'ȠJǶ¢ǿґŀKҏɌҜàƨċăĸҀńƪÀбŊɢɠӲБǬҐΠӰ',
+            'error': {
+                'identifier': 'n¤ԥϱƼƈɥҠèȹ6ќ\x88ŰŁѻӔӘϪлҥȩԘΓǄΡӤȘJӃ',
+                'source': '¦ԬӎɼИ·ĦƱǉËӇľӆԥǗһѻŸÓԢяӯƢοίɬĒΪŖ\x98',
+                'message': 'ʓҦҡɞΧӖċőҙЩ£Ԓ´ɘƦŸȎΝϧQ˪À\x9a˱ʙр\u0380ǝɜѻ',
+                'arguments': [
+                    {
+                            '^': 'float',
+                            '$': 569756.4233681199,
+                        },
+                    {
+                            '^': 'int',
+                            '$': -747450953551464176,
+                        },
+                    {
+                            '^': 'int',
+                            '$': 6263503468872528797,
+                        },
+                    {
+                            '^': 'string',
+                            '$': 'ϯ¯ӑ7ǜʶyҒӠ#ӝ\u0379Ͼ˙ӅСŎȉƿŢѻŧɨƟηáϢ9ў\x99',
+                        },
+                    {
+                            '^': 'float',
+                            '$': 571571.6469661933,
+                        },
+                    {
+                            '^': 'float',
+                            '$': -53267.75416462175,
+                        },
+                    {
+                            '^': 'string',
+                            '$': 'дЉѡȻ"ĄĺϋҰĂԪťϸӱԄͳˉЪѶҫɠƓvĵр\u0383˻ƙФЩ',
+                        },
+                    {
+                            '^': 'int',
+                            '$': 4773106129862865958,
+                        },
+                    {
+                            '^': 'int',
+                            '$': 4327309448970239961,
+                        },
+                    {
+                            '^': 'int',
+                            '$': -7827393755027104220,
+                        },
+                ],
+            },
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+            'name': '',
+
+            'error': {
+                'identifier': 'έź',
+                'message': '',
+                'arguments': [
+                ],
+            },
+
+        },
+    ),
+]
+
+
+class EventsTest(unittest.TestCase):
+    """
+    Tests for Events
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in EVENTS_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.Events.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = [
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                ]
+                actual = list(res.valid_error.messages())
+                self.assertEqual(expected, actual)
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in EVENTS_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.Events.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+EVENTS_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+    (
+        'all-fields-missing',
+        {},
+        (
+
+        ),
+    ),
+]
+
+
+EVENTS_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'event_id': 'ƓƑȿӠҴÂǕˋѫ˩ЄӹħΚƂɾӋ0ưŜ\x96ŨЬ}н\x9b\x9aȲҁφ',
+            'target_id': "Ӭ'˛δʚӦƪĻʯӚӶ¸УǜƋĺdúƧʱӔчԔԭˏΦԂŌƝ˔",
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+        },
+    ),
+]
+
+
+class ExtensionAddEventListenerEventTest(unittest.TestCase):
+    """
+    Tests for ExtensionAddEventListenerEvent
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in EXTENSION_ADD_EVENT_LISTENER_EVENT_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.ExtensionAddEventListenerEvent.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = [
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                ]
+                actual = list(res.valid_error.messages())
+                self.assertEqual(expected, actual)
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in EXTENSION_ADD_EVENT_LISTENER_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.ExtensionAddEventListenerEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+EXTENSION_ADD_EVENT_LISTENER_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+    (
+        'all-fields-missing',
+        {},
+        (
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='extension_name', name='ExtensionAddEventListenerEvent'),
+            ),
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='events', name='ExtensionAddEventListenerEvent'),
+            ),
+
+        ),
+    ),
+]
+
+
+EXTENSION_ADD_EVENT_LISTENER_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'extension_name': 'ƌ҂ҷȝň˜ Ǡ\u0383ʷƘÄ[ɘʹАҨΫÎӚЫԡЫУ҂ȋ˓ʹˊď',
+            'events': [
+                {
+                    'event_id': 'ǜͺk˽ИԠĂŒ\x9dǡԂÎ˰(ͺǚƚκȕΜԦǠ=Ԓ\x97\x90ļɴƇK',
+                    'target_id': 'ťˬӢԁ-ȑ\u038bэ˅[ȭňҮ0ҙɁɨҖŭƕéņӏƘѻЁ˺Ŏ˗Ȗ',
+                },
+                {
+                    'event_id': 'ˋȚŵѰÎÐǔĺƌёÔԆǽĬǭΈѣҟϬԃ\x9cƳҵ+ЅǛƃȴАƍ',
+                    'target_id': 'ԣ-w҃ҊяѼȚɺџѼ\x91ΟƮИ˥{ż\x99÷ɭжʧ҇Ưϕ˭ʳ\x89ʪ',
+                },
+                {
+                    'event_id': 'ɉɀӇ\x81\xa0Ŧӗ¦¬ <ЮϖȵȑȢȊKԢΔŋϰĕϒ҇ЄĄȱɏț',
+                    'target_id': 'ϲ˾ĖϸȵĎŒÀʣʐ¿\x87ÕōƛкǗ˚ăżȸŧāΪǽřŜE\x81S',
+                },
+                {
+                    'event_id': 'ɀǭʱѭŨĢŲŕ1ɧͺȃΜˎӘжɵĮжȦĴOƈɏxӊTɫRӞ',
+                    'target_id': 'ŅʯѱǲʨɐŽʰʁщ\x8bkʂʯϺôȲĵ',
+                },
+                {
+                    'event_id': 'ïϥ\x8eɑ$ʬӮǌ$ˮӪώԡȼûƳ',
+                    'target_id': 'ßѤĢʰĖ÷Ώѣ˗ԄƇƧ¾ƄşĆťļΪˈbəԘʲ˽(ɕ˷δ³',
+                },
+                {
+                    'event_id': 'ɐƳϏӺѣŤŜ˪ʘˀʩнϫȳԅȷΣϪ˗qĿĜлX',
+                    'target_id': '´ʈǆРĔ΅%-ʱż:ԊǠӍǑӜАįӘÝџӔīÉγVɳÈǿѥ',
+                },
+                {
+                    'event_id': 'ɕƭҬǝŵ¬šƽǚψÞrłĵé-ȲţīêѤϵʁīʇŵĀ\x9cƚў',
+                    'target_id': 'þ\x90΄҄ͺ®Қ\u0382ɛҎєњΔœŮWϤƙЏƾńԌС',
+                },
+                {
+                    'event_id': 'εӖΎϟʎϿзЦҦ^ȻĿɧʐʀρԔÚԔŠǂĵϩĊɚɏəˌ\x82ϡ',
+                    'target_id': 'ȀŎƕǁΫb\x8cǯťɱ·ëĔҕϓçЭԫСÈʣƚČǛѬѭňǼɫȾ',
+                },
+                {
+                    'event_id': 'Ǝҡϧԇˍÿ_Ηх˃ɌлԚľ˲\x85υρuȲӮϿѣϽ\x92ȵ£ƋȃΈ',
+                    'target_id': 'ˑȍȕģˈ\u0383ˤЂԖʕʬϞŧѥ\x92ϰЏ˦ӔяԄýŻмĎMөǸ˩ˡ',
+                },
+                {
+                    'event_id': '˻ĝɭΡZǰɬмϯƹɬԇҺɞˮҠύƯэĩǣ҅åì%JĵΈɴε',
+                    'target_id': 'ÙÊǲқĨaĵĔƳ·ωŧόйεÁŻԙȬ¬àˠɷ˛˓хťÌāԅ',
+                },
+            ],
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+            'extension_name': '',
+
+            'events': [
+            ],
+
+        },
+    ),
+]
+
+
+class ExtensionRemoveEventListenerEventTest(unittest.TestCase):
+    """
+    Tests for ExtensionRemoveEventListenerEvent
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in EXTENSION_REMOVE_EVENT_LISTENER_EVENT_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.ExtensionRemoveEventListenerEvent.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = [
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                ]
+                actual = list(res.valid_error.messages())
+                self.assertEqual(expected, actual)
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in EXTENSION_REMOVE_EVENT_LISTENER_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = foreman.ExtensionRemoveEventListenerEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+EXTENSION_REMOVE_EVENT_LISTENER_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+    (
+        'all-fields-missing',
+        {},
+        (
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='extension_name', name='ExtensionRemoveEventListenerEvent'),
+            ),
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='events', name='ExtensionRemoveEventListenerEvent'),
+            ),
+
+        ),
+    ),
+]
+
+
+EXTENSION_REMOVE_EVENT_LISTENER_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'extension_name': 'ҥшƯďŲcjjĀӅӽѵ0ŚϼΡlҨäϾ©ҸѵŗѢΜĈѫÈƯ',
+            'events': [
+                {
+                    'event_id': 'ɛşҤţγӸѲˮ˒Ɯįѡ^чuŸÐċ\u0379ҫϴНɾā˺ȮśʝĻț',
+                    'target_id': 'Ɉ\x88éș®ŚɱҟɴȉϯƻƮѤ®GėоԔĕΕˈьĮЦ¡ԥüѱȄ',
+                },
+                {
+                    'event_id': 'ѹҥÎБå+\x85хƲSũȐɺȭˣ(\x85ӨɝtʟUƣӪӂŇȖ˼ͷҽ',
+                    'target_id': 'Һ%ьŎʍ΄ǕɲΞˎӕȈìŤфȬ˫]˥ð,ƢӟƝҧ¥ľҼʍȺ',
+                },
+                {
+                    'event_id': '',
+                    'target_id': '@ȝӃӞʑʎƏdªɆȲҾĶЛѪΧɟж˽Ӿ',
+                },
+                {
+                    'event_id': '˽vŸҘӺǌϮɝԎӑϕϠҵвvξ\xa0ɼѭЊ\x98íҘîčȼӠŶĝƬ',
+                    'target_id': 'ӜǸҁ»ј=0ӶļřʊŁӚǽƋϕ\u038dѿʿʈ\x9cόϛΈѕΥʀƫíŐ',
+                },
+                {
+                    'event_id': 'Ӊɠɇʒ7ÀͲӌԆϠǮƌƚѲ ǞĺұʏҭҏԣԌϦǊм§ǀǥĢ',
+                    'target_id': '\u0383ɼбӺҳʽͻθ҈ȞљŅɮCҰҾYѤЉ˯ǣ\x93ӇԁĒŪЮԚƼ\x91',
+                },
+                {
+                    'event_id': 'ɧӁВаӡЁҒѬ1tŴĎ˹_Ӿ\x8fɀïǠɐΨnńСʴÁNʥƉǩ',
+                    'target_id': 'ťʈĕӳ˃ŦӞҷȧȤӴĻª΄bʙǞѳĹятӄwРІ\u038bР6àˎ',
+                },
+                {
+                    'event_id': 'ʟ\xa0ƦҾӔɀɯȷʁϻԙͼǙό9ѹҸȒӔˤцΦȤЕɴFԅʘEҳ',
+                    'target_id': 'ƜȇѕuĄϘűĵԝӉVѲњљԜǮ\xa0úŌɸĠ˲ˌſ˵~ԏĨʱȂ',
+                },
+                {
+                    'event_id': '"Пί.űӦ˛ŴaȎӺϻǷ;ԛɘ\x99ϓҨǈҋȿşZϨǔƬĂϟη',
+                    'target_id': 'ɿG˘³˸¬JшɆǵ\x80âēϽѣǄΤϸЫ"Ϗԟ҃ХɎjҝ\x86Ƞʹ',
+                },
+                {
+                    'event_id': 'È˶ɎӃ˦ď\\уǝҊſπҘΠљʙ@˫όѰfЀNϘŝ"ƼЋ',
+                    'target_id': 'ǁϘ˽џӴșѤӫżͳыʄԀàϸiǺҨʅƠє\x90ʜȄêɎŹȵĞ¥',
+                },
+                {
+                    'event_id': 'ɊԘŴϸŶ«ϺǽʮˁѷӼЬԣϻǶŬǻ·ϺǶОθăĮȻΉӦǽѤ',
+                    'target_id': 'Υ˥Úǈ7ʢ¹уҮÕԙ\x8aѿÖeʨѮЪǊ˭ȌљΨ϶Ǹ&ÃԫӑR',
+                },
+            ],
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+            'extension_name': '',
+
+            'events': [
+            ],
 
         },
     ),

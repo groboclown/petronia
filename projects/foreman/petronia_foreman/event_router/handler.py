@@ -8,7 +8,7 @@ from typing import Dict, Iterable, Sequence, List, Set, Tuple, Optional
 
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
-from ..user_message import CATALOG
+from ..constants import TRANSLATION_CATALOG as CATALOG
 
 # EventId, TargetId
 EventTargetHandle = Tuple[Optional[str], Optional[str]]
