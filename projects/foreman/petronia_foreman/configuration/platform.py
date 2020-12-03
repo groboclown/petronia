@@ -177,7 +177,7 @@ def detect_linux() -> StdRet[PlatformSettings]:
     """Determine which video interaction method to use."""
     try:
         from ctypes import cdll  # pylint: disable=import-outside-toplevel
-    except BaseException as err:
+    except BaseException as err:  # pylint: disable=broad-except
         return StdRet.pass_errmsg(
             CATALOG,
             _(

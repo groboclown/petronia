@@ -24,7 +24,7 @@ class RouterContext(TargetHandlerRuntimeContext):
         '__executor',
     )
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
             self,
             categories: Dict[str, AbcLauncherCategory],
             shutdown: Callable[[], None],
@@ -77,7 +77,9 @@ class RouterContext(TargetHandlerRuntimeContext):
             to_raw_event_object(event_id, source_id, target_id, event.export_data())
         )
 
-    async def start_launcher(self, source_id: str, event: foreman.StartLauncherRequestEvent) -> None:
+    async def start_launcher(
+            self, source_id: str, event: foreman.StartLauncherRequestEvent,
+    ) -> None:
         category_name = event.launcher
         category = self.__categories.get(category_name)
         if category is None:
@@ -165,42 +167,41 @@ class RouterContext(TargetHandlerRuntimeContext):
             )
             return
 
+        async def start_extension(cat: AbcLauncherCategory, cat_name: str) -> None:
+            assert launcher_id is not None  # mypy requirement
+            res = await cat.start_extension(
+                launcher_id,
+                create_handler_id(cat_name, launcher_id, event.name),
+                event.name,
+                (event.version[0], event.version[1], event.version[2]),
+                event.location,
+            )
+            if res.ok:
+                self._inject_event(
+                    event_id=foreman.LauncherLoadExtensionSuccessEvent.FULL_EVENT_NAME,
+                    source_id=target_id,
+                    target_id=source_id,
+                    event=foreman.LauncherLoadExtensionSuccessEvent(
+                        name=event.name,
+                    ),
+                )
+                return
+            self._inject_event(
+                event_id=foreman.LauncherLoadExtensionFailedEvent.FULL_EVENT_NAME,
+                source_id=target_id,
+                target_id=source_id,
+                event=foreman.LauncherLoadExtensionFailedEvent(
+                    name=event.name,
+                    error=create_event_error(
+                        'failed-to-load-extension', target_id, res.valid_error,
+                    ),
+                ),
+            )
+
         # note that launcher id == channel name.
         for category_name, category in self.__categories.items():
             if launcher_id in category.get_active_launcher_ids():
-                async def start_extension() -> None:
-                    assert launcher_id is not None  # mypy requirement
-                    res = await category.start_extension(
-                        launcher_id,
-                        create_handler_id(category_name, launcher_id, event.name),
-                        event.name,
-                        (event.version[0], event.version[1], event.version[2]),
-                        event.location,
-                    )
-                    if res.ok:
-                        self._inject_event(
-                            event_id=foreman.LauncherLoadExtensionSuccessEvent.FULL_EVENT_NAME,
-                            source_id=target_id,
-                            target_id=source_id,
-                            event=foreman.LauncherLoadExtensionSuccessEvent(
-                                name=event.name,
-                            ),
-                        )
-                        return
-
-                    self._inject_event(
-                        event_id=foreman.LauncherLoadExtensionFailedEvent.FULL_EVENT_NAME,
-                        source_id=target_id,
-                        target_id=source_id,
-                        event=foreman.LauncherLoadExtensionFailedEvent(
-                            name=event.name,
-                            error=create_event_error(
-                                'failed-to-load-extension', target_id, res.valid_error,
-                            ),
-                        ),
-                    )
-
-                asyncio.create_task(start_extension())
+                asyncio.create_task(start_extension(category, category_name))
                 return
 
         # No such launcher_id active.
@@ -227,7 +228,9 @@ class RouterContext(TargetHandlerRuntimeContext):
             ),
         )
 
-    async def add_event_listener(self, target_id: str, event: foreman.ExtensionAddEventListenerEvent) -> None:
+    async def add_event_listener(
+            self, target_id: str, event: foreman.ExtensionAddEventListenerEvent,
+    ) -> None:
         launcher_id = target_id_as_launcher_id(target_id)
         if launcher_id is None:
             # No error event to send.
@@ -255,7 +258,9 @@ class RouterContext(TargetHandlerRuntimeContext):
             launcher=launcher_id, target=target_id,
         ))
 
-    async def remove_event_listener(self, target_id: str, event: foreman.ExtensionRemoveEventListenerEvent) -> None:
+    async def remove_event_listener(
+            self, target_id: str, event: foreman.ExtensionRemoveEventListenerEvent,
+    ) -> None:
         launcher_id = target_id_as_launcher_id(target_id)
         if launcher_id is None:
             # No error event to send.

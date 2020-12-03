@@ -21,7 +21,7 @@ if platform.system() == 'Windows':
     import msvcrt  # pylint: disable=import-error
     import _winapi  # pylint: disable=import-error
 
-    async def run_launcher_windows(
+    async def run_launcher_windows(  # pylint: disable=too-many-locals
             identity: str,
             launcher_cmd_option_key: str,
             launcher_config: LauncherConfig,
@@ -77,7 +77,7 @@ if platform.system() == 'Windows':
             ret = ManagedWinProcess(identity, proc, h_rx_read, h_tx_write, temp_dirs)
             # await ret.watch_process()
             return StdRet.pass_ok(ret)
-        except BaseException as err:
+        except Exception as err:  # pylint: disable=broad-except
             _close_handles(h_rx_read, child_h_rx_write, h_rx_read, child_h_tx_read)
             return StdRet.pass_errmsg(
                 CATALOG,
@@ -100,7 +100,7 @@ if platform.system() == 'Windows':
             '__proc', '__reader', '__read_fd', '__h_read', '__h_write', '__write_fd', '__exit_code',
         )
 
-        def __init__(
+        def __init__(  # pylint: disable=too-many-arguments
                 self,
                 ident: str,
                 proc: subprocess.Popen,
@@ -158,12 +158,15 @@ if platform.system() == 'Windows':
 
 else:
     async def run_launcher_windows(
-            identity: str,
-            launcher_cmd_option_key: str,
-            launcher_config: LauncherConfig,
-            platform_settings: PlatformSettings,
+            identity: str,  # pylint: disable=unused-argument
+            launcher_cmd_option_key: str,  # pylint: disable=unused-argument
+            launcher_config: LauncherConfig,  # pylint: disable=unused-argument
+            platform_settings: PlatformSettings,  # pylint: disable=unused-argument
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
+        """Run a launcher program from Windows.  Launchers run by Windows will be passed the
+        Windows file handle, not the file descriptor, because that's meaningless as Windows goes."""
+
         return StdRet.pass_errmsg(
             CATALOG,
             _('Not running under Windows.'),

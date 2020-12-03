@@ -10,7 +10,7 @@ from petronia_common.util.error import ExceptionPetroniaReturnError
 from .configuration import PlatformSettings, ForemanConfig, LauncherConfig
 from .routing import ForemanRouter
 from .os_hooks import OsHooks
-from .user_message import display_error, CATALOG
+from .user_message import local_display, display_error, CATALOG
 
 
 class ForemanRunner:
@@ -42,11 +42,10 @@ class ForemanRunner:
         res = self.initialize()
         if res != 0:
             return res
+        local_display(_('Starting up Petronia.'))
         res = self.boot()
         if res != 0:
             return res
-        # try:
-        # except KeyboardInterrupt:
         self.shutdown()
         return 0
 
@@ -69,6 +68,7 @@ class ForemanRunner:
                 return 1
         self.__os_hooks.register_root_fd(self.__root_logger_fd)
         self.__os_hooks.register_on_shutdown(self.start_shutdown)
+        self.__os_hooks.register_on_restart(self.start_restart)
         self.__os_hooks.start()
         launcher_categories = self._get_launcher_categories()
         if launcher_categories.has_error:
@@ -86,6 +86,11 @@ class ForemanRunner:
         self.__router.start()
 
         # start launchers.
+
+        # Native is always started first.
+        self.__router.boot_launcher(self._get_native_launcher_category_name())
+
+        # Then the others.
         for name in self._config.get_boot_config().boot_order:
             self.__router.boot_launcher(name)
 
@@ -93,6 +98,7 @@ class ForemanRunner:
 
     def start_restart(self) -> None:
         """Stops all but the core initialized stuff."""
+        local_display(_('Starting the restart process.'))
         assert self.__state == 2, 'can only be run after booted and not stopping'
 
         assert self.__router
@@ -111,6 +117,7 @@ class ForemanRunner:
 
         Idempotent.
         """
+        local_display(_('Starting the shut down process.'))
         self.__state = 4
         if self.__router:
             self.__router.stop()
@@ -136,6 +143,9 @@ class ForemanRunner:
                 return config.forward()
             ret.append(config.result)
         return StdRet.pass_ok(ret)
+
+    def _get_native_launcher_category_name(self) -> str:
+        return self._config.get_boot_config().get_native_launcher(self._platform)
 
 
 def _display_error(

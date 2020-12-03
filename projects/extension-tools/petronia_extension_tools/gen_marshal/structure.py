@@ -103,6 +103,7 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             'structure_const_name': camel_case_as_screaming_snake(struct_name),
             'indented_description': create_indented_description(structure.description),
             'is_selector': True,
+            'has_non_optional_fields': True,
             'selector_types': [],
             'unique_selector_type_names': [],
             'has_fields': True,
@@ -130,6 +131,7 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
         ret.append(ret_struct)
     else:
         field_names: List[Dict[str, Any]] = []
+        non_optional_field_names: List[str] = []
         unique_ids: List[Dict[str, str]] = []
         if unique_target:
             unique_ids.append({
@@ -158,11 +160,14 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             if ret_field.has_error:
                 return ret_field.forward()
             ret_struct['field_names'].append(ret_field.result)
+            if not field_type.is_optional:
+                non_optional_field_names.append(field_name)
             last_field = ret_field.result
 
         if last_field:
             last_field['last'] = True
         ret_struct['has_fields'] = len(field_names) > 0
+        ret_struct['has_non_optional_fields'] = len(non_optional_field_names) > 0
         ret.append(ret_struct)
     return StdRet.pass_ok(ret)
 

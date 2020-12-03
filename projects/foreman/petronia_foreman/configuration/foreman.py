@@ -9,6 +9,7 @@ from typing import Dict, List, Sequence, Optional
 from configparser import ConfigParser, DEFAULTSECT
 from petronia_common.util import StdRet, RET_OK_NONE, collect_errors_from
 from petronia_common.util import i18n as _
+from .platform import PlatformSettings
 from .launcher import LauncherConfig
 from ..constants import TRANSLATION_CATALOG as CATALOG
 
@@ -20,10 +21,11 @@ class BootConfig:
     """
     Boot-up options for Foreman.
     """
-    __slots__ = ('_root_log_file', '_boot_order')
+    __slots__ = ('_root_log_file', '_boot_order', '_native_launcher')
 
     def __init__(self, section_name: str, config: ConfigParser) -> None:
         self._root_log_file = config.get(section_name, 'root-log-file', fallback=None) or None
+        self._native_launcher = config.get(section_name, 'native-launcher', fallback=None) or None
         boot_order_str = config.get(section_name, 'boot-order', fallback=None) or ''
         boot_order: List[str] = []
         for name in boot_order_str:
@@ -39,7 +41,13 @@ class BootConfig:
 
     @property
     def boot_order(self) -> Sequence[str]:
+        """Order of the boot-time launcher configs."""
         return self._boot_order
+
+    def get_native_launcher(self, platform: PlatformSettings) -> str:
+        """Get the native launcher name, which is either overwritten in the boot section,
+        or using the default for the selected platform."""
+        return self._native_launcher or platform.native_launcher_name
 
 
 class ForemanConfig:

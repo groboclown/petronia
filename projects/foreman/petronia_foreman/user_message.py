@@ -6,6 +6,7 @@ As Foreman is the main process that the end-user runs, it needs the
 ability to send messages to the user.
 """
 
+import os
 import sys
 import gettext
 import traceback
@@ -17,14 +18,19 @@ from .constants import TRANSLATION_CATALOG
 CATALOG = TRANSLATION_CATALOG
 
 
-def display(message: I18n, **kwargs: UserMessageData) -> None:
+def display(catalog: str, message: I18n, **kwargs: UserMessageData) -> None:
     """Display a message."""
-    print(translate(message, **kwargs))
+    print(translate(catalog, message, **kwargs))
+
+
+def local_display(message: I18n, **kwargs: UserMessageData) -> None:
+    """Display a message using the local catalog."""
+    display(CATALOG, message, **kwargs)
 
 
 def display_message(message: UserMessage) -> None:
     """Display a message.  The catalog of the message is ignored."""
-    display(message.message, **message.arguments)
+    display(message.catalog, message.message, **message.arguments)
 
 
 def display_error(err: PetroniaReturnError, debug: bool = False) -> None:
@@ -41,11 +47,21 @@ def display_error(err: PetroniaReturnError, debug: bool = False) -> None:
         )
 
 
-def translate(message: I18n, **kwargs: UserMessageData) -> str:
+def translate(catalog: str, message: I18n, **kwargs: UserMessageData) -> str:
     """Translate the message + data to a string the user can read."""
-    return gettext.dgettext('messages', message).format(**kwargs)
+    return gettext.dgettext(catalog, message).format(**kwargs)
 
 
 def load_translation(_settings: PlatformSettings) -> None:
     """Use the platform-specific settings to find the translation directory."""
-    raise NotImplementedError()
+    data_dir = _settings.find_data_dir('translations')
+    if not data_dir:
+        print("No translations directory found.")
+        return
+    domain_list_file = os.path.join(data_dir, 'catalog.list')
+    if os.path.isfile(domain_list_file):
+        with open(domain_list_file, 'r') as f:
+            for line in f.readlines():
+                gettext.bindtextdomain(line, data_dir)
+    else:
+        print(f"No file {domain_list_file} found.  Not loading translations.")

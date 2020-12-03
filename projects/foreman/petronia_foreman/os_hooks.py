@@ -6,6 +6,10 @@ from typing import Callable, Optional
 import faulthandler
 import signal
 
+SHUTDOWN_SIGNALS = ('SIGINT', 'SIGTERM', 'CTRL_C_EVENT')
+RESTART_SIGNALS = ('SIGBREAK', 'SIGHUP', 'CTRL_BREAK_EVENT')
+KILL_SIGNALS = ('SIGKILL',)
+
 
 class OsHooks:
     """
@@ -35,12 +39,37 @@ class OsHooks:
         """Register the handler for when a nice shutdown request comes in."""
         self.__on_shutdown = callback
 
+    def register_on_restart(self, callback: Optional[Callable[[], None]]) -> None:
+        """Register the handler for when a restart request comes in."""
+        self.__on_restart = callback
+
     def start(self) -> None:
         """Start the connections."""
         assert self.__state == 0, 'can only be run before started'
         self.__state = 1
         if self.__log_fd is not None:
             faulthandler.enable(self.__log_fd, all_threads=True)
+
+        if self.__on_shutdown:
+            for signal_name in SHUTDOWN_SIGNALS:
+                OsHooks._set_signal(signal_name, self.__on_shutdown)
+
+        if self.__on_restart:
+            for signal_name in RESTART_SIGNALS:
+                OsHooks._set_signal(signal_name, self.__on_restart)
+
+        if self.__on_kill:
+            for signal_name in KILL_SIGNALS:
+                OsHooks._set_signal(signal_name, self.__on_kill)
+
+    @staticmethod
+    def _set_signal(signal_name: str, handler: Callable[[], None]) -> None:
+        if hasattr(signal, signal_name):
+            try:
+                signal.signal(getattr(signal, signal_name), handler)
+            except ValueError:
+                # Not available on this platform
+                pass
 
     def stop(self) -> None:
         """Stop the connections."""

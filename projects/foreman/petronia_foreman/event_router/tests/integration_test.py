@@ -4,7 +4,6 @@ from typing import Tuple
 import unittest
 import asyncio
 import re
-from ..router import EventRouter, OnCloseTarget
 from petronia_common.event_stream import (
     BinaryWriter,
     write_binary_event_to_stream,
@@ -13,6 +12,7 @@ from petronia_common.event_stream.tests.forwarder_test import (
     create_read_stream, SimpleBinaryWriter,
 )
 from petronia_common.util import StdRet
+from ..router import EventRouter, OnCloseTarget
 
 
 class RouterIntegrationTest(unittest.TestCase):

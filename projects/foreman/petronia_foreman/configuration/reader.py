@@ -6,9 +6,11 @@ Reads the configuration file, and puts the data into the correct objects.
 from typing import Optional
 import configparser
 from petronia_common.util import StdRet
+from petronia_common.util import i18n as _
 from .platform import PlatformSettings
 from .foreman import ForemanConfig
 from .find_file import get_config_file
+from ..constants import TRANSLATION_CATALOG
 
 
 def read_configuration_file(
@@ -32,5 +34,18 @@ def read_configuration_file(
     parser.read(config_file.result)
 
     ret = ForemanConfig()
+    res = ret.load_config(parser)
+    if res.has_error:
+        return res.forward()
+
+    if not ret.get_boot_config().boot_order:
+        return StdRet.pass_errmsg(
+            TRANSLATION_CATALOG,
+            _(
+                'No boot-order defined in the foreman configuration, so foreman cannot start.  '
+                'Did you install Petronia correctly?  Please check the instructions again.  '
+                'Petronia expects a file named petronia.ini in an OS-specific location.'
+            ),
+        )
 
     return StdRet.pass_ok(ret)

@@ -241,7 +241,9 @@ class EventRouter:
                 await self.close_channel(channel.name)
         return RET_OK_NONE
 
-    async def inject_event_to_channel(self, channel_name: str, event: RawEventObject) -> StdRet[None]:
+    async def inject_event_to_channel(
+            self, channel_name: str, event: RawEventObject,
+    ) -> StdRet[None]:
         """Injects an event into a single channel.  Used for a more secure communication.
 
         For the moment, this only supports injecting object events, not binary blob events.

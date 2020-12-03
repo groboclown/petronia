@@ -1,19 +1,14 @@
 """Test the router module."""
 
-from typing import Tuple, List
+from typing import Tuple
 import unittest
 import asyncio
-from .. import router
 from petronia_common.event_stream import (
-    RawEvent,
     BinaryWriter,
-    write_binary_event_to_stream,
     to_raw_event_object,
 )
-from petronia_common.event_stream.tests.forwarder_test import (
-    MockTarget, create_read_stream, SimpleBinaryWriter,
-)
 from petronia_common.util import StdRet, PetroniaReturnError, i18n
+from .. import router
 
 
 class OnCloseTargetTest(unittest.TestCase):

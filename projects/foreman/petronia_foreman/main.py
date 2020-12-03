@@ -6,7 +6,7 @@ The CLI entry point for the foreman process.
 from typing import Sequence
 import argparse
 from petronia_common.util import i18n as _
-from .user_message import display, display_error, translate, load_translation
+from .user_message import local_display, display_error, translate, load_translation, CATALOG
 from .configuration import SUPPORTED_PLATFORMS, read_configuration_file, detect_platform
 from .foreman_runner import ForemanRunner
 
@@ -27,12 +27,14 @@ def main(vargs: Sequence[str]) -> int:
     parser.add_argument(
         '-c', '--config', type=str, default=None,
         help=translate(
+            CATALOG,
             _('configuration file to load.'),
         ),
     )
     parser.add_argument(
         '-p', '--platform', type=str, default=None,
         help=translate(
+            CATALOG,
             _(
                 'force running on a platform type, rather than auto-detect it.  The supported '
                 'types are {platforms}'
@@ -44,14 +46,16 @@ def main(vargs: Sequence[str]) -> int:
 
     platform = detect_platform(args.platform)
     if platform.has_error:
-        display(_("Problems found discovering the current platform:"))
+        local_display(_("Problems found discovering the current platform:"))
         display_error(platform.valid_error)
+        local_display(_("Run with `-h` argument for help using Petronia."))
         return 1
 
     foreman_config = read_configuration_file(args.config, platform.result)
     if foreman_config.has_error:
-        display(_("Problems found reading the configuration file:"))
+        local_display(_("Problems found reading the configuration file:"))
         display_error(foreman_config.valid_error)
+        local_display(_("Run with `-h` argument for help using Petronia."))
         return 1
 
     load_translation(platform.result)

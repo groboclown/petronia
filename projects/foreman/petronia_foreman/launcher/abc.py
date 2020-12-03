@@ -169,7 +169,7 @@ class AbcLauncherCategory:
         """Start a launcher within this category, with a specific list of permissions."""
         raise NotImplementedError()
 
-    async def start_extension(
+    async def start_extension(  # pylint: disable=too-many-arguments
             self,
             launcher_id: str,
             handler_id: str,

@@ -6,6 +6,8 @@ Tests for the {{module_name}} module.
 Extension {{extension_name}}, Version {{extension_version}}
 """
 
+# pylint: disable=too-many-lines,line-too-long
+
 import unittest
 from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
@@ -62,7 +64,7 @@ class {{structure_class_name}}Test(unittest.TestCase):
     ),
 {{/is_struct_type}}{{/selector_types}}
 {{/is_selector}}
-{{^is_selector}}
+{{^is_selector}}{{#has_non_optional_fields}}
     (
         'all-fields-missing',
         {},
@@ -74,7 +76,7 @@ class {{structure_class_name}}Test(unittest.TestCase):
             {{/is_optional}}{{/field_names}}
         ),
     ),
-{{/is_selector}}
+{{/has_non_optional_fields}}{{/is_selector}}
 ]
 {{/has_fields}}
 

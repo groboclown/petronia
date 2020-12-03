@@ -44,7 +44,9 @@ class TargetHandlerRuntimeContext:
         to perform the restart, then set the requested value to True."""
         raise NotImplementedError()
 
-    async def start_launcher(self, source_id: str, event: foreman.StartLauncherRequestEvent) -> None:
+    async def start_launcher(
+            self, source_id: str, event: foreman.StartLauncherRequestEvent,
+    ) -> None:
         """Signal that a launcher should be started."""
         raise NotImplementedError()
 

@@ -1,28 +1,29 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2020-11-30T18:10:35.448240
+# Created on 2020-12-02T23:38:25.052370
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
+# pylint: disable=too-many-lines,line-too-long
 
 
 from typing import (
+    Dict,
+    Union,
     SupportsFloat,
+    Any,
     List,
     SupportsInt,
     Optional,
-    Dict,
-    Any,
-    Union,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     StdRet,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
     T,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
@@ -325,8 +326,8 @@ class Arguments:
         self,
         name: str,
         value: Union[
-            str,
             int,
+            str,
             float,
         ],
     ) -> None:
@@ -340,8 +341,8 @@ class Arguments:
 
     @property
     def value(self) -> Union[
-            str,
             int,
+            str,
             float,
     ]:
         """The selector value."""
@@ -965,7 +966,8 @@ class Events:
 class ExtensionAddEventListenerEvent:
     """
     Request from the extension loader to add an event listener for an extension.
-    Failures happen silently (no response back is made).
+    Failures happen silently (no response back is made). The target_id must match
+    with the ID for the launcher that owns the extension.
     """
     __slots__ = ('extension_name', 'events',)
     FULL_EVENT_NAME = 'petronia.core.api.foreman:extension-add-event-listener'
@@ -1048,7 +1050,8 @@ class ExtensionAddEventListenerEvent:
 class ExtensionRemoveEventListenerEvent:
     """
     Request from the extension loader to remove an event listener for an extension.
-    Failures happen silently (no response back is made).
+    Failures happen silently (no response back is made). The target_id must match
+    with the ID for the launcher that owns the extension.
     """
     __slots__ = ('extension_name', 'events',)
     FULL_EVENT_NAME = 'petronia.core.api.foreman:extension-remove-event-listener'

@@ -10,7 +10,7 @@ import os
 from petronia_common.util import i18n as _
 from petronia_common.util import StdRet
 from .platform import PlatformSettings
-from ..user_message import CATALOG
+from ..constants import TRANSLATION_CATALOG as CATALOG
 
 
 DEFAULT_PETRONIA_CONFIG_FILE_NAMES = (
@@ -47,12 +47,12 @@ def discover_config_file_in(search_path: Iterable[Optional[str]]) -> StdRet[str]
             petronia_file = os.path.join(path, sub_file)
             if os.path.isfile(petronia_file):
                 return StdRet.pass_ok(petronia_file)
-            searched.append(sub_file)
+            searched.append(petronia_file)
 
     return StdRet.pass_errmsg(
         CATALOG,
         _(
             'Could not find configuration file "petronia.ini" in any of {searched}'
         ),
-        searched=searched,
+        searched='; '.join(searched),
     )

@@ -42,7 +42,7 @@ try:
             # Must close pipe input if child will block waiting for end
             # Can also be closed in a preexec_fn passed to subprocess.Popen
             fcntl.fcntl(rx_read, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
-            process = await asyncio.subprocess.create_subprocess_exec(
+            process = await asyncio.subprocess.create_subprocess_exec(  # pylint: disable=no-member
                 cmd_parts[0], *cmd_parts[1:],
                 stdin=tx_read,
                 text=False,
@@ -73,10 +73,10 @@ try:
             )
 
 
-    def make_fd_nonblocking(fd: int) -> None:
+    def make_fd_nonblocking(file_desc: int) -> None:
         """Make the file descriptor non-blocking."""
-        flags = fcntl.fcntl(fd, fcntl.F_GETFL, 0)
-        fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)  # pylint: disable=no-member
+        flags = fcntl.fcntl(file_desc, fcntl.F_GETFL, 0)
+        fcntl.fcntl(file_desc, fcntl.F_SETFL, flags | os.O_NONBLOCK)  # pylint: disable=no-member
 
 
     class ManagedPosixProcess(ManagedProcess):
@@ -84,10 +84,10 @@ try:
 
         __slots__ = ('__process', '__writer', '__exit_code')
 
-        def __init__(
+        def __init__(  # pylint: disable=too-many-arguments
                 self,
                 ident: str,
-                process: asyncio.subprocess.Process,
+                process,  # type: asyncio.subprocess.Process
                 reader: asyncio.StreamReader,
                 writer: BinaryIO,
                 temp_files: Iterable[str],
