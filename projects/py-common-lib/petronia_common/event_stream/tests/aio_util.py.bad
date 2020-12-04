@@ -1,0 +1,29 @@
+
+"""
+Common stream test helpers.
+"""
+
+from typing import Callable
+import asyncio
+from ...util import T_co
+
+
+def async_run_in_loop(func: Callable[[], T_co]) -> T_co:
+    """Run the function in an asyncio loop"""
+    async def run_it() -> T_co:
+        return func()
+    return asyncio.run(run_it())
+
+
+class AsyncBinaryWriter:
+    """Simplest implementation of a binary writer."""
+    def __init__(self) -> None:
+        self.__value = b''
+
+    async def write(self, data: bytes) -> None:
+        """Implement the binary writer protocol."""
+        self.__value += data
+
+    def getvalue(self) -> bytes:
+        """Fetch the data written to this writer."""
+        return self.__value

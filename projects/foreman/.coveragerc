@@ -1,0 +1,5 @@
+[run]
+
+# __main__ is intentionally trivial so it doesn't need tests.
+omit =
+    petronia_foreman/__main__.py

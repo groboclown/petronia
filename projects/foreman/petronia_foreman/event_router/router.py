@@ -5,9 +5,10 @@ The approach here is that there is a many-to-one relationship between
 handlers and event pipes.
 """
 
-from typing import Dict, Iterable, Tuple, Coroutine, Callable, Optional, Union, Any
-import asyncio
+from typing import Dict, Iterable, Tuple, Callable, Optional, Union
 import re
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from petronia_common.util import (
     RET_OK_NONE,
     StdRet,
@@ -15,7 +16,7 @@ from petronia_common.util import (
 )
 from petronia_common.util import i18n as _
 from petronia_common.event_stream import (
-    RawEventObject, EventForwarderTarget, BinaryWriter,
+    RawEventObject, EventForwarderTarget, BinaryWriter, BinaryReader,
     raw_event_id, raw_event_source_id, raw_event_target_id, RawEvent,
 )
 from .channel import EventChannel
@@ -36,34 +37,34 @@ class EventRouter:
     In this model, a channel represents a launcher process unit, and a handler represents a
     loaded extension within the channel.  A loaded extension can register multiple event listeners.
     """
-    __slots__ = ('__channels', '__loop', '__lock', '__target', '__reservations',)
+    __slots__ = ('__channels', '__executor', '__lock', '__target', '__reservations',)
 
     def __init__(
             self,
-            lock: asyncio.Semaphore,
+            lock: threading.Semaphore,
             target: Optional[EventForwarderTarget] = None,
-            loop: Optional[asyncio.AbstractEventLoop] = None,
+            executor: Optional[ThreadPoolExecutor] = None,
     ) -> None:
-        if loop is None:
-            self.__loop = asyncio.get_event_loop()
+        if executor is None:
+            self.__executor = ThreadPoolExecutor()
         else:
-            self.__loop = loop
+            self.__executor = executor
         self.__channels: Dict[str, EventChannel] = {}
         self.__reservations = ChannelReservations()
         self.__lock = lock
         self.__target = target
 
-    async def get_channel_for_handler(self, handler_id: str) -> Optional[str]:
+    def get_channel_for_handler(self, handler_id: str) -> Optional[str]:
         """Get the channel name that owns the handler_id."""
-        async with self.__lock:
+        with self.__lock:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
                     return channel.name
             return None
 
-    async def get_registered_channel_names(self) -> Iterable[str]:
+    def get_registered_channel_names(self) -> Iterable[str]:
         """Get all registered channel names."""
-        async with self.__lock:
+        with self.__lock:
             return list(self.__channels.keys())
 
     def add_reservation_callback(
@@ -76,12 +77,12 @@ class EventRouter:
         handler to listen in on responses from the channel."""
         return self.__reservations.add_channel_reservation_callback(channel, callback)
 
-    async def register_channel(
+    def register_channel(
             self,
             name: str,
             channel_creator: Callable[
                 [],
-                Coroutine[Any, Any, StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]],
+                StdRet[Tuple[BinaryReader, BinaryWriter]],
             ],
     ) -> StdRet[None]:
         """Perform the channel registration process.
@@ -96,14 +97,14 @@ class EventRouter:
         The channel_creator will not be called if the reservation of the channel name
         was prevented.
         """
-        async with self.__lock:
+        with self.__lock:
             reserve_resp = self.__reservations.reserve_channel(name)
             if reserve_resp.has_error:
                 return reserve_resp.forward()
             target = reserve_resp.value
-        mk_channel_resp = await channel_creator()
+        mk_channel_resp = channel_creator()
         if mk_channel_resp.has_error:
-            async with self.__lock:
+            with self.__lock:
                 self.__reservations.release_channel(name)
             return mk_channel_resp.forward()
 
@@ -115,14 +116,14 @@ class EventRouter:
             channel.add_event_consumer(target)
 
         def on_close() -> None:
-            self.__loop.create_task(self.close_channel(name))
+            self.__executor.submit(self.close_channel, name)
 
         channel.add_event_consumer(OnCloseTarget(on_close))
 
         # Register this channel with all the other channels, so it receives their messages,
         # and vice-versa.  Note that this is done before registering the new channel, so it
         # doesn't receive its own events.
-        async with self.__lock:
+        with self.__lock:
             for other in self.__channels.values():
                 other.add_event_consumer(channel)
                 channel.add_event_consumer(other)
@@ -131,11 +132,11 @@ class EventRouter:
             # Process the stream in the background.
             # Note that this is done still within the lock,
             # to prevent weird issues with close_channel.
-            self.__loop.create_task(channel.process_stream())
+            self.__executor.submit(channel.process_stream)
 
         return RET_OK_NONE
 
-    async def close_channel(self, name: str) -> bool:
+    def close_channel(self, name: str) -> bool:
         """Close the registered channel.  If the channel is already
         closed, or isn't registered, False is returned.  This is done
         automatically when the channel encounters an EOF, but there
@@ -143,7 +144,7 @@ class EventRouter:
         closing must be done outside of this."""
         # Under the covers, this removes the channel from the internal
         # lists.
-        async with self.__lock:
+        with self.__lock:
             channel = self.__channels.get(name)
             if channel:
                 del self.__channels[name]
@@ -154,7 +155,7 @@ class EventRouter:
             # then it isn't released.
             return False
 
-    async def add_handler(
+    def add_handler(
             self, channel_name: str, handler_id: str,
             produces: Iterable[str], consumes: Iterable[EventTargetHandle],
     ) -> StdRet[None]:
@@ -162,7 +163,7 @@ class EventRouter:
         handler ID is registered anywhere, or the channel does not exist, then
         an error is returned."""
         # This is intended to be an infrequent operation, so it is slow.
-        async with self.__lock:
+        with self.__lock:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
                     return StdRet.pass_errmsg(
@@ -180,43 +181,43 @@ class EventRouter:
                 )
             return maybe_channel.add_handler(handler_id, produces, consumes).forward()
 
-    async def remove_handler(self, handler_id: str) -> bool:
+    def remove_handler(self, handler_id: str) -> bool:
         """Removes the handler from its registered channel.
         Returns True if it was successfully removed."""
         # This is assumed to be an infrequent operation, so it is slow.
-        async with self.__lock:
+        with self.__lock:
             for channel in self.__channels.values():
                 if channel.remove_handler(handler_id):
                     return True
             return False
 
-    async def add_handler_listener(
+    def add_handler_listener(
             self,
             handler_id: str,
             event_id: Optional[str], target_id: Optional[str],
     ) -> bool:
         """Registers the event / target listener with the handler."""
-        async with self.__lock:
+        with self.__lock:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
                     ret = channel.add_handler_listener(handler_id, event_id, target_id)
                     return ret.ok
         return False
 
-    async def remove_handler_listener(
+    def remove_handler_listener(
             self,
             handler_id: str,
             event_id: Optional[str], target_id: Optional[str],
     ) -> bool:
         """Removes the event / target listener from the handler."""
-        async with self.__lock:
+        with self.__lock:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
                     ret = channel.remove_handler_listener(handler_id, event_id, target_id)
                     return ret.ok
         return False
 
-    async def inject_event(self, event: RawEventObject) -> StdRet[None]:
+    def inject_event(self, event: RawEventObject) -> StdRet[None]:
         """Injects an event into all the channels.
         If the event can be sent to multiple channels, then all the
         channels will be called, regardless of whether any one generates
@@ -230,18 +231,18 @@ class EventRouter:
         target_id = raw_event_target_id(event)
 
         channels = []
-        async with self.__lock:
+        with self.__lock:
             for channel in self.__channels.values():
                 if channel.can_consume(event_id, source_id, target_id):
                     channels.append(channel)
 
         for channel in channels:
-            res = await channel.consume(event)
+            res = channel.consume(event)
             if res:
-                await self.close_channel(channel.name)
+                self.close_channel(channel.name)
         return RET_OK_NONE
 
-    async def inject_event_to_channel(
+    def inject_event_to_channel(
             self, channel_name: str, event: RawEventObject,
     ) -> StdRet[None]:
         """Injects an event into a single channel.  Used for a more secure communication.
@@ -253,7 +254,7 @@ class EventRouter:
         source_id = raw_event_source_id(event)
         target_id = raw_event_target_id(event)
 
-        async with self.__lock:
+        with self.__lock:
             channel = self.__channels.get(channel_name)
             if not channel:
                 return StdRet.pass_errmsg(
@@ -262,9 +263,9 @@ class EventRouter:
                     channel=channel_name,
                 )
         if channel.can_consume(event_id, source_id, target_id):
-            res = await channel.consume(event)
+            res = channel.consume(event)
             if res:
-                await self.close_channel(channel_name)
+                self.close_channel(channel_name)
         return RET_OK_NONE
 
     def _on_channel_consume_error(self, _name: str, error: PetroniaReturnError) -> bool:
@@ -284,7 +285,7 @@ class OnCloseTarget(EventForwarderTarget):
     def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         return False
 
-    async def consume(self, event: RawEvent) -> bool:
+    def consume(self, event: RawEvent) -> bool:
         return False
 
     def on_error(self, error: PetroniaReturnError) -> bool:

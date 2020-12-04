@@ -2,10 +2,11 @@
 
 from typing import Tuple
 import unittest
-import asyncio
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from petronia_common.event_stream import (
     BinaryWriter,
-    to_raw_event_object,
+    to_raw_event_object, BinaryReader,
 )
 from petronia_common.util import StdRet, PetroniaReturnError, i18n
 from .. import router
@@ -41,12 +42,9 @@ class OnCloseTargetTest(unittest.TestCase):
         """Run the consume method."""
         target = router.OnCloseTarget(self._callback)
 
-        async def run_test() -> None:
-            res = await target.consume(to_raw_event_object('x', 'y', 'z', {}))
-            self.assertFalse(res)
-            self.assertEqual(0, self.count[0])
-
-        asyncio.run(run_test())
+        res = target.consume(to_raw_event_object('x', 'y', 'z', {}))
+        self.assertFalse(res)
+        self.assertEqual(0, self.count[0])
 
 
 class EventRouterTest(unittest.TestCase):
@@ -55,41 +53,36 @@ class EventRouterTest(unittest.TestCase):
     def test_register_channel__blocked(self) -> None:
         """Test register_channel when the registration callback blocks it."""
 
-        async def create_reader_writer() -> StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]:
+        def create_reader_writer() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
             raise Exception('Should not be called')
 
-        async def run_test() -> None:
-            lock = asyncio.Semaphore()
-            event_router = router.EventRouter(lock)
-            event_router.add_reservation_callback('ch', lambda _: StdRet.pass_errmsg(
-                'x', i18n('expected error'),
-            ))
-            res = await event_router.register_channel('ch', create_reader_writer)
-            self.assertTrue(res.has_error)
-            self.assertEqual(
-                'expected error',
-                res.valid_error.messages()[0].message,
-            )
-
-        asyncio.run(run_test())
+        executor = ThreadPoolExecutor()
+        lock = threading.Semaphore()
+        event_router = router.EventRouter(lock, executor=executor)
+        event_router.add_reservation_callback('ch', lambda _: StdRet.pass_errmsg(
+            'x', i18n('expected error'),
+        ))
+        res = event_router.register_channel('ch', create_reader_writer)
+        self.assertTrue(res.has_error)
+        self.assertEqual(
+            'expected error',
+            res.valid_error.messages()[0].message,
+        )
 
     def test_close_channel__unregistered(self) -> None:
         """Test register_channel when the registration callback blocks it."""
 
-        async def create_reader_writer() -> StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]:
+        def create_reader_writer() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
             raise Exception('Should not be called')
 
-        async def run_test() -> None:
-            lock = asyncio.Semaphore()
-            event_router = router.EventRouter(lock)
-            event_router.add_reservation_callback('ch', lambda _: StdRet.pass_errmsg(
-                'x', i18n('expected error'),
-            ))
-            res = await event_router.register_channel('ch', create_reader_writer)
-            self.assertTrue(res.has_error)
-            self.assertEqual(
-                'expected error',
-                res.valid_error.messages()[0].message,
-            )
-
-        asyncio.run(run_test())
+        lock = threading.Semaphore()
+        event_router = router.EventRouter(lock)
+        event_router.add_reservation_callback('ch', lambda _: StdRet.pass_errmsg(
+            'x', i18n('expected error'),
+        ))
+        res = event_router.register_channel('ch', create_reader_writer)
+        self.assertTrue(res.has_error)
+        self.assertEqual(
+            'expected error',
+            res.valid_error.messages()[0].message,
+        )

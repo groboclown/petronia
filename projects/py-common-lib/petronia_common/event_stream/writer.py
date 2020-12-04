@@ -22,11 +22,10 @@ class BinaryWriter(Protocol):
     write method that takes bytes.  The writer doesn't need to be
     an async writer or any other fancy thing."""
 
-    def write(self, data: bytes) -> None:
-        """Standard write method."""
+    def write(self, data: bytes) -> None: ...  # pylint: disable=C0116  # pragma no cover
 
 
-async def write_binary_event_to_stream(
+def write_binary_event_to_stream(
         stream: BinaryWriter,
         event_id: str,
         source_id: str,
@@ -133,7 +132,7 @@ async def write_binary_event_to_stream(
     else:
         remaining = binary_blob_size
         while remaining > 0:
-            data = await binary_blob(MAX_READ_SIZE)
+            data = binary_blob(MAX_READ_SIZE)
             if not data:
                 # fill in the rest of the packet data to avoid
                 # stream errors
@@ -149,7 +148,7 @@ async def write_binary_event_to_stream(
     return RET_OK_NONE
 
 
-async def write_object_event_to_stream(
+def write_object_event_to_stream(
         stream: BinaryWriter,
         event_id: str,
         source_id: str,

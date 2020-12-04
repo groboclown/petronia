@@ -15,8 +15,7 @@ Reads low-level streaming event data.
 # pylint: disable=R1723
 
 
-from typing import Callable, Tuple, List, Dict, Optional, Coroutine, Any, final
-import asyncio
+from typing import Callable, Tuple, List, Dict, Optional, Protocol, Any, final
 import json
 from . import consts
 from .defs import RawEvent, RawBinaryReader, to_raw_event_binary, to_raw_event_object
@@ -28,9 +27,14 @@ from ..util import (
 from ..util import i18n as _
 
 
-async def read_event_stream(
-        stream: asyncio.StreamReader,
-        event_listener: Callable[[RawEvent], Coroutine[Any, Any, bool]],
+class BinaryReader(Protocol):
+    """Standard API for binary reader objects."""
+    def read(self, max_read_size: int = -1) -> bytes: ...  # pylint: disable=C0116  # pragma no cover
+
+
+def read_event_stream(
+        stream: BinaryReader,
+        event_listener: Callable[[RawEvent], bool],
         end_of_stream_listener: Callable[[], None],
         error_listener: Callable[[PetroniaReturnError], bool],
 ) -> None:
@@ -43,23 +47,17 @@ async def read_event_stream(
     This function will never close the stream by itself.  If an error is encountered while
     reading the event data, the reader will attempt to recover as best as it can, then
     call the listener with an error argument.
-
-    :param error_listener:
-    :param end_of_stream_listener:
-    :param event_listener:
-    :param stream:
-    :return:
     """
     marked_stream = MarkedStreamReader(stream)
     while True:
-        raw_event, error, eof = await parse_raw_event(marked_stream)
+        raw_event, error, eof = parse_raw_event(marked_stream)
         if error:
             # error parsing an event.
             if error_listener(error):
                 return
         if raw_event:
             # raw data parsed
-            if await event_listener(raw_event):
+            if event_listener(raw_event):
                 return
         if eof:
             # End-of-stream
@@ -75,7 +73,7 @@ class MarkedStreamReader:
     __slots__ = ('__last_mark', '__stream', '__current')
 
     def __init__(
-            self, stream: asyncio.StreamReader, current: Optional[List[int]] = None,
+            self, stream: BinaryReader, current: Optional[List[int]] = None,
     ) -> None:
         self.__current: List[int]
         if current is None:
@@ -96,16 +94,16 @@ class MarkedStreamReader:
         return ret
 
     @final
-    async def marked_read(self, count: int) -> bytes:
+    def marked_read(self, count: int) -> bytes:
         """Attempt a read, paying attention to out-of-order reading."""
         if self.__last_mark != self.__current[0]:
             raise RuntimeError('Illegal out-of-order event stream read')
         self.__last_mark = (count + self.__last_mark) & 0xffffffff
         self.__current[0] = self.__last_mark
-        return await self.__stream.read(count)
+        return self.__stream.read(count)
 
 
-async def parse_raw_event(
+def parse_raw_event(
         stream: MarkedStreamReader,
 ) -> Tuple[Optional[RawEvent], Optional[PetroniaReturnError], bool]:
     """
@@ -137,7 +135,7 @@ async def parse_raw_event(
         # A general state loop, looking for the packet start.
         # To be fully resilient to errors, we could maintain a buffer of read data,
         # and on error, go back and look for the marker.  But that seems like overkill.
-        read_byte = await stream.marked_read(1)
+        read_byte = stream.marked_read(1)
         if read_byte == consts.EMPTY_BINARY:
             # End-of-stream reached.
             if state != STATE_INIT:
@@ -177,10 +175,10 @@ async def parse_raw_event(
 
     assert state == STATE_EVENT_ID_EXPECTING_MARKER
 
-    async def read_stream(count: int) -> Tuple[Optional[PetroniaReturnError], bytes]:
+    def read_stream(count: int) -> Tuple[Optional[PetroniaReturnError], bytes]:
         read_data = b''
         while count > 0:
-            next_data = await stream.marked_read(count)
+            next_data = stream.marked_read(count)
             if next_data == consts.EMPTY_BINARY:
                 error_messages.append(UserMessage(
                     STANDARD_PETRONIA_CATALOG,
@@ -191,10 +189,10 @@ async def parse_raw_event(
             read_data += next_data
         return None, read_data
 
-    async def advance_stream(count: int) -> Optional[PetroniaReturnError]:
+    def advance_stream(count: int) -> Optional[PetroniaReturnError]:
         while count > 0:
             # Because this is throwing away data, don't read in too much at once.
-            next_data = await stream.marked_read(min(65535, count))
+            next_data = stream.marked_read(min(65535, count))
             if next_data == consts.EMPTY_BINARY:
                 error_messages.append(UserMessage(
                     STANDARD_PETRONIA_CATALOG,
@@ -207,7 +205,7 @@ async def parse_raw_event(
     # =======================================================================
     # Event ID parsing.
     # Start by reading the marker + 2 length bytes.
-    ret_err, read_byte = await read_stream(3)
+    ret_err, read_byte = read_stream(3)
     if ret_err:
         return None, ret_err, True
     if read_byte[0] != consts.BINARY_EVENT_ID_MARKER_INT:
@@ -238,11 +236,11 @@ async def parse_raw_event(
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
         ))
-        ret_err = await advance_stream(event_id_remaining)
+        ret_err = advance_stream(event_id_remaining)
         if ret_err:
             return None, ret_err, True
     else:
-        ret_err, read_byte = await read_stream(event_id_remaining)
+        ret_err, read_byte = read_stream(event_id_remaining)
         if ret_err:
             return None, ret_err, True
         try:
@@ -260,7 +258,7 @@ async def parse_raw_event(
     # Source ID
     # Start by reading the marker + 2 length bytes.
     decoded_source_id = ''
-    ret_err, read_byte = await read_stream(3)
+    ret_err, read_byte = read_stream(3)
     if ret_err:
         return None, ret_err, True
     if read_byte[0] != consts.BINARY_SOURCE_ID_MARKER_INT:
@@ -291,11 +289,11 @@ async def parse_raw_event(
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
         ))
-        ret_err = await advance_stream(source_id_remaining)
+        ret_err = advance_stream(source_id_remaining)
         if ret_err:
             return None, ret_err, True
     else:
-        ret_err, read_byte = await read_stream(source_id_remaining)
+        ret_err, read_byte = read_stream(source_id_remaining)
         if ret_err:
             return None, ret_err, True
         try:
@@ -313,7 +311,7 @@ async def parse_raw_event(
     # Target ID
     # Start by reading the marker + 2 length bytes.
     decoded_target_id = ''
-    ret_err, read_byte = await read_stream(3)
+    ret_err, read_byte = read_stream(3)
     if ret_err:
         return None, ret_err, True
     if read_byte[0] != consts.BINARY_TARGET_ID_MARKER_INT:
@@ -344,11 +342,11 @@ async def parse_raw_event(
             n=consts.MIN_ID_SIZE,
             x=consts.MAX_ID_SIZE,
         ))
-        ret_err = await advance_stream(target_id_remaining)
+        ret_err = advance_stream(target_id_remaining)
         if ret_err:
             return None, ret_err, True
     else:
-        ret_err, read_byte = await read_stream(target_id_remaining)
+        ret_err, read_byte = read_stream(target_id_remaining)
         if ret_err:
             return None, ret_err, True
         try:
@@ -366,7 +364,7 @@ async def parse_raw_event(
     # Content Type Detection
     # Start by reading the marker by itself
     # Reading 1 byte, so easy reading...
-    read_byte = await stream.marked_read(1)
+    read_byte = stream.marked_read(1)
     if read_byte == consts.EMPTY_BINARY:
         error_messages.append(UserMessage(
             STANDARD_PETRONIA_CATALOG,
@@ -378,7 +376,7 @@ async def parse_raw_event(
         # Json Reading
 
         # Read in the size first...
-        ret_err, read_byte = await read_stream(2)
+        ret_err, read_byte = read_stream(2)
         if ret_err:
             return None, ret_err, True
         data_contents_length = (read_byte[0] << 8) + read_byte[1]
@@ -390,7 +388,7 @@ async def parse_raw_event(
                 n=consts.MIN_JSON_SIZE,
                 x=consts.MAX_JSON_SIZE,
             ))
-            ret_err = await advance_stream(data_contents_length)
+            ret_err = advance_stream(data_contents_length)
             if ret_err:
                 return None, ret_err, True
             return None, possible_error(messages=error_messages), False
@@ -403,11 +401,11 @@ async def parse_raw_event(
                 n=consts.MIN_JSON_SIZE,
                 x=consts.MAX_JSON_SIZE,
             ))
-            ret_err = await advance_stream(data_contents_length)
+            ret_err = advance_stream(data_contents_length)
             if ret_err:
                 return None, ret_err, True
             return None, possible_error(messages=error_messages), False
-        ret_err, read_byte = await read_stream(data_contents_length)
+        ret_err, read_byte = read_stream(data_contents_length)
         if ret_err:
             return None, ret_err, True
 
@@ -448,7 +446,7 @@ async def parse_raw_event(
         # Blob Reading
 
         # read in the size first
-        ret_err, read_byte = await read_stream(3)
+        ret_err, read_byte = read_stream(3)
         if ret_err:
             return None, ret_err, True
         data_contents_length = (read_byte[0] << 16) + (read_byte[1] << 8) + read_byte[2]
@@ -475,7 +473,7 @@ async def parse_raw_event(
                 _("binary blob data must have a length in the range [{n}, {x}]"),
                 n=consts.MIN_BLOB_SIZE, x=consts.MAX_BLOB_SIZE,
             ))
-            ret_err = await advance_stream(data_contents_length)
+            ret_err = advance_stream(data_contents_length)
             if ret_err:
                 return None, ret_err, True
             return None, join_errors(*error_messages), False
@@ -488,7 +486,7 @@ async def parse_raw_event(
             return (
                 to_raw_event_binary(
                     decoded_event_id, decoded_source_id, decoded_target_id, data_contents_length,
-                    await get_reader(stream, data_contents_length),
+                    get_reader(stream, data_contents_length),
                 ),
                 None,
                 False,
@@ -507,14 +505,14 @@ async def parse_raw_event(
         )), False
 
 
-async def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryReader:
+def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinaryReader:
     """Returns a packet data reader, optimized for the packet size."""
     if data_size <= 0:
         return empty_reader
 
     # In-memory pipe
     if data_size < MEMORY_READER_SIZE:
-        return static_reader(await marked_stream.marked_read(data_size))
+        return static_reader(marked_stream.marked_read(data_size))
 
     # This is very, very unsafe in the general case.
     #   A poorly written application could fetch the object,
@@ -529,7 +527,7 @@ async def get_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBi
 
 
 # noinspection PyUnusedLocal
-async def empty_reader(max_read_count: int = -1) -> bytes:  # pylint: disable=W0613
+def empty_reader(max_read_count: int = -1) -> bytes:  # pylint: disable=W0613
     """Simple reader for 0-length packet data."""
     return consts.EMPTY_BINARY
 
@@ -540,7 +538,7 @@ def static_reader(data: bytes) -> RawBinaryReader:
     removes it after it's been read."""
     remainder = [data, len(data)]
 
-    async def reader_func(max_read_count: int = -1) -> bytes:
+    def reader_func(max_read_count: int = -1) -> bytes:
         remaining_length: int = remainder[1]  # type: ignore
         if remaining_length <= 0:
             return consts.EMPTY_BINARY
@@ -563,14 +561,14 @@ def piped_reader(marked_stream: MarkedStreamReader, data_size: int) -> RawBinary
     """Creates a reader for large packet sizes, so it isn't read all into memory at once."""
     context: List[int] = [data_size]
 
-    async def reader_func(max_read_count: int = -1) -> bytes:
+    def reader_func(max_read_count: int = -1) -> bytes:
         if context[0] <= 0:
             return consts.EMPTY_BINARY
         if max_read_count <= 0 or max_read_count >= context[0]:
             expected_read_count = context[0]
         else:
             expected_read_count = max_read_count
-        ret = await marked_stream.marked_read(expected_read_count)
+        ret = marked_stream.marked_read(expected_read_count)
         context[0] = max(0, context[0] - len(ret))
         return ret
 

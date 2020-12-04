@@ -7,7 +7,6 @@ back into the channel.
 """
 
 from typing import Iterable, Callable, Coroutine, Optional, Any
-import asyncio
 from petronia_common.util import (
     StdRet, PetroniaReturnError,
 )
@@ -24,9 +23,11 @@ from petronia_common.event_stream import (
     EventForwarderTarget,
     EventForwarder,
     BinaryWriter,
+    BinaryReader,
     write_object_event_to_stream,
     write_binary_event_to_stream,
 )
+from petronia_common.event_stream.thread_stream import ThreadedStreamForwarder
 from .handler import EventHandlerSet, EventTargetHandle
 from ..user_message import CATALOG
 
@@ -48,20 +49,22 @@ class EventChannel(EventForwarderTarget):
     def __init__(
             self,
             name: str,
-            reader: asyncio.StreamReader,
+            reader: BinaryReader,
             writer: BinaryWriter,
             on_error: Callable[[str, PetroniaReturnError], bool],
     ) -> None:
         self.__name = name
-        self.__forwarder = EventForwarder(reader, self._cant_produce)
+        self.__forwarder = EventForwarder(
+            reader, ThreadedStreamForwarder(), self._cant_produce,
+        )
         self.__writer = writer
         self.__handlers = EventHandlerSet()
         self.__on_error = on_error
         self.__alive = True
 
-    async def process_stream(self) -> None:
+    def process_stream(self) -> None:
         """Run the stream processing."""
-        await self.__forwarder.handle_source()
+        self.__forwarder.handle_source()
 
     @property
     def name(self) -> str:
@@ -171,7 +174,7 @@ class EventChannel(EventForwarderTarget):
         # about it.  This channel doesn't care about that message.
         pass
 
-    async def consume(self, event: RawEvent) -> bool:
+    def consume(self, event: RawEvent) -> bool:
         # can_consume has already been called and returned True.
         if not self.__alive:
             return True
@@ -180,7 +183,7 @@ class EventChannel(EventForwarderTarget):
         target_id = raw_event_target_id(event)
         ret: StdRet[None]
         if is_raw_event_object(event):
-            ret = await write_object_event_to_stream(
+            ret = write_object_event_to_stream(
                 self.__writer,
                 event_id,
                 source_id,
@@ -188,7 +191,7 @@ class EventChannel(EventForwarderTarget):
                 as_raw_event_object_data(event),
             )
         else:
-            ret = await write_binary_event_to_stream(
+            ret = write_binary_event_to_stream(
                 self.__writer,
                 event_id,
                 source_id,

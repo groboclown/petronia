@@ -3,15 +3,14 @@
 Type definitions for the event stream.
 """
 
-from typing import Tuple, Dict, Union, Protocol, Coroutine, Any, cast
+from typing import Tuple, Dict, Union, Protocol, Any, cast
 
 
-# RawBinaryReader = Callable[[Optional[int]], Coroutine[bytes]]
 class RawBinaryReader(Protocol):
     """Function to read binary data, up to a maximum number of bytes per call."""
     def __call__(  # pragma no cover
         self, max_read_count: int = -1,
-    ) -> Coroutine[Any, Any, bytes]: ...
+    ) -> bytes: ...
 
 
 # What it should be ...

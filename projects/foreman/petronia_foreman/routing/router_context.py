@@ -3,8 +3,7 @@ Context for the router target handlers.
 """
 
 from typing import Dict, Callable, Union, Optional
-import asyncio
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 from petronia_common.event_stream import RawEventObject, to_raw_event_object
 from petronia_common.util import PetroniaReturnError, UserMessage
 from petronia_common.util import i18n as _
@@ -32,6 +31,7 @@ class RouterContext(TargetHandlerRuntimeContext):
             generate_event: Callable[[RawEventObject], None],
             add_handler_listener: Callable[[str, Optional[str], Optional[str]], None],
             remove_handler_listener: Callable[[str, Optional[str], Optional[str]], None],
+            executor: ThreadPoolExecutor,
     ) -> None:
         self.__categories = dict(categories)
         self.__shutdown = shutdown
@@ -39,15 +39,15 @@ class RouterContext(TargetHandlerRuntimeContext):
         self.__generate_event = generate_event
         self.__add_handler_listener = add_handler_listener
         self.__remove_handler_listener = remove_handler_listener
-        self.__executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self.__executor = executor
 
-    async def do_shutdown(self) -> None:
-        asyncio.get_running_loop().run_in_executor(None, self.__shutdown)
+    def do_shutdown(self) -> None:
+        self.__executor.submit(self.__shutdown)
 
-    async def do_restart(self, requested: bool, error: Optional[PetroniaReturnError]) -> None:
-        asyncio.get_running_loop().run_in_executor(None, self.__restart)
+    def do_restart(self, requested: bool, error: Optional[PetroniaReturnError]) -> None:
+        self.__executor.submit(self.__restart)
 
-    async def _async_inject_event(
+    def _async_inject_event(
             self, event_id: str, source_id: str, target_id: str,
             event: Union[
                 foreman.StartLauncherSuccessEvent,
@@ -57,8 +57,7 @@ class RouterContext(TargetHandlerRuntimeContext):
             ],
     ) -> None:
         """Runs the event in the background of the current loop."""
-        asyncio.get_running_loop().run_in_executor(
-            self.__executor,
+        self.__executor.submit(
             self.__generate_event,
             to_raw_event_object(event_id, source_id, target_id, event.export_data()),
         )
@@ -77,7 +76,7 @@ class RouterContext(TargetHandlerRuntimeContext):
             to_raw_event_object(event_id, source_id, target_id, event.export_data())
         )
 
-    async def start_launcher(
+    def start_launcher(
             self, source_id: str, event: foreman.StartLauncherRequestEvent,
     ) -> None:
         category_name = event.launcher
@@ -88,7 +87,7 @@ class RouterContext(TargetHandlerRuntimeContext):
                 _('Requested to start unknown launcher category ({name})'),
                 name=category_name,
             ))
-            await self._async_inject_event(
+            self._async_inject_event(
                 event_id=foreman.StartLauncherFailedEvent.FULL_EVENT_NAME,
                 source_id=foreman.StartLauncherRequestEvent.UNIQUE_TARGET_FQN,
                 target_id=source_id,
@@ -109,9 +108,9 @@ class RouterContext(TargetHandlerRuntimeContext):
             for p in event.permissions
         }
 
-        async def in_parallel() -> None:
+        def in_parallel() -> None:
             assert category is not None  # mypy requirement
-            res = await category.start_launcher(launcher_id, permissions)
+            res = category.start_launcher(launcher_id, permissions)
             if res.ok:
                 target_id = launcher_id_as_target_id(launcher_id)
                 # Run in parallel, so let the generate just run.
@@ -139,9 +138,9 @@ class RouterContext(TargetHandlerRuntimeContext):
                 ),
             )
 
-        asyncio.create_task(in_parallel())
+        self.__executor.submit(in_parallel)
 
-    async def load_extension(
+    def load_extension(
             self, source_id: str, target_id: str, event: foreman.LauncherLoadExtensionRequestEvent,
     ) -> None:
         launcher_id = target_id_as_launcher_id(target_id)
@@ -151,7 +150,7 @@ class RouterContext(TargetHandlerRuntimeContext):
                 _('Requested to load extension ({name}) for non-launcher target ({target})'),
                 name=event.name, target=target_id,
             ))
-            await self._async_inject_event(
+            self._async_inject_event(
                 event_id=foreman.LauncherLoadExtensionFailedEvent.FULL_EVENT_NAME,
                 source_id=target_id,
                 target_id=source_id,
@@ -167,9 +166,9 @@ class RouterContext(TargetHandlerRuntimeContext):
             )
             return
 
-        async def start_extension(cat: AbcLauncherCategory, cat_name: str) -> None:
+        def start_extension(cat: AbcLauncherCategory, cat_name: str) -> None:
             assert launcher_id is not None  # mypy requirement
-            res = await cat.start_extension(
+            res = cat.start_extension(
                 launcher_id,
                 create_handler_id(cat_name, launcher_id, event.name),
                 event.name,
@@ -201,7 +200,7 @@ class RouterContext(TargetHandlerRuntimeContext):
         # note that launcher id == channel name.
         for category_name, category in self.__categories.items():
             if launcher_id in category.get_active_launcher_ids():
-                asyncio.create_task(start_extension(category, category_name))
+                self.__executor.submit(start_extension, category, category_name)
                 return
 
         # No such launcher_id active.
@@ -213,7 +212,7 @@ class RouterContext(TargetHandlerRuntimeContext):
             ),
             launcher=launcher_id, target=target_id, name=event.name,
         ))
-        await self._async_inject_event(
+        self._async_inject_event(
             event_id=foreman.LauncherLoadExtensionFailedEvent.FULL_EVENT_NAME,
             source_id=target_id,
             target_id=source_id,
@@ -228,7 +227,7 @@ class RouterContext(TargetHandlerRuntimeContext):
             ),
         )
 
-    async def add_event_listener(
+    def add_event_listener(
             self, target_id: str, event: foreman.ExtensionAddEventListenerEvent,
     ) -> None:
         launcher_id = target_id_as_launcher_id(target_id)
@@ -258,7 +257,7 @@ class RouterContext(TargetHandlerRuntimeContext):
             launcher=launcher_id, target=target_id,
         ))
 
-    async def remove_event_listener(
+    def remove_event_listener(
             self, target_id: str, event: foreman.ExtensionRemoveEventListenerEvent,
     ) -> None:
         launcher_id = target_id_as_launcher_id(target_id)

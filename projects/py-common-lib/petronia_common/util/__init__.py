@@ -12,7 +12,7 @@ from .memory import (
     EMPTY_DICT,
     EMPTY_LIST,
     readonly_dict,
-    T, K, V,
+    T, K, V, T_co,
 )
 
 from .message import (

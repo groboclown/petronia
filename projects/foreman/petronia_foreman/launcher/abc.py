@@ -2,9 +2,8 @@
 Abstract class for all launchers.
 """
 
-from typing import Tuple, Sequence, Mapping, List, Iterable, Callable, Coroutine, Any
-import asyncio
-from petronia_common.event_stream import BinaryWriter
+from typing import Tuple, Sequence, Mapping, List, Iterable, Callable
+from petronia_common.event_stream import BinaryWriter, BinaryReader
 from petronia_common.util import StdRet, readonly_dict
 from ..configuration import PlatformSettings
 from ..event_router.handler import EventTargetHandle
@@ -23,7 +22,7 @@ class RuntimeContext:
             name: str,
             channel_creator: Callable[
                 [],
-                Coroutine[Any, Any, StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]],
+                StdRet[Tuple[BinaryReader, BinaryWriter]],
             ],
     ) -> StdRet[None]:
         """Creates the channel."""
@@ -57,53 +56,6 @@ class RuntimeContext:
         raise NotImplementedError()
 
     def remove_handler_listener(
-            self,
-            handler_id: str,
-            event_id: str, target_id: str,
-    ) -> bool:
-        """Removes the event / target listener from the handler."""
-        # TODO this may be removed in the future.
-        raise NotImplementedError()
-
-    async def async_register_channel(
-            self,
-            name: str,
-            channel_creator: Callable[
-                [],
-                Coroutine[Any, Any, StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]],
-            ],
-    ) -> StdRet[None]:
-        """Creates the channel."""
-        raise NotImplementedError()
-
-    async def async_close_channel(self, name: str) -> bool:
-        """Closes the channel."""
-        raise NotImplementedError()
-
-    async def async_add_handler(
-            self, channel_name: str, handler_id: str,
-            produces: Iterable[str], consumes: Iterable[EventTargetHandle],
-    ) -> StdRet[None]:
-        """Adds the handler to the channel with the given name.  If the
-        handler ID is registered anywhere, or the channel does not exist, then
-        an error is returned."""
-        raise NotImplementedError()
-
-    async def async_remove_handler(self, handler_id: str) -> bool:
-        """Removes the handler from its registered channel.
-        Returns True if it was successfully removed."""
-        raise NotImplementedError()
-
-    async def async_add_handler_listener(
-            self,
-            handler_id: str,
-            event_id: str, target_id: str,
-    ) -> bool:
-        """Registers the event / target listener with the handler."""
-        # TODO this may be removed in the future.
-        raise NotImplementedError()
-
-    async def async_remove_handler_listener(
             self,
             handler_id: str,
             event_id: str, target_id: str,
@@ -157,11 +109,11 @@ class AbcLauncherCategory:
         """Is this launcher valid, including all options?"""
         raise NotImplementedError()
 
-    async def initialize(self, context: RuntimeContext) -> StdRet[None]:
+    def initialize(self, context: RuntimeContext) -> StdRet[None]:
         """Initialize the launcher.  Only called once."""
         raise NotImplementedError()
 
-    async def start_launcher(
+    def start_launcher(
             self,
             launcher_id: str,
             permissions: Mapping[str, List[str]],
@@ -169,14 +121,14 @@ class AbcLauncherCategory:
         """Start a launcher within this category, with a specific list of permissions."""
         raise NotImplementedError()
 
-    async def start_extension(  # pylint: disable=too-many-arguments
+    def start_extension(  # pylint: disable=too-many-arguments
             self,
             launcher_id: str,
             handler_id: str,
             extension_name: str,
             extension_version: Tuple[int, int, int],
             location: str,
-    ) -> StdRet[str]:
+    ) -> StdRet[None]:
         """Start the extension as requested by the event.  This will need to register with the
         RuntimeContext a new handler, and what events the extension is capable of consuming and
         producing."""
@@ -186,13 +138,13 @@ class AbcLauncherCategory:
         """Get the list of all active launcher IDs."""
         raise NotImplementedError()
 
-    async def stop_launcher(self, launcher_id: str) -> StdRet[None]:
+    def stop_launcher(self, launcher_id: str) -> StdRet[None]:
         """Stops the specific launcher.  If the launcher is not registered or not running, then
         the appropriate error is returned.  This should run until the launcher is completely
         stopped."""
         raise NotImplementedError()
 
-    async def stop(self) -> StdRet[None]:
+    def stop(self) -> StdRet[None]:
         """Stop all running launchers and shuts down the category.  Called only once."""
         raise NotImplementedError()
 

@@ -60,8 +60,8 @@ def load_translation(_settings: PlatformSettings) -> None:
         return
     domain_list_file = os.path.join(data_dir, 'catalog.list')
     if os.path.isfile(domain_list_file):
-        with open(domain_list_file, 'r') as f:
-            for line in f.readlines():
+        with open(domain_list_file, 'r') as f_obj:
+            for line in f_obj.readlines():
                 gettext.bindtextdomain(line, data_dir)
     else:
         print(f"No file {domain_list_file} found.  Not loading translations.")

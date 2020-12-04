@@ -28,7 +28,7 @@ class BootConfig:
         self._native_launcher = config.get(section_name, 'native-launcher', fallback=None) or None
         boot_order_str = config.get(section_name, 'boot-order', fallback=None) or ''
         boot_order: List[str] = []
-        for name in boot_order_str:
+        for name in boot_order_str.split(','):
             name = name.strip()
             if name:
                 boot_order.append(name)

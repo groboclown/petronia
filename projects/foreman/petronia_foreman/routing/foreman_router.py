@@ -1,12 +1,13 @@
 """The routing mechanism specific to foreman, with all the foreman logic."""
 
-from typing import Dict, List, Tuple, Iterable, Callable, Coroutine, Optional, Any
-import asyncio
-import sys
+from typing import Dict, List, Tuple, Iterable, Callable, Optional
 import threading
-import concurrent.futures
+import time
+from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
-from petronia_common.event_stream import EventForwarderTarget, BinaryWriter, RawEventObject
+from petronia_common.event_stream import (
+    EventForwarderTarget, BinaryWriter, RawEventObject, BinaryReader,
+)
 from petronia_common.util import StdRet, UserMessage, collect_errors_from, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .event_handlers import ExtensionLoaderTarget, InternalTarget
@@ -38,7 +39,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
     the main thread.
     """
     __slots__ = (
-        '__platform', '__category_states', '__loop', '__state', '__queue', '__lock',
+        '__platform', '__category_states', '__executor', '__state', '__queue', '__lock',
         '__state_condition', '__thread', 'stop_timeout',
     )
 
@@ -52,7 +53,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             config.launcher_name: LauncherCategoryState(config)
             for config in categories
         }
-        self.__loop: Optional[asyncio.AbstractEventLoop] = None
+        self.__executor: Optional[ThreadPoolExecutor] = None
         self.__state = 0
         self.__lock = threading.RLock()
         self.__queue = Queue()  # type: Queue[str]
@@ -90,6 +91,20 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                     # Keep looping until it's started.
                     continue
         return True
+
+    def join(self, timeout: Optional[float] = None) -> bool:
+        """Wait for the state to be stopped."""
+        end_time = time.time() + (timeout or 0.0)
+        while True:
+            if timeout is not None and end_time > time.time():
+                return False
+            with self.__lock:
+                if self.__state == _STATE_STOPPED:
+                    return True
+            current_thread = self.__thread
+            if current_thread:
+                # Signal friendly join.
+                current_thread.join(1)
 
     def stop(self, timeout: Optional[float] = None) -> bool:
         """Stops the router and waits for it to stop.  If the router is not running, then this
@@ -136,47 +151,49 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         with self.__lock:
             assert self.__state == _STATE_BOOTING, 'Not in correct state to start thread'
 
-        async def runner() -> None:
-            sem = asyncio.Semaphore()
-            loop = asyncio.get_event_loop()
-            router, categories = self._create_router_launchers(sem, loop=loop)
+        sem = threading.Semaphore()
+        executor = ThreadPoolExecutor()
+        router, categories = self._create_router_launchers(sem, executor)
 
-            while True:
-                print("Runner loop.")
-                event = self.__queue.get(block=True)
-                print(f" - processing {event}")
-                if event.startswith(_REQUEST_LAUNCH):
-                    launcher_config_name = event[len(_REQUEST_LAUNCH):]
-                    loop.create_task(ForemanRouter._add_boot_launcher(launcher_config_name, categories))
-                elif event == _REQUEST_STOP:
-                    # Changing the state requires acquiring the lock and sending a
-                    # notification.
-                    with self.__lock:
-                        self.__state = _STATE_STOPPING
-                        self.__state_condition.notify_all()
-                        # Empty out the queue, so that the next execution doesn't pick up weird stuff.
-                        # Only do this from within the lock.
-                        try:
-                            while True:
-                                self.__queue.get_nowait()
-                        except Empty:
-                            pass
+        with self.__lock:
+            self.__state = _STATE_RUNNING
+            self.__state_condition.notify_all()
 
-                    await ForemanRouter._stop_launchers(categories),
-                    await ForemanRouter._stop_channels(router),
+        while True:
+            event = self.__queue.get(block=True)
+            # print(f"Foreman processing request `{event}`")
+            if event.startswith(_REQUEST_LAUNCH):
+                launcher_config_name = event[len(_REQUEST_LAUNCH):]
+                executor.submit(ForemanRouter._add_boot_launcher, launcher_config_name, categories)
+            elif event == _REQUEST_STOP:
+                # TODO there should be two requests:
+                #   a "nice" stop, which goes through the nice shutdown process for all the
+                #   extensions,
+                #   and a "hard" stop, which ignores extensions.
+                # Changing the state requires acquiring the lock and sending a
+                # notification.
+                with self.__lock:
+                    self.__state = _STATE_STOPPING
+                    self.__state_condition.notify_all()
+                    # Empty out the queue, so that the next execution doesn't pick up weird stuff.
+                    # Only do this from within the lock.
+                    try:
+                        while True:
+                            self.__queue.get_nowait()
+                    except Empty:
+                        pass
 
-                    with self.__lock:
-                        self.__state = _STATE_STOPPED
-                        self.__state_condition.notify_all()
-                        self.__thread = None
-                    return
+                ForemanRouter._stop_launchers(categories)
+                ForemanRouter._stop_channels(router)
 
-        if sys.platform == 'win32':
-            asyncio.set_event_loop(asyncio.ProactorEventLoop())
-        asyncio.run(runner())
+                with self.__lock:
+                    self.__state = _STATE_STOPPED
+                    self.__state_condition.notify_all()
+                    self.__thread = None
+                return
 
     @staticmethod
-    async def _add_boot_launcher(
+    def _add_boot_launcher(
             launcher_category: str, categories: Dict[str, AbcLauncherCategory],
     ) -> None:
         """Add a new launcher to the router.
@@ -197,26 +214,26 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             ))
             return
 
-        res = await category.start_launcher(category.get_channel_name(), {})
+        res = category.start_launcher(category.get_channel_name(), {})
         if res.has_error:
             display_error(res.valid_error)
 
     @staticmethod
-    async def _stop_launchers(categories: Dict[str, AbcLauncherCategory]) -> None:
+    def _stop_launchers(categories: Dict[str, AbcLauncherCategory]) -> None:
         """Stop all running launchers.  Errors are displayed but not returned."""
         errors: List[StdRet[None]] = []
         for launcher_category in categories.values():
-            errors.append(await launcher_category.stop())
+            errors.append(launcher_category.stop())
         err = collect_errors_from(errors)
         if err:
             display_error(err)
 
     @staticmethod
-    async def _stop_channels(router: EventRouter) -> None:
+    def _stop_channels(router: EventRouter) -> None:
         """Stop all the active channels in the router."""
-        channel_names = await router.get_registered_channel_names()
+        channel_names = router.get_registered_channel_names()
         for name in channel_names:
-            await router.close_channel(name)
+            router.close_channel(name)
 
     def _restart(self) -> None:
         """Restart the router."""
@@ -228,42 +245,43 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         self.stop()
 
     def _create_router_launchers(
-            self, sem: asyncio.Semaphore, loop: asyncio.AbstractEventLoop,
+            self, sem: threading.Semaphore, executor: ThreadPoolExecutor,
     ) -> Tuple[EventRouter, Dict[str, AbcLauncherCategory]]:
         """Create the router specifically for foreman interaction.
         """
 
-        router = EventRouter(sem, loop=loop)
+        router = EventRouter(sem, executor=executor)
 
-        launcher_context = LauncherRuntimeContext(self.__platform, router, loop)
+        launcher_context = LauncherRuntimeContext(self.__platform, router, executor)
 
         # Create launcher categories based on this router.
         # They all need to be initialized.  Which means they need to be created.
         categories: Dict[str, AbcLauncherCategory] = {}
         for state in self.__category_states.values():
-            cat_res = state.create_category(launcher_context, loop)
+            cat_res = state.create_category(launcher_context, executor)
             if cat_res.has_error:
                 display_error(cat_res.valid_error)
             else:
                 categories[state.name] = cat_res.result
 
         def send_event_to_extension_loader(event: RawEventObject) -> None:
-            assert self.__loop is not None, 'loop stopped'
-            self.__loop.create_task(router.inject_event_to_channel(
+            assert self.__executor is not None, 'loop stopped'
+            self.__executor.submit(
+                router.inject_event_to_channel,
                 EXTENSION_LOADER_CHANNEL, event,
-            ))
+            )
 
         def add_handler_listener(
                 handler_id: str, event_id: Optional[str], target_id: Optional[str],
         ) -> None:
-            assert self.__loop is not None, 'loop stopped'
-            self.__loop.create_task(router.add_handler_listener(handler_id, event_id, target_id))
+            assert self.__executor is not None, 'loop stopped'
+            self.__executor.submit(router.add_handler_listener, handler_id, event_id, target_id)
 
         def remove_handler_listener(
                 handler_id: str, event_id: Optional[str], target_id: Optional[str],
         ) -> None:
-            assert self.__loop is not None, 'loop stopped'
-            self.__loop.create_task(router.remove_handler_listener(handler_id, event_id, target_id))
+            assert self.__executor is not None, 'loop stopped'
+            self.__executor.submit(router.remove_handler_listener, handler_id, event_id, target_id)
 
         context = RouterContext(
             categories=categories,
@@ -272,13 +290,14 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             generate_event=send_event_to_extension_loader,
             add_handler_listener=add_handler_listener,
             remove_handler_listener=remove_handler_listener,
+            executor=executor,
         )
         router.add_reservation_callback(
             EXTENSION_LOADER_CHANNEL,
-            ExtensionLoaderCallback(ExtensionLoaderTarget(context)),
+            ExtensionLoaderCallback(ExtensionLoaderTarget(context, executor)),
         )
 
-        internal_target = InternalTarget(context)
+        internal_target = InternalTarget(context, executor)
 
         def internal_channel_callback(name: str) -> StdRet[Optional[EventForwarderTarget]]:
             if INTERNAL_CHANNEL_PATTERN.match(name):
@@ -316,15 +335,14 @@ class ExtensionLoaderCallback:
 
 class LauncherRuntimeContext(RuntimeContext):
     """Launcher category context."""
-    __slots__ = ('_router', '_platform', '_loop', '_executor')
+    __slots__ = ('_router', '_platform', '_executor')
 
     def __init__(
-            self, platform: PlatformSettings, router: EventRouter, loop: asyncio.AbstractEventLoop,
+            self, platform: PlatformSettings, router: EventRouter, executor: ThreadPoolExecutor,
     ) -> None:
         self._router = router
         self._platform = platform
-        self._loop = loop
-        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        self._executor = executor
 
     def get_platform(self) -> PlatformSettings:
         return self._platform
@@ -333,83 +351,32 @@ class LauncherRuntimeContext(RuntimeContext):
             self, name: str,
             channel_creator: Callable[
                 [],
-                Coroutine[Any, Any, StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]],
+                StdRet[Tuple[BinaryReader, BinaryWriter]],
             ],
     ) -> StdRet[None]:
-        res = asyncio.wait_for(
-            self._loop.create_task(self.async_register_channel(name, channel_creator)), None,
-        )
-        return res.result()
+        return self._router.register_channel(name, channel_creator)
 
     def close_channel(self, name: str) -> bool:
-        res = asyncio.wait_for(
-            self._loop.create_task(self.async_close_channel(name)), None,
-        )
-        return res.result()
+        return self._router.close_channel(name)
 
     def add_handler(
             self, channel_name: str, handler_id: str, produces: Iterable[str],
             consumes: Iterable[EventTargetHandle],
     ) -> StdRet[None]:
-        res = asyncio.wait_for(
-            self._loop.create_task(
-                self.async_add_handler(channel_name, handler_id, produces, consumes),
-            ), None,
-        )
-        return res.result()
+        return self._router.add_handler(channel_name, handler_id, produces, consumes)
 
     def remove_handler(self, handler_id: str) -> bool:
-        res = asyncio.wait_for(
-            self._loop.create_task(self.async_remove_handler(handler_id)), None,
-        )
-        return res.result()
+        return self._router.remove_handler(handler_id)
 
-    def add_handler_listener(self, handler_id: str, event_id: str, target_id: str) -> bool:
-        res = asyncio.wait_for(
-            self._loop.create_task(
-                self.async_add_handler_listener(handler_id, event_id, target_id),
-            ), None,
-        )
-        return res.result()
-
-    def remove_handler_listener(self, handler_id: str, event_id: str, target_id: str) -> bool:
-        res = asyncio.wait_for(
-            self._loop.create_task(
-                self.async_remove_handler_listener(handler_id, event_id, target_id),
-            ), None,
-        )
-        return res.result()
-
-    async def async_register_channel(
-            self, name: str,
-            channel_creator: Callable[
-                [],
-                Coroutine[Any, Any, StdRet[Tuple[asyncio.StreamReader, BinaryWriter]]],
-            ],
-    ) -> StdRet[None]:
-        return await self._router.register_channel(name, channel_creator)
-
-    async def async_close_channel(self, name: str) -> bool:
-        return await self._router.close_channel(name)
-
-    async def async_add_handler(
-            self, channel_name: str, handler_id: str, produces: Iterable[str],
-            consumes: Iterable[EventTargetHandle],
-    ) -> StdRet[None]:
-        return await self._router.add_handler(channel_name, handler_id, produces, consumes)
-
-    async def async_remove_handler(self, handler_id: str) -> bool:
-        return await self._router.remove_handler(handler_id)
-
-    async def async_add_handler_listener(
+    def add_handler_listener(
             self, handler_id: str, event_id: str, target_id: str,
     ) -> bool:
-        return await self._router.add_handler_listener(handler_id, event_id, target_id)
+        return self._router.add_handler_listener(handler_id, event_id, target_id)
 
-    async def async_remove_handler_listener(
+    def remove_handler_listener(
             self, handler_id: str, event_id: str, target_id: str,
     ) -> bool:
-        return await self._router.remove_handler_listener(handler_id, event_id, target_id)
+        return self._router.remove_handler_listener(handler_id, event_id, target_id)
 
 
 class LauncherCategoryState:
@@ -425,15 +392,13 @@ class LauncherCategoryState:
         return self.config.launcher_name
 
     def create_category(
-            self, context: LauncherRuntimeContext, loop: asyncio.AbstractEventLoop,
+            self, context: LauncherRuntimeContext, executor: ThreadPoolExecutor,
     ) -> StdRet[AbcLauncherCategory]:
         """Create the launcher category."""
         category_res = create_launcher_category(self.config.runner, self.config.options)
         if category_res.has_error:
             return category_res.forward()
-        init_res = asyncio.wait_for(
-            loop.create_task(category_res.result.initialize(context)), None,
-        ).result()
+        init_res = executor.submit(category_res.result.initialize, context).result()
         if init_res.has_error:
             return init_res.forward()
         return category_res

@@ -46,6 +46,8 @@ class ForemanRunner:
         res = self.boot()
         if res != 0:
             return res
+        self.join()
+        local_display(_('Petronia shutting down.'))
         self.shutdown()
         return 0
 
@@ -88,13 +90,23 @@ class ForemanRunner:
         # start launchers.
 
         # Native is always started first.
+        # local_display(
+        #     _('Starting native launcher {name}'),
+        #     name=self._get_native_launcher_category_name(),
+        # )
         self.__router.boot_launcher(self._get_native_launcher_category_name())
 
         # Then the others.
         for name in self._config.get_boot_config().boot_order:
+            # local_display(_('Starting boot launcher {name}'), name=name)
             self.__router.boot_launcher(name)
 
         return 0
+
+    def join(self) -> None:
+        """Wait for the processing to end.  This must be done in a way that is safe for
+        signal handlers to run."""
+        self.__router.join()
 
     def start_restart(self) -> None:
         """Stops all but the core initialized stuff."""
