@@ -2,9 +2,9 @@
 """The process handler."""
 
 from typing import Iterable, Callable
-import asyncio
 import os
 import shutil
+from petronia_common.event_stream import BinaryReader
 
 
 class ManagedProcess:
@@ -14,7 +14,7 @@ class ManagedProcess:
     def __init__(
             self,
             ident: str,
-            reader: asyncio.StreamReader,
+            reader: BinaryReader,
             temp_files: Iterable[str],
     ) -> None:
         self.__ident = ident
@@ -27,7 +27,7 @@ class ManagedProcess:
         return self.__ident
 
     @property
-    def reader(self) -> asyncio.StreamReader:
+    def reader(self) -> BinaryReader:
         """The event reader stream from the process."""
         return self.__reader
 
@@ -44,7 +44,12 @@ class ManagedProcess:
         """Stop the running process."""
         raise NotImplementedError()
 
-    async def watch_process(self, on_exit_cb: Callable[[int], None]) -> None:
+    def wait_for_stop(self, timeout: float) -> bool:
+        """Wait for the running process until the timeout.  If it is stopped
+        before the timeout, then True is returned, otherwise False."""
+        raise NotImplementedError()
+
+    def watch_process(self, on_exit_cb: Callable[[int], None]) -> None:
         """Watch the process."""
         raise NotImplementedError()
 
@@ -53,5 +58,3 @@ class ManagedProcess:
             if os.path.isdir(temp_dir):
                 shutil.rmtree(temp_dir)
             self.__tmp_resources.clear()
-
-        self.__reader.feed_eof()

@@ -62,9 +62,14 @@ class EventChannel(EventForwarderTarget):
         self.__on_error = on_error
         self.__alive = True
 
+    def __repr__(self) -> str:
+        return f"EventChannel({self.__name})"
+
     def process_stream(self) -> None:
         """Run the stream processing."""
+        # print(f"Channel {self.__name} processing source stream")
         self.__forwarder.handle_source()
+        # print(f"Channel {self.__name} finished processing source stream")
 
     @property
     def name(self) -> str:
@@ -81,6 +86,7 @@ class EventChannel(EventForwarderTarget):
         allowing new handlers, producing events, and consuming events.
         This function may be safely called multiple times."""
         self.__alive = False
+        # print(f"closing access to channel {self.__name}")
 
     def contains_handler_id(self, handler_id: str) -> bool:
         """Does this channel contain this handler?"""
@@ -103,12 +109,13 @@ class EventChannel(EventForwarderTarget):
                 _('route {name} is closed'),
                 name=self.__name,
             )
+        # print(f"[{self}] registering handler can produce {produces}")
         return self.__handlers.add_handler(handler_id, produces, consumes)
 
     def remove_handler(self, handler_id: str) -> StdRet[None]:
         """Attempts to remove the handler from the internal
-        store.  If it is removed, then True is returned.  This can be safely called
-        after the channel is closed."""
+        store.  If the handler is not registered, an error is returned.
+        This can be safely called after the channel is closed."""
         return self.__handlers.remove_handler(handler_id)
 
     def add_handler_listener(
@@ -143,8 +150,12 @@ class EventChannel(EventForwarderTarget):
         """Can this channel produce this event?  That is, is an event
         read from the channel in the list of registered produced event IDs?"""
         if not self.__alive:
+            # print(f"[{self}] cannot produce {event_id}; not alive")
             return False
-        return self.__handlers.can_produce(event_id)
+        # return self.__handlers.can_produce(event_id)
+        ret = self.__handlers.can_produce(event_id)
+        # print(f"[{self}] is {event_id} registered as able to produce? {ret}")
+        return ret
 
     def _cant_produce(self, event_id: str, _event_source_id: str, _event_target_id: str) -> bool:
         return not self.can_produce(event_id)
@@ -158,6 +169,7 @@ class EventChannel(EventForwarderTarget):
         """Can this channel consume this event?  That is, can an
         event ID be written to this channel?"""
         if not self.__alive:
+            # print(f"channel {self.__name} can't consume; not alive")
             return False
         return self.__handlers.can_consume(event_id, target_id)
 
@@ -172,6 +184,7 @@ class EventChannel(EventForwarderTarget):
     def on_eof(self) -> None:
         # The other channel encountered an EOF, and is telling this channel
         # about it.  This channel doesn't care about that message.
+        # print(f"Channel {self.__name} ignoring EOF")
         pass
 
     def consume(self, event: RawEvent) -> bool:

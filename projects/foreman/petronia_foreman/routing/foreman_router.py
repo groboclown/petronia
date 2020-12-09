@@ -17,7 +17,6 @@ from ..constants import EXTENSION_LOADER_CHANNEL, INTERNAL_CHANNEL_PATTERN, TRAN
 from ..event_router import EventRouter
 from ..event_router.handler import EventTargetHandle
 from ..launcher import AbcLauncherCategory, RuntimeContext, create_launcher_category
-from ..launcher.boot.abc import AbcBootLauncherCategory
 from ..user_message import display_error, display_message
 
 _REQUEST_STOP = 'stop'
@@ -206,7 +205,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                 category=launcher_category,
             ))
             return
-        if not isinstance(category, AbcBootLauncherCategory):
+        if category.config.boot_channel is None:
             display_message(UserMessage(
                 TRANSLATION_CATALOG,
                 _('Requested to boot launch a non-bootable category ({category})'),
@@ -214,7 +213,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             ))
             return
 
-        res = category.start_launcher(category.get_channel_name(), {})
+        res = category.start_launcher(category.config.boot_channel, {'boot': []})
         if res.has_error:
             display_error(res.valid_error)
 
@@ -368,16 +367,6 @@ class LauncherRuntimeContext(RuntimeContext):
     def remove_handler(self, handler_id: str) -> bool:
         return self._router.remove_handler(handler_id)
 
-    def add_handler_listener(
-            self, handler_id: str, event_id: str, target_id: str,
-    ) -> bool:
-        return self._router.add_handler_listener(handler_id, event_id, target_id)
-
-    def remove_handler_listener(
-            self, handler_id: str, event_id: str, target_id: str,
-    ) -> bool:
-        return self._router.remove_handler_listener(handler_id, event_id, target_id)
-
 
 class LauncherCategoryState:
     """Launcher category state."""
@@ -395,7 +384,7 @@ class LauncherCategoryState:
             self, context: LauncherRuntimeContext, executor: ThreadPoolExecutor,
     ) -> StdRet[AbcLauncherCategory]:
         """Create the launcher category."""
-        category_res = create_launcher_category(self.config.runner, self.config.options)
+        category_res = create_launcher_category(self.config)
         if category_res.has_error:
             return category_res.forward()
         init_res = executor.submit(category_res.result.initialize, context).result()

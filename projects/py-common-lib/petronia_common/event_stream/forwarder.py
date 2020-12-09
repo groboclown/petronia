@@ -74,19 +74,30 @@ class EventForwarder:
     # so there is no reason to explicitly call an await on the read functions.
     __slots__ = (
         '__source', '__targets', '__pending_targets', '__filter', '__alive', '__forwarder',
+
+        # Debug variables
+        '_iid',
     )
+
+    _INSTANCE_COUNT = 0
 
     def __init__(
             self, source: BinaryReader,
             stream_forwarder: BinaryEventStreamForwarder,
             event_filter: Optional[Callable[[str, str, str], bool]] = None,
     ) -> None:
+        self._iid = EventForwarder._INSTANCE_COUNT
+        EventForwarder._INSTANCE_COUNT += 1
+        # print(f"Created forwarder {self._iid}")
         self.__source = source
         self.__filter = event_filter
         self.__targets: List[EventForwarderTarget] = []
         self.__pending_targets: List[EventForwarderTarget] = []
         self.__alive = True
         self.__forwarder = stream_forwarder
+
+    def __repr__(self) -> str:
+        return f"EventForwarder({self._iid})"
 
     @property
     def alive(self) -> bool:
@@ -105,25 +116,31 @@ class EventForwarder:
     def handle_source(self) -> None:
         """Background pipe reader and forwarder to all the targets."""
         self._manage_targets(EMPTY_LIST)
+        # print(f"[{self}] reading stream")
         read_event_stream(
             self.__source,
             self._event_listener,
             self._end_of_stream,
             self._error_listener,
         )
+        # print(f"[{self}] completed reading stream")
 
     def _end_of_stream(self) -> None:
+        # print(f"[{self}] encountered EOF; alive is {self.__alive}")
         if self.__alive:
             self.__alive = False
             for target in self.__targets:
+                # print(f"[{self}] - calling eof on target {target}")
                 target.on_eof()
             for target in self.__pending_targets:
+                # print(f"[{self}] - calling eof on pending target {target}")
                 target.on_eof()
             self.__targets.clear()
             self.__pending_targets.clear()
 
     def _error_listener(self, error: PetroniaReturnError) -> bool:
         assert self.__alive
+        # print(f"[{self}] encountered error {error}")
         to_remove: List[EventForwarderTarget] = []
         for target in self.__targets:
             if target.on_error(error):
@@ -137,20 +154,29 @@ class EventForwarder:
         target_id = raw_event_target_id(event)
         to_remove: List[EventForwarderTarget] = []
         to_call: List[EventForwarderTarget] = []
+        # print(f"[{self}] event listener start {event_id}")
 
         if self.__filter and self.__filter(event_id, source_id, target_id):
+            # print(f"[{self}] filtered event {event_id} with {self.__filter}")
             return self._manage_targets([])
 
         for target in self.__targets:
             if target.can_consume(event_id, source_id, target_id):
+                # print(f"[{self}] found target to consume {event_id}")
                 to_call.append(target)
         if to_call:
+            #  (f"[{self}] starting send event")
             to_remove = self._send_event(event, to_call)
+            # print(f"[{self}] ending send event")
         else:
             # No targets for this event.  So the event reader needs to
             # be drained.
+            # print(f"[{self}] no targets to consume event {event_id} ({len(self.__targets)} total targets)")
             EventForwarder._drain_event(event)
-        return self._manage_targets(to_remove)
+        # return self._manage_targets(to_remove)
+        ret = self._manage_targets(to_remove)
+        # print(f"[{self}] event listener end {event_id}: {ret}")
+        return ret
 
     def _send_event(
             self, event: RawEvent, targets: List[EventForwarderTarget],
@@ -164,11 +190,14 @@ class EventForwarder:
         if is_raw_event_object(event):
             # Simple handling, because the data is already fully read.
             for target in self.__targets:
+                # print(f"[{self}] sending consume for object event")
                 if target.consume(event):
                     to_remove.append(target)
+                # print(f"[{self}] completed consume for object event")
         else:
             # Binary object.  This is more complicated.  We must forward the
             # event to each target, but in a memory safe way.
+            # print(f"[{self}] sending consume for binary event")
             to_remove = self.__forwarder(
                 event_id,
                 event_source_id,
@@ -178,6 +207,7 @@ class EventForwarder:
                 targets,
                 READ_SIZE_LIMIT,
             )
+            # print(f"[{self}] ended consume for binary event")
         return to_remove
 
     @staticmethod

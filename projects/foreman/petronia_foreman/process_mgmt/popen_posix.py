@@ -2,25 +2,27 @@
 """The process handler."""
 
 from typing import Iterable, Sequence, Mapping, Callable, Optional, BinaryIO
-import asyncio
 import os
 import shlex
-from petronia_common.util import StdRet
+import subprocess
+from petronia_common.util import StdRet, StreamReadState, select_reader
 from petronia_common.util import i18n as _
 from .process import ManagedProcess
 from .util import create_cmd_and_dirs
-from ..configuration import LauncherConfig, PlatformSettings
-from ..user_message import CATALOG
+from ..configuration import PlatformSettings
+from ..constants import TRANSLATION_CATALOG as CATALOG
 
 
 try:
     import fcntl  # pylint: disable=import-error
 
+    GLOBAL_READERS = StreamReadState(lambda x: None)
+    GLOBAL_READERS.start_read_loop_thread(select_reader)
 
-    async def run_launcher_posix(  # pylint: disable=too-many-locals
+    def run_launcher_posix(  # pylint: disable=too-many-locals
             identity: str,
-            launcher_cmd_option_key: str,
-            launcher_config: LauncherConfig,
+            command: str,
+            env: Mapping[str, str],
             platform: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
@@ -31,19 +33,17 @@ try:
         #   The read-end of this pipe is used by the child process.
         rx_read, rx_write = os.pipe()
         tx_read, tx_write = os.pipe()
-        command = launcher_config.get_option(launcher_cmd_option_key)
-        if command.has_error:
-            return command.forward()
         cmd, temp_dirs = create_cmd_and_dirs(
-            command.result, platform, rx_write,
+            command, platform, rx_write,
         )
         cmd_parts = shlex.split(cmd)
         try:
             # Must close pipe input if child will block waiting for end
             # Can also be closed in a preexec_fn passed to subprocess.Popen
             fcntl.fcntl(rx_read, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
-            process = await asyncio.subprocess.create_subprocess_exec(  # pylint: disable=no-member
-                cmd_parts[0], *cmd_parts[1:],
+            process = subprocess.Popen(  # pylint: disable=no-member
+                args=cmd_parts,
+                env=env,
                 stdin=tx_read,
                 text=False,
                 pass_fds=(rx_write,),
@@ -52,16 +52,8 @@ try:
             os.close(rx_write)
             # os.close(tx_read)
 
-            # Create the reader in the loop.
-            stream_reader = asyncio.StreamReader()
-            reader_protocol = asyncio.StreamReaderProtocol(stream_reader)
-            await asyncio.get_event_loop().connect_read_pipe(
-                lambda: reader_protocol,
-                os.fdopen(rx_read),
-            )
-
             return StdRet.pass_ok(ManagedPosixProcess(
-                identity, process, stream_reader,
+                identity, process, rx_read,
                 os.fdopen(tx_write, 'wb'), temp_dirs,
             ))
         except OSError as err:
@@ -87,12 +79,13 @@ try:
         def __init__(  # pylint: disable=too-many-arguments
                 self,
                 ident: str,
-                process,  # type: asyncio.subprocess.Process
-                reader: asyncio.StreamReader,
+                process: subprocess.Popen,
+                reader_fd: int,
                 writer: BinaryIO,
                 temp_files: Iterable[str],
         ) -> None:
-            ManagedProcess.__init__(self, ident, reader, temp_files)
+            stream = GLOBAL_READERS.add_fd(reader_fd)
+            ManagedProcess.__init__(self, ident, stream, temp_files)
             self.__process = process
             self.__exit_code: Optional[int] = None
             self.__writer = writer
@@ -107,19 +100,28 @@ try:
             """Stop the running process."""
             self.__process.kill()
 
-        async def watch_process(self, on_exit_cb: Callable[[int], None]) -> None:
+        def wait_for_stop(self, timeout: float) -> bool:
+            if self.__exit_code is None:
+                try:
+                    self.__process.wait(timeout)
+                    return True
+                except subprocess.TimeoutExpired:
+                    return False
+            return True
+
+        def watch_process(self, on_exit_cb: Callable[[int], None]) -> None:
             """Watch the process."""
             if self.__exit_code is None:
-                self.__exit_code = await self.__process.wait()
+                self.__exit_code = self.__process.wait()
                 self._close()
             on_exit_cb(self.__exit_code)
 
 
 except ModuleNotFoundError:
-    async def run_launcher_posix(  # pylint: disable=unused-argument,too-many-arguments
-            identity: str,
-            launcher_cmd_option_key: str,
-            launcher_config: LauncherConfig,
+    def run_launcher_posix(  # pylint: disable=unused-argument,too-many-arguments
+            identity: str,  # pylint: disable=unused-argument
+            command: str,  # pylint: disable=unused-argument
+            env: Mapping[str, str],  # pylint: disable=unused-argument
             platform: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:

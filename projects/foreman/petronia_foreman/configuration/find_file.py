@@ -51,8 +51,6 @@ def discover_config_file_in(search_path: Iterable[Optional[str]]) -> StdRet[str]
 
     return StdRet.pass_errmsg(
         CATALOG,
-        _(
-            'Could not find configuration file "petronia.ini" in any of {searched}'
-        ),
+        _('Could not find configuration file "petronia.ini" in any of {searched}'),
         searched='; '.join(searched),
     )

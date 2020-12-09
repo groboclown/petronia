@@ -4,7 +4,6 @@ Detect the current platform.
 """
 
 from typing import List, Sequence, Optional
-import asyncio
 import os
 import sys
 import platform
@@ -56,16 +55,6 @@ class PlatformSettings:
             if os.path.isdir(fqn):
                 return fqn
         return None
-
-    def setup_asyncio(self) -> None:
-        """Setup the platform-specific asyncio stuff."""
-        if self.category == CATEGORY__WINDOWS:
-            print("Using windows selector event loop")
-            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())  # type: ignore
-        # else:
-        #    print("Set selector event loop.")
-        #    loop = asyncio.ProactorEventLoop()
-        #    asyncio.set_event_loop(loop)
 
 
 def detect_platform(suggestion: Optional[str]) -> StdRet[PlatformSettings]:
@@ -132,8 +121,8 @@ def detect_windows() -> StdRet[PlatformSettings]:
     try:
         # Linux builds will fail on getwindowsversion not a member.
         winver = sys.getwindowsversion().major  # type: ignore  # pylint: disable=no-member
-    except BaseException:  # pylint: disable=broad-except
-        return StdRet.pass_errmsg(
+    except BaseException:  # pylint: disable=broad-except  # pragma no cover
+        return StdRet.pass_errmsg(  # pragma no cover
             CATALOG,
             _(
                 "You requested Windows, but the Windows Version could not be discovered."
@@ -142,12 +131,12 @@ def detect_windows() -> StdRet[PlatformSettings]:
 
     try:
         # Linux builds will fail on this ctype detection...
-        import ctypes.wintypes  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
-        from ctypes import byref  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
-        from ctypes import windll  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
-        from ctypes import WinDLL  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import
-    except BaseException:  # pylint: disable=broad-except
-        return StdRet.pass_errmsg(
+        import ctypes.wintypes  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import  # pragma no cover
+        from ctypes import byref  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import  # pragma no cover
+        from ctypes import windll  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import  # pragma no cover
+        from ctypes import WinDLL  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import  # pragma no cover
+    except BaseException:  # pylint: disable=broad-except  # pragma no cover
+        return StdRet.pass_errmsg(  # pragma no cover
             CATALOG,
             _(
                 "Your system ({system} {version} {arch}) does not "
@@ -158,10 +147,10 @@ def detect_windows() -> StdRet[PlatformSettings]:
             arch=platform.architecture()[0],
         )
 
-    if winver == 10:
-        return load_windows10_settings()
+    if winver == 10:  # pragma no cover
+        return load_windows10_settings()  # pragma no cover
 
-    return StdRet.pass_errmsg(
+    return StdRet.pass_errmsg(  # pragma no cover
         CATALOG,
         _(
             "Your system ({system} {version} {arch}) is not one of the "
@@ -176,9 +165,9 @@ def detect_windows() -> StdRet[PlatformSettings]:
 def detect_linux() -> StdRet[PlatformSettings]:
     """Determine which video interaction method to use."""
     try:
-        from ctypes import cdll  # pylint: disable=import-outside-toplevel
-    except BaseException as err:  # pylint: disable=broad-except
-        return StdRet.pass_errmsg(
+        from ctypes import cdll  # pylint: disable=import-outside-toplevel  # pragma no cover
+    except BaseException as err:  # pylint: disable=broad-except  # pragma no cover
+        return StdRet.pass_errmsg(  # pragma no cover
             CATALOG,
             _(
                 'Could not discover your platform; native library loading not'
@@ -193,14 +182,14 @@ def detect_linux() -> StdRet[PlatformSettings]:
     # need to explicitly declare the system.
 
     try:
-        cdll.LoadLibrary('libwayland.so')
-        return load_linux_wayland_settings()
-    except OSError:
+        cdll.LoadLibrary('libwayland.so')  # pragma no cover
+        return load_linux_wayland_settings()  # pragma no cover
+    except OSError:  # pragma no cover
         # Ignored, because it means wayland isn't supported.
-        pass
+        pass  # pragma no cover
 
     try:
-        cdll.LoadLibrary('libxcb.so')
+        cdll.LoadLibrary('libxcb.so')  # pragma no cover
         # Check to see if x is actually running.
         # The "proper" way is to open the display, but that means we'll mess
         # up the right approach to handling a window manager, which must be
@@ -208,11 +197,11 @@ def detect_linux() -> StdRet[PlatformSettings]:
         # But that will require some testing.  Testing in that it might be
         # still a window manager if the client connects, disconnects, then
         # is first to connect when nothing else is connected.  Ugh.
-        return load_linux_x11_settings()
-    except OSError:
-        pass
+        return load_linux_x11_settings()  # pragma no cover
+    except OSError:  # pragma no cover
+        pass  # pragma no cover
 
-    return StdRet.pass_errmsg(
+    return StdRet.pass_errmsg(  # pragma no cover
         CATALOG,
         _(
             "'Your platform is not supported, because neither libwayland.so"
@@ -249,6 +238,7 @@ def load_linux_data_paths() -> Sequence[str]:
 def detect_install_dir() -> str:
     """Attempt to find the directory where Petronia is installed."""
     # Note that Petronia may be running as an installed bundle.
+    # See https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
     # We take advantage of insight into how Petronia is deployed.  Note that this is
     # consistent between the bundle install and the file-based install.
 

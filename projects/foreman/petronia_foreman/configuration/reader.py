@@ -31,7 +31,15 @@ def read_configuration_file(
         return config_file.forward()
 
     parser = configparser.ConfigParser()
-    parser.read(config_file.result)
+    try:
+        parser.read(config_file.result)
+    except configparser.ParsingError as err:
+        return StdRet.pass_errmsg(
+            TRANSLATION_CATALOG,
+            _('Error parsing ini file {filename}: {msg}'),
+            filename=config_file.result,
+            msg=[f'Line {line_no}: {msg}' for line_no, msg in err.errors],
+        )
 
     ret = ForemanConfig()
     res = ret.load_config(parser)

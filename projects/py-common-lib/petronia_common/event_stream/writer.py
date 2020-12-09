@@ -126,24 +126,29 @@ def write_binary_event_to_stream(
         (binary_blob_size >> 8) & 0xff,
         binary_blob_size & 0xff,
     ))
-    stream.write(packet_envelope)
-    if isinstance(binary_blob, bytes):
-        stream.write(binary_blob)
-    else:
-        remaining = binary_blob_size
-        while remaining > 0:
-            data = binary_blob(MAX_READ_SIZE)
-            if not data:
-                # fill in the rest of the packet data to avoid
-                # stream errors
-                stream.write(b' ' * remaining)
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('binary blob data less than requested size'),
-                )
+    try:
+        stream.write(packet_envelope)
+        if isinstance(binary_blob, bytes):
+            stream.write(binary_blob)
+        else:
+            remaining = binary_blob_size
+            while remaining > 0:
+                data = binary_blob(MAX_READ_SIZE)
+                if not data:
+                    # fill in the rest of the packet data to avoid
+                    # stream errors
+                    stream.write(b' ' * remaining)
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _('binary blob data less than requested size'),
+                    )
 
-            remaining -= len(data)
-            stream.write(data)
+                remaining -= len(data)
+                stream.write(data)
+    except Exception as err:
+        return StdRet.pass_exception(
+            _('writing event to stream'), err
+        )
 
     return RET_OK_NONE
 
@@ -259,8 +264,13 @@ def write_object_event_to_stream(
         (encoded_event_object_len >> 8) & 0xff,
         encoded_event_object_len & 0xff,
     ))
-    stream.write(packet_envelope)
-    stream.write(encoded_event_object)
+    try:
+        stream.write(packet_envelope)
+        stream.write(encoded_event_object)
+    except Exception as err:
+        return StdRet.pass_exception(
+            _('writing event to stream'), err
+        )
 
     return RET_OK_NONE
 

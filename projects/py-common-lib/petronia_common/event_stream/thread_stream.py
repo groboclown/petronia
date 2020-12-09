@@ -11,6 +11,7 @@ from .defs import (
     to_raw_event_binary,
 )
 from .forwarder import EventForwarderTarget
+from ..util.input_buffer import StreamedBinaryReader
 
 
 class ThreadedStreamForwarder:
@@ -19,7 +20,7 @@ class ThreadedStreamForwarder:
 
     def __init__(self, executor: Optional[ThreadPoolExecutor] = None) -> None:
         if executor is None:
-            self._executor = ThreadPoolExecutor()
+            self._executor = ThreadPoolExecutor(4)
         else:
             self._executor = executor
 
@@ -40,19 +41,21 @@ class ThreadedStreamForwarder:
         data is fully processed.
 
         Each reader is running in its own background thread, separate
-        from this one.."""
+        from this one."""
 
         streams: List[StreamedBinaryReader] = []
         processes = []  # type: List[Future[bool]]
         to_remove: List[EventForwarderTarget] = []
         data_read_condition = threading.Condition()
 
-        def can_read_next() -> bool:
-            ret = True
+        def all_consumed() -> bool:
+            # print(f" -- {self} checking if {len(streams)} streams' data consumed")
             for stream in streams:
-                ret = ret and stream.is_buffer_consumed()
-            # print(f" -- Remaining stream data to read: {ret}")
-            return ret
+                if not stream.is_buffer_consumed():
+                    # print(f" -- (TSF {self._iid}) stream has yet to consume all data: {stream}")
+                    return False
+            # print(f" -- (TSF {self._iid}) {len(streams)} streams consumed all buffer data")
+            return True
 
         def mk_handle_target(
                 target: EventForwarderTarget,
@@ -72,7 +75,7 @@ class ThreadedStreamForwarder:
             return ret
 
         for tgt in targets:
-            stm = StreamedBinaryReader(self._executor, data_read_condition)
+            stm = StreamedBinaryReader(data_read_condition)
             streams.append(stm)
             # Note: no await here.
             processes.append(mk_handle_target(tgt, stm))
@@ -88,108 +91,30 @@ class ThreadedStreamForwarder:
             running = True
             while running:
                 # Process some data...
+                # print(f" (TSF {self._iid}) Reading {read_size} bytes from reader.")
                 data = reader(read_size)
                 for stream in streams:
                     if not data:
-                        # print(" !! sending EOF to stream")
+                        # print(f" (TSF {self._iid})!! sending EOF to stream")
                         stream.feed_eof()
                         running = False
                     else:
-                        # print(f" !! sending {len(data)} bytes of data to stream")
+                        # print(f" (TSF {self._iid})!! sending {len(data)} bytes of data to stream")
                         stream.feed_data(data)
 
                 # Wait for the forwarding to be consumed...
                 with data_read_condition:
-                    # print("Waiting on data to be read...")
-                    if not can_read_next():
-                        data_read_condition.wait_for(can_read_next)
+                    # print(f" (TSF {self._iid}) Waiting on {data_read_condition} data to be read...")
+                    data_read_condition.wait_for(all_consumed)
+                    # print(f" (TSF {self._iid}) {data_read_condition} all sent data read")
             stream_future.set_result(True)
+            # print(f" (TSF {self._iid}) completed stream forwarding process {stream_future}")
 
+        # print(f" (TSF {self._iid}) submitting forward stream for processing")
         self._executor.submit(forward_stream)
         processes.append(stream_future)
         for process in processes:
+            # print(f" (TSF {self._iid}) waiting for process {process} to complete")
             process.result()
+        # print(f" (TSF {self._iid}) forward stream for processing completed")
         return to_remove
-
-
-class StreamedBinaryReader:
-    """Pushes data to a stream, and notifies a condition when the buffer is read."""
-    __slots__ = ('__condition', '__buffer', '__eof', '__waiter', '__executor',)
-
-    def __init__(
-            self,
-            executor: ThreadPoolExecutor,
-            condition: threading.Condition,
-    ) -> None:
-        self.__condition = condition
-        self.__waiter = None  # type: Optional[Future[int]]
-        self.__executor = executor
-        self.__buffer = bytearray()
-        self.__eof = False
-
-    def is_buffer_consumed(self) -> bool:
-        """Is there no more data to read in this buffer?"""
-        # print(f" -- buffer size == {len(self.__buffer)}")
-        return len(self.__buffer) <= 0
-
-    def feed_data(self, buff: bytes) -> None:
-        """Feed data to the stream."""
-        # print(f" -- pumping {len(buff)} bytes of data")
-        self.__buffer += buff
-        # print(f" -- -- {len(self.__buffer)} bytes left to read (+ {len(buff)} bytes)")
-        if self.__waiter:
-            # print(f" -- -- notified waiting code.")
-            self.__waiter.set_result(1)
-
-    def feed_eof(self) -> None:
-        """Feed an EOF to the stream."""
-        # print(f" -- told EOF to reader")
-        self.__eof = True
-        if self.__waiter:
-            # print(f" -- -- notified waiting code.")
-            self.__waiter.set_result(1)
-
-    def __call__(self, max_read_count: int = -1) -> bytes:
-        return self.read_data(max_read_count)
-
-    def read_data(self, max_read_count: int) -> bytes:
-        """Read data from the buffer, or wait for it to be loaded."""
-        # print(f" -- reading {max_read_count} bytes from reader")
-
-        # Should never happen, because this can cause problems.
-        if max_read_count == 0:
-            return b''
-
-        # Loop through the retries for the read from buffer if its empty.
-        while True:
-            if max_read_count < 0:
-                read_count = len(self.__buffer)
-            else:
-                read_count = min(max_read_count, len(self.__buffer))
-
-            # print(f" -- -- computed read count: {read_count}")
-
-            if read_count == 0:
-                # No data left to process
-                if self.__eof:
-                    return b''
-                # Now there's data we're waiting on, which hasn't reached us yet.
-                assert self.__waiter is None
-                self.__waiter = Future()
-                # print(" -- -- waiting on data to come in.")
-                try:
-                    self.__waiter.result()
-                finally:
-                    self.__waiter = None
-                # Try again...
-                # print(" -- -- trying read again")
-                continue
-
-            ret = self.__buffer[:read_count]
-            del self.__buffer[:read_count]
-            # print(f" -- -- {len(self.__buffer)} bytes left in reader (read {ret})")
-            if not self.__buffer:
-                # print(f" -- -- notifying pumper")
-                with self.__condition:
-                    self.__condition.notify_all()
-            return ret

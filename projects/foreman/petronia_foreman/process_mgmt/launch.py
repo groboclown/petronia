@@ -3,7 +3,7 @@
 Launch the executable process.
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Mapping
 import os
 import tempfile
 from petronia_common.extension.config.extension_schema import ExtensionRuntime
@@ -12,33 +12,25 @@ from petronia_common.util import i18n as _
 from .process import ManagedProcess
 from .popen_win import run_launcher_windows
 from .popen_posix import run_launcher_posix
-from ..configuration.foreman import ForemanConfig
 from ..configuration.platform import PlatformSettings, CATEGORY__WINDOWS, CATEGORY__LINUX
 from ..user_message import CATALOG
 
-COMMAND_OPTION_KEY = 'command'
 
-
-async def run_launcher(
+def run_launcher(
         identity: str,
         extension_runtime: ExtensionRuntime,
-        foreman_config: ForemanConfig,
+        command: str, env: Mapping[str, str],
         platform: PlatformSettings,
 ) -> StdRet[ManagedProcess]:
     """Launch the process."""
-    ret_launcher_config = foreman_config.get_launcher_config(extension_runtime.launcher)
-    if ret_launcher_config.has_error:
-        return ret_launcher_config.forward()
-    launcher_config = ret_launcher_config.result
-
     if platform.category == CATEGORY__WINDOWS:
-        return await run_launcher_windows(
-            identity, COMMAND_OPTION_KEY, launcher_config, platform,
+        return run_launcher_windows(
+            identity, command, env, platform,
             extension_runtime.requested_permissions,
         )
     if platform.category == CATEGORY__LINUX:
-        return await run_launcher_posix(
-            identity, COMMAND_OPTION_KEY, launcher_config, platform,
+        return run_launcher_posix(
+            identity, command, env, platform,
             extension_runtime.requested_permissions,
         )
     return StdRet.pass_errmsg(

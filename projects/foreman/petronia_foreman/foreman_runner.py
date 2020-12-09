@@ -106,7 +106,8 @@ class ForemanRunner:
     def join(self) -> None:
         """Wait for the processing to end.  This must be done in a way that is safe for
         signal handlers to run."""
-        self.__router.join()
+        if self.__router:
+            self.__router.join()
 
     def start_restart(self) -> None:
         """Stops all but the core initialized stuff."""

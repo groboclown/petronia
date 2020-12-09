@@ -4,8 +4,10 @@ Abstract class for all launchers.
 
 from typing import Tuple, Sequence, Mapping, List, Iterable, Callable
 from petronia_common.event_stream import BinaryWriter, BinaryReader
-from petronia_common.util import StdRet, readonly_dict
-from ..configuration import PlatformSettings
+from petronia_common.util import StdRet
+from ..configuration.platform import PlatformSettings
+from ..configuration.launcher import LauncherConfig
+from ..configuration.launcher_parameters import LauncherOptions
 from ..event_router.handler import EventTargetHandle
 
 
@@ -46,24 +48,6 @@ class RuntimeContext:
         Returns True if it was successfully removed."""
         raise NotImplementedError()
 
-    def add_handler_listener(
-            self,
-            handler_id: str,
-            event_id: str, target_id: str,
-    ) -> bool:
-        """Registers the event / target listener with the handler."""
-        # TODO this may be removed in the future.
-        raise NotImplementedError()
-
-    def remove_handler_listener(
-            self,
-            handler_id: str,
-            event_id: str, target_id: str,
-    ) -> bool:
-        """Removes the event / target listener from the handler."""
-        # TODO this may be removed in the future.
-        raise NotImplementedError()
-
 
 class AbcLauncherCategory:
     """
@@ -96,14 +80,19 @@ class AbcLauncherCategory:
 
     def __init__(
             self,
-            options: Mapping[str, str],
+            options: LauncherConfig,
     ) -> None:
-        self.__options = readonly_dict(options)
+        self.__options = options
 
     @property
-    def options(self) -> Mapping[str, str]:
-        """List of options used to start the launcher."""
+    def config(self) -> LauncherConfig:
+        """Get the configuration for the launcher."""
         return self.__options
+
+    @property
+    def options(self) -> LauncherOptions:
+        """List of options used to start the launcher."""
+        return self.__options.options
 
     def is_valid(self) -> StdRet[None]:
         """Is this launcher valid, including all options?"""
@@ -149,4 +138,4 @@ class AbcLauncherCategory:
         raise NotImplementedError()
 
 
-LauncherFactory = Callable[[Mapping[str, str]], AbcLauncherCategory]
+LauncherFactory = Callable[[LauncherConfig], AbcLauncherCategory]

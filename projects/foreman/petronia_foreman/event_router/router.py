@@ -113,9 +113,11 @@ class EventRouter:
         if self.__target:
             channel.add_event_consumer(self.__target)
         if target:
+            # print(f"Adding registered target to channel {name}")
             channel.add_event_consumer(target)
 
         def on_close() -> None:
+            # print(f"Closing channel {name} due to EOF")
             self.__executor.submit(self.close_channel, name)
 
         channel.add_event_consumer(OnCloseTarget(on_close))
@@ -239,6 +241,7 @@ class EventRouter:
         for channel in channels:
             res = channel.consume(event)
             if res:
+                # print(f"consume returned True for channel {channel.name}; closing it (1)")
                 self.close_channel(channel.name)
         return RET_OK_NONE
 
@@ -266,6 +269,7 @@ class EventRouter:
             res = channel.consume(event)
             if res:
                 self.close_channel(channel_name)
+                # print(f"consume returned True for channel {channel.name}; closing it (2)")
         return RET_OK_NONE
 
     def _on_channel_consume_error(self, _name: str, error: PetroniaReturnError) -> bool:

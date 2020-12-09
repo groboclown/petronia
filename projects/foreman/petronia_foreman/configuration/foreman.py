@@ -112,6 +112,6 @@ class ForemanConfig:
             )
         ret = self._launcher_mapper[name]
         valid = ret.validate()
-        if not valid:
+        if valid.has_error:
             return valid.forward()
         return StdRet.pass_ok(ret)

@@ -1,36 +1,38 @@
 """Loads the launchers."""
 
 
-from typing import Dict
-from petronia_common.util import StdRet
+from typing import Mapping
+from petronia_common.util import StdRet, readonly_dict
 from petronia_common.util import i18n as _
 from .abc import AbcLauncherCategory, LauncherFactory
-from .boot import create_windows_native_launcher, create_windows_extension_loader
+from .cmd import create_cmd_launcher
+from ..configuration import LauncherConfig
 from ..user_message import CATALOG
 
 
 # This should have a better mechanism for defining the registered launchers,
 # but this works for now.  Especially since launchers are currently
 # directly built into foreman.
-IMPLEMENTATIONS: Dict[str, LauncherFactory] = {
+IMPLEMENTATIONS: Mapping[str, LauncherFactory] = readonly_dict({
     # 'docker': ,
-    'win-extension-loader': create_windows_extension_loader,
-    'win-native': create_windows_native_launcher,
-}
+    # 'in-memory': ,
+    # 'sandbox': ,
+    'cmd-launcher': create_cmd_launcher,
+})
 
 
 def create_launcher_category(
-        launcher_category: str, options: Dict[str, str],
+        launcher_configuration: LauncherConfig,
 ) -> StdRet[AbcLauncherCategory]:
     """Create the launcher, but only if it is valid."""
-    launcher_factory = IMPLEMENTATIONS.get(launcher_category)
+    launcher_factory = IMPLEMENTATIONS.get(launcher_configuration.runner)
     if not launcher_factory:
         return StdRet.pass_errmsg(
             CATALOG,
-            _('Unknown launcher factory {name}'),
-            name=launcher_category,
+            _('Unknown launcher runner {name}'),
+            name=launcher_configuration.runner,
         )
-    launcher = launcher_factory(options)
+    launcher = launcher_factory(launcher_configuration)
     ret_valid = launcher.is_valid()
     if ret_valid.has_error:
         return ret_valid.forward()

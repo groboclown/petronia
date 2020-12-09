@@ -50,17 +50,25 @@ def read_event_stream(
     """
     marked_stream = MarkedStreamReader(stream)
     while True:
+        # print(f"event stream {report_id}: reading a raw event.")
         raw_event, error, eof = parse_raw_event(marked_stream)
         if error:
             # error parsing an event.
+            # print(f"event stream {report_id}: read error {error}")
             if error_listener(error):
+                # print(f"event stream {report_id}: error_listener returned true; aborting loop")
                 return
+            # print(f"event stream {report_id}: error_listener did not return true, continue reading")
         if raw_event:
             # raw data parsed
+            # print(f"event stream {report_id}: read raw event {raw_event}")
             if event_listener(raw_event):
+                # print(f"event stream {report_id}: event listener returned true; aborting loop")
                 return
+            # print(f"event stream {report_id}: event listener returned false; continuing loop")
         if eof:
             # End-of-stream
+            # print(f"event stream {report_id}: read eof")
             end_of_stream_listener()
             return
 
@@ -135,8 +143,10 @@ def parse_raw_event(
         # A general state loop, looking for the packet start.
         # To be fully resilient to errors, we could maintain a buffer of read data,
         # and on error, go back and look for the marker.  But that seems like overkill.
+        # print(f"[parse_raw_event({call_id})] Start reading from reader (in loop)")
         read_byte = stream.marked_read(1)
         if read_byte == consts.EMPTY_BINARY:
+            # print(f"[parse_raw_event({call_id})] Read EOF from reader")
             # End-of-stream reached.
             if state != STATE_INIT:
                 # We've read some of the stream.
@@ -151,10 +161,12 @@ def parse_raw_event(
         # ===================================================================
         # Start of Packet Search
         elif state == STATE_INIT:
+            # print(f"[parse_raw_event({call_id})] Read {read_byte} from reader")
             if read_byte == consts.BINARY_PACKET_MARKER_1:
                 state = STATE_EXPECTING_MARKER_2
             # else - ignore; we remain in the init state
         elif state == STATE_EXPECTING_MARKER_2:
+            # print(f"[parse_raw_event({call_id})] Read {read_byte} from reader")
             if read_byte == consts.BINARY_PACKET_MARKER_2:
                 state = STATE_EXPECTING_MARKER_3
             else:
@@ -162,6 +174,7 @@ def parse_raw_event(
                 return None, None, False
 
         elif state == STATE_EXPECTING_MARKER_3:
+            # print(f"[parse_raw_event({call_id})] Read {read_byte} from reader")
             if read_byte == consts.BINARY_PACKET_MARKER_3:
                 # Move on to packet parsing.
                 state = STATE_EVENT_ID_EXPECTING_MARKER
@@ -174,6 +187,7 @@ def parse_raw_event(
             raise RuntimeError('Invalid state')  # pragma: no cover
 
     assert state == STATE_EVENT_ID_EXPECTING_MARKER
+    # print(f"[parse_raw_event({call_id})] processing event")
 
     def read_stream(count: int) -> Tuple[Optional[PetroniaReturnError], bytes]:
         read_data = b''
