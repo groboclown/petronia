@@ -145,7 +145,7 @@ def write_binary_event_to_stream(
 
                 remaining -= len(data)
                 stream.write(data)
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         return StdRet.pass_exception(
             _('writing event to stream'), err
         )
@@ -267,7 +267,7 @@ def write_object_event_to_stream(
     try:
         stream.write(packet_envelope)
         stream.write(encoded_event_object)
-    except Exception as err:
+    except Exception as err:  # pylint: disable=broad-except
         return StdRet.pass_exception(
             _('writing event to stream'), err
         )

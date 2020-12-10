@@ -6,7 +6,6 @@ Test the forwarder module.
 from typing import List, Tuple, Any
 import unittest
 import threading
-from concurrent.futures import ThreadPoolExecutor
 from .. import thread_stream
 from .shared import create_read_stream, SimpleBinaryWriter, PACKET_MARKER, as_bin_str
 from ..reader import static_reader
@@ -367,7 +366,7 @@ class StreamedBinaryReaderTest(unittest.TestCase):
     def test_read_data__0_bytes(self) -> None:
         """Test the read_data method with a 0 argument."""
         condition = threading.Condition()
-        reader = thread_stream.StreamedBinaryReader(ThreadPoolExecutor(), condition)
+        reader = thread_stream.StreamedBinaryReader(condition)
         reader.feed_data(b'123')
         res = reader.read_data(0)
         self.assertEqual(b'', res)
@@ -378,7 +377,7 @@ class StreamedBinaryReaderTest(unittest.TestCase):
     def test_read_data__positive_bytes(self) -> None:
         """Test the read_data method with a requested number of bytes."""
         condition = threading.Condition()
-        reader = thread_stream.StreamedBinaryReader(ThreadPoolExecutor(), condition)
+        reader = thread_stream.StreamedBinaryReader(condition)
         reader.feed_data(b'123')
         reader.feed_eof()
         res = reader.read_data(1)

@@ -58,7 +58,8 @@ def read_event_stream(
             if error_listener(error):
                 # print(f"event stream {report_id}: error_listener returned true; aborting loop")
                 return
-            # print(f"event stream {report_id}: error_listener did not return true, continue reading")
+            # print(f"event stream {report_id}: error_listener did not return true, continue
+            # reading")
         if raw_event:
             # raw data parsed
             # print(f"event stream {report_id}: read raw event {raw_event}")

@@ -104,7 +104,8 @@ class ThreadedStreamForwarder:
 
                 # Wait for the forwarding to be consumed...
                 with data_read_condition:
-                    # print(f" (TSF {self._iid}) Waiting on {data_read_condition} data to be read...")
+                    # print(f" (TSF {self._iid}) Waiting on {data_read_condition} data to
+                    # be read...")
                     data_read_condition.wait_for(all_consumed)
                     # print(f" (TSF {self._iid}) {data_read_condition} all sent data read")
             stream_future.set_result(True)

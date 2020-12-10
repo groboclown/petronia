@@ -171,7 +171,8 @@ class EventForwarder:
         else:
             # No targets for this event.  So the event reader needs to
             # be drained.
-            # print(f"[{self}] no targets to consume event {event_id} ({len(self.__targets)} total targets)")
+            # print(f"[{self}] no targets to consume event {event_id}
+            # ({len(self.__targets)} total targets)")
             EventForwarder._drain_event(event)
         # return self._manage_targets(to_remove)
         ret = self._manage_targets(to_remove)

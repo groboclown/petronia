@@ -63,7 +63,8 @@ class StreamedBinaryReader:
                 self.__buffer_empty = False
                 # print(f" -- (SBR {self._iid}) pumping {len(buff)} bytes of data ({buff})")
                 self.__buffer += buff
-                # print(f" -- (SBR {self._iid}) -- {len(self.__buffer)} bytes left to read (+ {len(buff)} bytes)")
+                # print(f" -- (SBR {self._iid}) -- {len(self.__buffer)} bytes left to read (+
+                # {len(buff)} bytes)")
                 self.__waiter.notify_all()
 
     def feed_eof(self) -> None:
@@ -124,7 +125,8 @@ class StreamedBinaryReader:
 
                 ret = self.__buffer[:read_count]
                 del self.__buffer[:read_count]
-                # print(f" {self} reading -- {len(self.__buffer)} bytes left in reader (read {ret})")
+                # print(f" {self} reading -- {len(self.__buffer)} bytes left in reader
+                # (read {ret})")
                 if len(self.__buffer) <= 0:
                     self.__buffer_empty = True
                     if self.__eof:
@@ -225,7 +227,7 @@ class StreamReadState:
         of FD -> read data for those FDs that were read from; if the
         bytes value is empty, then it signals that the FD is closed.
         """
-        while self.is_active():
+        while self.is_active():   # pylint: disable=too-many-nested-blocks
             self._wait_for_fd()
             fds = self.get_fds()
             if not fds or not self.is_active():
@@ -245,7 +247,7 @@ class StreamReadState:
                                 stream.feed_data(data)
             except InterruptedError:
                 pass
-            except Exception as err:
+            except Exception as err:  # pylint: disable=broad-except
                 self.on_error(err)
 
 
@@ -263,14 +265,14 @@ def select_reader(
         timeout,
     )
     ret: Dict[int, Union[bytes, Exception]] = {}
-    for fd_list in (readable, exceptional):
-        for f_d in fd_list:
+    for ready_fds in (readable, exceptional):
+        for f_d in ready_fds:
             try:
                 data = os.read(f_d, read_buffer_size)
                 ret[f_d] = data
             except EOFError:
                 ret[f_d] = b''
-            except Exception as err:
+            except Exception as err:  # pylint: disable=broad-except
                 ret[f_d] = err
     return ret
 
@@ -287,10 +289,12 @@ def single_reader_loop(
     debug_bytes_read = 0
     while True:
         try:
-            # print(f"loop reader: reading {buffer_read_size} bytes from {inp.fileno()} (so far: {debug_bytes_read})")
+            # print(f"loop reader: reading {buffer_read_size} bytes from {inp.fileno()}
+            # (so far: {debug_bytes_read})")
             data = inp.read(buffer_read_size)
             debug_bytes_read += len(data)
-            # print(f"loop reader:  read {repr(data)} from {inp.fileno()} (total: {debug_bytes_read})")
+            # print(f"loop reader:  read {repr(data)} from {inp.fileno()} (total:
+            # {debug_bytes_read})")
             if data:
                 stream.feed_data(data)
             elif eof_on_empty_read:
@@ -299,7 +303,7 @@ def single_reader_loop(
         except EOFError:
             stream.feed_eof()
             return
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             if on_err:
                 on_err(err)
             stream.feed_eof()
