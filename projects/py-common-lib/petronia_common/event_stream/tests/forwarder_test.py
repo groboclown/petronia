@@ -6,6 +6,7 @@ Test the forwarder module.
 from typing import List, Tuple, Any
 import unittest
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from .. import thread_stream
 from .shared import create_read_stream, SimpleBinaryWriter, PACKET_MARKER, as_bin_str
 from ..reader import static_reader
@@ -276,7 +277,7 @@ class EventForwarderTest(unittest.TestCase):
         )
         efp = AccessibleEventForwarder(
             create_read_stream(inp_stream.getvalue()),
-            thread_stream.ThreadedStreamForwarder(),
+            thread_stream.ThreadedStreamForwarder(ThreadPoolExecutor(12)),
         )
         self.assertTrue(efp.alive)
         efp.add_target(target_1)

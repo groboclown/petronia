@@ -52,7 +52,7 @@ class BinaryEventStreamForwarder(Protocol):
     pass that on to each of the targets' readers, wait for those
     targets to finish consuming that data, then repeat until the
     data is fully processed."""
-    def __call__(  # pylint: disable=too-many-arguments
+    def __call__(  # pylint: disable=too-many-arguments  # pragma no cover
         self,
         event_id: str,
         source_id: str,
@@ -74,30 +74,19 @@ class EventForwarder:
     # so there is no reason to explicitly call an await on the read functions.
     __slots__ = (
         '__source', '__targets', '__pending_targets', '__filter', '__alive', '__forwarder',
-
-        # Debug variables
-        '_iid',
     )
-
-    _INSTANCE_COUNT = 0
 
     def __init__(
             self, source: BinaryReader,
             stream_forwarder: BinaryEventStreamForwarder,
             event_filter: Optional[Callable[[str, str, str], bool]] = None,
     ) -> None:
-        self._iid = EventForwarder._INSTANCE_COUNT
-        EventForwarder._INSTANCE_COUNT += 1
-        # print(f"Created forwarder {self._iid}")
         self.__source = source
         self.__filter = event_filter
         self.__targets: List[EventForwarderTarget] = []
         self.__pending_targets: List[EventForwarderTarget] = []
         self.__alive = True
         self.__forwarder = stream_forwarder
-
-    def __repr__(self) -> str:
-        return f"EventForwarder({self._iid})"
 
     @property
     def alive(self) -> bool:

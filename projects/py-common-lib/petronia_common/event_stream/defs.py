@@ -13,6 +13,11 @@ class RawBinaryReader(Protocol):
     ) -> bytes: ...
 
 
+class BinaryReader(Protocol):
+    """Standard API for binary reader objects."""
+    def read(self, max_read_size: int = -1) -> bytes: ...  # pylint: disable=C0116  # pragma no cover
+
+
 # What it should be ...
 # MarshalledEventObjectData = Union[
 #     str, int, float, None,

@@ -20,7 +20,8 @@ from ..util import i18n as _
 class BinaryWriter(Protocol):
     """A protocol for what the event writer needs.  Just a simple
     write method that takes bytes.  The writer doesn't need to be
-    an async writer or any other fancy thing."""
+    an async writer or any other fancy thing.  If it raises exceptions,
+    they should inherit from Exception."""
 
     def write(self, data: bytes) -> None: ...  # pylint: disable=C0116  # pragma no cover
 

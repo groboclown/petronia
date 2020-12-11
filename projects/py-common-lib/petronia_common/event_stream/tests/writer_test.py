@@ -281,6 +281,22 @@ class WriterTest(unittest.TestCase):
             ),
         ), messages)
 
+    def test_write_binary__exception(self) -> None:
+        """Test writing a binary object that raises an exception."""
+        out = ExceptionWriter()
+        res = writer.write_binary_event_to_stream(
+            out, 'e1', 's1', 't1', consts.MIN_BLOB_SIZE, b'0' * consts.MIN_BLOB_SIZE,
+        )
+        self.assertTrue(res.has_error)
+
+    def test_write_object__exception(self) -> None:
+        """Test writing a binary object that raises an exception."""
+        out = ExceptionWriter()
+        res = writer.write_object_event_to_stream(
+            out, 'e1', 's1', 't1', {},
+        )
+        self.assertTrue(res.has_error)
+
 
 def io_reader(buff: bytes) -> writer.RawBinaryReader:
     """Simple binary reader implementation"""
@@ -290,3 +306,10 @@ def io_reader(buff: bytes) -> writer.RawBinaryReader:
         return inp.read(max_read_count)
 
     return reader
+
+
+class ExceptionWriter(writer.BinaryWriter):
+    """A BinaryWriter that raises an exception."""
+
+    def write(self, data: bytes) -> None:
+        raise OSError('causes error')

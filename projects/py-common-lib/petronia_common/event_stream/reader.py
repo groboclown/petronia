@@ -15,21 +15,19 @@ Reads low-level streaming event data.
 # pylint: disable=R1723
 
 
-from typing import Callable, Tuple, List, Dict, Optional, Protocol, Any, final
+from typing import Callable, Tuple, List, Dict, Optional, Any, final
 import json
 from . import consts
-from .defs import RawEvent, RawBinaryReader, to_raw_event_binary, to_raw_event_object
+from .defs import (
+    RawEvent, RawBinaryReader, BinaryReader,
+    to_raw_event_binary, to_raw_event_object,
+)
 from ..util import (
     PetroniaReturnError, UserMessage,
     possible_error, join_errors,
     STANDARD_PETRONIA_CATALOG,
 )
 from ..util import i18n as _
-
-
-class BinaryReader(Protocol):
-    """Standard API for binary reader objects."""
-    def read(self, max_read_size: int = -1) -> bytes: ...  # pylint: disable=C0116  # pragma no cover
 
 
 def read_event_stream(

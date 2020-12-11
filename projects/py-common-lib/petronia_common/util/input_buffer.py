@@ -2,10 +2,11 @@
 A select-like worker thread that pulls from
 """
 
-from typing import Iterable, Dict, Callable, BinaryIO, Union, Optional
+from typing import Iterable, Dict, Callable, Union, Optional
 import os
 import threading
 import select
+from ..event_stream.reader import BinaryReader
 
 
 class StreamedBinaryReader:
@@ -13,19 +14,14 @@ class StreamedBinaryReader:
     The buffer has no maximum size.  When data is read from the buffer, the
     condition is notified."""
     __slots__ = (
-        '__condition', '__buffer', '__eof', '__waiter', '__lock', '__eof_read', '_iid',
+        '__condition', '__buffer', '__eof', '__waiter', '__lock', '__eof_read',
         '__buffer_empty',
     )
-
-    _INSTANCE_COUNT = 0
 
     def __init__(
             self,
             condition: Optional[threading.Condition] = None,
     ) -> None:
-        self._iid = StreamedBinaryReader._INSTANCE_COUNT
-        StreamedBinaryReader._INSTANCE_COUNT += 1
-        # print(f"Created StreamedBinaryReader {self._iid}")
         self.__lock = threading.RLock()
         self.__condition = condition
         self.__waiter = threading.Condition(self.__lock)
@@ -33,9 +29,6 @@ class StreamedBinaryReader:
         self.__eof = False
         self.__eof_read = False
         self.__buffer_empty = True
-
-    def __repr__(self) -> str:
-        return f"(SBR {self._iid} / {len(self.__buffer)})"
 
     def is_buffer_consumed(self) -> bool:
         """Is there no more data to read in this buffer?  This is done outside the lock."""
@@ -205,12 +198,13 @@ class StreamReadState:
     def start_read_loop_thread(
             self,
             read_ready_fds: Callable[[Iterable[int]], Dict[int, Union[bytes, Exception]]],
+            loop_notice: Optional[threading.Condition] = None,
     ) -> threading.Thread:
         """Start the read loop in a thread."""
         assert self.is_active(), 'Not currently active'
         ret = threading.Thread(
             target=self.read_loop,
-            args=(read_ready_fds,),
+            args=(read_ready_fds, loop_notice,),
             daemon=True,
         )
         ret.start()
@@ -219,6 +213,7 @@ class StreamReadState:
     def read_loop(
             self,
             read_ready_fds: Callable[[Iterable[int]], Dict[int, Union[bytes, Exception]]],
+            loop_notice: Optional[threading.Condition],
     ) -> None:
         """Run the loop to wait for FDs to be ready for read.
         The read_ready_fds callback takes in the list of FDs that are
@@ -226,29 +221,44 @@ class StreamReadState:
         available (should be non-blocking), and returns a dictionary
         of FD -> read data for those FDs that were read from; if the
         bytes value is empty, then it signals that the FD is closed.
+
+        The loop_notice is mostly used as a debugging hook to tell
+        the callers when the loop runs.
         """
         while self.is_active():   # pylint: disable=too-many-nested-blocks
+            if loop_notice:
+                with loop_notice:
+                    loop_notice.notify_all()
             self._wait_for_fd()
             fds = self.get_fds()
             if not fds or not self.is_active():
+                # This is another code-coverage situation where the continue line
+                # is skipped on Windows Python.  Add in the print statement, and
+                # it's magically covered.
+                # print("Loop again; no fds found or not active.")
                 continue
             try:
                 read_data = read_ready_fds(fds)
-                for f_d, data in read_data.items():
-                    if isinstance(data, Exception):
-                        self.on_error(data)
-                    else:
-                        stream = self.get_stream(f_d)
-                        if stream:
-                            if data == b'':
-                                stream.feed_eof()
-                                self.close_fd(f_d)
-                            else:
-                                stream.feed_data(data)
             except InterruptedError:
-                pass
+                # This is acceptable for built-in read ready calls.
+                continue
             except Exception as err:  # pylint: disable=broad-except
                 self.on_error(err)
+                continue
+
+            for f_d, data in read_data.items():
+                if isinstance(data, Exception):
+                    self.on_error(data)
+                else:
+                    stream = self.get_stream(f_d)
+                    if not stream:  # pragma no cover
+                        # edge case that is really hard to test for.
+                        continue  # pragma no cover
+                    if data == b'':
+                        stream.feed_eof()
+                        self.close_fd(f_d)
+                    else:
+                        stream.feed_data(data)
 
 
 def select_reader(
@@ -278,7 +288,7 @@ def select_reader(
 
 
 def single_reader_loop(
-        inp: BinaryIO, stream: StreamedBinaryReader,
+        inp: BinaryReader, stream: StreamedBinaryReader,
         eof_on_empty_read: bool = True,
         buffer_read_size: int = 1,
         on_err: Optional[Callable[[Exception], None]] = None,
@@ -286,13 +296,13 @@ def single_reader_loop(
     """Runs in a loop reading from a single input I/O and pumps it into the
     stream.  Runs until EOF is encountered.  On an exception, the on_err callback
     is called, EOF is sent to the stream, and the read loop stops."""
-    debug_bytes_read = 0
+    # debug_bytes_read = 0
     while True:
         try:
             # print(f"loop reader: reading {buffer_read_size} bytes from {inp.fileno()}
             # (so far: {debug_bytes_read})")
             data = inp.read(buffer_read_size)
-            debug_bytes_read += len(data)
+            # debug_bytes_read += len(data)
             # print(f"loop reader:  read {repr(data)} from {inp.fileno()} (total:
             # {debug_bytes_read})")
             if data:
