@@ -5,7 +5,6 @@ import unittest
 import threading
 import io
 from .. import input_buffer
-from ...event_stream import BinaryReader
 
 
 class StreamedBinaryReaderTest(unittest.TestCase):
@@ -422,6 +421,7 @@ class EofReader:
         self.remaining_empty_count = empty_count
 
     def read(self, max_read_size: int = -1) -> bytes:
+        """Run the read"""
         if len(self.data) <= 0 and max_read_size != 0:
             self.remaining_empty_count -= 1
             if self.remaining_empty_count <= 0:
@@ -441,4 +441,5 @@ class ErrorReader:
         self.err = err
 
     def read(self, max_read_size: int = -1) -> bytes:
+        """Raise an error on read."""
         raise self.err

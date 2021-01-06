@@ -1,0 +1,172 @@
+"""
+Imports modules from paths.
+
+This is a custom importer, which tries to separate the imported modules
+from each other.  However, that's hard to do because Python isn't designed
+with this approach in mind, so at best it will be a shaky implementation
+that is fragile and probably not cross-version supporting, and at worst it
+will give a false sense of security.
+"""
+
+from typing import List, Sequence, Optional
+import sys
+import types
+import importlib.abc
+import importlib.util
+import importlib.machinery
+from petronia_common.util import StdRet
+from petronia_common.util import i18n as _
+from ...constants import TRANSLATION_CATALOG
+
+
+def load_module_from_path(fullname: str, path: List[str]) -> StdRet[types.ModuleType]:
+    """Create a module from the given search path."""
+    # importlib.util.spec_from_file_location(fullname, path, submodule_search_locations=[])
+
+    res_loader = create_import_loader(path)
+    if res_loader.has_error:
+        return res_loader.forward()
+    module_name_parts = fullname.split('.')
+    current_module_name = ''
+    current_module: Optional[types.ModuleType] = None
+    for mod_part in module_name_parts:
+        if not current_module_name:
+            current_module_name = mod_part
+        else:
+            current_module_name += '.' + mod_part
+        try:
+            spec = importlib.machinery.ModuleSpec(name=current_module_name, loader=None)
+            current_module = res_loader.result.create_module(spec)
+        except ImportError as err:
+            return StdRet.pass_exception(
+                _('load module'),
+                err,
+            )
+    if not current_module:
+        return StdRet.pass_errmsg(
+            TRANSLATION_CATALOG,
+            _('Invalid module name {module}'),
+            module=fullname,
+        )
+    return StdRet.pass_ok(current_module)
+
+
+def create_import_loader(path: List[str]) -> StdRet[importlib.abc.Loader]:
+    """Create a loader for the given path."""
+    loaders = []
+    errs = []
+    for path_item in path:
+        res = get_loader_for_path_item(path_item)
+        if res.ok:
+            loaders.append(res.result)
+        else:
+            errs.append(res.valid_error)
+    if errs:
+        return StdRet.pass_error(*errs)
+    return StdRet.pass_ok(CompositeLoader(loaders))
+
+
+def get_loader_for_path_item(path_item: str) -> StdRet[importlib.abc.Loader]:
+    """Get a loader for a single path item."""
+    try:
+        importer = sys.path_importer_cache[path_item]
+        if importer is not None:
+            return StdRet.pass_ok(importer)
+    except KeyError:
+        for path_hook in sys.path_hooks:
+            try:
+                return StdRet.pass_ok(path_hook(path_item))
+            except ImportError:
+                pass
+    return StdRet.pass_errmsg(
+        TRANSLATION_CATALOG,
+        _('Could not find an importer for path item {path}'),
+        path=path_item,
+    )
+
+
+class CompositeLoader(
+    # importlib.abc.Loader,
+    importlib.abc.ResourceLoader,
+    importlib.abc.InspectLoader,
+):
+    """Loads modules from many loaders."""
+    __slots__ = ('__loaders',)
+
+    def __init__(self, loaders: Sequence[importlib.abc.Loader]) -> None:
+        self.__loaders = tuple(loaders)
+
+    def load_module(
+            self, fullname: str,
+    ) -> types.ModuleType:
+        for loader in self.__loaders:
+            try:
+                ret = loader.load_module(fullname)
+                ret.__loader__ = self
+                return ret
+            except ImportError:
+                pass
+        raise ImportError(name=fullname)
+
+    def create_module(
+            self, spec: importlib.machinery.ModuleSpec,
+    ) -> Optional[types.ModuleType]:
+        for loader in self.__loaders:
+            if hasattr(loader, 'create_module'):
+                try:
+                    ret = loader.create_module(spec)
+                    ret.__loader__ = self
+                    return ret
+                except ImportError:
+                    pass
+        raise ImportError(name=spec.name)
+
+    def exec_module(self, module: types.ModuleType) -> None:
+        for loader in self.__loaders:
+            if hasattr(loader, 'exec_module'):
+                try:
+                    return loader.exec_module(module)
+                except ImportError:
+                    pass
+        raise ImportError(name=str(module))
+
+    def get_data(self, path: str) -> bytes:
+        for loader in self.__loaders:
+            if hasattr(loader, 'get_data'):
+                try:
+                    return loader.get_data(path)
+                except OSError:
+                    pass
+        raise OSError
+
+    def is_package(self, fullname: str) -> bool:
+        for loader in self.__loaders:
+            if hasattr(loader, 'is_package'):
+                return loader.is_package(fullname)
+        raise ImportError
+
+    def get_code(self, fullname: str) -> Optional[types.CodeType]:
+        for loader in self.__loaders:
+            if hasattr(loader, 'get_code'):
+                return loader.get_code(fullname)
+        return None
+
+    def get_source(self, fullname: str) -> Optional[str]:
+        """Abstract method which should return the source code for the
+        module.  The fullname is a str.  Returns a str.
+
+        Raises ImportError if the module cannot be found.
+        """
+        for loader in self.__loaders:
+            if hasattr(loader, 'get_source'):
+                return loader.get_source(fullname)
+        return None
+
+    def get_resource_reader(self, fullname: str) -> Optional[importlib.abc.ResourceReader]:
+        """Loaders that support resource reading are expected to implement
+        the ``get_resource_reader(fullname)`` method and have it either return None
+        or an object compatible with this ABC."""
+        for loader in self.__loaders:
+            if hasattr(loader, 'get_resource_reader'):
+                return loader.get_resource_reader(fullname)
+        return None

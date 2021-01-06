@@ -9,6 +9,7 @@ from ...message import i18n, UserMessage, STANDARD_PETRONIA_CATALOG
 
 class EnforcementTest(unittest.TestCase):
     """Checks the enforcement API"""
+
     def test_enforce_that__no(self) -> None:
         """Enforcement that's good."""
         condition = MockCondition(True)

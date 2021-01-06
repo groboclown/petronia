@@ -32,7 +32,7 @@ class PlatformSettings:
     This also knows information related to the install layout.
     """
 
-    __slots__ = ('name', 'category', 'config_paths', 'data_paths', 'native_launcher_name',)
+    __slots__ = ('name', 'category', 'config_paths', 'data_paths', 'native_launcher_name')
 
     def __init__(  # pylint: disable=too-many-arguments
             self,

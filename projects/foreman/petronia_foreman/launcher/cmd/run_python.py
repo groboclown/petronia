@@ -5,7 +5,6 @@ Helpers for launching a Python interpreter as the executable.
 from typing import List, Sequence, Tuple, Dict
 import os
 import sys
-import shlex
 from petronia_common.util import StdRet
 from ...configuration.platform import detect_install_dir
 
@@ -16,7 +15,7 @@ def get_python_exec_args(
         module_name: str,
         additional_module_paths: Sequence[str],
         reuse_current_path: bool,
-) -> StdRet[Tuple[str, Dict[str, str]]]:
+) -> StdRet[Tuple[Sequence[str], Dict[str, str]]]:
     """Get the argument list and environment variables for running the given python
     module.  If running the module requires additional, module-specific arguments,
     then those are also added."""
@@ -26,20 +25,26 @@ def get_python_exec_args(
     # also the path to the program that was executed, but that is not Python; it is the
     # bootloader in either the one-file app or the executable in the one-folder app.
 
-    exec_args = shlex.join((sys.executable, '-m', module_name))
+    exec_args = (sys.executable, '-m', module_name)
     env = os.environ.copy()
 
-    py_path: List[str]
+    py_path: List[str] = []
     if reuse_current_path:
-        py_path = list(sys.path)
-        install_dir = detect_install_dir()
+        # Keep original invoked path as first in all cases.
+        for value in sys.path:
+            path_value = os.path.abspath(value)
+            if path_value not in py_path:
+                py_path.append(path_value)
+        install_dir = os.path.abspath(detect_install_dir())
         if install_dir not in py_path:
             py_path.append(install_dir)
-    else:
-        py_path = []
+
+    # Mod path is always after the invoked path, so it can't override built-in
+    # python / petronia stuff.
     for mod_path in additional_module_paths:
-        if mod_path not in py_path:
-            py_path.append(mod_path)
+        path_value = os.path.abspath(mod_path)
+        if path_value not in py_path:
+            py_path.append(path_value)
 
     env[ENV__PYTHONPATH] = os.path.pathsep.join(py_path)
 

@@ -21,7 +21,7 @@ try:
 
     def run_launcher_posix(  # pylint: disable=too-many-locals
             identity: str,
-            command: str,
+            command: Sequence[str],
             env: Mapping[str, str],
             platform: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],
@@ -36,13 +36,12 @@ try:
         cmd, temp_dirs = create_cmd_and_dirs(
             command, platform, rx_write,
         )
-        cmd_parts = shlex.split(cmd)
         try:
             # Must close pipe input if child will block waiting for end
             # Can also be closed in a preexec_fn passed to subprocess.Popen
             fcntl.fcntl(rx_read, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
             process = subprocess.Popen(  # pylint: disable=no-member
-                args=cmd_parts,
+                args=cmd,
                 env=env,
                 stdin=tx_read,
                 text=False,
@@ -60,7 +59,7 @@ try:
             return StdRet.pass_errmsg(
                 CATALOG,
                 _('Failed to launch [{cmd}]: {err}'),
-                cmd='] ['.join(cmd_parts),
+                cmd='] ['.join(cmd),
                 err=err,
             )
 
@@ -120,7 +119,7 @@ try:
 except ModuleNotFoundError:
     def run_launcher_posix(  # pylint: disable=unused-argument,too-many-arguments
             identity: str,  # pylint: disable=unused-argument
-            command: str,  # pylint: disable=unused-argument
+            command: Sequence[str],  # pylint: disable=unused-argument
             env: Mapping[str, str],  # pylint: disable=unused-argument
             platform: PlatformSettings,
             _requested_permissions: Mapping[str, Sequence[str]],

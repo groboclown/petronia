@@ -3,7 +3,7 @@
 Launch the executable process.
 """
 
-from typing import List, Tuple, Mapping
+from typing import List, Sequence, Tuple, Mapping
 import os
 import tempfile
 from petronia_common.extension.config.extension_schema import ExtensionRuntime
@@ -12,14 +12,16 @@ from petronia_common.util import i18n as _
 from .process import ManagedProcess
 from .popen_win import run_launcher_windows
 from .popen_posix import run_launcher_posix
-from ..configuration.platform import PlatformSettings, CATEGORY__WINDOWS, CATEGORY__LINUX
+from ..configuration.platform import (
+    PlatformSettings, CATEGORY__WINDOWS, CATEGORY__LINUX, CATEGORY__OSX,
+)
 from ..user_message import CATALOG
 
 
 def run_launcher(
         identity: str,
         extension_runtime: ExtensionRuntime,
-        command: str, env: Mapping[str, str],
+        command: Sequence[str], env: Mapping[str, str],
         platform: PlatformSettings,
 ) -> StdRet[ManagedProcess]:
     """Launch the process."""
@@ -28,7 +30,7 @@ def run_launcher(
             identity, command, env, platform,
             extension_runtime.requested_permissions,
         )
-    if platform.category == CATEGORY__LINUX:
+    if platform.category in (CATEGORY__LINUX, CATEGORY__OSX):
         return run_launcher_posix(
             identity, command, env, platform,
             extension_runtime.requested_permissions,

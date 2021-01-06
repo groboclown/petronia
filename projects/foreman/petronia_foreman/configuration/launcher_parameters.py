@@ -12,9 +12,12 @@ BOOT_CHANNEL_OPTION = 'boot-channel'
 RUNNER_OPTION = 'runner'
 IS_BOOT_LAUNCHER_OPTION = '#is-boot-launcher'
 IS_BOOT_LAUNCHER_VALUE = 'yes'
+STOP_TIMEOUT_OPTION = 'stop-timeout'
+STOP_TIMEOUT_DEFAULT = 5.0
 FOREMAN_OPTIONS = (
     BOOT_CHANNEL_OPTION,
     RUNNER_OPTION,
+    STOP_TIMEOUT_OPTION,
 )
 
 
@@ -32,6 +35,17 @@ def get_runner(section: str, config: ConfigParser) -> str:
 def is_boot_launcher(options: LauncherOptions) -> bool:
     """According to the options, is this a boot launcher?"""
     return options.get(IS_BOOT_LAUNCHER_OPTION) == IS_BOOT_LAUNCHER_VALUE
+
+
+def get_stop_timeout(options: LauncherOptions) -> float:
+    """Get the time to wait after a stop request before forcing the stop."""
+    res = options.get(STOP_TIMEOUT_OPTION)
+    if not res:
+        return STOP_TIMEOUT_DEFAULT
+    try:
+        return float(res)
+    except (ValueError, TypeError):
+        return STOP_TIMEOUT_DEFAULT
 
 
 def get_launcher_options(section: str, config: ConfigParser) -> LauncherOptions:

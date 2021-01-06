@@ -1,0 +1,6 @@
+[run]
+
+# __main__ is intentionally trivial so it doesn't need tests.
+omit =
+    petronia_extension_tools/gen_marshal/__main__.py
+    petronia_extension_tools/pylint_plugins/*

@@ -31,7 +31,7 @@ if sys.platform == 'win32':
 
         def run_launcher_windows(  # pylint: disable=too-many-locals
                 identity: str,
-                command: str,
+                command: Sequence[str],
                 env: Mapping[str, str],
                 platform_settings: PlatformSettings,
                 _requested_permissions: Mapping[str, Sequence[str]],
@@ -60,10 +60,9 @@ if sys.platform == 'win32':
                 _winapi.DUPLICATE_SAME_ACCESS,
             )
 
-            cmd, temp_dirs = create_cmd_and_dirs(
+            split_cmd, temp_dirs = create_cmd_and_dirs(
                 command, platform_settings, int(child_h_rx_write),
             )
-            split_cmd = split_windows_cmd(cmd)
             try:
                 # print("[DEBUG] Running windows command {0}".format(split_cmd))
                 # h_proc, h_thread, pid, tid = _winapi.CreateProcess(
@@ -89,15 +88,9 @@ if sys.platform == 'win32':
                 return StdRet.pass_errmsg(
                     CATALOG,
                     _('Failed to create process for {cmd}: {err}'),
-                    cmd=cmd,
+                    cmd=split_cmd,
                     err=err2,
                 )
-
-
-        def split_windows_cmd(full: str) -> Sequence[str]:
-            """Split the command line into arguments, specific for Windows"""
-            # Just kind of do the thing, even though it's not really right.
-            return shlex.split(full, posix=False)
 
 
         class ManagedWinProcess(ManagedProcess):  # pylint: disable=too-many-instance-attributes
@@ -197,7 +190,7 @@ if sys.platform == 'win32':
 else:
     def run_launcher_windows(
             identity: str,  # pylint: disable=unused-argument
-            command: str,  # pylint: disable=unused-argument
+            command: Sequence[str],  # pylint: disable=unused-argument
             env: Mapping[str, str],  # pylint: disable=unused-argument
             platform_settings: PlatformSettings,  # pylint: disable=unused-argument
             _requested_permissions: Mapping[str, Sequence[str]],

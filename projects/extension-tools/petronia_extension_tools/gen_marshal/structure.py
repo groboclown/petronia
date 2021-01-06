@@ -70,7 +70,7 @@ def create_structures(
     return StdRet.pass_ok((structures, imports))
 
 
-def create_inner_structure(  # pylint: disable=too-many-locals,too-many-arguments
+def create_inner_structure(  # pylint: disable=too-many-locals,too-many-arguments,too-many-branches
         name: str, fq_event_name: Optional[str], unique_target: Optional[str],
         structure: Union[StructureEventDataType, SelectorEventDataType],
         seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]],
