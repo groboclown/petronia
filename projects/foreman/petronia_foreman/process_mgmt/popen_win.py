@@ -4,7 +4,6 @@
 
 from typing import Mapping, Sequence, Iterable, Callable, Optional, Any
 import os
-import shlex
 import sys
 import subprocess
 import threading

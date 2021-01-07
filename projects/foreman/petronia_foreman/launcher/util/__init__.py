@@ -17,7 +17,3 @@ from .common_errors import (
     launcher_category_not_initialized,
     started_extension_from_boot_launcher,
 )
-
-from .stream_intercept import (
-    ReadStreamIntercept,
-)

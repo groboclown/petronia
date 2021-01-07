@@ -64,6 +64,9 @@ class BinaryEventStreamForwarder(Protocol):
     ) -> List[EventForwarderTarget]: ...
 
 
+EventFilter = Callable[[str, str, str, RawEvent], bool]
+
+
 class EventForwarder:
     """
     Reads in packets from the source, and passes them to the targets.
@@ -79,7 +82,7 @@ class EventForwarder:
     def __init__(
             self, source: BinaryReader,
             stream_forwarder: BinaryEventStreamForwarder,
-            event_filter: Optional[Callable[[str, str, str], bool]] = None,
+            event_filter: Optional[EventFilter] = None,
     ) -> None:
         self.__source = source
         self.__filter = event_filter
@@ -145,7 +148,7 @@ class EventForwarder:
         to_call: List[EventForwarderTarget] = []
         # print(f"[{self}] event listener start {event_id}")
 
-        if self.__filter and self.__filter(event_id, source_id, target_id):
+        if self.__filter and self.__filter(event_id, source_id, target_id, event):
             # print(f"[{self}] filtered event {event_id} with {self.__filter}")
             return self._manage_targets([])
 

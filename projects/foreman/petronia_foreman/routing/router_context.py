@@ -174,6 +174,7 @@ class RouterContext(TargetHandlerRuntimeContext):
                 event.name,
                 (event.version[0], event.version[1], event.version[2]),
                 event.location,
+                event.configuration,
             )
             if res.ok:
                 self._inject_event(

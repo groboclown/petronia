@@ -2,13 +2,14 @@
 Abstract class for all launchers.
 """
 
-from typing import Tuple, Sequence, Mapping, List, Iterable, Callable
+from typing import Tuple, Sequence, Mapping, List, Iterable, Callable, Optional
 from petronia_common.event_stream import BinaryWriter, BinaryReader
 from petronia_common.util import StdRet
 from ..configuration.platform import PlatformSettings
 from ..configuration.launcher import LauncherConfig
 from ..configuration.launcher_parameters import LauncherOptions
 from ..event_router.handler import EventTargetHandle
+from ..event_router.channel import InternalEventHandler
 
 
 class RuntimeContext:
@@ -46,6 +47,12 @@ class RuntimeContext:
     def remove_handler(self, handler_id: str) -> bool:
         """Removes the handler from its registered channel.
         Returns True if it was successfully removed."""
+        raise NotImplementedError()
+
+    def add_internal_event_handler(self, channel_name: str, handler: InternalEventHandler) -> None:
+        """Adds an internal event handler to manage communication between the launcher and the
+        launcher channel.  The handlers are only removed by an invocation that returns
+        a removal message."""
         raise NotImplementedError()
 
 
@@ -117,6 +124,7 @@ class AbcLauncherCategory:
             extension_name: str,
             extension_version: Tuple[int, int, int],
             location: str,
+            configuration: Optional[str],
     ) -> StdRet[None]:
         """Start the extension as requested by the event.  This will need to register with the
         RuntimeContext a new handler, and what events the extension is capable of consuming and

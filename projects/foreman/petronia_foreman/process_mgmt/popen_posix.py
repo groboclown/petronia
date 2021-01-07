@@ -3,7 +3,6 @@
 
 from typing import Iterable, Sequence, Mapping, Callable, Optional, BinaryIO
 import os
-import shlex
 import subprocess
 from petronia_common.util import StdRet, StreamReadState, select_reader
 from petronia_common.util import i18n as _

@@ -15,9 +15,9 @@ class LaunchTest(unittest.TestCase):
     def setUp(self) -> None:
         self.platform = detect_platform(None)
         self.runner_cmd = (
-            sys.executable + ' ' +
-            os.path.abspath(os.path.join(os.path.dirname(__file__), 'runner.py')) + ' ' +
-            '${WRITE_FD} 4'
+            sys.executable,
+            os.path.abspath(os.path.join(os.path.dirname(__file__), 'runner.py')),
+            '${WRITE_FD}', '4',
         )
 
     def test_runner(self) -> None:

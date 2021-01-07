@@ -9,12 +9,7 @@ from petronia_common.event_stream import (
 )
 from .launched_channel import LaunchedInstance
 from .cmd_events import extension_commands
-from .stream_intercept import (
-    BUBBLE_EVENT__REMOVE_HANDLER,
-    BUBBLE_EVENT__KEEP_HANDLER,
-    DO_NOT_BUBBLE_EVENT__KEEP_HANDLER,
-    DO_NOT_BUBBLE_EVENT__REMOVE_HANDLER,
-)
+from ...event_router.channel import InternalEventHandler, EventFilterResult
 from ...constants import TRANSLATION_CATALOG
 
 # So we don't need a double import
@@ -25,6 +20,7 @@ def request_extension_load(
         launcher: LaunchedInstance,
         handler_id: str,
         extension_name: str, extension_version: Tuple[int, int, int],
+        configuration: Optional[str],
 ) -> StdRet[None]:
     """Send an event to the launcher to request an extension to load."""
     return write_object_event_to_stream(
@@ -34,6 +30,7 @@ def request_extension_load(
         extension_commands.InternalLoadExtensionRequestEvent(
             name=extension_name,
             version=list(extension_version),
+            configuration=configuration,
         ).export_data(),
     )
 
@@ -87,38 +84,38 @@ def create_intercept_extension_loaded_event_handler(
         on_extension_loaded: Callable[[], None],
         on_extension_load_failed: Callable[[Sequence[UserMessage]], None],
         timeout: float,
-) -> Callable[[Optional[RawEvent]], int]:
+) -> InternalEventHandler:
     """Part of the event parsing chain to wait for the extension to be loaded.
     When the handler finds the response or times out, then the callable returns True."""
     assert timeout > 0.0
     end_time = time.time() + timeout
     version_list = list(extension_version)
 
-    def ret(raw_event: Optional[RawEvent]) -> int:
+    def ret(
+            _event_id: str, _source_id: str, _target_id: str, raw_event: RawEvent,
+    ) -> EventFilterResult:
         # We received the event, so go ahead and process it rather than checking for the
         # timeout.
-        if raw_event:
-            res = parse_extension_load_event(raw_event)
-            if res.has_error:
-                on_extension_load_failed(res.valid_error.messages())
-                return DO_NOT_BUBBLE_EVENT__REMOVE_HANDLER
-            if res.value is not None:
-                if (
-                        res.value.name == extension_name
-                        and list(res.value.version) == version_list
-                ):
-                    on_extension_loaded()
-                    return DO_NOT_BUBBLE_EVENT__REMOVE_HANDLER
-                else:
-                    if end_time > time.time():
-                        on_extension_load_failed([UserMessage(
-                            TRANSLATION_CATALOG,
-                            _('Timed out waiting for extension {name} {version} to load'),
-                            name=extension_name,
-                            version=extension_version,
-                        )])
-                        return BUBBLE_EVENT__REMOVE_HANDLER
-                    return DO_NOT_BUBBLE_EVENT__KEEP_HANDLER
+        res = parse_extension_load_event(raw_event)
+        if res.has_error:
+            on_extension_load_failed(res.valid_error.messages())
+            return EventFilterResult.FILTER_EVENT__REMOVE_FILTER
+        if res.value is not None:
+            if (
+                    res.value.name == extension_name
+                    and list(res.value.version) == version_list
+            ):
+                on_extension_loaded()
+                return EventFilterResult.FILTER_EVENT__REMOVE_FILTER
+            if end_time > time.time():
+                on_extension_load_failed([UserMessage(
+                    TRANSLATION_CATALOG,
+                    _('Timed out waiting for extension {name} {version} to load'),
+                    name=extension_name,
+                    version=extension_version,
+                )])
+                return EventFilterResult.ALLOW_EVENT__REMOVE_FILTER
+            return EventFilterResult.FILTER_EVENT__KEEP_FILTER
 
         if end_time > time.time():
             on_extension_load_failed([UserMessage(
@@ -127,8 +124,8 @@ def create_intercept_extension_loaded_event_handler(
                 name=extension_name,
                 version=extension_version,
             )])
-            return BUBBLE_EVENT__REMOVE_HANDLER
+            return EventFilterResult.ALLOW_EVENT__REMOVE_FILTER
 
-        return BUBBLE_EVENT__KEEP_HANDLER
+        return EventFilterResult.ALLOW_EVENT__KEEP_FILTER
 
     return ret

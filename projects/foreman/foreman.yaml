@@ -111,6 +111,8 @@ events:
       name:
         description: The extension name to load.
         type: string
+        min-length: 3
+        max-length: 300
       version:
         description: The extension version to load.
         type: reference
@@ -118,6 +120,14 @@ events:
       location:
         description: Where the launcher can find the extension.
         type: string
+      configuration:
+        description: >
+          User configuration for the extension.  This is a JSON data object stored in a
+          string value.
+        optional: true
+        type: string
+        min-length: 0
+        max-length: 65535
 
   "launcher-load-extension:success":
     description: >
@@ -131,6 +141,8 @@ events:
       name:
         description: The loaded extension name.
         type: string
+        min-length: 3
+        max-length: 300
 
   "launcher-load-extension:failed":
     description: >
@@ -143,6 +155,8 @@ events:
       name:
         description: The loaded extension name.
         type: string
+        min-length: 3
+        max-length: 300
       error:
         type: reference
         ref: error
@@ -159,6 +173,8 @@ events:
       extension_name:
         description: The extension name.
         type: string
+        min-length: 3
+        max-length: 300
       events:
         type: reference
         ref: event_list
@@ -175,6 +191,8 @@ events:
       extension_name:
         description: The extension name.
         type: string
+        min-length: 3
+        max-length: 300
       events:
         type: reference
         ref: event_list
@@ -250,8 +268,12 @@ references:
       event_id:
         description: ID of the event to listen to.  Very few extensions are allowed to listen to all events.
         type: string
+        min-length: 3
+        max-length: 600
         optional: true
       target_id:
         description: ID of the event's target to listen to.  If the target is not given, then any target for the event is listened to.
         type: string
+        min-length: 5
+        max-length: 300
         optional: true

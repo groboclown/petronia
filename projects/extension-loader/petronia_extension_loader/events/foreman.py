@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-01-06T22:34:09.986042
+# Created on 2021-01-06T22:34:13.677947
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -11,18 +11,18 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 
 from typing import (
     Dict,
-    List,
     Any,
-    SupportsInt,
     SupportsFloat,
     Optional,
     Union,
+    List,
+    SupportsInt,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    T,
     STANDARD_PETRONIA_CATALOG,
     StdRet,
+    T,
     collect_errors_from,
 )
 
@@ -327,8 +327,8 @@ class Arguments:
         name: str,
         value: Union[
             int,
-            str,
             float,
+            str,
         ],
     ) -> None:
         self.__name = name
@@ -342,8 +342,8 @@ class Arguments:
     @property
     def value(self) -> Union[
             int,
-            str,
             float,
+            str,
     ]:
         """The selector value."""
         return self.__value

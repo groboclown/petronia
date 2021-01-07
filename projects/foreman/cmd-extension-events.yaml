@@ -36,6 +36,14 @@ events:
           The precise version to load.
         type: reference
         ref: version
+      configuration:
+        description: >
+          User configuration for the extension.  This is a JSON data object stored in a
+          string value.
+        optional: true
+        type: string
+        min-length: 0
+        max-length: 65535
 
   "internal-load-extension:failed":
     description: >

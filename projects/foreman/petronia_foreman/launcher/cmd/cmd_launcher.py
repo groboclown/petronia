@@ -78,6 +78,7 @@ class CmdLauncherCategory(AbcLauncherCategory):
     def start_extension(  # pylint:disable=too-many-arguments
             self, launcher_id: str, handler_id: str, extension_name: str,
             extension_version: Tuple[int, int, int], location: str,
+            configuration: Optional[str],
     ) -> StdRet[None]:
         if not self._context:
             return launcher_category_not_initialized()
@@ -97,6 +98,7 @@ class CmdLauncherCategory(AbcLauncherCategory):
 
         res = request_extension_load(
             launcher_res.result, handler_id, extension_name, extension_version,
+            configuration,
         )
         if res.has_error:
             return res

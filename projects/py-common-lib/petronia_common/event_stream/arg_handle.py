@@ -4,6 +4,8 @@ Tools to help get the file descriptor from the argument list.  The program must 
 argument is passed the handle, and this tool will return the correct handle.
 """
 
+from typing import BinaryIO
+import os
 import platform
 from ..util import StdRet
 from ..util import i18n as _
@@ -37,3 +39,29 @@ def get_fd_from_argument(argument: str) -> StdRet[int]:
             )
     # No other way to tell if the file descriptor is valid.
     return StdRet.pass_ok(int_arg)
+
+
+class FdWriter:
+    """BinaryWriter over an FD IO binary writer."""
+    __slots__ = ('__writer',)
+
+    def __init__(self, writer: BinaryIO) -> None:
+        self.__writer = writer
+
+    def write(self, data: bytes) -> None:
+        """Perform the write operation."""
+        self.__writer.write(data)
+
+    def close(self) -> None:
+        """Close the underlying stream."""
+        self.__writer.close()
+
+
+def get_fd_writer(file_descriptor: int) -> FdWriter:
+    """Get the BinaryWriter compatible object for the file descriptor."""
+    return FdWriter(os.fdopen(file_descriptor, 'wb'))
+
+
+def get_fd_reader(file_descriptor: int) -> BinaryIO:
+    """Get the BinaryReader compatible object for the file descriptor."""
+    return os.fdopen(file_descriptor, 'rb')

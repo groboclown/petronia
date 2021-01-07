@@ -6,9 +6,10 @@ produced events, which means that events produced from a channel must not be dir
 back into the channel.
 """
 
-from typing import Iterable, Callable, Coroutine, Optional, Any
+from typing import Iterable, List, Callable, Coroutine, Optional, Any
+from enum import Enum
 from petronia_common.util import (
-    StdRet, PetroniaReturnError,
+    StdRet, PetroniaReturnError, T, RET_OK_NONE,
 )
 from petronia_common.util import i18n as _
 from petronia_common.event_stream import (
@@ -35,6 +36,25 @@ from ..user_message import CATALOG
 EventRouteDestinationCallback = Callable[[RawEvent], Coroutine[Any, Any, StdRet[None]]]
 
 
+class EventFilterResult(Enum):
+    """Result from the internal event handler, describing how to handle the event and filter."""
+    ALLOW_EVENT__KEEP_FILTER = 0x2 | 0
+    ALLOW_EVENT__REMOVE_FILTER = 0x2 | 0x1
+    FILTER_EVENT__KEEP_FILTER = 0 | 0
+    FILTER_EVENT__REMOVE_FILTER = 0 | 0x1
+
+    def allow_event(self) -> bool:
+        """Is the event allowed to be used?"""
+        return (int(self.value) & 0x2) == 1
+
+    def remove_filter(self) -> bool:
+        """Should the filter be removed after this event handling?"""
+        return (int(self.value) & 0x1) == 1
+
+
+InternalEventHandler = Callable[[str, str, str, RawEvent], EventFilterResult]
+
+
 class EventChannel(EventForwarderTarget):
     """
     A source and destination with the associated handlers.
@@ -42,9 +62,16 @@ class EventChannel(EventForwarderTarget):
     to "the other side" - writing events on the channel means that the
     handlers are listening / consuming the event, and reading from the
     channel means the handlers are sending / producing the event.
+
+    This also allows for internal handlers, which are special handlers for monitoring
+    events intended only for communication between Foreman and the launcher that
+    manages its own running extensions.
     """
 
-    __slots__ = ('__name', '__handlers', '__forwarder', '__writer', '__alive', '__on_error',)
+    __slots__ = (
+        '__name', '__handlers', '__forwarder', '__writer', '__alive', '__on_error',
+        '__internal_handlers',
+    )
 
     def __init__(
             self,
@@ -55,11 +82,12 @@ class EventChannel(EventForwarderTarget):
     ) -> None:
         self.__name = name
         self.__forwarder = EventForwarder(
-            reader, ThreadedStreamForwarder(), self._cant_produce,
+            reader, ThreadedStreamForwarder(), self._local_filter,
         )
         self.__writer = writer
         self.__handlers = EventHandlerSet()
         self.__on_error = on_error
+        self.__internal_handlers: List[InternalEventHandler] = []
         self.__alive = True
 
     def __repr__(self) -> str:
@@ -104,11 +132,7 @@ class EventChannel(EventForwarderTarget):
         handler already has the same ID registered, an error
         is returned."""
         if not self.__alive:
-            return StdRet.pass_errmsg(
-                CATALOG,
-                _('route {name} is closed'),
-                name=self.__name,
-            )
+            return _create_route_closed_error(self.__name)
         # print(f"[{self}] registering handler can produce {produces}")
         return self.__handlers.add_handler(handler_id, produces, consumes)
 
@@ -125,11 +149,7 @@ class EventChannel(EventForwarderTarget):
     ) -> StdRet[None]:
         """Registers the event / target listener with the handler."""
         if not self.__alive:
-            return StdRet.pass_errmsg(
-                CATALOG,
-                _('route {name} is closed'),
-                name=self.__name,
-            )
+            return _create_route_closed_error(self.__name)
         return self.__handlers.add_listener(handler_id, event_id, target_id)
 
     def remove_handler_listener(
@@ -139,12 +159,25 @@ class EventChannel(EventForwarderTarget):
     ) -> StdRet[None]:
         """Removes the event / target listener from the handler."""
         if not self.__alive:
-            return StdRet.pass_errmsg(
-                CATALOG,
-                _('route {name} is closed'),
-                name=self.__name,
-            )
+            return _create_route_closed_error(self.__name)
         return self.__handlers.remove_listener(handler_id, event_id, target_id)
+
+    def add_internal_event_handler(self, handler: InternalEventHandler) -> StdRet[None]:
+        """Add an internal event handler.  This can intercept events intended only for
+        foreman that must never be broadcast out."""
+        if not self.__alive:
+            return _create_route_closed_error(self.__name)
+        self.__internal_handlers.append(handler)
+        return RET_OK_NONE
+
+    def remove_internal_event_handler(self, handler: InternalEventHandler) -> StdRet[None]:
+        """Remove an internal event handler.  If the handler is not registered, it will
+        NOT return an error."""
+        if not self.__alive:
+            return _create_route_closed_error(self.__name)
+        if handler in self.__internal_handlers:
+            self.__internal_handlers.remove(handler)
+        return RET_OK_NONE
 
     def can_produce(self, event_id: str) -> bool:
         """Can this channel produce this event?  That is, is an event
@@ -157,8 +190,23 @@ class EventChannel(EventForwarderTarget):
         # print(f"[{self}] is {event_id} registered as able to produce? {ret}")
         return ret
 
-    def _cant_produce(self, event_id: str, _event_source_id: str, _event_target_id: str) -> bool:
-        return not self.can_produce(event_id)
+    def _local_filter(
+            self, event_id: str, event_source_id: str, event_target_id: str, event: RawEvent,
+    ) -> bool:
+        # All event handlers are called, even if a filter does not allow the event
+        # to be passed on.  Returns True if filtered, and False if allowed to be
+        # produced by the channel.
+        allow_event = self.can_produce(event_id)
+        removed_handlers: List[InternalEventHandler] = []
+        for handler in self.__internal_handlers:
+            res = handler(event_id, event_source_id, event_target_id, event)
+            if res.remove_filter():
+                removed_handlers.append(handler)
+            if not res.allow_event():
+                allow_event = False
+        for handler in removed_handlers:
+            self.__internal_handlers.remove(handler)
+        return not allow_event
 
     # ------------------------------------------------------------------------------
     # Forwarder Target Methods.
@@ -218,3 +266,11 @@ class EventChannel(EventForwarderTarget):
                 self.close_access()
                 return True
         return False
+
+
+def _create_route_closed_error(route_name: str) -> StdRet[T]:
+    return StdRet.pass_errmsg(
+        CATALOG,
+        _('route {name} is closed'),
+        name=route_name,
+    )

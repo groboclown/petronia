@@ -13,7 +13,6 @@ from .load_launcher import (
 from .stream import ReadWriteStream
 from ..abc import AbcLauncherCategory, RuntimeContext
 from ..util import (
-    ReadStreamIntercept,
     LaunchedInstance,
     request_extension_load,
     create_intercept_extension_loaded_event_handler,
@@ -121,9 +120,10 @@ class MemoryLauncherCategory(AbcLauncherCategory):
     def start_extension(
             self, launcher_id: str, handler_id: str, extension_name: str,
             extension_version: Tuple[int, int, int], location: str,
+            configuration: Optional[str],
     ) -> StdRet[None]:
         if not self._context:
-            launcher_category_not_initialized()
+            return launcher_category_not_initialized()
         launcher = self._launchers.get(launcher_id)
         if not launcher:
             return no_such_launcher_id(launcher_id)
@@ -136,13 +136,18 @@ class MemoryLauncherCategory(AbcLauncherCategory):
             # TODO implement
             pass
 
-        launcher.handler_stream.add_handler(create_intercept_extension_loaded_event_handler(
-            extension_name, extension_version,
-            on_extension_loaded, on_extension_load_failed,
-            float(self._start_timeout),
-        ))
+        self._context.add_internal_event_handler(
+            launcher_id,
+            create_intercept_extension_loaded_event_handler(
+                extension_name, extension_version,
+                on_extension_loaded, on_extension_load_failed,
+                float(self._start_timeout),
+            ),
+        )
 
-        res = request_extension_load(launcher, handler_id, extension_name, extension_version)
+        res = request_extension_load(
+            launcher, handler_id, extension_name, extension_version, configuration,
+        )
         return res
 
     def get_active_launcher_ids(self) -> Sequence[str]:
@@ -174,15 +179,17 @@ class MemoryLauncherCategory(AbcLauncherCategory):
         return RET_OK_NONE
 
     def _on_error(self, module_name: str, extension_point: str, err: BaseException) -> None:
+        # TODO implement
         pass
 
     def _on_complete(self, module_name: str, extension_point: str) -> None:
+        # TODO implement
         pass
 
 
 class LauncherData(LaunchedInstance):
     """Data container for an in-memory launcher."""
-    __slots__ = ('thread', 'to_launcher', 'from_launcher', 'handler_stream')
+    __slots__ = ('thread', 'to_launcher', 'from_launcher',)
 
     def __init__(
             self,
@@ -191,9 +198,8 @@ class LauncherData(LaunchedInstance):
             thread: threading.Thread,
             to_launcher: ReadWriteStream, from_launcher: ReadWriteStream,
     ) -> None:
-        self.handler_stream = ReadStreamIntercept(from_launcher)
         LaunchedInstance.__init__(
-            self, launcher_id, options, self.handler_stream, to_launcher, self._local_stop,
+            self, launcher_id, options, from_launcher, to_launcher, self._local_stop,
         )
         self.thread = thread
         self.to_launcher = to_launcher

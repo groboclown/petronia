@@ -19,7 +19,7 @@ from petronia_common.event_stream import (
     RawEventObject, EventForwarderTarget, BinaryWriter, BinaryReader,
     raw_event_id, raw_event_source_id, raw_event_target_id, RawEvent,
 )
-from .channel import EventChannel
+from .channel import EventChannel, InternalEventHandler
 from .handler import EventTargetHandle
 from .reservations import ChannelReservations, ChannelReservationCallback
 from ..user_message import CATALOG
@@ -218,6 +218,21 @@ class EventRouter:
                     ret = channel.remove_handler_listener(handler_id, event_id, target_id)
                     return ret.ok
         return False
+
+    def add_internal_event_handler(
+            self, channel_name: str, handler: InternalEventHandler,
+    ) -> StdRet[None]:
+        """Add an internal event handler for the channel."""
+        with self.__lock:
+            channel = self.__channels.get(channel_name)
+            if not channel:
+                return StdRet.pass_errmsg(
+                    CATALOG,
+                    _('no such channel {name}'),
+                    name=channel_name,
+                )
+            channel.add_internal_event_handler(handler)
+        return RET_OK_NONE
 
     def inject_event(self, event: RawEventObject) -> StdRet[None]:
         """Injects an event into all the channels.

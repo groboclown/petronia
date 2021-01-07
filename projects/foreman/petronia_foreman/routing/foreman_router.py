@@ -15,6 +15,7 @@ from .router_context import RouterContext
 from ..configuration import PlatformSettings, LauncherConfig
 from ..constants import EXTENSION_LOADER_CHANNEL, INTERNAL_CHANNEL_PATTERN, TRANSLATION_CATALOG
 from ..event_router import EventRouter
+from ..event_router.channel import InternalEventHandler
 from ..event_router.handler import EventTargetHandle
 from ..launcher import AbcLauncherCategory, RuntimeContext, create_launcher_category
 from ..user_message import display_error, display_message
@@ -334,6 +335,7 @@ class ExtensionLoaderCallback:
 
 class LauncherRuntimeContext(RuntimeContext):
     """Launcher category context."""
+
     __slots__ = ('_router', '_platform', '_executor')
 
     def __init__(
@@ -366,6 +368,9 @@ class LauncherRuntimeContext(RuntimeContext):
 
     def remove_handler(self, handler_id: str) -> bool:
         return self._router.remove_handler(handler_id)
+
+    def add_internal_event_handler(self, channel_name: str, handler: InternalEventHandler) -> None:
+        self._router.add_internal_event_handler(channel_name, handler)
 
 
 class LauncherCategoryState:
