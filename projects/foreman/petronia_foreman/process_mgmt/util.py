@@ -21,12 +21,12 @@ def create_cmd_and_dirs(
             cmd_part = cmd_part.replace('${TEMP_DIR}', temp_dirs[0])
         if '${DATA_PATH}' in cmd_part:
             cmd_part = cmd_part.replace(
-                '${DATA_PATHS}',
+                '${DATA_PATH}',
                 os.path.pathsep.join(platform.data_paths)
             )
         if '${CONFIG_PATH}' in cmd_part:
             cmd_part = cmd_part.replace(
-                '${DATA_PATHS}',
+                '${CONFIG_PATH}',
                 os.path.pathsep.join(platform.config_paths)
             )
         if '${WRITE_FD}' in cmd_part:

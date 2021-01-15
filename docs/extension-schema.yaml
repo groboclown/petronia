@@ -45,6 +45,21 @@ oneOf:
         patternProperties:
           ".*":
             "$ref": "#/definitions/reference-type"
+      state-data:
+        description: collection of data-store recorded data.
+        type: object
+        patternProperties:
+          "^[a-z0-9]+([._-][a-z0-9]+)*$":
+            description: structured data stored in the data store.
+            type: object
+            required:
+              - description
+              - fields
+            properties:
+              description:
+                "$ref": "#/definitions/description"
+              fields:
+                "$ref": "#/definitions/fields"
       events:
         description: collection of supported events.
         type: object

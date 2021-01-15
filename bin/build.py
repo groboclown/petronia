@@ -21,6 +21,15 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
             mypy_args.append('--package')
             mypy_args.append(name)
 
+    extra_path: List[str] = []
+    if project_dir.endswith('-tests'):
+        # special case for top-level testing projects that require cross-project path.
+        for dirname in os.listdir(root_project_dir):
+            fqn = os.path.join(root_project_dir, dirname)
+            if fqn not in extra_path and os.path.isdir(fqn):
+                extra_path.append(fqn)
+
+
     print("")
     print("----------------------------------------------------------------------")
     print("Type Checking...")
@@ -44,6 +53,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
         [
             os.path.abspath(os.path.join(root_project_dir, 'py-common-lib')),
             os.path.abspath(os.path.join(root_project_dir, 'extension-tools')),
+            *extra_path,
         ],
         'pylint',
         [
@@ -63,7 +73,10 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     print("Unit Testing...")
     test_code = run_python_cmd(
         project_dir,
-        [os.path.abspath(os.path.join(root_project_dir, 'py-common-lib'))],
+        [
+            os.path.abspath(os.path.join(root_project_dir, 'py-common-lib')),
+            *extra_path,
+        ],
         'coverage',
         [
             'run', '--source', '.', '--timid',

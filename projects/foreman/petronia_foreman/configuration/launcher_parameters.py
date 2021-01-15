@@ -2,9 +2,10 @@
 Parameters for launchers that are used by foreman to better understand
 the use of the launcher.
 """
+
+from typing import Mapping, Sequence, Set, Dict, Optional
 from configparser import ConfigParser
-from typing import Mapping, Dict, Optional
-from petronia_common.util import readonly_dict
+from petronia_common.util import readonly_dict, EMPTY_TUPLE
 
 
 LauncherOptions = Mapping[str, str]
@@ -12,6 +13,7 @@ BOOT_CHANNEL_OPTION = 'boot-channel'
 RUNNER_OPTION = 'runner'
 IS_BOOT_LAUNCHER_OPTION = '#is-boot-launcher'
 IS_BOOT_LAUNCHER_VALUE = 'yes'
+BOOT_PRODUCES_EVENTS_OPTION_PREFIX = 'boot-launcher-produces-event.'
 STOP_TIMEOUT_OPTION = 'stop-timeout'
 STOP_TIMEOUT_DEFAULT = 5.0
 FOREMAN_OPTIONS = (
@@ -35,6 +37,21 @@ def get_runner(section: str, config: ConfigParser) -> str:
 def is_boot_launcher(options: LauncherOptions) -> bool:
     """According to the options, is this a boot launcher?"""
     return options.get(IS_BOOT_LAUNCHER_OPTION) == IS_BOOT_LAUNCHER_VALUE
+
+
+def get_boot_launcher_produces(options: LauncherOptions) -> Sequence[str]:
+    """Get all the events that this boot launcher can produce."""
+    # TODO this is too simple and hard to configure right.
+    if not is_boot_launcher(options):
+        return EMPTY_TUPLE
+    ret: Set[str] = set()
+    i = 1
+    key = BOOT_PRODUCES_EVENTS_OPTION_PREFIX + str(i)
+    while key in options:
+        ret.add(options[key].strip())
+        i += 1
+        key = BOOT_PRODUCES_EVENTS_OPTION_PREFIX + str(i)
+    return tuple(ret)
 
 
 def get_stop_timeout(options: LauncherOptions) -> float:

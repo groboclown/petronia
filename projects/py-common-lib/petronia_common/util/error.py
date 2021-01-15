@@ -16,6 +16,7 @@ from typing import (
     Sequence, Iterable, List, Callable, Union, Optional, Generic, Any, cast, TYPE_CHECKING,
 )
 import collections
+import collections.abc
 from .memory import T, T_co, V, EMPTY_TUPLE
 from .message import (
     I18n, UserMessage, UserMessageData,
@@ -252,22 +253,22 @@ def collect_errors_from(
     including errors without messages, then an error object is returned.
     Otherwise, a None is returned."""
     messages: List[UserMessage] = []
-    value: ValidationType
+    # value: ValidationType
     for validation_value in values:
         if isinstance(validation_value, collections.abc.Iterable):
-            for value in validation_value:
-                if callable(value):
-                    value = value()
-                assert isinstance(value, StdRet)
-                if value.has_error:
-                    messages.extend(value.valid_error.messages())
+            for value1 in validation_value:
+                if callable(value1):
+                    value1 = value1()
+                assert isinstance(value1, StdRet)
+                if value1.has_error:
+                    messages.extend(value1.valid_error.messages())
         else:
-            value = validation_value
-            if callable(value):
-                value = value()
-            assert isinstance(value, StdRet)
-            if value.has_error:
-                messages.extend(value.valid_error.messages())
+            value2 = validation_value
+            if callable(value2):
+                value2 = value2()
+            assert isinstance(value2, StdRet)
+            if value2.has_error:
+                messages.extend(value2.valid_error.messages())
     return possible_error(messages)
 
 

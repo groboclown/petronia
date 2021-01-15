@@ -51,6 +51,10 @@ class FdWriter:
     def write(self, data: bytes) -> None:
         """Perform the write operation."""
         self.__writer.write(data)
+        # We must have the IO flush the data, because we
+        # have no guarantee that the close() function will
+        # be called.
+        self.__writer.flush()
 
     def close(self) -> None:
         """Close the underlying stream."""

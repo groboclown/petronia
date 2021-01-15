@@ -2,10 +2,10 @@
 Context for the router target handlers.
 """
 
-from typing import Dict, Callable, Union, Optional
+from typing import Dict, Iterable, Callable, Union, Optional
 from concurrent.futures import ThreadPoolExecutor
 from petronia_common.event_stream import RawEventObject, to_raw_event_object
-from petronia_common.util import PetroniaReturnError, UserMessage
+from petronia_common.util import PetroniaReturnError, UserMessage, StdRet
 from petronia_common.util import i18n as _
 from .event_handlers import TargetHandlerRuntimeContext
 from ..launcher import AbcLauncherCategory
@@ -13,13 +13,13 @@ from ..events import foreman
 from ..user_message import display_error, display_message, CATALOG
 
 
-class RouterContext(TargetHandlerRuntimeContext):
+class RouterContext(TargetHandlerRuntimeContext):  # pylint:too-many-instance-attributes
     """Runtime context for the target handlers.  Note that all async calls happen within the
     event thread, so special care must be taken to ensure that they do not cause a deadlock
     with the thread loop."""
     __slots__ = (
         '__categories', '__shutdown', '__restart', '__generate_event',
-        '__add_handler_listener', '__remove_handler_listener',
+        '__add_handler_listener', '__remove_handler_listener', '__add_handler',
         '__executor',
     )
 
@@ -31,6 +31,7 @@ class RouterContext(TargetHandlerRuntimeContext):
             generate_event: Callable[[RawEventObject], None],
             add_handler_listener: Callable[[str, Optional[str], Optional[str]], None],
             remove_handler_listener: Callable[[str, Optional[str], Optional[str]], None],
+            add_handler: Callable[[str, str, Iterable[str]], StdRet[None]],
             executor: ThreadPoolExecutor,
     ) -> None:
         self.__categories = dict(categories)
@@ -39,6 +40,7 @@ class RouterContext(TargetHandlerRuntimeContext):
         self.__generate_event = generate_event
         self.__add_handler_listener = add_handler_listener
         self.__remove_handler_listener = remove_handler_listener
+        self.__add_handler = add_handler
         self.__executor = executor
 
     def do_shutdown(self) -> None:
@@ -168,24 +170,30 @@ class RouterContext(TargetHandlerRuntimeContext):
 
         def start_extension(cat: AbcLauncherCategory, cat_name: str) -> None:
             assert launcher_id is not None  # mypy requirement
-            res = cat.start_extension(
-                launcher_id,
-                create_handler_id(cat_name, launcher_id, event.name),
-                event.name,
-                (event.version[0], event.version[1], event.version[2]),
-                event.location,
-                event.configuration,
+            handler_id = create_handler_id(cat_name, launcher_id, event.name)
+            res = self.__add_handler(
+                launcher_id, handler_id,
+                event.send_access,
             )
             if res.ok:
-                self._inject_event(
-                    event_id=foreman.LauncherLoadExtensionSuccessEvent.FULL_EVENT_NAME,
-                    source_id=target_id,
-                    target_id=source_id,
-                    event=foreman.LauncherLoadExtensionSuccessEvent(
-                        name=event.name,
-                    ),
+                res = cat.start_extension(
+                    launcher_id,
+                    handler_id,
+                    event.name,
+                    (event.version[0], event.version[1], event.version[2]),
+                    event.location,
+                    event.configuration,
                 )
-                return
+                if res.ok:
+                    self._inject_event(
+                        event_id=foreman.LauncherLoadExtensionSuccessEvent.FULL_EVENT_NAME,
+                        source_id=target_id,
+                        target_id=source_id,
+                        event=foreman.LauncherLoadExtensionSuccessEvent(
+                            name=event.name,
+                        ),
+                    )
+                    return
             self._inject_event(
                 event_id=foreman.LauncherLoadExtensionFailedEvent.FULL_EVENT_NAME,
                 source_id=target_id,

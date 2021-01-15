@@ -148,8 +148,8 @@ class EventForwarderTest(unittest.TestCase):
         filter_stack: List[Tuple[str, str, str]] = []
         filter_order: List[bool] = [False, True]
 
-        def filter_callback(event_id: str, source_id: str, target_id: str) -> bool:
-            filter_stack.append((event_id, source_id, target_id,))
+        def filter_callback(event_id: str, source_id: str, target_id: str, _vt: RawEvent) -> bool:
+            filter_stack.append((event_id, source_id, target_id))
             return filter_order.pop(0)
 
         target_1 = MockTarget(self)

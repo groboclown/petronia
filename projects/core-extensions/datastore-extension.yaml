@@ -1,0 +1,105 @@
+---
+
+name: petronia.core.api.datastore
+type: api
+version: [1, 0, 0]
+about: Stores data and sends signals on data state changes.
+description: >
+  A storage mechanism for shared data published and consumed by extensions.  For example,
+  an extension that reports on the user's screen dimensions would do so by adding a
+  data store.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_extension.core.impl.datastore
+  minimum: [1, 0, 0]
+
+events:
+  "store-data":
+    description: >
+      A request to store data.  This is either a fresh add or update of the data.
+      For freshly added data, later updates and deletes will only be allowed by events
+      whose source ID match the source ID for the add request.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: store
+    fields:
+      destination:
+        description: >
+          The target ID that will be used when sending out the data information, and also
+          a unique identifier for updates to this data.
+        type: string
+        min-value: 3
+        max-value: 300
+      json:
+        description: >
+          JSON-formatted data to store with the data.  The extension will only allow properly
+          formatted JSON data to be stored.
+        type: string
+        min-length: 0
+        max-length: 65535
+
+  "delete-data":
+    description: >
+      Deletes the store of data.  This request will only be allowed by events whose
+      source ID matches the source ID that initially created the data.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: store
+    fields:
+      destination:
+        description: >
+          The target ID that will be used when sending out the data information, and also
+          a unique identifier for updates to this data.
+        type: string
+        min-value: 3
+        max-value: 300
+
+  "send-state":
+    description: >
+      Tells the API to send out a message with the current state of the requested
+      target ID data.  Usually only called when an extension first starts and has started
+      listening to the data change messages.  If the target ID's data is not currently
+      stored, then a delete message is sent.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    unique-target: store
+    fields:
+      destination:
+        description: >
+          The destination ID for the requested data.
+        type: string
+        min-value: 3
+        max-value: 300
+
+  "data-update":
+    description: >
+      Notification for data that is new or changed.  The target ID is always the data store
+      destination ID.
+    priority: high
+    send-access: implementations
+    receive-access: public
+    fields:
+      changed:
+        description: When this data last changed.
+        type: datetime
+      json:
+        description: >
+          JSON-formatted data stored with this.  The extension will only allow properly
+          formatted JSON data to be stored.
+        type: string
+        min-length: 0
+        max-length: 65535
+
+  "data-removed":
+    description: >
+      Notification for data that is deleted.  The target ID is always the data store ID.
+    priority: high
+    send-access: implementations
+    receive-access: public
+    fields: {}

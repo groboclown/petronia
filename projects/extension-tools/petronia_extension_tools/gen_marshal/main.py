@@ -6,9 +6,9 @@ Entry for the event marshal generation tool.
 from typing import Sequence, List
 import os
 import argparse
-from petronia_common.extension.config import AbcExtensionMetadata, ApiExtensionMetadata
+from petronia_common.extension.config import ApiExtensionMetadata
 from petronia_common.util import i18n as _
-from .load_definition import load_extension_file
+from .load_definition import ExtensionDataFile, load_extension_file
 from .create_api_marshaller import create_api_marshal_source
 from ..user_message import display_error, display
 
@@ -24,11 +24,16 @@ def main(cmd_args: Sequence[str]) -> int:
         help="Extension definition file.",
     )
     parser.add_argument(
+        '--api', action='store_true',
+        help='Generate public side of events.',
+    )
+    parser.add_argument(
         '--implementation', '-i', action="store_true",
-        help=(
-            "Generate implementation (private) events.  Without this, only "
-            "the public side of events are generated."
-        ),
+        help='Generate implementation (private) events.',
+    )
+    parser.add_argument(
+        '--state', '-s', action='store_true',
+        help="Generate state data structures.",
     )
     parser.add_argument(
         '--language', '-l', choices=['python'], default='python',
@@ -40,7 +45,12 @@ def main(cmd_args: Sequence[str]) -> int:
     )
     args = parser.parse_intermixed_args(cmd_args)
 
+    generate_apis: bool = args.api
     generate_internals: bool = args.implementation
+    generate_state: bool = args.state
+    if not generate_apis and not generate_internals and not generate_state:
+        display(_("Error: at least one of --api, --internal, or --state must be given."))
+
     language: str = args.language
     output_dir: str = args.output
     if not os.path.isdir(output_dir):
@@ -48,7 +58,7 @@ def main(cmd_args: Sequence[str]) -> int:
         return 1
     extension_files: Sequence[str] = args.extensions
 
-    ext_metadata: List[AbcExtensionMetadata] = []
+    ext_metadata: List[ExtensionDataFile] = []
     for ext_name in extension_files:
         if os.path.basename(ext_name) == '__main__.py':
             # Ignore.  This seems to be an issue with the argparser module if
@@ -65,33 +75,36 @@ def main(cmd_args: Sequence[str]) -> int:
             ext_metadata.extend(loaded.result)
 
     for metadata in ext_metadata:
-        if isinstance(metadata, ApiExtensionMetadata):
-            validation = metadata.validate_type()
-            if validation:
+        if generate_apis or generate_internals:
+            if not isinstance(metadata.metadata, ApiExtensionMetadata):
                 display(
-                    _('Extension {name} metadata has validation problems'),
-                    name=metadata.name,
+                    _('Skipping {name}: only generating events for API extensions.'),
+                    name=metadata.metadata.name,
                 )
-                display_error(validation)
                 continue
-            ret = create_api_marshal_source(
-                output_dir, normalize_name(metadata.name),
-                metadata,
-                language,
-                generate_internals,
-            )
-            if ret.has_error:
-                display(
-                    _('Encountered a problem while generating the source for {name}'),
-                    name=metadata.name,
-                )
-                display_error(ret.valid_error)
-            display(_('Generated {name}'), name=metadata.name)
-        else:
+        validation = metadata.metadata.validate_type()
+        if validation:
             display(
-                _('Skipping {name}: only generating events for API extensions.'),
-                name=metadata.name,
+                _('Extension {name} metadata has validation problems'),
+                name=metadata.metadata.name,
             )
+            display_error(validation)
+            continue
+        ret = create_api_marshal_source(
+            output_dir, normalize_name(metadata.metadata.name),
+            metadata,
+            language,
+            generate_apis,
+            generate_internals,
+            generate_state,
+        )
+        if ret.has_error:
+            display(
+                _('Encountered a problem while generating the source for {name}'),
+                name=metadata.metadata.name,
+            )
+            display_error(ret.valid_error)
+        display(_('Generated {name}'), name=metadata.metadata.name)
     return 0
 
 

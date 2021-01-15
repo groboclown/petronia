@@ -1,28 +1,28 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-01-06T22:34:11.845620
+# Created on 2021-01-15T16:34:20.904062
 
 """
 Data structures and marshalling for extension petronia.internal.extension_commands version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long
+# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements
 
 
 from typing import (
     Optional,
-    SupportsFloat,
     Union,
-    List,
     Dict,
+    SupportsFloat,
+    List,
     Any,
     SupportsInt,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
+    StdRet,
     T,
 )
 
@@ -159,8 +159,8 @@ class Arguments:
         name: str,
         value: Union[
             float,
-            str,
             int,
+            str,
         ],
     ) -> None:
         self.__name = name
@@ -174,8 +174,8 @@ class Arguments:
     @property
     def value(self) -> Union[
             float,
-            str,
             int,
+            str,
     ]:
         """The selector value."""
         return self.__value

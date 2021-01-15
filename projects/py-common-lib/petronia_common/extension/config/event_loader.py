@@ -17,20 +17,10 @@ def load_full_event_schema(
         references: Dict[str, Any],
 ) -> StdRet[List[event_schema.EventType]]:
     """Loads a full event schema object, including resolving references."""
-    partial_parsed_references: Dict[str, event_schema.AbcEventDataType] = {}
-    for reference_name, raw_reference in references.items():
-        if not isinstance(raw_reference, dict):
-            return StdRet.pass_errmsg(
-                STDC, _('references must be a dictionary of event data type dictionaries'),
-            )
-        ret_reference = load_event_data_type(raw_reference)
-        if not ret_reference.ok:
-            return ret_reference.forward()
-        partial_parsed_references[reference_name] = ret_reference.result
-    ret_parsed_references = update_references(partial_parsed_references)
-    if not ret_parsed_references.ok:
-        return ret_parsed_references.forward()
-    parsed_references = ret_parsed_references.result
+    parsed_references_res = parse_references(references)
+    if not parsed_references_res.ok:
+        return parsed_references_res.forward()
+    parsed_references = parsed_references_res.result
     ret: List[event_schema.EventType] = []
     for event_name, raw_event in raw_event_schemas.items():
         if not isinstance(raw_event, dict):
@@ -42,6 +32,23 @@ def load_full_event_schema(
             return ret_event.forward()
         ret.append(ret_event.result)
     return StdRet.pass_ok(ret)
+
+
+def parse_references(
+        references: Dict[str, Any],
+) -> StdRet[Dict[str, event_schema.AbcEventDataType]]:
+    """Parse the references from the references section of the metadata definition."""
+    partial_parsed_references: Dict[str, event_schema.AbcEventDataType] = {}
+    for reference_name, raw_reference in references.items():
+        if not isinstance(raw_reference, dict):
+            return StdRet.pass_errmsg(
+                STDC, _('references must be a dictionary of event data type dictionaries'),
+            )
+        ret_reference = load_event_data_type(raw_reference)
+        if not ret_reference.ok:
+            return ret_reference.forward()
+        partial_parsed_references[reference_name] = ret_reference.result
+    return update_references(partial_parsed_references)
 
 
 def load_event_schema(
@@ -63,7 +70,7 @@ def load_event_schema(
     if error:
         return StdRet.pass_error(error)
     ret_data_type_resolved = update_reference(ret_data_type.result, references, [])
-    if not ret_data_type_resolved.ok:
+    if ret_data_type_resolved.has_error:
         return ret_data_type_resolved.forward()
     data_type = ret_data_type_resolved.result
     if not isinstance(data_type, event_schema.StructureEventDataType):

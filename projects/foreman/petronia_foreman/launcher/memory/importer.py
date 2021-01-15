@@ -25,7 +25,7 @@ def load_module_from_path(fullname: str, path: List[str]) -> StdRet[types.Module
     try:
         ret = importlib.import_module(fullname)
         return StdRet.pass_ok(ret)
-    except Exception as err:
+    except Exception as err:  # pylint:disable=broad-except
         return StdRet.pass_exception(
             _('memory-importer for {name} path {path}'),
             err,

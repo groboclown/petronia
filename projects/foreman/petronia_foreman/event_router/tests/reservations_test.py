@@ -126,7 +126,7 @@ class ChannelReservationsTest(unittest.TestCase):
         res = channel_res.reserve_channel('abc')
         self.assertTrue(res.has_error)
         self.assertEqual(
-            'channel name already reserved ({name})',
+            'channel name already reserved ({channel})',
             res.valid_error.messages()[0].message,
         )
 
@@ -160,7 +160,7 @@ class ChannelReservationsTest(unittest.TestCase):
         self.assertEqual(2, count[0])  # duplicate reached before callback called
         self.assertTrue(res.has_error)
         self.assertEqual(
-            'channel name already reserved ({name})',
+            'channel name already reserved ({channel})',
             res.valid_error.messages()[0].message,
         )
 

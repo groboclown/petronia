@@ -67,7 +67,7 @@ def read_event_stream(
             # print(f"event stream {report_id}: event listener returned false; continuing loop")
         if eof:
             # End-of-stream
-            # print(f"event stream {report_id}: read eof")
+            # print(f"event stream: read eof")
             end_of_stream_listener()
             return
 

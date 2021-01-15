@@ -30,3 +30,5 @@ from .extension_schema import (
     ImplExtensionMetadata,
     StandAloneExtensionMetadata,
 )
+
+from .extension_loader import load_extension

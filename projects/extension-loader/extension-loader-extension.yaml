@@ -1,0 +1,241 @@
+---
+
+name: petronia.core.api.extension_loader
+type: api
+version: [1, 0, 0]
+about: Loads extensions into the system.
+description: >
+  Accepts requests to load extensions.  This interacts closely with the Foreman process to ensure
+  the loaded extensions run in the correct security context.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia.core.impl.extension-loader
+  minimum: [1, 0, 0]
+depends:
+  - name: petronia.core.api.foreman
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+
+
+state-data:
+  active-extensions:
+    description: >
+      List of active extensions.
+    fields:
+      extensions:
+        description: List of active extensions.
+        type: array
+        min-length: 1
+        max-length: 90000
+        value-type:
+          type: reference
+          ref: extension_info
+
+
+events:
+  "load-extension:request":
+    description: >
+      Request for an extension be loaded into Petronia.  The extension loader will examine the
+      request and decide whether the extension can be loaded.  The extension loader will also
+      use its internal settings to determine from where to load the extension.  Responses
+      will be sent with a target id matching the request's source id.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: loader
+    fields:
+      name:
+        description: The fully qualified extension name to load.
+        type: reference
+        ref: extension_name
+      minimum_version:
+        description: >
+          The minimum version to load.  If not given, then the extension loader will
+          ignore lower bounds for the version number.
+        optional: true
+        type: reference
+        ref: version
+      below_version:
+        description: >
+          The loaded extension must have a version below this value.  If not specified, then
+          there is no maximum version number.
+        optional: true
+        type: reference
+        ref: version
+
+  "load-extension:failed":
+    description: >
+      The request to load an extension was denied or the extension failed to load.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields:
+      name:
+        description: The extension requested to load which failed.
+        type: reference
+        ref: extension_name
+      error:
+        type: reference
+        ref: error
+
+  "load-extension:success":
+    description: >
+      The request to load the extension succeeded.  Other events related to the extension loading
+      may be sent, but that is in a different life cycle.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields:
+      name:
+        description: The loaded extension name.
+        type: reference
+        ref: extension_name
+      version:
+        description: The loaded extension version.
+        type: reference
+        ref: version
+
+  register-extension-listeners:
+    description: >
+      Request by an extension to add a listener of events.  The source of the request
+      is the extension name.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    fields:
+      events:
+        description: list of the events to listen to.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: reference
+          ref: event_listener
+
+  remove-extension-listeners:
+    description: >
+      Request by an extension to remove a listener of events.  The source of the request
+      is the extension name.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    fields:
+      events:
+        description: list of the events to stop listening to.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: reference
+          ref: event_listener
+
+  system-started:
+    description: >
+      An "all clear" message indicating that the boot-time declared extensions have had
+      their "load-extension:success" messages sent.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    unique-target: system
+    fields: {}
+
+references:
+  extension_name:
+    description: The loaded extension name.
+    type: string
+    min-length: 3
+    max-length: 300
+  version:
+    description: Version information about an extension.
+    type: array
+    min-length: 3
+    max-length: 3
+    value-type:
+      type: int
+  event_listener:
+    type: structure
+    description: An event to listen on.
+    fields:
+      event_id:
+        type: string
+        min-length: 2
+        max-length: 3000
+        description: The event ID to listen on.
+        optional: true
+      target_id:
+        type: string
+        min-length: 2
+        max-length: 3000
+        description: The target ID to listen on.
+        optional: true
+  error:
+    type: structure
+    description: A failure
+    fields:
+      identifier:
+        type: string
+        min-length: 2
+        max-length: 255
+        description: The identifier that uniquely defines this error.
+      source:
+        type: string
+        optional: true
+        description: The source of the error, if known.
+      message:
+        type: string
+        description: A localizable message.
+      arguments:
+        type: array
+        description: arguments for the message.
+        value-type:
+          type: selector
+          type-mapping:
+            string:
+              type: string
+            int:
+              type: int
+            float:
+              type: float
+  extension_info:
+    type: structure
+    description: Information about a single extension.
+    fields:
+      name:
+        description: The loaded extension name.
+        type: reference
+        ref: extension_name
+      version:
+        description: The loaded extension version.
+        type: reference
+        ref: version
+      about:
+        description: Short description for the extension.
+        type: string
+        min-length: 0
+        max-length: 300
+      description:
+        description: Long description about the extension.
+        type: string
+        min-length: 0
+        max-length: 65535
+      authors:
+        description: List of people or organizations who worked on the extension.
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 1
+          max-length: 300
+      licenses:
+        description: List of licenses for the extension.  This is an "or" list.
+        type: array
+        min-length: 0
+        max-length: 10
+        value-type:
+          type: string
+          min-length: 1
+          max-length: 300

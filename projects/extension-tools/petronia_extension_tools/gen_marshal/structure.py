@@ -3,10 +3,10 @@
 Create the marshaller Python object source.
 """
 
-from typing import Dict, List, Sequence, Set, Tuple, Union, Optional, Any
+from typing import Dict, List, Sequence, Iterable, Set, Tuple, Union, Optional, Any
+import functools
 from petronia_common.util import StdRet
 from petronia_common.extension.config import (
-    ApiExtensionMetadata,
     AbcEventDataType,
     StructureEventDataType,
     ArrayEventDataType,
@@ -18,6 +18,7 @@ from petronia_common.extension.config import (
     StringEventDataType,
     SelectorEventDataType,
 )
+from .load_definition import ExtensionDataFile
 from .gen_test_data import create_field_data_sample
 
 
@@ -36,13 +37,16 @@ _REQUIRED_IMPORTS: Sequence[ImportStruct] = (
 )
 
 _EVENT_NAME_SUFFIX = 'Event'
+_STATE_NAME_SUFFIX = 'State'
 
 _ALLOWED_PUBLIC_ACCESS = ('public', 'target',)
 
 
 def create_structures(
-        metadata: ApiExtensionMetadata,
+        data: ExtensionDataFile,
+        generate_api: bool,
         generate_internals: bool,
+        generate_states: bool,
 ) -> StdRet[Tuple[List[Dict[str, Any]], List[ImportStruct]]]:
     """
     Returns the structures document, along with required imports.
@@ -50,23 +54,35 @@ def create_structures(
     structures: List[Dict[str, Any]] = []
     seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]] = {}
     imports: List[ImportStruct] = list(_REQUIRED_IMPORTS)
-    for event in metadata.events:
-        if not generate_internals:
-            if (
-                    event.receive_access not in _ALLOWED_PUBLIC_ACCESS
-                    and event.send_access not in _ALLOWED_PUBLIC_ACCESS
-            ):
-                continue
-        # Look into skipping parse or export if the access isn't appropriate.
-        # Note that __repr__ requires the export, so skipping that may not be
-        # correct.
-        ret_inner_structures = create_inner_structure(
-            event.name, '{0}:{1}'.format(metadata.name, event.name), event.unique_target,
-            event.structure, seen_structures, imports,
-        )
-        if ret_inner_structures.has_error:
-            return ret_inner_structures.forward()
-        structures.extend(ret_inner_structures.result)
+    if generate_api:
+        for event in data.events:
+            if not generate_internals:
+                if (
+                        event.receive_access not in _ALLOWED_PUBLIC_ACCESS
+                        and event.send_access not in _ALLOWED_PUBLIC_ACCESS
+                ):
+                    continue
+            # Look into skipping parse or export if the access isn't appropriate.
+            # Note that __repr__ requires the export, so skipping that may not be
+            # correct.
+            ret_inner_structures = create_inner_structure(
+                event.name, '{0}:{1}'.format(data.metadata.name, event.name), event.unique_target,
+                event.structure, seen_structures, imports,
+            )
+            if ret_inner_structures.has_error:
+                return ret_inner_structures.forward()
+            structures.extend(ret_inner_structures.result)
+    if generate_states:
+        print(f"Creating state data for {data.metadata.name}")
+        for state in data.state_data:
+            print(f"Creating state data for {state.fqn}")
+            ret_inner_structures = create_inner_structure(
+                state.short_name + _STATE_NAME_SUFFIX, None, state.fqn,
+                state.data_type, seen_structures, imports,
+            )
+            if ret_inner_structures.has_error:
+                return ret_inner_structures.forward()
+            structures.extend(ret_inner_structures.result)
     return StdRet.pass_ok((structures, imports))
 
 
@@ -162,6 +178,7 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             ret_struct['field_names'].append(ret_field.result)
             if not field_type.is_optional:
                 non_optional_field_names.append(field_name)
+                imports.append(('typing', 'Optional', None,))
             last_field = ret_field.result
 
         if last_field:
@@ -307,7 +324,7 @@ def get_field_struct(  # pylint: disable=R0912,R0913,R0915
     elif isinstance(fdt, DatetimeEventDataType):
         field['is_datetime_type'] = True
         field['field_python_type'] = 'datetime.datetime'
-        imports.append(('datetime.datetime', None, None))
+        imports.append(('datetime', None, None))
     elif isinstance(fdt, EnumEventDataType):
         field['is_enum_type'] = True
         field['field_python_type'] = 'str'
@@ -390,7 +407,8 @@ def create_import_struct(import_list: List[ImportStruct]) -> List[Dict[str, Any]
             package_parts[package] = set()
         package_parts[package].add((name, rename,))
     ret: List[Dict[str, Any]] = []
-    for package, parts in package_parts.items():
+    for package in sort_import_packages(package_parts.keys()):
+        parts = package_parts[package]
         named_imports: Set[str] = set()
         for name, rename in parts:
             if not name:
@@ -421,4 +439,51 @@ def create_import_struct(import_list: List[ImportStruct]) -> List[Dict[str, Any]
 
     # Could additionally properly sort the imports, but it seems fine.
 
+    return ret
+
+
+def sort_import_packages(src: Iterable[str]) -> List[str]:
+    """Sorts the imports to prevent warnings from pylint."""
+
+    def get_leading_dot_count(item: str) -> int:
+        count = 0
+        for i in item:
+            if i != '.':
+                break
+            count += 1
+        return count
+
+    def compare(left: str, right: str) -> int:  # pylint:disable=too-many-return-statements
+        if left == right:
+            return 0
+
+        # By local convention, 'typing' is always first.
+        if left == 'typing':
+            return -1
+        if right == 'typing':
+            return 1
+
+        # relative imports shouldn't happen, but just in case,
+        # they should be last, and ordered by number of leading dots.
+        left_leading_dots = get_leading_dot_count(left)
+        right_leading_dots = get_leading_dot_count(right)
+        if left_leading_dots != right_leading_dots:
+            # more should be later in the list, so 1 left vs 2 right means left is first.
+            return left_leading_dots - right_leading_dots
+        # Custom library items should be later than stdlib ones.
+        # For our purposes, only 'petronia' libraries matter.
+        left_has_petronia = left.startswith('petronia')
+        right_has_petronia = right.startswith('petronia')
+        if left_has_petronia and not right_has_petronia:
+            return 1
+        if not left_has_petronia and right_has_petronia:
+            return -1
+        # Both of the items are in the same category, so just sort them.
+        if left < right:
+            return -1
+        # Already tested for equality, so the only remaining case is left > right
+        return 1
+
+    ret = list(src)
+    ret.sort(key=functools.cmp_to_key(compare))
     return ret

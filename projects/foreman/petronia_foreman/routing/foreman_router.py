@@ -1,6 +1,6 @@
 """The routing mechanism specific to foreman, with all the foreman logic."""
 
-from typing import Dict, List, Tuple, Iterable, Callable, Optional
+from typing import Dict, List, Tuple, Iterable, Callable, Optional, Any
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -8,7 +8,7 @@ from queue import Queue, Empty
 from petronia_common.event_stream import (
     EventForwarderTarget, BinaryWriter, RawEventObject, BinaryReader,
 )
-from petronia_common.util import StdRet, UserMessage, collect_errors_from, RET_OK_NONE
+from petronia_common.util import StdRet, UserMessage, collect_errors_from, RET_OK_NONE, EMPTY_TUPLE
 from petronia_common.util import i18n as _
 from .event_handlers import ExtensionLoaderTarget, InternalTarget
 from .router_context import RouterContext
@@ -19,6 +19,9 @@ from ..event_router.channel import InternalEventHandler
 from ..event_router.handler import EventTargetHandle
 from ..launcher import AbcLauncherCategory, RuntimeContext, create_launcher_category
 from ..user_message import display_error, display_message
+
+
+DEBUG = True
 
 _REQUEST_STOP = 'stop'
 _REQUEST_LAUNCH = 'launch:'
@@ -40,7 +43,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
     """
     __slots__ = (
         '__platform', '__category_states', '__executor', '__state', '__queue', '__lock',
-        '__state_condition', '__thread', 'stop_timeout',
+        '__state_condition', '__thread', '__full_stop', 'stop_timeout',
     )
 
     def __init__(
@@ -59,6 +62,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         self.__queue = Queue()  # type: Queue[str]
         self.__state_condition = threading.Condition(self.__lock)
         self.__thread: Optional[threading.Thread] = None
+        self.__full_stop = False
         self.stop_timeout = 10.0
 
     def start(self, timeout: Optional[float] = None) -> bool:
@@ -66,18 +70,31 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         is currently shutting down, then this will wait for the shutdown to complete, then
         start the router.  If the router is starting, then this will wait for the start to
         complete.  Returns False if the timeout is exceeded."""
+
+        # Reset the stop request.
+        self.__full_stop = False
+
+        # timeout is a per-wait timeout, not entire start timeout.
+
         with self.__lock:
             while self.__state != _STATE_RUNNING:
                 # Capture the current state inside the loop, because the if statements
                 # wait for the state to change.
                 current_state = self.__state
                 if current_state in (_STATE_BOOTING, _STATE_STARTING, _STATE_STOPPING):
+                    _debug(
+                        'start', 'state is {state}, waiting on state change.', state=current_state,
+                    )
                     res = self.__state_condition.wait_for(
                         lambda: self.__state != current_state,
                         timeout,
                     )
                     if not res:
                         # Timeout.
+                        _debug(
+                            'start', 'timed out waiting on start; state is {state}',
+                            state=self.__state,
+                        )
                         return False
                     continue
                 if self.__state == _STATE_STOPPED:
@@ -85,11 +102,18 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                     assert self.__thread is None, 'Did not stop router thread correctly'
                     # This + constructor is the only time outside the thread loop the state changes.
                     # It can only be done while the thread is stopped.
+                    _debug('start', 'Starting router thread')
+                    thread_name = _next_thread_id()
                     self.__state = _STATE_BOOTING
-                    self.__thread = threading.Thread(target=self._thread_runner, daemon=False)
+                    self.__thread = threading.Thread(
+                        target=self._thread_runner,
+                        daemon=False,
+                        name=thread_name,
+                    )
                     self.__thread.start()
                     # Keep looping until it's started.
                     continue
+        _debug('start', 'router thread is running')
         return True
 
     def join(self, timeout: Optional[float] = None) -> bool:
@@ -97,14 +121,23 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         end_time = time.time() + (timeout or 0.0)
         while True:
             if timeout is not None and end_time > time.time():
+                _debug('join', 'timed out waiting for stop')
                 return False
             with self.__lock:
                 if self.__state == _STATE_STOPPED:
+                    _debug('join', 'thread is stopped')
                     return True
+                _debug('join', 'state is {state}', state=self.__state)
             current_thread = self.__thread
             if current_thread:
+                if not current_thread.is_alive():
+                    # Something killed it
+                    with self.__lock:
+                        self.__state = _STATE_STOPPED
+                    _debug('join', 'thread died unexpectedly.  Forcing stopped state.')
+                    return True
                 # Signal friendly join.
-                current_thread.join(1)
+                current_thread.join(min(1.0, time.time() - end_time))
 
     def stop(self, timeout: Optional[float] = None) -> bool:
         """Stops the router and waits for it to stop.  If the router is not running, then this
@@ -113,19 +146,32 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         for the stop to complete.
 
         Returns False if the timeout is exceeded."""
+
+        # A real stop was requested.
+        self.__full_stop = True
+        _debug('stop', 'initiating stop sequence')
+
         with self.__lock:
             while self.__state != _STATE_STOPPED:
                 current_state = self.__state
                 if current_state in (_STATE_BOOTING, _STATE_STARTING, _STATE_STOPPING):
+                    _debug(
+                        'stop', 'state is {state}; waiting on state change.', state=current_state,
+                    )
                     res = self.__state_condition.wait_for(
                         lambda: self.__state != current_state,
                         timeout,
                     )
                     if not res:
                         # Timeout.
+                        _debug(
+                            'stop', 'timed out waiting for stop; state is {state}',
+                            state=self.__state,
+                        )
                         return False
                     continue
                 if current_state == _STATE_RUNNING:
+                    _debug('stop', 'running state, sending stop request and waiting')
                     self.__queue.put(_REQUEST_STOP)
                     res = self.__state_condition.wait_for(
                         lambda: self.__state != current_state,
@@ -133,7 +179,9 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                     )
                     if not res:
                         # Timeout.
+                        _debug('stop', 'timed out waiting for state change')
                         return False
+        _debug('stop', 'router thread is stopped')
         return True
 
     def boot_launcher(self, launcher_config_name: str) -> None:
@@ -161,7 +209,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
 
         while True:
             event = self.__queue.get(block=True)
-            # print(f"Foreman processing request `{event}`")
+            _debug('thread', "Foreman processing request `{event}`", event=event)
             if event.startswith(_REQUEST_LAUNCH):
                 launcher_config_name = event[len(_REQUEST_LAUNCH):]
                 executor.submit(ForemanRouter._add_boot_launcher, launcher_config_name, categories)
@@ -197,7 +245,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             launcher_category: str, categories: Dict[str, AbcLauncherCategory],
     ) -> None:
         """Add a new launcher to the router.
-        This must be called from in the thread's event loop."""
+        This must be called from within the thread's event loop."""
         category = categories.get(launcher_category)
         if category is None:
             display_message(UserMessage(
@@ -237,7 +285,12 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
 
     def _restart(self) -> None:
         """Restart the router."""
+        _debug('_restart', 'Received restart signal')
+        if self.__full_stop:
+            _debug('_restart', 'Called after a stop request.')
+            return
         self.stop()
+        # Start will reset the stop request.
         self.start()
 
     def _stop(self) -> None:
@@ -260,7 +313,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         for state in self.__category_states.values():
             cat_res = state.create_category(launcher_context, executor)
             if cat_res.has_error:
-                display_error(cat_res.valid_error)
+                display_error(cat_res.valid_error, debug=True)
             else:
                 categories[state.name] = cat_res.result
 
@@ -283,6 +336,16 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             assert self.__executor is not None, 'loop stopped'
             self.__executor.submit(router.remove_handler_listener, handler_id, event_id, target_id)
 
+        def add_handler(
+                channel_name: str,
+                handler_id: str,
+                produces: Iterable[str],
+        ) -> StdRet[None]:
+            assert self.__executor is not None, 'loop stopped'
+            # Do this in-process, because the handler must be registered before
+            # the event stuff can start happening.
+            return router.add_handler(channel_name, handler_id, produces, EMPTY_TUPLE)
+
         context = RouterContext(
             categories=categories,
             shutdown=self._stop,
@@ -290,6 +353,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             generate_event=send_event_to_extension_loader,
             add_handler_listener=add_handler_listener,
             remove_handler_listener=remove_handler_listener,
+            add_handler=add_handler,
             executor=executor,
         )
         router.add_reservation_callback(
@@ -396,3 +460,16 @@ class LauncherCategoryState:
         if init_res.has_error:
             return init_res.forward()
         return category_res
+
+
+def _debug(action: str, msg: str, **kwargs: Any) -> None:
+    if DEBUG:
+        print('[DEBUG ForemanRouter(' + action + ')] ' + (msg.format(**kwargs)))
+
+
+NEXT_THREAD_ID = [0]
+
+
+def _next_thread_id() -> str:
+    NEXT_THREAD_ID[0] += 1
+    return 'foreman-router-' + str(NEXT_THREAD_ID[0])

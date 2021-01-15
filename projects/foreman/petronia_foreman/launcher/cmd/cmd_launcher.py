@@ -75,7 +75,7 @@ class CmdLauncherCategory(AbcLauncherCategory):
             self._processes[launcher_id] = process
         return res
 
-    def start_extension(  # pylint:disable=too-many-arguments
+    def start_extension(  # pylint:disable=too-many-arguments,too-many-branches
             self, launcher_id: str, handler_id: str, extension_name: str,
             extension_version: Tuple[int, int, int], location: str,
             configuration: Optional[str],

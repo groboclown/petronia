@@ -108,7 +108,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
             target.consume(to_raw_event_object(
                 foreman.LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.LauncherLoadExtensionRequestEvent(
-                    'the-name', [1, 2, 3], 'the-location', None
+                    'the-name', [1, 2, 3], 'the-location', [], None,
                 ).export_data(),
             ))
         )

@@ -11,9 +11,11 @@ class ThreadSafeEventWriter:
     """Writes events in a thread-safe way."""
     __slots__ = ('__writer', '__lock',)
 
-    def __init__(self, writer: BinaryWriter) -> None:
+    def __init__(
+            self, writer: BinaryWriter, lock: Union[None, threading.Lock, threading.RLock] = None,
+    ) -> None:
         self.__writer = writer
-        self.__lock = threading.Lock()
+        self.__lock = lock or threading.Lock()
 
     def write_binary_event(
             self,
@@ -23,6 +25,7 @@ class ThreadSafeEventWriter:
             binary_blob_size: int,
             binary_blob: Union[bytes, RawBinaryReader],
     ) -> StdRet[None]:
+        """Write a binary event."""
         with self.__lock:
             return write_binary_event_to_stream(
                 self.__writer, event_id, source_id, target_id,
@@ -36,6 +39,7 @@ class ThreadSafeEventWriter:
             target_id: str,
             event_object: MarshalledEventObject,
     ) -> StdRet[None]:
+        """Write an object event."""
         with self.__lock:
             return write_object_event_to_stream(
                 self.__writer, event_id, source_id, target_id,

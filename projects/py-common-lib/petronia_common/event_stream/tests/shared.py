@@ -108,3 +108,14 @@ class SimpleBinaryWriter:
 def create_read_stream(data: bytes) -> reader.BinaryReader:
     """Create a stream reader that returns only the given bytes of data."""
     return io.BytesIO(data)
+
+
+def create_raw_reader(data: bytes) -> reader.RawBinaryReader:
+    """Create a raw binary reader."""
+
+    stream = io.BytesIO(data)
+
+    def read(max_read_count: int = -1) -> bytes:
+        return stream.read(max_read_count)
+
+    return read

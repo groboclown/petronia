@@ -72,9 +72,9 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         return StdRet.pass_ok('True' if random.randint(0, 1) == 0 else 'False')
 
     if isinstance(fdt, DatetimeEventDataType):
-        return StdRet.pass_ok(datetime.datetime.strftime(
-            datetime.datetime.utcnow(), 'YYYYMMDD:hhmmss.sss:Z',
-        ))
+        return StdRet.pass_ok(repr(datetime.datetime.utcnow().strftime(
+            'YYYYMMDD:hhmmss.sss:Z',
+        )))
 
     if isinstance(fdt, EnumEventDataType):
         return StdRet.pass_ok(random.choice(fdt.values))

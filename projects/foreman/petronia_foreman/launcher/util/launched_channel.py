@@ -1,21 +1,23 @@
 """Per launcher or channel launched handler helpers."""
 
-from typing import Tuple, Callable
-from petronia_common.util import StdRet, RET_OK_NONE
+from typing import Tuple, Sequence, Callable
+from petronia_common.util import StdRet, RET_OK_NONE, EMPTY_TUPLE
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from ..abc import RuntimeContext
 from ...configuration import LauncherConfig
-from ...configuration.launcher_parameters import is_boot_launcher, get_stop_timeout
+from ...configuration.launcher_parameters import (
+    is_boot_launcher, get_stop_timeout, get_boot_launcher_produces,
+)
 
 
 class LaunchedInstance:
     """Wrapper for the information used to interact with a launched instance."""
     __slots__ = (
         '_launcher_id', '_boot_launcher', '_reader', '_writer', '_stopper',
-        '_timeout',
+        '_timeout', '_boot_events',
     )
 
-    def __init__(
+    def __init__(  # pylint:disable=too-many-arguments
             self,
             launcher_id: str,
             options: LauncherConfig,
@@ -25,6 +27,7 @@ class LaunchedInstance:
     ) -> None:
         self._launcher_id = launcher_id
         self._boot_launcher = is_boot_launcher(options.options)
+        self._boot_events: Sequence[str] = get_boot_launcher_produces(options.options)
         self._reader = reader
         self._writer = writer
         self._stopper = stopper
@@ -39,6 +42,12 @@ class LaunchedInstance:
     def is_boot_launcher(self) -> bool:
         """Is this launched instance classified as a boot launcher?"""
         return self._boot_launcher
+
+    @property
+    def events_launcher_produces(self) -> Sequence[str]:
+        """Get all the events the launcher itself produces.  This only has
+        meaning for boot launchers."""
+        return self._boot_events
 
     @property
     def reader(self) -> BinaryReader:
@@ -67,6 +76,11 @@ class LaunchedInstance:
                 res_stop = self.stop()
                 if res_stop.has_error:
                     res = StdRet.pass_error(res.valid_error, res_stop.valid_error)
+            else:
+                context.add_handler(
+                    self.launcher_id, self._launcher_id,
+                    self.events_launcher_produces, EMPTY_TUPLE,
+                )
         return res
 
     def stop(self) -> StdRet[None]:

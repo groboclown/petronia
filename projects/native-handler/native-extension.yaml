@@ -26,7 +26,7 @@ events:
       or override existing ones.
     priority: normal
     send-access: public
-    receive-access: internal
+    receive-access: implementations
     fields:
       identifier:
         description: >
@@ -36,12 +36,12 @@ events:
         type: string
         min-length: 3
         max-length: 200
-      locale-code:
+      locale_code:
         description: standard language and locale identifier.
         type: string
         min-length: 1
         max-length: 10
-      catalog-name:
+      catalog_name:
         description: name of the catalog registered.
         type: string
         min-length: 3

@@ -9,12 +9,13 @@ import datetime
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
 from petronia_common.util import STANDARD_PETRONIA_CATALOG as STDC
-from petronia_common.extension.config import ApiExtensionMetadata
+from petronia_common.extension.config import AbcExtensionMetadata
+from .load_definition import ExtensionDataFile
 from .structure import (
     ImportStruct,
     create_structures, create_import_struct,
 )
-from .template import load_template, templatize
+from .template import load_template, templatize, clean_up_text
 
 
 EVENT_TEMPLATE_NAME = 'event_file.py.mustache'
@@ -29,30 +30,32 @@ TEST_SRC_EXTENSION = '_test.py'
 _TEMPLATES: Dict[str, str] = {}
 
 
-def create_api_marshal_source(
-        output_dir: str, event_module_name: str, metadata: ApiExtensionMetadata,
-        language: str, generate_internals: bool,
+def create_api_marshal_source(  # pylint: disable=too-many-arguments
+        output_dir: str, event_module_name: str, data: ExtensionDataFile,
+        language: str, generate_api: bool, generate_internals: bool, generate_states: bool,
 ) -> StdRet[None]:
     """Create the marshaller source file."""
-    assert language == 'python'
-    ret_data = create_structures(metadata, generate_internals)
+    assert language == 'python', 'Only supports Python output at the moment.'
+    ret_data = create_structures(data, generate_api, generate_internals, generate_states)
     if ret_data.has_error:
         return ret_data.forward()
     structures, imports = ret_data.result
     res = mk_init(output_dir, event_module_name)
     if res.has_error:
         return res.forward()
-    res = mk_event_marshal_src(output_dir, metadata, event_module_name, structures, imports)
+    res = mk_event_marshal_src(output_dir, data.metadata, event_module_name, structures, imports)
     if res.has_error:
         return res.forward()
-    res = mk_event_marshal_test_src(output_dir, metadata, event_module_name, structures, imports)
+    res = mk_event_marshal_test_src(
+        output_dir, data.metadata, event_module_name, structures, imports,
+    )
     if res.has_error:
         return res.forward()
     return RET_OK_NONE
 
 
 def mk_event_marshal_src(
-        output_dir: str, metadata: ApiExtensionMetadata,
+        output_dir: str, metadata: AbcExtensionMetadata,
         event_module_name: str, structures: List[Dict[str, Any]], imports: List[ImportStruct],
 ) -> StdRet[None]:
     """Create the marshal source file."""
@@ -62,7 +65,7 @@ def mk_event_marshal_src(
     event_src = os.path.join(output_dir, event_module_name + SRC_EXTENSION)
     try:
         with open(event_src, 'w') as f:
-            f.write(templatize(
+            f.write(clean_up_text(templatize(
                 ret_template.result,
                 {
                     'extension_name': metadata.name,
@@ -73,7 +76,7 @@ def mk_event_marshal_src(
                     'structures': structures,
                     'now': datetime.datetime.utcnow().isoformat(),
                 },
-            ))
+            )))
     except OSError as err:
         return StdRet.pass_errmsg(
             STDC, _('Failed to write to {name}: {err}'),
@@ -97,13 +100,13 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
     # Append the "import" statement.
     try:
         with open(init_src, 'w') as f:
-            f.write(templatize(
+            f.write(clean_up_text(templatize(
                 ret_template.result,
                 {
                     'modules': [{'name': n} for n in sorted(list(_INIT_CONTENTS[init_src]))],
                     'now': datetime.datetime.utcnow().isoformat(),
                 },
-            ))
+            )))
     except OSError as err:
         return StdRet.pass_errmsg(
             STDC, _('Failed to write to {name}: {err}'),
@@ -114,12 +117,12 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
     try:
         if not os.path.isdir(test_dir):
             os.mkdir(test_dir)
-        if not os.path.isfile(test_init_src):
-            with open(test_init_src, 'w') as f:
-                f.write(templatize(
-                    ret_template.result,
-                    {'now': datetime.datetime.utcnow().isoformat()},
-                ))
+        # Even if the file exists, overwrite it.
+        with open(test_init_src, 'w') as f:
+            f.write(clean_up_text(templatize(
+                ret_template.result,
+                {'now': datetime.datetime.utcnow().isoformat()},
+            )))
     except OSError as err:
         return StdRet.pass_errmsg(
             STDC, _('Failed to write to {name}: {err}'),
@@ -129,7 +132,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
 
 
 def mk_event_marshal_test_src(
-        output_dir: str, metadata: ApiExtensionMetadata,
+        output_dir: str, metadata: AbcExtensionMetadata,
         event_module_name: str, structures: List[Dict[str, Any]], imports: List[ImportStruct],
 ) -> StdRet[None]:
     """Create the marshal test file."""
@@ -139,7 +142,7 @@ def mk_event_marshal_test_src(
     test_file_src = os.path.join(output_dir, TEST_DIR_NAME, event_module_name + TEST_SRC_EXTENSION)
     try:
         with open(test_file_src, 'w') as f:
-            f.write(templatize(
+            f.write(clean_up_text(templatize(
                 ret_template.result,
                 {
                     'extension_name': metadata.name,
@@ -151,7 +154,7 @@ def mk_event_marshal_test_src(
                     'module_name': event_module_name,
                     'now': datetime.datetime.utcnow().isoformat(),
                 },
-            ))
+            )))
     except OSError as err:
         return StdRet.pass_errmsg(
             STDC, _('Failed to write to {name}: {err}'),

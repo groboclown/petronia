@@ -75,7 +75,7 @@ class ExtensionRuntime:
     def __init__(
             self,
             launcher: str,
-            permissions: Mapping[str, List[str]],
+            permissions: Mapping[str, Iterable[str]],
     ) -> None:
         self.__launcher = launcher
         perm_copy: Dict[str, Sequence[str]] = {}

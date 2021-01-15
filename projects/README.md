@@ -8,6 +8,9 @@ Because Petronia is split into executables, the major parts of the program are s
     * [Windows](native-handler/petronia_windows/__init__.py)
     * [X11](native-handler/petronia_x11/__init__.py)
 * [extension-tools](extension-tools) - Tools to help the extension author.
+* [extension-loader](extension-loader) - Primary extension loader implementation.  Handles requests to load extensions, and communicates with Foreman and the caller with the correct event protocol. 
+* [extension-runner](extension-runner) - Command run by a launcher to execute a Python-based extension.
 * [core-extensions](core-extensions) - The core Petronia extensions.
+* [integration-tests](integration-tests) - Tests for the integration of multiple projects.
 
 In the future, Petronia may be split out into its own major project group, in which case these may become their own top-level projects. 

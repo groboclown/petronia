@@ -1,0 +1,19 @@
+---
+schema-version: v1
+
+name: petronia_integration_tests.foreman_el.integration1
+version: [1, 0, 0]
+type: standalone
+
+about: An integration test extension.
+description: >
+  An extension intended to be run in-process for unit test monitoring.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+
+runtime:
+  launcher: integration
+  permissions: {}

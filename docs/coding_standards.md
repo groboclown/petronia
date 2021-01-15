@@ -25,6 +25,8 @@ while self.running:
 
 No longer works.  Even an asyncio version (with its version of wait) isn't acceptable.  Instead, the code should listen for the heartbeat events, and act on those.  This allows the end-user to easily define the frequency of these updates in one place.
 
+The only section that is allowed to use a threading model is the `foreman` project, and only that is due to Python asyncio support on Windows when dealing with child processes and I/O communication on those processes and OS signal handling.
+
 
 ## Logging
 

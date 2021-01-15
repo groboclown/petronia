@@ -68,10 +68,11 @@ class ForemanRunner:
                     filename=log_file,
                 )
                 return 1
-        self.__os_hooks.register_root_fd(self.__root_logger_fd)
-        self.__os_hooks.register_on_shutdown(self.start_shutdown)
-        self.__os_hooks.register_on_restart(self.start_restart)
-        self.__os_hooks.start()
+        if self._config.get_boot_config().is_signals_enabled():
+            self.__os_hooks.register_root_fd(self.__root_logger_fd)
+            self.__os_hooks.register_on_shutdown(self.start_shutdown)
+            self.__os_hooks.register_on_restart(self.start_restart)
+            self.__os_hooks.start()
         launcher_categories = self._get_launcher_categories()
         if launcher_categories.has_error:
             display_error(launcher_categories.valid_error)
@@ -85,7 +86,9 @@ class ForemanRunner:
         self.__state = 2
 
         assert self.__router
+        # print("DEBUG ForemanRunner starting the router")
         self.__router.start()
+        # print("DEBUG ForemanRunner router is running")
 
         # start launchers.
 
@@ -134,7 +137,8 @@ class ForemanRunner:
         self.__state = 4
         if self.__router:
             self.__router.stop()
-            self.__router = None
+            # Do not empty out the router; we may need to join with it.
+            # self.__router = None
         self.__os_hooks.stop()
         if self.__root_logger_fd is not None:
             try:

@@ -9,16 +9,18 @@
 * Safe coding practices.  Type safety to prevent incorrect usage as early as possible.  Defensively write the code.  Even though formal types may not be always the right way to go in Python, inspection is necessary.  If this becomes a performance issue, it should be a configuration option set at start time.
 * Memory reduction.  The code will naturally want to use a lot of memory due to object proliferation.  Upfront work to make easy reduction in memory leak mistakes and simple memory reduction should be done.  Performance intensive tasks will naturally lend towards performance over memory, but these should be inspected carefully.
 
+
 ### Coding Guidelines
 
 * Functions over objects.  Lifecycle controls should not be handled by the object itself, but by the framework that injects the object.  In this way, lifecycle is enforced.
 * Slotted data objects over dictionaries.  Slots are faster to create and access and use less memory, and have better type safety.
-* Convention over subclass.  Rather than enforcing type hierarchies, we'll enforce method existence.
+* Convention over subclass.  Rather than enforcing type hierarchies, we'll enforce method existence.  With MyPy, this means Prototype declarations.
 * Enforce read-only attributes through `@property` methods.  This may be a bit of a performance hit, so switching this will be on an individual basis.  Critical system parts will need to enforce read-only everywhere.  *May switch to using more Named Tuples*.
 * API vs implementation.  The API for Petronia is the event bus, the event IDs and singleton IDs, and the structured event data.  Everything else is implementation and should be registered separately from the API.  Extensions should have an API and implementation portion as well.  Users, if they really want, can swap out all the implementations, starting with extensions, all the way up to the core system setup at bootstrap time.
 * All non-local memory must be accessed in a thread-safe manner.  For this reason, global memory must be restricted to just a few places.  This applies to singleton objects as well.
 * Internationalization is a must.  Petronia uses the built-in `gettext` module for the application.  Extensions should expect the localization files to be added by the platform, and should produce files that can be integrated into the localization paths.
-* Threading must be carefully handled.  Use `petronia.base.util.pthread` for any threading. *May need to switch to `asyncio`.*
+* `asyncio` over threading.  Threading is only used when Python makes it really difficult to use asyncio.
+
 
 ### Security
 
@@ -246,15 +248,9 @@ The state store has an interesting global data problem.  Specifically, how to ma
 
 ##### Configuration
 
-Configuration in Petronia is much more than some files.  It takes advantage of the state storage mechanism and applies readers and persistence on top of it.  Each component can make itself configuration aware by adding a state store object (will need to be a singleton) and listen for changes to it, and send events for its own changes to the configuration.
-
-From the configurable component perspective, configuration is a *push* operation - the configuration extension loads the configuration and sends out the configuration state to the state store.  The configurable component loads a default configuration at startup time, and listens for the configuration state changes.
+Individual extension configuration is loaded as part of the extension load process.  The load extension event includes the user configuration for that extension.  This is partially for security purposes, so that only the extension loader process needs the read access to the configuration file directory.
 
 Another possible state is a *session*, which is for intermediary states.  For example, a tile split and pixel position could be saved in the session, so the user can resume the previous setup when the UI is restarted.
-
-If an extension allows for configuration setup events, these are sent by the configuration setup extension to a state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.
-
-The `default.configuration.file` extension loads configuration information from the file system, using a state created by the bootstrap.  Each loaded file is either a `json` or `yaml` file that defines the extensions to load, and how to configure them.
 
 
 #### Native Handler (Singleton)

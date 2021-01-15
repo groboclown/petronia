@@ -6,6 +6,7 @@ from petronia_common.util import StdRet, readonly_dict
 from petronia_common.util import i18n as _
 from .abc import AbcLauncherCategory, LauncherFactory
 from .cmd import create_cmd_launcher
+from .memory import create_memory_launcher
 from ..configuration import LauncherConfig
 from ..user_message import CATALOG
 
@@ -15,7 +16,7 @@ from ..user_message import CATALOG
 # directly built into foreman.
 IMPLEMENTATIONS: Mapping[str, LauncherFactory] = readonly_dict({
     # 'docker': ,
-    # 'in-memory': ,
+    'in-memory': create_memory_launcher,
     # 'sandbox': ,
     'cmd-launcher': create_cmd_launcher,
 })

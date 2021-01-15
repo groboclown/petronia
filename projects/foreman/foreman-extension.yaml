@@ -26,7 +26,8 @@ events:
   # -------------------------------------------------------------------------
   "start-launcher:request":
     description: >
-      Request that the foreman process start a new launcher.
+      Request that the foreman process start a new launcher.  Responses are sent
+      with a target ID matching this request's source ID.
     priority: io
     # Can only be sent by the extension loader.
     send-access: internal
@@ -107,6 +108,7 @@ events:
     priority: io
     send-access: internal
     receive-access: implementations
+    unique-target: launcher
     fields:
       name:
         description: The extension name to load.
@@ -120,6 +122,16 @@ events:
       location:
         description: Where the launcher can find the extension.
         type: string
+      send_access:
+        description: List of event IDs this extension can send.
+        type: array
+        min-length: 0
+        max-length: 9000
+        value-type:
+          description: Event ID that the extension can send.
+          type: string
+          min-length: 3
+          max-length: 600
       configuration:
         description: >
           User configuration for the extension.  This is a JSON data object stored in a

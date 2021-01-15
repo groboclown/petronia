@@ -71,7 +71,7 @@ class ChannelReservations:
         if name in self.__reserved:
             return StdRet.pass_errmsg(
                 TRANSLATION_CATALOG,
-                _('channel name already reserved ({name})'),
+                _('channel name already reserved ({channel})'),
                 channel=name,
             )
         for key, callback in self.__channel_callbacks:

@@ -5,7 +5,7 @@ Events have a common structure.
 See `docs/events.md` for details.
 """
 
-from typing import Literal, Sequence, Dict, List, Iterable, Tuple, Optional, Union, Any
+from typing import Sequence, Dict, List, Iterable, Tuple, Optional, Union, Literal, Any
 from abc import ABC
 import re
 import datetime

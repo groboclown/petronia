@@ -1,6 +1,6 @@
 """Test the module"""
 
-from typing import List, Tuple
+from typing import List, Sequence, Tuple
 import unittest
 import os
 import sys
@@ -70,7 +70,7 @@ class LoadLauncherTest(unittest.TestCase):
 
         thread_res = load_launcher.connect_launcher(
             '_entry_point_ok', sys.modules[__name__],
-            on_error, on_ok, reader, writer,
+            on_error, on_ok, ['a', 'b'], reader, writer,
         )
         self.assertIsNone(thread_res.error)
         self.assertTrue(thread_res.ok)
@@ -107,7 +107,7 @@ class LoadLauncherTest(unittest.TestCase):
 
         thread_res = load_launcher.connect_launcher(
             '_entry_point_err', sys.modules[__name__],
-            on_error, on_ok, reader, writer,
+            on_error, on_ok, ['1', 'abc'], reader, writer,
         )
         self.assertIsNone(thread_res.error)
         self.assertTrue(thread_res.ok)
@@ -130,7 +130,7 @@ class LoadLauncherTest(unittest.TestCase):
         )
 
 
-def _entry_point_ok(read: BinaryReader, write: BinaryWriter) -> None:
+def _entry_point_ok(_args: Sequence[str], read: BinaryReader, write: BinaryWriter) -> None:
     read.read()
     write.write(b'ok')
 
@@ -138,7 +138,7 @@ def _entry_point_ok(read: BinaryReader, write: BinaryWriter) -> None:
 RAISED_ERROR = OSError('blah')
 
 
-def _entry_point_err(read: BinaryReader, write: BinaryWriter) -> None:
+def _entry_point_err(_args: Sequence[str], read: BinaryReader, write: BinaryWriter) -> None:
     read.read(1)
     write.write(b'err')
     raise RAISED_ERROR

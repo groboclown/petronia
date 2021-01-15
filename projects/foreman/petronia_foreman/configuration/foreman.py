@@ -21,7 +21,7 @@ class BootConfig:
     """
     Boot-up options for Foreman.
     """
-    __slots__ = ('_root_log_file', '_boot_order', '_native_launcher')
+    __slots__ = ('_root_log_file', '_boot_order', '_native_launcher', '_use_signals')
 
     def __init__(self, section_name: str, config: ConfigParser) -> None:
         self._root_log_file = config.get(section_name, 'root-log-file', fallback=None) or None
@@ -33,6 +33,7 @@ class BootConfig:
             if name:
                 boot_order.append(name)
         self._boot_order = tuple(boot_order)
+        self._use_signals = True
 
     @property
     def root_log_file(self) -> Optional[str]:
@@ -48,6 +49,14 @@ class BootConfig:
         """Get the native launcher name, which is either overwritten in the boot section,
         or using the default for the selected platform."""
         return self._native_launcher or platform.native_launcher_name
+
+    def is_signals_enabled(self) -> bool:
+        """Should foreman wire up the OS signals at boot time?"""
+        return self._use_signals
+
+    def set_signals_enabled(self, enabled: bool) -> None:
+        """Set the OS signal state."""
+        self._use_signals = enabled
 
 
 class ForemanConfig:
@@ -104,13 +113,14 @@ class ForemanConfig:
 
     def get_launcher_config(self, name: str) -> StdRet[LauncherConfig]:
         """Fetch the boot launcher configurations."""
-        if name not in self._launcher_mapper:
+        inner_name = name.lower()
+        if inner_name not in self._launcher_mapper:
             return StdRet.pass_errmsg(
                 CATALOG,
                 _('No launcher named {name}.'),
                 name=name,
             )
-        ret = self._launcher_mapper[name]
+        ret = self._launcher_mapper[inner_name]
         valid = ret.validate()
         if valid.has_error:
             return valid.forward()

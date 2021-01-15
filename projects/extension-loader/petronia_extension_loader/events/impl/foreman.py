@@ -1,28 +1,28 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-01-06T22:34:13.677947
+# Created on 2021-01-15T16:34:23.193603
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long
+# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements
 
 
 from typing import (
-    Dict,
-    Any,
-    SupportsFloat,
-    Optional,
     Union,
-    List,
     SupportsInt,
+    List,
+    Any,
+    Optional,
+    SupportsFloat,
+    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    T,
     STANDARD_PETRONIA_CATALOG,
     StdRet,
-    T,
     collect_errors_from,
 )
 
@@ -124,7 +124,8 @@ class Permissions:
 
 class StartLauncherRequestEvent:
     """
-    Request that the foreman process start a new launcher.
+    Request that the foreman process start a new launcher. Responses are sent with a
+    target ID matching this request's source ID.
     """
     __slots__ = ('identifier', 'launcher', 'permissions',)
     FULL_EVENT_NAME = 'petronia.core.api.foreman:start-launcher:request'
@@ -326,8 +327,8 @@ class Arguments:
         self,
         name: str,
         value: Union[
-            int,
             float,
+            int,
             str,
         ],
     ) -> None:
@@ -341,8 +342,8 @@ class Arguments:
 
     @property
     def value(self) -> Union[
-            int,
             float,
+            int,
             str,
     ]:
         """The selector value."""
@@ -635,20 +636,25 @@ class LauncherLoadExtensionRequestEvent:
     target-id returned by a "start-launcher:success" event, and that declares the
     permissions that the extension can use.
     """
-    __slots__ = ('name', 'version', 'location', 'configuration',)
+    __slots__ = ('name', 'version', 'location', 'send_access', 'configuration',)
     FULL_EVENT_NAME = 'petronia.core.api.foreman:launcher-load-extension:request'
     SHORT_EVENT_NAME = 'launcher-load-extension:request'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.foreman:launcher'
+    UNIQUE_TARGET_REL = 'launcher'
 
     def __init__(
         self,
         name: str,
         version: List[int],
         location: str,
+        send_access: List[str],
         configuration: Optional[str],
     ) -> None:
         self.name = name
         self.version = version
         self.location = location
+        self.send_access = send_access
         self.configuration = configuration
 
     @property
@@ -662,6 +668,7 @@ class LauncherLoadExtensionRequestEvent:
             'name': self.name,
             'version': list(self.version),
             'location': self.location,
+            'send_access': list(self.send_access),
             'configuration': self.configuration,
         }
         return _strip_none(ret)
@@ -745,6 +752,40 @@ class LauncherLoadExtensionRequestEvent:
                 ))
             else:
                 f_location = val
+        f_send_access: Optional[List[str]] = None
+        val = data.get('send_access')
+        if val is None:
+            errors.append(StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='send_access',
+                name='LauncherLoadExtensionRequestEvent',
+            ))
+        else:
+            if not isinstance(val, list):
+                errors.append(StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='send_access',
+                    type='List[str]',
+                    name='LauncherLoadExtensionRequestEvent',
+                ))
+            else:
+                f_send_access = []
+                for item in val:
+                    if not isinstance(item, str):
+                        errors.append(StdRet.pass_errmsg(
+                            STANDARD_PETRONIA_CATALOG,
+                            _(
+                                'Field {field_name} must contain items '
+                                'of type {type} for structure {name}'
+                            ),
+                            field_name='send_access',
+                            type='str',
+                            name='LauncherLoadExtensionRequestEvent',
+                        ))
+                    else:
+                        f_send_access.append(item)
         f_configuration: Optional[str] = None
         val = data.get('configuration')
         if val is not None:
@@ -764,6 +805,7 @@ class LauncherLoadExtensionRequestEvent:
             name=_not_none(f_name),
             version=_not_none(f_version),
             location=_not_none(f_location),
+            send_access=_not_none(f_send_access),
             configuration=f_configuration,
         ))
 

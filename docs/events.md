@@ -308,6 +308,14 @@ Each data definition in the `references` section must be of a specific type.  Th
 ```
 
 
+### State Data Definitions
+
+A common pattern for extensions has them store public data in the data-store extension.  This is so common that the extension metadata schema includes a top-level `state-data` section with definitions for the stored data.  The content of this section is a dictionary with the short name of the stored data as the key, and the value is a Structure, following the same pattern as the event Structure type.
+
+This section is entirely optional, and is used to help users of the exension to better understand how its used, and also helps with code generation for parsing and formatting the state data.
+
+This can also be used for defining configuration data, though that will be for documentation for the user instead of inter-extension helpers.
+
 ## Streaming Events
 
 Event objects are sent one after the other.  The event stream must follow this specification.  The specification for the stream proper is in octets.

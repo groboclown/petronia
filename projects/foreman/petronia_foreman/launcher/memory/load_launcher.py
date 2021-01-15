@@ -1,7 +1,7 @@
 """
 Finds options specific to the in-memory launcher.
 """
-from typing import List, Callable
+from typing import List, Sequence, Callable
 import os
 import sys
 import types
@@ -28,14 +28,15 @@ def import_module(options: LauncherConfig) -> StdRet[types.ModuleType]:
     return load_module_from_path(res_module_name.result, path)
 
 
-def connect_launcher(
+def connect_launcher(  # pylint:disable=too-many-arguments
         entrypoint_name: str, module: types.ModuleType,
         error_callback: Callable[[str, str, BaseException], None],
         completed_callback: Callable[[str, str], None],
+        arguments: Sequence[str],
         reader: BinaryReader,
         writer: BinaryWriter,
 ) -> StdRet[threading.Thread]:
-    """Call the module's entrypoint function with the reader and writer.
+    """Call the module's entrypoint function with the arguments, reader, and writer.
     This is done in another thread."""
     if not hasattr(module, entrypoint_name):
         return StdRet.pass_errmsg(
@@ -55,13 +56,13 @@ def connect_launcher(
 
     def runner() -> None:
         try:
-            entrypoint(reader, writer)
-        except BaseException as err:
+            entrypoint(arguments, reader, writer)
+        except BaseException as err:  # pylint:disable=broad-except
             error_callback(module.__name__, entrypoint_name, err)
         else:
             completed_callback(module.__name__, entrypoint_name)
 
-    ret = threading.Thread(target=runner, daemon=True)
+    ret = threading.Thread(target=runner, daemon=True, name=_next_thread_id())
     ret.start()
     return StdRet.pass_ok(ret)
 
@@ -87,3 +88,11 @@ def get_python_path(options: LauncherConfig) -> List[str]:
             if path not in current_path:
                 current_path.append(path)
     return current_path
+
+
+THREAD_INDEX = [0]
+
+
+def _next_thread_id() -> str:
+    THREAD_INDEX[0] += 1
+    return 'memory-launcher-' + str(THREAD_INDEX[0])

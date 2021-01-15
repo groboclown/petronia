@@ -13,12 +13,13 @@ class ReadWriteStream:
 
     This matches the prototypes (BinaryReader, BinaryWriter)
     """
-    __slots__ = ('_buf', '_cond', '_open')
+    __slots__ = ('_buf', '_cond', '_open', '__name')
 
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
         self._buf = bytearray()
         self._open = True
         self._cond = threading.Condition()
+        self.__name = name
 
     def is_open(self) -> bool:
         """Is this stream still open for write?"""
@@ -49,6 +50,7 @@ class ReadWriteStream:
         """Write data to the stream, if it's still open.."""
         with self._cond:
             if not self.is_open():
-                raise OSError('stream is closed')
+                # raise OSError(f'stream {self.__name} is closed; tried to write {repr(data)}')
+                raise OSError(f'stream {self.__name} is closed')
             self._buf.extend(data)
             self._cond.notify_all()

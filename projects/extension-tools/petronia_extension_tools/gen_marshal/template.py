@@ -10,19 +10,25 @@ from petronia_common.util import StdRet, STANDARD_PETRONIA_CATALOG
 from petronia_common.util import i18n as _
 
 
-def templatize(template: str, data: Dict[str, Any], r_strip: bool = True) -> str:
+def templatize(template: str, data: Dict[str, Any]) -> str:
     """Process the template."""
     renderer = pystache.Renderer(
         escape=lambda u: u,
     )
     rendered = renderer.render(template, data)
+    return rendered
 
-    if not r_strip:
-        return rendered
 
+def clean_up_text(text: str) -> str:
+    """Strip off trailing whitespace, and ensure there's only 1 EOL at the end."""
+
+    # Ensure that there isn't extra whitespace at the end of lines.
     ret = ''
-    for line in rendered.splitlines():
+    for line in text.splitlines():
         ret += line.rstrip() + '\n'
+
+    while ret[-2:] == '\n\n':
+        ret = ret[:-1]
     return ret
 
 
