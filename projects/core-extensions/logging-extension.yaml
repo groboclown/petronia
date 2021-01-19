@@ -1,0 +1,157 @@
+---
+
+name: petronia.core.api.logging
+type: api
+version: [1, 0, 0]
+about: Logging API, and includes a standard for public error messages.
+description: >
+  A common API for logging messages and reporting errors.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_extension.core.impl.logging
+  minimum: [1, 0, 0]
+
+events:
+  "log":
+    description: >
+      A request to log a message.  This can be publicly received, so that any extension
+      can listen to logging messages.  For this reason, nothing private should be sent.
+    priority: io
+    send-access: public
+    receive-access: public
+    unique-target: log
+    fields:
+      scope:
+        type: enum
+        values:
+          - warning
+          - info
+          - verbose
+          - debug
+      messages:
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: reference
+          ref: message
+
+  system-error:
+    description: >
+      Report an error that's caused by Petronia itself (or an extension), rather than something
+      the user did.
+    priority: io
+    send-access: public
+    receive-access: public
+    unique-target: error
+    fields:
+      error:
+        type: reference
+        ref: error
+
+  user-error:
+    description: >
+      Report an error that's caused by the end user, such as a mis-configuration or out-of-disk space.
+    priority: io
+    send-access: public
+    receive-access: public
+    unique-target: error
+    fields:
+      user_error:
+        type: reference
+        ref: error
+      corrective_actions:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: reference
+          ref: message
+
+
+references:
+  error:
+    type: structure
+    description: A failure
+    fields:
+      identifier:
+        type: string
+        min-length: 2
+        max-length: 300
+        description: The identifier that uniquely defines this error.
+      source:
+        type: string
+        optional: true
+        description: The source of the error, if known.
+      messages:
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: reference
+          ref: message
+  message:
+    type: structure
+    description: A reported message.
+    fields:
+      catalog:
+        type: string
+        description: The message's catalog that stores the translation.
+        min-length: 0
+        max-length: 300
+      message:
+        type: string
+        description: A localizable message.
+        min-length: 0
+        max-length: 10000
+      arguments:
+        type: array
+        description: arguments for the message.
+        value-type:
+          type: selector
+          type-mapping:
+            string:
+              type: string
+              min-length: 0
+              max-length: 10000
+            int:
+              type: int
+            float:
+              type: float
+            bool:
+              type: boolean
+            string_list:
+              type: array
+              min-length: 0
+              max-length: 100
+              value-type:
+                type: string
+                min-length: 0
+                max-length: 10000
+            int_list:
+              type: array
+              min-length: 0
+              max-length: 100
+              value-type:
+                type: int
+                min-length: 0
+                max-length: 10000
+            float_list:
+              type: array
+              min-length: 0
+              max-length: 100
+              value-type:
+                type: float
+                min-length: 0
+                max-length: 10000
+            bool_list:
+              type: array
+              min-length: 0
+              max-length: 100
+              value-type:
+                type: boolean
+                min-length: 0
+                max-length: 10000

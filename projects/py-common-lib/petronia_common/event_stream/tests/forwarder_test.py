@@ -190,6 +190,50 @@ class EventForwarderTest(unittest.TestCase):
             filter_stack,
         )
 
+    def test_multiple_callbacks_filtered(self) -> None:
+        """Register multiple targets but only one is called."""
+
+        target_1 = MockTarget(self)
+        target_1.can_handle_returns.extend([True, True])
+        target_1.handle_returns.extend([False, False])
+        target_2 = MockTarget(self)
+        target_2.can_handle_returns.extend([False, False])
+
+        inp_stream = SimpleBinaryWriter()
+        # Write event as binary
+        write_binary_event_to_stream(
+            inp_stream, 'e1', 's1', 't1', 2, b'12',
+        )
+        write_object_event_to_stream(
+            inp_stream, 'e2', 's2', 't2', {'x': 'y'},
+        )
+        efp = AccessibleEventForwarder(
+            create_read_stream(inp_stream.getvalue()),
+            thread_stream.ThreadedStreamForwarder(),
+        )
+        self.assertTrue(efp.alive)
+        efp.add_target(target_1)
+        efp.add_target(target_2)
+        efp.handle_source()
+
+        target_1.assert_next_can_handle('e1', 's1', 't1')
+        target_2.assert_next_can_handle('e1', 's1', 't1')
+        target_1.assert_next_handle('e1', 's1', 't1', b'12')
+        # The first event should have not been handled by the second target.
+        target_1.assert_next_can_handle('e2', 's2', 't2')
+        target_2.assert_next_can_handle('e2', 's2', 't2')
+        target_1.assert_next_handle('e2', 's2', 't2', {'x': 'y'})
+        # The second event should have not been handled by the second target.
+        target_1.assert_next_on_eof()
+        target_2.assert_next_on_eof()
+        target_1.assert_end()
+        target_2.assert_end()
+
+        self.assertFalse(efp.alive)
+
+        # Ensure things are just fine when called again...
+        efp.access__end_of_stream()
+
     def test_target_cant_handle(self) -> None:
         """Generates a bad packet in the reader, and check that things are working."""
 

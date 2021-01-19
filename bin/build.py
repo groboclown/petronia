@@ -29,7 +29,6 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
             if fqn not in extra_path and os.path.isdir(fqn):
                 extra_path.append(fqn)
 
-
     print("")
     print("----------------------------------------------------------------------")
     print("Type Checking...")
@@ -181,7 +180,7 @@ def main(root_project_dir: str, child_projects: List[str]) -> int:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Usage: build.py (dir of `projects`) [child dirs]")
-        sys.exit(1)
-    sys.exit(main(sys.argv[1], sys.argv[2:]))
+    sys.exit(main(
+        os.path.join(os.path.dirname(sys.argv[0]), os.path.pardir, 'projects'),
+        sys.argv[1:],
+    ))

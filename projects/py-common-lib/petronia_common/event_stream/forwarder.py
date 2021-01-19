@@ -40,6 +40,9 @@ class EventForwarderTarget:
         used by the forwarder."""
         raise NotImplementedError()  # pragma no cover
 
+    # FIXME split this into consume_object and consume_binary.
+    #   Each should take the split-apart event components, because the caller
+    #   already split them out.
     def consume(self, event: RawEvent) -> bool:
         """Called if the `can_consume` method returns True.
         If this returns True, then the target will be de-registered."""
@@ -182,7 +185,7 @@ class EventForwarder:
 
         if is_raw_event_object(event):
             # Simple handling, because the data is already fully read.
-            for target in self.__targets:
+            for target in targets:
                 # print(f"[{self}] sending consume for object event")
                 if target.consume(event):
                     to_remove.append(target)

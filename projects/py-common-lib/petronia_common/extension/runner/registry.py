@@ -1,0 +1,102 @@
+"""
+An extension event listener registry.  This is a higher-level
+system than the raw event stream.
+"""
+
+from typing import Dict, Callable, Generic, Protocol, Optional, Union, Any
+from ...event_stream import RawBinaryReader
+from ...util import StdRet, T
+
+
+class EventObject(Protocol):
+    """Protocol for all generated event objects."""
+    @property
+    def fully_qualified_event_name(self) -> str:
+        """Get the full event name that this object encapsulates."""
+        raise NotImplementedError  # pragma no cover
+
+    def export_data(self) -> Dict[str, Any]:
+        """Export the event object into a JSON-like structure for creating a raw event object."""
+        raise NotImplementedError  # pragma no cover
+
+
+class EventObjectParser(Generic[T]):
+    """Extracts event objects.  Technically, should not be an object, but due to generics,
+    it works best if wrapped by a simple object.  Generally, this is just wrapping the static
+    parse function on the generated event object."""
+    __slots__ = ('_parser',)
+
+    def __init__(self, parser: Callable[[Dict[str, Any]], StdRet[T]]) -> None:
+        self._parser = parser
+
+    def parse(self, event: Dict[str, Any]) -> StdRet[T]:
+        """Parse the event object."""
+        return self._parser(event)
+
+
+class EventObjectTarget(Generic[T]):
+    """Handles the event object."""
+
+    def on_close(self) -> None:
+        """Called when the extension is terminated.  Does nothing by default."""
+
+    def on_event(self, source: str, target: str, event: T) -> bool:
+        """Called when the event is received and parsed.  Return True if
+        the target should be removed from future event listening, False if
+        it should continue listening."""
+        raise NotImplementedError  # pragma no cover
+
+
+class EventBinaryTarget:
+    """Handles the event object."""
+
+    def on_close(self) -> None:
+        """Called when the extension is terminated.  Does nothing by default."""
+
+    def on_event(self, source: str, target: str, size: int, reader: RawBinaryReader) -> bool:
+        """Called when the event is received and parsed.  Return True if
+        the target should be removed from future event listening, False if
+        it should continue listening."""
+        raise NotImplementedError  # pragma no cover
+
+
+class EventRegistryContext:
+    """An interface for registering and sending events."""
+
+    def register_event(self, event_id: str, parser: EventObjectParser) -> StdRet[None]:
+        """Registers a new parser for the event."""
+        raise NotImplementedError  # pragma no cover
+
+    def register_target(  # pylint:disable=too-many-arguments
+            self,
+            event_id: str,
+            target_id: str,
+            target: EventObjectTarget,
+            source_id: Optional[str] = None,
+            timeout: float = -1.0,
+            parallel: bool = False,
+    ) -> StdRet[None]:
+        """Register a new event target."""
+        raise NotImplementedError  # pragma no cover
+
+    def register_binary_target(  # pylint:disable=too-many-arguments
+            self,
+            event_id: str,
+            target_id: str,
+            target: EventBinaryTarget,
+            source_id: Optional[str] = None,
+            timeout: float = -1.0,
+            parallel: bool = False,
+    ) -> StdRet[None]:
+        """Register a new event target"""
+        raise NotImplementedError  # pragma no cover
+
+    def send_event(self, source_id: str, target_id: str, event: EventObject) -> StdRet[None]:
+        """Send the event object safely."""
+        raise NotImplementedError  # pragma no cover
+
+    def send_binary_event(
+            self, source_id: str, target_id: str, event_id: str, data: Union[bytes, bytearray],
+    ) -> StdRet[None]:
+        """Send the binary event safely."""
+        raise NotImplementedError  # pragma no cover

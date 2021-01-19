@@ -133,7 +133,7 @@ class StartLauncherResponseHandler(EventForwarderTarget, Timeout):
         return True
 
     def on_error(self, error: PetroniaReturnError) -> bool:
-        pass
+        return self.is_timed_out()
 
     def on_eof(self) -> None:
         pass
@@ -240,7 +240,7 @@ class StartExtensionResponseHandler(EventForwarderTarget, Timeout):
         return True
 
     def on_error(self, error: PetroniaReturnError) -> bool:
-        pass
+        return self.is_timed_out()
 
     def on_eof(self) -> None:
         pass

@@ -37,6 +37,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
         error = PetroniaReturnError()
 
         self.assertFalse(target.on_error(error))
+        executor.shutdown(True)
 
         self.assertEqual(
             [
@@ -52,6 +53,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
         target = event_handlers.ExtensionLoaderTarget(context, executor)
 
         target.on_eof()
+        executor.shutdown(True)
 
         self.assertEqual(
             [
@@ -71,6 +73,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
                 'unknown', 'source', 'target', {},
             ))
         )
+        executor.shutdown(True)
 
         self.assertEqual([], context.call_order)
 
@@ -88,6 +91,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
                 ).export_data(),
             ))
         )
+        executor.shutdown(True)
 
         self.assertEqual(1, len(context.call_order))
         self.assertEqual('start_launcher', context.call_order[0][0])
@@ -112,6 +116,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
                 ).export_data(),
             ))
         )
+        executor.shutdown(True)
 
         self.assertEqual(1, len(context.call_order))
         self.assertEqual('load_extension', context.call_order[0][0])
@@ -136,6 +141,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
                 ).export_data(),
             ))
         )
+        executor.shutdown(True)
 
         self.assertEqual(1, len(context.call_order))
         self.assertEqual('add_event_listener', context.call_order[0][0])
@@ -160,6 +166,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
                 ).export_data(),
             ))
         )
+        executor.shutdown(True)
 
         self.assertEqual(1, len(context.call_order))
         self.assertEqual('remove_event_listener', context.call_order[0][0])
