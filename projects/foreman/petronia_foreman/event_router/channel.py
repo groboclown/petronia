@@ -6,7 +6,7 @@ produced events, which means that events produced from a channel must not be dir
 back into the channel.
 """
 
-from typing import Iterable, List, Callable, Coroutine, Optional, Any
+from typing import Iterable, List, Callable, Coroutine, Optional, Any, Dict
 from enum import Enum
 from petronia_common.util import (
     StdRet, PetroniaReturnError, T, RET_OK_NONE,
@@ -14,19 +14,12 @@ from petronia_common.util import (
 from petronia_common.util import i18n as _
 from petronia_common.event_stream import (
     RawEvent,
-    is_raw_event_object,
-    raw_event_id,
-    raw_event_source_id,
-    raw_event_target_id,
-    raw_event_binary_size,
-    as_raw_event_object_data,
-    as_raw_event_binary_data_reader,
     EventForwarderTarget,
     EventForwarder,
     BinaryWriter,
     BinaryReader,
     write_object_event_to_stream,
-    write_binary_event_to_stream,
+    write_binary_event_to_stream, RawBinaryReader,
 )
 from petronia_common.event_stream.thread_stream import ThreadedStreamForwarder
 from .handler import EventHandlerSet, EventTargetHandle
@@ -45,11 +38,11 @@ class EventFilterResult(Enum):
 
     def allow_event(self) -> bool:
         """Is the event allowed to be used?"""
-        return (int(self.value) & 0x2) == 1
+        return (int(self.value) & 0x2) == 0x2
 
     def remove_filter(self) -> bool:
         """Should the filter be removed after this event handling?"""
-        return (int(self.value) & 0x1) == 1
+        return (int(self.value) & 0x1) == 0x1
 
 
 InternalEventHandler = Callable[[str, str, str, RawEvent], EventFilterResult]
@@ -235,31 +228,41 @@ class EventChannel(EventForwarderTarget):
         # print(f"Channel {self.__name} ignoring EOF")
         pass
 
-    def consume(self, event: RawEvent) -> bool:
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
         # can_consume has already been called and returned True.
         if not self.__alive:
             return True
-        event_id = raw_event_id(event)
-        source_id = raw_event_source_id(event)
-        target_id = raw_event_target_id(event)
-        ret: StdRet[None]
-        if is_raw_event_object(event):
-            ret = write_object_event_to_stream(
-                self.__writer,
-                event_id,
-                source_id,
-                target_id,
-                as_raw_event_object_data(event),
-            )
-        else:
-            ret = write_binary_event_to_stream(
-                self.__writer,
-                event_id,
-                source_id,
-                target_id,
-                raw_event_binary_size(event),
-                as_raw_event_binary_data_reader(event),
-            )
+        ret = write_object_event_to_stream(
+            self.__writer,
+            event_id,
+            source_id,
+            target_id,
+            event_data,
+        )
+        if ret.has_error:
+            # This is a real error that the channel cares about.
+            if self.__on_error(self.name, ret.valid_error):
+                self.close_access()
+                return True
+        return False
+
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
+        # can_consume has already been called and returned True.
+        if not self.__alive:
+            return True
+        ret = write_binary_event_to_stream(
+            self.__writer,
+            event_id,
+            source_id,
+            target_id,
+            size,
+            data_reader,
+        )
         if ret.has_error:
             # This is a real error that the channel cares about.
             if self.__on_error(self.name, ret.valid_error):

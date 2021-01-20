@@ -100,9 +100,9 @@ class EventObjectForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             False,
-            target.consume(to_raw_event_binary(
+            target.consume_binary(
                 'e-1', 's-1', 't-1', 2, create_raw_reader(b'12'),
-            )),
+            ),
         )
         # Should never reach the caller.
         self.assertEqual(
@@ -120,9 +120,9 @@ class EventObjectForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             False,
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 'e-1', 's-1', 't-1', {},
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', GOOD_OBJECT)],
@@ -142,9 +142,9 @@ class EventObjectForwarderTargetTest(unittest.TestCase):
             time.sleep(0.01)
         self.assertEqual(
             True,
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 'e-1', 's-1', 't-1', {},
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', GOOD_OBJECT)],
@@ -161,9 +161,9 @@ class EventObjectForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             False,
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 'e-1', 's-1', 't-1', {},
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', GOOD_OBJECT)],
@@ -180,9 +180,9 @@ class EventObjectForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             True,
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 'e-1', 's-1', 't-1', {},
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', GOOD_OBJECT)],
@@ -199,9 +199,9 @@ class EventObjectForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             False,
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 'e-1', 's-1', 't-1', {},
-            )),
+            ),
         )
         self.assertEqual(
             [],
@@ -234,9 +234,9 @@ class EventBinaryForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             False,
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 'e-1', 's-1', 't-1', {},
-            )),
+            ),
         )
         # Should never reach the caller.
         self.assertEqual(
@@ -254,9 +254,9 @@ class EventBinaryForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             False,
-            target.consume(to_raw_event_binary(
+            target.consume_binary(
                 'e-1', 's-1', 't-1', 2, create_raw_reader(b'12'),
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', b'12')],
@@ -276,9 +276,9 @@ class EventBinaryForwarderTargetTest(unittest.TestCase):
             time.sleep(0.01)
         self.assertEqual(
             True,
-            target.consume(to_raw_event_binary(
+            target.consume_binary(
                 'e-1', 's-1', 't-1', 2, create_raw_reader(b'21'),
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', b'21')],
@@ -295,9 +295,9 @@ class EventBinaryForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             False,
-            target.consume(to_raw_event_binary(
+            target.consume_binary(
                 'e-1', 's-1', 't-1', 2, create_raw_reader(b'32'),
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', b'32')],
@@ -314,9 +314,9 @@ class EventBinaryForwarderTargetTest(unittest.TestCase):
         )
         self.assertEqual(
             True,
-            target.consume(to_raw_event_binary(
+            target.consume_binary(
                 'e-1', 's-1', 't-1', 3, create_raw_reader(b'123'),
-            )),
+            ),
         )
         self.assertEqual(
             [('on_event', 's-1', 't-1', b'123')],

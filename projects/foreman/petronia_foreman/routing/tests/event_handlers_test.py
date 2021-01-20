@@ -4,9 +4,6 @@ from typing import List, Tuple, Optional, Any
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from petronia_common.util import PetroniaReturnError
-from petronia_common.event_stream import (
-    to_raw_event_object,
-)
 from .. import event_handlers
 from ...events import foreman
 
@@ -68,11 +65,7 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
         context = TargetHandlerRuntimeContextImpl()
         target = event_handlers.ExtensionLoaderTarget(context, executor)
 
-        self.assertFalse(
-            target.consume(to_raw_event_object(
-                'unknown', 'source', 'target', {},
-            ))
-        )
+        self.assertFalse(target.consume_object('unknown', 'source', 'target', {}))
         executor.shutdown(True)
 
         self.assertEqual([], context.call_order)
@@ -84,12 +77,12 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
         target = event_handlers.ExtensionLoaderTarget(context, executor)
 
         self.assertFalse(
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 foreman.StartLauncherRequestEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.StartLauncherRequestEvent(
                     'the-id', 'the-launcher', [],
                 ).export_data(),
-            ))
+            )
         )
         executor.shutdown(True)
 
@@ -109,12 +102,12 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
         target = event_handlers.ExtensionLoaderTarget(context, executor)
 
         self.assertFalse(
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 foreman.LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.LauncherLoadExtensionRequestEvent(
                     'the-name', [1, 2, 3], 'the-location', [], None,
                 ).export_data(),
-            ))
+            )
         )
         executor.shutdown(True)
 
@@ -134,12 +127,12 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
         target = event_handlers.ExtensionLoaderTarget(context, executor)
 
         self.assertFalse(
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 foreman.ExtensionAddEventListenerEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.ExtensionAddEventListenerEvent(
                     'extension-name', [],
                 ).export_data(),
-            ))
+            )
         )
         executor.shutdown(True)
 
@@ -159,12 +152,12 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
         target = event_handlers.ExtensionLoaderTarget(context, executor)
 
         self.assertFalse(
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 foreman.ExtensionRemoveEventListenerEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.ExtensionRemoveEventListenerEvent(
                     'extension-name', [],
                 ).export_data(),
-            ))
+            )
         )
         executor.shutdown(True)
 
@@ -234,9 +227,9 @@ class InternalTargetTest(unittest.TestCase):
         target = event_handlers.InternalTarget(context, executor)
 
         self.assertFalse(
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 'unknown', 'source', 'target', {},
-            ))
+            )
         )
 
         self.assertEqual([], context.call_order)
@@ -248,10 +241,10 @@ class InternalTargetTest(unittest.TestCase):
         target = event_handlers.InternalTarget(context, executor)
 
         self.assertFalse(
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 foreman.StopEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.StopEvent().export_data(),
-            ))
+            )
         )
 
         self.assertEqual(
@@ -268,10 +261,10 @@ class InternalTargetTest(unittest.TestCase):
         target = event_handlers.InternalTarget(context, executor)
 
         self.assertFalse(
-            target.consume(to_raw_event_object(
+            target.consume_object(
                 foreman.RestartEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.RestartEvent().export_data(),
-            ))
+            )
         )
 
         self.assertEqual(

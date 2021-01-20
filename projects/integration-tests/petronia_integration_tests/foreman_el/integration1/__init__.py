@@ -1,3 +1,3 @@
 """
-
+Integration extension point.
 """

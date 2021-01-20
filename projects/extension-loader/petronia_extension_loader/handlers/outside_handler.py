@@ -1,8 +1,9 @@
 """
 Handles the full process that loads the extension.
 """
+from typing import Dict, Any
 
-from petronia_common.event_stream import EventForwarderTarget, RawEvent
+from petronia_common.event_stream import EventForwarderTarget, RawBinaryReader
 from petronia_common.util import PetroniaReturnError
 from ..context import EventHandlerContext
 from ..events.impl.extension_loader import LoadExtensionRequestEvent
@@ -28,7 +29,15 @@ class LoadExtensionHandler(EventForwarderTarget):
     def on_eof(self) -> None:
         pass
 
-    def consume(self, event: RawEvent) -> bool:
-        # Find the extension location & other information.
-        # Kick off a request to the load_chain_handler.
-        raise NotImplementedError
+    def consume_object(
+            self, event_id: str, source_id: str,
+            target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
+        # FIXME handle the extension loading.
+        pass
+
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
+        return False

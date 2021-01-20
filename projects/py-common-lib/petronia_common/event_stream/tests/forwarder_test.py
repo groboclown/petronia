@@ -3,11 +3,11 @@
 Test the forwarder module.
 """
 
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Dict
 import unittest
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from .. import thread_stream
+from .. import thread_stream, RawBinaryReader
 from .shared import create_read_stream, SimpleBinaryWriter, PACKET_MARKER, as_bin_str
 from ..reader import static_reader
 from ..writer import (
@@ -15,12 +15,7 @@ from ..writer import (
     write_object_event_to_stream,
 )
 from ..forwarder import EventForwarder, EventForwarderTarget
-from .. import (
-    RawEvent,
-    is_raw_event_binary,
-    as_raw_event_binary_data_reader, as_raw_event_object_data,
-    raw_event_id, raw_event_source_id, raw_event_target_id,
-)
+from .. import RawEvent
 from ...util import PetroniaReturnError, UserMessage, STANDARD_PETRONIA_CATALOG, i18n
 
 
@@ -435,6 +430,7 @@ class StreamedBinaryReaderTest(unittest.TestCase):
 
 class MockTarget(EventForwarderTarget):
     """Mock up a target."""
+
     def __init__(self, test: unittest.TestCase) -> None:
         self.__test = test
         self.can_handle_returns: List[bool] = []
@@ -506,31 +502,29 @@ class MockTarget(EventForwarderTarget):
         self.__test.assertEqual(target_id, args[2])
         self.__test.assertEqual(data, args[3])
 
-    def consume(self, event: RawEvent) -> bool:
-        """Callback"""
-        print("== called handle")
-        if is_raw_event_binary(event):
-            stream_reader = as_raw_event_binary_data_reader(event)
-            print("== == reading data")
-            data = b''
-            last_read = b'x'
-            while last_read != b'':
-                last_read = stream_reader(-1)
-                data += last_read
-            self.call_stack.append(('handle', [
-                raw_event_id(event),
-                raw_event_source_id(event),
-                raw_event_target_id(event),
-                data,
-            ]))
-        else:
-            self.call_stack.append(('handle', [
-                raw_event_id(event),
-                raw_event_source_id(event),
-                raw_event_target_id(event),
-                as_raw_event_object_data(event),
-            ]))
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
+        self.call_stack.append(('handle', [event_id, source_id, target_id, event_data]))
+        if self.handle_returns:
+            return self.handle_returns.pop(0)
+        return False
 
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
+        data = b''
+        last_read = b'x'
+        while last_read != b'':
+            last_read = data_reader(-1)
+            data += last_read
+        self.call_stack.append(('handle', [
+            event_id,
+            source_id,
+            target_id,
+            data,
+        ]))
         if self.handle_returns:
             return self.handle_returns.pop(0)
         return False

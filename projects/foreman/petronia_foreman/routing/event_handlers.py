@@ -3,13 +3,9 @@ Special event target handlers for interaction between the foreman process and
 other loaders.
 """
 
-from typing import Optional
+from typing import Optional, Dict, Any
 from concurrent.futures import ThreadPoolExecutor
-from petronia_common.event_stream import (
-    EventForwarderTarget, RawEvent,
-    raw_event_id, raw_event_source_id, raw_event_target_id,
-    is_raw_event_object, as_raw_event_object_data,
-)
+from petronia_common.event_stream import EventForwarderTarget, RawBinaryReader
 from petronia_common.util import PetroniaReturnError
 from ..events import foreman
 
@@ -72,6 +68,7 @@ class TargetHandlerRuntimeContext:
 class ExtensionLoaderTarget(EventForwarderTarget):
     """The event target added to the channel for direct communication between the extension
     loader and the foreman router."""
+
     __slots__ = ('_context', '_executor')
 
     def __init__(self, context: TargetHandlerRuntimeContext, executor: ThreadPoolExecutor) -> None:
@@ -92,34 +89,36 @@ class ExtensionLoaderTarget(EventForwarderTarget):
         # If restart or shutdown is already happening, then this should be a no-op.
         self._executor.submit(self._context.do_restart, False, None)
 
-    def consume(self, event: RawEvent) -> bool:
-        if not is_raw_event_object(event):
-            return False
-        event_id = raw_event_id(event)
-        target_id = raw_event_target_id(event)
-        raw_data = as_raw_event_object_data(event)
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
+        return False
 
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
         if event_id == foreman.StartLauncherRequestEvent.FULL_EVENT_NAME:
-            slr_event = foreman.StartLauncherRequestEvent.parse_data(raw_data)
+            slr_event = foreman.StartLauncherRequestEvent.parse_data(event_data)
             if slr_event.ok:
                 self._executor.submit(
                     self._context.start_launcher,
-                    raw_event_source_id(event),
+                    source_id,
                     slr_event.result,
                 )
             return False
 
         if event_id == foreman.LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME:
-            lle_event = foreman.LauncherLoadExtensionRequestEvent.parse_data(raw_data)
+            lle_event = foreman.LauncherLoadExtensionRequestEvent.parse_data(event_data)
             if lle_event.ok:
                 self._executor.submit(
                     self._context.load_extension,
-                    raw_event_source_id(event), target_id, lle_event.result,
+                    source_id, target_id, lle_event.result,
                 )
             return False
 
         if event_id == foreman.ExtensionAddEventListenerEvent.FULL_EVENT_NAME:
-            eal_event = foreman.ExtensionAddEventListenerEvent.parse_data(raw_data)
+            eal_event = foreman.ExtensionAddEventListenerEvent.parse_data(event_data)
             if eal_event.ok:
                 self._executor.submit(
                     self._context.add_event_listener,
@@ -128,7 +127,7 @@ class ExtensionLoaderTarget(EventForwarderTarget):
             return False
 
         if event_id == foreman.ExtensionRemoveEventListenerEvent.FULL_EVENT_NAME:
-            rel_event = foreman.ExtensionRemoveEventListenerEvent.parse_data(raw_data)
+            rel_event = foreman.ExtensionRemoveEventListenerEvent.parse_data(event_data)
             if rel_event.ok:
                 self._executor.submit(
                     self._context.remove_event_listener,
@@ -141,6 +140,7 @@ class ExtensionLoaderTarget(EventForwarderTarget):
 
 class InternalTarget(EventForwarderTarget):
     """Handles events sent from the internal extensions ('send-access' == 'internal')."""
+
     __slots__ = ('_context', '_executor')
 
     def __init__(self, context: TargetHandlerRuntimeContext, executor: ThreadPoolExecutor) -> None:
@@ -161,11 +161,15 @@ class InternalTarget(EventForwarderTarget):
         # If restart or shutdown is already happening, then this should be a no-op.
         self._executor.submit(self._context.do_restart, False, None)
 
-    def consume(self, event: RawEvent) -> bool:
-        if not is_raw_event_object(event):
-            return False
-        event_id = raw_event_id(event)
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
+        return False
 
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
         if event_id == foreman.StopEvent.FULL_EVENT_NAME:
             self._executor.submit(self._context.do_shutdown)
             return False

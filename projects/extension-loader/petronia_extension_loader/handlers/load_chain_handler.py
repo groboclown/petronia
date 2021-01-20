@@ -1,11 +1,9 @@
 """Handles the chain of events for the loading process."""
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 import uuid
 from petronia_common.event_stream import (
-    EventForwarderTarget, RawEvent,
-    raw_event_id,
-    as_raw_event_object_data, is_raw_event_object,
+    EventForwarderTarget, RawBinaryReader,
 )
 from petronia_common.extension.config import ImplExtensionMetadata, StandAloneExtensionMetadata
 from petronia_common.util import (
@@ -138,16 +136,20 @@ class StartLauncherResponseHandler(EventForwarderTarget, Timeout):
     def on_eof(self) -> None:
         pass
 
-    def consume(self, event: RawEvent) -> bool:
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
+        return False
+
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
         # Consume the event.
         # If this doesn't handle the event but has timed out, then remove the listener.
-        if not is_raw_event_object(event):
-            return self.is_timed_out()
         ret = False
-        event_id = raw_event_id(event)
-        raw_object = as_raw_event_object_data(event)
         if event_id == StartLauncherSuccessEvent.FULL_EVENT_NAME:
-            success_event_res = StartLauncherSuccessEvent.parse_data(raw_object)
+            success_event_res = StartLauncherSuccessEvent.parse_data(event_data)
             if success_event_res.has_error:
                 # Ignore parse error.
                 messages.display_message(
@@ -156,7 +158,7 @@ class StartLauncherResponseHandler(EventForwarderTarget, Timeout):
                 return self.is_timed_out()
             ret = self._handle_success(success_event_res.result)
         elif event_id == StartLauncherFailedEvent.FULL_EVENT_NAME:
-            failed_event_res = StartLauncherFailedEvent.parse_data(raw_object)
+            failed_event_res = StartLauncherFailedEvent.parse_data(event_data)
             if failed_event_res.has_error:
                 # Ignore parse error.
                 messages.display_message(
@@ -245,14 +247,18 @@ class StartExtensionResponseHandler(EventForwarderTarget, Timeout):
     def on_eof(self) -> None:
         pass
 
-    def consume(self, event: RawEvent) -> bool:
-        if not is_raw_event_object(event):
-            return self.is_timed_out()
-        event_id = raw_event_id(event)
-        raw_event_obj = as_raw_event_object_data(event)
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
+        return False
+
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
         res = False
         if event_id == LauncherLoadExtensionSuccessEvent.FULL_EVENT_NAME:
-            success_event_res = LauncherLoadExtensionSuccessEvent.parse_data(raw_event_obj)
+            success_event_res = LauncherLoadExtensionSuccessEvent.parse_data(event_data)
             if success_event_res.has_error:
                 # Ignore parse error.
                 messages.display_message(
@@ -261,7 +267,7 @@ class StartExtensionResponseHandler(EventForwarderTarget, Timeout):
                 return self.is_timed_out()
             res = self._handle_success(success_event_res.result)
         elif event_id == LauncherLoadExtensionFailedEvent.FULL_EVENT_NAME:
-            failed_event_res = LauncherLoadExtensionFailedEvent.parse_data(raw_event_obj)
+            failed_event_res = LauncherLoadExtensionFailedEvent.parse_data(event_data)
             if failed_event_res.has_error:
                 # Ignore parse error.
                 messages.display_message(

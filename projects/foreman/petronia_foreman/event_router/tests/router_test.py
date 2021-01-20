@@ -4,10 +4,7 @@ from typing import Tuple
 import unittest
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from petronia_common.event_stream import (
-    BinaryWriter,
-    to_raw_event_object, BinaryReader,
-)
+from petronia_common.event_stream import BinaryWriter, BinaryReader
 from petronia_common.util import StdRet, PetroniaReturnError, i18n
 from .. import router
 
@@ -42,7 +39,7 @@ class OnCloseTargetTest(unittest.TestCase):
         """Run the consume method."""
         target = router.OnCloseTarget(self._callback)
 
-        res = target.consume(to_raw_event_object('x', 'y', 'z', {}))
+        res = target.consume_object('x', 'y', 'z', {})
         self.assertFalse(res)
         self.assertEqual(0, self.count[0])
 

@@ -8,7 +8,6 @@ import threading
 from concurrent.futures import Future, ThreadPoolExecutor
 from .defs import (
     RawBinaryReader,
-    to_raw_event_binary,
 )
 from .forwarder import EventForwarderTarget
 from ..util.input_buffer import StreamedBinaryReader
@@ -64,8 +63,8 @@ class ThreadedStreamForwarder:
             ret = Future()  # type: Future[bool]
 
             def handle_target() -> None:
-                res = target.consume(
-                    to_raw_event_binary(event_id, source_id, target_id, blob_size, stream),
+                res = target.consume_binary(
+                    event_id, source_id, target_id, blob_size, stream,
                 )
                 if res:
                     to_remove.append(target)

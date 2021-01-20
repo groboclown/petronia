@@ -92,3 +92,8 @@ class ForemanConfigTest(unittest.TestCase):
             'xyz',
             boot.get_native_launcher(detect_platform(None).result),
         )
+        self.assertEqual(True, boot.is_signals_enabled())
+        boot.set_signals_enabled(False)
+        self.assertEqual(False, boot.is_signals_enabled())
+        boot.set_signals_enabled(True)
+        self.assertEqual(True, boot.is_signals_enabled())

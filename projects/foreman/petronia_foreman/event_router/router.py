@@ -5,7 +5,7 @@ The approach here is that there is a many-to-one relationship between
 handlers and event pipes.
 """
 
-from typing import Dict, Iterable, Tuple, Callable, Optional, Union
+from typing import Dict, Iterable, Tuple, Callable, Optional, Union, Any
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -17,7 +17,8 @@ from petronia_common.util import (
 from petronia_common.util import i18n as _
 from petronia_common.event_stream import (
     RawEventObject, EventForwarderTarget, BinaryWriter, BinaryReader,
-    raw_event_id, raw_event_source_id, raw_event_target_id, RawEvent,
+    raw_event_id, raw_event_source_id, raw_event_target_id, as_raw_event_object_data,
+    RawBinaryReader,
 )
 from .channel import EventChannel, InternalEventHandler
 from .handler import EventTargetHandle
@@ -246,6 +247,7 @@ class EventRouter:
         event_id = raw_event_id(event)
         source_id = raw_event_source_id(event)
         target_id = raw_event_target_id(event)
+        event_data = as_raw_event_object_data(event)
 
         channels = []
         with self.__lock:
@@ -254,7 +256,7 @@ class EventRouter:
                     channels.append(channel)
 
         for channel in channels:
-            res = channel.consume(event)
+            res = channel.consume_object(event_id, source_id, target_id, event_data)
             if res:
                 # print(f"consume returned True for channel {channel.name}; closing it (1)")
                 self.close_channel(channel.name)
@@ -281,7 +283,8 @@ class EventRouter:
                     channel=channel_name,
                 )
         if channel.can_consume(event_id, source_id, target_id):
-            res = channel.consume(event)
+            event_data = as_raw_event_object_data(event)
+            res = channel.consume_object(event_id, source_id, target_id, event_data)
             if res:
                 self.close_channel(channel_name)
                 # print(f"consume returned True for channel {channel.name}; closing it (2)")
@@ -296,6 +299,7 @@ class EventRouter:
 
 class OnCloseTarget(EventForwarderTarget):
     """Runs a callback when an EOF is encountered."""
+
     __slots__ = ('__callback',)
 
     def __init__(self, callback: Callable[[], None]) -> None:
@@ -304,7 +308,15 @@ class OnCloseTarget(EventForwarderTarget):
     def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         return False
 
-    def consume(self, event: RawEvent) -> bool:
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
+        return False
+
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str, size: int,
+            data_reader: RawBinaryReader,
+    ) -> bool:
         return False
 
     def on_error(self, error: PetroniaReturnError) -> bool:

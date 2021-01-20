@@ -1,6 +1,14 @@
 [run]
 
 # __main__ is intentionally trivial so it doesn't need tests.
+# For now, these generation tools are dev tools, not runtime, so they're skipped.
 omit =
     petronia_extension_tools/gen_marshal/__main__.py
+    petronia_extension_tools/gen_marshal/create_api_marshaller.py
+    petronia_extension_tools/gen_marshal/gen_test_data.py
+    petronia_extension_tools/gen_marshal/load_definition.py
+    petronia_extension_tools/gen_marshal/main.py
+    petronia_extension_tools/gen_marshal/state_metadata.py
+    petronia_extension_tools/gen_marshal/structure.py
+    petronia_extension_tools/gen_marshal/template.py
     petronia_extension_tools/pylint_plugins/*

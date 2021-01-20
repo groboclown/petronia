@@ -7,6 +7,7 @@ from petronia_common.util import StdRet
 
 
 def start_extension(
-        config: Dict[str, Any],
+        _config: Dict[str, Any],
 ) -> StdRet[None]:
+    """Starts the extension."""
     pass

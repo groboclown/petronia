@@ -13,7 +13,7 @@ from ..events import foreman
 from ..user_message import display_error, display_message, CATALOG
 
 
-class RouterContext(TargetHandlerRuntimeContext):  # pylint:too-many-instance-attributes
+class RouterContext(TargetHandlerRuntimeContext):  # pylint:disable=too-many-instance-attributes
     """Runtime context for the target handlers.  Note that all async calls happen within the
     event thread, so special care must be taken to ensure that they do not cause a deadlock
     with the thread loop."""

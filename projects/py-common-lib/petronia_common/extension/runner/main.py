@@ -6,11 +6,7 @@ from .registry import (
     EventRegistryContext, EventObject, EventBinaryTarget, EventObjectTarget, EventObjectParser,
 )
 from ...event_stream import (
-    BinaryWriter, EventForwarderTarget, EventForwarder, BinaryReader,
-    RawEvent,
-    is_raw_event_object, is_raw_event_binary,
-    raw_event_source_id, raw_event_target_id, raw_event_binary_size,
-    as_raw_event_object_data, as_raw_event_binary_data_reader,
+    BinaryWriter, EventForwarderTarget, EventForwarder, BinaryReader, RawBinaryReader,
 )
 from ...event_stream.thread_stream import ThreadedStreamForwarder
 from ...event_stream.thread_writer import ThreadSafeEventWriter
@@ -136,7 +132,9 @@ class AbstractEventForwarderTarget(EventForwarderTarget, ABC):
 
 
 class EventObjectForwarderTarget(AbstractEventForwarderTarget, Generic[T]):
-    """Target for event objects.  This is a single-threaded version."""
+    """Target for event objects.  This is a single-threaded version.
+    Object parse errors are forwarded onto the on_error method.
+    """
 
     __slots__ = ('_handler', '_parser')
 
@@ -156,17 +154,24 @@ class EventObjectForwarderTarget(AbstractEventForwarderTarget, Generic[T]):
     def on_eof(self) -> None:
         self._handler.on_close()
 
-    def consume(self, event: RawEvent) -> bool:
-        if not is_raw_event_object(event):
-            return self._remove_if_not_timed_out()
-        data = as_raw_event_object_data(event)
-        event_res = self._parser.parse(data)
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str,
+            size: int, data_reader: RawBinaryReader,
+    ) -> bool:
+        # Must read in the data...
+        data_reader(size)
+        return self._remove_if_not_timed_out()
+
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
+        event_res = self._parser.parse(event_data)
         if event_res.has_error:
-            # TODO send error
+            self.on_error(event_res.valid_error)
             return self._remove_if_not_timed_out()
         ret = self._handler.on_event(
-            raw_event_source_id(event),
-            raw_event_target_id(event),
+            source_id,
+            target_id,
             event_res.result,
         )
         return ret or self._remove_if_not_timed_out()
@@ -174,6 +179,7 @@ class EventObjectForwarderTarget(AbstractEventForwarderTarget, Generic[T]):
 
 class EventBinaryForwarderTarget(AbstractEventForwarderTarget):
     """General handler for binary events."""
+
     __slots__ = ('_handler',)
 
     def __init__(
@@ -190,12 +196,14 @@ class EventBinaryForwarderTarget(AbstractEventForwarderTarget):
     def on_eof(self) -> None:
         self._handler.on_close()
 
-    def consume(self, event: RawEvent) -> bool:
-        if not is_raw_event_binary(event):
-            return self._remove_if_not_timed_out()
-        source = raw_event_source_id(event)
-        target = raw_event_target_id(event)
-        size = raw_event_binary_size(event)
-        data = as_raw_event_binary_data_reader(event)
-        res = self._handler.on_event(source, target, size, data)
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
+        return self._remove_if_not_timed_out()
+
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str,
+            size: int, data_reader: RawBinaryReader,
+    ) -> bool:
+        res = self._handler.on_event(source_id, target_id, size, data_reader)
         return res or self._remove_if_not_timed_out()

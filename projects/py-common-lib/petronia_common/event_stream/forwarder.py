@@ -6,7 +6,7 @@ This is very similar behavior to the tio version, but due to the nature of
 asyncio, it has nuances that must be distinct.
 """
 
-from typing import List, Callable, Protocol, Optional
+from typing import List, Callable, Protocol, Dict, Optional, Any
 
 from .reader import BinaryReader, read_event_stream
 from .defs import (
@@ -15,6 +15,7 @@ from .defs import (
     raw_event_binary_size,
     is_raw_event_object, is_raw_event_binary,
     as_raw_event_binary_data_reader,
+    as_raw_event_object_data,
 )
 from ..util import PetroniaReturnError, EMPTY_LIST
 
@@ -40,10 +41,17 @@ class EventForwarderTarget:
         used by the forwarder."""
         raise NotImplementedError()  # pragma no cover
 
-    # FIXME split this into consume_object and consume_binary.
-    #   Each should take the split-apart event components, because the caller
-    #   already split them out.
-    def consume(self, event: RawEvent) -> bool:
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
+        """Called if the `can_consume` method returns True.
+        If this returns True, then the target will be de-registered."""
+        raise NotImplementedError()  # pragma no cover
+
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str,
+            size: int, data_reader: RawBinaryReader,
+    ) -> bool:
         """Called if the `can_consume` method returns True.
         If this returns True, then the target will be de-registered."""
         raise NotImplementedError()  # pragma no cover
@@ -187,7 +195,12 @@ class EventForwarder:
             # Simple handling, because the data is already fully read.
             for target in targets:
                 # print(f"[{self}] sending consume for object event")
-                if target.consume(event):
+                if target.consume_object(
+                        event_id=event_id,
+                        source_id=event_source_id,
+                        target_id=event_target_id,
+                        event_data=as_raw_event_object_data(event),
+                ):
                     to_remove.append(target)
                 # print(f"[{self}] completed consume for object event")
         else:
