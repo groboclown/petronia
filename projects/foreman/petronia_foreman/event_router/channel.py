@@ -114,7 +114,8 @@ class EventChannel(EventForwarderTarget):
         return self.__handlers.contains_handler_id(handler_id)
 
     def add_event_consumer(self, target: EventForwarderTarget) -> None:
-        """Add the given target as a consumer for this channel's events.  These are
+        """Add the given target as a consumer for this channel's sent events
+        (the events read in from the reader for the channel).  These are
         removed by their call-backs returning the correct value."""
         self.__forwarder.add_target(target)
 

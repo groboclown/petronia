@@ -6,6 +6,7 @@ As Foreman is the main process that the end-user runs, it needs the
 ability to send messages to the user.
 """
 
+from typing import Dict, Iterable, Optional
 import os
 import sys
 import gettext
@@ -16,6 +17,7 @@ from .configuration.platform import PlatformSettings
 from .constants import TRANSLATION_CATALOG
 
 CATALOG = TRANSLATION_CATALOG
+_TRANSLATIONS: Dict[str, gettext.NullTranslations] = {}
 
 
 def display(catalog: str, message: I18n, **kwargs: UserMessageData) -> None:
@@ -49,12 +51,15 @@ def display_error(err: PetroniaReturnError, debug: bool = False) -> None:
 
 def translate(catalog: str, message: I18n, **kwargs: UserMessageData) -> str:
     """Translate the message + data to a string the user can read."""
-    return gettext.dgettext(catalog, message).format(**kwargs)
+    if catalog in _TRANSLATIONS:
+        return _TRANSLATIONS[catalog].gettext(message).format(**kwargs)
+    return message.format(**kwargs)
 
 
-def load_translation(_settings: PlatformSettings) -> None:
+def load_translation(settings: PlatformSettings, locale_names: Optional[Iterable[str]] = None) -> None:
     """Use the platform-specific settings to find the translation directory."""
-    data_dir = _settings.find_data_dir('translations')
+    _TRANSLATIONS.clear()
+    data_dir = settings.find_data_dir('translations')
     if not data_dir:
         print("No translations directory found.")
         return
@@ -62,6 +67,17 @@ def load_translation(_settings: PlatformSettings) -> None:
     if os.path.isfile(domain_list_file):
         with open(domain_list_file, 'r') as f_obj:
             for line in f_obj.readlines():
-                gettext.bindtextdomain(line, data_dir)
+                catalog = line.strip()
+                try:
+                    translation = gettext.translation(
+                        catalog, data_dir, languages=locale_names,
+                    )
+                    _TRANSLATIONS[catalog] = translation
+                except FileNotFoundError:
+                    print(
+                        f"Could not find translation file for {catalog} in {data_dir}"
+                        f" ({locale_names and locale_names or 'system locale)'}"
+                    )
+                    # Keep going.
     else:
         print(f"No file {domain_list_file} found.  Not loading translations.")

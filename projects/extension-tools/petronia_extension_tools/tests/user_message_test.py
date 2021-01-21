@@ -6,7 +6,7 @@ from petronia_common.util.error import SimplePetroniaReturnError
 from .. import user_message
 
 
-class UserMessageTest(unittest.TestCase):
+class ExtensionToolsUserMessageTest(unittest.TestCase):
     """Test the functions."""
 
     def test_display(self) -> None:

@@ -168,7 +168,7 @@ class EventForwarder:
                 # print(f"[{self}] found target to consume {event_id}")
                 to_call.append(target)
         if to_call:
-            #  (f"[{self}] starting send event")
+            # print(f"[{self}] starting send event")
             to_remove = self._send_event(event, to_call)
             # print(f"[{self}] ending send event")
         else:

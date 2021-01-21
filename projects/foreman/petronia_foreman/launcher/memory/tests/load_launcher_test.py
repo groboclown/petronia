@@ -62,8 +62,8 @@ class LoadLauncherTest(unittest.TestCase):
         errors: List[Tuple[str, str, BaseException]] = []
         oks: List[Tuple[str, str]] = []
 
-        def on_error(mod_name: str, entry: str, err: BaseException) -> None:
-            errors.append((mod_name, entry, err))
+        def on_error(_mod_name: str, _entry: str, _err: BaseException) -> None:
+            raise Exception('should not be called')  # pragma no cover
 
         def on_ok(mod_name: str, entry: str) -> None:
             oks.append((mod_name, entry))
@@ -102,8 +102,8 @@ class LoadLauncherTest(unittest.TestCase):
         def on_error(mod_name: str, entry: str, err: BaseException) -> None:
             errors.append((mod_name, entry, err))
 
-        def on_ok(mod_name: str, entry: str) -> None:
-            oks.append((mod_name, entry))
+        def on_ok(_mod_name: str, _entry: str) -> None:
+            raise ValueError('should not be called')  # pragma no cover
 
         thread_res = load_launcher.connect_launcher(
             '_entry_point_err', sys.modules[__name__],

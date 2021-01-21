@@ -1,0 +1,392 @@
+# Translations template for Petronia foreman.
+# Copyright (C) 2021 Petronia
+# This file is distributed under the same license as the Petronia foreman
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Petronia foreman VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-01-21 11:41-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: projects/foreman/petronia_foreman/configuration/find_file.py:54
+msgid "Could not find configuration file \"petronia.ini\" in any of {searched}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/foreman.py:120
+msgid "No launcher named {name}."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/launcher.py:62
+msgid "launcher {name} does not have required option `{key}` set"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/launcher.py:75
+msgid "`runner` not specified for launcher {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/platform.py:75
+msgid "Could not recognize your platform (found {system_name})."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/platform.py:127
+msgid "You requested Windows, but the Windows Version could not be discovered."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/platform.py:141
+msgid ""
+"Your system ({system} {version} {arch}) does not support the required "
+"Windows libraries."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/platform.py:155
+msgid ""
+"Your system ({system} {version} {arch}) is not one of the supported "
+"Windows versions."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/platform.py:172
+msgid ""
+"Could not discover your platform; native library loading notsupported "
+"with Python (problem: {err})."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/platform.py:206
+msgid ""
+"'Your platform is not supported, because neither libwayland.sonor "
+"libxcb.so are present.  Please install one to enable support."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/reader.py:39
+msgid "Error parsing ini file {filename}: {msg}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/configuration/reader.py:52
+msgid ""
+"No boot-order defined in the foreman configuration, so foreman cannot "
+"start.  Did you install Petronia correctly?  Please check the "
+"instructions again.  Petronia expects a file named petronia.ini in an OS-"
+"specific location."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/channel.py:278
+msgid "route {name} is closed"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/handler.py:63
+msgid "event handler {handler_id} already registered"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/handler.py:79
+#: projects/foreman/petronia_foreman/event_router/handler.py:94
+#: projects/foreman/petronia_foreman/event_router/handler.py:115
+msgid "event handler {handler_id} not registered"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/handler.py:103
+msgid ""
+"handler {handler_id} is not registered to listen to {event_id} / "
+"{target_id}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/reservations.py:59
+msgid "attempted to add duplicate channel pattern ({pattern})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/reservations.py:74
+msgid "channel name already reserved ({channel})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/router.py:175
+msgid "handler {handler_id} already registered in channel {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/router.py:183
+msgid "channel {name} not registered"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/router.py:233
+msgid "no such channel {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/event_router/router.py:283
+msgid "channel not registered ({channel})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/events/foreman.py:65
+#: projects/foreman/petronia_foreman/events/foreman.py:85
+#: projects/foreman/petronia_foreman/events/foreman.py:171
+#: projects/foreman/petronia_foreman/events/foreman.py:191
+#: projects/foreman/petronia_foreman/events/foreman.py:211
+#: projects/foreman/petronia_foreman/events/foreman.py:274
+#: projects/foreman/petronia_foreman/events/foreman.py:294
+#: projects/foreman/petronia_foreman/events/foreman.py:474
+#: projects/foreman/petronia_foreman/events/foreman.py:507
+#: projects/foreman/petronia_foreman/events/foreman.py:527
+#: projects/foreman/petronia_foreman/events/foreman.py:591
+#: projects/foreman/petronia_foreman/events/foreman.py:611
+#: projects/foreman/petronia_foreman/events/foreman.py:686
+#: projects/foreman/petronia_foreman/events/foreman.py:706
+#: projects/foreman/petronia_foreman/events/foreman.py:740
+#: projects/foreman/petronia_foreman/events/foreman.py:760
+#: projects/foreman/petronia_foreman/events/foreman.py:854
+#: projects/foreman/petronia_foreman/events/foreman.py:919
+#: projects/foreman/petronia_foreman/events/foreman.py:939
+#: projects/foreman/petronia_foreman/events/foreman.py:1066
+#: projects/foreman/petronia_foreman/events/foreman.py:1086
+#: projects/foreman/petronia_foreman/events/foreman.py:1150
+#: projects/foreman/petronia_foreman/events/foreman.py:1170
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:77
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:97
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:305
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:338
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:358
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:422
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:442
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:504
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:524
+msgid "Required field {field_name} in {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/events/foreman.py:73
+#: projects/foreman/petronia_foreman/events/foreman.py:93
+#: projects/foreman/petronia_foreman/events/foreman.py:179
+#: projects/foreman/petronia_foreman/events/foreman.py:199
+#: projects/foreman/petronia_foreman/events/foreman.py:282
+#: projects/foreman/petronia_foreman/events/foreman.py:302
+#: projects/foreman/petronia_foreman/events/foreman.py:393
+#: projects/foreman/petronia_foreman/events/foreman.py:406
+#: projects/foreman/petronia_foreman/events/foreman.py:419
+#: projects/foreman/petronia_foreman/events/foreman.py:482
+#: projects/foreman/petronia_foreman/events/foreman.py:495
+#: projects/foreman/petronia_foreman/events/foreman.py:515
+#: projects/foreman/petronia_foreman/events/foreman.py:599
+#: projects/foreman/petronia_foreman/events/foreman.py:694
+#: projects/foreman/petronia_foreman/events/foreman.py:714
+#: projects/foreman/petronia_foreman/events/foreman.py:748
+#: projects/foreman/petronia_foreman/events/foreman.py:768
+#: projects/foreman/petronia_foreman/events/foreman.py:795
+#: projects/foreman/petronia_foreman/events/foreman.py:862
+#: projects/foreman/petronia_foreman/events/foreman.py:927
+#: projects/foreman/petronia_foreman/events/foreman.py:994
+#: projects/foreman/petronia_foreman/events/foreman.py:1007
+#: projects/foreman/petronia_foreman/events/foreman.py:1074
+#: projects/foreman/petronia_foreman/events/foreman.py:1158
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:85
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:105
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:132
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:224
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:237
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:250
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:313
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:326
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:346
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:430
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:512
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:532
+msgid "Field {field_name} must be of type {type} for structure {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/events/foreman.py:104
+#: projects/foreman/petronia_foreman/events/foreman.py:725
+#: projects/foreman/petronia_foreman/events/foreman.py:779
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:116
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:543
+msgid "Field {field_name} must contain items of type {type} for structure {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/events/foreman.py:387
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:218
+msgid "selector value must have ^ and $ keys"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/events/foreman.py:430
+#: projects/foreman/petronia_foreman/launcher/util/cmd_events/extension_commands.py:261
+msgid "Invalid selector name {name} for {nc}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/foreman_runner.py:45
+msgid "Starting up Petronia."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/foreman_runner.py:50
+msgid "Petronia shutting down."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/foreman_runner.py:67
+msgid "Failed to open root log file {filename}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/foreman_runner.py:117
+msgid "Starting the restart process."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/foreman_runner.py:136
+msgid "Starting the shut down process."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/foreman_runner.py:149
+msgid "Failed to close root log file {filename}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/cmd/cmd_launcher.py:118
+msgid ""
+"Launcher {launcher_id} stopped communication before extension "
+"{extension_name} could load"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/cmd/cmd_launcher.py:131
+msgid "invalid event ID {event_id} received from launcher {launcher_id}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/cmd/cmd_launcher.py:208
+msgid "Could not stop launcher {launcher_id} within {timeout} seconds."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/loader.py:33
+msgid "Unknown launcher runner {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/memory/importer.py:30
+msgid "memory-importer for {name} path {path}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/memory/importer.py:48
+msgid "Requested to load a module with non-existent search path {value}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/memory/load_launcher.py:44
+msgid "No such entrypoint {entrypoint} in module {module}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/memory/load_launcher.py:52
+msgid "Entrypoint {entrypoint} in module {module} is not a function"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:75
+msgid "Invalid option {option}; must be a number, found {value}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:251
+msgid "Could not stop launcher {launcher} after {timeout} seconds"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/util/common_errors.py:12
+msgid "No registered launcher {launcher_id}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/util/common_errors.py:21
+msgid "already registered launcher id {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/util/common_errors.py:31
+msgid "Launcher category not initialized"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/util/common_errors.py:39
+msgid "cannot load an extension in a boot launcher ({launcher_id})."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/util/load_extension.py:113
+#: projects/foreman/petronia_foreman/launcher/util/load_extension.py:123
+msgid "Timed out waiting for extension {name} {version} to load"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/main.py:31
+msgid "configuration file to load."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/main.py:38
+msgid ""
+"force running on a platform type, rather than auto-detect it.  The "
+"supported types are {platforms}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/main.py:49
+msgid "Problems found discovering the current platform:"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/main.py:51
+#: projects/foreman/petronia_foreman/main.py:58
+msgid "Run with `-h` argument for help using Petronia."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/main.py:56
+msgid "Problems found reading the configuration file:"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/process_mgmt/launch.py:40
+msgid "Unsupported launch platform {name}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/process_mgmt/popen_posix.py:60
+msgid "Failed to launch [{cmd}]: {err}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/process_mgmt/popen_posix.py:129
+msgid "Platform {platform} not supported."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/process_mgmt/popen_win.py:89
+msgid "Failed to create process for {cmd}: {err}"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/process_mgmt/popen_win.py:202
+msgid "Not running under Windows."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/foreman_router.py:253
+msgid "Requested to boot launch a non-existent category ({category})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/foreman_router.py:260
+msgid "Requested to boot launch a non-bootable category ({category})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/foreman_router.py:392
+msgid "extension loader channel {channel} already registered."
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/router_context.py:89
+msgid "Requested to start unknown launcher category ({name})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/router_context.py:152
+msgid "Requested to load extension ({name}) for non-launcher target ({target})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/router_context.py:218
+msgid ""
+"Requested to load extension ({name}) for unknown launcher {launcher} "
+"(target {target})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/router_context.py:247
+msgid "Requested to add event listener for non-launcher target ({target})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/router_context.py:262
+msgid ""
+"Requested to add event listeners for unknown launcher {launcher} (target "
+"{target})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/router_context.py:277
+msgid "Requested to remove event listener for non-launcher target ({target})"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/routing/router_context.py:292
+msgid ""
+"Requested to remove event listeners for unknown launcher {launcher} "
+"(target {target})"
+msgstr ""
+

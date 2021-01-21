@@ -4,7 +4,7 @@ jobs:
   include:
     - name: "Python 3.8 on Linux"
       python: 3.8
-      script: python3 bin/build.py projects
+      script: python3 bin/build.py
     - name: "Python 3.8 on Windows"
       os: windows
       language: shell

@@ -33,7 +33,8 @@ class EventRouter:
     can run independently.  Each router should have its own lock.
 
     The router has a global target for the owner of the router to
-    listen in on all events.
+    listen in on all events read by channels.  Injected events directed to a
+    channel are not received by the global target.
 
     In this model, a channel represents a launcher process unit, and a handler represents a
     loaded extension within the channel.  A loaded extension can register multiple event listeners.
@@ -61,7 +62,7 @@ class EventRouter:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
                     return channel.name
-            return None
+        return None
 
     def get_registered_channel_names(self) -> Iterable[str]:
         """Get all registered channel names."""
@@ -154,9 +155,9 @@ class EventRouter:
                 channel.close_access()
                 self.__reservations.release_channel(name)
                 return True
-            # If the channel is reserved but not allocated yet,
-            # then it isn't released.
-            return False
+        # If the channel is reserved but not allocated yet,
+        # then it isn't released.
+        return False
 
     def add_handler(
             self, channel_name: str, handler_id: str,
@@ -190,9 +191,9 @@ class EventRouter:
         # This is assumed to be an infrequent operation, so it is slow.
         with self.__lock:
             for channel in self.__channels.values():
-                if channel.remove_handler(handler_id):
+                if channel.remove_handler(handler_id).ok:
                     return True
-            return False
+        return False
 
     def add_handler_listener(
             self,

@@ -86,6 +86,16 @@ class EventHandlerSetTest(unittest.TestCase):
         res = ehs.remove_handler('h2')
         self.assertIsNotNone(res.error)
 
+    def test_remove_handler__multiples(self) -> None:
+        """Test add_handler with a duplicate ID."""
+        ehs = handler.EventHandlerSet()
+        res = ehs.add_handler('h1', ['e1', 'e2'], [('e2', 't2'), (None, None)])
+        self.assertIsNone(res.error)
+        res = ehs.add_handler('h2', ['e3'], [(None, None)])
+        self.assertIsNone(res.error)
+        res = ehs.remove_handler('h2')
+        self.assertIsNone(res.error)
+
     def test_add_listener__no_handler(self) -> None:
         """Test add_listener with no such handler."""
         ehs = handler.EventHandlerSet()

@@ -1,0 +1,80 @@
+# English translations for Petronia extension-tools.
+# Copyright (C) 2021 Petronia
+# This file is distributed under the same license as the Petronia
+# extension-tools project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Petronia extension-tools VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-01-21 11:40-0600\n"
+"PO-Revision-Date: 2021-01-21 11:40-0600\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:82
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:112
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:128
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:160
+msgid "Failed to write to {name}: {err}"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/load_definition.py:46
+msgid "Invalid extension metadata file type: {name}"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/load_definition.py:60
+msgid ""
+"Extension metadata file ({name}) must contain a dictionary or a list of "
+"dictionaries, found {data}"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/load_definition.py:73
+msgid ""
+"Extension metadata file ({name}) must contain a dictionary or a list of "
+"dictionaries"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:52
+msgid "Error: at least one of --api, --internal, or --state must be given."
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:57
+msgid "Error: output directory ({d}) does not exist."
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:68
+msgid "Error: file does not exist: {n}"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:72
+msgid "Error: extension file not valid: {n}"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:81
+msgid "Skipping {name}: only generating events for API extensions."
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:88
+msgid "Extension {name} metadata has validation problems"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:103
+msgid "Encountered a problem while generating the source for {name}"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:107
+msgid "Generated {name}"
+msgstr ""
+
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/template.py:44
+msgid "could not open template file {name}: {err}"
+msgstr ""
+

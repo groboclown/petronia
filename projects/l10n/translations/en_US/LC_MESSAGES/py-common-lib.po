@@ -1,0 +1,422 @@
+# English (United States) translations for Petronia py-common-lib.
+# Copyright (C) 2021 Petronia
+# This file is distributed under the same license as the Petronia
+# py-common-lib project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Petronia py-common-lib VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-01-21 11:43-0600\n"
+"PO-Revision-Date: 2021-01-21 11:43-0600\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en_US\n"
+"Language-Team: en_US <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: projects/py-common-lib/petronia_common/event_stream/arg_handle.py:21
+msgid "Argument is not a file descriptor type: {arg}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/arg_handle.py:27
+msgid "Argument is not a valid file descriptor value: {arg}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/arg_handle.py:38
+msgid "Invalid file handle {arg}: {err}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:154
+msgid "Reached end-of-stream before packet start"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:198
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:212
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:384
+msgid "Reached end-of-stream during packet read"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:229
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:283
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:336
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:517
+msgid "Unexpected data in the event stream"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:239
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:248
+msgid "event-id must have a length in the range [{n}, {x}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:266
+msgid "event-id included invalid UTF-8 encoding"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:292
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:301
+msgid "source-id must have a length in the range [{n}, {x}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:319
+msgid "source-id included invalid UTF-8 encoding"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:345
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:354
+msgid "target-id must have a length in the range [{n}, {x}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:372
+msgid "target-id included invalid UTF-8 encoding"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:400
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:413
+msgid "json data must have a length in the range [{n}, {x}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:432
+msgid "Event streaming data included incorrectly encoded UTF-8 values: {e}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:439
+msgid "Event streaming data included badly formatted JSON data: {e}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:445
+msgid "Event data was not sent as JSON dictionary"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/reader.py:486
+msgid "binary blob data must have a length in the range [{n}, {x}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:53
+msgid "binary_blob has {real_size} bytes, but requested {expected_size}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:61
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:200
+msgid "event-id UTF-8 encoding problem: {exception}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:68
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:207
+msgid "source-id UTF-8 encoding problem: {exception}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:75
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:214
+msgid "target-id UTF-8 encoding problem: {exception}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:82
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:221
+msgid "event-id length must be within [{id_min}, {id_max}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:86
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:225
+msgid "source-id length must be within [{id_min}, {id_max}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:90
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:229
+msgid "target-id length must be within [{id_min}, {id_max}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:94
+msgid "binary event data size must be within [{b_min}, {b_max}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:144
+msgid "binary blob data less than requested size"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:151
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:273
+msgid "writing event to stream"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:189
+msgid "event object data UTF-8 encoding problem: {exception}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:193
+msgid "event object data cannot be marshalled: {exception}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/event_stream/writer.py:233
+msgid "event object data size must be within [{b_min}, {b_max}]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:28
+msgid "event schemas must be dictionaries"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:45
+msgid "references must be a dictionary of event data type dictionaries"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:83
+msgid "`{priority}` must be a valid priority"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:89
+msgid "`{send_access}` must be a valid access"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:95
+msgid "`{receive_access}` must be a valid access"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:184
+msgid "cyclic reference `{reference}`"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:190
+msgid "unknown reference `{reference}`"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:196
+msgid "reference depth too deep ({depth})"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:234
+msgid "unknown data type `{data_type}`"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:310
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:315
+msgid "enum values must be a list of strings"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:346
+msgid "`value-type` must be a dictionary of a data type structure"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:369
+msgid "`fields` must be a dictionary of field data type structures, found {data}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:379
+msgid "`optional` must be `true` or `false`"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:402
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:408
+msgid "`type-mapping` must be a dictionary of data type structures"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:444
+msgid "no `{key}` found in definition"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:449
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:462
+msgid "`{key}` must be a string value"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:478
+#: projects/py-common-lib/petronia_common/extension/config/event_loader.py:491
+msgid "`{key}` must be a number"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:125
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:491
+msgid ""
+"min_length ({min_length}) must be equal to or less than max_length "
+"({max_length})"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:135
+msgid ""
+"min_length ({min_length}) must be greater than or equal to "
+"{MIN_STRING_LENGTH}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:142
+msgid ""
+"max_length ({max_length}) must be less than or equal to "
+"{MAX_STRING_LENGTH}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:199
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:268
+msgid ""
+"min_value ({min_value}) must be equal to or less than max_value "
+"({max_value})"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:206
+msgid "min_value ({min_value}) must be greater than or equal to {MIN_INT_VALUE}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:213
+msgid "max_value ({max_value}) must be less than or equal to {MAX_INT_VALUE}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:314
+msgid "value list must contain at least 1 item"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:320
+msgid "enum value {value} must be a string"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:327
+msgid ""
+"enum value \"{value}\" must have at least {MIN_ENUM_VALUE_LENGTH} "
+"characters"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:337
+msgid ""
+"enum value \"{value}\" must have no more than {MAX_ENUM_VALUE_LENGTH} "
+"characters"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:378
+msgid "invalid formatted date string ({date})"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:433
+msgid "`reference` type not replaced"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:501
+msgid ""
+"min_length ({min_length}) must be greater than or equal to "
+"{MIN_ARRAY_LENGTH}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:508
+msgid "max_length ({max_length}) must be less than or equal to {MAX_ARRAY_LENGTH}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:643
+msgid ""
+"field name ({field_name}) must have {MIN_FIELD_NAME_LENGTH} to "
+"{MAX_FIELD_NAME_LENGTH} characters"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:654
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:662
+msgid "field name ({field_name}) must match `[a-z][a-z0-9_]*`"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:748
+msgid ""
+"must have {MIN_TYPE_MAPPING_VALUES} to {MAX_TYPE_MAPPING_VALUES} "
+"selectors ({count})"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:760
+msgid "selector ({selector}) must have {n} to {x} characters"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/event_schema.py:849
+msgid ""
+"event name ({event_name}) must conform to the pattern "
+"`[a-z0-9][a-z0-9:-]*`"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:29
+msgid "invalid extension type ({extension_type})"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:147
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:154
+msgid "`{key}` must be a list of strings"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:171
+msgid "version ({version}) must be in the format [major, minor, patch]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:176
+msgid "version {{version}} must contain only non-negative integers"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:191
+msgid "`{key}` must be a list of dictionaries"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:207
+msgid ""
+"dependency must be a dictionary containing the keys `name`, `minimum`, "
+"and possibly `below` (found {value})"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:237
+msgid ""
+"extension runtime must be a dictionary containing the key `launcher` and "
+"optionally `permissions`"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:250
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:255
+msgid "extension runtime permissions must be dict of key to list of strings"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:271
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:276
+msgid "must be a list of string values"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:289
+msgid "`events` must be a dictionary of event schemas"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_loader.py:294
+msgid "`references` must be a dictionary of event data type schemas"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_schema.py:234
+msgid "duplicate event name: {name}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_schema.py:338
+msgid "extension name ({name}) must conform to the pattern [a-z0-9][a-z0-9._]"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_schema.py:344
+msgid ""
+"extension name ({name}) must be {MIN_EXTENSION_NAME_LENGTH} to "
+"{MAX_EXTENSION_NAME_LENGTH} long"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/config/extension_schema.py:363
+msgid "duplicate dependency: {name}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/extension/runner/main.py:61
+msgid "No registered parser for {event_id}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/util/validation/enforcement.py:38
+#: projects/py-common-lib/petronia_common/util/validation/enforcement.py:48
+#: projects/py-common-lib/petronia_common/util/validation/enforcement.py:89
+#: projects/py-common-lib/petronia_common/util/validation/enforcement.py:107
+msgid "{src}: validation error: "
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/util/validation/enforcement.py:56
+#: projects/py-common-lib/petronia_common/util/validation/enforcement.py:96
+#: projects/py-common-lib/petronia_common/util/validation/enforcement.py:114
+msgid "{src}: validation error ({e}): "
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/util/yaml_support/load_it.py:24
+msgid "Invalid YAML format: {e}"
+msgstr ""
+
+#: projects/py-common-lib/petronia_common/util/yaml_support/load_it.py:32
+msgid "Could not transform documents to YAML: {e}"
+msgstr ""
+

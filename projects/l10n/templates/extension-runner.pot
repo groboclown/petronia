@@ -1,0 +1,60 @@
+# Translations template for Petronia extension-runner.
+# Copyright (C) 2021 Petronia
+# This file is distributed under the same license as the Petronia
+# extension-runner project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Petronia extension-runner VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-01-21 11:39-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:77
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:97
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:305
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:338
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:358
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:422
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:442
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:504
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:524
+msgid "Required field {field_name} in {name}"
+msgstr ""
+
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:85
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:105
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:132
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:224
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:237
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:250
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:313
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:326
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:346
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:430
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:512
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:532
+msgid "Field {field_name} must be of type {type} for structure {name}"
+msgstr ""
+
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:116
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:543
+msgid "Field {field_name} must contain items of type {type} for structure {name}"
+msgstr ""
+
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:218
+msgid "selector value must have ^ and $ keys"
+msgstr ""
+
+#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:261
+msgid "Invalid selector name {name} for {nc}"
+msgstr ""
+

@@ -39,9 +39,9 @@ class ChannelReservationsTest(unittest.TestCase):
         """Call add_channel_reservation_callback with no channel patterns reserved yet."""
         channel_res = reservations.ChannelReservations()
         res = channel_res.add_channel_reservation_callback('channel name', lambda x: RET_OK_NONE)
-        self.assertTrue(res.ok)
+        self.assertIsNone(res.error)
         res = channel_res.add_channel_reservation_callback('channel name', lambda x: RET_OK_NONE)
-        self.assertFalse(res.ok)
+        self.assertIsNotNone(res.error)
 
     def test_add_channel_reservation_callback__str__escape(self) -> None:
         """Call add_channel_reservation_callback with proper string escaping."""
@@ -50,14 +50,14 @@ class ChannelReservationsTest(unittest.TestCase):
             'channel\\d',
             lambda x: StdRet.pass_errmsg('x', i18n('expected error')),
         )
-        self.assertTrue(res.ok)
+        self.assertIsNone(res.error)
 
         # Ensure it's registered correctly with escaping.
         self.assertTrue(channel_res.reserve_channel('channel1').ok)
         self.assertTrue(channel_res.reserve_channel('x-channel\\d').ok)
         self.assertTrue(channel_res.reserve_channel('channel\\d-y').ok)
         resp = channel_res.reserve_channel('channel\\d')
-        self.assertTrue(resp.has_error)
+        self.assertIsNotNone(resp.error)
         err = resp.valid_error
         self.assertEqual(
             'expected error',
@@ -71,7 +71,7 @@ class ChannelReservationsTest(unittest.TestCase):
             re.compile(r'channel\d+'),
             lambda x: StdRet.pass_errmsg('x', i18n('expected error')),
         )
-        self.assertTrue(res.ok)
+        self.assertIsNone(res.error)
 
         # Ensure it's registered correctly for different matches.
         resp = channel_res.reserve_channel('channel2')
@@ -98,7 +98,7 @@ class ChannelReservationsTest(unittest.TestCase):
             re.compile(r'channel\d+'),
             lambda x: RET_OK_NONE,
         )
-        self.assertTrue(res.ok)
+        self.assertIsNone(res.error)
         res = channel_res.add_channel_reservation_callback(
             re.compile(r'channel\d+'),
             lambda x: RET_OK_NONE,
@@ -112,7 +112,7 @@ class ChannelReservationsTest(unittest.TestCase):
             re.compile(r'^channel$'),
             lambda x: RET_OK_NONE,
         )
-        self.assertTrue(res.ok)
+        self.assertIsNone(res.error)
         res = channel_res.add_channel_reservation_callback(
             'channel',
             lambda x: RET_OK_NONE,

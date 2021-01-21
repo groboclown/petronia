@@ -4,7 +4,7 @@
 Runs the CI build.  This should be as simple as possible while being useful.
 """
 
-from typing import List, Tuple
+from typing import Dict, List, Tuple, Set
 import os
 import sys
 import shutil
@@ -101,6 +101,61 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     return lint_code + test_code + report_code
 
 
+def build_l10n_project_dir(_root_project_dir: str, project_dir: str) -> int:
+    """Compile the .pot files into .mo files."""
+
+    source_dir = os.path.join(project_dir, 'translations')
+    compiled_dir = os.path.join(project_dir, 'compiled')
+    if os.path.isdir(compiled_dir):
+        shutil.rmtree(compiled_dir, ignore_errors=True)
+    os.makedirs(compiled_dir, exist_ok=True)
+
+    return_code = 0
+
+    # project name -> list of (locale, po file)
+    project_locales: Dict[str, List[Tuple[str, str]]] = {}
+
+    for locale_name in os.listdir(source_dir):
+        lcm_dir = os.path.join(source_dir, locale_name, 'LC_MESSAGES')
+        if not os.path.isdir(lcm_dir):
+            continue
+        for po_file in os.listdir(lcm_dir):
+            po_fqn = os.path.join(lcm_dir, po_file)
+            if not os.path.isfile(po_fqn) or not po_file.endswith('.po'):
+                continue
+            project_name = po_file[:-3]
+            if project_name not in project_locales:
+                project_locales[project_name] = []
+            project_locales[project_name].append((locale_name, po_fqn))
+    for project_name, locale_files in project_locales.items():
+        print("")
+        print("----------------------------------------------------------------------")
+        print(f"Compile {project_name} ...")
+        for locale_name, po_fqn in locale_files:
+            print(f"  - {locale_name}")
+            os.makedirs(os.path.join(compiled_dir, locale_name, 'LC_MESSAGES'), exist_ok=True)
+            exit_code = run_python_cmd(
+                project_dir, [],
+                'babel.messages.frontend',
+                [
+                    'compile',
+                    f'--domain={project_name}',
+                    f'--directory={compiled_dir}',
+                    f'--locale={locale_name}',
+                    f'--input-file={po_fqn}',
+                    '--use-fuzzy',
+                    '--statistics',
+                ],
+                True,
+            )
+            return_code += exit_code
+    # Petronia uses a special catalog file, too...
+    with open(os.path.join(compiled_dir, 'catalog.list'), 'w') as f:
+        f.write('\n'.join(project_locales.keys()))
+
+    return return_code
+
+
 def run_python_cmd(
         cwd: str,
         extra_py_path: List[str],
@@ -134,6 +189,7 @@ def run_python_cmd(
 
 PRIORITY_PROJECTS = ('py-common-lib', 'extension-tools',)
 IGNORED_PROJECT_DIRS = ('py-stubs',)
+TRANSLATION_PROJECTS = ('l10n',)
 
 
 def get_std_project_dirs(project_dir: str) -> List[Tuple[str, str]]:
@@ -162,16 +218,28 @@ def main(root_project_dir: str, child_projects: List[str]) -> int:
     print("======================================================================")
     print("Standard Build Projects")
     print("")
+    remaining_projects: Set[str] = set(child_projects)
     for project_dir, std_project_dir in get_std_project_dirs(root_project_dir):
         project_name = os.path.basename(std_project_dir)
         if child_projects and project_name not in child_projects:
             continue
+        if child_projects:
+            remaining_projects.remove(project_name)
         print("======================================================================")
         print(f":: {project_name} ::")
-        partial_code = build_std_project_dir(project_dir, std_project_dir)
+        if project_name in TRANSLATION_PROJECTS:
+            partial_code = build_l10n_project_dir(project_dir, std_project_dir)
+        else:
+            partial_code = build_std_project_dir(project_dir, std_project_dir)
         if partial_code != 0:
             print(f":: {project_name} failed: {partial_code} ::")
         total_code += partial_code
+
+    for project_name in remaining_projects:
+        print("======================================================================")
+        print(f":: {project_name} ::")
+        print(f":: {project_name} failed: Does Not Exist ::")
+        total_code += 1
 
     print("")
     print("_._._._._._._._._._._.__._._._._._._._._._._._._._._._._._._._._._._")

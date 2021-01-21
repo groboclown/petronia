@@ -104,11 +104,10 @@ class RouterIntegrationTest(unittest.TestCase):
                     loop_count += 1
                     condition.wait_for(lambda: eof_count[0] >= 2, 0.2)
                     if len(channel2_writer.getvalue()) > 0:
-                        # print("Test: Closing readers")
-                        channel1_reader.feed_eof()
-                        channel2_reader.feed_eof()
-                    elif loop_count > 10:
-                        print("Test: waited 5 seconds without channel 2 sending to writer")
+                        # This is encountered only at odd times.  This indicates
+                        # a potential bug.
+                        channel1_reader.feed_eof()  # pragma no cover
+                        channel2_reader.feed_eof()  # pragma no cover
                     self.assertTrue(loop_count < 20, "Tried for 4 seconds for the test to finish.")
 
             # The data read from channel 1's reader should have been sent on to channel 2's writer.
