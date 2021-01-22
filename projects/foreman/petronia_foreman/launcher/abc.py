@@ -1,5 +1,14 @@
 """
 Abstract class for all launchers.
+
+FIXME launchers + event model for starting extensions needs to change.
+
+The "runtime" definition on an extension determines which extension runner to use.  The
+extension runner selects a launcher on its own.  This means there is no longer the 2-part
+extension start chain, which is really complex and error-prone.  Instead, an event is sent
+to foreman to start an extension (along with the necessary extension metadata + configuration
+data), then foreman starts the registered extension runner (specified in the foreman configuration),
+and that runner does the process start (if necessary) and extension loading.
 """
 
 from typing import Tuple, Sequence, Mapping, List, Iterable, Callable, Optional
