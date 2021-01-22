@@ -1,5 +1,7 @@
 [run]
 
 # __main__ is intentionally trivial so it doesn't need tests.
+# The runner file in tests is only run in a separate process, so will never get coverage.
 omit =
     petronia_foreman/__main__.py
+    petronia_foreman/process_mgmt/tests/runner.py
