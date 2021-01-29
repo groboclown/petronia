@@ -7,7 +7,7 @@ from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
 from ..events.impl.extension_loader import SystemStartedEvent
 from ..defs import ExtensionInfo, TRANSLATION_CATALOG
-from ..context import EventHandlerContext
+from ..shared_state import ExtLoaderSharedState
 
 _BOOT_TIME_EXTENSIONS: Set[Tuple[str, ExtensionVersion]] = set()
 _REMAINING_BOOT_TIME_EXTENSIONS: Set[str] = set()

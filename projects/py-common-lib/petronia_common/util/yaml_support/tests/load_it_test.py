@@ -52,7 +52,7 @@ class LoadItTest(unittest.TestCase):
         """
         res = load_it.load_yaml_documents('!!python/object/apply:sys.exit 1')
         self.assertIsNotNone(res.error)
-        messages = ';'.join([m.debug() for m in res.error.messages()])
+        messages = ';'.join([m.debug() for m in res.valid_error.messages()])
         self.assertTrue(
             'Invalid YAML format' in messages,
             messages

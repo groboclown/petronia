@@ -1,0 +1,20 @@
+---
+
+name: petronia.core.impl.extension_loader
+type: impl
+version: [1, 0, 0]
+about: Core implementation of the extension loader.
+description: >
+  Handles requests to load extensions.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+implements:
+  - name: petronia.core.api.extension_loader
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+depends:
+  - name: petronia.core.api.datastore
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]

@@ -1,6 +1,7 @@
 """The main framework runner."""
-from abc import ABC
+
 from typing import Dict, Callable, Generic, Union, Optional, Any
+from abc import ABC
 import time
 from .registry import (
     EventRegistryContext, EventObject, EventBinaryTarget, EventObjectTarget, EventObjectParser,
@@ -17,12 +18,13 @@ from ...util.message import USER_MESSAGE_CATALOG_EXCEPTION
 
 def extension_runner(
         reader: BinaryReader, writer: BinaryWriter,
-        *factories: Callable[[EventRegistryContext], StdRet[None]],
+        user_state: T,
+        *factories: Callable[[T, EventRegistryContext], StdRet[None]],
 ) -> StdRet[None]:
     """Main entry point for extensions."""
     context = EventRegistryContextImpl(reader, writer)
     for factory in factories:
-        res = factory(context)
+        res = factory(user_state, context)
         if res.has_error:
             return res
     context.run()

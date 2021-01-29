@@ -12,7 +12,7 @@ licenses:
 authors:
   - Petronia Project
 default:
-  name: petronia.core.impl.extension-loader
+  name: petronia.core.impl.extension_loader
   minimum: [1, 0, 0]
 depends:
   - name: petronia.core.api.foreman

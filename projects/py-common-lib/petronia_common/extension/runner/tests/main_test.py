@@ -403,19 +403,20 @@ class ExtensionRunnerTest(unittest.TestCase):
 
     def test_failed_factory(self) -> None:
         """Test out the situation where a factory returns an error."""
-        def factory0(_context: registry.EventRegistryContext) -> StdRet[None]:
+        def factory0(_state: str, _context: registry.EventRegistryContext) -> StdRet[None]:
             return RET_OK_NONE
 
-        def factory1(_context: registry.EventRegistryContext) -> StdRet[None]:
+        def factory1(_state: str, _context: registry.EventRegistryContext) -> StdRet[None]:
             return StdRet.pass_error(BAD_ERROR)
 
-        def factory2(_context: registry.EventRegistryContext) -> StdRet[None]:
+        def factory2(_state: str, _context: registry.EventRegistryContext) -> StdRet[None]:
             # Should never be reached
             raise NotImplementedError  # pragma no cover
 
         res = main.extension_runner(
             create_read_stream(b''),
             SimpleBinaryWriter(),
+            's',
             factory0, factory1, factory2,
         )
         self.assertTrue(res.has_error)
@@ -430,14 +431,16 @@ class ExtensionRunnerTest(unittest.TestCase):
         factory_called = [False, False]
         mocks = [MockEventObjectTarget('0'), MockEventObjectTarget('1')]
 
-        def factory0(context: registry.EventRegistryContext) -> StdRet[None]:
+        def factory0(state: List[int], context: registry.EventRegistryContext) -> StdRet[None]:
+            state[0] += 1
             factory_called[0] = True
             context.register_event('e-1', registry.EventObjectParser(_good_parser))
             mocks[0].returns.append(True)
             context.register_target('e-1', 't-1', mocks[0])
             return RET_OK_NONE
 
-        def factory1(context: registry.EventRegistryContext) -> StdRet[None]:
+        def factory1(state: List[int], context: registry.EventRegistryContext) -> StdRet[None]:
+            state[0] += 1
             factory_called[1] = True
             context.register_event('e-2', registry.EventObjectParser(_good_parser))
             mocks[1].returns.append(False)
@@ -445,6 +448,7 @@ class ExtensionRunnerTest(unittest.TestCase):
             context.register_target('e-2', 't-1', mocks[1])
             return RET_OK_NONE
 
+        shared_state = [0]
         res = main.extension_runner(
             _events_as_reader(
                 # Send two of these objects, but with the target returning True
@@ -458,6 +462,7 @@ class ExtensionRunnerTest(unittest.TestCase):
                 to_raw_event_object('e-2', 's-5', 't-1', {}),
             ),
             SimpleBinaryWriter(),
+            shared_state,
             factory0, factory1,
         )
         self.assertIsNone(res.error)
@@ -465,6 +470,7 @@ class ExtensionRunnerTest(unittest.TestCase):
             [True, True],
             factory_called,
         )
+        self.assertEqual([2], shared_state)
         self.assertEqual(
             [('on_event', 's-1', 't-1', GOOD_OBJECT)],
             mocks[0].call_order,

@@ -1,12 +1,13 @@
 """
 Load the initial extensions.
 """
+
 from typing import Sequence, Dict, List
 
+from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet, UserMessage, join_errors
 from petronia_common.util import i18n as _
 from .defs import ExtensionInfo
-from .context import EventHandlerContext
 from .setup import get_boot_extensions, get_extension_dirs
 from .finder import (
     find_installed_extensions,
@@ -17,7 +18,7 @@ from .search import find_best_extension
 from .defs import TRANSLATION_CATALOG
 
 
-def boot_extensions(context: EventHandlerContext) -> StdRet[None]:
+def boot_extensions(context: EventRegistryContext) -> StdRet[None]:
     """Find the extensions to load, and request them to be loaded."""
     # Note: each time extensions are requested after boot, the installed extensions
     # are reloaded.  This allows for runtime adding extensions.

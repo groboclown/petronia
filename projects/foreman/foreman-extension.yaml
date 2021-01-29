@@ -354,9 +354,11 @@ references:
       event_id:
         type: reference
         ref: event-id
+        optional: true
       target_id:
         type: reference
         ref: event-target-id
+        optional: true
 
   extension-permission:
     description: An action and collection of resources that can perform the action.

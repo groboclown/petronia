@@ -1,11 +1,12 @@
 """
 Handles the full process that loads the extension.
 """
+
 from typing import Dict, Any
 
 from petronia_common.event_stream import EventForwarderTarget, RawBinaryReader
 from petronia_common.util import PetroniaReturnError
-from ..context import EventHandlerContext
+from ..shared_state import ExtLoaderSharedState
 from ..events.impl.extension_loader import LoadExtensionRequestEvent
 
 
@@ -15,10 +16,10 @@ class LoadExtensionHandler(EventForwarderTarget):
     events.
     """
 
-    __slots__ = ('_context',)
+    __slots__ = ('_state',)
 
-    def __init__(self, context: EventHandlerContext) -> None:
-        self._context = context
+    def __init__(self, shared_state: ExtLoaderSharedState) -> None:
+        self._state = shared_state
 
     def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         return event_id == LoadExtensionRequestEvent.FULL_EVENT_NAME

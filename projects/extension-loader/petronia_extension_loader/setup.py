@@ -1,8 +1,7 @@
 """Loads and processes the user's setup."""
 
 from typing import Sequence, List, Dict, Optional, Any
-import json
-from petronia_common.util import load_yaml_documents, StdRet, UserMessage, join_errors, RET_OK_NONE
+from petronia_common.util import load_structured_file, StdRet, UserMessage, join_errors, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .defs import TRANSLATION_CATALOG
 from .finder import find_config_files, find_extension_dirs
@@ -33,8 +32,8 @@ def get_extension_config(name: str) -> Optional[Dict[str, Any]]:
     return _EXTENSIONS_CONFIGS.get(name)
 
 
-def get_launcher_id() -> str:
-    """Get the launcher ID registered for this launcher."""
+def get_extension_handler_id() -> str:
+    """Get the extension handler ID registered for this launcher."""
     return _LAUNCHER_ID[0]
 
 
@@ -85,28 +84,10 @@ def initialize(  # pylint:disable=keyword-arg-before-vararg
 
 def load_config_file(filename: str) -> StdRet[Sequence[Dict[str, Any]]]:
     """Read in a user configuration file."""
-    try:
-        if filename.lower().endswith('.json'):
-            try:
-                with open(filename, 'r') as f:
-                    cfg = json.load(f)
-            except json.JSONDecodeError as err:
-                return StdRet.pass_exception(
-                    _('Invalid JSON formatted'),
-                    err,
-                )
-        else:
-            with open(filename, 'r') as f:
-                config_res = load_yaml_documents(f.read())
-            if config_res.has_error:
-                return config_res.forward()
-            cfg = config_res.result
-    except OSError as err:
-        return StdRet.pass_exception(
-            _('Failed to read file {filename}'),
-            err,
-            filename=filename,
-        )
+    config_res = load_structured_file(filename)
+    if config_res.has_error:
+        return config_res.forward()
+    cfg = config_res.result
     if isinstance(cfg, dict):
         return StdRet.pass_ok([cfg])
     if isinstance(cfg, (list, tuple)):

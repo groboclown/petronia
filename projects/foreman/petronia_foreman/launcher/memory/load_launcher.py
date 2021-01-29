@@ -15,7 +15,7 @@ from ...constants import TRANSLATION_CATALOG
 from ...configuration import RuntimeConfig
 
 ENTRYPOINT_OPTION = 'entrypoint'
-DEFAULT_ENTRYPOINT = 'start_extension'
+DEFAULT_ENTRYPOINT = 'extension_entrypoint'
 PYTHON_PATH_OPTION = 'extra-path'
 
 

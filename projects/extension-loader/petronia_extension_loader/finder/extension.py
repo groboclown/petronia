@@ -5,7 +5,7 @@ Searches for an extension.
 from typing import Sequence, Iterable, List
 import os
 import re
-from petronia_common.util import StdRet, UserMessage, join_errors, load_yaml_documents
+from petronia_common.util import StdRet, UserMessage, join_errors, load_structured_file
 from petronia_common.util import i18n as _
 from petronia_common.extension.config import (
     load_extension,
@@ -22,7 +22,7 @@ EXTENSION_ZIP_NAME_RE = re.compile(
     r'^([a-z0-9]+[_-])*[a-z0-9]+-\d+\.\d+\.\d+.((zip)|(tar.bz2)|(tar.xz)|(tar.gz))$'
 )
 EXTENSION_DEF_NAME_RE = re.compile(
-    r'^([a-z0-9]+[_-])*[a-z0-9]+-extension.yaml$'
+    r'^([a-z0-9]+[_-])*[a-z0-9]+-extension.((yaml)|(json))$'
 )
 
 
@@ -81,24 +81,20 @@ def load_extension_from_yaml(
         filename: str,
 ) -> StdRet[ExtensionInfo]:
     """Load the extension information from a yaml file."""
-    try:
-        with open(filename, 'r') as f:
-            docs = load_yaml_documents(f.read())
-        if docs.has_error:
-            return docs.forward()
-        if len(docs.result) != 1:
+    docs_res = load_structured_file(filename)
+    if docs_res.has_error:
+        return docs_res.forward()
+    docs = docs_res.result
+    if not isinstance(docs, dict):
+        if len(docs) != 1:
             return StdRet.pass_errmsg(
                 TRANSLATION_CATALOG,
                 _('Extension file ({filename}) invalid; it must be a single yaml document'),
                 filename=filename,
             )
-        ext = load_extension(docs.result[0])
-        if ext.has_error:
-            return ext.forward()
-        return StdRet.pass_ok(ExtensionInfo(path, ext.result))
-    except OSError as err:
-        return StdRet.pass_exception(
-            _('Failed to read contents of {filename}'),
-            err,
-            filename=filename,
-        )
+        ext_res = load_extension(docs[0])
+    else:
+        ext_res = load_extension(docs)
+    if ext_res.has_error:
+        return ext_res.forward()
+    return StdRet.pass_ok(ExtensionInfo(path, ext_res.result))

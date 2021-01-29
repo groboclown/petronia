@@ -1,104 +1,81 @@
 """Send different kinds of events."""
 
-from typing import Iterable, Tuple, Mapping, Set, Optional
-import os
+from typing import Iterable, Tuple, Set, Optional
 import json
+from petronia_common.extension.config import ImplExtensionMetadata, StandAloneExtensionMetadata
+from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet
+from petronia_common.util import i18n as _
 from .privileges import add_event_send_access
-from ..context import EventHandlerContext
-from ..defs import ExtensionInfo
+from ..defs import ExtensionInfo, TRANSLATION_CATALOG
 from ..setup import get_extension_config
-from ..events.impl.extension_loader import (
-    SystemStartedEvent,
-    ActiveExtensionsState,
-    LoadExtensionRequestEvent,
-    LoadExtensionFailedEvent,
-    Extensions,
-    Error,
-    EXTENSION_NAME,
-)
-from ..events.impl.foreman import (
-    ExtensionAddEventListenerEvent,
-    ExtensionRemoveEventListenerEvent,
-    Events,
-    StartLauncherRequestEvent,
-    LauncherLoadExtensionRequestEvent,
-    Permissions,
-)
+from ..events.impl import extension_loader, foreman
 from ..events.ext.datastore import StoreDataEvent
 
 
-EXTENSION_LOADER_FOREMAN_SOURCE = EXTENSION_NAME + ':for-foreman'
-EXTENSION_LOADER_STATE_SOURCE = EXTENSION_NAME + ':state'
+EXTENSION_LOADER_FOREMAN_SOURCE = extension_loader.EXTENSION_NAME + ':for-foreman'
+EXTENSION_LOADER_STATE_SOURCE = extension_loader.EXTENSION_NAME + ':state'
 
 EventTargetHandle = Tuple[Optional[str], Optional[str]]
 
 
-def send_add_event_listener(
-        context: EventHandlerContext,
-        launcher_id: str,
-        extension_name: str,
+def send_add_event_listener_event(
+        context: EventRegistryContext,
+        extension_handler_id: str,
         events: Iterable[EventTargetHandle],
 ) -> StdRet[None]:
     """Request to add an event listener to foreman."""
-    return context.writer.write_object_event(
-        ExtensionAddEventListenerEvent.FULL_EVENT_NAME,
+    return context.send_event(
         EXTENSION_LOADER_FOREMAN_SOURCE,
-        launcher_id,
-        ExtensionAddEventListenerEvent(
-            extension_name,
+        extension_handler_id,
+        foreman.ExtensionAddEventListenerEvent(
             [
-                Events(event_id, target_id)
+                foreman.EventTarget(event_id, target_id)
                 for event_id, target_id in events
             ]
-        ).export_data(),
+        ),
     )
 
 
 def send_remove_event_listener(
-        context: EventHandlerContext,
-        launcher_id: str,
-        extension_name: str,
+        context: EventRegistryContext,
+        extension_handler_id: str,
         events: Iterable[EventTargetHandle],
 ) -> StdRet[None]:
     """Request to remove an event listener to foreman."""
-    return context.writer.write_object_event(
-        ExtensionRemoveEventListenerEvent.FULL_EVENT_NAME,
+    return context.send_event(
         EXTENSION_LOADER_FOREMAN_SOURCE,
-        launcher_id,
-        ExtensionRemoveEventListenerEvent(
-            extension_name,
+        extension_handler_id,
+        foreman.ExtensionRemoveEventListenerEvent(
             [
-                Events(event_id, target_id)
+                foreman.EventTarget(event_id, target_id)
                 for event_id, target_id in events
             ]
-        ).export_data(),
+        ),
     )
 
 
-def send_startup_complete(context: EventHandlerContext) -> StdRet[None]:
+def send_startup_complete(context: EventRegistryContext) -> StdRet[None]:
     """Send the Startup Complete event."""
-    return context.writer.write_object_event(
-        SystemStartedEvent.FULL_EVENT_NAME,
-        SystemStartedEvent.UNIQUE_TARGET_FQN,
-        SystemStartedEvent.UNIQUE_TARGET_FQN,
-        SystemStartedEvent().export_data(),
+    return context.send_event(
+        extension_loader.SystemStartedEvent.UNIQUE_TARGET_FQN,
+        extension_loader.SystemStartedEvent.UNIQUE_TARGET_FQN,
+        extension_loader.SystemStartedEvent(),
     )
 
 
 def send_loaded_extension_state(
-        context: EventHandlerContext,
+        context: EventRegistryContext,
         loaded: Iterable[ExtensionInfo],
 ) -> StdRet[None]:
     """Send the data store event for the loaded extensions."""
-    return context.writer.write_object_event(
-        StoreDataEvent.FULL_EVENT_NAME,
+    return context.send_event(
         EXTENSION_LOADER_STATE_SOURCE,
         StoreDataEvent.UNIQUE_TARGET_FQN,
         StoreDataEvent(
-            ActiveExtensionsState.UNIQUE_TARGET_FQN,
-            json.dumps(ActiveExtensionsState([
-                Extensions(
+            extension_loader.ActiveExtensionsState.UNIQUE_TARGET_FQN,
+            json.dumps(extension_loader.ActiveExtensionsState([
+                extension_loader.ExtensionInfo(
                     info.name,
                     list(info.version),
                     info.metadata.about,
@@ -108,68 +85,56 @@ def send_loaded_extension_state(
                 )
                 for info in loaded
             ]).export_data()),
-        ).export_data(),
-    )
-
-
-def send_start_launcher_request(
-        context: EventHandlerContext,
-        identifier: str,
-        launcher: str,
-        permissions: Mapping[str, Iterable[str]],
-) -> StdRet[None]:
-    """Send a request to start a launcher."""
-    return context.writer.write_object_event(
-        StartLauncherRequestEvent.FULL_EVENT_NAME,
-        EXTENSION_LOADER_FOREMAN_SOURCE,
-        StartLauncherRequestEvent.UNIQUE_TARGET_FQN,
-        StartLauncherRequestEvent(
-            identifier,
-            launcher,
-            [
-                Permissions(key, list(req))
-                for key, req in permissions.items()
-            ],
-        ).export_data(),
+        ),
     )
 
 
 def send_foreman_start_extension_request(
-        context: EventHandlerContext,
+        context: EventRegistryContext,
         extension_info: ExtensionInfo,
         loaded_extensions: Iterable[ExtensionInfo],
 ) -> StdRet[None]:
     """Send a request to foreman to start an extension within a started launcher."""
+    metadata = extension_info.metadata
+    if not isinstance(metadata, (StandAloneExtensionMetadata, ImplExtensionMetadata)):
+        return StdRet.pass_errmsg(
+            TRANSLATION_CATALOG,
+            _('cannot send start request for non-implementable extension {name}'),
+            name=extension_info.name,
+        )
     event_send_access: Set[str] = set()
     res = add_event_send_access(event_send_access, extension_info, True, set(), loaded_extensions)
     if res.has_error:
         return res
     config = get_extension_config(extension_info.name) or {}
-    return context.writer.write_object_event(
-        LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME,
+    return context.send_event(
         EXTENSION_LOADER_FOREMAN_SOURCE,
-        LauncherLoadExtensionRequestEvent.UNIQUE_TARGET_FQN,
-        LauncherLoadExtensionRequestEvent(
-            extension_info.name,
-            list(extension_info.version),
-            os.pathsep.join(extension_info.path),
-            list(event_send_access),
-            json.dumps(config),
-        ).export_data(),
+        foreman.LauncherStartExtensionRequestEvent.UNIQUE_TARGET_FQN,
+        foreman.LauncherStartExtensionRequestEvent(
+            name=extension_info.name,
+            version=list(extension_info.version),
+            location=list(extension_info.path),
+            runtime=metadata.runtime.launcher,
+            send_access=list(event_send_access),
+            configuration=json.dumps(config),
+            permissions=[
+                foreman.ExtensionPermission(action, list(resources))
+                for action, resources in metadata.runtime.requested_permissions.items()
+            ],
+        ),
     )
 
 
 def send_load_extension_failed(
-        context: EventHandlerContext,
+        context: EventRegistryContext,
         request_source_id: str,
         extension_name: str,
         # error: PetroniaReturnError,
-        error: Error,
+        error: extension_loader.Error,
 ) -> StdRet[None]:
     """Send a failure response that an extension failed to load."""
-    return context.writer.write_object_event(
-        LoadExtensionFailedEvent.FULL_EVENT_NAME,
+    return context.send_event(
+        extension_loader.LoadExtensionRequestEvent.UNIQUE_TARGET_FQN,
         request_source_id,
-        LoadExtensionRequestEvent.UNIQUE_TARGET_FQN,
-        LoadExtensionFailedEvent(extension_name, error).export_data(),
+        extension_loader.LoadExtensionFailedEvent(extension_name, error),
     )

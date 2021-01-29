@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-01-29T00:26:22.679423
+# Created on 2021-01-29T19:26:18.983279
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -10,21 +10,21 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 
 
 from typing import (
-    Any,
-    Optional,
     cast,
-    Union,
+    Any,
     SupportsInt,
-    SupportsFloat,
-    Dict,
+    Union,
     List,
+    Dict,
+    Optional,
+    SupportsFloat,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
+    StdRet,
     collect_errors_from,
 )
 
@@ -425,16 +425,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[int],
             List[datetime.datetime],
-            str,
-            bool,
-            datetime.datetime,
+            float,
             List[str],
-            int,
+            str,
+            datetime.datetime,
+            List[int],
+            bool,
             List[float],
             List[bool],
-            float,
+            int,
         ],
     ) -> None:
         self.__name = name
@@ -447,16 +447,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[int],
             List[datetime.datetime],
-            str,
-            bool,
-            datetime.datetime,
+            float,
             List[str],
-            int,
+            str,
+            datetime.datetime,
+            List[int],
+            bool,
             List[float],
             List[bool],
-            float,
+            int,
     ]:
         """The selector value."""
         return self.__value
@@ -1168,8 +1168,8 @@ class EventTarget:
 
     def __init__(
         self,
-        event_id: str,
-        target_id: str,
+        event_id: Optional[str],
+        target_id: Optional[str],
     ) -> None:
         self.event_id = event_id
         self.target_id = target_id
@@ -1188,15 +1188,8 @@ class EventTarget:
         errors: List[StdRet[None]] = []
         val: Any
         val = data.get('event_id')
-        f_event_id: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='event_id',
-                name='EventTarget',
-            )
-        else:
+        f_event_id: Optional[str] = None
+        if val is not None:
             if not isinstance(val, str):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
@@ -1207,15 +1200,8 @@ class EventTarget:
                 )
             f_event_id = val
         val = data.get('target_id')
-        f_target_id: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='target_id',
-                name='EventTarget',
-            )
-        else:
+        f_target_id: Optional[str] = None
+        if val is not None:
             if not isinstance(val, str):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
@@ -1228,8 +1214,8 @@ class EventTarget:
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(EventTarget(
-            event_id=not_none(f_event_id),
-            target_id=not_none(f_target_id),
+            event_id=f_event_id,
+            target_id=f_target_id,
         ))
 
     def __repr__(self) -> str:
