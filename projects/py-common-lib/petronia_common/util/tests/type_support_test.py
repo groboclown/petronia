@@ -35,3 +35,17 @@ class TypeSupportTest(unittest.TestCase):
             [1, "x", 3],
             type_support.without_none([1, "x", None, None, 3]),
         )
+
+    def test_not_none__none(self) -> None:
+        """Test not_none with a none value"""
+        try:
+            type_support.not_none(None)
+            self.fail('Did not raise assertion failure.')  # pragma no cover
+        except ValueError as err:
+            self.assertEqual('value assumed not None but is None', str(err))
+
+    def test_not_none__not_none(self) -> None:
+        """Test not_none with non-none values"""
+        self.assertEqual('s', type_support.not_none('s'))
+        self.assertEqual(0, type_support.not_none(0))
+        self.assertEqual(0.0, type_support.not_none(0.0))

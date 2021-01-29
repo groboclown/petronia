@@ -1,0 +1,7 @@
+[bandit]
+
+# B101:assert_used
+#   The py-common-lib includes assertions for mypy usage and internal logic that
+#   is enforced by unit tests.
+#
+skips: B101

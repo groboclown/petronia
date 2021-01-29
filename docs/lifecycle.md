@@ -1,12 +1,20 @@
-# About the Boot-Up Sequence
+# About the Petronia Life Cycle
 
-Petronia uses a combination of *configuration*, *launchers*, and *events* to start up the system in a well-defined and secure manner.
+Petronia uses a combination of *configuration*, *launchers*, and *events* to start up the system in a well-defined and secure manner.  After start-up, the system enters a steady state until a restart or stop event is received.
+
+## Foreman Startup
+
+## Boot-Time Extensions
+
+## Foreman Runtime
+
+## Extension Loader
 
 ## Initial Startup
 
 Starting up Petronia means launching the Foreman process.  Foreman has three responsibilities: loading the initial launchers as defined by the configuration, passing events between launchers, and stopping everything at shutdown.
 
-The Foreman configuration should be a system-defined configuration that is dependent only upon the user's platform, and shouldn't be user edited.  The configuration includes things like location of translation files, and the launchers that should start at boot time.
+The Foreman configuration should be a system-defined configuration that is dependent only upon the user's platform, and shouldn't be user edited.  The configuration includes things like location of translation files, the configuration for runtime categories used for running extensions, and the list of extensions that should start at boot time.
 
 The two main launchers that Petronia defines are the native and extension loader.  Foreman communicates to these through the event mechanism, just like all other launchers.
 
@@ -19,8 +27,8 @@ The extension loader will at startup begin the initial extensions.  When all of 
 The extension loader sends requests to foreman to run extensions.  The process for loading an extension works like:
 
 1. Extension loader wants to start extension XYZ.  The loader reads the meta-information about the extension, and determines the appropriate kind of launcher category to use for it.  This only matters for non-api extensions.  They declare a "runtime" section, which defines the launcher category and requested permissions.  The extension loader may decide, for security or other reasons, not to start the extension.
-1. The extension loader sends a `petronia.core.api.foreman:start-launcher:request` event to Foreman.  This includes the requested launcher category and permissions.
-1. Foreman receives this start-launcher request event, and maps the category name to a launcher implementation.  If the category is not registered, or the launcher refuses to use the permissions, then a `petronia.core.api.foreman:start-launcher:failed` response event is sent back to the extension loader.
+1. The extension loader sends a `petronia.core.api.foreman:start-extension:request` event to Foreman.  This includes the necessary extension metadata necessary to run the extension.
+1. Foreman receives this start-launcher request event.  This includes a "runtime" parameter, which Foreman maps to an internal runtime implementation based on a configuration.  If the runtime is not registered, or the implementation refuses to use the permissions, or encounters some other issue, then a `petronia.core.api.foreman:start-extension:failed` response event is sent back to the extension loader, which in turn sends back an event to the source that initiated the extension loading.
 1. The launcher category does its own thing for starting the "launcher", which is some processing unit that will load an extension.  That processing unit is assigned a unique "channel" for communication within the Foreman process.  This mechanism depends upon the launcher category implementation.  The communication with Foreman is done all in-process as part of the underlying Python code.
 1. Success or failure of the launcher category channel creation is reported back as either a `start-launcher:failed` or `start-launcher:success` event back to the extension loader.  If it succeeds, the extension loader keeps going.
 1. The extension loader sends a `petronia.core.api.foreman:launcher-load-extension:request` event to Foreman, using the same launcher ID that the success message included.  The extension loader has a window of time to send this after the `start-launcher:success` event is sent before the launcher is cleaned up due to inactivity.

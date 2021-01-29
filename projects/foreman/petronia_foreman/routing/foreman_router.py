@@ -1,30 +1,33 @@
 """The routing mechanism specific to foreman, with all the foreman logic."""
 
-from typing import Dict, List, Tuple, Iterable, Callable, Optional, Any
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
+from typing import Dict, List, Tuple, Iterable, Callable, Optional, Any
 from petronia_common.event_stream import (
-    EventForwarderTarget, BinaryWriter, RawEventObject, BinaryReader,
+    EventForwarderTarget, BinaryWriter, BinaryReader,
 )
-from petronia_common.util import StdRet, UserMessage, collect_errors_from, RET_OK_NONE, EMPTY_TUPLE
+from petronia_common.util import StdRet, UserMessage, collect_errors_from, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .event_handlers import ExtensionLoaderTarget, InternalTarget
-from .router_context import RouterContext
-from ..configuration import PlatformSettings, LauncherConfig
+from .router_loop import (
+    QueueRequest, ExtensionQueueRequest, RouterLoopLogic, QueuedContext,
+    BootExtensionQueueRequest,
+    SOFT_STOP_REQUEST, SOFT_STOP_LOOP_ACTION, HARD_STOP_LOOP_ACTION, RESTART_LOOP_ACTION,
+)
+from ..configuration import RuntimeConfig, BootExtensionMetadata
 from ..constants import EXTENSION_LOADER_CHANNEL, INTERNAL_CHANNEL_PATTERN, TRANSLATION_CATALOG
 from ..event_router import EventRouter
 from ..event_router.channel import InternalEventHandler
 from ..event_router.handler import EventTargetHandle
+from ..events import foreman
 from ..launcher import AbcLauncherCategory, RuntimeContext, create_launcher_category
 from ..user_message import display_error, display_message
-
+from ..user_message import low_println
 
 DEBUG = True
 
-_REQUEST_STOP = 'stop'
-_REQUEST_LAUNCH = 'launch:'
 _STATE_STOPPED = 0
 _STATE_BOOTING = 1
 _STATE_STARTING = 2
@@ -42,24 +45,22 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
     the main thread.
     """
     __slots__ = (
-        '__platform', '__category_states', '__executor', '__state', '__queue', '__lock',
+        '__category_states', '__executor', '__state', '__queue', '__lock',
         '__state_condition', '__thread', '__full_stop', 'stop_timeout',
     )
 
     def __init__(
             self,
-            platform: PlatformSettings,
-            categories: List[LauncherConfig],
+            categories: List[RuntimeConfig],
     ) -> None:
-        self.__platform = platform
         self.__category_states: Dict[str, LauncherCategoryState] = {
-            config.launcher_name: LauncherCategoryState(config)
+            config.runtime_name: LauncherCategoryState(config)
             for config in categories
         }
         self.__executor: Optional[ThreadPoolExecutor] = None
         self.__state = 0
         self.__lock = threading.RLock()
-        self.__queue = Queue()  # type: Queue[str]
+        self.__queue = Queue()  # type: Queue[QueueRequest]
         self.__state_condition = threading.Condition(self.__lock)
         self.__thread: Optional[threading.Thread] = None
         self.__full_stop = False
@@ -172,7 +173,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                     continue
                 if current_state == _STATE_RUNNING:
                     _debug('stop', 'running state, sending stop request and waiting')
-                    self.__queue.put(_REQUEST_STOP)
+                    self.__queue.put(SOFT_STOP_REQUEST)
                     res = self.__state_condition.wait_for(
                         lambda: self.__state != current_state,
                         timeout,
@@ -184,12 +185,19 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         _debug('stop', 'router thread is stopped')
         return True
 
-    def boot_launcher(self, launcher_config_name: str) -> None:
-        """Starts up a boot-time launcher.  The launcher config name will be used as the
-        channel name."""
+    def start_extension(
+            self, source_id: str, request: foreman.LauncherStartExtensionRequestEvent,
+    ) -> None:
+        """Starts up an extension after boot-time."""
         with self.__lock:
             assert self.__state == _STATE_RUNNING, 'router not running'
-            self.__queue.put(_REQUEST_LAUNCH + launcher_config_name)
+            self.__queue.put(ExtensionQueueRequest(source_id, request))
+
+    def start_boot_extension(self, request: BootExtensionMetadata) -> None:
+        """Starts up a boot-time extension."""
+        with self.__lock:
+            assert self.__state == _STATE_RUNNING, 'router not running'
+            self.__queue.put(BootExtensionQueueRequest(request))
 
     def _thread_runner(self) -> None:
         """A thread runnable method that monitors the queue for actions to perform on the
@@ -201,7 +209,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
 
         sem = threading.Semaphore()
         executor = ThreadPoolExecutor()
-        router, categories = self._create_router_launchers(sem, executor)
+        loop_handler = self._setup_loop_logic(sem, executor)
 
         with self.__lock:
             self.__state = _STATE_RUNNING
@@ -210,14 +218,11 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         while True:
             event = self.__queue.get(block=True)
             _debug('thread', "Foreman processing request `{event}`", event=event)
-            if event.startswith(_REQUEST_LAUNCH):
-                launcher_config_name = event[len(_REQUEST_LAUNCH):]
-                executor.submit(ForemanRouter._add_boot_launcher, launcher_config_name, categories)
-            elif event == _REQUEST_STOP:
-                # TODO there should be two requests:
-                #   a "nice" stop, which goes through the nice shutdown process for all the
-                #   extensions,
-                #   and a "hard" stop, which ignores extensions.
+            special = loop_handler.handle_request(event)
+            if special == RESTART_LOOP_ACTION:
+                # Perform the restart outside the loop, as it's a ... weird activity.
+                executor.submit(self._restart)
+            elif special in (HARD_STOP_LOOP_ACTION, SOFT_STOP_LOOP_ACTION):
                 # Changing the state requires acquiring the lock and sending a
                 # notification.
                 with self.__lock:
@@ -231,8 +236,9 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                     except Empty:
                         pass
 
-                ForemanRouter._stop_launchers(categories)
-                ForemanRouter._stop_channels(router)
+                # A "hard" stop ignores extensions.
+                ForemanRouter._stop_launchers(loop_handler.get_categories())
+                ForemanRouter._stop_channels(loop_handler.get_router())
 
                 with self.__lock:
                     self.__state = _STATE_STOPPED
@@ -241,36 +247,45 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                 return
 
     @staticmethod
-    def _add_boot_launcher(
-            launcher_category: str, categories: Dict[str, AbcLauncherCategory],
+    def _add_boot_extension(
+            router: EventRouter,
+            metadata: BootExtensionMetadata, categories: Dict[str, AbcLauncherCategory],
     ) -> None:
         """Add a new launcher to the router.
         This must be called from within the thread's event loop."""
-        category = categories.get(launcher_category)
+
+        start_event = metadata.to_start_event()
+        handle_id = ForemanRouter._add_extension(start_event, categories)
+        if handle_id:
+            for event_id, target_id in metadata.consumes:
+                router.add_handler_listener(handle_id, event_id, target_id)
+
+    @staticmethod
+    def _add_extension(
+            request: foreman.LauncherStartExtensionRequestEvent,
+            categories: Dict[str, AbcLauncherCategory],
+    ) -> Optional[str]:
+        category = categories.get(request.runtime)
         if category is None:
             display_message(UserMessage(
                 TRANSLATION_CATALOG,
                 _('Requested to boot launch a non-existent category ({category})'),
-                category=launcher_category,
+                category=request.runtime,
             ))
-            return
-        if category.config.boot_channel is None:
-            display_message(UserMessage(
-                TRANSLATION_CATALOG,
-                _('Requested to boot launch a non-bootable category ({category})'),
-                category=launcher_category,
-            ))
-            return
+            return None
 
-        res = category.start_launcher(category.config.boot_channel, {'boot': []})
+        handle_id = create_handler_id(request.runtime, request.name)
+        res = category.start_extension(handle_id, request)
         if res.has_error:
             display_error(res.valid_error)
+            return None
+        return handle_id
 
     @staticmethod
-    def _stop_launchers(categories: Dict[str, AbcLauncherCategory]) -> None:
+    def _stop_launchers(categories: Iterable[AbcLauncherCategory]) -> None:
         """Stop all running launchers.  Errors are displayed but not returned."""
         errors: List[StdRet[None]] = []
-        for launcher_category in categories.values():
+        for launcher_category in categories:
             errors.append(launcher_category.stop())
         err = collect_errors_from(errors)
         if err:
@@ -297,15 +312,15 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         """Internal stop callback."""
         self.stop()
 
-    def _create_router_launchers(
+    def _setup_loop_logic(
             self, sem: threading.Semaphore, executor: ThreadPoolExecutor,
-    ) -> Tuple[EventRouter, Dict[str, AbcLauncherCategory]]:
+    ) -> RouterLoopLogic:
         """Create the router specifically for foreman interaction.
         """
 
         router = EventRouter(sem, executor=executor)
 
-        launcher_context = LauncherRuntimeContext(self.__platform, router, executor)
+        launcher_context = LauncherRuntimeContext(router, executor)
 
         # Create launcher categories based on this router.
         # They all need to be initialized.  Which means they need to be created.
@@ -317,51 +332,13 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             else:
                 categories[state.name] = cat_res.result
 
-        def send_event_to_extension_loader(event: RawEventObject) -> None:
-            assert self.__executor is not None, 'loop stopped'
-            self.__executor.submit(
-                router.inject_event_to_channel,
-                EXTENSION_LOADER_CHANNEL, event,
-            )
-
-        def add_handler_listener(
-                handler_id: str, event_id: Optional[str], target_id: Optional[str],
-        ) -> None:
-            assert self.__executor is not None, 'loop stopped'
-            self.__executor.submit(router.add_handler_listener, handler_id, event_id, target_id)
-
-        def remove_handler_listener(
-                handler_id: str, event_id: Optional[str], target_id: Optional[str],
-        ) -> None:
-            assert self.__executor is not None, 'loop stopped'
-            self.__executor.submit(router.remove_handler_listener, handler_id, event_id, target_id)
-
-        def add_handler(
-                channel_name: str,
-                handler_id: str,
-                produces: Iterable[str],
-        ) -> StdRet[None]:
-            assert self.__executor is not None, 'loop stopped'
-            # Do this in-process, because the handler must be registered before
-            # the event stuff can start happening.
-            return router.add_handler(channel_name, handler_id, produces, EMPTY_TUPLE)
-
-        context = RouterContext(
-            categories=categories,
-            shutdown=self._stop,
-            restart=self._restart,
-            generate_event=send_event_to_extension_loader,
-            add_handler_listener=add_handler_listener,
-            remove_handler_listener=remove_handler_listener,
-            add_handler=add_handler,
-            executor=executor,
-        )
+        context = QueuedContext(self.__queue)
         router.add_reservation_callback(
             EXTENSION_LOADER_CHANNEL,
-            ExtensionLoaderCallback(ExtensionLoaderTarget(context, executor)),
+            ExtensionLoaderCallback(ExtensionLoaderTarget(context)),
         )
 
-        internal_target = InternalTarget(context, executor)
+        internal_target = InternalTarget(context)
 
         def internal_channel_callback(name: str) -> StdRet[Optional[EventForwarderTarget]]:
             if INTERNAL_CHANNEL_PATTERN.match(name):
@@ -373,7 +350,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             internal_channel_callback,
         )
 
-        return router, categories
+        return RouterLoopLogic(categories, router)
 
 
 class ExtensionLoaderCallback:
@@ -400,17 +377,13 @@ class ExtensionLoaderCallback:
 class LauncherRuntimeContext(RuntimeContext):
     """Launcher category context."""
 
-    __slots__ = ('_router', '_platform', '_executor')
+    __slots__ = ('_router', '_executor')
 
     def __init__(
-            self, platform: PlatformSettings, router: EventRouter, executor: ThreadPoolExecutor,
+            self, router: EventRouter, executor: ThreadPoolExecutor,
     ) -> None:
         self._router = router
-        self._platform = platform
         self._executor = executor
-
-    def get_platform(self) -> PlatformSettings:
-        return self._platform
 
     def register_channel(
             self, name: str,
@@ -441,13 +414,13 @@ class LauncherCategoryState:
     """Launcher category state."""
     __slots__ = ('config', 'category',)
 
-    def __init__(self, config: LauncherConfig) -> None:
+    def __init__(self, config: RuntimeConfig) -> None:
         self.config = config
 
     @property
     def name(self) -> str:
         """The launcher category name."""
-        return self.config.launcher_name
+        return self.config.runtime_name
 
     def create_category(
             self, context: LauncherRuntimeContext, executor: ThreadPoolExecutor,
@@ -464,7 +437,7 @@ class LauncherCategoryState:
 
 def _debug(action: str, msg: str, **kwargs: Any) -> None:
     if DEBUG:
-        print('[DEBUG ForemanRouter(' + action + ')] ' + (msg.format(**kwargs)))
+        low_println('[DEBUG ForemanRouter(' + action + ')] ' + (msg.format(**kwargs)))
 
 
 NEXT_THREAD_ID = [0]
@@ -473,3 +446,8 @@ NEXT_THREAD_ID = [0]
 def _next_thread_id() -> str:
     NEXT_THREAD_ID[0] += 1
     return 'foreman-router-' + str(NEXT_THREAD_ID[0])
+
+
+def create_handler_id(category_name: str, extension_name: str) -> str:
+    """Create a unique handler ID for the extension."""
+    return category_name + ':' + extension_name

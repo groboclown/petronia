@@ -31,16 +31,14 @@ events:
         description: >
           The target ID that will be used when sending out the data information, and also
           a unique identifier for updates to this data.
-        type: string
-        min-value: 3
-        max-value: 300
+        type: reference
+        ref: event-target-id
       json:
         description: >
           JSON-formatted data to store with the data.  The extension will only allow properly
           formatted JSON data to be stored.
-        type: string
-        min-length: 0
-        max-length: 65535
+        type: reference
+        ref: embedded-json-data
 
   "delete-data":
     description: >
@@ -55,9 +53,8 @@ events:
         description: >
           The target ID that will be used when sending out the data information, and also
           a unique identifier for updates to this data.
-        type: string
-        min-value: 3
-        max-value: 300
+        type: reference
+        ref: event-target-id
 
   "send-state":
     description: >
@@ -73,9 +70,8 @@ events:
       destination:
         description: >
           The destination ID for the requested data.
-        type: string
-        min-value: 3
-        max-value: 300
+        type: reference
+        ref: event-target-id
 
   "data-update":
     description: >
@@ -92,9 +88,8 @@ events:
         description: >
           JSON-formatted data stored with this.  The extension will only allow properly
           formatted JSON data to be stored.
-        type: string
-        min-length: 0
-        max-length: 65535
+        type: reference
+        ref: embedded-json-data
 
   "data-removed":
     description: >
@@ -103,3 +98,19 @@ events:
     send-access: implementations
     receive-access: public
     fields: {}
+
+
+references:
+  # ------------------------------
+  # Standard Types ...
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+
+  embedded-json-data:
+    description: Arbitrary JSON data embedded inside the event structure.
+    type: string
+    min-length: 2
+    max-length: 60000

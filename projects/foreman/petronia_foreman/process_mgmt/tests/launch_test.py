@@ -4,26 +4,30 @@
 import unittest
 import os
 import sys
+import tempfile
+import shutil
 from petronia_common.extension.config.extension_schema import ExtensionRuntime
 from .. import launch
-from ...configuration import detect_platform
+from ...configuration import platform
 
 
 class LaunchTest(unittest.TestCase):
     """Test the launch functions."""
 
     def setUp(self) -> None:
-        self.platform = detect_platform(None)
+        self.assertIsNone(platform.initial_setup(None).error)
+        self.temp_dir = tempfile.mkdtemp()
         self.runner_cmd = (
             sys.executable,
             os.path.abspath(os.path.join(os.path.dirname(__file__), 'runner.py')),
             '${WRITE_FD}', '4',
         )
 
+    def tearDown(self) -> None:
+        shutil.rmtree(self.temp_dir)
+
     def test_runner(self) -> None:
         """Run the runner module..."""
-        self.assertTrue(self.platform.ok)
-
         ret_code = [-1]
 
         def on_exit(code: int) -> None:
@@ -31,8 +35,8 @@ class LaunchTest(unittest.TestCase):
             ret_code[0] = code
 
         ret_process = launch.run_launcher(
-            'r1', ExtensionRuntime('runner', {}),
-            self.runner_cmd, dict(os.environ), self.platform.result,
+            'r1', {}, self.temp_dir, ExtensionRuntime('runner', {}),
+            self.runner_cmd, dict(os.environ),
         )
 
         self.assertIsNone(ret_process.error)

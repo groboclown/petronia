@@ -1,27 +1,28 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-01-15T16:34:25.444676
+# Created on 2021-01-29T00:26:24.684064
 
 """
 Data structures and marshalling for extension petronia.core.api.datastore version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements
+# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements
 
 
 from typing import (
-    Optional,
-    List,
     Dict,
+    List,
+    cast,
+    Optional,
     Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    T,
-    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    StdRet,
+    not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.datastore'
@@ -67,51 +68,49 @@ class StoreDataEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_destination: Optional[str] = None
         val = data.get('destination')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_destination: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='destination',
                 name='StoreDataEvent',
-            ))
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='destination',
                     type='str',
                     name='StoreDataEvent',
-                ))
-            else:
-                f_destination = val
-        f_json: Optional[str] = None
+                )
+            f_destination = val
         val = data.get('json')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_json: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='json',
                 name='StoreDataEvent',
-            ))
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='json',
                     type='str',
                     name='StoreDataEvent',
-                ))
-            else:
-                f_json = val
+                )
+            f_json = val
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(StoreDataEvent(
-            destination=_not_none(f_destination),
-            json=_not_none(f_json),
+            destination=not_none(f_destination),
+            json=not_none(f_json),
         ))
 
     def __repr__(self) -> str:
@@ -153,30 +152,29 @@ class DeleteDataEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_destination: Optional[str] = None
         val = data.get('destination')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_destination: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='destination',
                 name='DeleteDataEvent',
-            ))
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='destination',
                     type='str',
                     name='DeleteDataEvent',
-                ))
-            else:
-                f_destination = val
+                )
+            f_destination = val
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(DeleteDataEvent(
-            destination=_not_none(f_destination),
+            destination=not_none(f_destination),
         ))
 
     def __repr__(self) -> str:
@@ -220,30 +218,29 @@ class SendStateEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_destination: Optional[str] = None
         val = data.get('destination')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_destination: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='destination',
                 name='SendStateEvent',
-            ))
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='destination',
                     type='str',
                     name='SendStateEvent',
-                ))
-            else:
-                f_destination = val
+                )
+            f_destination = val
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(SendStateEvent(
-            destination=_not_none(f_destination),
+            destination=not_none(f_destination),
         ))
 
     def __repr__(self) -> str:
@@ -275,7 +272,7 @@ class DataUpdateEvent:
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'changed': self.changed.strftime('YYYYMMDD:hhmmss.sss:Z'),
+            'changed': self.changed.strftime('%Y%m%d:%H%M%S.%f:%z'),
             'json': self.json,
         }
         return _strip_none(ret)
@@ -285,57 +282,55 @@ class DataUpdateEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_changed: Optional[datetime.datetime] = None
         val = data.get('changed')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_changed: datetime.datetime
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='changed',
                 name='DataUpdateEvent',
-            ))
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type datetime for structure {name}'),
                     field_name='changed',
                     name='DataUpdateEvent',
-                ))
-            else:
-                try:
-                    f_changed = datetime.datetime.strptime(val, 'YYYYMMDD:hhmmss.sss:Z')
-                except ValueError:
-                    errors.append(StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _('Invalid date-time format: {value}'),
-                        value=val,
-                    ))
-        f_json: Optional[str] = None
+                )
+            try:
+                f_changed = datetime.datetime.strptime(val, '%Y%m%d:%H%M%S.%f:%z')
+            except ValueError:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Invalid date-time format: {value}'),
+                    value=val,
+                )
         val = data.get('json')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_json: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='json',
                 name='DataUpdateEvent',
-            ))
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='json',
                     type='str',
                     name='DataUpdateEvent',
-                ))
-            else:
-                f_json = val
+                )
+            f_json = val
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(DataUpdateEvent(
-            changed=_not_none(f_changed),
-            json=_not_none(f_json),
+            changed=not_none(f_changed),
+            json=not_none(f_json),
         ))
 
     def __repr__(self) -> str:
@@ -373,11 +368,6 @@ class DataRemovedEvent:
 
     def __repr__(self) -> str:
         return "DataRemovedEvent(" + repr(self.export_data()) + ")"
-
-
-def _not_none(value: Optional[T]) -> T:
-    assert value is not None
-    return value
 
 
 def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:

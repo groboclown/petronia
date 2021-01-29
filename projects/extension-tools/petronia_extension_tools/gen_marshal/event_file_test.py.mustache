@@ -27,12 +27,14 @@ class {{structure_class_name}}Test(unittest.TestCase):
             with self.subTest(name=test_name):
                 res = {{module_name}}.{{structure_class_name}}.parse_data(test_data)
                 self.assertIsNone(res.value)
-                expected = [
+                expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
-                ]
+                }
                 actual = list(res.valid_error.messages())
-                self.assertEqual(expected, actual)
+                # The parsing returns at least one of the problems, but not necessarily all.
+                self.assertTrue(len(actual) >= 1, repr(expected))
+                self.assertTrue(expected.issuperset(actual), repr(expected))
 
     {{/has_fields}}
     def test_parse_good_exported_data(self) -> None:

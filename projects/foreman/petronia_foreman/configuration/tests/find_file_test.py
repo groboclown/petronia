@@ -4,28 +4,27 @@ import unittest
 import os
 import tempfile
 import shutil
-from .. import find_file
-from ..platform import detect_platform
+from .. import find_file, platform
 
 
 class FindFileTest(unittest.TestCase):
     """Test the find file functions."""
 
     def setUp(self) -> None:
-        res_platform = detect_platform(None)
-        self.assertIsNone(res_platform.error)
-        self.platform = res_platform.result
         self.tempdir = tempfile.mkdtemp()
+        self._orig_config_path = list(platform.configuration_paths)
+        platform.configuration_paths = [self.tempdir]
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tempdir)
+        platform.configuration_paths = self._orig_config_path
 
     def test__get_config_file__with_file_arg(self) -> None:
         """Test get_config_file with a config argument."""
         f_name = os.path.join(self.tempdir, 'test.txt')
         with open(f_name, 'w') as f:
             f.write('[foo]')
-        res = find_file.get_config_file(f_name, self.platform)
+        res = find_file.get_config_file(f_name)
         self.assertTrue(res.ok)
         self.assertEqual(f_name, res.result)
 
@@ -33,7 +32,7 @@ class FindFileTest(unittest.TestCase):
         """Test get_config_file when the argument is a directory."""
         for expected_name in find_file.DEFAULT_PETRONIA_CONFIG_FILE_NAMES:
             self.assertFalse(os.path.isfile(os.path.join(self.tempdir, expected_name)))
-        res = find_file.get_config_file(self.tempdir, self.platform)
+        res = find_file.get_config_file(self.tempdir)
         self.assertTrue(res.has_error)
 
     def test__get_config_file__with_dir_arg__exist(self) -> None:
@@ -44,7 +43,7 @@ class FindFileTest(unittest.TestCase):
         with open(f_name, 'w') as f:
             f.write('[foo]')
 
-        res = find_file.get_config_file(self.tempdir, self.platform)
+        res = find_file.get_config_file(self.tempdir)
         self.assertTrue(res.ok)
         self.assertEqual(f_name, res.result)
 
@@ -55,9 +54,9 @@ class FindFileTest(unittest.TestCase):
         f_name = os.path.join(self.tempdir, find_file.DEFAULT_PETRONIA_CONFIG_FILE_NAMES[0])
         with open(f_name, 'w') as f:
             f.write('[foo]')
-        self.platform.config_paths = (self.tempdir,)
-        res = find_file.get_config_file(None, self.platform)
-        self.assertTrue(res.ok)
+        platform.configuration_paths = [self.tempdir]
+        res = find_file.get_config_file(None)
+        self.assertIsNone(res.error)
         self.assertEqual(f_name, res.result)
 
     def test__discover_config_file_in__no_paths(self) -> None:

@@ -24,83 +24,7 @@ default:
 events:
 
   # -------------------------------------------------------------------------
-  "start-launcher:request":
-    description: >
-      Request that the foreman process start a new launcher.  Responses are sent
-      with a target ID matching this request's source ID.
-    priority: io
-    # Can only be sent by the extension loader.
-    send-access: internal
-    receive-access: implementations
-    unique-target: launcher
-    fields:
-      identifier:
-        description: used to uniquely identify this spawned launcher.
-        type: string
-        min-length: 3
-        max-length: 200
-      launcher:
-        description: The launcher category to start.
-        type: string
-        min-length: 1
-        max-length: 200
-      permissions:
-        description: The action permissions required for the launcher to be able to perform.
-        type: array
-        value-type:
-          type: structure
-          fields:
-            action:
-              description: Requested permission action to gain access to.
-              type: string
-              min-length: 1
-              max-length: 200
-            resources:
-              description: List of resources to access.
-              type: array
-              value-type:
-                type: string
-                min-length: 1
-                max-length: 1000
-  "start-launcher:success":
-    description: >
-      Report that a new launcher now exists and is ready to accept extensions.
-    priority: high
-    send-access: implementations
-    receive-access: public
-    fields:
-      identifier:
-        description: used to uniquely identify this spawned launcher.
-        type: string
-        min-length: 3
-        max-length: 200
-      target_id:
-        description: >
-          The fully qualified target ID of the spawned launcher.
-          This should be the target-id for events directed to the spawned launcher.
-        type: string
-        min-length: 5
-        max-length: 300
-
-  "start-launcher:failed":
-    description: >
-      Report that the requested launcher could not be started.
-    priority: normal
-    send-access: implementations
-    receive-access: public
-    fields:
-      identifier:
-        description: The requested launcher to start which failed.
-        type: string
-        min-length: 3
-        max-length: 200
-      error:
-        type: reference
-        ref: error
-
-
-  # -------------------------------------------------------------------------
-  "launcher-load-extension:request":
+  "launcher-start-extension:request":
     description: >
       Requests a launcher to load an extension.  This event's target id is the launcher
       target-id returned by a "start-launcher:success" event,
@@ -111,52 +35,66 @@ events:
     unique-target: launcher
     fields:
       name:
-        description: The extension name to load.
-        type: string
-        min-length: 3
-        max-length: 300
-      version:
-        description: The extension version to load.
         type: reference
-        ref: version
+        ref: extension-name
+      version:
+        type: reference
+        ref: extension-version
       location:
-        description: Where the launcher can find the extension.
+        description: >
+          Where the launcher can find the extension.  Each value is always a local filesystem
+          location. In the case of remotely running extensions, the it is up to the runner to
+          make the extension location available to the remote system.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 1
+          max-length: 5000
+      runtime:
+        description: >
+          The runtime setup used to execute the extension.
         type: string
+        min-length: 1
+        max-length: 100
       send_access:
         description: List of event IDs this extension can send.
         type: array
         min-length: 0
         max-length: 9000
         value-type:
-          description: Event ID that the extension can send.
-          type: string
-          min-length: 3
-          max-length: 600
+          type: reference
+          ref: event-id
       configuration:
         description: >
           User configuration for the extension.  This is a JSON data object stored in a
           string value.
         optional: true
-        type: string
-        min-length: 0
-        max-length: 65535
+        type: reference
+        ref: embedded-json-data
+      permissions:
+        description: The action permissions required for the launcher to be able to perform.
+        type: array
+        value-type:
+          type: reference
+          ref: extension-permission
 
-  "launcher-load-extension:success":
+  "launcher-start-extension:success":
     description: >
       Signals a successful request to load the extension.  Further events
       in the extension's lifecycle will be generated by the extension itself.
-      The source-id is the launcher that loaded the extension.
+      The source-id is the target that should be directed to for adding or
+      removing listeners.
     priority: normal
     send-access: implementations
     receive-access: target
     fields:
       name:
-        description: The loaded extension name.
-        type: string
-        min-length: 3
-        max-length: 300
+        type: reference
+        ref: extension-name
 
-  "launcher-load-extension:failed":
+  "launcher-start-extension:failed":
     description: >
       Report that the requested extension could not be loaded by the loader.
       The source-id is the launcher that loaded the extension.
@@ -165,10 +103,8 @@ events:
     receive-access: target
     fields:
       name:
-        description: The loaded extension name.
-        type: string
-        min-length: 3
-        max-length: 300
+        type: reference
+        ref: extension-name
       error:
         type: reference
         ref: error
@@ -177,44 +113,34 @@ events:
     description: >
       Request from the extension loader to add an event listener for an extension.
       Failures happen silently (no response back is made).  The target_id must match
-      with the ID for the launcher that owns the extension.
+      the source ID of the event that reported extension start success.
     priority: normal
     send-access: internal
     receive-access: implementations
     fields:
-      extension_name:
-        description: The extension name.
-        type: string
-        min-length: 3
-        max-length: 300
       events:
         type: reference
-        ref: event_list
+        ref: event-list
 
   extension-remove-event-listener:
     description: >
       Request from the extension loader to remove an event listener for an extension.
       Failures happen silently (no response back is made).  The target_id must match
-      with the ID for the launcher that owns the extension.
+      the source ID of the event that reported extension start success.
     priority: normal
     send-access: internal
     receive-access: implementations
     fields:
-      extension_name:
-        description: The extension name.
-        type: string
-        min-length: 3
-        max-length: 300
       events:
         type: reference
-        ref: event_list
+        ref: event-list
 
   # -------------------------------------------------------------------------
   restart:
     description: >
       Force the Petronia extensions to restart themselves.  This can only be sent through
       "internal" extensions because normal operation requires shutdown phases.
-    priority: normal
+    priority: io
     send-access: internal
     receive-access: implementations
     unique-target: restart
@@ -231,61 +157,220 @@ events:
 
 
 references:
-  error:
+  # ---------------------------------------------
+  # Standard data types...
+  response_identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+  localizable-message:
+    description: A localizable message for user display.
     type: structure
-    description: A failure
     fields:
-      identifier:
+      catalog:
+        description: >
+          The name of the translation file, or "domain", that contains
+          the translations.
         type: string
         min-length: 2
-        max-length: 255
-        description: The identifier that uniquely defines this error.
-      source:
-        type: string
-        optional: true
-        description: The source of the error, if known.
+        max-length: 300
       message:
+        description: >
+          The message ID to look up in the catalog.  If the message
+          has no translation, this is directly displayed to the user.
         type: string
-        description: A localizable message.
+        min-length: 1
+        max-length: 10000
       arguments:
+        description: >
+          List of arguments to be inserted into the translated message.
+          Each argument should have a distinct name from all the other
+          arguments in this message; the name is how the message references
+          the arguments.
         type: array
-        description: arguments for the message.
+        min-length: 0
+        max-length: 100
+        optional: true
         value-type:
-          type: selector
-          type-mapping:
-            string:
-              type: string
-            int:
-              type: int
-            float:
-              type: float
-  version:
+          type: reference
+          ref: message-argument
+  message-argument:
+    description: An argument to be inserted into the localizable message.
+    type: structure
+    fields:
+      name:
+        description: Name of the arugment, referenced by the message.
+        type: string
+        min-length: 1
+        max-length: 50
+      value:
+        description: Value of the argument.  It must be a simple type.
+        type: reference
+        ref: message-argument-value
+  message-argument-value:
+    description: A replacement value for a named argument in the message.
+    type: selector
+    type-mapping:
+      string:
+        type: string
+        min-length: 0
+        max-length: 10000
+      int:
+        type: int
+      float:
+        type: float
+      bool:
+        type: bool
+      datetime:
+        type: datetime
+      string_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 0
+          max-length: 10000
+      int_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: int
+      float_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: float
+      bool_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: bool
+      datetime_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: datetime
+  error:
+    type: structure
+    description: A description of a failure.
+    fields:
+      identifier:
+        description: >
+          The identifier that uniquely defines this error.  Useful for
+          automation that needs to perform operations based on specific
+          error messages.
+        type: string
+        min-length: 5
+        max-length: 600
+      categories:
+        description: >
+          A collection of general categories that define the error.
+          Useful for automation that can act differently depending on
+          the contents.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          description: General error category.
+          type: enum
+          values:
+            - file
+            - os
+            - configuration
+            - network
+            - access-restriction
+            - invalid-user-action
+            - internal
+      source:
+        description: The source of the error, if known.
+        type: string
+        min-length: 2
+        max-length: 300
+        optional: true
+      corrective_action:
+        description: >
+          If given, informs the user approaches for fixing the issue.
+        type: reference
+        optional: true
+        ref: localizable-message
+      error_message:
+        description: The localizable error message.
+        type: reference
+        ref: localizable-message
+  extension-name:
+    description: Standard name requirements for an extension.
+    type: string
+    min-length: 3
+    max-length: 200
+  extension-version:
+    description: Version number for an extension.  It must be a three part number.
     type: array
     min-length: 3
     max-length: 3
     value-type:
       type: int
+      min-value: 0
+      max-value: 999999
+  event-id:
+    description: ID of an event.
+    type: string
+    min-length: 5
+    max-length: 600
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+  embedded-json-data:
+    description: Arbitrary JSON data embedded inside the event structure.
+    type: string
+    min-length: 2
+    max-length: 60000
 
-  event_list:
+  # ---------------------------------------------
+  # Local data types...
+  event-list:
     description: list of events to stop listening to.
     type: array
+    min-length: 0
+    max-length: 1000
     value-type:
       type: reference
-      ref: event_target
+      ref: event-target
 
-  event_target:
+  event-target:
     description: A target event for an extension listening.
     type: structure
     fields:
       event_id:
-        description: ID of the event to listen to.  Very few extensions are allowed to listen to all events.
-        type: string
-        min-length: 3
-        max-length: 600
-        optional: true
+        type: reference
+        ref: event-id
       target_id:
-        description: ID of the event's target to listen to.  If the target is not given, then any target for the event is listened to.
+        type: reference
+        ref: event-target-id
+
+  extension-permission:
+    description: An action and collection of resources that can perform the action.
+    type: structure
+    fields:
+      action:
+        description: Requested permission action to gain access to.
         type: string
-        min-length: 5
-        max-length: 300
-        optional: true
+        min-length: 1
+        max-length: 200
+      resources:
+        description: List of resources to access.
+        type: array
+        value-type:
+          type: string
+          min-length: 1
+          max-length: 1000

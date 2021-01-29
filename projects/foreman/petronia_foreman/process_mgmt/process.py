@@ -9,7 +9,7 @@ from petronia_common.event_stream import BinaryReader
 
 class ManagedProcess:
     """The process handler."""
-    __slots__ = ('__ident', '__reader', '__tmp_resources')
+    __slots__ = ('__ident', '__reader', 'tmp_resources')
 
     def __init__(
             self,
@@ -19,7 +19,7 @@ class ManagedProcess:
     ) -> None:
         self.__ident = ident
         self.__reader = reader
-        self.__tmp_resources = list(temp_files)
+        self.tmp_resources = list(temp_files)
 
     @property
     def ident(self) -> str:
@@ -54,7 +54,7 @@ class ManagedProcess:
         raise NotImplementedError()
 
     def _close(self) -> None:
-        for temp_dir in self.__tmp_resources:
+        for temp_dir in self.tmp_resources:
             if os.path.isdir(temp_dir):
                 shutil.rmtree(temp_dir)
-            self.__tmp_resources.clear()
+            self.tmp_resources.clear()

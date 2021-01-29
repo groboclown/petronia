@@ -7,6 +7,7 @@ Simple data structures means list, dict, int, float, bool, str, None
 
 from typing import List, Dict, Optional, Any, cast
 import collections
+import collections.abc
 from . import event_schema, extension_schema
 from .event_loader import load_full_event_schema, load_dict_str_value
 from .version import ExtensionVersion
@@ -19,6 +20,8 @@ def load_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.AbcExtensionM
     """Returns the extension defined in the dictionary.  If the data does not have the
     basic information or does not conform to the standard, then an error is returned."""
     extension_type = raw.get('type')
+    if extension_type == 'protocol':
+        return validate_extension(load_protocol_extension(raw))
     if extension_type == 'api':
         return validate_extension(load_api_extension(raw))
     if extension_type == 'impl':
@@ -41,6 +44,35 @@ def validate_extension(
     if validation:
         return StdRet.pass_error(validation)
     return value
+
+
+def load_protocol_extension(
+        raw: Dict[str, Any],
+) -> StdRet[extension_schema.ProtocolExtensionMetadata]:
+    """Load a Protocol extension"""
+    ret_name = load_dict_str_value('name', raw)
+    ret_version = load_extension_version_value(raw.get('version'))
+    ret_about = load_dict_str_value('about', raw)
+    ret_description = load_dict_str_value('description', raw)
+    ret_licenses = load_extension_list_value('licenses', raw)
+    ret_authors = load_extension_list_value('authors', raw)
+    ret_events = load_events(raw)
+    error = collect_errors_from(
+        ret_name, ret_version, ret_about, ret_description,
+        ret_licenses, ret_authors,
+        ret_events,
+    )
+    if error:
+        return StdRet.pass_error(error)
+    return StdRet.pass_ok(extension_schema.ProtocolExtensionMetadata(
+        name=ret_name.result,
+        version=ret_version.result,
+        about=ret_about.result,
+        description=ret_description.result,
+        licenses=ret_licenses.result,
+        authors=ret_authors.result,
+        events=ret_events.result,
+    ))
 
 
 def load_api_extension(raw: Dict[str, Any]) -> StdRet[extension_schema.ApiExtensionMetadata]:

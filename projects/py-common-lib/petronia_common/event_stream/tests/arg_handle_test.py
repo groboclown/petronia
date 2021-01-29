@@ -15,6 +15,12 @@ class ArgHandleTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tempdir = tempfile.mkdtemp()
         self.valid_write_fd = 2  # sys.stderr.fileno()
+
+        # OS specific stuff.
+        if hasattr(os, 'O_BINARY'):
+            self.o_binary = int(getattr(os, 'O_BINARY'))  # pragma no cover
+        else:
+            self.o_binary = 0  # pragma no cover
         if platform.system() == 'Windows':
             import _winapi  # pylint: disable=C0415,E0401  # pragma no cover
             read_handle, write_handle = _winapi.CreatePipe(None, 0)  # pragma no cover
@@ -48,7 +54,7 @@ class ArgHandleTest(unittest.TestCase):
         """Test creating a writer from an fd.  Ensures calling close multiple
         times works."""
         test_file = os.path.join(self.tempdir, 'write-file.txt')
-        file_descriptor = os.open(test_file, os.O_CREAT | os.O_WRONLY | os.O_BINARY)
+        file_descriptor = os.open(test_file, os.O_CREAT | os.O_WRONLY | self.o_binary)
         try:
             writer = arg_handle.get_fd_writer(file_descriptor)
             writer.write(b'test writing some data')
@@ -66,7 +72,7 @@ class ArgHandleTest(unittest.TestCase):
     def test_get_fd_writer__no_close(self) -> None:
         """Test creating a writer from an fd, without calling close on it."""
         test_file = os.path.join(self.tempdir, 'write-file.txt')
-        file_descriptor = os.open(test_file, os.O_CREAT | os.O_WRONLY | os.O_BINARY)
+        file_descriptor = os.open(test_file, os.O_CREAT | os.O_WRONLY | self.o_binary)
         try:
             writer = arg_handle.get_fd_writer(file_descriptor)
             writer.write(b'test writing some more data')
@@ -83,7 +89,7 @@ class ArgHandleTest(unittest.TestCase):
         with open(test_file, 'wb') as fhl:
             fhl.write(b'data to read')
 
-        file_descriptor = os.open(test_file, os.O_RDONLY | os.O_BINARY)
+        file_descriptor = os.open(test_file, os.O_RDONLY | self.o_binary)
         try:
             reader = arg_handle.get_fd_reader(file_descriptor)
             data = reader.read()

@@ -1,7 +1,8 @@
 """
 Finds options specific to the in-memory launcher.
 """
-from typing import List, Sequence, Callable
+
+from typing import List, Sequence, Dict, Callable, Any
 import os
 import sys
 import types
@@ -11,20 +12,25 @@ from petronia_common.util import i18n as _
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from .importer import load_module_from_path
 from ...constants import TRANSLATION_CATALOG
-from ...configuration import LauncherConfig
+from ...configuration import RuntimeConfig
 
-MODULE_NAME_OPTION = 'module'
 ENTRYPOINT_OPTION = 'entrypoint'
+DEFAULT_ENTRYPOINT = 'start_extension'
 PYTHON_PATH_OPTION = 'extra-path'
 
 
-def import_module(options: LauncherConfig) -> StdRet[types.ModuleType]:
+def import_module(
+        extension_name: str,
+        extension_version: Sequence[int],
+        locations: Sequence[str],
+        options: RuntimeConfig,
+) -> StdRet[types.ModuleType]:
     """Load the module defined in the options."""
-    res_module_name = get_module_name(options)
+    res_module_name = get_module_name(extension_name, extension_version, options)
     if res_module_name.has_error:
         return res_module_name.forward()
 
-    path = get_python_path(options)
+    path = get_python_path(locations, options)
     return load_module_from_path(res_module_name.result, path)
 
 
@@ -35,8 +41,9 @@ def connect_launcher(  # pylint:disable=too-many-arguments
         arguments: Sequence[str],
         reader: BinaryReader,
         writer: BinaryWriter,
+        config: Dict[str, Any],
 ) -> StdRet[threading.Thread]:
-    """Call the module's entrypoint function with the arguments, reader, and writer.
+    """Call the module's entrypoint function with the reader, writer, config, and arguments.
     This is done in another thread."""
     if not hasattr(module, entrypoint_name):
         return StdRet.pass_errmsg(
@@ -56,7 +63,7 @@ def connect_launcher(  # pylint:disable=too-many-arguments
 
     def runner() -> None:
         try:
-            entrypoint(arguments, reader, writer)
+            entrypoint(reader, writer, config, arguments)
         except BaseException as err:  # pylint:disable=broad-except
             error_callback(module.__name__, entrypoint_name, err)
         else:
@@ -67,21 +74,28 @@ def connect_launcher(  # pylint:disable=too-many-arguments
     return StdRet.pass_ok(ret)
 
 
-def get_module_name(options: LauncherConfig) -> StdRet[str]:
-    """Get the Python module name."""
-    return options.get_option(MODULE_NAME_OPTION)
+def get_module_name(
+        extension_name: str,
+        _extension_version: Sequence[int],
+        _options: RuntimeConfig,
+) -> StdRet[str]:
+    """Get the Python module name.  See the __init__ file for the standard."""
+    return StdRet.pass_ok(extension_name)
 
 
-def get_entrypoint_name(options: LauncherConfig) -> StdRet[str]:
+def get_entrypoint_name(options: RuntimeConfig) -> str:
     """Get the entrypoint function name within the module.
     The entrypoint function must take a BinaryReader, BinaryWriter
     as arguments, and return None."""
-    return options.get_option(ENTRYPOINT_OPTION)
+    return options.options.get(ENTRYPOINT_OPTION, DEFAULT_ENTRYPOINT)
 
 
-def get_python_path(options: LauncherConfig) -> List[str]:
+def get_python_path(locations: Sequence[str], options: RuntimeConfig) -> List[str]:
     """Get the path for the module's required libraries."""
     current_path = list(sys.path)
+    for location in locations:
+        if location not in current_path:
+            current_path.append(location)
     res_extra_path = options.get_option(PYTHON_PATH_OPTION)
     if res_extra_path.ok:
         for path in res_extra_path.result.split(os.pathsep):

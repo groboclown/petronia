@@ -5,7 +5,7 @@ A streaming reader that forks the read to many streams.
 This is very similar behavior to the tio version, but due to the nature of
 asyncio, it has nuances that must be distinct.
 """
-
+from abc import ABC
 from typing import List, Callable, Protocol, Dict, Optional, Any
 
 from .reader import BinaryReader, read_event_stream
@@ -55,6 +55,30 @@ class EventForwarderTarget:
         """Called if the `can_consume` method returns True.
         If this returns True, then the target will be de-registered."""
         raise NotImplementedError()  # pragma no cover
+
+
+class BaseEventForwarderTarget(EventForwarderTarget, ABC):
+    """Base implementation of EventForwarderTarget that has simple, no-op versions of the
+    forwarder target methods with most common return values."""
+
+    def on_error(self, error: PetroniaReturnError) -> bool:
+        return False
+
+    def on_eof(self) -> None:
+        pass
+
+    def consume_object(
+            self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
+    ) -> bool:
+        return False
+
+    def consume_binary(
+            self, event_id: str, source_id: str, target_id: str,
+            size: int, data_reader: RawBinaryReader,
+    ) -> bool:
+        # Data must be read.
+        data_reader(size)
+        return False
 
 
 class BinaryEventStreamForwarder(Protocol):

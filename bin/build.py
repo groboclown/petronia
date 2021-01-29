@@ -98,7 +98,20 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     if report_code != 0:
         print(f"Code coverage exited with {report_code}")
 
-    return lint_code + test_code + report_code
+    print("")
+    print("----------------------------------------------------------------------")
+    print("Bandit Security Checks...")
+    sec_code = run_python_cmd(
+        project_dir,
+        [],
+        'bandit.cli.main',
+        ['-r', project_dir],
+        True,
+    )
+    if sec_code != 0:
+        print(f"Bandit security check exited with {sec_code}")
+
+    return lint_code + test_code + report_code + sec_code
 
 
 def build_l10n_project_dir(_root_project_dir: str, project_dir: str) -> int:

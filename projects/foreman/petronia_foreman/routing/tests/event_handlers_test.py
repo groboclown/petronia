@@ -2,7 +2,6 @@
 
 from typing import List, Tuple, Optional, Any
 import unittest
-from concurrent.futures import ThreadPoolExecutor
 from petronia_common.util import PetroniaReturnError
 from .. import event_handlers
 from ...events import foreman
@@ -13,28 +12,22 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
 
     def test_can_consume__true(self) -> None:
         """Test all the can_consume events."""
-        target = event_handlers.ExtensionLoaderTarget(
-            TargetHandlerRuntimeContextImpl(), ThreadPoolExecutor(),
-        )
+        target = event_handlers.ExtensionLoaderTarget(TargetHandlerRuntimeContextImpl())
         for event_id in event_handlers.CONSUMED_EXTENSION_LOADER_EVENT_IDS:
             self.assertTrue(target.can_consume(event_id, 'x', 'y'))
 
     def test_can_consume__false(self) -> None:
         """Test that an unknown event is reported as not consumed."""
-        target = event_handlers.ExtensionLoaderTarget(
-            TargetHandlerRuntimeContextImpl(), ThreadPoolExecutor(),
-        )
+        target = event_handlers.ExtensionLoaderTarget(TargetHandlerRuntimeContextImpl())
         self.assertFalse(target.can_consume('xyz', 'x', 'y'))
 
     def test_on_error(self) -> None:
         """Ensure on_error calls are handled as expected."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.ExtensionLoaderTarget(context, executor)
+        target = event_handlers.ExtensionLoaderTarget(context)
         error = PetroniaReturnError()
 
         self.assertFalse(target.on_error(error))
-        executor.shutdown(True)
 
         self.assertEqual(
             [
@@ -45,12 +38,10 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
 
     def test_on_eof(self) -> None:
         """Ensure on_eof calls are handled as expected."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.ExtensionLoaderTarget(context, executor)
+        target = event_handlers.ExtensionLoaderTarget(context)
 
         target.on_eof()
-        executor.shutdown(True)
 
         self.assertEqual(
             [
@@ -61,114 +52,77 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
 
     def test_consume_unknown_event(self) -> None:
         """Test consuming an unknown event id."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.ExtensionLoaderTarget(context, executor)
+        target = event_handlers.ExtensionLoaderTarget(context)
 
         self.assertFalse(target.consume_object('unknown', 'source', 'target', {}))
-        executor.shutdown(True)
 
         self.assertEqual([], context.call_order)
 
     def test_consume_start_launcher(self) -> None:
         """Test consuming a start_launcher event."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.ExtensionLoaderTarget(context, executor)
+        target = event_handlers.ExtensionLoaderTarget(context)
 
         self.assertFalse(
             target.consume_object(
-                foreman.StartLauncherRequestEvent.FULL_EVENT_NAME, 'source', 'target',
-                foreman.StartLauncherRequestEvent(
-                    'the-id', 'the-launcher', [],
+                foreman.LauncherStartExtensionRequestEvent.FULL_EVENT_NAME, 'source', 'target',
+                foreman.LauncherStartExtensionRequestEvent(
+                    'the-id', [], [], 'the-launcher', [], None, [],
                 ).export_data(),
             )
         )
-        executor.shutdown(True)
 
         self.assertEqual(1, len(context.call_order))
-        self.assertEqual('start_launcher', context.call_order[0][0])
-        self.assertIsNone(context.call_order[0][1])
-        event = context.call_order[0][2]
-        self.assertIsInstance(event, foreman.StartLauncherRequestEvent)
-        assert isinstance(event, foreman.StartLauncherRequestEvent)  # mypy requirement
-        # We're not testing event export and parsing.
-        self.assertEqual(event.launcher, 'the-launcher')
-
-    def test_consume_load_extension(self) -> None:
-        """Test consuming a start_launcher event."""
-        executor = ThreadPoolExecutor()
-        context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.ExtensionLoaderTarget(context, executor)
-
-        self.assertFalse(
-            target.consume_object(
-                foreman.LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME, 'source', 'target',
-                foreman.LauncherLoadExtensionRequestEvent(
-                    'the-name', [1, 2, 3], 'the-location', [], None,
-                ).export_data(),
-            )
-        )
-        executor.shutdown(True)
-
-        self.assertEqual(1, len(context.call_order))
-        self.assertEqual('load_extension', context.call_order[0][0])
+        self.assertEqual('start_extension', context.call_order[0][0])
         self.assertEqual('target', context.call_order[0][1])
         event = context.call_order[0][2]
-        self.assertIsInstance(event, foreman.LauncherLoadExtensionRequestEvent)
-        assert isinstance(event, foreman.LauncherLoadExtensionRequestEvent)  # mypy requirement
+        self.assertIsInstance(event, foreman.LauncherStartExtensionRequestEvent)
+        assert isinstance(event, foreman.LauncherStartExtensionRequestEvent)  # nosec
         # We're not testing event export and parsing.
-        self.assertEqual(event.name, 'the-name')
+        self.assertEqual(event.name, 'the-id')
 
     def test_consume_add_event_listener(self) -> None:
         """Test consuming a start_launcher event."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.ExtensionLoaderTarget(context, executor)
+        target = event_handlers.ExtensionLoaderTarget(context)
 
         self.assertFalse(
             target.consume_object(
                 foreman.ExtensionAddEventListenerEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.ExtensionAddEventListenerEvent(
-                    'extension-name', [],
+                    [],
                 ).export_data(),
             )
         )
-        executor.shutdown(True)
 
         self.assertEqual(1, len(context.call_order))
         self.assertEqual('add_event_listener', context.call_order[0][0])
         self.assertEqual('target', context.call_order[0][1])
         event = context.call_order[0][2]
         self.assertIsInstance(event, foreman.ExtensionAddEventListenerEvent)
-        assert isinstance(event, foreman.ExtensionAddEventListenerEvent)  # mypy requirement
-        # We're not testing event export and parsing.
-        self.assertEqual(event.extension_name, 'extension-name')
+        assert isinstance(event, foreman.ExtensionAddEventListenerEvent)  # nosec
 
     def test_consume_remove_event_listener(self) -> None:
         """Test consuming a start_launcher event."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.ExtensionLoaderTarget(context, executor)
+        target = event_handlers.ExtensionLoaderTarget(context)
 
         self.assertFalse(
             target.consume_object(
                 foreman.ExtensionRemoveEventListenerEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.ExtensionRemoveEventListenerEvent(
-                    'extension-name', [],
+                    [],
                 ).export_data(),
             )
         )
-        executor.shutdown(True)
 
         self.assertEqual(1, len(context.call_order))
         self.assertEqual('remove_event_listener', context.call_order[0][0])
         self.assertEqual('target', context.call_order[0][1])
         event = context.call_order[0][2]
         self.assertIsInstance(event, foreman.ExtensionRemoveEventListenerEvent)
-        assert isinstance(event, foreman.ExtensionRemoveEventListenerEvent)  # mypy requirement
-        # We're not testing event export and parsing.
-        self.assertEqual(event.extension_name, 'extension-name')
+        assert isinstance(event, foreman.ExtensionRemoveEventListenerEvent)  # nosec
 
 
 class InternalTargetTest(unittest.TestCase):
@@ -176,24 +130,19 @@ class InternalTargetTest(unittest.TestCase):
 
     def test_can_consume__true(self) -> None:
         """Test all the can_consume events."""
-        target = event_handlers.InternalTarget(
-            TargetHandlerRuntimeContextImpl(), ThreadPoolExecutor(),
-        )
+        target = event_handlers.InternalTarget(TargetHandlerRuntimeContextImpl())
         for event_id in event_handlers.CONSUMED_INTERNAL_EVENT_IDS:
             self.assertTrue(target.can_consume(event_id, 'x', 'y'))
 
     def test_can_consume__false(self) -> None:
         """Test that an unknown event is reported as not consumed."""
-        target = event_handlers.InternalTarget(
-            TargetHandlerRuntimeContextImpl(), ThreadPoolExecutor()
-        )
+        target = event_handlers.InternalTarget(TargetHandlerRuntimeContextImpl())
         self.assertFalse(target.can_consume('xyz', 'x', 'y'))
 
     def test_on_error(self) -> None:
         """Ensure on_error calls are handled as expected."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.InternalTarget(context, executor)
+        target = event_handlers.InternalTarget(context)
         error = PetroniaReturnError()
 
         self.assertFalse(target.on_error(error))
@@ -207,9 +156,8 @@ class InternalTargetTest(unittest.TestCase):
 
     def test_on_eof(self) -> None:
         """Ensure on_eof calls are handled as expected."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.InternalTarget(context, executor)
+        target = event_handlers.InternalTarget(context)
 
         target.on_eof()
 
@@ -222,9 +170,8 @@ class InternalTargetTest(unittest.TestCase):
 
     def test_consume_unknown_event(self) -> None:
         """Test consuming an unknown event id."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.InternalTarget(context, executor)
+        target = event_handlers.InternalTarget(context)
 
         self.assertFalse(
             target.consume_object(
@@ -236,9 +183,8 @@ class InternalTargetTest(unittest.TestCase):
 
     def test_consume_stop(self) -> None:
         """Test consuming a stop event."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.InternalTarget(context, executor)
+        target = event_handlers.InternalTarget(context)
 
         self.assertFalse(
             target.consume_object(
@@ -256,9 +202,8 @@ class InternalTargetTest(unittest.TestCase):
 
     def test_consume_restart(self) -> None:
         """Test consuming a restart event."""
-        executor = ThreadPoolExecutor()
         context = TargetHandlerRuntimeContextImpl()
-        target = event_handlers.InternalTarget(context, executor)
+        target = event_handlers.InternalTarget(context)
 
         self.assertFalse(
             target.consume_object(
@@ -277,6 +222,7 @@ class InternalTargetTest(unittest.TestCase):
 
 class TargetHandlerRuntimeContextImpl(event_handlers.TargetHandlerRuntimeContext):
     """Monitor for the calls."""
+
     __slots__ = ('call_order',)
 
     def __init__(self) -> None:
@@ -288,15 +234,11 @@ class TargetHandlerRuntimeContextImpl(event_handlers.TargetHandlerRuntimeContext
     def do_restart(self, requested: bool, error: Optional[PetroniaReturnError]) -> None:
         self.call_order.append(('do_restart', requested, error,))
 
-    def start_launcher(
-            self, source_id: str, event: foreman.StartLauncherRequestEvent,
+    def start_extension(
+            self, source_id: str, target_id: str,
+            event: foreman.LauncherStartExtensionRequestEvent,
     ) -> None:
-        self.call_order.append(('start_launcher', None, event,))
-
-    def load_extension(
-            self, source_id: str, target_id: str, event: foreman.LauncherLoadExtensionRequestEvent,
-    ) -> None:
-        self.call_order.append(('load_extension', target_id, event,))
+        self.call_order.append(('start_extension', target_id, event,))
 
     def add_event_listener(
             self, target_id: str, event: foreman.ExtensionAddEventListenerEvent,

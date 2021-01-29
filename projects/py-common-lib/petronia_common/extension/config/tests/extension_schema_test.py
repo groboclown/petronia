@@ -207,3 +207,46 @@ class ExtensionSchemaMiscTest(unittest.TestCase):
             "20120229:235901.000100:+0500",
             res,
         )
+
+    def test_protocol_duplicate_event_names(self) -> None:
+        """protocol data types with duplicate event names."""
+        ext = extension_schema.ProtocolExtensionMetadata(
+            name='xyz', version=(1, 2, 3), about='a', description='d',
+            licenses=[], authors=[], events=[
+                event_schema.EventType(
+                    'a', priority='io', send_access='public', receive_access='public',
+                    unique_target=None,
+                    structure=event_schema.StructureEventDataType(description=None, field_types={}),
+                ),
+                event_schema.EventType(
+                    'a', priority='io', send_access='public', receive_access='public',
+                    unique_target=None,
+                    structure=event_schema.StructureEventDataType(description=None, field_types={}),
+                ),
+            ],
+        )
+        res = ext.validate_type()
+        self.assertIsNotNone(res)
+        assert res is not None  # mypy requirement
+        self.assertEqual(
+            ['duplicate event name: a'],
+            [m.debug() for m in res.messages()],
+        )
+
+    def test_protocol_bad_event(self) -> None:
+        """protocol data types with a bad event definition."""
+        ext = extension_schema.ProtocolExtensionMetadata(
+            name='xyz', version=(1, 2, 3), about='a', description='d',
+            licenses=[], authors=[], events=[
+                event_schema.EventType(
+                    '-a', priority='io', send_access='public', receive_access='public',
+                    unique_target=None,
+                    structure=event_schema.StructureEventDataType(description=None, field_types={}),
+                ),
+            ],
+        )
+        res = verified_not_none(ext.validate_type(), self)
+        self.assertEqual(
+            ['event name (-a) must conform to the pattern `[a-z0-9][a-z0-9:-]*`'],
+            [m.debug() for m in res.messages()],
+        )

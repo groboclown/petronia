@@ -281,10 +281,15 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             "events": {"x": {}},
             "references": {"x": {"type": "blah"}},
         },
-        [(
-            'unknown data type `{data_type}`',
-            dict(data_type='blah'),
-        )],
+        [
+            (
+                'error in reference definition for `{name}`',
+                dict(name='x'),
+            ), (
+                'unknown data type `{data_type}`',
+                dict(data_type='blah'),
+            ),
+        ],
     ),
     (
         'Cyclic reference',
@@ -610,7 +615,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('enum values must be a list of strings', {},)],
+        [(
+            'enum values must be a list of strings, found {value_type}',
+            {"value_type": "<class 'bool'>"},
+        )],
     ),
     (
         'Event data - bad enum value type',
@@ -627,7 +635,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('enum values must be a list of strings', {},)],
+        [(
+            'enum values must be a list of strings, found item of type {value_type}',
+            {"value_type": "<class 'int'>"},
+        )],
     ),
     (
         'Event data - bad datetime description',
@@ -943,6 +954,61 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             ('must be a list of string values', {}),
         ],
     ),
+    (
+        'Protocol event data - non-public receive-access',
+        {
+            'type': 'protocol', 'name': "non.public.receive", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {
+                "x1": {
+                    "priority": "io",
+                    'send-access': "public",
+                    'receive-access': "implementations",
+                    'fields': {},
+                },
+            },
+        },
+        [(
+            'protocol event {name} must have receive access of `public` or `target`',
+            dict(name='x1'),
+        )],
+    ),
+    (
+        'Protocol event data - non-public send-access',
+        {
+            'type': 'protocol', 'name': "non.public.send", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [], "events": {
+                "x2": {
+                    "priority": "io",
+                    'send-access': "implementations",
+                    'receive-access': "public",
+                    'fields': {},
+                },
+            },
+        },
+        [(
+            'protocol event {name} must have send access of `public`',
+            dict(name='x2'),
+        )],
+    ),
+    (
+        'Protocol bad event data',
+        {
+            'type': 'protocol', 'name': "bad.version", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [],
+            "events": {
+                "x": {
+                    "priority": "io", 'send-access': 'public', 'receive-access': 'public',
+                    'fields': {
+                        "a": {"type": "datetime", "description": [1]},
+                    },
+                },
+            },
+        },
+        [('`{key}` must be a string value', dict(key='description'),)],
+    ),
 ]
 
 
@@ -1167,6 +1233,46 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
             about="x", description="y",
             depends=[], licenses=["M", "I"], authors=["Z", "b"],
             runtime=extension_schema.ExtensionRuntime('core', {'b': ['1', '2']}),
+        ),
+    ),
+    (
+        'Simple Valid Protocol',
+        {
+            'type': 'protocol', 'name': 'simple.protocol', 'version': [2, 0, 3],
+            'about': 'a', 'description': 'd', 'licenses': ['l1'], 'authors': ['a2', 'a3'],
+            'events': {
+                "e1": {
+                    'priority': 'io',
+                    'send-access': 'public',
+                    'receive-access': 'public',
+                    'unique-target': 'abc',
+                    'description': 'ds',
+                    'fields': {
+                        'first': {
+                            'optional': True,
+                            'type': 'bool',
+                        },
+                    },
+                },
+            },
+        },
+        extension_schema.ProtocolExtensionMetadata(
+            name='simple.protocol', version=(2, 0, 3),
+            about='a', description='d', licenses=['l1'], authors=['a2', 'a3'],
+            events=[
+                event_schema.EventType(
+                    name='e1', priority='io', send_access='public', receive_access='public',
+                    unique_target='abc',
+                    structure=event_schema.StructureEventDataType(
+                        description='ds', field_types={
+                            'first': event_schema.StructureFieldType(
+                                data_type=event_schema.BoolEventDataType(None),
+                                optional=True,
+                            )
+                        }
+                    ),
+                ),
+            ],
         ),
     ),
 ]

@@ -2,12 +2,15 @@
 The foreman execution handler.
 """
 
-from typing import List, Optional
+from typing import List, Sequence, Optional
 import os
-from petronia_common.util import UserMessage, UserMessageData, I18n, StdRet
+from petronia_common.util import UserMessage, UserMessageData, I18n, StdRet, join_results
 from petronia_common.util import i18n as _
 from petronia_common.util.error import ExceptionPetroniaReturnError
-from .configuration import PlatformSettings, ForemanConfig, LauncherConfig
+from .configuration import (
+    ForemanConfig, RuntimeConfig, BootExtensionMetadata,
+    read_boot_extension_file, get_boot_extension_file,
+)
 from .routing import ForemanRouter
 from .os_hooks import OsHooks
 from .user_message import local_display, display_error, CATALOG
@@ -20,19 +23,18 @@ class ForemanRunner:
     """
 
     __slots__ = (
-        '_platform', '_config', '__root_logger_fd', '__os_hooks', 'debug', '__state',
-        '__router',
+        '_config', '__root_logger_fd', '__os_hooks', 'debug', '__state',
+        '__router', '_boot_configs',
     )
 
     def __init__(
             self,
-            platform_settings: PlatformSettings,
             foreman_config: ForemanConfig,
     ) -> None:
         self.__state = 0
         self.debug = False
-        self._platform = platform_settings
         self._config = foreman_config
+        self._boot_configs: List[BootExtensionMetadata] = []
         self.__root_logger_fd: Optional[int] = None
         self.__router: Optional[ForemanRouter] = None
         self.__os_hooks = OsHooks()
@@ -77,7 +79,12 @@ class ForemanRunner:
         if launcher_categories.has_error:
             display_error(launcher_categories.valid_error)
             return 1
-        self.__router = ForemanRouter(self._platform, launcher_categories.result)
+        extensions = load_boot_extensions(self._config)
+        if extensions.has_error:
+            display_error(extensions.valid_error)
+            return 2
+        self._boot_configs = list(extensions.result)
+        self.__router = ForemanRouter(launcher_categories.result)
         return 0
 
     def boot(self) -> int:
@@ -91,18 +98,9 @@ class ForemanRunner:
         # print("DEBUG ForemanRunner router is running")
 
         # start launchers.
-
-        # Native is always started first.
-        # local_display(
-        #     _('Starting native launcher {name}'),
-        #     name=self._get_native_launcher_category_name(),
-        # )
-        self.__router.boot_launcher(self._get_native_launcher_category_name())
-
-        # Then the others.
-        for name in self._config.get_boot_config().boot_order:
+        for boot_config in self._boot_configs:
             # local_display(_('Starting boot launcher {name}'), name=name)
-            self.__router.boot_launcher(name)
+            self.__router.start_boot_extension(boot_config)
 
         return 0
 
@@ -151,18 +149,27 @@ class ForemanRunner:
                 )
             self.__root_logger_fd = None
 
-    def _get_launcher_categories(self) -> StdRet[List[LauncherConfig]]:
-        ret: List[LauncherConfig] = []
-        for launcher_name in self._config.get_registered_launcher_config_names():
-            config = self._config.get_launcher_config(launcher_name)
+    def _get_launcher_categories(self) -> StdRet[List[RuntimeConfig]]:
+        ret: List[RuntimeConfig] = []
+        for launcher_name in self._config.get_registered_runtime_config_names():
+            config = self._config.get_runtime_config(launcher_name)
             if config.has_error:
                 # Should consolidate the errors...
                 return config.forward()
             ret.append(config.result)
         return StdRet.pass_ok(ret)
 
-    def _get_native_launcher_category_name(self) -> str:
-        return self._config.get_boot_config().get_native_launcher(self._platform)
+
+def load_boot_extensions(config: ForemanConfig) -> StdRet[Sequence[BootExtensionMetadata]]:
+    """Load the boot extension metadata."""
+    ret: List[StdRet[BootExtensionMetadata]] = []
+    for filename in config.get_boot_config().boot_file_order:
+        fqn = get_boot_extension_file(filename)
+        if fqn.has_error:
+            ret.append(fqn.forward())
+        else:
+            ret.append(read_boot_extension_file(fqn.result))
+    return join_results(tuple, *ret)
 
 
 def _display_error(

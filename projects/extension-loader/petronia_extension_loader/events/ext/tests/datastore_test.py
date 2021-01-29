@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-01-15T16:34:25.482427
+# Created on 2021-01-29T00:26:24.709949
 
 """
 Tests for the datastore module.
@@ -25,12 +25,14 @@ class StoreDataEventTest(unittest.TestCase):
             with self.subTest(name=test_name):
                 res = datastore.StoreDataEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
-                expected = [
+                expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
-                ]
+                }
                 actual = list(res.valid_error.messages())
-                self.assertEqual(expected, actual)
+                # The parsing returns at least one of the problems, but not necessarily all.
+                self.assertTrue(len(actual) >= 1, repr(expected))
+                self.assertTrue(expected.issuperset(actual), repr(expected))
 
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
@@ -71,17 +73,17 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'ʹyēØԂLúĄўԪD±ёǔѡɊșƼӘ\u03a2ϛϱҭĆɃ!ȐŽʐ¿',
-            'json': 'ϐϵсӚ˻Ґ\x89ǃȮʗƜѤǘÀƏûҋȽ_ЉԆǡƕђĮԪąϹǉ¸',
+            'destination': 'яȓŰŋ\x93ɋOȮȠ\x91$Ҭ˳ӌŎɂĠĆʡϿģшˮűԇĂѝѬ҂ȑ',
+            'json': 'ǔѕŒԆȔѺËΒdԤŅǌƲÖʶŨ\x94ȮîѪԛΪԇϚʙÖϮʾZÍ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': '',
+            'destination': 'ǣξɲӠĵ',
 
-            'json': '',
+            'json': 'ωӘ',
 
         },
     ),
@@ -99,12 +101,14 @@ class DeleteDataEventTest(unittest.TestCase):
             with self.subTest(name=test_name):
                 res = datastore.DeleteDataEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
-                expected = [
+                expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
-                ]
+                }
                 actual = list(res.valid_error.messages())
-                self.assertEqual(expected, actual)
+                # The parsing returns at least one of the problems, but not necessarily all.
+                self.assertTrue(len(actual) >= 1, repr(expected))
+                self.assertTrue(expected.issuperset(actual), repr(expected))
 
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
@@ -141,14 +145,14 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'ӱҒəʾΎ¿ƁѮϖ˥ĞҶˠͱĳ×WбȻʹ',
+            'destination': 'Ь\x91ƂʶϰƿΒѢΝɷȚÎŔϖԬ˼ӌȌѕÔϟҁɗńѠ˰ȘϞǠп',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': '',
+            'destination': 'ǴҢƞHĵ',
 
         },
     ),
@@ -166,12 +170,14 @@ class SendStateEventTest(unittest.TestCase):
             with self.subTest(name=test_name):
                 res = datastore.SendStateEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
-                expected = [
+                expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
-                ]
+                }
                 actual = list(res.valid_error.messages())
-                self.assertEqual(expected, actual)
+                # The parsing returns at least one of the problems, but not necessarily all.
+                self.assertTrue(len(actual) >= 1, repr(expected))
+                self.assertTrue(expected.issuperset(actual), repr(expected))
 
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
@@ -208,14 +214,14 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': "іІʛ\\ӈ\u0383.ćʊįȿҡϸŭůЌpͱЄŎϚ@ҍº¬'ŨIͲɦ",
+            'destination': 'ʠǨˎӭȁìʞƼōҫʩѲ΅Ųƨνʣʞı˫юϭÌͼİēĪҒŵϣ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': '',
+            'destination': 'ћѰ°ŵл',
 
         },
     ),
@@ -233,12 +239,14 @@ class DataUpdateEventTest(unittest.TestCase):
             with self.subTest(name=test_name):
                 res = datastore.DataUpdateEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
-                expected = [
+                expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
-                ]
+                }
                 actual = list(res.valid_error.messages())
-                self.assertEqual(expected, actual)
+                # The parsing returns at least one of the problems, but not necessarily all.
+                self.assertTrue(len(actual) >= 1, repr(expected))
+                self.assertTrue(expected.issuperset(actual), repr(expected))
 
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
@@ -279,17 +287,17 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': 'YYYYMMDD:hhmmss.sss:Z',
-            'json': 'ŧȮĆEҎϢʜǛԍǖΎĊǕ»ԁɤÎÄʖҔӣȈȰćǃϋǆͿǬӂ',
+            'changed': '20210129:002624.641448:+0000',
+            'json': '\x8bΓƉθǔҥѪϫ\x8cȷ҉ЄѢʀӯөоɃ҂μϯ˼¬ĳƗҾ\x8bɵ;Ɵ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': 'YYYYMMDD:hhmmss.sss:Z',
+            'changed': '20210129:002624.641487:+0000',
 
-            'json': '',
+            'json': 'Ҥś',
 
         },
     ),

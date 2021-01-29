@@ -25,10 +25,20 @@ USER_MESSAGE_CATALOG_EXCEPTION = 'internal-errors'
 STANDARD_PETRONIA_CATALOG = 'petronia'
 
 SimpleUserMessageData = Union[str, int, float, bool, datetime, time, date, None, BaseException]
+# Iterables must be of a unified type.
+ListUserMessageData = Union[
+    Iterable[str],
+    Iterable[int],
+    Iterable[float],
+    Iterable[bool],
+    Iterable[datetime],
+    Iterable[time],
+    Iterable[date],
+]
 UserMessageData = Union[
     SimpleUserMessageData,
-    Iterable[SimpleUserMessageData],
     Mapping[str, SimpleUserMessageData],
+    ListUserMessageData,
 ]
 I18n = NewType('I18n', str)
 

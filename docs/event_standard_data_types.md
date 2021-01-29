@@ -3,6 +3,23 @@
 The event data objects allow for very flexible but strict data typing.  However, at the time of this writing, the types are not shareable between extension metadata files.  This document describes those common data types, written to allow for easy pasting into the `references` section of the metadata file.
 
 
+## Unique Identifier
+
+Request / response event chains sometimes require a unique identifier to help with constructing a matching response.
+
+```yaml
+references:
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+```
+
+
 ## Localizable Message
 
 Text messages may need to be passed to the user to for various informative usages, and these must be localizable.
@@ -24,6 +41,7 @@ references:
         description: >
           The message ID to look up in the catalog.  If the message
           has no translation, this is directly displayed to the user.
+        type: string
         min-length: 1
         max-length: 10000
       arguments:
@@ -50,19 +68,57 @@ references:
         max-length: 50
       value:
         description: Value of the argument.  It must be a simple type.
-        type: selector
-        type-mapping:
-          string:
-            type: string
-          int:
-            type: int
-          float:
-            type: float
-          bool:
-            type: bool
-          datetime:
-            type: datetime
-```
+        type: reference
+        ref: message-argument-value
+  message-argument-value:
+    description: A replacement value for a named argument in the message.
+    type: selector
+    type-mapping:
+      string:
+        type: string
+        min-length: 0
+        max-length: 10000
+      int:
+        type: int
+      float:
+        type: float
+      bool:
+        type: bool
+      datetime:
+        type: datetime
+      string_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 0
+          max-length: 10000
+      int_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: int
+      float_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: float
+      bool_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: bool
+      datetime_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: datetime
+  ```
 
 
 ## Errors
@@ -81,8 +137,8 @@ references:
           automation that needs to perform operations based on specific
           error messages.
         type: string
-        min-length: 2
-        max-length: 300
+        min-length: 5
+        max-length: 600
       categories:
         description: >
           A collection of general categories that define the error.
@@ -92,15 +148,16 @@ references:
         min-length: 1
         max-length: 100
         value-type:
-            type: enum
-            enum-values:
-              - file
-              - os
-              - configuration
-              - network
-              - access-restriction
-              - invalid-user-action
-              - internal
+          description: General error category.
+          type: enum
+          values:
+            - file
+            - os
+            - configuration
+            - network
+            - access-restriction
+            - invalid-user-action
+            - internal
       source:
         description: The source of the error, if known.
         type: string
@@ -126,12 +183,12 @@ For many of the core projects, information about extensions is required to be pa
 
 ```yaml
 references:
-  extension_name:
+  extension-name:
     description: Standard name requirements for an extension.
     type: string
     min-length: 3
     max-length: 200
-  extension_version:
+  extension-version:
     description: Version number for an extension.  It must be a three part number.
     type: array
     min-length: 3
@@ -146,20 +203,20 @@ references:
 
 ## Event Information
 
-Some extensions require use of standard event metadata values included in the event data body.
+Some extensions require use of standard event metadata values included in the event data body.  Event IDs and target IDs use the base extension name as the prefix, so the minimum and maximum lengths incorporate that information.
 
 ```yaml
 references:
   event-id:
     description: ID of an event.
     type: string
-    min-length: 3
+    min-length: 5
     max-length: 600
   event-target-id:
     description: ID of an event listener.
     type: string
     min-length: 5
-    max-length: 300
+    max-length: 600
 ```
 
 

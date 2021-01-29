@@ -5,21 +5,21 @@ from petronia_common.util import i18n as _
 from ...constants import TRANSLATION_CATALOG
 
 
-def no_such_launcher_id(launcher_id: str) -> StdRet[T]:
-    """Generate an error when the launcher ID is not registered."""
+def launcher_already_registered(handler_id: str) -> StdRet[T]:
+    """Generate an error when the extension handler ID has already been registered."""
     return StdRet.pass_errmsg(
         TRANSLATION_CATALOG,
-        _('No registered launcher {launcher_id}'),
-        launcher_id=launcher_id,
+        _('already registered extension with id {name}'),
+        name=handler_id,
     )
 
 
-def launcher_already_registered(launcher_id: str) -> StdRet[T]:
-    """Generate an error when the launcher ID has already been registered."""
+def launcher_not_loaded(handler_id: str) -> StdRet[T]:
+    """Generate an error when the extension handler ID has not been registered."""
     return StdRet.pass_errmsg(
         TRANSLATION_CATALOG,
-        _('already registered launcher id {name}'),
-        name=launcher_id,
+        _('extension with id {name} not registered'),
+        name=handler_id,
     )
 
 
@@ -32,10 +32,9 @@ def launcher_category_not_initialized() -> StdRet[T]:
     )
 
 
-def started_extension_from_boot_launcher(launcher_id: str) -> StdRet[T]:
-    """Generate an error due to trying to start an extension from a boot launcher."""
+def launcher_stopped() -> StdRet[T]:
+    """Generate an error for when the launcher has already been stopped."""
     return StdRet.pass_errmsg(
         TRANSLATION_CATALOG,
-        _('cannot load an extension in a boot launcher ({launcher_id}).'),
-        launcher_id=launcher_id,
+        _('Launcher already stopped')
     )

@@ -15,11 +15,11 @@ from .version import ExtensionVersion, cmp_extension
 from ...util import (
     PetroniaReturnError, UserMessage,
     possible_error, readonly_dict,
-    STRING_EMPTY_TUPLE, STANDARD_PETRONIA_CATALOG,
+    STRING_EMPTY_TUPLE, STANDARD_PETRONIA_CATALOG, EMPTY_TUPLE,
 )
 from ...util import i18n as _
 
-ExtensionType = Literal["impl", "api", "standalone"]
+ExtensionType = Literal["impl", "api", "standalone", "protocol", "boot"]
 
 
 class ExtensionDependency:
@@ -183,6 +183,67 @@ class AbcExtensionMetadata(AbcConfigType, ABC):
             f'depends={repr(self.depends_on)}, licenses={repr(self.licenses)}, '
             f'authors={repr(self.authors)}'
         )
+
+
+class ProtocolExtensionMetadata(AbcExtensionMetadata):
+    """A Protocol style extension.  These define only public events."""
+    __slots__ = ('__events',)
+
+    def __init__(  # pylint: disable=R0913
+            self,
+            name: str,
+            version: ExtensionVersion,
+            about: str,
+            description: str,
+            licenses: Iterable[str],
+            authors: Iterable[str],
+            events: Iterable[EventType],
+    ) -> None:
+        """All the data needed to create this extension."""
+        AbcExtensionMetadata.__init__(
+            self, name, version, about, description, "protocol", EMPTY_TUPLE, licenses, authors,
+        )
+        self.__events = tuple(events)
+
+    def __repr__(self) -> str:
+        return f'ProtocolExtensionMetadata({self._sub_repr()}, events={repr(self.events)})'
+
+    @property
+    def events(self) -> Sequence[EventType]:
+        """Events defined by this API."""
+        return self.__events
+
+    def validate_type(self) -> Optional[PetroniaReturnError]:
+        messages: List[UserMessage] = []
+        validate_name(self.name, messages)
+        validate_dependencies(self.depends_on, messages)
+        event_names: Set[str] = set()
+        for event in self.events:
+            if event.name in event_names:
+                # The file format doesn't allow this scenario, but the code does.
+                messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('duplicate event name: {name}'),
+                    name=event.name,
+                ))
+            else:
+                event_names.add(event.name)
+            validation = event.validate_type()
+            if validation:
+                messages.extend(validation.messages())
+            if event.receive_access not in ("public", "target"):
+                messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('protocol event {name} must have receive access of `public` or `target`'),
+                    name=event.name,
+                ))
+            if event.send_access != 'public':
+                messages.append(UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('protocol event {name} must have send access of `public`'),
+                    name=event.name,
+                ))
+        return possible_error(messages)
 
 
 class ApiExtensionMetadata(AbcExtensionMetadata):

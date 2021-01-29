@@ -1,38 +1,40 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-01-15T16:34:18.577655
+# Created on 2021-01-29T00:26:20.547528
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements
+# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements
 
 
 from typing import (
+    cast,
+    Optional,
+    SupportsInt,
+    SupportsFloat,
+    Union,
+    Any,
     Dict,
     List,
-    Optional,
-    Any,
-    Union,
-    SupportsFloat,
-    SupportsInt,
 )
+import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    not_none,
+    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
     StdRet,
-    collect_errors_from,
-    T,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
 EXTENSION_VERSION = (1, 0, 0)
 
 
-class Permissions:
+class ExtensionPermission:
     """
-    (no description)
+    An action and collection of resources that can perform the action.
     """
     __slots__ = ('action', 'resources',)
 
@@ -53,273 +55,369 @@ class Permissions:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Permissions']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['ExtensionPermission']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_action: Optional[str] = None
         val = data.get('action')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_action: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='action',
-                name='Permissions',
-            ))
+                name='ExtensionPermission',
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='action',
                     type='str',
-                    name='Permissions',
-                ))
-            else:
-                f_action = val
-        f_resources: Optional[List[str]] = None
+                    name='ExtensionPermission',
+                )
+            f_action = val
         val = data.get('resources')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_resources: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='resources',
-                name='Permissions',
-            ))
+                name='ExtensionPermission',
+            )
         else:
             if not isinstance(val, list):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='resources',
                     type='List[str]',
-                    name='Permissions',
-                ))
-            else:
-                f_resources = []
-                for item in val:
-                    if not isinstance(item, str):
-                        errors.append(StdRet.pass_errmsg(
-                            STANDARD_PETRONIA_CATALOG,
-                            _(
-                                'Field {field_name} must contain items '
-                                'of type {type} for structure {name}'
-                            ),
-                            field_name='resources',
-                            type='str',
-                            name='Permissions',
-                        ))
-                    else:
-                        f_resources.append(item)
+                    name='ExtensionPermission',
+                )
+            f_resources = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='resources',
+                        type='str',
+                        name='ExtensionPermission',
+                    )
+                f_resources.append(item)
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(Permissions(
-            action=_not_none(f_action),
-            resources=_not_none(f_resources),
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(ExtensionPermission(
+            action=not_none(f_action),
+            resources=not_none(f_resources),
         ))
 
     def __repr__(self) -> str:
-        return "Permissions(" + repr(self.export_data()) + ")"
+        return "ExtensionPermission(" + repr(self.export_data()) + ")"
 
 
-class StartLauncherRequestEvent:
+class LauncherStartExtensionRequestEvent:
     """
-    Request that the foreman process start a new launcher. Responses are sent with a
-    target ID matching this request's source ID.
+    Requests a launcher to load an extension. This event's target id is the launcher
+    target-id returned by a "start-launcher:success" event, and that declares the
+    permissions that the extension can use.
     """
-    __slots__ = ('identifier', 'launcher', 'permissions',)
-    FULL_EVENT_NAME = 'petronia.core.api.foreman:start-launcher:request'
-    SHORT_EVENT_NAME = 'start-launcher:request'
+    __slots__ = ('name', 'version', 'location', 'runtime', 'send_access', 'configuration', 'permissions',)
+    FULL_EVENT_NAME = 'petronia.core.api.foreman:launcher-start-extension:request'
+    SHORT_EVENT_NAME = 'launcher-start-extension:request'
 
     UNIQUE_TARGET_FQN = 'petronia.core.api.foreman:launcher'
     UNIQUE_TARGET_REL = 'launcher'
 
     def __init__(
         self,
-        identifier: str,
-        launcher: str,
-        permissions: List[Permissions],
+        name: str,
+        version: List[int],
+        location: List[str],
+        runtime: str,
+        send_access: List[str],
+        configuration: Optional[str],
+        permissions: List[ExtensionPermission],
     ) -> None:
-        self.identifier = identifier
-        self.launcher = launcher
+        self.name = name
+        self.version = version
+        self.location = location
+        self.runtime = runtime
+        self.send_access = send_access
+        self.configuration = configuration
         self.permissions = permissions
 
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return StartLauncherRequestEvent.FULL_EVENT_NAME
+        return LauncherStartExtensionRequestEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'identifier': self.identifier,
-            'launcher': self.launcher,
+            'name': self.name,
+            'version': list(self.version),
+            'location': list(self.location),
+            'runtime': self.runtime,
+            'send_access': list(self.send_access),
+            'configuration': self.configuration,
             'permissions': [v.export_data() for v in self.permissions],
         }
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['StartLauncherRequestEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherStartExtensionRequestEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_identifier: Optional[str] = None
-        val = data.get('identifier')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        val = data.get('name')
+        f_name: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='identifier',
-                name='StartLauncherRequestEvent',
-            ))
+                field_name='name',
+                name='LauncherStartExtensionRequestEvent',
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='identifier',
+                    field_name='name',
                     type='str',
-                    name='StartLauncherRequestEvent',
-                ))
-            else:
-                f_identifier = val
-        f_launcher: Optional[str] = None
-        val = data.get('launcher')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+                    name='LauncherStartExtensionRequestEvent',
+                )
+            f_name = val
+        val = data.get('version')
+        f_version: List[int]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='launcher',
-                name='StartLauncherRequestEvent',
-            ))
+                field_name='version',
+                name='LauncherStartExtensionRequestEvent',
+            )
         else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='launcher',
+                    field_name='version',
+                    type='List[int]',
+                    name='LauncherStartExtensionRequestEvent',
+                )
+            f_version = []
+            for item in val:
+                if not isinstance(item, int):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='version',
+                        type='int',
+                        name='LauncherStartExtensionRequestEvent',
+                    )
+                f_version.append(item)
+        val = data.get('location')
+        f_location: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='location',
+                name='LauncherStartExtensionRequestEvent',
+            )
+        else:
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='location',
+                    type='List[str]',
+                    name='LauncherStartExtensionRequestEvent',
+                )
+            f_location = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='location',
+                        type='str',
+                        name='LauncherStartExtensionRequestEvent',
+                    )
+                f_location.append(item)
+        val = data.get('runtime')
+        f_runtime: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='runtime',
+                name='LauncherStartExtensionRequestEvent',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='runtime',
                     type='str',
-                    name='StartLauncherRequestEvent',
-                ))
-            else:
-                f_launcher = val
-        f_permissions: Optional[List[Permissions]] = None
+                    name='LauncherStartExtensionRequestEvent',
+                )
+            f_runtime = val
+        val = data.get('send_access')
+        f_send_access: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='send_access',
+                name='LauncherStartExtensionRequestEvent',
+            )
+        else:
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='send_access',
+                    type='List[str]',
+                    name='LauncherStartExtensionRequestEvent',
+                )
+            f_send_access = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='send_access',
+                        type='str',
+                        name='LauncherStartExtensionRequestEvent',
+                    )
+                f_send_access.append(item)
+        val = data.get('configuration')
+        f_configuration: Optional[str] = None
+        if val is not None:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='configuration',
+                    type='str',
+                    name='LauncherStartExtensionRequestEvent',
+                )
+            f_configuration = val
         val = data.get('permissions')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_permissions: List[ExtensionPermission]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='permissions',
-                name='StartLauncherRequestEvent',
-            ))
+                name='LauncherStartExtensionRequestEvent',
+            )
         else:
             f_permissions = []
             for item in val:
-                parsed_permissions = Permissions.parse_data(item)
+                parsed_permissions = ExtensionPermission.parse_data(item)
                 if parsed_permissions.has_error:
-                    errors.append(parsed_permissions.forward())
-                else:
-                    f_permissions.append(parsed_permissions.result)
+                    return parsed_permissions.forward()
+                f_permissions.append(parsed_permissions.result)
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(StartLauncherRequestEvent(
-            identifier=_not_none(f_identifier),
-            launcher=_not_none(f_launcher),
-            permissions=_not_none(f_permissions),
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LauncherStartExtensionRequestEvent(
+            name=not_none(f_name),
+            version=not_none(f_version),
+            location=not_none(f_location),
+            runtime=not_none(f_runtime),
+            send_access=not_none(f_send_access),
+            configuration=f_configuration,
+            permissions=not_none(f_permissions),
         ))
 
     def __repr__(self) -> str:
-        return "StartLauncherRequestEvent(" + repr(self.export_data()) + ")"
+        return "LauncherStartExtensionRequestEvent(" + repr(self.export_data()) + ")"
 
 
-class StartLauncherSuccessEvent:
+class LauncherStartExtensionSuccessEvent:
     """
-    Report that a new launcher now exists and is ready to accept extensions.
+    Signals a successful request to load the extension. Further events in the
+    extension's lifecycle will be generated by the extension itself. The source-id
+    is the target that should be directed to for adding or removing listeners.
     """
-    __slots__ = ('identifier', 'target_id',)
-    FULL_EVENT_NAME = 'petronia.core.api.foreman:start-launcher:success'
-    SHORT_EVENT_NAME = 'start-launcher:success'
+    __slots__ = ('name',)
+    FULL_EVENT_NAME = 'petronia.core.api.foreman:launcher-start-extension:success'
+    SHORT_EVENT_NAME = 'launcher-start-extension:success'
 
     def __init__(
         self,
-        identifier: str,
-        target_id: str,
+        name: str,
     ) -> None:
-        self.identifier = identifier
-        self.target_id = target_id
+        self.name = name
 
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return StartLauncherSuccessEvent.FULL_EVENT_NAME
+        return LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'identifier': self.identifier,
-            'target_id': self.target_id,
+            'name': self.name,
         }
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['StartLauncherSuccessEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherStartExtensionSuccessEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_identifier: Optional[str] = None
-        val = data.get('identifier')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        val = data.get('name')
+        f_name: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='identifier',
-                name='StartLauncherSuccessEvent',
-            ))
+                field_name='name',
+                name='LauncherStartExtensionSuccessEvent',
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='identifier',
+                    field_name='name',
                     type='str',
-                    name='StartLauncherSuccessEvent',
-                ))
-            else:
-                f_identifier = val
-        f_target_id: Optional[str] = None
-        val = data.get('target_id')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='target_id',
-                name='StartLauncherSuccessEvent',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='target_id',
-                    type='str',
-                    name='StartLauncherSuccessEvent',
-                ))
-            else:
-                f_target_id = val
+                    name='LauncherStartExtensionSuccessEvent',
+                )
+            f_name = val
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(StartLauncherSuccessEvent(
-            identifier=_not_none(f_identifier),
-            target_id=_not_none(f_target_id),
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LauncherStartExtensionSuccessEvent(
+            name=not_none(f_name),
         ))
 
     def __repr__(self) -> str:
-        return "StartLauncherSuccessEvent(" + repr(self.export_data()) + ")"
+        return "LauncherStartExtensionSuccessEvent(" + repr(self.export_data()) + ")"
 
 
-class Arguments:
+class MessageArgumentValue:
     """
-    (no description)
+    A replacement value for a named argument in the message.
     """
     __slots__ = ('__name', '__value')
 
@@ -327,8 +425,15 @@ class Arguments:
         self,
         name: str,
         value: Union[
-            int,
+            List[float],
+            List[bool],
             str,
+            List[datetime.datetime],
+            List[int],
+            int,
+            bool,
+            List[str],
+            datetime.datetime,
             float,
         ],
     ) -> None:
@@ -342,15 +447,22 @@ class Arguments:
 
     @property
     def value(self) -> Union[
-            int,
+            List[float],
+            List[bool],
             str,
+            List[datetime.datetime],
+            List[int],
+            int,
+            bool,
+            List[str],
+            datetime.datetime,
             float,
     ]:
         """The selector value."""
         return self.__value
 
     def __repr__(self) -> str:
-        return 'Arguments(type: {0}, value: {1})'.format(
+        return 'MessageArgumentValue(type: {0}, value: {1})'.format(
             self.__name, repr(self.__value),
         )
 
@@ -374,10 +486,52 @@ class Arguments:
                 '$':
                     self.__value,
             }
+        if self.__name == 'bool':
+            return {
+                '^': self.__name,
+                '$':
+                    self.__value,
+            }
+        if self.__name == 'datetime':
+            return {
+                '^': self.__name,
+                '$':
+                    cast(datetime.datetime, self.__value).strftime('%Y%m%d:%H%M%S.%f:%z'),
+            }
+        if self.__name == 'string_list':
+            return {
+                '^': self.__name,
+                '$':
+                    list(cast(List[str], self.__value)),
+            }
+        if self.__name == 'int_list':
+            return {
+                '^': self.__name,
+                '$':
+                    list(cast(List[int], self.__value)),
+            }
+        if self.__name == 'float_list':
+            return {
+                '^': self.__name,
+                '$':
+                    list(cast(List[float], self.__value)),
+            }
+        if self.__name == 'bool_list':
+            return {
+                '^': self.__name,
+                '$':
+                    list(cast(List[bool], self.__value)),
+            }
+        if self.__name == 'datetime_list':
+            return {
+                '^': self.__name,
+                '$':
+                    [dtv.strftime('%Y%m%d:%H%M%S.%f:%z') for dtv in cast(List[datetime.datetime], self.__value)],
+            }
         raise RuntimeError('invalid inner type: ' + repr(self.__name))  # pragma no cover
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Arguments']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgumentValue']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         selector_name = data.get('^')
         val = data.get('$')
@@ -393,9 +547,9 @@ class Arguments:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='string',
                     type='str',
-                    name='Arguments',
+                    name='MessageArgumentValue',
                 )
-            return StdRet.pass_ok(Arguments(
+            return StdRet.pass_ok(MessageArgumentValue(
                 selector_name,
                 val,
             ))
@@ -406,9 +560,9 @@ class Arguments:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='int',
                     type='int',
-                    name='Arguments',
+                    name='MessageArgumentValue',
                 )
-            return StdRet.pass_ok(Arguments(
+            return StdRet.pass_ok(MessageArgumentValue(
                 selector_name,
                 int(val),
             ))
@@ -419,45 +573,391 @@ class Arguments:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='float',
                     type='float',
-                    name='Arguments',
+                    name='MessageArgumentValue',
                 )
-            return StdRet.pass_ok(Arguments(
+            return StdRet.pass_ok(MessageArgumentValue(
                 selector_name,
                 float(val),
+            ))
+        if selector_name == 'bool':
+            if not isinstance(val, bool):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='bool',
+                    type='bool',
+                    name='MessageArgumentValue',
+                )
+            return StdRet.pass_ok(MessageArgumentValue(
+                selector_name,
+                val,
+            ))
+        if selector_name == 'datetime':
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Value must be of type datetime for selector {name}'),
+                    field_name='datetime',
+                    name='MessageArgumentValue',
+                )
+            try:
+                dt_val = datetime.datetime.strptime(val, '%Y%m%d:%H%M%S.%f:%z')
+                return StdRet.pass_ok(MessageArgumentValue(
+                    selector_name,
+                    dt_val,
+                ))
+            except ValueError:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Invalid date-time format: {value}'),
+                    value=val,
+                )
+        if selector_name == 'string_list':
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for selector {name}'),
+                    field_name='string_list',
+                    type='List[str]',
+                    name='MessageArgumentValue',
+                )
+            ret_val_str: List[str] = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='string_list',
+                        type='str',
+                        name='MessageArgumentValue',
+                    )
+                ret_val_str.append(item)
+            return StdRet.pass_ok(MessageArgumentValue(
+                selector_name,
+                ret_val_str,
+            ))
+        if selector_name == 'int_list':
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for selector {name}'),
+                    field_name='int_list',
+                    type='List[int]',
+                    name='MessageArgumentValue',
+                )
+            ret_val_int: List[int] = []
+            for item in val:
+                if not isinstance(item, int):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='int_list',
+                        type='int',
+                        name='MessageArgumentValue',
+                    )
+                ret_val_int.append(item)
+            return StdRet.pass_ok(MessageArgumentValue(
+                selector_name,
+                ret_val_int,
+            ))
+        if selector_name == 'float_list':
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for selector {name}'),
+                    field_name='float_list',
+                    type='List[float]',
+                    name='MessageArgumentValue',
+                )
+            ret_val_float: List[float] = []
+            for item in val:
+                if not isinstance(item, float):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='float_list',
+                        type='float',
+                        name='MessageArgumentValue',
+                    )
+                ret_val_float.append(item)
+            return StdRet.pass_ok(MessageArgumentValue(
+                selector_name,
+                ret_val_float,
+            ))
+        if selector_name == 'bool_list':
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for selector {name}'),
+                    field_name='bool_list',
+                    type='List[bool]',
+                    name='MessageArgumentValue',
+                )
+            ret_val_bool: List[bool] = []
+            for item in val:
+                if not isinstance(item, bool):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='bool_list',
+                        type='bool',
+                        name='MessageArgumentValue',
+                    )
+                ret_val_bool.append(item)
+            return StdRet.pass_ok(MessageArgumentValue(
+                selector_name,
+                ret_val_bool,
+            ))
+        if selector_name == 'datetime_list':
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for selector {name}'),
+                    field_name='datetime_list',
+                    type='List[datetime.datetime]',
+                    name='MessageArgumentValue',
+                )
+            ret_val_datetime_datetime: List[datetime.datetime] = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='datetime_list',
+                        type='datetime.datetime',
+                        name='MessageArgumentValue',
+                    )
+                try:
+                    ret_val_datetime_datetime.append(datetime.datetime.strptime(item, '%Y%m%d:%H%M%S.%f:%z'))
+                except ValueError:
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _('Invalid date-time format: {value}'),
+                        value=val,
+                    )
+            return StdRet.pass_ok(MessageArgumentValue(
+                selector_name,
+                ret_val_datetime_datetime,
             ))
         return StdRet.pass_errmsg(
             STANDARD_PETRONIA_CATALOG,
             _('Invalid selector name {name} for {nc}'),
             name=selector_name,
-            nc='Arguments',
+            nc='MessageArgumentValue',
         )
 
 
-class Error:
+class MessageArgument:
     """
-    A failure
+    An argument to be inserted into the localizable message.
     """
-    __slots__ = ('identifier', 'source', 'message', 'arguments',)
+    __slots__ = ('name', 'value',)
 
     def __init__(
         self,
-        identifier: str,
-        source: Optional[str],
-        message: str,
-        arguments: List[Arguments],
+        name: str,
+        value: MessageArgumentValue,
     ) -> None:
-        self.identifier = identifier
-        self.source = source
+        self.name = name
+        self.value = value
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'name': self.name,
+            'value': self.value.export_data(),
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgument']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('name')
+        f_name: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='name',
+                name='MessageArgument',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='name',
+                    type='str',
+                    name='MessageArgument',
+                )
+            f_name = val
+        val = data.get('value')
+        f_value: MessageArgumentValue
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='value',
+                name='MessageArgument',
+            )
+        else:
+            parsed_value = MessageArgumentValue.parse_data(val)
+            if parsed_value.has_error:
+                return parsed_value.forward()
+            if parsed_value.value is None:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='value',
+                )
+            f_value = parsed_value.result
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(MessageArgument(
+            name=not_none(f_name),
+            value=not_none(f_value),
+        ))
+
+    def __repr__(self) -> str:
+        return "MessageArgument(" + repr(self.export_data()) + ")"
+
+
+class LocalizableMessage:
+    """
+    A localizable message for user display.
+    """
+    __slots__ = ('catalog', 'message', 'arguments',)
+
+    def __init__(
+        self,
+        catalog: str,
+        message: str,
+        arguments: Optional[List[MessageArgument]],
+    ) -> None:
+        self.catalog = catalog
         self.message = message
         self.arguments = arguments
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'identifier': self.identifier,
-            'source': self.source,
+            'catalog': self.catalog,
             'message': self.message,
-            'arguments': [v.export_data() for v in self.arguments],
+            'arguments': None if self.arguments is None else [v.export_data() for v in self.arguments],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['LocalizableMessage']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('catalog')
+        f_catalog: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='catalog',
+                name='LocalizableMessage',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='catalog',
+                    type='str',
+                    name='LocalizableMessage',
+                )
+            f_catalog = val
+        val = data.get('message')
+        f_message: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='message',
+                name='LocalizableMessage',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='message',
+                    type='str',
+                    name='LocalizableMessage',
+                )
+            f_message = val
+        val = data.get('arguments')
+        f_arguments: Optional[List[MessageArgument]] = None
+        if val is not None:
+            f_arguments = []
+            for item in val:
+                parsed_arguments = MessageArgument.parse_data(item)
+                if parsed_arguments.has_error:
+                    return parsed_arguments.forward()
+                f_arguments.append(parsed_arguments.result)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LocalizableMessage(
+            catalog=not_none(f_catalog),
+            message=not_none(f_message),
+            arguments=f_arguments,
+        ))
+
+    def __repr__(self) -> str:
+        return "LocalizableMessage(" + repr(self.export_data()) + ")"
+
+
+class Error:
+    """
+    A description of a failure.
+    """
+    __slots__ = ('identifier', 'categories', 'source', 'corrective_action', 'error_message',)
+
+    def __init__(
+        self,
+        identifier: str,
+        categories: List[str],
+        source: Optional[str],
+        corrective_action: Optional[LocalizableMessage],
+        error_message: LocalizableMessage,
+    ) -> None:
+        self.identifier = identifier
+        self.categories = categories
+        self.source = source
+        self.corrective_action = corrective_action
+        self.error_message = error_message
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'identifier': self.identifier,
+            'categories': list(self.categories),
+            'source': self.source,
+            'corrective_action': None if self.corrective_action is None else self.corrective_action.export_data(),
+            'error_message': self.error_message.export_data(),
         }
         return _strip_none(ret)
 
@@ -466,424 +966,121 @@ class Error:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_identifier: Optional[str] = None
         val = data.get('identifier')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_identifier: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='identifier',
                 name='Error',
-            ))
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='identifier',
                     type='str',
                     name='Error',
-                ))
-            else:
-                f_identifier = val
-        f_source: Optional[str] = None
+                )
+            f_identifier = val
+        val = data.get('categories')
+        f_categories: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='categories',
+                name='Error',
+            )
+        else:
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='categories',
+                    type='List[str]',
+                    name='Error',
+                )
+            f_categories = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='categories',
+                        type='str',
+                        name='Error',
+                    )
+                f_categories.append(item)
         val = data.get('source')
+        f_source: Optional[str] = None
         if val is not None:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='source',
                     type='str',
                     name='Error',
-                ))
-            else:
-                f_source = val
-        f_message: Optional[str] = None
-        val = data.get('message')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+                )
+            f_source = val
+        val = data.get('corrective_action')
+        f_corrective_action: Optional[LocalizableMessage] = None
+        if val is not None:
+            parsed_corrective_action = LocalizableMessage.parse_data(val)
+            if parsed_corrective_action.has_error:
+                return parsed_corrective_action.forward()
+            # Value, not result, because it could be optional...
+            f_corrective_action = parsed_corrective_action.value
+        val = data.get('error_message')
+        f_error_message: LocalizableMessage
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='message',
+                field_name='error_message',
                 name='Error',
-            ))
+            )
         else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+            parsed_error_message = LocalizableMessage.parse_data(val)
+            if parsed_error_message.has_error:
+                return parsed_error_message.forward()
+            if parsed_error_message.value is None:
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='message',
-                    type='str',
-                    name='Error',
-                ))
-            else:
-                f_message = val
-        f_arguments: Optional[List[Arguments]] = None
-        val = data.get('arguments')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='arguments',
-                name='Error',
-            ))
-        else:
-            f_arguments = []
-            for item in val:
-                parsed_arguments = Arguments.parse_data(item)
-                if parsed_arguments.has_error:
-                    errors.append(parsed_arguments.forward())
-                else:
-                    f_arguments.append(parsed_arguments.result)
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='error_message',
+                )
+            f_error_message = parsed_error_message.result
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(Error(
-            identifier=_not_none(f_identifier),
+            identifier=not_none(f_identifier),
+            categories=not_none(f_categories),
             source=f_source,
-            message=_not_none(f_message),
-            arguments=_not_none(f_arguments),
+            corrective_action=f_corrective_action,
+            error_message=not_none(f_error_message),
         ))
 
     def __repr__(self) -> str:
         return "Error(" + repr(self.export_data()) + ")"
 
 
-class StartLauncherFailedEvent:
-    """
-    Report that the requested launcher could not be started.
-    """
-    __slots__ = ('identifier', 'error',)
-    FULL_EVENT_NAME = 'petronia.core.api.foreman:start-launcher:failed'
-    SHORT_EVENT_NAME = 'start-launcher:failed'
-
-    def __init__(
-        self,
-        identifier: str,
-        error: Error,
-    ) -> None:
-        self.identifier = identifier
-        self.error = error
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return StartLauncherFailedEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'identifier': self.identifier,
-            'error': self.error.export_data(),
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['StartLauncherFailedEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        f_identifier: Optional[str] = None
-        val = data.get('identifier')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='identifier',
-                name='StartLauncherFailedEvent',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='identifier',
-                    type='str',
-                    name='StartLauncherFailedEvent',
-                ))
-            else:
-                f_identifier = val
-        f_error: Optional[Error] = None
-        val = data.get('error')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='error',
-                name='StartLauncherFailedEvent',
-            ))
-        else:
-            parsed_error = Error.parse_data(val)
-            if parsed_error.has_error:
-                errors.append(parsed_error.forward())
-            else:
-                # Value, not result, because it could be optional...
-                f_error = parsed_error.value
-        if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(StartLauncherFailedEvent(
-            identifier=_not_none(f_identifier),
-            error=_not_none(f_error),
-        ))
-
-    def __repr__(self) -> str:
-        return "StartLauncherFailedEvent(" + repr(self.export_data()) + ")"
-
-
-class LauncherLoadExtensionRequestEvent:
-    """
-    Requests a launcher to load an extension. This event's target id is the launcher
-    target-id returned by a "start-launcher:success" event, and that declares the
-    permissions that the extension can use.
-    """
-    __slots__ = ('name', 'version', 'location', 'send_access', 'configuration',)
-    FULL_EVENT_NAME = 'petronia.core.api.foreman:launcher-load-extension:request'
-    SHORT_EVENT_NAME = 'launcher-load-extension:request'
-
-    UNIQUE_TARGET_FQN = 'petronia.core.api.foreman:launcher'
-    UNIQUE_TARGET_REL = 'launcher'
-
-    def __init__(
-        self,
-        name: str,
-        version: List[int],
-        location: str,
-        send_access: List[str],
-        configuration: Optional[str],
-    ) -> None:
-        self.name = name
-        self.version = version
-        self.location = location
-        self.send_access = send_access
-        self.configuration = configuration
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'name': self.name,
-            'version': list(self.version),
-            'location': self.location,
-            'send_access': list(self.send_access),
-            'configuration': self.configuration,
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherLoadExtensionRequestEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        f_name: Optional[str] = None
-        val = data.get('name')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='name',
-                name='LauncherLoadExtensionRequestEvent',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='name',
-                    type='str',
-                    name='LauncherLoadExtensionRequestEvent',
-                ))
-            else:
-                f_name = val
-        f_version: Optional[List[int]] = None
-        val = data.get('version')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='version',
-                name='LauncherLoadExtensionRequestEvent',
-            ))
-        else:
-            if not isinstance(val, list):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='version',
-                    type='List[int]',
-                    name='LauncherLoadExtensionRequestEvent',
-                ))
-            else:
-                f_version = []
-                for item in val:
-                    if not isinstance(item, int):
-                        errors.append(StdRet.pass_errmsg(
-                            STANDARD_PETRONIA_CATALOG,
-                            _(
-                                'Field {field_name} must contain items '
-                                'of type {type} for structure {name}'
-                            ),
-                            field_name='version',
-                            type='int',
-                            name='LauncherLoadExtensionRequestEvent',
-                        ))
-                    else:
-                        f_version.append(item)
-        f_location: Optional[str] = None
-        val = data.get('location')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='location',
-                name='LauncherLoadExtensionRequestEvent',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='location',
-                    type='str',
-                    name='LauncherLoadExtensionRequestEvent',
-                ))
-            else:
-                f_location = val
-        f_send_access: Optional[List[str]] = None
-        val = data.get('send_access')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='send_access',
-                name='LauncherLoadExtensionRequestEvent',
-            ))
-        else:
-            if not isinstance(val, list):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='send_access',
-                    type='List[str]',
-                    name='LauncherLoadExtensionRequestEvent',
-                ))
-            else:
-                f_send_access = []
-                for item in val:
-                    if not isinstance(item, str):
-                        errors.append(StdRet.pass_errmsg(
-                            STANDARD_PETRONIA_CATALOG,
-                            _(
-                                'Field {field_name} must contain items '
-                                'of type {type} for structure {name}'
-                            ),
-                            field_name='send_access',
-                            type='str',
-                            name='LauncherLoadExtensionRequestEvent',
-                        ))
-                    else:
-                        f_send_access.append(item)
-        f_configuration: Optional[str] = None
-        val = data.get('configuration')
-        if val is not None:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='configuration',
-                    type='str',
-                    name='LauncherLoadExtensionRequestEvent',
-                ))
-            else:
-                f_configuration = val
-        if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(LauncherLoadExtensionRequestEvent(
-            name=_not_none(f_name),
-            version=_not_none(f_version),
-            location=_not_none(f_location),
-            send_access=_not_none(f_send_access),
-            configuration=f_configuration,
-        ))
-
-    def __repr__(self) -> str:
-        return "LauncherLoadExtensionRequestEvent(" + repr(self.export_data()) + ")"
-
-
-class LauncherLoadExtensionSuccessEvent:
-    """
-    Signals a successful request to load the extension. Further events in the
-    extension's lifecycle will be generated by the extension itself. The source-id
-    is the launcher that loaded the extension.
-    """
-    __slots__ = ('name',)
-    FULL_EVENT_NAME = 'petronia.core.api.foreman:launcher-load-extension:success'
-    SHORT_EVENT_NAME = 'launcher-load-extension:success'
-
-    def __init__(
-        self,
-        name: str,
-    ) -> None:
-        self.name = name
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return LauncherLoadExtensionSuccessEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'name': self.name,
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherLoadExtensionSuccessEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        f_name: Optional[str] = None
-        val = data.get('name')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='name',
-                name='LauncherLoadExtensionSuccessEvent',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='name',
-                    type='str',
-                    name='LauncherLoadExtensionSuccessEvent',
-                ))
-            else:
-                f_name = val
-        if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(LauncherLoadExtensionSuccessEvent(
-            name=_not_none(f_name),
-        ))
-
-    def __repr__(self) -> str:
-        return "LauncherLoadExtensionSuccessEvent(" + repr(self.export_data()) + ")"
-
-
-class LauncherLoadExtensionFailedEvent:
+class LauncherStartExtensionFailedEvent:
     """
     Report that the requested extension could not be loaded by the loader. The
     source-id is the launcher that loaded the extension.
     """
     __slots__ = ('name', 'error',)
-    FULL_EVENT_NAME = 'petronia.core.api.foreman:launcher-load-extension:failed'
-    SHORT_EVENT_NAME = 'launcher-load-extension:failed'
+    FULL_EVENT_NAME = 'petronia.core.api.foreman:launcher-start-extension:failed'
+    SHORT_EVENT_NAME = 'launcher-start-extension:failed'
 
     def __init__(
         self,
@@ -896,7 +1093,7 @@ class LauncherLoadExtensionFailedEvent:
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return LauncherLoadExtensionFailedEvent.FULL_EVENT_NAME
+        return LauncherStartExtensionFailedEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
@@ -907,58 +1104,63 @@ class LauncherLoadExtensionFailedEvent:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherLoadExtensionFailedEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['LauncherStartExtensionFailedEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_name: Optional[str] = None
         val = data.get('name')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_name: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='name',
-                name='LauncherLoadExtensionFailedEvent',
-            ))
+                name='LauncherStartExtensionFailedEvent',
+            )
         else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='name',
                     type='str',
-                    name='LauncherLoadExtensionFailedEvent',
-                ))
-            else:
-                f_name = val
-        f_error: Optional[Error] = None
+                    name='LauncherStartExtensionFailedEvent',
+                )
+            f_name = val
         val = data.get('error')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_error: Error
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='error',
-                name='LauncherLoadExtensionFailedEvent',
-            ))
+                name='LauncherStartExtensionFailedEvent',
+            )
         else:
             parsed_error = Error.parse_data(val)
             if parsed_error.has_error:
-                errors.append(parsed_error.forward())
-            else:
-                # Value, not result, because it could be optional...
-                f_error = parsed_error.value
+                return parsed_error.forward()
+            if parsed_error.value is None:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='error',
+                )
+            f_error = parsed_error.result
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(LauncherLoadExtensionFailedEvent(
-            name=_not_none(f_name),
-            error=_not_none(f_error),
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LauncherStartExtensionFailedEvent(
+            name=not_none(f_name),
+            error=not_none(f_error),
         ))
 
     def __repr__(self) -> str:
-        return "LauncherLoadExtensionFailedEvent(" + repr(self.export_data()) + ")"
+        return "LauncherStartExtensionFailedEvent(" + repr(self.export_data()) + ")"
 
 
-class Events:
+class EventTarget:
     """
     A target event for an extension listening.
     """
@@ -966,8 +1168,8 @@ class Events:
 
     def __init__(
         self,
-        event_id: Optional[str],
-        target_id: Optional[str],
+        event_id: str,
+        target_id: str,
     ) -> None:
         self.event_id = event_id
         self.target_id = target_id
@@ -981,63 +1183,73 @@ class Events:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Events']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['EventTarget']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_event_id: Optional[str] = None
         val = data.get('event_id')
-        if val is not None:
+        f_event_id: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='event_id',
+                name='EventTarget',
+            )
+        else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='event_id',
                     type='str',
-                    name='Events',
-                ))
-            else:
-                f_event_id = val
-        f_target_id: Optional[str] = None
+                    name='EventTarget',
+                )
+            f_event_id = val
         val = data.get('target_id')
-        if val is not None:
+        f_target_id: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='target_id',
+                name='EventTarget',
+            )
+        else:
             if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
+                return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='target_id',
                     type='str',
-                    name='Events',
-                ))
-            else:
-                f_target_id = val
+                    name='EventTarget',
+                )
+            f_target_id = val
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(Events(
-            event_id=f_event_id,
-            target_id=f_target_id,
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(EventTarget(
+            event_id=not_none(f_event_id),
+            target_id=not_none(f_target_id),
         ))
 
     def __repr__(self) -> str:
-        return "Events(" + repr(self.export_data()) + ")"
+        return "EventTarget(" + repr(self.export_data()) + ")"
 
 
 class ExtensionAddEventListenerEvent:
     """
     Request from the extension loader to add an event listener for an extension.
     Failures happen silently (no response back is made). The target_id must match
-    with the ID for the launcher that owns the extension.
+    the source ID of the event that reported extension start success.
     """
-    __slots__ = ('extension_name', 'events',)
+    __slots__ = ('events',)
     FULL_EVENT_NAME = 'petronia.core.api.foreman:extension-add-event-listener'
     SHORT_EVENT_NAME = 'extension-add-event-listener'
 
     def __init__(
         self,
-        extension_name: str,
-        events: List[Events],
+        events: List[EventTarget],
     ) -> None:
-        self.extension_name = extension_name
         self.events = events
 
     @property
@@ -1048,7 +1260,6 @@ class ExtensionAddEventListenerEvent:
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'extension_name': self.extension_name,
             'events': [v.export_data() for v in self.events],
         }
         return _strip_none(ret)
@@ -1058,48 +1269,26 @@ class ExtensionAddEventListenerEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_extension_name: Optional[str] = None
-        val = data.get('extension_name')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='extension_name',
-                name='ExtensionAddEventListenerEvent',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='extension_name',
-                    type='str',
-                    name='ExtensionAddEventListenerEvent',
-                ))
-            else:
-                f_extension_name = val
-        f_events: Optional[List[Events]] = None
         val = data.get('events')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_events: List[EventTarget]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='events',
                 name='ExtensionAddEventListenerEvent',
-            ))
+            )
         else:
             f_events = []
             for item in val:
-                parsed_events = Events.parse_data(item)
+                parsed_events = EventTarget.parse_data(item)
                 if parsed_events.has_error:
-                    errors.append(parsed_events.forward())
-                else:
-                    f_events.append(parsed_events.result)
+                    return parsed_events.forward()
+                f_events.append(parsed_events.result)
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(ExtensionAddEventListenerEvent(
-            extension_name=_not_none(f_extension_name),
-            events=_not_none(f_events),
+            events=not_none(f_events),
         ))
 
     def __repr__(self) -> str:
@@ -1110,18 +1299,16 @@ class ExtensionRemoveEventListenerEvent:
     """
     Request from the extension loader to remove an event listener for an extension.
     Failures happen silently (no response back is made). The target_id must match
-    with the ID for the launcher that owns the extension.
+    the source ID of the event that reported extension start success.
     """
-    __slots__ = ('extension_name', 'events',)
+    __slots__ = ('events',)
     FULL_EVENT_NAME = 'petronia.core.api.foreman:extension-remove-event-listener'
     SHORT_EVENT_NAME = 'extension-remove-event-listener'
 
     def __init__(
         self,
-        extension_name: str,
-        events: List[Events],
+        events: List[EventTarget],
     ) -> None:
-        self.extension_name = extension_name
         self.events = events
 
     @property
@@ -1132,7 +1319,6 @@ class ExtensionRemoveEventListenerEvent:
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'extension_name': self.extension_name,
             'events': [v.export_data() for v in self.events],
         }
         return _strip_none(ret)
@@ -1142,48 +1328,26 @@ class ExtensionRemoveEventListenerEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        f_extension_name: Optional[str] = None
-        val = data.get('extension_name')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='extension_name',
-                name='ExtensionRemoveEventListenerEvent',
-            ))
-        else:
-            if not isinstance(val, str):
-                errors.append(StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='extension_name',
-                    type='str',
-                    name='ExtensionRemoveEventListenerEvent',
-                ))
-            else:
-                f_extension_name = val
-        f_events: Optional[List[Events]] = None
         val = data.get('events')
-        if val is None:
-            errors.append(StdRet.pass_errmsg(
+        f_events: List[EventTarget]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='events',
                 name='ExtensionRemoveEventListenerEvent',
-            ))
+            )
         else:
             f_events = []
             for item in val:
-                parsed_events = Events.parse_data(item)
+                parsed_events = EventTarget.parse_data(item)
                 if parsed_events.has_error:
-                    errors.append(parsed_events.forward())
-                else:
-                    f_events.append(parsed_events.result)
+                    return parsed_events.forward()
+                f_events.append(parsed_events.result)
         if errors:
-            return StdRet.pass_error(_not_none(collect_errors_from(errors)))
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(ExtensionRemoveEventListenerEvent(
-            extension_name=_not_none(f_extension_name),
-            events=_not_none(f_events),
+            events=not_none(f_events),
         ))
 
     def __repr__(self) -> str:
@@ -1260,11 +1424,6 @@ class StopEvent:
 
     def __repr__(self) -> str:
         return "StopEvent(" + repr(self.export_data()) + ")"
-
-
-def _not_none(value: Optional[T]) -> T:
-    assert value is not None
-    return value
 
 
 def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:

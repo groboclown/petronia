@@ -34,7 +34,7 @@ EventDataType = Literal[
 
 class AbcEventDataType(AbcConfigType, ABC):
     """Base class for event data types."""
-    __slots__ = ('__type_name', '__description',)
+    __slots__ = ('__type_name', '__description', 'suggested_name')
 
     def __init__(
             self,
@@ -42,6 +42,7 @@ class AbcEventDataType(AbcConfigType, ABC):
             description: Optional[str],
     ) -> None:
         """Common data values."""
+        self.suggested_name: Optional[str] = None
         self.__type_name = type_name
         self.__description = description
 
@@ -311,7 +312,8 @@ class EnumEventDataType(AbcEventDataType):
         if len(self.__values) <= 0:
             messages.append(UserMessage(
                 STANDARD_PETRONIA_CATALOG,
-                _('value list must contain at least 1 item'),
+                _('enum must contain at least 1 item ({description})'),
+                description=self.description or 'no description',
             ))
         for val in self.__values:
             if not isinstance(val, str):

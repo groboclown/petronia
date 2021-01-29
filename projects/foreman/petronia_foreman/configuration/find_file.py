@@ -9,7 +9,7 @@ from typing import List, Iterable, Optional
 import os
 from petronia_common.util import i18n as _
 from petronia_common.util import StdRet
-from .platform import PlatformSettings
+from . import platform
 from ..constants import TRANSLATION_CATALOG as CATALOG
 
 
@@ -18,15 +18,16 @@ DEFAULT_PETRONIA_CONFIG_FILE_NAMES = (
     os.path.join('.petronia.ini'),
 )
 
+BOOT_EXTENSION_SEARCH_DIRS = (
+    os.curdir,
+    'boot-extensions',
+)
 
-def get_config_file(
-        config_arg: Optional[str],
-        platform: PlatformSettings,
-) -> StdRet[str]:
+
+def get_config_file(config_arg: Optional[str]) -> StdRet[str]:
     """
     Find the root configuration file.
 
-    :param platform:
     :param config_arg:
     :return:
     """
@@ -34,7 +35,7 @@ def get_config_file(
         if os.path.isfile(config_arg):
             return StdRet.pass_ok(config_arg)
         return discover_config_file_in([config_arg])
-    return discover_config_file_in(platform.config_paths)
+    return discover_config_file_in(platform.configuration_paths)
 
 
 def discover_config_file_in(search_path: Iterable[Optional[str]]) -> StdRet[str]:
@@ -53,4 +54,16 @@ def discover_config_file_in(search_path: Iterable[Optional[str]]) -> StdRet[str]
         CATALOG,
         _('Could not find configuration file "petronia.ini" in any of {searched}'),
         searched='; '.join(searched),
+    )
+
+
+def get_boot_extension_file(filename: str) -> StdRet[str]:
+    """Discover the location of the boot extension file."""
+    fqn = platform.find_data_file(filename, *BOOT_EXTENSION_SEARCH_DIRS)
+    if fqn:
+        return StdRet.pass_ok(fqn)
+    return StdRet.pass_errmsg(
+        CATALOG,
+        _('could not find boot extension file; searched in {path}'),
+        path=', '.join(platform.data_paths),
     )

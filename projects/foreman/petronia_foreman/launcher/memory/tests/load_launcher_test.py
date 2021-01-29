@@ -1,6 +1,6 @@
 """Test the module"""
 
-from typing import List, Sequence, Tuple
+from typing import List, Sequence, Tuple, Dict
 import unittest
 import os
 import sys
@@ -10,7 +10,7 @@ from configparser import ConfigParser
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.event_stream.tests.shared import create_read_stream, SimpleBinaryWriter
 from .. import load_launcher
-from ....configuration import LauncherConfig
+from ....configuration import RuntimeConfig
 
 
 TEST_MODULE_TEXT = """
@@ -40,9 +40,8 @@ class LoadLauncherTest(unittest.TestCase):
         cfg = ConfigParser()
         cfg.add_section('local-test')
         cfg.set('local-test', load_launcher.PYTHON_PATH_OPTION, self.tempdir)
-        cfg.set('local-test', load_launcher.MODULE_NAME_OPTION, 'test_mod')
-        l_conf = LauncherConfig('local-test', cfg)
-        mod = load_launcher.import_module(l_conf)
+        l_conf = RuntimeConfig('local-test', cfg)
+        mod = load_launcher.import_module('test_mod', [1], [], l_conf)
         self.assertIsNone(mod.error)
         self.assertTrue(mod.ok)
         self.assertTrue(hasattr(mod.result, 'MY_MODULE_CONST'))
@@ -70,7 +69,7 @@ class LoadLauncherTest(unittest.TestCase):
 
         thread_res = load_launcher.connect_launcher(
             '_entry_point_ok', sys.modules[__name__],
-            on_error, on_ok, ['a', 'b'], reader, writer,
+            on_error, on_ok, ['a', 'b'], reader, writer, {},
         )
         self.assertIsNone(thread_res.error)
         self.assertTrue(thread_res.ok)
@@ -107,7 +106,7 @@ class LoadLauncherTest(unittest.TestCase):
 
         thread_res = load_launcher.connect_launcher(
             '_entry_point_err', sys.modules[__name__],
-            on_error, on_ok, ['1', 'abc'], reader, writer,
+            on_error, on_ok, ['1', 'abc'], reader, writer, {},
         )
         self.assertIsNone(thread_res.error)
         self.assertTrue(thread_res.ok)
@@ -130,7 +129,9 @@ class LoadLauncherTest(unittest.TestCase):
         )
 
 
-def _entry_point_ok(_args: Sequence[str], read: BinaryReader, write: BinaryWriter) -> None:
+def _entry_point_ok(
+        read: BinaryReader, write: BinaryWriter, _config: Dict[str, str], _args: Sequence[str],
+) -> None:
     read.read()
     write.write(b'ok')
 
@@ -138,7 +139,9 @@ def _entry_point_ok(_args: Sequence[str], read: BinaryReader, write: BinaryWrite
 RAISED_ERROR = OSError('blah')
 
 
-def _entry_point_err(_args: Sequence[str], read: BinaryReader, write: BinaryWriter) -> None:
+def _entry_point_err(
+        read: BinaryReader, write: BinaryWriter, _config: Dict[str, str], _args: Sequence[str],
+) -> None:
     read.read(1)
     write.write(b'err')
     raise RAISED_ERROR

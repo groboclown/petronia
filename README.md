@@ -2,7 +2,7 @@
 
 **This is the v3 documentation, which is still being developed.**
 
-[![forked-model branch build](https://travis-ci.com/groboclown/petronia.svg?branch=forked-model)](https://travis-ci.com/github/groboclown/petronia)
+[![forked-model branch build](https://travis-ci.com/groboclown/petronia.svg?branch=forked-model)](https://travis-ci.com/github/groboclown/petronia) [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit) [![license: MIT](https://img.shields.io/badge/license-MIT-brightgreen)](https://github.com/groboclown/petronia) ![platforms: win-64 & linux-64](https://img.shields.io/badge/platforms-win--64%20%7C%20linux--64-informational)
 
 ## Latest Release: v2.2
 

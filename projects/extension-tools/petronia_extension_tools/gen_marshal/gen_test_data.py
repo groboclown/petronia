@@ -73,11 +73,11 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
 
     if isinstance(fdt, DatetimeEventDataType):
         return StdRet.pass_ok(repr(datetime.datetime.utcnow().strftime(
-            'YYYYMMDD:hhmmss.sss:Z',
+            '%Y%m%d:%H%M%S.%f:+0000',
         )))
 
     if isinstance(fdt, EnumEventDataType):
-        return StdRet.pass_ok(random.choice(fdt.values))
+        return StdRet.pass_ok(repr(random.choice(fdt.values)))
 
     if isinstance(fdt, SelectorEventDataType):
         selected_key, selected_type = random.choice(tuple(fdt.selector_items()))

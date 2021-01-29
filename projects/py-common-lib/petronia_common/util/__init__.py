@@ -44,10 +44,12 @@ from .validation import (
 )
 
 from . import yaml_support
-from .yaml_support import load_yaml_documents, dump_yaml_documents, YAML_SUPPORTED
+
+from . import formatted_data_reader
+from .formatted_data_reader import load_structured_file
 
 from . import type_support
-from .type_support import without_none
+from .type_support import without_none, not_none
 
 from . import aio
 

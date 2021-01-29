@@ -29,9 +29,9 @@ _REQUIRED_IMPORTS: Sequence[ImportStruct] = (
     ('typing', 'List', None),
     ('typing', 'Dict', None),
     ('typing', 'Any', None),
-    ('petronia_common.util', 'T', None),
     ('petronia_common.util', 'StdRet', None),
     ('petronia_common.util', 'collect_errors_from', None),
+    ('petronia_common.util', 'not_none', None),
     ('petronia_common.util', 'STANDARD_PETRONIA_CATALOG', None),
     ('petronia_common.util', 'i18n', '_'),
 )
@@ -243,7 +243,7 @@ def find_or_add_structure(
         # anything in this list, the structure name will be added.
         for name in names:
             return StdRet.pass_ok(name)
-    name = normalize_structure_name(field_name)
+    name = normalize_structure_name(structure.suggested_name or field_name)
     ret_inner_structures = create_inner_structure(
         name, None, None, structure, seen_structures, imports,
     )
@@ -281,6 +281,7 @@ def get_field_struct(  # pylint: disable=R0912,R0913,R0915
         'is_datetime_type': False,
         'is_enum_type': False,
         'is_array_simple_type': False,
+        'is_array_datetime_type': False,
         'is_struct_type': False,
         'is_array_struct_type': False,
         'enum_values': [],
@@ -324,7 +325,9 @@ def get_field_struct(  # pylint: disable=R0912,R0913,R0915
     elif isinstance(fdt, DatetimeEventDataType):
         field['is_datetime_type'] = True
         field['field_python_type'] = 'datetime.datetime'
+        field['field_python_instance_type'] = 'datetime.datetime'
         imports.append(('datetime', None, None))
+        imports.append(('typing', 'cast', None))
     elif isinstance(fdt, EnumEventDataType):
         field['is_enum_type'] = True
         field['field_python_type'] = 'str'
@@ -355,17 +358,23 @@ def get_field_struct(  # pylint: disable=R0912,R0913,R0915
             field['field_python_type'] = 'List[' + field['field_python_item_type'] + ']'
         elif isinstance(item_type, (
                 StringEventDataType, BoolEventDataType, FloatEventDataType, IntEventDataType,
+                EnumEventDataType, DatetimeEventDataType,
         )):
             field['is_array_simple_type'] = True
             inner_type: str = item_type.type_name
-            if inner_type == 'string':
+            if inner_type in ('string', 'enum',):
                 inner_type = 'str'
+            if inner_type == 'datetime':
+                inner_type = 'datetime.datetime'
+                field['is_array_datetime_type'] = True
             field['field_python_type'] = 'List[' + inner_type + ']'
             field['field_python_item_type'] = inner_type
+            imports.append(('typing', 'cast', None,))
         else:
             raise Exception('Unsupported array field type: ' + repr(item_type))
     else:
         raise Exception('Unknown field type ' + repr(fdt))  # pragma no cover
+    field['field_python_item_type_name'] = field['field_python_item_type'].replace('.', '_')
     return StdRet.pass_ok(field)
 
 

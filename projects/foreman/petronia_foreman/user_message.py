@@ -14,7 +14,7 @@ import gettext
 import traceback
 from petronia_common.util import PetroniaReturnError, I18n, UserMessage, UserMessageData
 from petronia_common.util.error import ExceptionPetroniaReturnError
-from .configuration.platform import PlatformSettings
+from .configuration import platform
 from .constants import TRANSLATION_CATALOG
 
 CATALOG = TRANSLATION_CATALOG
@@ -68,13 +68,12 @@ def translate(catalog: str, message: I18n, **kwargs: UserMessageData) -> str:
 
 
 def load_translation(
-        settings: PlatformSettings,
         locale_names: Optional[Iterable[str]] = None,
 ) -> None:
     """Use the platform-specific settings to find the translation directory.
     The locales are not in the platform on purpose."""
     _TRANSLATIONS.clear()
-    data_dir = settings.find_data_dir('translations')
+    data_dir = platform.find_data_dir('translations')
     if not data_dir:
         low_println("No translations directory found.")
         return

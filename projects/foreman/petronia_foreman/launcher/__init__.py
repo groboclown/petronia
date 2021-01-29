@@ -4,7 +4,7 @@ from . import abc, loader
 from .abc import (
     RuntimeContext,
     AbcLauncherCategory,
-    LauncherFactory,
+    RuntimeFactory,
 )
 
 from .loader import create_launcher_category

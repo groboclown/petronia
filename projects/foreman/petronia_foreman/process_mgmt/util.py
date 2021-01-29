@@ -1,35 +1,30 @@
 
 """Shared utilities."""
 
-from typing import Tuple, Sequence, List
+from typing import Mapping, Sequence, List
 import os
-import tempfile
-from petronia_foreman.configuration import PlatformSettings
+from ..configuration import platform
 
 
-def create_cmd_and_dirs(
+def create_cmd(
         command: Sequence[str],
-        platform: PlatformSettings,
+        temp_dir: str, other_params: Mapping[str, str],
         child_fd: int,
-) -> Tuple[Sequence[str], List[str]]:
+) -> Sequence[str]:
     """Create the command argument and the temporary directories."""
-    temp_dirs: List[str] = []
+    params = {
+        '${' + key.upper() + '}': value
+        for key, value in other_params.items()
+    }
+    params['${DATA_PATH'] = os.path.pathsep.join(platform.data_paths)
+    params['${CONFIG_PATH}'] = os.path.pathsep.join(platform.configuration_paths)
+    params['${TEMP_DIR}'] = os.path.abspath(temp_dir)
+    params['${WRITE_FD}'] = str(child_fd)
+
     ret_cmd: List[str] = []
     for cmd_part in command:
-        if '${TEMP_DIR}' in cmd_part:
-            temp_dirs.append(tempfile.mkdtemp())
-            cmd_part = cmd_part.replace('${TEMP_DIR}', temp_dirs[0])
-        if '${DATA_PATH}' in cmd_part:
-            cmd_part = cmd_part.replace(
-                '${DATA_PATH}',
-                os.path.pathsep.join(platform.data_paths)
-            )
-        if '${CONFIG_PATH}' in cmd_part:
-            cmd_part = cmd_part.replace(
-                '${CONFIG_PATH}',
-                os.path.pathsep.join(platform.config_paths)
-            )
-        if '${WRITE_FD}' in cmd_part:
-            cmd_part = cmd_part.replace('${WRITE_FD}', str(child_fd))
+        for key, value in params.items():
+            if key in cmd_part:
+                cmd_part = cmd_part.replace(key, value)
         ret_cmd.append(cmd_part)
-    return ret_cmd, temp_dirs
+    return ret_cmd

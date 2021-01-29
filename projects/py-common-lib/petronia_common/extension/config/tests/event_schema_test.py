@@ -222,7 +222,8 @@ class EventSchemaEnumTest(unittest.TestCase):
         self.assertEqual(
             (UserMessage(
                 STANDARD_PETRONIA_CATALOG,
-                i18n('value list must contain at least 1 item'),
+                i18n('enum must contain at least 1 item ({description})'),
+                description='no description',
             ),),
             err.messages(),
         )

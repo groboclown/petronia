@@ -29,6 +29,6 @@ from .writer import (
     write_binary_event_to_stream, write_object_event_to_stream,
 )
 from .forwarder import (
-    EventForwarderTarget, EventForwarder, BinaryEventStreamForwarder,
+    EventForwarderTarget, BaseEventForwarderTarget, EventForwarder, BinaryEventStreamForwarder,
 )
 # from . import aio_stream, thread_stream

@@ -3,11 +3,9 @@ Loads the extension documentation.
 """
 
 from typing import List, Sequence, Iterable, Dict, Any
-import json
-import collections
 from petronia_common.util import (
     StdRet,
-    load_yaml_documents, join_results,
+    load_structured_file, join_results,
     STANDARD_PETRONIA_CATALOG,
 )
 from petronia_common.util import i18n as _
@@ -34,36 +32,13 @@ class ExtensionDataFile:
 
 def load_extension_file(filename: str) -> StdRet[Sequence[ExtensionDataFile]]:
     """Load the metadata from the extension file."""
-    if filename.lower().endswith('.json'):
-        with open(filename, 'r') as f:
-            ret_data = json.load(f)
-    elif filename.lower().endswith('.yaml') or filename.lower().endswith('.yml'):
-        with open(filename, 'r') as f:
-            ret_data = load_yaml_documents(f.read())
-    else:
-        return StdRet.pass_errmsg(
-            STANDARD_PETRONIA_CATALOG,
-            _('Invalid extension metadata file type: {name}'), name=filename,
-        )
-    if ret_data.has_error:
-        # Strange.
-        # MyPy is reporting "Returning Any from function declared to return ..."
-        # return ret_data.forward()
-        return StdRet.pass_error(ret_data.valid_error)
+    res_data = load_structured_file(filename)
+    if res_data.has_error:
+        return res_data.forward()
 
-    data = ret_data.result
+    data = res_data.result
     if isinstance(data, dict):
         data = [data]
-    if not isinstance(data, collections.abc.Iterable):
-        return StdRet.pass_errmsg(
-            STANDARD_PETRONIA_CATALOG,
-            _(
-                'Extension metadata file ({name}) must contain a dictionary '
-                'or a list of dictionaries, found {data}'
-            ),
-            name=filename,
-            data=repr(data),
-        )
 
     ret: List[StdRet[ExtensionDataFile]] = []
     for item in data:

@@ -2,19 +2,18 @@
 """
 The Launcher mapping configuration.
 
-There exists one of these for each launch configuration type.
+There exists one of these for each runtime configuration type.
 """
 
-from typing import Optional
 from configparser import ConfigParser
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
-from . import launcher_parameters
+from . import runtime_parameters
 from ..constants import TRANSLATION_CATALOG as CATALOG
 
 
-class LauncherConfig:
-    """Configuration for all the launchers.
+class RuntimeConfig:
+    """Configuration for all the runtime launchers.
 
     A launcher is a well-defined name used by extensions to indicate how it should be launched.
     The launcher configuration defines a process to run.
@@ -26,16 +25,15 @@ class LauncherConfig:
     Reusable launchers only start one launcher per permission set, so that it will contain
     multiple running extensions.
     """
-    __slots__ = ('__launcher_name', '__runner', '__boot_channel', '__options',)
+    __slots__ = ('__launcher_name', '__runner', '__options',)
 
     def __init__(self, launcher_name: str, configuration: ConfigParser) -> None:
         self.__launcher_name = launcher_name
-        self.__runner = launcher_parameters.get_runner(launcher_name, configuration)
-        self.__boot_channel = launcher_parameters.get_boot_channel(launcher_name, configuration)
-        self.__options = launcher_parameters.get_launcher_options(launcher_name, configuration)
+        self.__runner = runtime_parameters.get_runner(launcher_name, configuration)
+        self.__options = runtime_parameters.get_launcher_options(launcher_name, configuration)
 
     @property
-    def launcher_name(self) -> str:
+    def runtime_name(self) -> str:
         """The name of the launcher, as defined in the petronia ini section title."""
         return self.__launcher_name
 
@@ -45,13 +43,8 @@ class LauncherConfig:
         return self.__runner
 
     @property
-    def boot_channel(self) -> Optional[str]:
-        """The boot channel for the launcher, if any.  Only boot-time launchers can have this."""
-        return self.__boot_channel
-
-    @property
-    def options(self) -> launcher_parameters.LauncherOptions:
-        """Additional options defined for the launcher."""
+    def options(self) -> runtime_parameters.RuntimeLauncherOptions:
+        """Additional options defined for the runtime launcher."""
         return self.__options
 
     def get_option(self, key: str) -> StdRet[str]:
@@ -59,13 +52,12 @@ class LauncherConfig:
         if key not in self.options:
             return StdRet.pass_errmsg(
                 CATALOG,
-                _('launcher {name} does not have required option `{key}` set'),
-                name=self.launcher_name,
+                _('runtime {name} does not have required option `{key}` set'),
+                name=self.runtime_name,
                 key=key,
             )
         ret = self.options.get(key)
-        assert isinstance(ret, str)
-        return StdRet.pass_ok(ret)
+        return StdRet.pass_ok(str(ret))
 
     def validate(self) -> StdRet[None]:
         """Check if the configuration is valid."""
@@ -73,6 +65,6 @@ class LauncherConfig:
             return StdRet.pass_errmsg(
                 CATALOG,
                 _("`runner` not specified for launcher {name}"),
-                name=self.launcher_name,
+                name=self.runtime_name,
             )
         return RET_OK_NONE

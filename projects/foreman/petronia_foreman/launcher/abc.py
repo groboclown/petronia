@@ -1,8 +1,6 @@
 """
 Abstract class for all launchers.
 
-FIXME launchers + event model for starting extensions needs to change.
-
 The "runtime" definition on an extension determines which extension runner to use.  The
 extension runner selects a launcher on its own.  This means there is no longer the 2-part
 extension start chain, which is really complex and error-prone.  Instead, an event is sent
@@ -11,12 +9,12 @@ data), then foreman starts the registered extension runner (specified in the for
 and that runner does the process start (if necessary) and extension loading.
 """
 
-from typing import Tuple, Sequence, Mapping, List, Iterable, Callable, Optional
+from typing import Tuple, Sequence, Iterable, Callable
 from petronia_common.event_stream import BinaryWriter, BinaryReader
 from petronia_common.util import StdRet
-from ..configuration.platform import PlatformSettings
-from ..configuration.launcher import LauncherConfig
-from ..configuration.launcher_parameters import LauncherOptions
+from ..configuration.runtime import RuntimeConfig
+from ..configuration.runtime_parameters import RuntimeLauncherOptions
+from ..events import foreman
 from ..event_router.handler import EventTargetHandle
 from ..event_router.channel import InternalEventHandler
 
@@ -24,10 +22,6 @@ from ..event_router.channel import InternalEventHandler
 class RuntimeContext:
     """Context used by a launcher category to handle events to/from the launcher."""
     __slots__ = ()
-
-    def get_platform(self) -> PlatformSettings:
-        """Get the platform settings."""
-        raise NotImplementedError()
 
     def register_channel(
             self,
@@ -37,7 +31,7 @@ class RuntimeContext:
                 StdRet[Tuple[BinaryReader, BinaryWriter]],
             ],
     ) -> StdRet[None]:
-        """Creates the channel."""
+        """Creates the channel.  The name must be unique."""
         raise NotImplementedError()
 
     def close_channel(self, name: str) -> bool:
@@ -68,8 +62,8 @@ class RuntimeContext:
 class AbcLauncherCategory:
     """
     Defines how to run and interact with extensions.  The extension loader requests that
-    a launcher starts based on a launcher category.  The category determines how it is launched
-    and interacts.
+    a runtime launcher starts based on a runtime category.  The category determines how
+    it is launched and interacts.
 
     Some examples:
     1. A sandbox process manager that launches the processes in the correct limited
@@ -96,17 +90,17 @@ class AbcLauncherCategory:
 
     def __init__(
             self,
-            options: LauncherConfig,
+            options: RuntimeConfig,
     ) -> None:
         self.__options = options
 
     @property
-    def config(self) -> LauncherConfig:
+    def config(self) -> RuntimeConfig:
         """Get the configuration for the launcher."""
         return self.__options
 
     @property
-    def options(self) -> LauncherOptions:
+    def options(self) -> RuntimeLauncherOptions:
         """List of options used to start the launcher."""
         return self.__options.options
 
@@ -118,35 +112,23 @@ class AbcLauncherCategory:
         """Initialize the launcher.  Only called once."""
         raise NotImplementedError()
 
-    def start_launcher(
+    def start_extension(
             self,
-            launcher_id: str,
-            permissions: Mapping[str, List[str]],
-    ) -> StdRet[None]:
-        """Start a launcher within this category, with a specific list of permissions."""
-        raise NotImplementedError()
-
-    def start_extension(  # pylint: disable=too-many-arguments
-            self,
-            launcher_id: str,
             handler_id: str,
-            extension_name: str,
-            extension_version: Tuple[int, int, int],
-            location: str,
-            configuration: Optional[str],
+            start_event: foreman.LauncherStartExtensionRequestEvent,
     ) -> StdRet[None]:
         """Start the extension as requested by the event.  This will need to register with the
         RuntimeContext a new handler, and what events the extension is capable of consuming and
         producing."""
         raise NotImplementedError()
 
-    def get_active_launcher_ids(self) -> Sequence[str]:
-        """Get the list of all active launcher IDs."""
+    def get_active_handler_ids(self) -> Sequence[str]:
+        """Get the list of all active extension handler IDs."""
         raise NotImplementedError()
 
-    def stop_launcher(self, launcher_id: str) -> StdRet[None]:
-        """Stops the specific launcher.  If the launcher is not registered or not running, then
-        the appropriate error is returned.  This should run until the launcher is completely
+    def stop_extension(self, handler_id: str) -> StdRet[None]:
+        """Stops the specific extension.  If the extension is not registered or not running, then
+        the appropriate error is returned.  This should run until the extension is completely
         stopped."""
         raise NotImplementedError()
 
@@ -155,4 +137,4 @@ class AbcLauncherCategory:
         raise NotImplementedError()
 
 
-LauncherFactory = Callable[[LauncherConfig], AbcLauncherCategory]
+RuntimeFactory = Callable[[RuntimeConfig], AbcLauncherCategory]

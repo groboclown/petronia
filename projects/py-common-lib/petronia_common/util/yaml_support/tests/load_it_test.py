@@ -46,6 +46,18 @@ class LoadItTest(unittest.TestCase):
         self.assertEqual('Invalid YAML format: {e}', messages[0].message)
         self.assertIsNotNone(messages[0].arguments.get('e'))
 
+    def test_load_safe(self) -> None:
+        """Ensure that the safe version of yaml is used to load the document.
+        For details, see https://talosintelligence.com/vulnerability_reports/TALOS-2017-0305
+        """
+        res = load_it.load_yaml_documents('!!python/object/apply:sys.exit 1')
+        self.assertIsNotNone(res.error)
+        messages = ';'.join([m.debug() for m in res.error.messages()])
+        self.assertTrue(
+            'Invalid YAML format' in messages,
+            messages
+        )
+
     def test_dump_empty(self) -> None:
         """Dump an empty list of documents"""
         res = load_it.dump_yaml_documents([])

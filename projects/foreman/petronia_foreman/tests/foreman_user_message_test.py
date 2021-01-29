@@ -6,11 +6,10 @@ import sys
 import io
 import tempfile
 import shutil
-import locale
 from petronia_common.util import i18n, UserMessage
 from petronia_common.util.error import SimplePetroniaReturnError, ExceptionPetroniaReturnError
 from .. import user_message
-from ..configuration.platform import PlatformSettings, CATEGORY__OSX
+from ..configuration.platform import data_paths
 
 
 class ForemanUserMessageTest(unittest.TestCase):
@@ -22,24 +21,24 @@ class ForemanUserMessageTest(unittest.TestCase):
         os.makedirs(self.config_dir, exist_ok=True)
         self.data_dir = os.path.join(self.tempdir, 'data')
         os.makedirs(self.data_dir, exist_ok=True)
-        self._init_locale = locale.getlocale(category=locale.LC_CTYPE)
         self._orig_env = os.environ.copy()
         self._orig_stdout = sys.stdout
+        self._orig_data_paths = list(data_paths)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tempdir, ignore_errors=True)
-        locale.setlocale(locale.LC_CTYPE, self._init_locale[0])
         os.environ.clear()
         os.environ.update(self._orig_env)
         sys.stdout = self._orig_stdout
+        data_paths.clear()
+        data_paths.extend(self._orig_data_paths)
 
     def test_load_translation__not_found(self) -> None:
         """Test loading translations when they are found."""
         # Translation directory not find
-        settings = PlatformSettings(
-            'test', CATEGORY__OSX, (self.config_dir,), (self.data_dir,), 'x',
-        )
-        user_message.load_translation(settings)
+        data_paths.clear()
+        data_paths.append(self.data_dir)
+        user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
             text='abc',
@@ -51,7 +50,7 @@ class ForemanUserMessageTest(unittest.TestCase):
         self.assertFalse(os.path.isfile(
             os.path.join(self.data_dir, 'translations', 'catalog.list'),
         ))
-        user_message.load_translation(settings)
+        user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
             text='abc',
@@ -72,12 +71,11 @@ class ForemanUserMessageTest(unittest.TestCase):
         parent_dir = os.path.dirname(__file__)
         translation_dir = os.path.join(parent_dir, 'translations')
         self.assertTrue(os.path.isdir(translation_dir))
-        settings = PlatformSettings(
-            'test', CATEGORY__OSX, (self.config_dir,), (parent_dir, self.data_dir,), 'x',
-        )
+        data_paths.clear()
+        data_paths.extend([parent_dir, self.data_dir])
 
         # Use a known translation.
-        user_message.load_translation(settings, ['en'])
+        user_message.load_translation(['en'])
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
             text='abc',
@@ -85,7 +83,7 @@ class ForemanUserMessageTest(unittest.TestCase):
         self.assertEqual('ENGLISH [abc] ENGLISH', en_text)
 
         # Use another known translation.
-        user_message.load_translation(settings, ['fr'])
+        user_message.load_translation(['fr'])
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
             text='abc',
@@ -93,7 +91,7 @@ class ForemanUserMessageTest(unittest.TestCase):
         self.assertEqual('FRENCH [abc] FRENCH', en_text)
 
         # Use an unknown translation.
-        user_message.load_translation(settings, ['zn'])
+        user_message.load_translation(['zn'])
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
             text='abc',
@@ -102,7 +100,7 @@ class ForemanUserMessageTest(unittest.TestCase):
 
         # System locale; unknown.
         os.environ['LANG'] = 'zn'
-        user_message.load_translation(settings)
+        user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
             text='abc',
@@ -111,7 +109,7 @@ class ForemanUserMessageTest(unittest.TestCase):
 
         # System locale; known.
         os.environ['LANG'] = 'en'
-        user_message.load_translation(settings)
+        user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
             text='abc',
@@ -121,10 +119,9 @@ class ForemanUserMessageTest(unittest.TestCase):
     def test_display__translated(self) -> None:
         """Just a simple print with a translated message."""
         parent_dir = os.path.dirname(__file__)
-        settings = PlatformSettings(
-            'test', CATEGORY__OSX, (self.config_dir,), (parent_dir, self.data_dir,), 'x',
-        )
-        user_message.load_translation(settings, ['en'])
+        data_paths.clear()
+        data_paths.extend([parent_dir, self.data_dir])
+        user_message.load_translation(['en'])
         sys.stdout = io.StringIO()
         user_message.display(
             'test-messages', i18n('Simple test message {text}'),

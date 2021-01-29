@@ -7,7 +7,7 @@ Simple data structures means list, dict, int, float, bool, str, None
 
 from typing import List, Dict, Optional, Any, cast
 from . import event_schema
-from ...util import StdRet, collect_errors_from, EMPTY_TUPLE
+from ...util import StdRet, UserMessage, collect_errors_from, join_errors, EMPTY_TUPLE
 from ...util import i18n as _
 from ...util import STANDARD_PETRONIA_CATALOG as STDC
 
@@ -45,8 +45,16 @@ def parse_references(
                 STDC, _('references must be a dictionary of event data type dictionaries'),
             )
         ret_reference = load_event_data_type(raw_reference)
-        if not ret_reference.ok:
-            return ret_reference.forward()
+        if ret_reference.has_error:
+            return StdRet.pass_error(join_errors(
+                UserMessage(
+                    STDC,
+                    _('error in reference definition for `{name}`'),
+                    name=reference_name,
+                ),
+                errors=(ret_reference.valid_error,),
+            ))
+        ret_reference.result.suggested_name = reference_name
         partial_parsed_references[reference_name] = ret_reference.result
     return update_references(partial_parsed_references)
 
@@ -78,6 +86,7 @@ def load_event_schema(
         raise RuntimeError(  # pragma no cover
             f'Incorrectly re-formatted structure to {ret_data_type_resolved.result}',
         )
+    data_type.suggested_name = data_type.suggested_name or event_name
     if ret_priority.result not in ("high", "user", "normal", "io"):
         return StdRet.pass_errmsg(
             STDC, _('`{priority}` must be a valid priority'),
@@ -129,15 +138,18 @@ def update_reference(  # pylint: disable=R0911,R0912
         reference_depth: List[str],
 ) -> StdRet[event_schema.AbcEventDataType]:
     """Replaces references with the same type object it references."""
+    new_type: event_schema.AbcEventDataType
     if isinstance(data_type, event_schema.ArrayEventDataType):
         ret_internal = update_reference(data_type.value_type, refs, reference_depth)
         if not ret_internal.ok:
             return ret_internal
         if ret_internal.result is not data_type.value_type:
-            return StdRet.pass_ok(event_schema.ArrayEventDataType(
+            new_type = event_schema.ArrayEventDataType(
                 data_type.description, ret_internal.result,
                 data_type.min_length, data_type.max_length,
-            ))
+            )
+            new_type.suggested_name = data_type.suggested_name
+            return StdRet.pass_ok(new_type)
         # No replacement needed.
         return StdRet.pass_ok(data_type)
     if isinstance(data_type, event_schema.StructureEventDataType):
@@ -155,9 +167,11 @@ def update_reference(  # pylint: disable=R0911,R0912
             else:
                 new_fields[key] = value
         if changed:
-            return StdRet.pass_ok(event_schema.StructureEventDataType(
+            new_type = event_schema.StructureEventDataType(
                 data_type.description, new_fields,
-            ))
+            )
+            new_type.suggested_name = data_type.suggested_name
+            return StdRet.pass_ok(new_type)
         # No replacement needed.
         return StdRet.pass_ok(data_type)
     if isinstance(data_type, event_schema.SelectorEventDataType):
@@ -173,9 +187,11 @@ def update_reference(  # pylint: disable=R0911,R0912
             else:
                 selector_types[key] = selector_type
         if changed:
-            return StdRet.pass_ok(event_schema.SelectorEventDataType(
+            new_type = event_schema.SelectorEventDataType(
                 data_type.description, selector_types,
-            ))
+            )
+            new_type.suggested_name = data_type.suggested_name
+            return StdRet.pass_ok(new_type)
         # No replacement needed
         return StdRet.pass_ok(data_type)
     if isinstance(data_type, event_schema.ReferenceEventDataType):
@@ -199,6 +215,7 @@ def update_reference(  # pylint: disable=R0911,R0912
         ret_internal = update_reference(replacement, refs, new_depth)
         if not ret_internal.ok:
             return ret_internal
+        # Do not change the suggested name.
         refs[data_type.reference] = ret_internal.result
         return ret_internal
 
@@ -305,14 +322,16 @@ def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEv
         return ret_description.forward()
     raw_values = raw.get('values', EMPTY_TUPLE)
     values: List[str] = []
-    if not isinstance(raw_values, list):
+    if not isinstance(raw_values, (list, tuple)):
         return StdRet.pass_errmsg(
-            STDC, _('enum values must be a list of strings'),
+            STDC, _('enum values must be a list of strings, found {value_type}'),
+            value_type=str(type(raw_values)),
         )
     for raw_value in raw_values:
         if not isinstance(raw_value, str):
             return StdRet.pass_errmsg(
-                STDC, _('enum values must be a list of strings'),
+                STDC, _('enum values must be a list of strings, found item of type {value_type}'),
+                value_type=str(type(raw_value)),
             )
         values.append(raw_value)
     return StdRet.pass_ok(event_schema.EnumEventDataType(

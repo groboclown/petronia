@@ -10,8 +10,7 @@ import threading
 from petronia_common.util import StdRet, StreamedBinaryReader, single_reader_loop
 from petronia_common.util import i18n as _
 from .process import ManagedProcess
-from .util import create_cmd_and_dirs
-from ..configuration.platform import PlatformSettings
+from .util import create_cmd
 from ..user_message import CATALOG
 
 
@@ -32,7 +31,8 @@ if sys.platform == 'win32':
                 identity: str,
                 command: Sequence[str],
                 env: Mapping[str, str],
-                platform_settings: PlatformSettings,
+                command_params: Mapping[str, str],
+                temp_dir: str,
                 _requested_permissions: Mapping[str, Sequence[str]],
         ) -> StdRet[ManagedProcess]:
             """Run a launcher program from Windows.  Launchers run by Windows will be passed the
@@ -59,8 +59,8 @@ if sys.platform == 'win32':
                 _winapi.DUPLICATE_SAME_ACCESS,
             )
 
-            split_cmd, temp_dirs = create_cmd_and_dirs(
-                command, platform_settings, int(child_h_rx_write),
+            split_cmd = create_cmd(
+                command, temp_dir, command_params, int(child_h_rx_write),
             )
             try:
                 # print("[DEBUG] Running windows command {0}".format(split_cmd))
@@ -79,7 +79,7 @@ if sys.platform == 'win32':
                 # The parent process needs to close the child's end of the pipes.
                 _close_handles(child_h_rx_write, child_h_tx_read)
 
-                ret = ManagedWinProcess(identity, proc, h_rx_read, h_tx_write, temp_dirs)
+                ret = ManagedWinProcess(identity, proc, h_rx_read, h_tx_write, [temp_dir])
                 # await ret.watch_process()
                 return StdRet.pass_ok(ret)
             except Exception as err2:  # pylint: disable=broad-except
@@ -191,7 +191,8 @@ else:
             identity: str,  # pylint: disable=unused-argument
             command: Sequence[str],  # pylint: disable=unused-argument
             env: Mapping[str, str],  # pylint: disable=unused-argument
-            platform_settings: PlatformSettings,  # pylint: disable=unused-argument
+            command_params: Mapping[str, str],  # pylint: disable=unused-argument
+            temp_dir: str,  # pylint: disable=unused-argument
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
         """Run a launcher program from Windows.  Launchers run by Windows will be passed the

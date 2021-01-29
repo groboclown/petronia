@@ -4,14 +4,12 @@ other loaders.
 """
 
 from typing import Optional, Dict, Any
-from concurrent.futures import ThreadPoolExecutor
-from petronia_common.event_stream import EventForwarderTarget, RawBinaryReader
+from petronia_common.event_stream import BaseEventForwarderTarget
 from petronia_common.util import PetroniaReturnError
 from ..events import foreman
 
 CONSUMED_EXTENSION_LOADER_EVENT_IDS = (
-    foreman.StartLauncherRequestEvent.FULL_EVENT_NAME,
-    foreman.LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME,
+    foreman.LauncherStartExtensionRequestEvent.FULL_EVENT_NAME,
     foreman.ExtensionAddEventListenerEvent.FULL_EVENT_NAME,
     foreman.ExtensionRemoveEventListenerEvent.FULL_EVENT_NAME,
 )
@@ -40,14 +38,8 @@ class TargetHandlerRuntimeContext:
         to perform the restart, then set the requested value to True."""
         raise NotImplementedError()
 
-    def start_launcher(
-            self, source_id: str, event: foreman.StartLauncherRequestEvent,
-    ) -> None:
-        """Signal that a launcher should be started."""
-        raise NotImplementedError()
-
-    def load_extension(
-            self, source_id: str, target_id: str, event: foreman.LauncherLoadExtensionRequestEvent,
+    def start_extension(
+            self, source_id: str, target_id: str, event: foreman.LauncherStartExtensionRequestEvent,
     ) -> None:
         """Signal to load an extension."""
         raise NotImplementedError()
@@ -65,15 +57,14 @@ class TargetHandlerRuntimeContext:
         raise NotImplementedError()
 
 
-class ExtensionLoaderTarget(EventForwarderTarget):
+class ExtensionLoaderTarget(BaseEventForwarderTarget):
     """The event target added to the channel for direct communication between the extension
     loader and the foreman router."""
 
-    __slots__ = ('_context', '_executor')
+    __slots__ = ('_context',)
 
-    def __init__(self, context: TargetHandlerRuntimeContext, executor: ThreadPoolExecutor) -> None:
+    def __init__(self, context: TargetHandlerRuntimeContext) -> None:
         self._context = context
-        self._executor = executor
 
     def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         return event_id in CONSUMED_EXTENSION_LOADER_EVENT_IDS
@@ -81,71 +72,45 @@ class ExtensionLoaderTarget(EventForwarderTarget):
     def on_error(self, error: PetroniaReturnError) -> bool:
         # Errors in the communication with the extension loader are really bad.
         # Restart Petronia.
-        self._executor.submit(self._context.do_restart, False, error)
+        self._context.do_restart(False, error)
         return False
 
     def on_eof(self) -> None:
         # If the EOF is not expected, then this is really bad and we should restart Petronia.
         # If restart or shutdown is already happening, then this should be a no-op.
-        self._executor.submit(self._context.do_restart, False, None)
-
-    def consume_binary(
-            self, event_id: str, source_id: str, target_id: str, size: int,
-            data_reader: RawBinaryReader,
-    ) -> bool:
-        return False
+        self._context.do_restart(False, None)
 
     def consume_object(
             self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
     ) -> bool:
-        if event_id == foreman.StartLauncherRequestEvent.FULL_EVENT_NAME:
-            slr_event = foreman.StartLauncherRequestEvent.parse_data(event_data)
-            if slr_event.ok:
-                self._executor.submit(
-                    self._context.start_launcher,
-                    source_id,
-                    slr_event.result,
-                )
-            return False
-
-        if event_id == foreman.LauncherLoadExtensionRequestEvent.FULL_EVENT_NAME:
-            lle_event = foreman.LauncherLoadExtensionRequestEvent.parse_data(event_data)
-            if lle_event.ok:
-                self._executor.submit(
-                    self._context.load_extension,
-                    source_id, target_id, lle_event.result,
-                )
+        if event_id == foreman.LauncherStartExtensionRequestEvent.FULL_EVENT_NAME:
+            lse_event = foreman.LauncherStartExtensionRequestEvent.parse_data(event_data)
+            if lse_event.ok:
+                self._context.start_extension(source_id, target_id, lse_event.result)
             return False
 
         if event_id == foreman.ExtensionAddEventListenerEvent.FULL_EVENT_NAME:
             eal_event = foreman.ExtensionAddEventListenerEvent.parse_data(event_data)
             if eal_event.ok:
-                self._executor.submit(
-                    self._context.add_event_listener,
-                    target_id, eal_event.result,
-                )
+                self._context.add_event_listener(target_id, eal_event.result)
             return False
 
         if event_id == foreman.ExtensionRemoveEventListenerEvent.FULL_EVENT_NAME:
             rel_event = foreman.ExtensionRemoveEventListenerEvent.parse_data(event_data)
             if rel_event.ok:
-                self._executor.submit(
-                    self._context.remove_event_listener,
-                    target_id, rel_event.result,
-                )
+                self._context.remove_event_listener(target_id, rel_event.result)
             return False
 
         return False
 
 
-class InternalTarget(EventForwarderTarget):
+class InternalTarget(BaseEventForwarderTarget):
     """Handles events sent from the internal extensions ('send-access' == 'internal')."""
 
-    __slots__ = ('_context', '_executor')
+    __slots__ = ('_context',)
 
-    def __init__(self, context: TargetHandlerRuntimeContext, executor: ThreadPoolExecutor) -> None:
+    def __init__(self, context: TargetHandlerRuntimeContext) -> None:
         self._context = context
-        self._executor = executor
 
     def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         return event_id in CONSUMED_INTERNAL_EVENT_IDS
@@ -153,29 +118,23 @@ class InternalTarget(EventForwarderTarget):
     def on_error(self, error: PetroniaReturnError) -> bool:
         # Errors in the communication with the internal extensions are bad, but not super
         # dire.  For now, the right solution is to restart Petronia.
-        self._executor.submit(self._context.do_restart, False, error)
+        self._context.do_restart(False, error)
         return False
 
     def on_eof(self) -> None:
         # If the EOF is not expected, then this is really bad and we should restart Petronia.
         # If restart or shutdown is already happening, then this should be a no-op.
-        self._executor.submit(self._context.do_restart, False, None)
-
-    def consume_binary(
-            self, event_id: str, source_id: str, target_id: str, size: int,
-            data_reader: RawBinaryReader,
-    ) -> bool:
-        return False
+        self._context.do_restart(False, None)
 
     def consume_object(
             self, event_id: str, source_id: str, target_id: str, event_data: Dict[str, Any],
     ) -> bool:
         if event_id == foreman.StopEvent.FULL_EVENT_NAME:
-            self._executor.submit(self._context.do_shutdown)
+            self._context.do_shutdown()
             return False
 
         if event_id == foreman.RestartEvent.FULL_EVENT_NAME:
-            self._executor.submit(self._context.do_restart, True, None)
+            self._context.do_restart(True, None)
             return False
 
         return False

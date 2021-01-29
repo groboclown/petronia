@@ -32,9 +32,9 @@ Petronia splits its processing into multiple processes, to gain the aid of opera
 
 #### Extension Restrictions
 
-One aspect to the security model is limiting which extensions can generate which events, and which events can be received.  Some of the very critical infrastructure events are highly protected.
+One aspect to the security model is limiting which extensions can generate which events, and which events can be received.  Some very critical infrastructure events are highly protected.
 
-The process spawning (performed by the *foreman* process)allows the creation of processes with different security permissions.  The event that requests this spawning can only be allowed by the *extension loader* process.  The events that register the allowed event producing is also handled by the *extension loader*.  The extension loader process is locked down and performs the necessary security inspections.
+The process spawning (performed by the *foreman* process)allows the creation of processes with different security permissions.  The event that requests this spawning can only be allowed by the *extension loader* process.  The events that register the allowed event producing is also handled by the *extension loader*.  The extension loader process is locked down and performs the necessary security inspections.  See the [lifecycle](lifecycle.md) document for more information.
 
 #### Keyboard Capture
 
@@ -57,96 +57,54 @@ Due to the issues with [Python sandboxing in CPython](https://python-security.re
 Extensions themselves require support for signing and integrity verification.
 
 
-### Trusted Events
+### Event Protection
 
 Some events may request major changes to the system that should only be done by trusted members due to the possibilities of malicious extensions.  For example, loading extensions should only be done by very specific parts of the software.
 
-The system supports adding a trust layer between an event generator and the event listener by cryptographically signing the event.  Additional effort can be made to encrypt the data in the event, if the data itself should not be read.
+The system uses restrictions based on extension metadata to declare permissions around event sources and targets.  The Extension Loader tells the Foreman process the acceptable event permissions per extension, and the Foreman process enforces the permissions between extension runners.
 
-Due to the inability to truly lock down Python extensions in-memory, this only has impact when dealing with remote events.
+The extensions themselves only allow for event declaration from the API extensions.  Events define the scope of the receivers and senders.  Events may allow for any extension to generate or receive the event (`public`), only the API implementation to generate or receive the event (`implementation`).
 
-One additional approach to help with this is the API vs. Implementation vs. Standalone aspects for extensions.  APIs should declare event types, and which ones are public vs. generated only by implementations; they must not register any event listeners nor generate events (other than event registration).  Implementation plugins must not declare any events, but can listen to and generate events.  Stand-alone plugins act as implementations that cannot generate private events.  Additionally, each API can have at most one implementation registered at a time.
+An additional component to Petronia is defining the event as a binary stream of data.  This prohibits highly sensitive parts of code from accidentally running code loaded from an extension.
 
-### Untrusted Events 
-
-One enormous weakness (from the security standpoint) in Petronia's current design is the use of classes as the event type.  This may not seem like much, but it introduces a dependency upon loading an extension to be able to transmit or receive an event.  This means that, using traditional methods, a package must be loaded, which means that it must have some of its code executed.  If this is untrusted code, it means it must be loaded in the trusted space, which is a break in the security guarantees.
-
-However, we can recognize that Petronia has a wire-transmission form for its events, and there is no part of Petronia that requires the transmission of events while knowing the event contents.  Additionally, an extension must declare which events it is interested in receiving, which means that it declares to have access to that event.  On top of that, events (and thus the event class) are only declared by the API extensions.
-
-This means that event objects only need to be generated and interpreted within the security context that directly uses them.  The parts of the system that shuffle events between senders and receivers only need to store the wire (marshalled) version. 
 
 ## System Parts
 
-### Base and Core
+### Extension vs Core Platform
 
-The "base" parts (put under the `petronia.base` module) provide the global, top-level core parts of Petronia that allows it to work.  Everything else is an extension.
+The core platform for Petronia is a system for passing events between processes and the management of those processes.  This is made up of the Foreman process and the Extension Loader.  A detailed account of these two is described in the [lifecycle](lifecycle.md) document.  This basic setup allows for the rest of Petronia the Window Manager to work in an extensible and secure way.
 
-The "core" parts are extensions that are expected to always be active for most extensions.  They are separated out, because the Petronia system could theoretically operate without them.
+Extensions are launched from the Foreman process and are granted permission to send and receive events.
 
-#### Identifiable Participants
+There are four types of extensions:
 
-Everything that wants to interact with the Petronia system needs an identifier.  Identifiers can either be *singletons* (hard coded, well defined values unique per singleton) or *components* (one instance of a class of participants).
+* Protocol: define events which can only have public send/receive permissions.  These extensions only provide metadata for data sharing between extensions, and provide no code.
+* API: defines events and declare a default implementation of the API.  API extensions declare events, but provide no code.  Each API extension loaded must have one and only one corresponding implementation extension loaded.
+* Implementation: Provides code for an API extension.  This allows for switching between different kinds of code that is supposed to perform the same general operation.
+* Stand-Alone: Provides code but does not implement an API.  It can declare dependencies on protocols and APIs to allow it to participate on those extension communications.
 
-These identifiers can cover a wide range of life cycle types, from lasting forever to being a one-off thing.  It can include the global state of a component separate from the component or be the component itself.
+The extension loader discovers the installed extensions, parses them, and tells the Foreman process to run the implementations and stand-alone extensions.
 
-The nature of the singleton identifiers means that construction of them is done through the global function.  Components, though, require a synchronization across the system to properly ensure unique identifiers.  To allow for flexibility in the construction of these identifiers, it's abstracted out into the event bus, because the implementations of both will usually be linked (remote busses will need synchronization across all busses).  Singleton names and categories should be name spaced according to the extension's module name, to avoid collisions.
+Extensions can be stored in a distributable zip file.  The file name is in the form `full.module.name-v1.2.3.zip`.  If provided, PGP cryptographic signature files end with `.asc` and exist along-side the zip file.  All extension zips must provide hash files with extension `.sha3-256` (for SHA3-256 hash) or `.sha256` (for SHA2-256 hash) or both.  This means to use the extension extension, the sha3 libraries must be installed in the Python distribution.  For version 2.10.112 of extension "extension.name", a fully defined file structure is:
 
-#### Logging
+* `ext-dir/extension.name-v2.10.112.zip`
+* `ext-dir/extension.name-v2.10.112.zip.sha256`
+* `ext-dir/extension.name-v2.10.112.zip.sha3-256`
+* `ext-dir/extension.name-v2.10.112.zip.asc`
+* `ext-dir/extension.name-v2.10.112.zip.asc.sha256`
+* `ext-dir/extension.name-v2.10.112.zip.asc.sha3-256`
 
-The standard Python logging mechanisms are used for logging.
+Note that core modules (those distributed with Petronia) have an implicit version number that matches the version of Petronia.
 
-#### Event Bus and Base Events
+The extension zip file must contain a `manifest.json` file that defines information about the extension (see [extension-schema.yaml](extension-schema.yaml) for details).
 
-The heart of Petronia.  It allows an extreme amount of loose coupling and extensibility by sending messages between components using only the identifier and a message.
-
-Unlike the other base and core parts of the system, the event bus is passed between callers, rather than being a global variable.
-
-The event bus incorporates several components:
-
-* The bus itself, which sends events to registered listeners.  Events should be read-only.
-* A type-safe layer on top of the event bus, which allows for registering event categories and a definition for events.
-* A basic set of lifecycle event definitions.
-
-The event bus' standard events are:
-
-* Message sent whenever any listener is added.  Note that, for internal memory purposes, the corresponding de-registration does not generate an event.
-* Messages sent to register an event type.
-* A request to remove a participant from the system.  All non-core participants must be aware of this message.
-* A notification when a participant completed its removal.  All non-core participants must send this message when completed removal.
-
-Events run through the event bus can be one of several priorities.  These indicate a suggestion for when the event should run in relation to other events.  There is never a requirement that events run in the current thread or process, and instead events should be always thought of as running outside the thread of execution from the source that triggered it.  Likewise, there isn't a ordering to the events, as the event bus can make decisions about when to run them.
-
-* HIGH - the event should run as soon as possible, before other events of a lower priority.  Event listeners for HIGH priority events should not run long operations, and instead delegate those to other events.
-* USER - the event should run as soon as possible, and as efficiently as possible, to make for a responsive user experience.
-* NORMAL - the standard event processing priority.  Event listeners should not run long-blocking operations.
-* IO - dedicated for long running, possibly blocking operations, such as reading from a network for file.  These almost always run in a thread separate from the others to prevent locking the event threads.
-
-A special exception should be made for the `register event` action, because this must be handled before any other event to avoid a race condition where an event is registered, then delayed in a separate thread to run after the next event.
-
-#### Events
+### Events
 
 Due to the forking model of Petronia, all events are formally structured data.  This means they have a structure defined through a schema, and can be transmitted across the wire.  This allows for extensions to be written in any language.
 
 The events are transmitted as either JSON formatted data objects or a simple binary blob, for transmitting images, which may be much larger.  See the [events document](events.md) for more information.
 
-OLD INFORMATION, WHICH MAY NOT BE VALID IN THE FUTURE.
-
-Events are simple objects passed through the event bus.  Events must conform to the following restrictions:
-
-* They use `__slots__`.  Event objects that show signs of anything in the hierarchy not using slots will not be registered.
-* They do not allow `callable` types stored in the data.  This is strictly enforced for events that travel across the process boundary, for security purposes.
-* They allow for serialization through the `petronia.base.util.serial` API.  This API dictates that all public properties can be passed as kvargs to the constructor, and no callable values are serialized.
-* They should be read-only.
-* Events that should not be transmitted across the process boundary should include a `disallow_process_transfer=True` property on the event instance.
-
-
-Each event is registered in the system using an event id, which *should* be in the form "extension.name event-activity" to prevent name collisions.
-
-### Components
-
-Components are instances of a category of participants.  These have a specific lifecycle that must be adhered to, but that must be enforced by the extension that creates them.
-
-Due to the possible remote event capability, the actions for a component may execute in any process, so the only way to request creation or communicate with them is through the events.
+Each event is registered in the system using an event id, which *should* be in the form "extension.name:event-activity" to prevent name collisions.
 
 ### Processes
 
@@ -161,83 +119,6 @@ The *extension loader* process loads extensions and their configuration, then re
 
 Additional aspects of Petronia that aren't necessary for core operation.  Though these parts are considered "extensions", most are so basic to the underpinnings to the operation of Petronia that they are most always running.
 
-#### Extensions
-
-A definition for how to find and load modules into the Petronia system.
-
-Extensions are implemented as Python modules, where the extension name matches the module name (including `.` separators for paths).
-
-There are two types of extensions - extension API, which define events and data structures, and implementations.  Extension loading only defines the implementations to load.  Implementations can only depend upon API.  If the configuration does not define the implementation to load, it will default first to the internal definition, then to the external implementation if only one is found.
-
-The extension module does not define the version, instead this is defined in the distributed extension filename.  The file name is in the form `full.module.name-v1.2.3.zip`.  If provided, PGP cryptographic signature files end with `.asc` and exist along side the zip file.  All extension zips must provide hash files with extension `.sha3-256` (for SHA3-256 hash) or `.sha256` (for SHA2-256 hash) or both.  This means to use the extension extension, the sha3 libraries must be installed in the Python distribution.  For version 2.10.112 of extension "extension.name", a fully defined file structure is:
-
-* `ext-dir/extension.name-v2.10.112.zip`
-* `ext-dir/extension.name-v2.10.112.zip.sha256`
-* `ext-dir/extension.name-v2.10.112.zip.sha3-256`
-* `ext-dir/extension.name-v2.10.112.zip.asc`
-* `ext-dir/extension.name-v2.10.112.zip.asc.sha256`
-* `ext-dir/extension.name-v2.10.112.zip.asc.sha3-256`
-
-Note that core modules (those distributed with Petronia) have an implicit version number that matches the version of Petronia.
-
-The extension zip file must contain a `manifest.json` file that defines information about the extension (see [extension-schema.yaml](extension-schema.yaml) for details):
-
-```javascript
-{
-    // Required information
-
-    "type": "impl", // must be "api" or "impl" or "standalone"
-    "depends": [
-        // dependencies are ONLY for API.
-        {
-            "extension": "other.extension",
-            "minimum": [ 1, 0, 0 ], // minimum required version; required
-            "below": [ 2 ] // must be a version below this one; optional
-        }
-    ],
-
-    // If type is "impl", then these MUST be provided.
-    // If type is "api" or "standalone", then these MUST NOT be provided.
-    // Note that an extension can implement multiple APIs.
-    "implements": [{
-        // API name that this implements.
-        "extension": "that.extension",
-        "minimum": [ 1, 0, 0 ], // minimum API compatible version; required
-        "below": [ 2 ] // API must be a version below this; optional
-    }],
-
-    // If type is "api", then this MUST be provided.
-    // If type is "impl" or "standalone", then this MUST NOT be provided.
-    "defaults": [{
-        // Ordered list of default implementations for this API.
-        "extension": "my.extension.api",
-        "minimum": [ 9, 100, 4 ],
-        "below": [ 4, 0, 0 ]
-    }],
-
-    // Non-zip distributions MUST provide these.
-    // For zip distributed extensions, the extension name and version are
-    // implicit in the zip file name.  This means creating the distribution
-    // file doesn't need to modify the contents of this file, and these
-    // values are ignored.
-    "name": "extension.name",
-    "version": [ 100, 2, 0 ],
-
-    // Optional information
-    "description": "A long description for this extension.",
-    "authors": [ "author1", "author2" ],
-    "homepage": "https://my.url/home/page",
-    "license": "MIT"
-
-}
-```
-
-For Python-based extension modules loaded through the Python Launcher, it must provide the function `start_extension` which takes a single argument, the `EventBus` instance.  This function must register event types and add listeners as appropriate for the module.  If the module adds event listeners, it must also add an event listener for the `RequestDisposeEvent` event, to allow for the module to be removed.  The `petronia3.ext_help.module_bootstrap` module can help with this.  Events to dispose the extension will be sent to the module name of the extension.
-
-If an extension allows for configuration setup events, these are sent by the configuration setup extension to a default state ID of `(extension module name)/setup-configuration`.  The configuration state value will be the raw JSON-like decoded values, without any object wrapper.  The extension can listen for additional configurations, all must start with the extension module name + `/`
-
-For core and local extensions, the module must provide the `EXTENSION_METADATA` value set to a dictionary in the same format as the JSON above.
-
 #### State Store (Singleton)
 
 Some aspects of the system are a global state that rarely updates.  For example, the screen resolution.  These states need to be made available to all participants of the system, but due to the loose coupling, the state itself cannot be put into an accessible place.  Likewise, participants may need to be aware of updates to those states.
@@ -245,13 +126,6 @@ Some aspects of the system are a global state that rarely updates.  For example,
 The state store solves this problem by having a two-phase approach to state storage.  A participant announces the request to store an updated state, which the state store then uses to update the state storage, and, upon successful saving, it creates a "store update" event.
 
 The state store has an interesting global data problem.  Specifically, how to make the initial state of a value available to a new listener.  The state store does this by listening to events for new event listeners of the state store itself, and sends out state updated events when they are added.  This means state update events can happen when no actual state change has occurred.
-
-##### Configuration
-
-Individual extension configuration is loaded as part of the extension load process.  The load extension event includes the user configuration for that extension.  This is partially for security purposes, so that only the extension loader process needs the read access to the configuration file directory.
-
-Another possible state is a *session*, which is for intermediary states.  For example, a tile split and pixel position could be saved in the session, so the user can resume the previous setup when the UI is restarted.
-
 
 #### Native Handler (Singleton)
 

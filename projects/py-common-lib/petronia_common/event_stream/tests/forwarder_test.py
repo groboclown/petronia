@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from .. import thread_stream
 from .shared import (
     SimpleBinaryWriter, MockTarget,
-    create_read_stream, as_bin_str,
+    create_read_stream, create_raw_reader, as_bin_str,
     PACKET_MARKER,
 )
 from ..reader import static_reader
@@ -18,9 +18,10 @@ from ..writer import (
     write_binary_event_to_stream,
     write_object_event_to_stream,
 )
-from ..forwarder import EventForwarder
+from ..forwarder import EventForwarder, BaseEventForwarderTarget
 from .. import RawEvent
 from ...util import UserMessage, STANDARD_PETRONIA_CATALOG, i18n
+from ...util.error import SimplePetroniaReturnError
 
 
 class EventForwarderTest(unittest.TestCase):
@@ -431,6 +432,28 @@ class StreamedBinaryReaderTest(unittest.TestCase):
         res = reader.read_data(16)
         self.assertEqual(b'', res)
 
+
+class BaseEventForwarderTargetTest(unittest.TestCase):
+    """Test the BaseEventForwarderTarget class."""
+
+    def test_on_error__on_eof(self) -> None:
+        """Test the on_error and on_eof methods."""
+        target = BaseEventForwarderTarget()
+        self.assertFalse(target.on_error(SimplePetroniaReturnError()))
+        # Nothing really to do here but ensure this call doesn't fail.
+        target.on_eof()
+
+    def test_consume_object(self) -> None:
+        """Test the consume_object method"""
+        target = BaseEventForwarderTarget()
+        self.assertFalse(target.consume_object('x', 'y', 'z', {}))
+
+    def test_consume_binary(self) -> None:
+        """Test the consume_binary method"""
+        reader = create_raw_reader(b'123456')
+        target = BaseEventForwarderTarget()
+        self.assertFalse(target.consume_binary('x', 'y', 'z', 4, reader))
+        self.assertEqual(b'56', reader())
 
 
 class AccessibleEventForwarder(EventForwarder):

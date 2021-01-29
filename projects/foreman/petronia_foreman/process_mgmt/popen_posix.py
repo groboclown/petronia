@@ -7,8 +7,8 @@ import subprocess
 from petronia_common.util import StdRet, StreamReadState, select_reader
 from petronia_common.util import i18n as _
 from .process import ManagedProcess
-from .util import create_cmd_and_dirs
-from ..configuration import PlatformSettings
+from .util import create_cmd
+from ..configuration.platform import platform_name
 from ..constants import TRANSLATION_CATALOG as CATALOG
 
 
@@ -22,7 +22,8 @@ try:
             identity: str,
             command: Sequence[str],
             env: Mapping[str, str],
-            platform: PlatformSettings,
+            command_params: Mapping[str, str],
+            temp_dir: str,
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
         """Runs the launcher on a POSIX platform."""
@@ -32,8 +33,8 @@ try:
         #   The read-end of this pipe is used by the child process.
         rx_read, rx_write = os.pipe()
         tx_read, tx_write = os.pipe()
-        cmd, temp_dirs = create_cmd_and_dirs(
-            command, platform, rx_write,
+        cmd = create_cmd(
+            command, temp_dir, command_params, rx_write,
         )
         try:
             # Must close pipe input if child will block waiting for end
@@ -52,7 +53,7 @@ try:
 
             return StdRet.pass_ok(ManagedPosixProcess(
                 identity, process, rx_read,
-                os.fdopen(tx_write, 'wb'), temp_dirs,
+                os.fdopen(tx_write, 'wb'), [temp_dir],
             ))
         except OSError as err:
             return StdRet.pass_errmsg(
@@ -116,16 +117,17 @@ try:
 
 
 except ModuleNotFoundError:
-    def run_launcher_posix(  # pylint: disable=unused-argument,too-many-arguments
-            identity: str,  # pylint: disable=unused-argument
-            command: Sequence[str],  # pylint: disable=unused-argument
-            env: Mapping[str, str],  # pylint: disable=unused-argument
-            platform: PlatformSettings,
+    def run_launcher_posix(  # pylint:disable=unused-argument,too-many-arguments
+            identity: str,  # pylint:disable=unused-argument
+            command: Sequence[str],  # pylint:disable=unused-argument
+            env: Mapping[str, str],  # pylint:disable=unused-argument
+            command_params: Mapping[str, str],  # pylint:disable=unused-argument
+            temp_dir: str,  # pylint:disable=unused-argument
             _requested_permissions: Mapping[str, Sequence[str]],
     ) -> StdRet[ManagedProcess]:
         """Runs the launcher on a POSIX platform."""
         return StdRet.pass_errmsg(
             CATALOG,
             _('Platform {platform} not supported.'),
-            platform=platform.name,
+            platform=platform_name,
         )
