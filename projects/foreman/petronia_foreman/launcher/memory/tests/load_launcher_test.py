@@ -73,6 +73,7 @@ class LoadLauncherTest(unittest.TestCase):
         )
         self.assertIsNone(thread_res.error)
         self.assertTrue(thread_res.ok)
+        thread_res.result.begin_ok()
         thread_res.result.join(5.0)
         self.assertEqual(
             [],
@@ -110,6 +111,7 @@ class LoadLauncherTest(unittest.TestCase):
         )
         self.assertIsNone(thread_res.error)
         self.assertTrue(thread_res.ok)
+        thread_res.result.begin_ok()
         thread_res.result.join(5.0)
         self.assertEqual(
             [(__name__, '_entry_point_err', RAISED_ERROR)],
