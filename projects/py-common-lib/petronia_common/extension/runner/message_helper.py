@@ -60,10 +60,25 @@ def join_message_text(
 
 def get_message_catalog(messages: Iterable[UserMessage]) -> str:
     """Get the message catalog for the collection of messages."""
-    catalog = STANDARD_PETRONIA_CATALOG
     for message in messages:
-        catalog = message.catalog
-    return catalog
+        return message.catalog
+    return STANDARD_PETRONIA_CATALOG
+
+
+def get_top_message(messages: Iterable[UserMessage]) -> str:
+    """Get the first message's text, or a placeholder if there are no messages."""
+    for message in messages:
+        return message.message
+    return '<no text>'
+
+
+def get_top_message_arguments(
+        messages: Iterable[UserMessage],
+) -> List[Tuple[str, LocaleMessageArgumentTypeName, LocaleMessageArgumentType]]:
+    """Get the first message's arguments, or an empty list if there are no messages."""
+    for message in messages:
+        return get_message_arguments(message)
+    return []
 
 
 def get_message_arguments(  # pylint:disable=too-many-branches

@@ -7,6 +7,7 @@ from petronia_common.extension.runner.main import extension_runner
 from petronia_common.util import StdRet
 from .event_router import create_startup_handlers
 from .setup import initialize
+from .shared_state import ExtLoaderSharedState
 from .messages import display_message
 
 
@@ -23,8 +24,9 @@ def extension_entrypoint(
             display_message(init_res)
             return init_res
 
+        state = ExtLoaderSharedState()
         res = extension_runner(
-            inp, outp, *create_startup_handlers(),
+            inp, outp, state,  *create_startup_handlers(),
         )
         print("Extension-loader completed running.")
         return res

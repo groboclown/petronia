@@ -2,7 +2,7 @@
 
 from typing import Optional, Generic
 from petronia_common.util import T
-from petronia_common.extension.config.event_schema import StructureEventDataType
+# from petronia_common.extension.config.event_schema import StructureEventDataType
 
 
 class Sourced(Generic[T]):

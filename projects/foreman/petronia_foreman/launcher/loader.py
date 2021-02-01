@@ -10,6 +10,11 @@ from .memory import create_memory_launcher
 from ..configuration import RuntimeConfig
 from ..user_message import CATALOG
 
+# Extensions with a runtime launcher equal to this string
+# are marker extension files, and are intended instead to
+# be loaded through the boot mechanism.
+INTERNAL_EXTENSION_RUNTIME = '<internal>'
+
 
 # This should have a better mechanism for defining the registered launchers,
 # but this works for now.  Especially since launchers are currently

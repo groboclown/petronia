@@ -8,6 +8,8 @@ description: >
   Handles requests to load extensions.
 licenses:
   - MIT
+runtime:
+  launcher: <internal>
 authors:
   - Petronia Project
 implements:

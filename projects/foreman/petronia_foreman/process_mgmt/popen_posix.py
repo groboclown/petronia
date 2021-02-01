@@ -34,7 +34,7 @@ try:
         rx_read, rx_write = os.pipe()
         tx_read, tx_write = os.pipe()
         cmd = create_cmd(
-            command, temp_dir, command_params, rx_write,
+            command, temp_dir, rx_write, identity, command_params,
         )
         try:
             # Must close pipe input if child will block waiting for end

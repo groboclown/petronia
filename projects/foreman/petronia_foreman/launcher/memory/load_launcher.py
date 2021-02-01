@@ -2,7 +2,7 @@
 Finds options specific to the in-memory launcher.
 """
 
-from typing import List, Sequence, Dict, Callable, Any
+from typing import List, Sequence, Dict, Callable, Optional, Any
 import os
 import sys
 import types
@@ -13,6 +13,7 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from .importer import load_module_from_path
 from ...constants import TRANSLATION_CATALOG
 from ...configuration import RuntimeConfig
+from ...user_message import display_error
 
 ENTRYPOINT_OPTION = 'entrypoint'
 DEFAULT_ENTRYPOINT = 'extension_entrypoint'
@@ -34,6 +35,52 @@ def import_module(
     return load_module_from_path(res_module_name.result, path)
 
 
+class DelayedStartThread:
+    """Waits for either a timeout or a signal to start the thread processing."""
+    __slots__ = ('__callback', '__thread', '__cond',  '__signal', '__timeout')
+
+    def __init__(
+            self, name: str, target: Callable[[], None], timeout: Optional[float] = None,
+    ) -> None:
+        self.__callback = target
+        self.__signal = 0
+        self.__cond = threading.Condition()
+        self.__timeout = timeout
+        self.__thread = threading.Thread(target=self.runner, daemon=True, name=name)
+
+    def start(self) -> None:
+        """Call the thread's start function."""
+        self.__thread.start()
+
+    def join(self, timeout: float) -> None:
+        """Call the thread's join function."""
+        self.__thread.join(timeout)
+
+    def is_alive(self) -> bool:
+        """Call the thread's is-alive function."""
+        return self.__thread.is_alive()
+
+    def begin_ok(self) -> None:
+        """Start the runner in normal mode."""
+        with self.__cond:
+            self.__signal = 1
+            self.__cond.notify_all()
+
+    def abort_start(self) -> None:
+        """Stop the runner."""
+        with self.__cond:
+            self.__signal = 2
+            self.__cond.notify_all()
+
+    def runner(self) -> None:
+        """Wait for the condition to be signaled, then start running."""
+        with self.__cond:
+            self.__cond.wait_for(lambda: self.__signal != 0, timeout=self.__timeout)
+            if self.__signal == 2:
+                return
+        self.__callback()
+
+
 def connect_launcher(  # pylint:disable=too-many-arguments
         entrypoint_name: str, module: types.ModuleType,
         error_callback: Callable[[str, str, BaseException], None],
@@ -42,7 +89,7 @@ def connect_launcher(  # pylint:disable=too-many-arguments
         reader: BinaryReader,
         writer: BinaryWriter,
         config: Dict[str, Any],
-) -> StdRet[threading.Thread]:
+) -> StdRet[DelayedStartThread]:
     """Call the module's entrypoint function with the reader, writer, config, and arguments.
     This is done in another thread."""
     if not hasattr(module, entrypoint_name):
@@ -63,13 +110,15 @@ def connect_launcher(  # pylint:disable=too-many-arguments
 
     def runner() -> None:
         try:
-            entrypoint(reader, writer, config, arguments)
+            res = entrypoint(reader, writer, config, arguments)
+            if isinstance(res, StdRet) and res.has_error:
+                display_error(res.valid_error, True)
         except BaseException as err:  # pylint:disable=broad-except
             error_callback(module.__name__, entrypoint_name, err)
         else:
             completed_callback(module.__name__, entrypoint_name)
 
-    ret = threading.Thread(target=runner, daemon=True, name=_next_thread_id())
+    ret = DelayedStartThread(name=_next_thread_id(), target=runner)
     ret.start()
     return StdRet.pass_ok(ret)
 

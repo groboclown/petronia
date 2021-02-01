@@ -23,10 +23,12 @@ from petronia_common.event_stream import (
 )
 from petronia_common.event_stream.thread_stream import ThreadedStreamForwarder
 from .handler import EventHandlerSet, EventTargetHandle
-from ..user_message import CATALOG
+from ..user_message import CATALOG, low_println
 
 
 EventRouteDestinationCallback = Callable[[RawEvent], Coroutine[Any, Any, StdRet[None]]]
+
+DEBUG = True
 
 
 class EventFilterResult(Enum):
@@ -190,6 +192,11 @@ class EventChannel(EventForwarderTarget):
         # All event handlers are called, even if a filter does not allow the event
         # to be passed on.  Returns True if filtered, and False if allowed to be
         # produced by the channel.
+        if DEBUG:
+            low_println(
+                f'[Ch {self.__name}] received event {event_id} '
+                f'from {event_source_id} to {event_target_id}: {event}'
+            )
         allow_event = self.can_produce(event_id)
         removed_handlers: List[InternalEventHandler] = []
         for handler in self.__internal_handlers:

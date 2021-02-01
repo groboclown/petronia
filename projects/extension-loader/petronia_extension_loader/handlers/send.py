@@ -138,3 +138,17 @@ def send_load_extension_failed(
         request_source_id,
         extension_loader.LoadExtensionFailedEvent(extension_name, error),
     )
+
+
+def send_load_extension_succeeded(
+        context: EventRegistryContext,
+        request_source_id: str,
+        extension_name: str,
+        version: Iterable[int],
+) -> StdRet[None]:
+    """Send a failure response that an extension failed to load."""
+    return context.send_event(
+        extension_loader.LoadExtensionRequestEvent.UNIQUE_TARGET_FQN,
+        request_source_id,
+        extension_loader.LoadExtensionSuccessEvent(extension_name, list(version)),
+    )

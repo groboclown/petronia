@@ -60,7 +60,7 @@ if sys.platform == 'win32':
             )
 
             split_cmd = create_cmd(
-                command, temp_dir, command_params, int(child_h_rx_write),
+                command, temp_dir, int(child_h_rx_write), identity, command_params,
             )
             try:
                 # print("[DEBUG] Running windows command {0}".format(split_cmd))

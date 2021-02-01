@@ -5,6 +5,8 @@ Launch extensions from a child process.
 from typing import Sequence, Tuple, Dict, Optional
 import os
 import tempfile
+
+from petronia_common.event_stream import BinaryWriter, BinaryReader
 from petronia_common.extension.config.extension_schema import ExtensionRuntime
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
@@ -58,25 +60,27 @@ class CmdLauncherCategory(AbcLauncherCategory):
             for permission in start_event.permissions
         })
         command, env = exec_res.result
-        temp_dir = tempfile.mkdtemp()
-        res_process = run_launcher(
-            handler_id,
-            self._create_params(start_event, temp_dir),
-            temp_dir,
-            launcher_runtime,
-            command, env,
-        )
-        if res_process.has_error:
-            return res_process.forward()
 
-        process = LaunchedProcess(
-            handler_id, self.config, launcher_runtime, res_process.result,
-        )
-        self._processes[handler_id] = process
+        def register_callback() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
+            temp_dir = tempfile.mkdtemp()
+            res_process = run_launcher(
+                handler_id,
+                self._create_params(start_event, temp_dir),
+                temp_dir,
+                launcher_runtime,
+                command, env,
+            )
+            if res_process.has_error:
+                return res_process.forward()
 
-        # FIXME the process needs to report that it loaded the extension correctly.
+            process = LaunchedProcess(
+                handler_id, self.config, launcher_runtime, res_process.result,
+            )
+            self._processes[handler_id] = process
 
-        return RET_OK_NONE
+            return StdRet.pass_ok((process.reader, process.writer))
+
+        return self._context.register_channel(handler_id, register_callback)
 
     def get_active_handler_ids(self) -> Sequence[str]:
         return tuple(self._processes.keys())

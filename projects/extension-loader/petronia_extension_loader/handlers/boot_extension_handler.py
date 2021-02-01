@@ -3,11 +3,11 @@
 from typing import Set, Tuple, Iterable
 
 from petronia_common.extension.config import ExtensionVersion
+from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
 from ..events.impl.extension_loader import SystemStartedEvent
 from ..defs import ExtensionInfo, TRANSLATION_CATALOG
-from ..shared_state import ExtLoaderSharedState
 
 _BOOT_TIME_EXTENSIONS: Set[Tuple[str, ExtensionVersion]] = set()
 _REMAINING_BOOT_TIME_EXTENSIONS: Set[str] = set()
@@ -40,7 +40,9 @@ def clear_boot_time_extensions() -> None:
     _STARTUP_COMPLETE_SENT[0] = False
 
 
-def on_extension_load_complete(context: EventHandlerContext, extension_name: str) -> StdRet[None]:
+def on_extension_load_complete(
+        context: EventRegistryContext, extension_name: str,
+) -> StdRet[None]:
     """If this extension is the last of the known boot-time extensions, then the
     setup complete event is sent."""
     if _STARTUP_COMPLETE_SENT[0]:
@@ -52,11 +54,10 @@ def on_extension_load_complete(context: EventHandlerContext, extension_name: str
     if _REMAINING_BOOT_TIME_EXTENSIONS:
         # There are still some pending boot-time extensions waiting to be loaded.
         return RET_OK_NONE
-    res = context.writer.write_object_event(
-        SystemStartedEvent.FULL_EVENT_NAME,
+    res = context.send_event(
         SystemStartedEvent.UNIQUE_TARGET_FQN,
         SystemStartedEvent.UNIQUE_TARGET_FQN,
-        SystemStartedEvent().export_data(),
+        SystemStartedEvent(),
     )
     _REMAINING_BOOT_TIME_EXTENSIONS.clear()
     _STARTUP_COMPLETE_SENT[0] = True

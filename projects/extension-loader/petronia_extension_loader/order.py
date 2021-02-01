@@ -15,6 +15,7 @@ be D, (B + C), A, where B and C can load in parallel once D is loaded.
 
 from typing import Iterable, Sequence, List, Dict, Mapping, Set, Optional
 from petronia_common.extension.config import ApiExtensionMetadata, ImplExtensionMetadata
+from petronia_common.extension.config.extension_schema import ProtocolExtensionMetadata
 from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .search import find_best_extension, find_dependencies
@@ -128,9 +129,23 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
             for impl_dependency in mtd.implements:
                 implementations[impl_dependency.name] = ext.name
 
-        for dep in find_dependencies(ext, installed):
-            if not visited[dep.name]:
-                visit_list.append(dep)
+        found_dependencies, not_found_dependencies = find_dependencies(ext, installed)
+        for dep in not_found_dependencies:
+            errors.append(UserMessage(
+                TRANSLATION_CATALOG,
+                _(
+                    'extension {name} depends on not-found extension {dep} '
+                    '[>={min_version}, <{max_version}]'
+                ),
+                name=ext.name,
+                dep=dep.name,
+                min_version=dep.minimum_version,
+                max_version=dep.below_version,
+            ))
+
+        for dep_info in found_dependencies:
+            if not visited[dep_info.name]:
+                visit_list.append(dep_info)
 
         # Put this in the return list.
         # reverse_order.append(ext)
@@ -181,10 +196,13 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
     # Second pass: populate the dependencies and requirements.
     ret: List[ExtensionDependencyOrder] = []
     for ext_order in order.values():
-        for dep_info in ext_order.ext.metadata.depends_on:
-            dep_order = order[dep_info.name]
+        for ext_dep in ext_order.ext.metadata.depends_on:
+            dep_order = order[ext_dep.name]
             ext_order.depends_on.append(dep_order.ext)
             dep_order.required_by.append(ext_order.ext)
+            if dep_order not in ret:
+                ret.append(dep_order)
+        ret.append(ext_order)
     return StdRet.pass_ok(ret)
 
 
@@ -274,6 +292,10 @@ class LoadList:
         """Is an extension with this name already loaded?"""
         return name in self.__loaded
 
+    def get_loaded_info(self, name: str) -> Optional[ExtensionInfo]:
+        """Get the loaded extension information, or None if not loaded."""
+        return self.__loaded.get(name)
+
     def is_loading(self, name: str) -> bool:
         """Is an extension with this name marked as in the process of loading?"""
         return name in self.__loading
@@ -303,7 +325,7 @@ class LoadList:
                 or self.is_pending(order.ext.name)
         ):
             return False
-        if isinstance(order.ext.metadata, ApiExtensionMetadata):
+        if isinstance(order.ext.metadata, (ApiExtensionMetadata, ProtocolExtensionMetadata)):
             self.__loaded[order.ext.name] = order.ext
         else:
             self.__pending[order.ext.name] = order
@@ -316,6 +338,7 @@ def add_pending_extensions(
 ) -> StdRet[None]:
     """Uses the get_load_order to find the complete list of extensions to load."""
     load_order_list = get_load_order(extensions, installed)
+    # TODO ensure the extension can be loaded with the requested permissions and dependencies.
     if load_order_list.has_error:
         return load_order_list.forward()
     for load_order in load_order_list.result:

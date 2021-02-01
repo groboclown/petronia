@@ -2,10 +2,10 @@
 Searches for an extension.
 """
 
-from typing import Sequence, Iterable, List
+from typing import Sequence, Iterable, List, Tuple, Dict
 import os
 import re
-from petronia_common.util import StdRet, UserMessage, join_errors, load_structured_file
+from petronia_common.util import StdRet, UserMessage, load_structured_file
 from petronia_common.util import i18n as _
 from petronia_common.extension.config import (
     load_extension,
@@ -36,9 +36,14 @@ def find_extension_dirs(data_path: str) -> Iterable[str]:
                     yield fqn
 
 
-def find_installed_extensions(extension_dirs: Sequence[str]) -> StdRet[Sequence[ExtensionInfo]]:
-    """Find all installed extensions."""
-    errors: List[UserMessage] = []
+def find_installed_extensions(
+        extension_dirs: Sequence[str],
+) -> Tuple[List[ExtensionInfo], Dict[str, List[UserMessage]]]:
+    """Find all installed extensions.  Rather than returning a StdRet for errors,
+    the parsed errors are returned as a separate structure.  This is because
+    we don't want Petronia to fail just because some mungled up file is stuck
+    into the structure."""
+    errors: Dict[str, List[UserMessage]] = {}
     ret: List[ExtensionInfo] = []
 
     for ext_dir in extension_dirs:
@@ -51,24 +56,29 @@ def find_installed_extensions(extension_dirs: Sequence[str]) -> StdRet[Sequence[
             if EXTENSION_ZIP_NAME_RE.match(name):
                 res = load_extension_from_zip(fqn)
                 if res.has_error:
-                    errors.extend(res.error_messages())
+                    errors[name] = errors.get(name) or []
+                    errors[name].append(UserMessage(
+                        TRANSLATION_CATALOG,
+                        _('Errors found in extension defined in ({filename})'),
+                        filename=fqn,
+                    ))
+                    errors[name].extend(res.error_messages())
                 else:
                     ret.append(res.result)
             elif EXTENSION_DEF_NAME_RE.match(name):
                 res = load_extension_from_yaml(extension_dirs, fqn)
                 if res.has_error:
-                    errors.append(UserMessage(
+                    errors[name] = errors.get(name) or []
+                    errors[name].append(UserMessage(
                         TRANSLATION_CATALOG,
                         _('Errors found in the yaml extension definition file ({filename})'),
                         filename=fqn,
                     ))
-                    errors.extend(res.error_messages())
+                    errors[name].extend(res.error_messages())
                 else:
                     ret.append(res.result)
 
-    if errors:
-        return StdRet.pass_error(join_errors(*errors))
-    return StdRet.pass_ok(ret)
+    return ret, errors
 
 
 def load_extension_from_zip(_filename: str) -> StdRet[ExtensionInfo]:

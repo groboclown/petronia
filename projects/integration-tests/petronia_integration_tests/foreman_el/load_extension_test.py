@@ -8,12 +8,18 @@ import sys
 import json
 import threading
 from configparser import ConfigParser
-from petronia_foreman.configuration import detect_platform, ForemanConfig
+from petronia_foreman.configuration import platform, ForemanConfig
 from petronia_foreman.configuration.foreman import BOOT_SECTION
 from petronia_foreman.foreman_runner import ForemanRunner
-from petronia_integration_tests.foreman_el.launcher.entrypoint import (
-    wait_for_launcher_alive, reset_launcher,
+from petronia_integration_tests.foreman_el.integration1.start import (
+    wait_for_extension_alive, reset_extension,
 )
+
+# Seconds before the test times out and exits with an error.
+# If you're debugging, set this to a large-enough number, like
+# 5 hours.
+TEST_TIMEOUT_SECONDS = 10.0
+# TEST_TIMEOUT_SECONDS = 60.0 * 60.0 * 5.0
 
 
 class LoadExtensionTest(unittest.TestCase):
@@ -22,19 +28,37 @@ class LoadExtensionTest(unittest.TestCase):
         self.tempdir = tempfile.mkdtemp()
         os.makedirs(os.path.join(self.tempdir, 'configs'))
         os.makedirs(os.path.join(self.tempdir, 'data', 'extensions'))
-        platform_settings_res = detect_platform(None)
+        os.makedirs(os.path.join(self.tempdir, 'data', 'boot-extensions'))
+        platform_settings_res = platform.initial_setup(None)
         self.assertIsNone(platform_settings_res.error)
-        self.platform_settings = platform_settings_res.result
-        self.platform_settings.config_paths = (os.path.join(self.tempdir, 'configs'),)
-        self.platform_settings.data_paths = (os.path.join(self.tempdir, 'data'),)
+        platform.configuration_paths = [os.path.join(self.tempdir, 'configs')]
+        platform.data_paths = [os.path.join(self.tempdir, 'data')]
         self.foreman_config = ForemanConfig()
+        with open(os.path.join(
+                self.tempdir, 'data', 'boot-extensions', 'extension-loader.json',
+        ), 'w') as f:
+            json.dump({
+                'name': 'petronia.core.impl.extension_loader',
+                'version': [1, 0, 0],
+                'runtime': {
+                    'launcher': 'extension-loader',
+                    'permissions': {},
+                },
+                'produces': [
+                    'petronia.core.api.foreman:launcher-start-extension:request',
+                    'petronia.core.api.foreman:extension-add-event-listener',
+                ],
+                'consumes': [
+                    {'event-id': 'petronia.core.api.foreman:launcher-start-extension:success'},
+                    {'event-id': 'petronia.core.api.foreman:launcher-start-extension:failed'},
+                ],
+                'configuration': {},
+            }, f)
         config = ConfigParser()
         config.add_section(BOOT_SECTION)
-        config.set(BOOT_SECTION, 'boot-order', 'extension-loader')
-        config.set(BOOT_SECTION, 'native-launcher', 'native')
+        config.set(BOOT_SECTION, 'boot-file-order', 'extension-loader.json')
         config.add_section('extension-loader')
         config.set('extension-loader', 'runner', 'in-memory')
-        config.set('extension-loader', 'boot-channel', 'extension-loader')
         config.set('extension-loader', 'module', 'petronia_extension_loader.entrypoint')
         config.set('extension-loader', 'entrypoint', 'entrypoint')
         config.set('extension-loader', 'arg.1', '${CONFIG_PATH}')
@@ -97,7 +121,7 @@ class LoadExtensionTest(unittest.TestCase):
         config.set('integration', 'entrypoint', 'entrypoint')
 
         self.foreman_config.load_config(config)
-        self.foreman_runner = ForemanRunner(self.platform_settings, self.foreman_config)
+        self.foreman_runner = ForemanRunner(self.foreman_config)
 
     def tearDown(self) -> None:
         print("Starting shutdown")
@@ -109,7 +133,7 @@ class LoadExtensionTest(unittest.TestCase):
         print("Running threads:")
         for thread in threading.enumerate():
             print(" - " + thread.name + ": alive? " + str(thread.is_alive()))
-        reset_launcher()
+        reset_extension()
 
     def test_load_extension(self) -> None:
         """Load the extension."""
@@ -117,4 +141,4 @@ class LoadExtensionTest(unittest.TestCase):
         self.assertEqual(0, self.foreman_runner.boot())
         print("Boot complete")
 
-        self.assertTrue(wait_for_launcher_alive(10000.0))
+        self.assertTrue(wait_for_extension_alive(TEST_TIMEOUT_SECONDS))

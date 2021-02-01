@@ -3,13 +3,12 @@ Creates the in-memory launcher category.
 """
 
 from typing import Sequence, Tuple, Dict, List, Optional
-import threading
 import json
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, DelayedValueHolder
 from petronia_common.util import i18n as _
 from .load_launcher import (
-    get_entrypoint_name, connect_launcher, import_module,
+    get_entrypoint_name, connect_launcher, import_module, DelayedStartThread,
 )
 from .stream import ReadWriteStream
 from ..abc import AbcLauncherCategory, RuntimeContext
@@ -104,7 +103,7 @@ class MemoryLauncherCategory(AbcLauncherCategory):
         if module_res.has_error:
             return module_res.forward()
         entrypoint_name = get_entrypoint_name(self.config)
-        cmd_args = create_cmd(self._args, '.', {}, -1)
+        cmd_args = create_cmd(self._args, '.', -1, handler_id, {})
 
         # Ignore the permissions.  It's running in Foreman space, which means we can't limit
         # what it can do.
@@ -135,8 +134,8 @@ class MemoryLauncherCategory(AbcLauncherCategory):
             loaded_launcher.value = LauncherData(
                 handler_id, self.config, thread_res.result, to_launcher, from_launcher,
             )
-            self._launchers[handler_id] = loaded_launcher.value
-            return loaded_launcher.value.as_channel_res()
+            self._launchers[handler_id] = loaded_launcher.non_none
+            return loaded_launcher.non_none.as_channel_res()
 
         res = self._context.register_channel(handler_id, register_callback)
         if res.has_error:
@@ -145,6 +144,12 @@ class MemoryLauncherCategory(AbcLauncherCategory):
                 del self._launchers[handler_id]
                 if stop_res.has_error:
                     return StdRet.pass_error(res.valid_error, stop_res.valid_error)
+            return res
+        self._context.add_handler(
+            handler_id, handler_id,
+            start_event.send_access, [],
+        )
+        loaded_launcher.non_none.thread.begin_ok()
 
         return res
 
@@ -153,11 +158,13 @@ class MemoryLauncherCategory(AbcLauncherCategory):
 
     def stop_extension(self, handler_id: str) -> StdRet[None]:
         launcher = self._launchers.get(handler_id)
-        if launcher is None:
+        if launcher is None or self._context is None:
             return launcher_not_loaded(handler_id)
         res = launcher.stop()
         if res.ok:
             del self._launchers[handler_id]
+        self._context.remove_handler(handler_id)
+        self._context.close_channel(handler_id)
         return res
 
     def stop(self) -> StdRet[None]:
@@ -197,7 +204,7 @@ class LauncherData(LaunchedInstance):
             self,
             launcher_id: str,
             options: RuntimeConfig,
-            thread: threading.Thread,
+            thread: DelayedStartThread,
             to_launcher: ReadWriteStream, from_launcher: ReadWriteStream,
     ) -> None:
         LaunchedInstance.__init__(
@@ -210,6 +217,7 @@ class LauncherData(LaunchedInstance):
     def _local_stop(self, timeout: float) -> StdRet[None]:
         print(f"==== Stopping {self.launcher_id} ====")
         # TODO writes are happening to this launcher after the stop.
+        self.thread.abort_start()
         self.to_launcher.close()
         self.from_launcher.close()
         if self.thread.is_alive():

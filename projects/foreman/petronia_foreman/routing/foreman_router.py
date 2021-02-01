@@ -8,7 +8,7 @@ from typing import Dict, List, Tuple, Iterable, Callable, Optional, Any
 from petronia_common.event_stream import (
     EventForwarderTarget, BinaryWriter, BinaryReader,
 )
-from petronia_common.util import StdRet, UserMessage, collect_errors_from, RET_OK_NONE
+from petronia_common.util import StdRet, collect_errors_from, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .event_handlers import ExtensionLoaderTarget, InternalTarget
 from .router_loop import (
@@ -17,14 +17,19 @@ from .router_loop import (
     SOFT_STOP_REQUEST, SOFT_STOP_LOOP_ACTION, HARD_STOP_LOOP_ACTION, RESTART_LOOP_ACTION,
 )
 from ..configuration import RuntimeConfig, BootExtensionMetadata
-from ..constants import EXTENSION_LOADER_CHANNEL, INTERNAL_CHANNEL_PATTERN, TRANSLATION_CATALOG
+from ..constants import (
+    EXTENSION_LOADER_CHANNEL_PATTERN, INTERNAL_CHANNEL_PATTERN, TRANSLATION_CATALOG,
+)
 from ..event_router import EventRouter
 from ..event_router.channel import InternalEventHandler
 from ..event_router.handler import EventTargetHandle
 from ..events import foreman
 from ..launcher import AbcLauncherCategory, RuntimeContext, create_launcher_category
-from ..user_message import display_error, display_message
+from ..launcher.internal import create_internal_launcher
+from ..launcher.loader import INTERNAL_EXTENSION_RUNTIME
+from ..user_message import display_error
 from ..user_message import low_println
+
 
 DEBUG = True
 
@@ -247,41 +252,6 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                 return
 
     @staticmethod
-    def _add_boot_extension(
-            router: EventRouter,
-            metadata: BootExtensionMetadata, categories: Dict[str, AbcLauncherCategory],
-    ) -> None:
-        """Add a new launcher to the router.
-        This must be called from within the thread's event loop."""
-
-        start_event = metadata.to_start_event()
-        handle_id = ForemanRouter._add_extension(start_event, categories)
-        if handle_id:
-            for event_id, target_id in metadata.consumes:
-                router.add_handler_listener(handle_id, event_id, target_id)
-
-    @staticmethod
-    def _add_extension(
-            request: foreman.LauncherStartExtensionRequestEvent,
-            categories: Dict[str, AbcLauncherCategory],
-    ) -> Optional[str]:
-        category = categories.get(request.runtime)
-        if category is None:
-            display_message(UserMessage(
-                TRANSLATION_CATALOG,
-                _('Requested to boot launch a non-existent category ({category})'),
-                category=request.runtime,
-            ))
-            return None
-
-        handle_id = create_handler_id(request.runtime, request.name)
-        res = category.start_extension(handle_id, request)
-        if res.has_error:
-            display_error(res.valid_error)
-            return None
-        return handle_id
-
-    @staticmethod
     def _stop_launchers(categories: Iterable[AbcLauncherCategory]) -> None:
         """Stop all running launchers.  Errors are displayed but not returned."""
         errors: List[StdRet[None]] = []
@@ -324,7 +294,11 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
 
         # Create launcher categories based on this router.
         # They all need to be initialized.  Which means they need to be created.
-        categories: Dict[str, AbcLauncherCategory] = {}
+        categories: Dict[str, AbcLauncherCategory] = {
+            # Hard-coded, always present launcher...
+            INTERNAL_EXTENSION_RUNTIME: create_internal_launcher(),
+
+        }
         for state in self.__category_states.values():
             cat_res = state.create_category(launcher_context, executor)
             if cat_res.has_error:
@@ -333,10 +307,6 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                 categories[state.name] = cat_res.result
 
         context = QueuedContext(self.__queue)
-        router.add_reservation_callback(
-            EXTENSION_LOADER_CHANNEL,
-            ExtensionLoaderCallback(ExtensionLoaderTarget(context)),
-        )
 
         internal_target = InternalTarget(context)
 
@@ -350,6 +320,12 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             internal_channel_callback,
         )
 
+        # Extension loader reservation MUST be added after internal channel reservation.
+        router.add_reservation_callback(
+            EXTENSION_LOADER_CHANNEL_PATTERN,
+            ExtensionLoaderCallback(ExtensionLoaderTarget(context)),
+        )
+
         return RouterLoopLogic(categories, router)
 
 
@@ -361,8 +337,8 @@ class ExtensionLoaderCallback:
         self.__target: Optional[ExtensionLoaderTarget] = target
 
     def __call__(self, name: str) -> StdRet[Optional[EventForwarderTarget]]:
-        if name != EXTENSION_LOADER_CHANNEL:
-            return RET_OK_NONE
+        # if name != EXTENSION_LOADER_CHANNEL:
+        #     return RET_OK_NONE
         if self.__target is None:
             return StdRet.pass_errmsg(
                 TRANSLATION_CATALOG,

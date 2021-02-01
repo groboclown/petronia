@@ -2,9 +2,10 @@
 Searches for extensions.
 """
 
-
-from typing import Sequence, Iterable, Optional
-from petronia_common.extension.config import ExtensionVersion
+from typing import Sequence, Iterable, List, Tuple, Optional
+from petronia_common.extension.config import (
+    ExtensionVersion, ExtensionDependency, ImplExtensionMetadata,
+)
 from petronia_common.util import StdRet
 from .defs import ExtensionInfo
 
@@ -22,11 +23,33 @@ def get_extensions_to_load(
 def find_dependencies(
         info: ExtensionInfo,
         installed_extensions: Iterable[ExtensionInfo],
-) -> Sequence[ExtensionInfo]:
+) -> Tuple[Sequence[ExtensionInfo], Iterable[ExtensionDependency]]:
     """Given an extension name with optional version information, find the extension
     and its best-matching direct dependencies.
     This does not perform implementation matching."""
-    raise NotImplementedError()
+    found: List[ExtensionInfo] = []
+    not_found: List[ExtensionDependency] = []
+    metadata = info.metadata
+    for dep in metadata.depends_on:
+        best = find_best_extension(
+            dep.name, dep.minimum_version, dep.below_version, installed_extensions,
+        )
+        if best:
+            found.append(best)
+        else:
+            not_found.append(dep)
+
+    if isinstance(metadata, ImplExtensionMetadata):
+        for impl in metadata.implements:
+            best = find_best_extension(
+                impl.name, impl.minimum_version, impl.below_version, installed_extensions,
+            )
+            if best:
+                found.append(best)
+            else:
+                not_found.append(impl)
+
+    return found, not_found
 
 
 def find_best_extension(

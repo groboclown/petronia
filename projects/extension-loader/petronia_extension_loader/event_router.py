@@ -5,7 +5,8 @@ from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet
 from .setup import get_extension_handler_id
 from .shared_state import ExtLoaderSharedState
-from .handlers.factory import register_load_extension_handler
+from .handlers.outside_handler import register_load_extension_handler
+from .handlers.foreman_complete_handler import register_load_complete_handlers
 from .initial_extensions import boot_extensions
 from .handlers.send import send_add_event_listener_event
 from .events.impl import foreman, extension_loader
@@ -18,6 +19,7 @@ def create_startup_handlers() -> List[
     return [
         add_event_listeners,
         register_load_extension_handler,
+        register_load_complete_handlers,
         boot_extensions,
     ]
 
