@@ -23,7 +23,7 @@ def extension_entrypoint(
     if 'started-file' in config:
         with open(config['started-file'], 'w') as f:
             f.write('started')
-        print(f"Extension wrote started file defined in config.")
+        print("Extension wrote started file defined in config.")
     else:
         with RUNNING_CONDITION:
             assert not IS_ALIVE[0]  # nosec

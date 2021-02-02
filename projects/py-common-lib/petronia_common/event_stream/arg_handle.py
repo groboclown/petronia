@@ -6,7 +6,7 @@ argument is passed the handle, and this tool will return the correct handle.
 
 from typing import BinaryIO
 import os
-import platform
+import sys
 from ..util import StdRet
 from ..util import i18n as _
 from ..util import STANDARD_PETRONIA_CATALOG as STDC
@@ -28,7 +28,9 @@ def get_fd_from_argument(argument: str) -> StdRet[int]:
             arg=argument,
         )
 
-    if platform.system() == 'Windows':
+    # MyPy wants the sys version...
+    # if platform.system() == 'Windows':
+    if sys.platform == "win32":
         # On Windows, the file handle is passed in, not the fd.
         import msvcrt  # type: ignore  # pylint: disable=import-outside-toplevel,import-error  # pragma no cover
         try:  # pragma no cover
