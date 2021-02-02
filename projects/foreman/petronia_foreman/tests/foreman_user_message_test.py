@@ -9,7 +9,7 @@ import shutil
 from petronia_common.util import i18n, UserMessage
 from petronia_common.util.error import SimplePetroniaReturnError, ExceptionPetroniaReturnError
 from .. import user_message
-from ..configuration.platform import data_paths
+from ..configuration import platform
 
 
 class ForemanUserMessageTest(unittest.TestCase):
@@ -23,21 +23,21 @@ class ForemanUserMessageTest(unittest.TestCase):
         os.makedirs(self.data_dir, exist_ok=True)
         self._orig_env = os.environ.copy()
         self._orig_stdout = sys.stdout
-        self._orig_data_paths = list(data_paths)
+        self._orig_data_paths = list(platform.data_paths)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tempdir, ignore_errors=True)
         os.environ.clear()
         os.environ.update(self._orig_env)
         sys.stdout = self._orig_stdout
-        data_paths.clear()
-        data_paths.extend(self._orig_data_paths)
+        platform.data_paths.clear()
+        platform.data_paths.extend(self._orig_data_paths)
 
     def test_load_translation__not_found(self) -> None:
         """Test loading translations when they are found."""
         # Translation directory not find
-        data_paths.clear()
-        data_paths.append(self.data_dir)
+        platform.data_paths.clear()
+        platform.data_paths.append(self.data_dir)
         user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
@@ -71,8 +71,8 @@ class ForemanUserMessageTest(unittest.TestCase):
         parent_dir = os.path.dirname(__file__)
         translation_dir = os.path.join(parent_dir, 'translations')
         self.assertTrue(os.path.isdir(translation_dir))
-        data_paths.clear()
-        data_paths.extend([parent_dir, self.data_dir])
+        platform.data_paths.clear()
+        platform.data_paths.extend([parent_dir, self.data_dir])
 
         # Use a known translation.
         user_message.load_translation(['en'])
@@ -119,8 +119,8 @@ class ForemanUserMessageTest(unittest.TestCase):
     def test_display__translated(self) -> None:
         """Just a simple print with a translated message."""
         parent_dir = os.path.dirname(__file__)
-        data_paths.clear()
-        data_paths.extend([parent_dir, self.data_dir])
+        platform.data_paths.clear()
+        platform.data_paths.extend([parent_dir, self.data_dir])
         user_message.load_translation(['en'])
         sys.stdout = io.StringIO()
         user_message.display(

@@ -32,7 +32,7 @@ def get_fd_from_argument(argument: str) -> StdRet[int]:
         # On Windows, the file handle is passed in, not the fd.
         import msvcrt  # type: ignore  # pylint: disable=import-outside-toplevel,import-error  # pragma no cover
         try:  # pragma no cover
-            int_arg = msvcrt.open_osfhandle(int_arg, 0)  # pragma no cover
+            int_arg = msvcrt.open_osfhandle(int_arg, 0)  # pragma no cover  # type: ignore
         except OSError as err:  # pragma no cover
             return StdRet.pass_errmsg(  # pragma no cover
                 STDC, _('Invalid file handle {arg}: {err}'), arg=argument, err=err,

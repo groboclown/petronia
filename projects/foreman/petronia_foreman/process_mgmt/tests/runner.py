@@ -14,8 +14,8 @@ def main() -> None:
     data_count = 2 ** 16
     if platform.system() == 'Windows':
         # On Windows, the file handle is passed in, not the fd.
-        import msvcrt  # pylint: disable=import-outside-toplevel,import-error
-        event_write_fd = msvcrt.open_osfhandle(event_write_fd, 0)
+        import msvcrt  # pylint: disable=import-outside-toplevel,import-error  # type: ignore
+        event_write_fd = msvcrt.open_osfhandle(event_write_fd, 0)  # type: ignore
 
     event_write = os.fdopen(event_write_fd, 'wb')
 
