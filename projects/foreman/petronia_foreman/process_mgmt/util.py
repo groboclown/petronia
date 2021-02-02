@@ -16,7 +16,7 @@ def create_cmd(
         '${' + key.upper() + '}': value
         for key, value in other_params.items()
     }
-    params['${DATA_PATH'] = os.path.pathsep.join(platform.data_paths)
+    params['${DATA_PATH}'] = os.path.pathsep.join(platform.data_paths)
     params['${CONFIG_PATH}'] = os.path.pathsep.join(platform.configuration_paths)
     params['${TEMP_DIR}'] = os.path.abspath(temp_dir)
     params['${WRITE_FD}'] = str(child_fd)

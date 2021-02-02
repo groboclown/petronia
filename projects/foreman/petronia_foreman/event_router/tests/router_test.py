@@ -55,6 +55,12 @@ class OnCloseTargetTest(unittest.TestCase):
         self.assertFalse(res)
         self.assertEqual(0, self.count[0])
 
+        reader = create_raw_reader(b'12345')
+        res = target.consume_binary('a', 'b', 'c', 5, reader)
+        self.assertFalse(res)
+        self.assertEqual(0, self.count[0])
+        self.assertEqual(b'', reader())
+
 
 class EventRouterTest(unittest.TestCase):
     """Tests the router basic functionality."""
@@ -386,12 +392,14 @@ class EventRouterTest(unittest.TestCase):
         target.assert_next_on_eof()
         target.assert_end()
 
-    def test_inject_event_to_channel(self) -> None:
+    def test_inject_event_to_channel(self) -> None:  # pylint:disable=too-many-locals
         """Test inject_event_to_channel."""
         reader1 = DelayedEofConditionBinaryReader(threading.Condition())
         writer1 = SimpleBinaryWriter()
         reader2 = DelayedEofConditionBinaryReader(threading.Condition())
         writer2 = SimpleBinaryWriter()
+        reader3 = DelayedEofConditionBinaryReader(threading.Condition())
+        writer3 = SimpleBinaryWriter()
 
         def create_reader_writer_1() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
             return StdRet.pass_ok((reader1, writer1))
@@ -399,27 +407,43 @@ class EventRouterTest(unittest.TestCase):
         def create_reader_writer_2() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
             return StdRet.pass_ok((reader2, writer2))
 
+        def create_reader_writer_3() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
+            return StdRet.pass_ok((reader3, writer3))
+
+        event_h1 = to_raw_event_object('e1', 's1', 't2', {})
+
         executor = ThreadPoolExecutor()
         lock = threading.Semaphore()
         event_router = router.EventRouter(lock, executor=executor)
+
+        # First, without any channel registered...
+        res = event_router.inject_event_to_channel('ch1', event_h1)
+        self.assertIsNotNone(res.error)
+
         res = event_router.register_channel('ch1', create_reader_writer_1)
         self.assertIsNone(res.error)
         res = event_router.register_channel('ch2', create_reader_writer_2)
+        self.assertIsNone(res.error)
+        res = event_router.register_channel('ch3', create_reader_writer_3)
         self.assertIsNone(res.error)
         res = event_router.add_handler('ch1', 'h1', [], [(None, None)])
         self.assertIsNone(res.error)
         res = event_router.add_handler('ch2', 'h2', [], [(None, None)])
         self.assertIsNone(res.error)
+        res = event_router.add_handler('ch3', 'h3', [], [('e2', 't2')])
+        self.assertIsNone(res.error)
 
-        # Inject an event...
-        event_h1 = to_raw_event_object('e1', 's1', 't2', {})
+        # Inject an event, first to a channel which should consume it, then to a channel
+        # that should not be liable to consume it...
 
         event_router.inject_event_to_channel('ch1', event_h1)
+        event_router.inject_event_to_channel('ch3', event_h1)
 
         # Wait to have an EOF until after the injection, otherwise the channels
         # could be removed before the test has completed.
         reader1.send_events()
         reader2.send_events()
+        reader3.send_events()
 
         executor.shutdown(wait=True)
 
@@ -442,6 +466,14 @@ class EventRouterTest(unittest.TestCase):
         )
         h2_collector.next_as_eof(self)
         self.assertTrue(h2_collector.is_empty())
+
+        h3_collector = CallbackCollector()
+        read_event_stream(
+            create_read_stream(writer3.getvalue()),
+            h3_collector.on_event, h3_collector.on_end_of_stream, h3_collector.on_error,
+        )
+        h3_collector.next_as_eof(self)
+        self.assertTrue(h3_collector.is_empty())
 
 
 def _create_reader_writer_ok() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:

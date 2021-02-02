@@ -41,7 +41,11 @@ class ReadWriteStream:
                     return b''
             if max_read_size < 0 or max_read_size >= len(self._buf):
                 max_read_size = len(self._buf)
-            assert max_read_size > 0
+
+            # Basic internal assertion to ensure things don't get weird, which
+            # can be checked by unit tests.  Isn't necessary for runtime.
+            assert max_read_size > 0  # nosec
+
             ret = self._buf[:max_read_size]
             self._buf = self._buf[max_read_size:]
         return ret

@@ -14,16 +14,21 @@ RUNNING_CONDITION = threading.Condition()
 
 def extension_entrypoint(
         inp: BinaryReader, _outp: BinaryWriter,
-        _config: Dict[str, Any], args: Sequence[str],
+        config: Dict[str, Any], args: Sequence[str],
 ) -> StdRet[None]:
     """Starts the extension."""
     LAUNCH_COUNT[0] += 1
     run_count = LAUNCH_COUNT[0]
     print(f"integration-extension1 {args} {run_count} started")
-    with RUNNING_CONDITION:
-        assert not IS_ALIVE[0]  # nosec
-        IS_ALIVE[0] = True
-        RUNNING_CONDITION.notify_all()
+    if 'started-file' in config:
+        with open(config['started-file'], 'w') as f:
+            f.write('started')
+        print(f"Extension wrote started file defined in config.")
+    else:
+        with RUNNING_CONDITION:
+            assert not IS_ALIVE[0]  # nosec
+            IS_ALIVE[0] = True
+            RUNNING_CONDITION.notify_all()
     # This must stay alive until it's explicitly stopped.  Otherwise, it can trigger
     # a restart.
     res = b'x'

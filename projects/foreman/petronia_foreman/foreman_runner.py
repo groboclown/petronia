@@ -55,7 +55,7 @@ class ForemanRunner:
 
     def initialize(self) -> int:
         """Initialize the states."""
-        assert self.__state == 0, 'can only be run before initialization'
+        self._ensure_state(0, 'can only be run before initialization')
         self.__state = 1
         log_file = self._config.get_boot_config().root_log_file
         if log_file:
@@ -89,10 +89,11 @@ class ForemanRunner:
 
     def boot(self) -> int:
         """Boot up the dependent services."""
-        assert self.__state == 1, 'can only be run after initialization'
+        self._ensure_state(1, 'can only be run after initialization')
         self.__state = 2
 
-        assert self.__router
+        # MyPy required check
+        assert self.__router  # nosec
         # print("DEBUG ForemanRunner starting the router")
         self.__router.start()
         # print("DEBUG ForemanRunner router is running")
@@ -113,9 +114,10 @@ class ForemanRunner:
     def start_restart(self) -> None:
         """Stops all but the core initialized stuff."""
         local_display(_('Starting the restart process.'))
-        assert self.__state == 2, 'can only be run after booted and not stopping'
+        self._ensure_state(2, 'can only be run after booted and not stopping')
 
-        assert self.__router
+        # MyPy required check.
+        assert self.__router  # nosec
         self.__router.stop()
         self.__state = 1
         self.boot()
@@ -158,6 +160,10 @@ class ForemanRunner:
                 return config.forward()
             ret.append(config.result)
         return StdRet.pass_ok(ret)
+
+    def _ensure_state(self, expected_state: int, error: str) -> None:
+        if self.__state != expected_state:
+            raise AttributeError(error)
 
 
 def load_boot_extensions(config: ForemanConfig) -> StdRet[Sequence[BootExtensionMetadata]]:

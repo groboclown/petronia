@@ -4,6 +4,7 @@ import unittest
 import os
 import tempfile
 import shutil
+import json
 from .. import reader, platform
 
 
@@ -82,3 +83,108 @@ class ReaderFuncsTest(unittest.TestCase):
             ('a.yaml',),
             config.get_boot_config().boot_file_order,
         )
+
+    def test_read_boot_extension_file__error_reading(self) -> None:
+        """Test read_boot_extension_file but reading fails."""
+        ext_res = reader.read_boot_extension_file(os.path.join(self.tempdir, 'does-not-exist'))
+        self.assertIsNotNone(ext_res.error)
+
+    def test_read_boot_extension_file__unexpected_format(self) -> None:
+        """Test read_boot_extension_file but reading fails."""
+        ext_file = os.path.join(self.tempdir, 'invalid-format.json')
+        with open(ext_file, 'w') as f:
+            json.dump({
+                'name': [1],
+                'runtime': {'launcher': 1, 'permissions': []},
+                'produces': [1, 2, 3],
+                'consumes': 3,
+                'configuration': 'yes',
+            }, f)
+        ext_res = reader.read_boot_extension_file(ext_file)
+        self.assertIsNotNone(ext_res.error)
+        self.assertEqual(6, len(ext_res.error_messages()))
+
+    def test_read_boot_extension_file__bad_doc_count(self) -> None:
+        """Test read_boot_extension_file but reading fails."""
+        ext_file = os.path.join(self.tempdir, 'invalid-format.json')
+        with open(ext_file, 'w') as f:
+            json.dump([1, 2], f)
+        ext_res = reader.read_boot_extension_file(ext_file)
+        self.assertIsNotNone(ext_res.error)
+        self.assertEqual(1, len(ext_res.error_messages()))
+
+    def test_read_boot_extension_file__unexpected_consumes_list__item_type(self) -> None:
+        """Test read_boot_extension_file but reading fails."""
+        ext_file = os.path.join(self.tempdir, 'invalid-format.json')
+        with open(ext_file, 'w') as f:
+            json.dump({
+                'name': 'n1',
+                'version': [1, 2, 3],
+                'runtime': {'launcher': 'l', 'permissions': {}},
+                'produces': [],
+                'consumes': [1],
+                'configuration': {},
+            }, f)
+        ext_res = reader.read_boot_extension_file(ext_file)
+        self.assertIsNotNone(ext_res.error)
+        self.assertEqual(1, len(ext_res.error_messages()))
+
+    def test_read_boot_extension_file__unexpected_consumes_list__bad_event_id(self) -> None:
+        """Test read_boot_extension_file but reading fails."""
+        ext_file = os.path.join(self.tempdir, 'invalid-format.json')
+        with open(ext_file, 'w') as f:
+            json.dump({
+                'name': 'n1',
+                'version': [1, 2, 3],
+                'runtime': {'launcher': 'l', 'permissions': {}},
+                'produces': [],
+                'consumes': [{'event-id': 1}],
+                'configuration': {},
+            }, f)
+        ext_res = reader.read_boot_extension_file(ext_file)
+        self.assertIsNotNone(ext_res.error)
+        self.assertEqual(1, len(ext_res.error_messages()))
+
+    def test_read_boot_extension_file__unexpected_consumes_list__bad_target_id(self) -> None:
+        """Test read_boot_extension_file but reading fails."""
+        ext_file = os.path.join(self.tempdir, 'invalid-format.json')
+        with open(ext_file, 'w') as f:
+            json.dump({
+                'name': 'n1',
+                'version': [1, 2, 3],
+                'runtime': {'launcher': 'l', 'permissions': {}},
+                'produces': [],
+                'consumes': [{'target-id': 1}],
+                'configuration': {},
+            }, f)
+        ext_res = reader.read_boot_extension_file(ext_file)
+        self.assertIsNotNone(ext_res.error)
+        self.assertEqual(1, len(ext_res.error_messages()))
+
+    def test_read_boot_extension_file__valid(self) -> None:
+        """Test read_boot_extension_file with valid input."""
+        ext_file = os.path.join(self.tempdir, 'invalid-format.json')
+        with open(ext_file, 'w') as f:
+            json.dump([{
+                'name': 'n1',
+                'version': [1, 2, 3],
+                'runtime': {'launcher': 'l', 'permissions': {}},
+                'produces': ['e1'],
+                'consumes': [
+                    {'target-id': 't1'}, {'event-id': 'e1'}, {},
+                    {'target-id': 't2', 'event-id': 'e2'},
+                ],
+                'configuration': {},
+            }], f)
+        ext_res = reader.read_boot_extension_file(ext_file)
+        self.assertIsNone(ext_res.error)
+        ext = ext_res.result
+        self.assertEqual(
+            {(None, 't1'), ('e1', None), (None, None), ('e2', 't2')},
+            set(ext.consumes),
+        )
+        evt = ext.to_start_event()
+        self.assertEqual('n1', evt.name)
+        self.assertEqual([1, 2, 3], evt.version)
+        self.assertEqual(['e1'], evt.send_access)
+        self.assertEqual('{}', evt.configuration)

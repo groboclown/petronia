@@ -27,6 +27,8 @@ def get_extension_config(name: str) -> Optional[Dict[str, Any]]:
     """Get the extension configuration, if it was declared during
     initialize.  The name must not include the version information.
 
+    This does not refresh from disk, they are cached at startup time.
+
     Note: the data returned is not read-only.  Be careful with this, please.
     """
     return _EXTENSIONS_CONFIGS.get(name)

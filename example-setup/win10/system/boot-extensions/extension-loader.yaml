@@ -1,0 +1,19 @@
+# Boot-level details for the core extension loader extension.
+
+name: petronia.core.impl.extension_loader
+version: [1, 0, 0]
+runtime:
+  launcher: extension-loader
+  permissions:
+    launch-extensions:
+      - "*"
+
+produces:
+  - "petronia.core.api.foreman:launcher-start-extension:request"
+  - "petronia.core.api.foreman:extension-add-event-listener"
+
+consumes:
+  - event-id: "petronia.core.api.foreman:launcher-start-extension:success"
+  - event-id: "petronia.core.api.foreman:launcher-start-extension:failed"
+
+configuration: {}

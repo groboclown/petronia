@@ -75,4 +75,5 @@ class LoadFailedHandler(EventObjectTarget[foreman.LauncherStartExtensionFailedEv
     def on_event(
             self, source: str, target: str, event: foreman.LauncherStartExtensionFailedEvent,
     ) -> bool:
+        print(event.export_data())
         raise NotImplementedError

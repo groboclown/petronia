@@ -5,7 +5,7 @@
 from typing import Mapping, Sequence, Iterable, Callable, Optional, Any
 import os
 import sys
-import subprocess
+import subprocess  # nosec
 import threading
 from petronia_common.util import StdRet, StreamedBinaryReader, single_reader_loop
 from petronia_common.util import i18n as _
@@ -63,13 +63,13 @@ if sys.platform == 'win32':
                 command, temp_dir, int(child_h_rx_write), identity, command_params,
             )
             try:
-                # print("[DEBUG] Running windows command {0}".format(split_cmd))
-                # h_proc, h_thread, pid, tid = _winapi.CreateProcess(
-                #         split_cmd[0], ' '.join(split_cmd[1:])
-                #         None, None, False, 0, env, launcher_config.run_dir, None
-                # )
-                # _winapi.CloseHandle(h_thread)
-                proc = subprocess.Popen(
+                print(f"[DEBUG] Running windows command {split_cmd}")
+                print(f"[DEBUG]   - with env {env}")
+
+                # Yes, this is using Popen.  Arguments are somewhat loaded in from
+                # the user, but these are explicit split arguments without shell access.
+                # This helps restrict the security issues present with this.
+                proc = subprocess.Popen(  # nosec
                     split_cmd,
                     close_fds=False,  # Important to inherit just the explicitly shared handles.
                     stdin=msvcrt.open_osfhandle(child_h_tx_read, 0),
@@ -117,6 +117,7 @@ if sys.platform == 'win32':
                 # Need to keep track of the fd for internal Python management.
                 self.__read_io = os.fdopen(msvcrt.open_osfhandle(h_rx_read, 0), 'rb')
                 self.__read_thread = threading.Thread(
+                    name=_get_thread_id('reader'),
                     target=single_reader_loop,
                     args=(self.__read_io, self.__read_stream,),
                     daemon=True,
@@ -137,6 +138,8 @@ if sys.platform == 'win32':
                 if self.__exit_code is None:
                     try:
                         self.__proc.wait(timeout)
+                        # Ensure everything is closed off.
+                        self.watch_process(lambda x: None)
                         return True
                     except subprocess.TimeoutExpired:
                         return False
@@ -202,3 +205,12 @@ else:
             CATALOG,
             _('Not running under Windows.'),
         )
+
+
+_THREAD_COUNT = [-1]
+
+
+def _get_thread_id(purpose: str) -> str:
+    _THREAD_COUNT[0] += 1
+    index = _THREAD_COUNT[0]
+    return f'popen_win-{purpose}-{index}'

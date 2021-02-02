@@ -18,6 +18,7 @@ from ..util import (
     launcher_already_registered,
     launcher_stopped, launcher_not_loaded,
 )
+from ... import user_message
 from ...configuration import RuntimeConfig
 from ...events import foreman
 from ...process_mgmt.util import create_cmd
@@ -121,8 +122,8 @@ class MemoryLauncherCategory(AbcLauncherCategory):
             thread_res = connect_launcher(
                 entrypoint_name,
                 module_res.result,
-                self._on_error,
-                self._on_complete,
+                MemoryLauncherCategory._on_error,
+                MemoryLauncherCategory._on_complete,
                 cmd_args,
                 to_launcher,
                 from_launcher,
@@ -168,7 +169,7 @@ class MemoryLauncherCategory(AbcLauncherCategory):
         return res
 
     def stop(self) -> StdRet[None]:
-        # TODO make this parallel.
+        # Could make this parallel.
         self._alive = False
         errors: List[UserMessage] = []
         stopped: List[str] = []
@@ -187,13 +188,25 @@ class MemoryLauncherCategory(AbcLauncherCategory):
             return StdRet.pass_error(join_errors(*errors))
         return RET_OK_NONE
 
-    def _on_error(self, module_name: str, extension_point: str, err: BaseException) -> None:
-        # TODO implement
-        pass
+    @staticmethod
+    def _on_error(module_name: str, extension_point: str, err: BaseException) -> None:
+        user_message.display_error(
+            StdRet.pass_exception(
+                _('Encountered error running extension in module {mod_name}, function {func_name}'),
+                err,
+                mod_name=module_name,
+                func_name=extension_point,
+            ).valid_error, True,
+        )
 
-    def _on_complete(self, module_name: str, extension_point: str) -> None:
-        # TODO implement
-        pass
+    @staticmethod
+    def _on_complete(module_name: str, extension_point: str) -> None:
+        user_message.display(
+            TRANSLATION_CATALOG,
+            _('Completed running extension in module {mod_name}, function {func_name}'),
+            mod_name=module_name,
+            func_name=extension_point,
+        )
 
 
 class LauncherData(LaunchedInstance):
@@ -216,7 +229,6 @@ class LauncherData(LaunchedInstance):
 
     def _local_stop(self, timeout: float) -> StdRet[None]:
         print(f"==== Stopping {self.launcher_id} ====")
-        # TODO writes are happening to this launcher after the stop.
         self.thread.abort_start()
         self.to_launcher.close()
         self.from_launcher.close()

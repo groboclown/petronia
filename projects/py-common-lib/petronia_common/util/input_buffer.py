@@ -204,6 +204,7 @@ class StreamReadState:
         assert self.is_active(), 'Not currently active'
         ret = threading.Thread(
             target=self.read_loop,
+            name=_get_thread_id('read-loop-'),
             args=(read_ready_fds, loop_notice,),
             daemon=True,
         )
@@ -318,3 +319,12 @@ def single_reader_loop(
                 on_err(err)
             stream.feed_eof()
             return
+
+
+_THREAD_COUNT = [-1]
+
+
+def _get_thread_id(purpose: str) -> str:
+    _THREAD_COUNT[0] += 1
+    index = _THREAD_COUNT[0]
+    return f'input_buffer-{purpose}-{index}'

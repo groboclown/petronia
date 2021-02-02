@@ -2,9 +2,10 @@
 Helpers for launching a Python interpreter as the executable.
 """
 
-from typing import List, Sequence, Tuple, Dict
+from typing import List, Sequence, Tuple, Dict, Optional
 import os
 import sys
+import shlex
 from petronia_common.util import StdRet
 from ...configuration.platform import detect_install_dir
 
@@ -15,6 +16,7 @@ def get_python_exec_args(
         module_name: str,
         additional_module_paths: Sequence[str],
         reuse_current_path: bool,
+        args: Optional[str],
 ) -> StdRet[Tuple[Sequence[str], Dict[str, str]]]:
     """Get the argument list and environment variables for running the given python
     module.  If running the module requires additional, module-specific arguments,
@@ -25,7 +27,9 @@ def get_python_exec_args(
     # also the path to the program that was executed, but that is not Python; it is the
     # bootloader in either the one-file app or the executable in the one-folder app.
 
-    exec_args = (sys.executable, '-m', module_name)
+    exec_args = [sys.executable, '-m', module_name]
+    if args:
+        exec_args.extend(shlex.split(args, comments=False, posix=True))
     env = os.environ.copy()
 
     py_path: List[str] = []
@@ -48,4 +52,4 @@ def get_python_exec_args(
 
     env[ENV__PYTHONPATH] = os.path.pathsep.join(py_path)
 
-    return StdRet.pass_ok((exec_args, env))
+    return StdRet.pass_ok((tuple(exec_args), env))

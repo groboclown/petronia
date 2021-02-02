@@ -37,6 +37,7 @@ class TestRunPython(unittest.TestCase):
             'my_module',
             ['a', 'b'],
             False,
+            None,
         )
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
@@ -64,12 +65,13 @@ class TestRunPython(unittest.TestCase):
             'my_module',
             ['a33', 'b/55'],
             True,
+            'x y z',
         )
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
         self.assertEqual(
             (
-                ('foo', '-m', 'my_module'),
+                ('foo', '-m', 'my_module', 'x', 'y', 'z'),
                 {
                     'PYTHONPATH': _abspath_list(['c22', 'd11', self.install_dir, 'a33', 'b/55']),
                     'OTHER_VALUE': 'yes',
@@ -91,12 +93,13 @@ class TestRunPython(unittest.TestCase):
             'my_module',
             ['a33', 'b55'],
             True,
+            '"A VALUE" b ${EXTENSION_NAME} c',
         )
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
         self.assertEqual(
             (
-                ('foo bar', '-m', 'my_module'),
+                ('foo bar', '-m', 'my_module', 'A VALUE', 'b', '${EXTENSION_NAME}', 'c'),
                 {
                     'PYTHONPATH': _abspath_list(['c22', 'd11', self.install_dir, 'a33', 'b55']),
                     'OTHER_VALUE': 'yes',

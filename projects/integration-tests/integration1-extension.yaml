@@ -17,3 +17,10 @@ depends: []
 runtime:
   launcher: integration
   permissions: {}
+
+configuration:
+  fields:
+    started-file:
+      type: string
+      min-length: 1
+      max-length: 1000

@@ -54,7 +54,7 @@ class CmdLauncherCategory(AbcLauncherCategory):
         if exec_res.has_error:
             return exec_res.forward()
         if handler_id in self._processes:
-            launcher_already_registered(handler_id)
+            return launcher_already_registered(handler_id)
         launcher_runtime = ExtensionRuntime(handler_id, {
             permission.action: tuple(permission.resources)
             for permission in start_event.permissions
@@ -115,7 +115,7 @@ class CmdLauncherCategory(AbcLauncherCategory):
 
     def stop(self) -> StdRet[None]:
         ret = []
-        # TODO do this in parallel.
+        # Could do this in parallel.
         for launcher in self._processes.values():
             res = launcher.stop()
             if res.has_error:
@@ -185,5 +185,6 @@ def get_python_runtime_settings(
         module_path = []
     res_py_exec = get_python_exec_args(
         res_module.result, module_path, False,
+        options.options.get('args', None),
     )
     return res_py_exec

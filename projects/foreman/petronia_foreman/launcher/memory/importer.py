@@ -48,6 +48,6 @@ def add_item_to_path(item: str) -> StdRet[None]:
             _('Requested to load a module with non-existent search path {value}'),
             value=abs_path,
         ))
-    if item not in sys.path:
-        sys.path.append(item)
+    elif abs_path not in sys.path:
+        sys.path.append(abs_path)
     return RET_OK_NONE

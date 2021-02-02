@@ -318,6 +318,7 @@ class OnCloseTarget(EventForwarderTarget):
             self, event_id: str, source_id: str, target_id: str, size: int,
             data_reader: RawBinaryReader,
     ) -> bool:
+        data_reader(size)
         return False
 
     def on_error(self, error: PetroniaReturnError) -> bool:

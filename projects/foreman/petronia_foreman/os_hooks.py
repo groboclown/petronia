@@ -32,7 +32,7 @@ class OsHooks:
 
     def register_root_fd(self, root_log_fd: Optional[int]) -> None:
         """Register the root FD.  Can only be done before start."""
-        assert self.__state == 0, 'can only be run before started'
+        self._ensure_not_started()
         self.__log_fd = root_log_fd
 
     def register_on_shutdown(self, callback: Optional[Callable[[], None]]) -> None:
@@ -45,7 +45,7 @@ class OsHooks:
 
     def start(self) -> None:
         """Start the connections."""
-        assert self.__state == 0, 'can only be run before started'
+        self._ensure_not_started()
         self.__state = 1
         if self.__log_fd is not None:
             faulthandler.enable(self.__log_fd, all_threads=True)
@@ -108,3 +108,7 @@ class OsHooks:
         if self.__log_fd and faulthandler.is_enabled():
             faulthandler.disable()
         self.__state = 2
+
+    def _ensure_not_started(self) -> None:
+        if self.__state != 0:
+            raise AttributeError('can only be run before started')

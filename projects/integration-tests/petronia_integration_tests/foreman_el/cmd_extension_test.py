@@ -2,6 +2,7 @@
 
 import unittest
 import os
+import time
 import tempfile
 import shutil
 import sys
@@ -11,18 +12,15 @@ from configparser import ConfigParser
 from petronia_foreman.configuration import platform, ForemanConfig
 from petronia_foreman.configuration.foreman import BOOT_SECTION
 from petronia_foreman.foreman_runner import ForemanRunner
-from petronia_integration_tests.foreman_el.integration1.start import (
-    wait_for_extension_alive, reset_extension,
-)
 
 # Seconds before the test times out and exits with an error.
 # If you're debugging, set this to a large-enough number, like
 # 5 hours.
-TEST_TIMEOUT_SECONDS = 10.0
-# TEST_TIMEOUT_SECONDS = 60.0 * 60.0 * 5.0
+# TEST_TIMEOUT_SECONDS = 10.0
+TEST_TIMEOUT_SECONDS = 60.0 * 60.0 * 5.0
 
 
-class LoadExtensionTest(unittest.TestCase):
+class CmdExtensionTest(unittest.TestCase):
     """Load an extension, starting with an event to the extension loader."""
     def setUp(self) -> None:
         self.tempdir = tempfile.mkdtemp()
@@ -59,8 +57,6 @@ class LoadExtensionTest(unittest.TestCase):
         config.set(BOOT_SECTION, 'boot-file-order', 'extension-loader.json')
         config.add_section('extension-loader')
         config.set('extension-loader', 'runner', 'in-memory')
-        config.set('extension-loader', 'module', 'petronia_extension_loader.entrypoint')
-        config.set('extension-loader', 'entrypoint', 'entrypoint')
         config.set('extension-loader', 'arg.1', '${CONFIG_PATH}')
         config.set('extension-loader', 'arg.2', os.pathsep.join([
             '${DATA_PATH}',
@@ -69,56 +65,30 @@ class LoadExtensionTest(unittest.TestCase):
         ]),)
         config.set('extension-loader', 'arg.3', '${TEMP_DIR}')
         config.set('extension-loader', 'arg.4', 'extension-loader')  # launcher_id
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.1',
-            'petronia.core.api.datastore:data-update',
-        )
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.2',
-            'petronia.core.api.extension_loader:load-extension:success',
-        )
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.3',
-            'petronia.core.api.extension_loader:load-extension:failed',
-        )
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.4',
-            'petronia.core.api.extension_loader:system-started',
-        )
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.5',
-            'petronia.core.api.foreman:start-launcher:request',
-        )
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.6',
-            'petronia.core.api.foreman:launcher-load-extension:request',
-        )
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.7',
-            'petronia.core.api.foreman:extension-add-event-listener',
-        )
-        config.set(
-            'extension-loader', 'boot-launcher-produces-event.8',
-            'petronia.core.api.foreman:extension-remove-event-listener',
-        )
 
-        config.add_section('native')
-        config.set('native', 'runner', 'in-memory')
-        config.set('native', 'boot-channel', 'native')
-        config.set('native', 'module', 'petronia_integration_tests.foreman_el.launcher.entrypoint')
-        config.set('native', 'entrypoint', 'entrypoint')
-        config.set('native', 'arg.1', 'native')
+        self.start_file = os.path.join(self.tempdir, 'extension-started.txt')
+
         with open(os.path.join(self.tempdir, 'configs', 'config.json'), 'w') as f:
             json.dump({
                 'startup': {
                     'extensions': ['petronia_integration_tests.foreman_el.integration1'],
                     'extension-dirs': sys.path,
                 },
+                'petronia_integration_tests.foreman_el.integration1': {
+                    'started-file': self.start_file,
+                },
             }, f)
+
         config.add_section('integration')
-        config.set('integration', 'runner', 'in-memory')
-        config.set('integration', 'module', 'petronia_extension_runner.entrypoint')
-        config.set('integration', 'entrypoint', 'entrypoint')
+        config.set('integration', 'runner', 'cmd-launcher')
+        config.set('integration', 'exe', 'py')
+        config.set('integration', 'path', os.pathsep.join(sys.path))
+        config.set('integration', 'module', 'petronia_extension_runner')
+        config.set(
+            'integration', 'args',
+            '${WRITE_FD} ${HANDLER_ID} ${CONFIG_PATH} ${DATA_PATH} '
+            '${TEMP_DIR} ${EXTENSION_NAME} ${CONFIGURATION_FILE}',
+        )
 
         self.foreman_config.load_config(config)
         self.foreman_runner = ForemanRunner(self.foreman_config)
@@ -133,7 +103,7 @@ class LoadExtensionTest(unittest.TestCase):
         print("Running threads:")
         for thread in threading.enumerate():
             print(" - " + thread.name + ": alive? " + str(thread.is_alive()))
-        reset_extension()
+        print("Completed teardown")
 
     def test_load_extension(self) -> None:
         """Load the extension."""
@@ -141,4 +111,12 @@ class LoadExtensionTest(unittest.TestCase):
         self.assertEqual(0, self.foreman_runner.boot())
         print("Boot complete")
 
-        self.assertTrue(wait_for_extension_alive(TEST_TIMEOUT_SECONDS))
+        expires = time.time() + TEST_TIMEOUT_SECONDS
+        while time.time() < expires:
+            if os.path.isfile(self.start_file):
+                break
+        self.assertTrue(
+            os.path.isfile(self.start_file),
+            f'Extension did not report itself as having '
+            f'started after {TEST_TIMEOUT_SECONDS} seconds.',
+        )

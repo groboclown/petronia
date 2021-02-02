@@ -8,6 +8,15 @@ from .. import foreman
 class ForemanConfigTest(unittest.TestCase):
     """Test the ForemanConfig class."""
 
+    def test__not_loaded(self) -> None:
+        """Access functions before initializing"""
+        fcg = foreman.ForemanConfig()
+        self.assertRaisesRegex(
+            ValueError,
+            r'Load config failed\.',
+            fcg.get_boot_config,
+        )
+
     def test__load_config__multiple_empty(self) -> None:
         """Load an empty configuration file."""
         fcg = foreman.ForemanConfig()
@@ -65,6 +74,7 @@ class ForemanConfigTest(unittest.TestCase):
         config_file.add_section('foreman')
         config_file.set('foreman', 'boot-file-order', 'x, a, b, c')
         config_file.set('foreman', 'root-log-file', 'log file')
+        config_file.set('foreman', 'boot-extension-dir', 'my-path')
         res = fcg.load_config(config_file)
         self.assertIsNone(res.error)
         boot = fcg.get_boot_config()
@@ -81,3 +91,4 @@ class ForemanConfigTest(unittest.TestCase):
         self.assertEqual(False, boot.is_signals_enabled())
         boot.set_signals_enabled(True)
         self.assertEqual(True, boot.is_signals_enabled())
+        self.assertEqual('my-path', boot.boot_extension_dir)

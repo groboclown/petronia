@@ -1,11 +1,20 @@
 """
 Basic definitions
 """
-from petronia_common.event_stream import EventForwarder, EventForwarderTarget
+from typing import Sequence, Dict, Callable, Any
+from petronia_common.event_stream import (
+    EventForwarder, EventForwarderTarget, BinaryReader, BinaryWriter,
+)
 from petronia_common.event_stream.thread_writer import ThreadSafeEventWriter
-
+from petronia_common.util import StdRet
 
 TRANSLATION_CATALOG = 'extension-runner'
+
+
+EntryPointFunctionType = Callable[
+    [BinaryReader, BinaryWriter, Dict[str, Any], Sequence[str]],
+    StdRet[None],
+]
 
 
 class EventHandlerContext:

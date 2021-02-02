@@ -105,7 +105,11 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
                     continue
                 if self.__state == _STATE_STOPPED:
                     # Start the thread + router.
-                    assert self.__thread is None, 'Did not stop router thread correctly'
+
+                    # This is a basic state-machine validation, useful for unit tests and
+                    # developers.
+                    assert self.__thread is None, 'Did not stop router thread correctly'  # nosec
+
                     # This + constructor is the only time outside the thread loop the state changes.
                     # It can only be done while the thread is stopped.
                     _debug('start', 'Starting router thread')
@@ -195,13 +199,13 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Starts up an extension after boot-time."""
         with self.__lock:
-            assert self.__state == _STATE_RUNNING, 'router not running'
+            self._ensure_running()
             self.__queue.put(ExtensionQueueRequest(source_id, request))
 
     def start_boot_extension(self, request: BootExtensionMetadata) -> None:
         """Starts up a boot-time extension."""
         with self.__lock:
-            assert self.__state == _STATE_RUNNING, 'router not running'
+            self._ensure_running()
             self.__queue.put(BootExtensionQueueRequest(request))
 
     def _thread_runner(self) -> None:
@@ -209,8 +213,11 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         asyncio items in the loop."""
 
         # Start up the thread.
+
         with self.__lock:
-            assert self.__state == _STATE_BOOTING, 'Not in correct state to start thread'
+            # This is intended to protect the state machine during unit tests, to ensure this
+            # protected method isn't called in the wrong order.
+            assert self.__state == _STATE_BOOTING, 'Not in correct state to start thread'  # nosec
 
         sem = threading.Semaphore()
         executor = ThreadPoolExecutor()
@@ -327,6 +334,11 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         )
 
         return RouterLoopLogic(categories, router)
+
+    def _ensure_running(self) -> None:
+        """MUST be called from within a lock."""
+        if self.__state != _STATE_RUNNING:
+            raise AttributeError('router not running')
 
 
 class ExtensionLoaderCallback:

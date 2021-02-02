@@ -3,7 +3,7 @@
 
 from typing import Iterable, Sequence, Mapping, Callable, Optional, BinaryIO
 import os
-import subprocess
+import subprocess  # nosec
 from petronia_common.util import StdRet, StreamReadState, select_reader
 from petronia_common.util import i18n as _
 from .process import ManagedProcess
@@ -40,7 +40,11 @@ try:
             # Must close pipe input if child will block waiting for end
             # Can also be closed in a preexec_fn passed to subprocess.Popen
             fcntl.fcntl(rx_read, fcntl.F_SETFD, fcntl.FD_CLOEXEC)
-            process = subprocess.Popen(  # pylint: disable=no-member
+
+            # Yes, this is using Popen.  Arguments are somewhat loaded in from
+            # the user, but these are explicit split arguments without shell access.
+            # This helps restrict the security issues present with this.
+            process = subprocess.Popen(  # pylint: disable=no-member  # nosec
                 args=cmd,
                 env=env,
                 stdin=tx_read,
@@ -103,6 +107,8 @@ try:
             if self.__exit_code is None:
                 try:
                     self.__process.wait(timeout)
+                    # Ensure everything is closed off.
+                    self.watch_process(lambda x: None)
                     return True
                 except subprocess.TimeoutExpired:
                     return False
