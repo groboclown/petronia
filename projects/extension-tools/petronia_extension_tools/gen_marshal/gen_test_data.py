@@ -86,7 +86,8 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         return StdRet.pass_ok(repr(random.choice(fdt.values)))  # nosec
 
     if isinstance(fdt, SelectorEventDataType):
-        selected_key, selected_type = random.choice(tuple(fdt.selector_items()))
+        # This isn't cryptographically strong, which is fine for test data.
+        selected_key, selected_type = random.choice(tuple(fdt.selector_items()))  # nosec
         data_value = create_field_data_sample(selected_type, fill_all_fields, depth + 1)
         if data_value.has_error:
             return data_value.forward()
@@ -120,7 +121,8 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         if fill_all_fields and depth < MAX_DEPTH:
             length = max(
                 fdt.min_length,
-                min(MAX_ARRAY_LENGTH, random.randint(fdt.min_length, fdt.max_length)),
+                # This isn't cryptographically strong, which is fine for test data.
+                min(MAX_ARRAY_LENGTH, random.randint(fdt.min_length, fdt.max_length)),  # nosec
             )
         else:
             length = fdt.min_length
