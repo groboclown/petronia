@@ -21,9 +21,11 @@ def extension_entrypoint(
     run_count = LAUNCH_COUNT[0]
     print(f"integration-extension1 {args} {run_count} started")
     if 'started-file' in config:
-        with open(config['started-file'], 'w') as f:
-            f.write('started')
-        print("Extension wrote started file defined in config.")
+        # This code is run in a separate process from the code-coverage tool,
+        # so we can mark it as not covered.
+        with open(config['started-file'], 'w') as f:  # pragma no cover
+            f.write('started')  # pragma no cover
+        print("Extension wrote started file defined in config.")  # pragma no cover
     else:
         with RUNNING_CONDITION:
             assert not IS_ALIVE[0]  # nosec

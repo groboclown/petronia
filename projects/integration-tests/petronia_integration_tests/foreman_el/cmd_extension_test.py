@@ -16,8 +16,8 @@ from petronia_foreman.foreman_runner import ForemanRunner
 # Seconds before the test times out and exits with an error.
 # If you're debugging, set this to a large-enough number, like
 # 5 hours.
-# TEST_TIMEOUT_SECONDS = 10.0
-TEST_TIMEOUT_SECONDS = 60.0 * 60.0 * 5.0
+TEST_TIMEOUT_SECONDS = 10.0
+# TEST_TIMEOUT_SECONDS = 60.0 * 60.0 * 5.0
 
 
 class CmdExtensionTest(unittest.TestCase):
@@ -112,9 +112,11 @@ class CmdExtensionTest(unittest.TestCase):
         print("Boot complete")
 
         expires = time.time() + TEST_TIMEOUT_SECONDS
-        while time.time() < expires:
-            if os.path.isfile(self.start_file):
-                break
+        while (
+            not os.path.isfile(self.start_file)
+            and time.time() < expires
+        ):
+            time.sleep(1.0)  # pragma no cover
         self.assertTrue(
             os.path.isfile(self.start_file),
             f'Extension did not report itself as having '
