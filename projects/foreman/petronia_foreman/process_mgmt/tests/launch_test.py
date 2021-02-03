@@ -24,7 +24,7 @@ class LaunchTest(unittest.TestCase):
         )
 
     def tearDown(self) -> None:
-        shutil.rmtree(self.temp_dir)
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_runner(self) -> None:
         """Run the runner module..."""

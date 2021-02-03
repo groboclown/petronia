@@ -42,7 +42,8 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         raise RuntimeError('Data structure is too deep.')
 
     if isinstance(fdt, IntEventDataType):
-        return StdRet.pass_ok(repr(random.randint(fdt.min_value, fdt.max_value)))
+        # This isn't cryptographically strong.  Which is fine for generating test data.
+        return StdRet.pass_ok(repr(random.randint(fdt.min_value, fdt.max_value)))  # nosec
 
     if isinstance(fdt, FloatEventDataType):
         min_f_value = -100000.0
@@ -52,7 +53,8 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         if fdt.max_value is not None:
             max_f_value = max(min_f_value, fdt.max_value)
         return StdRet.pass_ok(repr(
-            (random.random() * (max_f_value - min_f_value)) + min_f_value
+            # This isn't cryptographically strong, which is fine for test data.
+            (random.random() * (max_f_value - min_f_value)) + min_f_value  # nosec
         ))
 
     if isinstance(fdt, StringEventDataType):
@@ -60,16 +62,19 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         if fill_all_fields:
             str_length = max(
                 fdt.min_length,
-                min(MAX_STRING_LENGTH, random.randint(fdt.min_length, fdt.max_length)),
+                # This isn't cryptographically strong, which is fine for test data.
+                min(MAX_STRING_LENGTH, random.randint(fdt.min_length, fdt.max_length)),  # nosec
             )
         else:
             str_length = fdt.min_length
         for _ in range(str_length):
-            str_ret += random.choice(CHARACTER_CHOICES)
+            # This isn't cryptographically strong, which is fine for test data.
+            str_ret += random.choice(CHARACTER_CHOICES)  # nosec
         return StdRet.pass_ok(repr(str_ret))
 
     if isinstance(fdt, BoolEventDataType):
-        return StdRet.pass_ok('True' if random.randint(0, 1) == 0 else 'False')
+        # This isn't cryptographically strong, which is fine for test data.
+        return StdRet.pass_ok('True' if random.randint(0, 1) == 0 else 'False')  # nosec
 
     if isinstance(fdt, DatetimeEventDataType):
         return StdRet.pass_ok(repr(datetime.datetime.utcnow().strftime(
@@ -77,7 +82,8 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         )))
 
     if isinstance(fdt, EnumEventDataType):
-        return StdRet.pass_ok(repr(random.choice(fdt.values)))
+        # This isn't cryptographically strong, which is fine for test data.
+        return StdRet.pass_ok(repr(random.choice(fdt.values)))  # nosec
 
     if isinstance(fdt, SelectorEventDataType):
         selected_key, selected_type = random.choice(tuple(fdt.selector_items()))

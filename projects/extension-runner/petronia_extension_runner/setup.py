@@ -6,6 +6,9 @@ from typing import Dict, List, Tuple, Optional, Any
 import os
 import sys
 import collections.abc
+import tempfile
+import shutil
+import atexit
 from petronia_common.util import StdRet, load_structured_file
 
 HANDLER_ID = '<unset>'
@@ -43,7 +46,11 @@ def initialize(  # pylint:disable=keyword-arg-before-vararg
 
     global HANDLER_ID, TEMP_DIR, EXTENSION_NAME  # pylint:disable=global-statement
     HANDLER_ID = handler_id or '<unset>'
-    TEMP_DIR = temp_dir or os.curdir  # FIXME UNSAFE
+    if temp_dir and os.path.isdir(temp_dir):
+        TEMP_DIR = temp_dir
+    else:
+        TEMP_DIR = tempfile.mkdtemp()
+        atexit.register(shutil.rmtree, TEMP_DIR, ignore_errors=True)
     EXTENSION_NAME = extension_name or '<unset>'
 
     USER_CONFIG_PATH.clear()

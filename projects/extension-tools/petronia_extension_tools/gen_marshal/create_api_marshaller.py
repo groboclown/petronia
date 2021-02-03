@@ -35,7 +35,8 @@ def create_api_marshal_source(  # pylint: disable=too-many-arguments
         language: str, generate_api: bool, generate_internals: bool, generate_states: bool,
 ) -> StdRet[None]:
     """Create the marshaller source file."""
-    assert language == 'python', 'Only supports Python output at the moment.'
+    if language != 'python':
+        raise ValueError('Only supports Python output at the moment.')
     ret_data = create_structures(data, generate_api, generate_internals, generate_states)
     if ret_data.has_error:
         return ret_data.forward()

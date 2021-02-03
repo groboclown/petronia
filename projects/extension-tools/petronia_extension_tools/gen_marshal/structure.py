@@ -127,7 +127,8 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             'is_event': False,
         }
         for s_key, s_type in structure.selector_items():
-            assert isinstance(s_key, str)
+            # Assertion for mypy requirements
+            assert isinstance(s_key, str)  # nosec
             ret_selector_item = get_field_struct(
                 s_key, s_type, False, structure, ret,
                 seen_structures, imports,
