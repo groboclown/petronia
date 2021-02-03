@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-03T18:04:42.167607
+# Created on 2021-02-03T18:04:43.663107
 
 """
 Tests for the datastore module.
@@ -73,17 +73,17 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'ɛȶϸèӺ҃ǟǺӇɆŒͶȒņˉнԩ˔ɒ҃ѠϰrМ˨u·ӖƼά',
-            'json': 'ϻ˻ԡǈ5˃žǼԧʠԞʋǠxɂ\x9eШѩʱ^=ǵϓонóϾǇÎΫ',
+            'destination': 'ɔȻдЮ`\u038bɠѢԥ˅ƳȰ\x84ӦŌʧ4rώϥòǛϳo\x99ΦӴτΈȊ',
+            'json': 'ӆ\x84ξӒǚ«ūũЏ´ϹƛñǥԢϼɟǗʼҰʙĄΞ\x91ŅӽӵŤȫ˕',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': 'ԋԤȦӣȑ',
+            'destination': 'ɿΈѬ˓ʇ',
 
-            'json': 'ǝF',
+            'json': 'ãf',
 
         },
     ),
@@ -145,14 +145,14 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'ɨÅȈˎΦϣѬӿӈ҂ʀƱ΅C¥ǍŃ¼ǃȎӝӷŔÉͱ\x96ҲϹ\u0380ʞ',
+            'destination': 'СΨҭƛΡȡȫӽɌFѷ\x92ԞҒԌĝųɓșуż˪ɐөӄƥɬ+ȓϫ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': 'µɠ;ђɞ',
+            'destination': 'ϟӁǈļ·',
 
         },
     ),
@@ -214,14 +214,14 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'Öϥɳ\x9dѭȽҏΫ±ϛŃԔɪĀɂ¤ҥԩ\x80žӳӾCͻřҬӅ˙Юɲ',
+            'destination': 'ĶӻǬҙжɆ\u038bǆEđΠɶÅЧκæâďɆԧӥҶԌű˄0ϺĎĪφ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': 'ɓҁτΏԤ',
+            'destination': '\x88ȱƃӪ\x9b',
 
         },
     ),
@@ -287,17 +287,17 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210203:180442.127217:+0000',
-            'json': 'ъǉ\x91ĵԩ˂ơˆӗŧŘЖÍǎGĞĠ˧ѵȸîφЬɮǹƦʕԠƞȔ',
+            'changed': '20210203:180443.611888:+0000',
+            'json': '\x97ԩˠʭӄɿ×ӋΏˊɚÓУ˽ӝџΎҞƌɇњџðΘȳƸы)Vɮ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210203:180442.127248:+0000',
+            'changed': '20210203:180443.611919:+0000',
 
-            'json': 'ƽΏ',
+            'json': 'ЄΖ',
 
         },
     ),

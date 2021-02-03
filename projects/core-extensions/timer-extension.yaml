@@ -1,0 +1,40 @@
+---
+
+name: petronia.core.api.timer
+type: api
+version: [1, 0, 0]
+about: Timer Heartbeat API.
+description: >
+  A common API for sending out steady heartbeat events, which replaces the usual thread model
+  of loop over a sleep.  This allows the end-user to define the interval of heartbeats, rather
+  than per extension.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_extension.core.impl.timer
+  minimum: [1, 0, 0]
+
+state-data:
+  heartbeat-interval:
+    description: >
+      Interval, in seconds, for the heartbeat.  The timer extension should listen to
+      changes to this data, so that it can on-the-fly change this configuration state.
+    fields:
+      seconds:
+        type: float
+        description: Interval, in seconds, for the heartbeat.
+
+events:
+  "heartbeat":
+    description: >
+      The heart beat for the time.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    unique-target: heartbeat
+    fields:
+      datetime:
+        description: The time when the heartbeat was sent.
+        type: datetime

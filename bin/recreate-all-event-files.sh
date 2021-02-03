@@ -24,3 +24,19 @@ echo extension-loader/petronia_extension_loader/events:
   --output "${pd}/extension-loader/petronia_extension_loader/events/ext" \
   --api \
   "${pd}/core-extensions/datastore-extension.yaml"
+
+
+# Core extension implementations
+echo core-extensions
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_extension/petronia/core/impl/datastore/events/impl" \
+  --implementation --api --state \
+  "${pd}/core-extensions/datastore-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_extension/petronia/core/impl/logging/events/impl" \
+  --implementation --api --state \
+  "${pd}/core-extensions/logging-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_extension/petronia/core/impl/timer/events/impl" \
+  --implementation --api --state \
+  "${pd}/core-extensions/timer-extension.yaml"

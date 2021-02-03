@@ -14,6 +14,26 @@ default:
   name: petronia_extension.core.impl.logging
   minimum: [1, 0, 0]
 
+state-data:
+  global-logging:
+    description: The global log level to log at.
+    fields:
+      minimum_level:
+        type: enum
+        values:
+          - warning
+          - info
+          - verbose
+          - debug
+      output_file:
+        type: string
+        min-length: 0
+        max-length: 10000
+        optional: true
+      output_console:
+        type: bool
+
+
 events:
   "log":
     description: >
@@ -88,7 +108,7 @@ references:
         max-length: 100
         value-type:
             type: enum
-            enum-values:
+            values:
               - file
               - os
               - configuration
@@ -127,6 +147,7 @@ references:
         description: >
           The message ID to look up in the catalog.  If the message
           has no translation, this is directly displayed to the user.
+        type: string
         min-length: 1
         max-length: 10000
       arguments:
