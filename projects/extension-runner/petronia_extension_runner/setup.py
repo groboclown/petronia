@@ -5,7 +5,6 @@ Sets up the runner.
 from typing import Dict, List, Tuple, Optional, Any
 import os
 import sys
-import collections.abc
 import tempfile
 import shutil
 import atexit
@@ -39,7 +38,8 @@ def initialize(  # pylint:disable=keyword-arg-before-vararg
         loaded_config = config_res.result
         if isinstance(loaded_config, dict):
             config = loaded_config
-        elif isinstance(loaded_config, collections.abc.Iterable):
+        else:
+            # The load structured file returns either a dictionary or a sequence.
             config_list = list(loaded_config)
             if len(config_list) > 0 and isinstance(config_list[0], dict):
                 config = config_list[0]

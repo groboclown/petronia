@@ -30,6 +30,7 @@ def display_message(res: StdRet[T], message: Optional[str] = None) -> None:
         if isinstance(err, ExceptionPetroniaReturnError):
             traceback.print_exception(
                 type(err.exception()), err.exception(), err.exception().__traceback__,
+                file=sys.stdout,
             )
 
 

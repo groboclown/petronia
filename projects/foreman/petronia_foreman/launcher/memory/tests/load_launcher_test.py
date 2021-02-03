@@ -51,7 +51,7 @@ class LoadLauncherTest(unittest.TestCase):
         )
         self.assertEqual(
             'const valueabc',
-            getattr(mod.result, 'my_module_function')('abc')
+            getattr(mod.result, 'my_module_function')('abc'),
         )
 
     def test_connect_launcher__ok(self) -> None:

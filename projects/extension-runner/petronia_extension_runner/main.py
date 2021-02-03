@@ -7,6 +7,7 @@ from petronia_common.event_stream.arg_handle import (
     get_fd_reader, get_fd_writer,
 )
 from .entrypoint import entrypoint
+from .messages import display_message
 
 
 def main(args: Sequence[str]) -> int:
@@ -20,7 +21,8 @@ def main(args: Sequence[str]) -> int:
     event_write = get_fd_writer(event_write_fd_res.result)
     event_read = get_fd_reader(event_read_fd)
     try:
-        entrypoint(args[1:], event_read, event_write)
+        res = entrypoint(args[1:], event_read, event_write)
+        display_message(res)
     finally:
         event_write.close()
         event_read.close()

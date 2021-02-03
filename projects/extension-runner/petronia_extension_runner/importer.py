@@ -9,7 +9,7 @@ import os
 import sys
 import types
 import importlib
-from petronia_common.util import StdRet, RET_OK_NONE
+from petronia_common.util import StdRet
 from petronia_common.util import i18n as _
 from .defs import EntryPointFunctionType, TRANSLATION_CATALOG
 
@@ -45,25 +45,22 @@ def get_entrypoint_function(
 def load_module_from_path(fullname: str, path: List[str]) -> StdRet[types.ModuleType]:
     """Load the module, searching the given path."""
     for path_item in path:
-        res = add_item_to_path(path_item)
-        if res.has_error:
-            return res.forward()
+        add_item_to_path(path_item)
 
     try:
         ret = importlib.import_module(fullname)
         return StdRet.pass_ok(ret)
     except Exception as err:  # pylint:disable=broad-except
         return StdRet.pass_exception(
-            _('memory-importer for {name} path {path}'),
+            _('extension-runner could not load Python module {name} from path {path}'),
             err,
             name=fullname,
             path=repr(path),
         )
 
 
-def add_item_to_path(item: str) -> StdRet[None]:
+def add_item_to_path(item: str) -> None:
     """Add a local path"""
     abs_path = os.path.abspath(item)
     if os.path.exists(abs_path) and abs_path not in sys.path:
         sys.path.append(item)
-    return RET_OK_NONE
