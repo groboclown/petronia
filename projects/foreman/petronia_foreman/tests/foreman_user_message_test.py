@@ -100,10 +100,7 @@ class ForemanUserMessageTest(unittest.TestCase):
 
         # System locale; unknown.
         # Note for the unit test: LANG is for Windows, but Unix uses ... many.
-        os.environ['LANG'] = 'zn'
-        os.environ['LANGUAGE'] = 'zn'
-        os.environ['LC_ALL'] = 'zn.UTF-8'
-        os.environ['LC_MESSAGES'] = 'zn'
+        _set_env_language('zn')
         user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
@@ -112,7 +109,7 @@ class ForemanUserMessageTest(unittest.TestCase):
         self.assertEqual('Simple test message abc', en_text)
 
         # System locale; known.
-        os.environ['LANG'] = 'en'
+        _set_env_language('en')
         user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
@@ -191,3 +188,15 @@ class ForemanUserMessageTest(unittest.TestCase):
         self.assertTrue('OSError' in sys.stdout.getvalue())
         self.assertTrue('my custom err' in sys.stdout.getvalue())
         self.assertTrue('test_display_error__debug' in sys.stdout.getvalue())
+
+
+def _set_env_language(lang: str) -> None:
+    # Note for the unit test: There is a hierarchy of OS environment settings that
+    # dictate the selected language from gettext.  This attempts to set all of those,
+    # so that a pesky OS environment that may already be set doesn't interfere with
+    # the unit test expected operation.
+    os.environ['LANG'] = lang
+    os.environ['LANGUAGE'] = lang
+    os.environ['LC_ALL'] = lang
+    os.environ['LC_MESSAGES'] = lang
+
