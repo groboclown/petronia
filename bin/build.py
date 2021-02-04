@@ -41,8 +41,9 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     )
     if mypy_code != 0:
         # If mypy fails, there's little point in running anything else.
-        print(f"MyPy exited with {mypy_code}")
+        print(f"MyPy FAILED: exit code {mypy_code}")
         return ['mypy']
+    print("MyPy PASSED")
 
     failed: List[str] = []
 
@@ -66,9 +67,11 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     )
 
     if lint_code != 0:
-        print(f"Linting exited with {lint_code}")
+        print(f"Linting FAILED: exit code {lint_code}")
         failed.append('lint')
         # Let unit test run, even if linting failed.
+    else:
+        print("Linting PASSED")
 
     print("")
     print("----------------------------------------------------------------------")
@@ -89,8 +92,10 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
         True,
     )
     if test_code != 0:
-        print(f"Unit test exited with {test_code}")
+        print(f"Unit test FAILED: exit code {test_code}")
         failed.append('unit tests')
+    else:
+        print("Unit tests PASS")
 
     report_code = run_python_cmd(
         project_dir,
@@ -100,8 +105,10 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
         True,
     )
     if report_code != 0:
-        print(f"Code coverage exited with {report_code}")
+        print(f"Code coverage FAILED: exit code {report_code}")
         failed.append('insufficient code coverage from unit tests')
+    else:
+        print("Code coverage PASSED")
 
     print("")
     print("----------------------------------------------------------------------")
@@ -114,8 +121,10 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
         True,
     )
     if sec_code != 0:
-        print(f"Bandit security check exited with {sec_code}")
+        print(f"Bandit security check FAILED: exit code {sec_code}")
         failed.append('security inspections')
+    else:
+        print("Bandit security check PASSED")
 
     return failed
 
@@ -266,8 +275,9 @@ def main(root_project_dir: str, child_projects: List[str]) -> int:
 
     print("")
     print("_._._._._._._._._._._.__._._._._._._._._._._._._._._._._._._._._._._")
-    print(f"Final build result: {'PASS' if total_failures else 'FAIL'}")
-    print(f'  FAILED ' + ('\n  FAILED '.join(total_failures)))
+    print(f"Final build result: {'FAIL' if total_failures else 'PASS'}")
+    if total_failures:
+        print(f'  FAILED ' + ('\n  FAILED '.join(total_failures)))
     return len(total_failures)
 
 

@@ -99,7 +99,10 @@ class ForemanUserMessageTest(unittest.TestCase):
         self.assertEqual('Simple test message abc', en_text)
 
         # System locale; unknown.
+        # Note for the unit test: LANG is for Windows, but Unix uses ... many.
         os.environ['LANG'] = 'zn'
+        os.environ['LANGUAGE'] = 'zn'
+        os.environ['LC_ALL'] = 'zn.UTF-8'
         user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),

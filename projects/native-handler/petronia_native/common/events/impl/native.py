@@ -925,10 +925,10 @@ class RegisterTranslationMessagesEvent:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['RegisterTranslationMessagesEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(_data: Dict[str, Any]) -> StdRet['RegisterTranslationMessagesEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
-        val: Any
+        _val: Any
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(RegisterTranslationMessagesEvent(
