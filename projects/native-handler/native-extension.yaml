@@ -23,19 +23,17 @@ events:
   register-translation:
     description: >
       Allows an extension to add additional messages, new translation languages,
-      or override existing ones.
+      or override existing ones.  Future events that are either responses to this
+      or registering the binary data use the source ID as the identifier for this
+      registration.  This requires a follow-up
+      "register-translation:messages" event to set the messages, if the message-file
+      is not specified.  Note that in most cases, the `message_file` can be used,
+      but for complex deployments, like cross-computers, this will fail and the
+      message binary event must instead be used.
     priority: normal
     send-access: public
     receive-access: implementations
     fields:
-      identifier:
-        description: >
-          The requested translation fragment ID.  Should uniquely identify this fragment of the
-          registered translation.  This value is used to report on success or failure of the
-          registration.
-        type: string
-        min-length: 3
-        max-length: 200
       locale_code:
         description: standard language and locale identifier.
         type: string
@@ -46,85 +44,193 @@ events:
         type: string
         min-length: 3
         max-length: 255
-      messages:
-        description: list of translations to add to the catalog.
-        type: array
-        value-type:
-          type: reference
-          ref: translated-message
+      message_file:
+        description: >
+          Location of the message file.  Most implementations will recognize this as a
+          location on the local computer, but some may use this as a network lookup
+          (e.g. `ssh://` or `https://`).  This may fail if the implementation doesn't
+          support the remote access, or if it cannot find the file.
+        type: string
+        min-length: 2
+        max-length: 10000
 
   "register-translation:success":
     description: >
-      Report that the translation was successfully registered
+      Report that the translation was successfully registered.  The target is
+      the source ID of the origin of the registration.
     priority: normal
     send-access: implementations
     receive-access: public
-    fields:
-      identifier:
-        description: The requested translation fragment ID.
-        type: string
-        min-length: 3
-        max-length: 200
+    fields: {}
 
   "register-translation:failed":
     description: >
-      Report that the translation failed to be registered
+      Report that the translation failed to be registered.  The target is
+      the source ID of the origin of the registration.
     priority: normal
     send-access: implementations
     receive-access: public
     fields:
-      identifier:
-        description: The requested translation fragment ID.
-        type: string
-        min-length: 3
-        max-length: 200
       error:
         type: reference
         ref: error
 
+  "register-translation:messages":
+    description: >
+      A follow-up to the initial registration to pass in the translated
+      message `mo` file (a compiled `po` file).  The contents of this
+      binary event is the exact contents of the `mo` file.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    is-binary: true
+
+
 references:
-  error:
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+  localizable-message:
+    description: A localizable message for user display.
     type: structure
-    description: A failure
     fields:
-      identifier:
+      catalog:
+        description: >
+          The name of the translation file, or "domain", that contains
+          the translations.
         type: string
         min-length: 2
-        max-length: 255
-        description: The identifier that uniquely defines this error.
-      source:
-        type: string
-        optional: true
-        description: The source of the error, if known.
+        max-length: 300
       message:
-        type: string
-        description: A localizable message.
-      arguments:
-        type: array
-        description: arguments for the message.
-        value-type:
-          type: selector
-          type-mapping:
-            string:
-              type: string
-            int:
-              type: int
-            float:
-              type: float
-
-  translated-message:
-    type: structure
-    description: a translation of a message
-    fields:
-      identifier:
+        description: >
+          The message ID to look up in the catalog.  If the message
+          has no translation, this is directly displayed to the user.
         type: string
         min-length: 1
-        max-length: 60000
+        max-length: 10000
       arguments:
+        description: >
+          List of arguments to be inserted into the translated message.
+          Each argument should have a distinct name from all the other
+          arguments in this message; the name is how the message references
+          the arguments.
         type: array
-        description: argument keys for the message.
+        min-length: 0
+        max-length: 100
+        optional: true
+        value-type:
+          type: reference
+          ref: message-argument
+  message-argument:
+    description: An argument to be inserted into the localizable message.
+    type: structure
+    fields:
+      name:
+        description: Name of the arugment, referenced by the message.
+        type: string
+        min-length: 1
+        max-length: 50
+      value:
+        description: Value of the argument.  It must be a simple type.
+        type: reference
+        ref: message-argument-value
+  message-argument-value:
+    description: A replacement value for a named argument in the message.
+    type: selector
+    type-mapping:
+      string:
+        type: string
+        min-length: 0
+        max-length: 10000
+      int:
+        type: int
+      float:
+        type: float
+      bool:
+        type: bool
+      datetime:
+        type: datetime
+      string_list:
+        type: array
+        min-length: 0
+        max-length: 100
         value-type:
           type: string
-      translation:
+          min-length: 0
+          max-length: 10000
+      int_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: int
+      float_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: float
+      bool_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: bool
+      datetime_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: datetime
+  error:
+    type: structure
+    description: A description of a failure.
+    fields:
+      identifier:
+        description: >
+          The identifier that uniquely defines this error.  Useful for
+          automation that needs to perform operations based on specific
+          error messages.
         type: string
-        description: the translation of the message into the owning translation's locale
+        min-length: 5
+        max-length: 600
+      categories:
+        description: >
+          A collection of general categories that define the error.
+          Useful for automation that can act differently depending on
+          the contents.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          description: General error category.
+          type: enum
+          values:
+            - file
+            - os
+            - configuration
+            - network
+            - access-restriction
+            - invalid-user-action
+            - internal
+      source:
+        description: The source of the error, if known.
+        type: string
+        min-length: 2
+        max-length: 300
+        optional: true
+      corrective_action:
+        description: >
+          If given, informs the user approaches for fixing the issue.
+        type: reference
+        optional: true
+        ref: localizable-message
+      error_message:
+        description: The localizable error message.
+        type: reference
+        ref: localizable-message

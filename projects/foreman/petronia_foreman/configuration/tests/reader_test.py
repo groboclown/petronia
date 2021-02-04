@@ -97,6 +97,7 @@ class ReaderFuncsTest(unittest.TestCase):
                 'name': [1],
                 'runtime': {'launcher': 1, 'permissions': []},
                 'produces': [1, 2, 3],
+                'source-prefixes': ['sss:'],
                 'consumes': 3,
                 'configuration': 'yes',
             }, f)
@@ -122,6 +123,7 @@ class ReaderFuncsTest(unittest.TestCase):
                 'version': [1, 2, 3],
                 'runtime': {'launcher': 'l', 'permissions': {}},
                 'produces': [],
+                'source-prefixes': ['ssss:'],
                 'consumes': [1],
                 'configuration': {},
             }, f)
@@ -139,6 +141,7 @@ class ReaderFuncsTest(unittest.TestCase):
                 'runtime': {'launcher': 'l', 'permissions': {}},
                 'produces': [],
                 'consumes': [{'event-id': 1}],
+                'source-prefixes': ['st:'],
                 'configuration': {},
             }, f)
         ext_res = reader.read_boot_extension_file(ext_file)
@@ -154,6 +157,7 @@ class ReaderFuncsTest(unittest.TestCase):
                 'version': [1, 2, 3],
                 'runtime': {'launcher': 'l', 'permissions': {}},
                 'produces': [],
+                'source-prefixes': ['s1:'],
                 'consumes': [{'target-id': 1}],
                 'configuration': {},
             }, f)
@@ -170,6 +174,7 @@ class ReaderFuncsTest(unittest.TestCase):
                 'version': [1, 2, 3],
                 'runtime': {'launcher': 'l', 'permissions': {}},
                 'produces': ['e1'],
+                'source-prefixes': ['s:'],
                 'consumes': [
                     {'target-id': 't1'}, {'event-id': 'e1'}, {},
                     {'target-id': 't2', 'event-id': 'e2'},
@@ -186,5 +191,6 @@ class ReaderFuncsTest(unittest.TestCase):
         evt = ext.to_start_event()
         self.assertEqual('n1', evt.name)
         self.assertEqual([1, 2, 3], evt.version)
-        self.assertEqual(['e1'], evt.send_access)
+        self.assertEqual(['e1'], evt.send_access.event_ids)
+        self.assertEqual(['s:'], evt.send_access.source_id_prefixes)
         self.assertEqual('{}', evt.configuration)

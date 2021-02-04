@@ -16,7 +16,7 @@ be D, (B + C), A, where B and C can load in parallel once D is loaded.
 from typing import Iterable, Sequence, List, Dict, Mapping, Set, Optional
 from petronia_common.extension.config import ApiExtensionMetadata, ImplExtensionMetadata
 from petronia_common.extension.config.extension_schema import ProtocolExtensionMetadata
-from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE
+from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, not_none
 from petronia_common.util import i18n as _
 from .search import find_best_extension, find_dependencies
 from .defs import ExtensionInfo, TRANSLATION_CATALOG
@@ -52,8 +52,7 @@ class ExtensionDependencyOrder:
         found: Set[str] = set()
 
         while stack:
-            order = stack.pop()
-            assert order is not None
+            order = not_none(stack.pop())
             for requires in order.required_by:
                 if requires.name in found:
                     continue
@@ -115,17 +114,13 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
     # First pass: discover all extensions that need to be loaded.
 
     while visit_list:
-        ext = visit_list.pop()
-        assert ext
+        ext = not_none(visit_list.pop())
         visited[ext.name] = True
 
         mtd = ext.metadata
-        if mtd.extension_type == 'api':
-            # Look this over later...
-            assert isinstance(mtd, ApiExtensionMetadata)
+        if mtd.extension_type == 'api' and isinstance(mtd, ApiExtensionMetadata):
             apis[ext.name] = mtd
-        elif mtd.extension_type == 'impl':
-            assert isinstance(mtd, ImplExtensionMetadata)
+        elif mtd.extension_type == 'impl' and isinstance(mtd, ImplExtensionMetadata):
             for impl_dependency in mtd.implements:
                 implementations[impl_dependency.name] = ext.name
 
@@ -228,9 +223,11 @@ class LoadList:
         """Mark an extension as starting the load process.  It will be excluded from
         queries asking for what's next to load.  This should only be called when
         the extension name is listed in the ready-to-run list."""
-        assert name not in self.__loading, 'incorrect usage; already loading ' + name
-        assert name not in self.__loaded, 'incorrect usage; already loaded ' + name
-        assert name in self.__pending, 'incorrect usage; never added to pending ' + name
+        # Assertions are for internal state logic.  If any of these are wrong,
+        # then the __pending[name] get will raise an exception anyway.
+        assert name not in self.__loading, 'incorrect usage; already loading ' + name  # nosec
+        assert name not in self.__loaded, 'incorrect usage; already loaded ' + name  # nosec
+        assert name in self.__pending, 'incorrect usage; never added to pending ' + name  # nosec
         order = self.__pending[name]
         del self.__pending[name]
         self.__loading[name] = order
@@ -338,7 +335,6 @@ def add_pending_extensions(
 ) -> StdRet[None]:
     """Uses the get_load_order to find the complete list of extensions to load."""
     load_order_list = get_load_order(extensions, installed)
-    # TODO ensure the extension can be loaded with the requested permissions and dependencies.
     if load_order_list.has_error:
         return load_order_list.forward()
     for load_order in load_order_list.result:

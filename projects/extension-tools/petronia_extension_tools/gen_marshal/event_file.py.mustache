@@ -72,8 +72,8 @@ class {{structure_class_name}}:
             return {
                 '^': self.__name,
                 '$':{{#is_simple_type}}
-                    self.__value,{{/is_simple_type}}{{#is_enum_type}}
-                    self.__value,{{/is_enum_type}}{{#is_datetime_type}}
+                    cast({{field_python_type}}, self.__value),{{/is_simple_type}}{{#is_enum_type}}
+                    cast({{field_python_type}}, self.__value),{{/is_enum_type}}{{#is_datetime_type}}
                     cast(datetime.datetime, self.__value).strftime('%Y%m%d:%H%M%S.%f:%z'),{{/is_datetime_type}}{{#is_array_simple_type}}
                     {{#is_optional}}None if self.__value is None else {{/is_optional}}{{#is_array_datetime_type}}[dtv.strftime('%Y%m%d:%H%M%S.%f:%z') for dtv in cast({{field_python_type}}, self.__value)]{{/is_array_datetime_type}}{{^is_array_datetime_type}}list(cast({{field_python_type}}, self.__value)){{/is_array_datetime_type}},{{/is_array_simple_type}}{{#is_struct_type}}
                     self.__value.export_data(),{{/is_struct_type}}{{#is_array_struct_type}}

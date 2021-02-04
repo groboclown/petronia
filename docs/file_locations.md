@@ -9,7 +9,7 @@ On Windows computers, Petronia will search for files in the `%HOME%\AppData\Roam
 
 ## Linux
 
-From (freedesktop.org)[https://www.freedesktop.org/wiki/Specifications/basedir-spec/]:
+From [freedesktop.org](https://www.freedesktop.org/wiki/Specifications/basedir-spec/):
 
 * There is a single base directory relative to which user-specific data files should be written. This directory is defined by the environment variable `$XDG_DATA_HOME`...  `$XDG_DATA_HOME` defines the base directory relative to which user specific data files should be stored. If $XDG_DATA_HOME is either not set or empty, a default equal to `$HOME/.local/share` should be used.
 * There is a single base directory relative to which user-specific configuration files should be written. This directory is defined by the environment variable `$XDG_CONFIG_HOME`...  `$XDG_CONFIG_HOME` defines the base directory relative to which user specific configuration files should be stored. If `$XDG_CONFIG_HOME` is either not set or empty, a default equal to $HOME/.config should be used.

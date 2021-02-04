@@ -136,7 +136,7 @@ class EventRouterTest(unittest.TestCase):
             ('ch',),
             tuple(event_router.get_registered_channel_names()),
         )
-        res = event_router.add_handler('ch', 'h1', ['e1'], [])
+        res = event_router.add_handler('ch', 'h1', ['e1'], [], ['s1', 's2'])
         self.assertIsNone(res.error)
         reader.send_events(
             to_raw_event_object('e1', 's1', 't1', {'x': 'y'}),
@@ -178,7 +178,7 @@ class EventRouterTest(unittest.TestCase):
         res = event_router.register_channel('ch', _create_reader_writer_ok)
         self.assertIsNone(res.error)
         self.assertEqual(('ch',), tuple(event_router.get_registered_channel_names()))
-        res = event_router.add_handler('ch', 'hd', [], [])
+        res = event_router.add_handler('ch', 'hd', [], [], [])
         self.assertIsNone(res.error)
         ch_name = event_router.get_channel_for_handler('hd')
         self.assertEqual('ch', ch_name)
@@ -189,7 +189,7 @@ class EventRouterTest(unittest.TestCase):
         event_router = router.EventRouter(lock)
         res = event_router.register_channel('ch', _create_reader_writer_ok)
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch', 'hd', [], [])
+        res = event_router.add_handler('ch', 'hd', [], [], [])
         self.assertIsNone(res.error)
         ch_name = event_router.get_channel_for_handler('hd1')
         self.assertIsNone(ch_name)
@@ -208,26 +208,26 @@ class EventRouterTest(unittest.TestCase):
         event_router = router.EventRouter(lock)
         res = event_router.register_channel('ch1', _create_reader_writer_ok)
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [])
+        res = event_router.add_handler('ch1', 'h1', [], [], [])
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [])
+        res = event_router.add_handler('ch1', 'h1', [], [], [])
         self.assertIsNotNone(res.error)
         res = event_router.register_channel('ch2', _create_reader_writer_ok)
         self.assertIsNone(res.error)
         # the handler ID should be unique across channels.
-        res = event_router.add_handler('ch1', 'h1', [], [])
+        res = event_router.add_handler('ch1', 'h1', [], [], [])
         self.assertIsNotNone(res.error)
 
         # Removing the handler, though, allows for the other channel to add it.
         self.assertTrue(event_router.remove_handler('h1'))
-        res = event_router.add_handler('ch1', 'h1', [], [])
+        res = event_router.add_handler('ch1', 'h1', [], [], [])
         self.assertIsNone(res.error)
 
     def test_add_handler__no_channel(self) -> None:
         """Test add_handler with a not-registered channel."""
         lock = threading.Semaphore()
         event_router = router.EventRouter(lock)
-        res = event_router.add_handler('ch1', 'h1', [], [])
+        res = event_router.add_handler('ch1', 'h1', [], [], [])
         self.assertIsNotNone(res.error)
 
     def test_remove_handler__not_registered(self) -> None:
@@ -247,7 +247,7 @@ class EventRouterTest(unittest.TestCase):
         res = event_router.register_channel('ch1', _create_reader_writer_ok)
         self.assertIsNone(res.error)
         # ... and if a handle is registered, but not the one we're looking for ...
-        res = event_router.add_handler('ch1', 'h1', [], [])
+        res = event_router.add_handler('ch1', 'h1', [], [], [])
         self.assertIsNone(res.error)
         self.assertFalse(event_router.add_handler_listener('h2', None, None))
         self.assertFalse(event_router.remove_handler_listener('h1', 'x', 'y'))
@@ -258,7 +258,7 @@ class EventRouterTest(unittest.TestCase):
         event_router = router.EventRouter(lock)
         res = event_router.register_channel('ch1', _create_reader_writer_ok)
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [])
+        res = event_router.add_handler('ch1', 'h1', [], [], [])
         self.assertIsNone(res.error)
         self.assertTrue(event_router.add_handler_listener('h1', None, None))
         self.assertFalse(event_router.remove_handler_listener('h1', 'x', 'y'))
@@ -301,9 +301,9 @@ class EventRouterTest(unittest.TestCase):
         self.assertIsNone(res.error)
         res = event_router.register_channel('ch2', create_reader_writer_2)
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [(None, None)])
+        res = event_router.add_handler('ch1', 'h1', [], [(None, None)], [])
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch2', 'h2', [], [('e1', 't1')])
+        res = event_router.add_handler('ch2', 'h2', [], [('e1', 't1')], [])
         self.assertIsNone(res.error)
 
         # Inject two events...
@@ -367,7 +367,7 @@ class EventRouterTest(unittest.TestCase):
         event_router = router.EventRouter(lock, executor=executor, target=target)
         res = event_router.register_channel('ch1', create_reader_writer_1)
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [(None, None)])
+        res = event_router.add_handler('ch1', 'h1', [], [(None, None)], [])
         self.assertIsNone(res.error)
 
         # Inject the event
@@ -426,11 +426,11 @@ class EventRouterTest(unittest.TestCase):
         self.assertIsNone(res.error)
         res = event_router.register_channel('ch3', create_reader_writer_3)
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [(None, None)])
+        res = event_router.add_handler('ch1', 'h1', [], [(None, None)], [])
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch2', 'h2', [], [(None, None)])
+        res = event_router.add_handler('ch2', 'h2', [], [(None, None)], [])
         self.assertIsNone(res.error)
-        res = event_router.add_handler('ch3', 'h3', [], [('e2', 't2')])
+        res = event_router.add_handler('ch3', 'h3', [], [('e2', 't2')], [])
         self.assertIsNone(res.error)
 
         # Inject an event, first to a channel which should consume it, then to a channel

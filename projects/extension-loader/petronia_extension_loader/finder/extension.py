@@ -41,7 +41,7 @@ def find_installed_extensions(
 ) -> Tuple[List[ExtensionInfo], Dict[str, List[UserMessage]]]:
     """Find all installed extensions.  Rather than returning a StdRet for errors,
     the parsed errors are returned as a separate structure.  This is because
-    we don't want Petronia to fail just because some mungled up file is stuck
+    we don't want Petronia to fail just because some munged up file is stuck
     into the structure."""
     errors: Dict[str, List[UserMessage]] = {}
     ret: List[ExtensionInfo] = []
@@ -59,12 +59,13 @@ def find_installed_extensions(
                     errors[name] = errors.get(name) or []
                     errors[name].append(UserMessage(
                         TRANSLATION_CATALOG,
-                        _('Errors found in extension defined in ({filename})'),
+                        _('Errors found in extension defined in {filename}'),
                         filename=fqn,
                     ))
                     errors[name].extend(res.error_messages())
-                else:
-                    ret.append(res.result)
+                else:  # pragma no cover
+                    # uncomment this no-cover when the extension loading is supported.
+                    ret.append(res.result)  # pragma no cover
             elif EXTENSION_DEF_NAME_RE.match(name):
                 res = load_extension_from_yaml(extension_dirs, fqn)
                 if res.has_error:
@@ -81,16 +82,20 @@ def find_installed_extensions(
     return ret, errors
 
 
-def load_extension_from_zip(_filename: str) -> StdRet[ExtensionInfo]:
+def load_extension_from_zip(filename: str) -> StdRet[ExtensionInfo]:
     """Load the extension information from the zip distribution file."""
-    raise NotImplementedError()
+    return StdRet.pass_errmsg(
+        TRANSLATION_CATALOG,
+        _('zip extension found ({name}) but zip extension loading is not supported yet'),
+        name=filename,
+    )
 
 
 def load_extension_from_yaml(
         path: Sequence[str],
         filename: str,
 ) -> StdRet[ExtensionInfo]:
-    """Load the extension information from a yaml file."""
+    """Load the extension information from a yaml or json file."""
     docs_res = load_structured_file(filename)
     if docs_res.has_error:
         return docs_res.forward()

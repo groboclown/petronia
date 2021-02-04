@@ -52,7 +52,7 @@ class RouterIntegrationTest(unittest.TestCase):
 
             event_data = SimpleBinaryWriter()
             write_binary_event_to_stream(
-                event_data, 'e1', 's1', 't1', 2, b'12',
+                event_data, 'e1', 's:1', 't1', 2, b'12',
             )
 
             # Reader represents pulling an event that was created by a channel.
@@ -81,7 +81,7 @@ class RouterIntegrationTest(unittest.TestCase):
             # Channel 2 has handler h2 which can consume event e1 sent to t1.
             ret_channel2 = router.register_channel('ch2', create_channel_2)
             self.assertIsNone(ret_channel2.error)
-            res = router.add_handler('ch2', 'h2', [], [('e1', 't1')])
+            res = router.add_handler('ch2', 'h2', [], [('e1', 't1')], ['s:'])
             self.assertIsNone(res.error)
 
             # Channel 1 has handler h1 which can produce event e1
@@ -89,7 +89,7 @@ class RouterIntegrationTest(unittest.TestCase):
             # be consumed.
             ret_channel1 = router.register_channel('ch1', create_channel_1)
             self.assertIsNone(ret_channel1.error)
-            res = router.add_handler('ch1', 'h1', ['e1'], [])
+            res = router.add_handler('ch1', 'h1', ['e1'], [], ['s:'])
             self.assertIsNone(res.error)
 
             # Now that channel 1 is registered to be able to produce the event,

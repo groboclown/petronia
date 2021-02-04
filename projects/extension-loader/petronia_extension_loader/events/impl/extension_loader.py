@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-03T18:04:40.543884
+# Created on 2021-02-03T21:03:04.465951
 
 """
 Data structures and marshalling for extension petronia.core.api.extension_loader version 1.0.0.
@@ -11,20 +11,20 @@ Data structures and marshalling for extension petronia.core.api.extension_loader
 
 from typing import (
     Any,
-    Dict,
-    cast,
-    SupportsFloat,
-    List,
     Optional,
     Union,
+    List,
     SupportsInt,
+    SupportsFloat,
+    Dict,
+    cast,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
     StdRet,
+    collect_errors_from,
     not_none,
 )
 
@@ -167,16 +167,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            float,
-            List[float],
-            datetime.datetime,
-            List[int],
-            List[datetime.datetime],
-            str,
-            List[str],
             bool,
-            List[bool],
+            List[float],
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[str],
             int,
+            List[bool],
+            str,
+            List[int],
         ],
     ) -> None:
         self.__name = name
@@ -189,16 +189,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            float,
-            List[float],
-            datetime.datetime,
-            List[int],
-            List[datetime.datetime],
-            str,
-            List[str],
             bool,
-            List[bool],
+            List[float],
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[str],
             int,
+            List[bool],
+            str,
+            List[int],
     ]:
         """The selector value."""
         return self.__value
@@ -214,25 +214,25 @@ class MessageArgumentValue:
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(str, self.__value),
             }
         if self.__name == 'int':
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(int, self.__value),
             }
         if self.__name == 'float':
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(float, self.__value),
             }
         if self.__name == 'bool':
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(bool, self.__value),
             }
         if self.__name == 'datetime':
             return {

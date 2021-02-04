@@ -122,7 +122,9 @@ class EventChannel(EventForwarderTarget):
         self.__forwarder.add_target(target)
 
     def add_handler(
-            self, handler_id: str, produces: Iterable[str], consumes: Iterable[EventTargetHandle],
+            self, handler_id: str,
+            produces: Iterable[str], consumes: Iterable[EventTargetHandle],
+            source_id_prefixes: Iterable[str],
     ) -> StdRet[None]:
         """Add an event handler to this channel.  If the
         handler already has the same ID registered, an error
@@ -130,7 +132,7 @@ class EventChannel(EventForwarderTarget):
         if not self.__alive:
             return _create_route_closed_error(self.__name)
         # print(f"[{self}] registering handler can produce {produces}")
-        return self.__handlers.add_handler(handler_id, produces, consumes)
+        return self.__handlers.add_handler(handler_id, produces, consumes, source_id_prefixes)
 
     def remove_handler(self, handler_id: str) -> StdRet[None]:
         """Attempts to remove the handler from the internal
@@ -175,14 +177,14 @@ class EventChannel(EventForwarderTarget):
             self.__internal_handlers.remove(handler)
         return RET_OK_NONE
 
-    def can_produce(self, event_id: str) -> bool:
+    def can_produce(self, event_id: str, source_id: str) -> bool:
         """Can this channel produce this event?  That is, is an event
         read from the channel in the list of registered produced event IDs?"""
         if not self.__alive:
-            # print(f"[{self}] cannot produce {event_id}; not alive")
+            # print(f"[{self}] cannot produce {event_id} @{source_id}; not alive")
             return False
-        # return self.__handlers.can_produce(event_id)
-        ret = self.__handlers.can_produce(event_id)
+        # return self.__handlers.can_produce(event_id, source_id)
+        ret = self.__handlers.can_produce(event_id, source_id)
         # print(f"[{self}] is {event_id} registered as able to produce? {ret}")
         return ret
 
@@ -197,7 +199,7 @@ class EventChannel(EventForwarderTarget):
                 f'[Ch {self.__name}] received event {event_id} '
                 f'from {event_source_id} to {event_target_id}: {event}'
             )
-        allow_event = self.can_produce(event_id)
+        allow_event = self.can_produce(event_id, event_source_id)
         removed_handlers: List[InternalEventHandler] = []
         for handler in self.__internal_handlers:
             res = handler(event_id, event_source_id, event_target_id, event)

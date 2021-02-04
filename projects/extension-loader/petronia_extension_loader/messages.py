@@ -19,6 +19,16 @@ def low_println(text: str) -> None:
         sys.stdout.flush()
 
 
+def low_traceback(err: BaseException) -> None:
+    """Print text to the console in a safe way."""
+    with _PRINT_LOCK:
+        traceback.print_exception(
+            type(err), err, err.__traceback__,
+            file=sys.stdout,
+        )
+        sys.stdout.flush()
+
+
 def display_message(res: StdRet[T], message: Optional[str] = None) -> None:
     """Display the messages in the error."""
     with _PRINT_LOCK:
@@ -28,10 +38,7 @@ def display_message(res: StdRet[T], message: Optional[str] = None) -> None:
             low_println(msg.debug())
         err = res.error
         if isinstance(err, ExceptionPetroniaReturnError):
-            traceback.print_exception(
-                type(err.exception()), err.exception(), err.exception().__traceback__,
-                file=sys.stdout,
-            )
+            low_traceback(err.exception())
 
 
 def display_messages(prefix: Optional[str], *messages: UserMessage) -> None:

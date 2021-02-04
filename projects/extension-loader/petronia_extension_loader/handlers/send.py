@@ -6,7 +6,7 @@ from petronia_common.extension.config import ImplExtensionMetadata, StandAloneEx
 from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet
 from petronia_common.util import i18n as _
-from .privileges import add_event_send_access
+from .privileges import add_event_send_access, get_source_id_prefix_access
 from ..defs import ExtensionInfo, TRANSLATION_CATALOG
 from ..setup import get_extension_config
 from ..events.impl import extension_loader, foreman
@@ -102,6 +102,7 @@ def send_foreman_start_extension_request(
             _('cannot send start request for non-implementable extension {name}'),
             name=extension_info.name,
         )
+    event_source_id_access = get_source_id_prefix_access(extension_info)
     event_send_access: Set[str] = set()
     res = add_event_send_access(event_send_access, extension_info, True, set(), loaded_extensions)
     if res.has_error:
@@ -115,7 +116,9 @@ def send_foreman_start_extension_request(
             version=list(extension_info.version),
             location=list(extension_info.path),
             runtime=metadata.runtime.launcher,
-            send_access=list(event_send_access),
+            send_access=foreman.SendEventAccess(
+                list(event_send_access), list(event_source_id_access),
+            ),
             configuration=json.dumps(config),
             permissions=[
                 foreman.ExtensionPermission(action, list(resources))

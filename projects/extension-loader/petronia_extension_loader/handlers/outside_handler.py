@@ -11,6 +11,7 @@ from .extension_loader import initiate_load_extension
 from .send import send_load_extension_succeeded, send_load_extension_failed
 from ..shared_state import ExtLoaderSharedState
 from ..events.impl import extension_loader
+from ..messages import display_message
 
 
 def register_load_extension_handler(
@@ -73,8 +74,11 @@ class LoadExtensionHandler(EventObjectTarget[extension_loader.LoadExtensionReque
                 ),
             )
             if fail_res.has_error:
-                # FIXME handle error
-                pass
+                display_message(
+                    fail_res,
+                    f'Failed attempting to send a failure message '
+                    f'for loading extension {event.name}'
+                )
             return False
         if res.result is not None:
             # Already loaded, so send the load success message.
@@ -82,6 +86,9 @@ class LoadExtensionHandler(EventObjectTarget[extension_loader.LoadExtensionReque
                 self._context, source, event.name, res.result,
             )
             if success_res.has_error:
-                # FIXME handle error
-                pass
+                display_message(
+                    success_res,
+                    f'Failed attempting to send a success message '
+                    f'for loading extension {event.name}'
+                )
         return False

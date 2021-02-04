@@ -49,6 +49,10 @@ class MemoryExtensionTest(unittest.TestCase):
                     'petronia.core.api.foreman:launcher-start-extension:request',
                     'petronia.core.api.foreman:extension-add-event-listener',
                 ],
+                'source-prefixes': [
+                    'petronia.core.api.extension_loader:',
+                    'petronia.core.impl.extension_loader:',
+                ],
                 'consumes': [
                     {'event-id': 'petronia.core.api.foreman:launcher-start-extension:success'},
                     {'event-id': 'petronia.core.api.foreman:launcher-start-extension:failed'},

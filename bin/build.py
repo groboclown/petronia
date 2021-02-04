@@ -11,7 +11,7 @@ import shutil
 import subprocess
 
 
-def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
+def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     top_package_names: List[str] = []
     mypy_args: List[str] = ['--warn-unused-configs', '--no-incremental']
     for name in os.listdir(project_dir):
@@ -42,7 +42,9 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     if mypy_code != 0:
         # If mypy fails, there's little point in running anything else.
         print(f"MyPy exited with {mypy_code}")
-        return mypy_code
+        return ['mypy']
+
+    failed: List[str] = []
 
     print("")
     print("----------------------------------------------------------------------")
@@ -65,6 +67,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
 
     if lint_code != 0:
         print(f"Linting exited with {lint_code}")
+        failed.append('lint')
         # Let unit test run, even if linting failed.
 
     print("")
@@ -87,6 +90,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     )
     if test_code != 0:
         print(f"Unit test exited with {test_code}")
+        failed.append('unit tests')
 
     report_code = run_python_cmd(
         project_dir,
@@ -97,6 +101,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     )
     if report_code != 0:
         print(f"Code coverage exited with {report_code}")
+        failed.append('insufficient code coverage from unit tests')
 
     print("")
     print("----------------------------------------------------------------------")
@@ -110,11 +115,12 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> int:
     )
     if sec_code != 0:
         print(f"Bandit security check exited with {sec_code}")
+        failed.append('security inspections')
 
-    return lint_code + test_code + report_code + sec_code
+    return failed
 
 
-def build_l10n_project_dir(_root_project_dir: str, project_dir: str) -> int:
+def build_l10n_project_dir(_root_project_dir: str, project_dir: str) -> List[str]:
     """Compile the .pot files into .mo files."""
 
     source_dir = os.path.join(project_dir, 'translations')
@@ -123,10 +129,10 @@ def build_l10n_project_dir(_root_project_dir: str, project_dir: str) -> int:
         shutil.rmtree(compiled_dir, ignore_errors=True)
     os.makedirs(compiled_dir, exist_ok=True)
 
-    return_code = 0
-
     # project name -> list of (locale, po file)
     project_locales: Dict[str, List[Tuple[str, str]]] = {}
+
+    failures: List[str] = []
 
     for locale_name in os.listdir(source_dir):
         lcm_dir = os.path.join(source_dir, locale_name, 'LC_MESSAGES')
@@ -161,12 +167,13 @@ def build_l10n_project_dir(_root_project_dir: str, project_dir: str) -> int:
                 ],
                 True,
             )
-            return_code += exit_code
+            if exit_code != 0:
+                failures.append(f'{project_name} localization files for {locale_name}')
     # Petronia uses a special catalog file, too...
     with open(os.path.join(compiled_dir, 'catalog.list'), 'w') as f:
         f.write('\n'.join(project_locales.keys()))
 
-    return return_code
+    return failures
 
 
 def run_python_cmd(
@@ -226,7 +233,7 @@ def get_std_project_dirs(project_dir: str) -> List[Tuple[str, str]]:
 
 def main(root_project_dir: str, child_projects: List[str]) -> int:
     """Static + Dynamic Checks on the code."""
-    total_code = 0
+    total_failures: List[str] = []
     print("======================================================================")
     print("======================================================================")
     print("Standard Build Projects")
@@ -244,20 +251,24 @@ def main(root_project_dir: str, child_projects: List[str]) -> int:
             partial_code = build_l10n_project_dir(project_dir, std_project_dir)
         else:
             partial_code = build_std_project_dir(project_dir, std_project_dir)
-        if partial_code != 0:
+        if partial_code:
             print(f":: {project_name} failed: {partial_code} ::")
-        total_code += partial_code
+        total_failures.extend([
+            f'{project_name}: {part}'
+            for part in partial_code
+        ])
 
     for project_name in remaining_projects:
         print("======================================================================")
         print(f":: {project_name} ::")
         print(f":: {project_name} failed: Does Not Exist ::")
-        total_code += 1
+        total_failures.append(f'{project_name}: does not exist')
 
     print("")
     print("_._._._._._._._._._._.__._._._._._._._._._._._._._._._._._._._._._._")
-    print(f"Final build result: {'PASS' if total_code <= 0 else 'FAIL'} ({total_code})")
-    return total_code
+    print(f"Final build result: {'PASS' if total_failures else 'FAIL'}")
+    print(f'  FAILED ' + ('\n  FAILED '.join(total_failures)))
+    return len(total_failures)
 
 
 if __name__ == '__main__':

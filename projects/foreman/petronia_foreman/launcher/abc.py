@@ -41,6 +41,7 @@ class RuntimeContext:
     def add_handler(
             self, channel_name: str, handler_id: str,
             produces: Iterable[str], consumes: Iterable[EventTargetHandle],
+            source_id_prefixes: Iterable[str],
     ) -> StdRet[None]:
         """Adds the handler to the channel with the given name.  If the
         handler ID is registered anywhere, or the channel does not exist, then

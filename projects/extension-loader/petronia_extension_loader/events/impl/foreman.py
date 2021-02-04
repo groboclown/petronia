@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-03T18:04:40.469023
+# Created on 2021-02-03T21:03:04.342456
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -11,25 +11,127 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 
 from typing import (
     Any,
-    Dict,
-    cast,
-    SupportsFloat,
-    List,
     Optional,
     Union,
+    List,
     SupportsInt,
+    SupportsFloat,
+    Dict,
+    cast,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
     StdRet,
+    collect_errors_from,
     not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
 EXTENSION_VERSION = (1, 0, 0)
+
+
+class SendEventAccess:
+    """
+    Permissions for sending an event.
+    """
+    __slots__ = ('event_ids', 'source_id_prefixes',)
+
+    def __init__(
+        self,
+        event_ids: List[str],
+        source_id_prefixes: List[str],
+    ) -> None:
+        self.event_ids = event_ids
+        self.source_id_prefixes = source_id_prefixes
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'event_ids': list(self.event_ids),
+            'source_id_prefixes': list(self.source_id_prefixes),
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['SendEventAccess']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('event_ids')
+        f_event_ids: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='event_ids',
+                name='SendEventAccess',
+            )
+        else:
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='event_ids',
+                    type='List[str]',
+                    name='SendEventAccess',
+                )
+            f_event_ids = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='event_ids',
+                        type='str',
+                        name='SendEventAccess',
+                    )
+                f_event_ids.append(item)
+        val = data.get('source_id_prefixes')
+        f_source_id_prefixes: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='source_id_prefixes',
+                name='SendEventAccess',
+            )
+        else:
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='source_id_prefixes',
+                    type='List[str]',
+                    name='SendEventAccess',
+                )
+            f_source_id_prefixes = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='source_id_prefixes',
+                        type='str',
+                        name='SendEventAccess',
+                    )
+                f_source_id_prefixes.append(item)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(SendEventAccess(
+            event_ids=not_none(f_event_ids),
+            source_id_prefixes=not_none(f_source_id_prefixes),
+        ))
+
+    def __repr__(self) -> str:
+        return "SendEventAccess(" + repr(self.export_data()) + ")"
 
 
 class ExtensionPermission:
@@ -140,7 +242,7 @@ class LauncherStartExtensionRequestEvent:
         version: List[int],
         location: List[str],
         runtime: str,
-        send_access: List[str],
+        send_access: SendEventAccess,
         configuration: Optional[str],
         permissions: List[ExtensionPermission],
     ) -> None:
@@ -164,7 +266,7 @@ class LauncherStartExtensionRequestEvent:
             'version': list(self.version),
             'location': list(self.location),
             'runtime': self.runtime,
-            'send_access': list(self.send_access),
+            'send_access': self.send_access.export_data(),
             'configuration': self.configuration,
             'permissions': [v.export_data() for v in self.permissions],
         }
@@ -278,7 +380,7 @@ class LauncherStartExtensionRequestEvent:
                 )
             f_runtime = val
         val = data.get('send_access')
-        f_send_access: List[str]
+        f_send_access: SendEventAccess
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
@@ -287,28 +389,18 @@ class LauncherStartExtensionRequestEvent:
                 name='LauncherStartExtensionRequestEvent',
             )
         else:
-            if not isinstance(val, list):
+            parsed_send_access = SendEventAccess.parse_data(val)
+            if parsed_send_access.has_error:
+                return parsed_send_access.forward()
+            if parsed_send_access.value is None:
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
                     field_name='send_access',
-                    type='List[str]',
-                    name='LauncherStartExtensionRequestEvent',
                 )
-            f_send_access = []
-            for item in val:
-                if not isinstance(item, str):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='send_access',
-                        type='str',
-                        name='LauncherStartExtensionRequestEvent',
-                    )
-                f_send_access.append(item)
+            f_send_access = parsed_send_access.result
         val = data.get('configuration')
         f_configuration: Optional[str] = None
         if val is not None:
@@ -425,16 +517,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            float,
-            List[float],
-            datetime.datetime,
-            List[int],
-            List[datetime.datetime],
-            str,
-            List[str],
             bool,
-            List[bool],
+            List[float],
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[str],
             int,
+            List[bool],
+            str,
+            List[int],
         ],
     ) -> None:
         self.__name = name
@@ -447,16 +539,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            float,
-            List[float],
-            datetime.datetime,
-            List[int],
-            List[datetime.datetime],
-            str,
-            List[str],
             bool,
-            List[bool],
+            List[float],
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[str],
             int,
+            List[bool],
+            str,
+            List[int],
     ]:
         """The selector value."""
         return self.__value
@@ -472,25 +564,25 @@ class MessageArgumentValue:
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(str, self.__value),
             }
         if self.__name == 'int':
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(int, self.__value),
             }
         if self.__name == 'float':
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(float, self.__value),
             }
         if self.__name == 'bool':
             return {
                 '^': self.__name,
                 '$':
-                    self.__value,
+                    cast(bool, self.__value),
             }
         if self.__name == 'datetime':
             return {

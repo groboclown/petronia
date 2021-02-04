@@ -16,8 +16,9 @@ def parse_extension_name_version(  # pylint:disable=too-many-return-statements
     if col_pos > 0:
         name = name_version[:col_pos]
         version_parts = name_version[col_pos + 1:].split('.')
-        if len(version_parts) <= 0:
-            return name, None, None, None
+        if len(version_parts) <= 0:  # pragma no cover
+            # split should always return at least a length 1 array, but just in case...
+            return name, None, None, None  # pragma no cover
         major = _parse_int(version_parts[0])
         if major is None:
             return name, None, None, None

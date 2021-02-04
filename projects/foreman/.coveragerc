@@ -2,6 +2,10 @@
 
 # __main__ is intentionally trivial so it doesn't need tests.
 # The runner file in tests is only run in a separate process, so will never get coverage.
+# Once the test generation for events makes the data-store event covered,
+#   remove that coverage exclusion.
 omit =
     petronia_foreman/__main__.py
     petronia_foreman/process_mgmt/tests/runner.py
+    petronia_foreman/events/foreman.py
+    petronia_foreman/events/tests/foreman_test.py

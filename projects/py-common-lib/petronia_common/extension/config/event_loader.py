@@ -7,7 +7,7 @@ Simple data structures means list, dict, int, float, bool, str, None
 
 from typing import List, Dict, Optional, Any, cast
 from . import event_schema
-from ...util import StdRet, UserMessage, collect_errors_from, join_errors, EMPTY_TUPLE
+from ...util import StdRet, UserMessage, collect_errors_from, join_errors, EMPTY_TUPLE, RET_OK_NONE
 from ...util import i18n as _
 from ...util import STANDARD_PETRONIA_CATALOG as STDC
 
@@ -59,7 +59,7 @@ def parse_references(
     return update_references(partial_parsed_references)
 
 
-def load_event_schema(
+def load_event_schema(  # pylint:disable=too-many-locals
         event_name: str,
         raw: Dict[str, Any],
         references: Dict[str, event_schema.AbcEventDataType],
@@ -71,22 +71,29 @@ def load_event_schema(
     ret_send_access = load_dict_str_value('send-access', raw)
     ret_receive_access = load_dict_str_value('receive-access', raw)
     ret_unique_target = load_event_optional_str_value('unique-target', raw)
-    ret_data_type = load_event_structure_data_type(raw)
+    ret_data_type = load_event_structure_data_type_or_binary(raw)
     error = collect_errors_from(
         ret_priority, ret_send_access, ret_receive_access, ret_unique_target, ret_data_type,
     )
     if error:
         return StdRet.pass_error(error)
-    ret_data_type_resolved = update_reference(ret_data_type.result, references, [])
-    if ret_data_type_resolved.has_error:
-        return ret_data_type_resolved.forward()
-    data_type = ret_data_type_resolved.result
-    if not isinstance(data_type, event_schema.StructureEventDataType):
-        # This is an internal error...
-        raise RuntimeError(  # pragma no cover
-            f'Incorrectly re-formatted structure to {ret_data_type_resolved.result}',
-        )
-    data_type.suggested_name = data_type.suggested_name or event_name
+
+    data_type: Optional[event_schema.StructureEventDataType]
+    declared_data_type = ret_data_type.value
+    if declared_data_type is not None:
+        ret_data_type_resolved = update_reference(declared_data_type, references, [])
+        if ret_data_type_resolved.has_error:
+            return ret_data_type_resolved.forward()
+        possible_data_type = ret_data_type_resolved.result
+        if not isinstance(possible_data_type, event_schema.StructureEventDataType):
+            # This is an internal error...
+            raise RuntimeError(  # pragma no cover
+                f'Incorrectly re-formatted structure to {ret_data_type_resolved.result}',
+            )
+        data_type = possible_data_type
+        data_type.suggested_name = data_type.suggested_name or event_name
+    else:
+        data_type = None
     if ret_priority.result not in ("high", "user", "normal", "io"):
         return StdRet.pass_errmsg(
             STDC, _('`{priority}` must be a valid priority'),
@@ -373,6 +380,15 @@ def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Array
     return StdRet.pass_ok(event_schema.ArrayEventDataType(
         ret_description.value, ret_data_type.result, ret_min_length.result, ret_max_length.result,
     ))
+
+
+def load_event_structure_data_type_or_binary(
+        raw: Dict[str, Any],
+) -> StdRet[Optional[event_schema.StructureEventDataType]]:
+    """Reads an event structure data type"""
+    if raw.get('is-binary') is True:
+        return RET_OK_NONE
+    return load_event_structure_data_type(raw)
 
 
 def load_event_structure_data_type(

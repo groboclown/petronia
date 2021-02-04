@@ -47,7 +47,7 @@ class EventChannelTest(unittest.TestCase):
             'n1', io.BytesIO(b''), SimpleBinaryWriter(), OnErrorSpy().on_error,
         )
         ec1.close_access()
-        res = ec1.add_handler('x', [], [])
+        res = ec1.add_handler('x', [], [], [])
         self.assertTrue(res.has_error)
         self.assertEqual(
             'route n1 is closed',
@@ -65,7 +65,7 @@ class EventChannelTest(unittest.TestCase):
             'route n1 is closed',
             '\n'.join(msg.debug() for msg in res.valid_error.messages()),
         )
-        self.assertFalse(ec1.can_produce('e1'))
+        self.assertFalse(ec1.can_produce('e1', 's1'))
         self.assertFalse(ec1.can_consume('e1', 's1', 't1'))
         self.assertTrue(ec1.on_error(PetroniaReturnError()))
         self.assertTrue(ec1.consume_object('e1', 's1', 't1', {}))
@@ -75,7 +75,7 @@ class EventChannelTest(unittest.TestCase):
         ec1 = channel.EventChannel(
             'n1', io.BytesIO(b''), SimpleBinaryWriter(), OnErrorSpy().on_error,
         )
-        res = ec1.add_handler('h1', ['e1'], [('e2', 't2')])
+        res = ec1.add_handler('h1', ['e1'], [('e2', 't2')], ['s1'])
         self.assertTrue(res.ok)
         res = ec1.add_handler_listener('h1', None, None)
         self.assertTrue(res.ok)

@@ -14,7 +14,7 @@ import time
 from .defs import AbcConfigType
 from ...util import (
     PetroniaReturnError, UserMessage, StdRet,
-    possible_error, readonly_dict,
+    possible_error, readonly_dict, not_none,
     STANDARD_PETRONIA_CATALOG,
 )
 from ...util import i18n as _
@@ -794,7 +794,7 @@ class EventType:
             priority: EventPriorityType,
             send_access: EventAccessType,
             receive_access: EventAccessType,
-            structure: StructureEventDataType,
+            structure: Optional[StructureEventDataType],
             unique_target: Optional[str],
     ) -> None:
         """Constructor"""
@@ -832,10 +832,26 @@ class EventType:
         """Access allowed for receiving the event."""
         return self.__receive_access
 
+    def is_binary(self) -> bool:
+        """Is this a binary data event?  Such events have no formally defined
+        structured data."""
+        return self.__structure is None
+
+    def is_object(self) -> bool:
+        """Is this an object data event?  Such events have a formally defined
+        structured data."""
+        return self.__structure is not None
+
     @property
-    def structure(self) -> StructureEventDataType:
-        """The event data structure."""
+    def structure(self) -> Optional[StructureEventDataType]:
+        """The event data structure, or None if this is a binary event."""
         return self.__structure
+
+    @property
+    def object_structure(self) -> StructureEventDataType:
+        """The event data structure.  Only call when the
+        caller guarantees that this is an object data type."""
+        return not_none(self.__structure)
 
     @property
     def unique_target(self) -> Optional[str]:
@@ -851,9 +867,10 @@ class EventType:
                 _('event name ({event_name}) must conform to the pattern `[a-z0-9][a-z0-9:-]*`'),
                 event_name=self.name,
             ))
-        struct_validate = self.structure.validate_type()
-        if struct_validate:
-            messages.extend(struct_validate.messages())
+        if self.structure:
+            struct_validate = self.structure.validate_type()
+            if struct_validate:
+                messages.extend(struct_validate.messages())
         return possible_error(messages)
 
 

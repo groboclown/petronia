@@ -162,6 +162,7 @@ class EventRouter:
     def add_handler(
             self, channel_name: str, handler_id: str,
             produces: Iterable[str], consumes: Iterable[EventTargetHandle],
+            source_id_prefixes: Iterable[str],
     ) -> StdRet[None]:
         """Adds the handler to the channel with the given name.  If the
         handler ID is registered anywhere, or the channel does not exist, then
@@ -183,7 +184,9 @@ class EventRouter:
                     _('channel {name} not registered'),
                     name=channel_name,
                 )
-            return maybe_channel.add_handler(handler_id, produces, consumes).forward()
+            return maybe_channel.add_handler(
+                handler_id, produces, consumes, source_id_prefixes,
+            ).forward()
 
     def remove_handler(self, handler_id: str) -> bool:
         """Removes the handler from its registered channel.

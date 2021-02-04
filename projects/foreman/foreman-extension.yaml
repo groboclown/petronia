@@ -59,13 +59,9 @@ events:
         min-length: 1
         max-length: 100
       send_access:
-        description: List of event IDs this extension can send.
-        type: array
-        min-length: 0
-        max-length: 9000
-        value-type:
-          type: reference
-          ref: event-id
+        description: List of event permissions.
+        type: reference
+        ref: send-event-access
       configuration:
         description: >
           User configuration for the extension.  This is a JSON data object stored in a
@@ -376,3 +372,27 @@ references:
           type: string
           min-length: 1
           max-length: 1000
+
+  send-event-access:
+    description: Permissions for sending an event.
+    type: structure
+    fields:
+      event_ids:
+        type: array
+        description: List of event IDs that this extension can send.
+        min-length: 0
+        max-length: 9000
+        value-type:
+          type: reference
+          ref: event-id
+      source_id_prefixes:
+        type: array
+        description: >
+          List of source-id prefixes that the extension can use as the event source ID.
+          Generally, this is the extension name followed by a colon, but can also include
+          implemented API source IDs.
+        min-length: 0
+        max-length: 9000
+        value-type:
+          type: reference
+          ref: event-target-id

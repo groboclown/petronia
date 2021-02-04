@@ -81,11 +81,12 @@ def read_boot_extension_file(filename: str) -> StdRet[BootExtensionMetadata]:
     ret_version = load_extension_version_value(raw.get('version'))
     ret_runtime = load_extension_runtime(raw.get('runtime'))
     ret_produces = load_extension_list_value('produces', raw)
+    ret_source_prefixes = load_extension_list_value('source-prefixes', raw)
     ret_consumes = load_consumes_list(raw.get('consumes'))
     ret_config = load_boot_extension_configuration(raw.get('configuration'))
     error = collect_errors_from(
         ret_name, ret_version, ret_runtime, ret_produces,
-        ret_consumes, ret_config,
+        ret_consumes, ret_config, ret_source_prefixes,
     )
     if error:
         return StdRet.pass_error(error)
@@ -94,7 +95,8 @@ def read_boot_extension_file(filename: str) -> StdRet[BootExtensionMetadata]:
             name=ret_name.result,
             version=ret_version.result,
             runtime=ret_runtime.result.launcher,
-            produces=ret_produces.result,
+            produces_event_ids=ret_produces.result,
+            allows_source_ids=ret_source_prefixes.result,
             consumes=ret_consumes.result,
             permissions=ret_runtime.result.requested_permissions,
             configuration=ret_config.result,

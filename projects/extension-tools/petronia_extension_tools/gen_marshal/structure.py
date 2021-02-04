@@ -62,11 +62,13 @@ def create_structures(
                         and event.send_access not in _ALLOWED_PUBLIC_ACCESS
                 ):
                     continue
-            # Look into skipping parse or export if the access isn't appropriate.
+            # Look into skipping parse or export if the access isn't appropriate,
+            # or if it's a binary event.
             # Note that __repr__ requires the export, so skipping that may not be
             # correct.
             ret_inner_structures = create_inner_structure(
-                event.name, '{0}:{1}'.format(data.metadata.name, event.name), event.unique_target,
+                event.name, '{0}:{1}'.format(data.metadata.name, event.name),
+                event.unique_target,
                 event.structure, seen_structures, imports,
             )
             if ret_inner_structures.has_error:
@@ -86,9 +88,9 @@ def create_structures(
     return StdRet.pass_ok((structures, imports))
 
 
-def create_inner_structure(  # pylint: disable=too-many-locals,too-many-arguments,too-many-branches
+def create_inner_structure(  # pylint: disable=too-many-locals,too-many-arguments,too-many-branches,too-many-statements
         name: str, fq_event_name: Optional[str], unique_target: Optional[str],
-        structure: Union[StructureEventDataType, SelectorEventDataType],
+        structure: Union[StructureEventDataType, SelectorEventDataType, None],
         seen_structures: Dict[Union[StructureEventDataType, SelectorEventDataType], List[str]],
         imports: List[ImportStruct],
 ) -> StdRet[List[Dict[str, Any]]]:
@@ -108,11 +110,28 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
         # New definition
         seen_structures[structure].append(struct_name)
 
-    seen_structures[structure] = [struct_name]
+    if structure:
+        seen_structures[structure] = [struct_name]
 
     ret: List[Dict[str, Any]] = []
     ret_struct: Dict[str, Any]
-    if isinstance(structure, SelectorEventDataType):
+    if structure is None:
+        # Binary structure
+        ret.append({
+            'structure_class_name': struct_name,
+            'structure_const_name': camel_case_as_screaming_snake(struct_name),
+            'indented_description': create_indented_description('Binary event'),
+            'is_selector': False,
+            'field_names': [],
+            'is_event': is_event,
+            'unique_ids': [],
+            'fq_event_name': repr(fq_event_name),
+            'short_event_name': repr(name),
+            'has_non_optional_fields': False,
+            'has_fields': True,
+            'raw_name': name,
+        })
+    elif isinstance(structure, SelectorEventDataType):
         imports.append(('typing', 'Union', None))
         ret_struct = {
             'structure_class_name': struct_name,
@@ -129,6 +148,9 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
         for s_key, s_type in structure.selector_items():
             # Assertion for mypy requirements
             assert isinstance(s_key, str)  # nosec
+            if not isinstance(s_type, (SelectorEventDataType, StructureEventDataType)):
+                # Casting is added for non-simple types.
+                imports.append(('typing', 'cast', None))
             ret_selector_item = get_field_struct(
                 s_key, s_type, False, structure, ret,
                 seen_structures, imports,
@@ -179,7 +201,6 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             ret_struct['field_names'].append(ret_field.result)
             if not field_type.is_optional:
                 non_optional_field_names.append(field_name)
-                imports.append(('typing', 'Optional', None,))
             last_field = ret_field.result
 
         if last_field:
@@ -328,7 +349,6 @@ def get_field_struct(  # pylint: disable=R0912,R0913,R0915
         field['field_python_type'] = 'datetime.datetime'
         field['field_python_instance_type'] = 'datetime.datetime'
         imports.append(('datetime', None, None))
-        imports.append(('typing', 'cast', None))
     elif isinstance(fdt, EnumEventDataType):
         field['is_enum_type'] = True
         field['field_python_type'] = 'str'

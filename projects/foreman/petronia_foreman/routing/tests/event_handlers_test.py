@@ -68,7 +68,9 @@ class ExtensionLoaderTargetTest(unittest.TestCase):
             target.consume_object(
                 foreman.LauncherStartExtensionRequestEvent.FULL_EVENT_NAME, 'source', 'target',
                 foreman.LauncherStartExtensionRequestEvent(
-                    'the-id', [], [], 'the-launcher', [], None, [],
+                    'the-id', [], [], 'the-launcher',
+                    foreman.SendEventAccess([], []),
+                    None, [],
                 ).export_data(),
             )
         )

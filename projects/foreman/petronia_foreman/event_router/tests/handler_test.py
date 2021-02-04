@@ -10,13 +10,14 @@ class EventHandlerSetTest(unittest.TestCase):
     def test_can_produce(self) -> None:
         """Test can_produce in its variations."""
         ehs = handler.EventHandlerSet()
-        self.assertFalse(ehs.can_produce('e'))
-        res = ehs.add_handler('h1', ['e'], [])
+        self.assertFalse(ehs.can_produce('e', 's'))
+        res = ehs.add_handler('h1', ['e'], [], ['s:'])
         self.assertIsNone(res.error)
-        self.assertTrue(ehs.can_produce('e'))
+        self.assertTrue(ehs.can_produce('e', 's:2'))
+        self.assertFalse(ehs.can_produce('e', 't:2'))
         res = ehs.remove_handler('h1')
         self.assertIsNone(res.error)
-        self.assertFalse(ehs.can_produce('e'))
+        self.assertFalse(ehs.can_produce('e', 's:2'))
 
     def test_can_consume(self) -> None:
         """Test can_consume in its variations."""
@@ -24,7 +25,7 @@ class EventHandlerSetTest(unittest.TestCase):
         self.assertFalse(ehs.can_consume('e', 't'))
 
         # None-None handler (catch-all)
-        res = ehs.add_handler('h1', [], [(None, None)])
+        res = ehs.add_handler('h1', [], [(None, None)], [])
         self.assertIsNone(res.error)
         self.assertTrue(ehs.can_consume('e', 't'))
         res = ehs.remove_handler('h1')
@@ -32,7 +33,7 @@ class EventHandlerSetTest(unittest.TestCase):
         self.assertFalse(ehs.can_consume('e', 't'))
 
         # e-None handler (catch-all for target)
-        res = ehs.add_handler('h1', [], [('e', None)])
+        res = ehs.add_handler('h1', [], [('e', None)], [])
         self.assertIsNone(res.error)
         self.assertTrue(ehs.can_consume('e', 't'))
         self.assertTrue(ehs.can_consume('e', 't1'))
@@ -42,7 +43,7 @@ class EventHandlerSetTest(unittest.TestCase):
         self.assertFalse(ehs.can_consume('e', 't'))
 
         # None-t handler (catch-all for event)
-        res = ehs.add_handler('h1', [], [(None, 't')])
+        res = ehs.add_handler('h1', [], [(None, 't')], [])
         self.assertIsNone(res.error)
         self.assertTrue(ehs.can_consume('e', 't'))
         self.assertTrue(ehs.can_consume('e1', 't'))
@@ -52,7 +53,7 @@ class EventHandlerSetTest(unittest.TestCase):
         self.assertFalse(ehs.can_consume('e', 't'))
 
         # e-t handler
-        res = ehs.add_handler('h1', [], [('e', 't')])
+        res = ehs.add_handler('h1', [], [('e', 't')], [])
         self.assertIsNone(res.error)
         self.assertTrue(ehs.can_consume('e', 't'))
         self.assertFalse(ehs.can_consume('e1', 't'))
@@ -65,7 +66,7 @@ class EventHandlerSetTest(unittest.TestCase):
         """Test the contains_handler method."""
         ehs = handler.EventHandlerSet()
         self.assertFalse(ehs.contains_handler_id('h2'))
-        res = ehs.add_handler('h2', [], [])
+        res = ehs.add_handler('h2', [], [], [])
         self.assertIsNone(res.error)
         self.assertTrue(ehs.contains_handler_id('h2'))
         res = ehs.remove_handler('h2')
@@ -75,9 +76,9 @@ class EventHandlerSetTest(unittest.TestCase):
     def test_add_handler__duplicate(self) -> None:
         """Test add_handler with a duplicate ID."""
         ehs = handler.EventHandlerSet()
-        res = ehs.add_handler('hd', [], [])
+        res = ehs.add_handler('hd', [], [], [])
         self.assertIsNone(res.error)
-        res = ehs.add_handler('hd', ['e'], [])
+        res = ehs.add_handler('hd', ['e'], [], ['s:'])
         self.assertIsNotNone(res.error)
 
     def test_remove_handler__not_registered(self) -> None:
@@ -89,9 +90,9 @@ class EventHandlerSetTest(unittest.TestCase):
     def test_remove_handler__multiples(self) -> None:
         """Test add_handler with a duplicate ID."""
         ehs = handler.EventHandlerSet()
-        res = ehs.add_handler('h1', ['e1', 'e2'], [('e2', 't2'), (None, None)])
+        res = ehs.add_handler('h1', ['e1', 'e2'], [('e2', 't2'), (None, None)], ['s:'])
         self.assertIsNone(res.error)
-        res = ehs.add_handler('h2', ['e3'], [(None, None)])
+        res = ehs.add_handler('h2', ['e3'], [(None, None)], ['s:'])
         self.assertIsNone(res.error)
         res = ehs.remove_handler('h2')
         self.assertIsNone(res.error)
@@ -111,9 +112,9 @@ class EventHandlerSetTest(unittest.TestCase):
     def test_remove_listener__no_listener(self) -> None:
         """Test remove_listener with no such listener on the handler."""
         ehs = handler.EventHandlerSet()
-        res = ehs.add_handler('h1', ['e1'], [])
+        res = ehs.add_handler('h1', ['e1'], [], ['s:'])
         self.assertIsNone(res.error)
-        res = ehs.add_handler('h2', ['e2'], [])
+        res = ehs.add_handler('h2', ['e2'], [], ['s:'])
         self.assertIsNone(res.error)
         res = ehs.add_listener('h1', 'e2', 't2')
         self.assertIsNone(res.error)

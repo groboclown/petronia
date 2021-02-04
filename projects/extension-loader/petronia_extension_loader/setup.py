@@ -96,10 +96,7 @@ def load_config_file(filename: str) -> StdRet[Sequence[Dict[str, Any]]]:
         return StdRet.pass_ok(cfg)
     return StdRet.pass_errmsg(
         TRANSLATION_CATALOG,
-        _(
-            'Configuration file ({file}) must be a proper yaml '
-            'document or list of yaml documents.'
-        ),
+        _('Configuration file ({file}) must be a proper json or yaml document.'),
         file=filename,
     )
 
@@ -168,3 +165,24 @@ def parse_startup_config(config: Dict[str, Any]) -> StdRet[None]:
     if errors:
         return StdRet.pass_error(join_errors(*errors))
     return RET_OK_NONE
+
+
+def for_unittest_backup() -> Dict[str, Any]:
+    """For unit testing only."""
+    return {
+        'b': tuple(_BOOT_EXTENSIONS),
+        'x': tuple(_EXTENSION_DIRS),
+        'l': _LAUNCHER_ID[0],
+        'c': dict(_EXTENSIONS_CONFIGS),
+    }
+
+
+def for_unittest_restore(orig: Dict[str, Any]) -> None:
+    """For unit testing only."""
+    _BOOT_EXTENSIONS.clear()
+    _BOOT_EXTENSIONS.extend(orig['b'])
+    _EXTENSION_DIRS.clear()
+    _EXTENSION_DIRS.extend(orig['x'])
+    _LAUNCHER_ID[0] = orig['l']
+    _EXTENSIONS_CONFIGS.clear()
+    _EXTENSIONS_CONFIGS.update(orig['c'])

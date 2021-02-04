@@ -36,19 +36,21 @@ To run the coding style and test checks, make sure your environment is setup, an
 ```bash
 (Windows)
 .venv/windows/
-python bin/build.py projects
+python bin/build.py
 
 (Bash)
-python3 bin/build.py projects
+python3 bin/build.py
 ```
 
 The Travis build will run on both Windows and Linux, so this will need to pass on both.
 
 If your changes include updates to localization strings, the translation files will also need updates.
 
+You can run a sub-set of the projects by passing the project name (not directory) as an argument to the `build.py` script.
+
 ## Translations
 
-...
+Details around writing localizations and translatable code are in the [l10n](projects/l10n/README.md) project.
 
 ## Documentation
 

@@ -16,4 +16,8 @@ consumes:
   - event-id: "petronia.core.api.foreman:launcher-start-extension:success"
   - event-id: "petronia.core.api.foreman:launcher-start-extension:failed"
 
+source-prefixes:
+  - "petronia.core.api.extension_loader:"
+  - "petronia.core.impl.extension_loader:"
+
 configuration: {}

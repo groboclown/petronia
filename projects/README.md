@@ -12,5 +12,6 @@ Because Petronia is split into executables, the major parts of the program are s
 * [extension-runner](extension-runner) - Command run by a launcher to execute a Python-based extension.
 * [core-extensions](core-extensions) - The core Petronia extensions.
 * [integration-tests](integration-tests) - Tests for the integration of multiple projects.
+* [l10n](l10n) - Translations of the projects.
 
 In the future, Petronia may be split out into its own major project group, in which case these may become their own top-level projects. 

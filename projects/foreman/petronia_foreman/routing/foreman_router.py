@@ -388,8 +388,11 @@ class LauncherRuntimeContext(RuntimeContext):
     def add_handler(
             self, channel_name: str, handler_id: str, produces: Iterable[str],
             consumes: Iterable[EventTargetHandle],
+            source_id_prefixes: Iterable[str],
     ) -> StdRet[None]:
-        return self._router.add_handler(channel_name, handler_id, produces, consumes)
+        return self._router.add_handler(
+            channel_name, handler_id, produces, consumes, source_id_prefixes,
+        )
 
     def remove_handler(self, handler_id: str) -> bool:
         return self._router.remove_handler(handler_id)

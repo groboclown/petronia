@@ -1,14 +1,13 @@
 """Event streaming entrypoint."""
 
 from typing import Sequence, Dict, Any
-import traceback
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.extension.runner.main import extension_runner
 from petronia_common.util import StdRet
 from .event_router import create_startup_handlers
 from .setup import initialize
 from .shared_state import ExtLoaderSharedState
-from .messages import display_message
+from .messages import display_message, low_println, low_traceback
 
 
 def extension_entrypoint(
@@ -17,7 +16,7 @@ def extension_entrypoint(
 ) -> StdRet[None]:
     """Standardized entrypoint for event stream handling.
     Can be used for the in-memory launcher."""
-    print("Starting up extension-loader with arguments {0}".format(args))
+    low_println(f"Starting up extension-loader with arguments {args}")
     try:
         init_res = initialize(*args)
         if init_res.has_error:
@@ -28,8 +27,10 @@ def extension_entrypoint(
         res = extension_runner(
             inp, outp, state,  *create_startup_handlers(),
         )
-        print("Extension-loader completed running.")
+        low_println("Extension-loader completed running.")
         return res
-    except BaseException as err:
-        traceback.print_exception(type(err), err, err.__traceback__)
-        raise err
+    except BaseException as err:  # pragma no cover
+        # Encountering this code in unit tests means there's a bug, so code coverage
+        # here doesn't make sense.
+        low_traceback(err)  # pragma no cover
+        raise err  # pragma no cover

@@ -705,8 +705,27 @@ class EventSchemaSelectorTest(unittest.TestCase):
 class EventTypeTest(unittest.TestCase):
     """Test out the EventType class"""
 
-    def test_getters(self) -> None:
-        """Test out the getter functions."""
+    def test_getters__binary(self) -> None:
+        """Test out the getter functions for a binary type."""
+        event = event_schema.EventType(
+            'event-name', 'high', 'public', 'internal', None, 'the-target',
+        )
+        self.assertEqual('event-name', event.name)
+        self.assertEqual('high', event.priority)
+        self.assertEqual('public', event.send_access)
+        self.assertEqual('internal', event.receive_access)
+        self.assertIsNone(event.structure)
+        self.assertEqual('the-target', event.unique_target)
+        self.assertFalse(event.is_object())
+        self.assertTrue(event.is_binary())
+        self.assertRaisesRegex(
+            ValueError,
+            r'value assumed not None but is None',
+            lambda: event.object_structure,
+        )
+
+    def test_getters__object(self) -> None:
+        """Test out the getter functions or an object type."""
         schema = event_schema.StructureEventDataType('data', {})
         event = event_schema.EventType(
             'event-name', 'high', 'public', 'internal', schema, 'the-target',
@@ -716,7 +735,10 @@ class EventTypeTest(unittest.TestCase):
         self.assertEqual('public', event.send_access)
         self.assertEqual('internal', event.receive_access)
         self.assertIs(schema, event.structure)
+        self.assertIs(schema, event.object_structure)
         self.assertEqual('the-target', event.unique_target)
+        self.assertTrue(event.is_object())
+        self.assertFalse(event.is_binary())
 
     def test_validate_type__ok(self) -> None:
         """Test out the validate_type with no problems."""

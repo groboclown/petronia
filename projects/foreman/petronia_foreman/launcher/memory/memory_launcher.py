@@ -148,7 +148,7 @@ class MemoryLauncherCategory(AbcLauncherCategory):
             return res
         self._context.add_handler(
             handler_id, handler_id,
-            start_event.send_access, [],
+            start_event.send_access.event_ids, [], start_event.send_access.source_id_prefixes,
         )
         loaded_launcher.non_none.thread.begin_ok()
 

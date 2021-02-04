@@ -1,6 +1,6 @@
 # Petronia: A Cross-Platform Tiling Window Manager
 
-**This is the v3 documentation, which is still being developed.**
+**This is the v3 branch, which is still being developed.**
 
 [![forked-model branch build](https://travis-ci.com/groboclown/petronia.svg?branch=forked-model)](https://travis-ci.com/github/groboclown/petronia) [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit) [![license: MIT](https://img.shields.io/badge/license-MIT-brightgreen)](https://github.com/groboclown/petronia) ![platforms: win-64 & linux-64](https://img.shields.io/badge/platforms-win--64%20%7C%20linux--64-informational)
 
@@ -52,11 +52,11 @@ With a tile layout, and the availability of keys to perform the same actions,
 the title bar and resize borders are useless wastes of space.  Remove them and
 see more of what's actually important.
 
-![Windows 8.1 Chrome](../master/docs/imgs/intellij-chrome-win8.1.png?raw=true)
+![Windows 8.1 Chrome](../docs/imgs/intellij-chrome-win8.1.png?raw=true)
 
 *Windows 8.1 - Look at all that wasted screen space*
 
-![Without Chrome](../master/docs/imgs/intellij-dechromed.png?raw=true)
+![Without Chrome](../docs/imgs/intellij-dechromed.png?raw=true)
 
 *Windows 8.1 stripped of all the chrome - Oh mi gorsh I can see so much more
 of my work!*

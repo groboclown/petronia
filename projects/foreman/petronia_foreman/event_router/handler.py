@@ -18,19 +18,26 @@ _NONE_NONE: EventTargetHandle = (None, None)
 class EventHandlerSet:
     """A collection of event handlers."""
     __slots__ = (
-        '__handler_produces', '__handler_consumes',
-        '__produces', '__consumes',
+        '__handler_produces', '__handler_consumes', '__handler_source_prefixes',
+        '__produces', '__sources', '__consumes',
     )
 
     def __init__(self) -> None:
         self.__handler_produces: Dict[str, Sequence[str]] = {}
         self.__handler_consumes: Dict[str, List[EventTargetHandle]] = {}
+        self.__handler_source_prefixes: Dict[str, Sequence[str]] = {}
         self.__produces: Set[str] = set()
+        self.__sources: Set[str] = set()
         self.__consumes: Set[EventTargetHandle] = set()
 
-    def can_produce(self, event_id: str) -> bool:
-        """Can this set of handlers produce the given event id?"""
-        return event_id in self.__produces
+    def can_produce(self, event_id: str, source_id: str) -> bool:
+        """Can this set of handlers produce the given event id with the soruce id?"""
+        if event_id not in self.__produces:
+            return False
+        for source_prefix in self.__sources:
+            if source_id.startswith(source_prefix):
+                return True
+        return False
 
     def can_consume(self, event_id: str, target_id: str) -> bool:
         """Can this set of handlers consume the given event_id + target_id?"""
@@ -52,6 +59,7 @@ class EventHandlerSet:
             handler_id: str,
             produces: Iterable[str],
             initial_consumes: Iterable[EventTargetHandle],
+            source_id_prefixes: Iterable[str],
     ) -> StdRet[None]:
         """Add a new handler to the set.  The list of consumes can include duplicate
         values, and that list of duplicates will be maintained over time.
@@ -65,7 +73,9 @@ class EventHandlerSet:
             )
         self.__handler_produces[handler_id] = tuple(produces)
         self.__handler_consumes[handler_id] = list(initial_consumes)
+        self.__handler_source_prefixes[handler_id] = tuple(source_id_prefixes)
         self.__produces.update(produces)
+        self.__sources.update(source_id_prefixes)
         self.__consumes.update(initial_consumes)
         return RET_OK_NONE
 
@@ -122,8 +132,11 @@ class EventHandlerSet:
 
     def _reprocess_structures(self) -> None:
         self.__produces.clear()
+        self.__sources.clear()
         self.__consumes.clear()
         for produces in self.__handler_produces.values():
             self.__produces.update(produces)
         for consumes in self.__handler_consumes.values():
             self.__consumes.update(consumes)
+        for sources in self.__handler_source_prefixes.values():
+            self.__sources.update(sources)

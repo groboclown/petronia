@@ -15,7 +15,7 @@ class BootExtensionMetadata:  # pylint:disable=too-many-instance-attributes
 
     __slots__ = (
         '__name', '__version', '__runtime', '__locations',
-        '__produces', '__consumes',
+        '__produces_events', '__source_ids', '__consumes',
         '__permissions', '__configuration',
     )
 
@@ -24,7 +24,8 @@ class BootExtensionMetadata:  # pylint:disable=too-many-instance-attributes
             name: str,
             version: ExtensionVersion,
             runtime: str,
-            produces: Iterable[str],
+            produces_event_ids: Iterable[str],
+            allows_source_ids: Iterable[str],
             consumes: Iterable[Tuple[Optional[str], Optional[str]]],
             permissions: Mapping[str, Iterable[str]],
             configuration: Mapping[str, Any],
@@ -33,7 +34,8 @@ class BootExtensionMetadata:  # pylint:disable=too-many-instance-attributes
         self.__name = name
         self.__version = version
         self.__runtime = runtime
-        self.__produces = tuple(produces)
+        self.__produces_events = tuple(produces_event_ids)
+        self.__source_ids = tuple(allows_source_ids)
         self.__consumes = tuple(consumes)
         self.__permissions: Mapping[str, Sequence[str]] = readonly_dict({
             key: tuple(value)
@@ -55,7 +57,10 @@ class BootExtensionMetadata:  # pylint:disable=too-many-instance-attributes
             version=list(self.__version),
             location=list(self.__locations),
             runtime=self.__runtime,
-            send_access=list(self.__produces),
+            send_access=foreman.SendEventAccess(
+                list(self.__produces_events),
+                list(self.__source_ids),
+            ),
             configuration=json.dumps(self.__configuration),
             permissions=[
                 foreman.ExtensionPermission(action, list(resources))

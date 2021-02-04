@@ -19,7 +19,7 @@
 * API vs implementation.  The API for Petronia is the event bus, the event IDs and singleton IDs, and the structured event data.  Everything else is implementation and should be registered separately from the API.  Extensions should have an API and implementation portion as well.  Users, if they really want, can swap out all the implementations, starting with extensions, all the way up to the core system setup at bootstrap time.
 * All non-local memory must be accessed in a thread-safe manner.  For this reason, global memory must be restricted to just a few places.  This applies to singleton objects as well.
 * Internationalization is a must.  Petronia uses the built-in `gettext` module for the application.  Extensions should expect the localization files to be added by the platform, and should produce files that can be integrated into the localization paths.
-* `asyncio` over threading.  Threading is only used when Python makes it really difficult to use asyncio.
+* `asyncio` over threading.  Threading is only used when Python makes it really difficult to use asyncio.  Unfortunately, this means forking behavior if threading is ever used, because of the underlying "async" vs non-async calls.
 
 
 ### Security

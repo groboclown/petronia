@@ -27,7 +27,7 @@ echo extension-loader/petronia_extension_loader/events:
 
 
 # Core extension implementations
-echo core-extensions
+echo core-extensions:
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_extension/petronia/core/impl/datastore/events/impl" \
   --implementation --api --state \
@@ -40,3 +40,11 @@ echo core-extensions
   --output "${pd}/core-extensions/petronia_extension/petronia/core/impl/timer/events/impl" \
   --implementation --api --state \
   "${pd}/core-extensions/timer-extension.yaml"
+
+
+# Native
+echo native-handler:
+"${h}/generate-events.sh" \
+  --output "${pd}/native-handler/petronia_native/common/events/impl" \
+  --implementation --api --state \
+  "${pd}/native-handler/native-extension.yaml"
