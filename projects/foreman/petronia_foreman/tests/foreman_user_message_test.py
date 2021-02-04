@@ -103,6 +103,7 @@ class ForemanUserMessageTest(unittest.TestCase):
         os.environ['LANG'] = 'zn'
         os.environ['LANGUAGE'] = 'zn'
         os.environ['LC_ALL'] = 'zn.UTF-8'
+        os.environ['LC_MESSAGES'] = 'zn'
         user_message.load_translation()
         en_text = user_message.translate(
             'test-messages', i18n('Simple test message {text}'),
