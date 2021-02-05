@@ -66,7 +66,7 @@ def initialize(  # pylint:disable=keyword-arg-before-vararg
             config_res = load_config_file(user_config_file)
             if config_res.has_error:
                 errors.extend(config_res.error_messages())
-            elif config_res.ok:
+            else:
                 user_config.extend(config_res.result)
 
     res = parse_configuration(user_config)

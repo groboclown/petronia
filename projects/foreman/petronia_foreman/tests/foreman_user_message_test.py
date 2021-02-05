@@ -199,4 +199,3 @@ def _set_env_language(lang: str) -> None:
     os.environ['LANGUAGE'] = lang
     os.environ['LC_ALL'] = lang
     os.environ['LC_MESSAGES'] = lang
-

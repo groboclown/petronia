@@ -191,7 +191,7 @@ class RouterLoopLogic:
             )
             if source:
                 # send error
-                self.__router.inject_event(to_raw_event_object(
+                send_res = self.__router.inject_event(to_raw_event_object(
                     foreman.LauncherStartExtensionFailedEvent.FULL_EVENT_NAME,
                     handler_id,
                     source,
@@ -205,6 +205,8 @@ class RouterLoopLogic:
                         ),
                     ).export_data(),
                 ))
+                for msg in send_res.error_messages():
+                    display_message(msg)
             else:
                 display_message(error_msg)
                 display_message(corrective_msg)

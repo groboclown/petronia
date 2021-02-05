@@ -4,6 +4,7 @@ import unittest
 import os
 import tempfile
 import shutil
+import json
 from .. import setup
 
 
@@ -41,4 +42,27 @@ class ExtensionLoaderSetupTest(unittest.TestCase):
         self.assertEqual(None, setup.get_extension_config('x'))
         self.assertEqual((extension_dir,), setup.get_extension_dirs())
         self.assertEqual((), setup.get_boot_extensions())
+        self.assertEqual('extension-loader', setup.get_extension_handler_id())
+
+    def test_initialize_user_config_file_valid(self) -> None:
+        """Test out initialize with a user configuration file."""
+        extension_dir = os.path.join(self.tempdir, 'extensions')
+        os.makedirs(extension_dir)
+        data_dir = os.path.join(self.tempdir, 'data')
+        os.makedirs(data_dir)
+        config_dir = os.path.join(self.tempdir, 'configs')
+        os.makedirs(config_dir)
+        with open(os.path.join(config_dir, 'config.json'), 'w') as f:
+            json.dump({
+                'startup': {
+                    'extensions': ['ext1'],
+                    'extension-dirs': [extension_dir],
+                },
+                'ext1': {},
+            }, f)
+        res = setup.initialize(config_dir, data_dir, None, None)
+        self.assertIsNone(res.error)
+        self.assertEqual({}, setup.get_extension_config('ext1'))
+        self.assertEqual((extension_dir,), setup.get_extension_dirs())
+        self.assertEqual(('ext1',), setup.get_boot_extensions())
         self.assertEqual('extension-loader', setup.get_extension_handler_id())

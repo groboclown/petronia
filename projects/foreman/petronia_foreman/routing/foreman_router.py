@@ -71,6 +71,11 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         self.__full_stop = False
         self.stop_timeout = 10.0
 
+    def is_running(self) -> bool:
+        """Is this router running?"""
+        with self.__lock:
+            return self.__state == _STATE_RUNNING
+
     def start(self, timeout: Optional[float] = None) -> bool:
         """Starts up the router.  If it is already running, then this is a no-op.  If it
         is currently shutting down, then this will wait for the shutdown to complete, then
@@ -414,21 +419,30 @@ class LauncherCategoryState:
         return self.config.runtime_name
 
     def create_category(
-            self, context: LauncherRuntimeContext, executor: ThreadPoolExecutor,
+            self, context: RuntimeContext, executor: ThreadPoolExecutor,
     ) -> StdRet[AbcLauncherCategory]:
         """Create the launcher category."""
         category_res = create_launcher_category(self.config)
         if category_res.has_error:
             return category_res.forward()
-        init_res = executor.submit(category_res.result.initialize, context).result()
+        try:
+            init_res = executor.submit(category_res.result.initialize, context).result()
+        except RuntimeError as err:
+            return StdRet.pass_exception(
+                _('failed creating launcher {name}'),
+                err,
+                name=self.config.runtime_name,
+            )
         if init_res.has_error:
             return init_res.forward()
         return category_res
 
 
 def _debug(action: str, msg: str, **kwargs: Any) -> None:
-    if DEBUG:
-        low_println('[DEBUG ForemanRouter(' + action + ')] ' + (msg.format(**kwargs)))
+    if DEBUG:  # pragma no cover
+        low_println(  # pragma no cover
+            '[DEBUG ForemanRouter(' + action + ')] ' + (msg.format(**kwargs))
+        )
 
 
 NEXT_THREAD_ID = [0]

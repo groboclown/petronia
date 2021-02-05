@@ -4,8 +4,11 @@
 # The runner file in tests is only run in a separate process, so will never get coverage.
 # Once the test generation for events makes the data-store event covered,
 #   remove that coverage exclusion.
+# The platform-specific process launchers won't be properly covered, because they are
+#   only run for the platform that runs it.
 omit =
     petronia_foreman/__main__.py
     petronia_foreman/process_mgmt/tests/runner.py
     petronia_foreman/events/foreman.py
     petronia_foreman/events/tests/foreman_test.py
+    petronia_foreman/process_mgmt/popen_*.py

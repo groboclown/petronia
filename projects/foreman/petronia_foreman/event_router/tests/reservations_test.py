@@ -38,9 +38,9 @@ class ChannelReservationsTest(unittest.TestCase):
     def test_add_channel_reservation_callback__str__duplicate(self) -> None:
         """Call add_channel_reservation_callback with no channel patterns reserved yet."""
         channel_res = reservations.ChannelReservations()
-        res = channel_res.add_channel_reservation_callback('channel name', lambda x: RET_OK_NONE)
+        res = channel_res.add_channel_reservation_callback('channel name', never_called_callback)
         self.assertIsNone(res.error)
-        res = channel_res.add_channel_reservation_callback('channel name', lambda x: RET_OK_NONE)
+        res = channel_res.add_channel_reservation_callback('channel name', never_called_callback)
         self.assertIsNotNone(res.error)
 
     def test_add_channel_reservation_callback__str__escape(self) -> None:
@@ -96,12 +96,12 @@ class ChannelReservationsTest(unittest.TestCase):
         channel_res = reservations.ChannelReservations()
         res = channel_res.add_channel_reservation_callback(
             re.compile(r'channel\d+'),
-            lambda x: RET_OK_NONE,
+            never_called_callback,
         )
         self.assertIsNone(res.error)
         res = channel_res.add_channel_reservation_callback(
             re.compile(r'channel\d+'),
-            lambda x: RET_OK_NONE,
+            never_called_callback,
         )
         self.assertFalse(res.ok)
 
@@ -110,12 +110,12 @@ class ChannelReservationsTest(unittest.TestCase):
         channel_res = reservations.ChannelReservations()
         res = channel_res.add_channel_reservation_callback(
             re.compile(r'^channel$'),
-            lambda x: RET_OK_NONE,
+            never_called_callback,
         )
         self.assertIsNone(res.error)
         res = channel_res.add_channel_reservation_callback(
             'channel',
-            lambda x: RET_OK_NONE,
+            never_called_callback,
         )
         self.assertFalse(res.ok)
 
@@ -175,3 +175,8 @@ class ChannelReservationsTest(unittest.TestCase):
         self.assertFalse(channel_res.reserve_channel('abc').ok)
         self.assertTrue(channel_res.release_channel('abc'))
         self.assertFalse(channel_res.release_channel('abc'))
+
+
+def never_called_callback(_name: str) -> StdRet[None]:
+    """Callback which is never called."""
+    raise NotImplementedError  # pragma no cover

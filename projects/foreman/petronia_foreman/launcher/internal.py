@@ -13,6 +13,7 @@ def create_internal_launcher() -> AbcLauncherCategory:
     """Create a command launcher category"""
     config = ConfigParser()
     config.add_section('internal')
+    config.set('internal', 'runner', 'internal')
     return InternalLauncherCategory(RuntimeConfig('internal', config))
 
 

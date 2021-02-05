@@ -45,9 +45,7 @@ class ForemanRunner:
         if res != 0:
             return res
         local_display(_('Starting up Petronia.'))
-        res = self.boot()
-        if res != 0:
-            return res
+        self.boot()
         self.join()
         local_display(_('Petronia shutting down.'))
         self.shutdown()
@@ -78,16 +76,16 @@ class ForemanRunner:
         launcher_categories = self._get_launcher_categories()
         if launcher_categories.has_error:
             display_error(launcher_categories.valid_error)
-            return 1
+            return 2
         extensions = load_boot_extensions(self._config)
         if extensions.has_error:
             display_error(extensions.valid_error)
-            return 2
+            return 3
         self._boot_configs = list(extensions.result)
         self.__router = ForemanRouter(launcher_categories.result)
         return 0
 
-    def boot(self) -> int:
+    def boot(self) -> None:
         """Boot up the dependent services."""
         self._ensure_state(1, 'can only be run after initialization')
         self.__state = 2
@@ -103,7 +101,9 @@ class ForemanRunner:
             # local_display(_('Starting boot launcher {name}'), name=name)
             self.__router.start_boot_extension(boot_config)
 
-        return 0
+    def is_router_running(self) -> bool:
+        """Is the underlying router running?"""
+        return self.__router is not None and self.__router.is_running()
 
     def join(self) -> None:
         """Wait for the processing to end.  This must be done in a way that is safe for
@@ -143,8 +143,9 @@ class ForemanRunner:
         if self.__root_logger_fd is not None:
             try:
                 os.close(self.__root_logger_fd)
-            except OSError as err:
-                _display_error(
+            except OSError as err:  # pragma no cover
+                # Simulating this is ... hard in unit tests.
+                _display_error(  # pragma no cover
                     err, self.debug,
                     _('Failed to close root log file {filename}'),
                     filename=self._config.get_boot_config().root_log_file,

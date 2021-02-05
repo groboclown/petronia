@@ -36,7 +36,7 @@ class RunNativeTest(unittest.TestCase):
             'LD_LIBRARY_PATH': 'blah',
             'LD_LIBRARY_PATH_ORIG': 'blah2',
         })
-        res = run_native.get_native_exec_args('the-command')
+        res = run_native.get_native_exec_args('the-command', [])
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
         self.assertEqual(
@@ -59,7 +59,7 @@ class RunNativeTest(unittest.TestCase):
             'LD_LIBRARY_PATH': 'blah',
             'LD_LIBRARY_PATH_ORIG': 'blah2',
         })
-        res = run_native.get_native_exec_args('the-command')
+        res = run_native.get_native_exec_args('the-command', [])
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
         self.assertEqual(
@@ -83,7 +83,7 @@ class RunNativeTest(unittest.TestCase):
             'LD_LIBRARY_PATH': 'blah',
             'LD_LIBRARY_PATH_ORIG': 'blah2',
         })
-        res = run_native.get_native_exec_args('the-command')
+        res = run_native.get_native_exec_args('the-command', [])
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
         self.assertEqual(
@@ -106,7 +106,7 @@ class RunNativeTest(unittest.TestCase):
             'LD_LIBRARY_PATH': 'blah',
             'LD_LIBRARY_PATH_ORIG': 'blah2',
         })
-        res = run_native.get_native_exec_args('the-command')
+        res = run_native.get_native_exec_args('the-command', [])
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
         self.assertEqual(
@@ -129,7 +129,7 @@ class RunNativeTest(unittest.TestCase):
             'LD_LIBRARY_PATH': 'blah',
             'LD_LIBRARY_PATH_ORIG': 'blah2',
         })
-        res = run_native.get_native_exec_args('the-command')
+        res = run_native.get_native_exec_args('the-command', [])
         self.assertIsNone(res.error)
         self.assertTrue(res.ok)
         self.assertEqual(

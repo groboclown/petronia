@@ -26,6 +26,7 @@ from .extension_schema import (
     ExtensionDependency,
     AbcExtensionMetadata,
     ExtensionType,
+    ProtocolExtensionMetadata,
     ApiExtensionMetadata,
     ImplExtensionMetadata,
     StandAloneExtensionMetadata,

@@ -7,6 +7,11 @@ This is the to-do list for Petronia v3.1.
 
 These are desired, tactical changes to bits of already written code.
 
+### build
+
+* raise the minimum coverage percent back up to 99.  It was dropped to 95 to get an initial good build.
+
+
 ### py-common-lib
 
 * extension event schema doesn't capture the event description for binary events.  This is an artifact of how the events collect their data by using shared code.
@@ -28,7 +33,8 @@ These are desired, tactical changes to bits of already written code.
 * document how the extension-loader searches for configuration files
 * document the file format of its configuration files
 * document how the extension-loader loads boot-time extensions
-
+* define the access permissions required by the extension-loader.
+* massive amounts of code coverage improvements
 
 
 ### foreman
@@ -36,6 +42,9 @@ These are desired, tactical changes to bits of already written code.
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * add extension name requirements around the in-memory loader, so that it denies loading an extension if it does not match the glob pattern.
 * massive amounts of code coverage improvements
+* document how the foreman process loads configuration files
+* document the configuration file formats used by foreman
+* change up the event router so that tests can have better insight into the status of the connected channels.  This may not be practical, but some method for gaining this insight can help eliminate the sleeps.  Perhaps some kind of spy into the internal buffers?
 
 
 ## High Level Ideas
@@ -91,3 +100,8 @@ Early development that caused rethinking of how things are done, but that code n
 * Make key-down metas have a timeout.  If too much time between keystrokes elapses, then the hotkey combo is canceled.
 * Hotkey meta-characters should be passed as still down after hotkey is processed.
 * Unit tests everywhere.
+
+
+## Clean Up
+
+* Remove the old v3.0 and v2 directories once the old code has been salvaged.

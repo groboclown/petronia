@@ -14,6 +14,7 @@ ENV__LIBRARY_PATH = 'LD_LIBRARY_PATH'
 
 def get_native_exec_args(
         exec_with_args: str,
+        _location: Sequence[str],
 ) -> StdRet[Tuple[Sequence[str], Dict[str, str]]]:
     """Construct the base executable command list,
     environment variables and temporary directories."""

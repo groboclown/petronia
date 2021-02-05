@@ -14,8 +14,10 @@ be D, (B + C), A, where B and C can load in parallel once D is loaded.
 """
 
 from typing import Iterable, Sequence, List, Dict, Mapping, Set, Optional
-from petronia_common.extension.config import ApiExtensionMetadata, ImplExtensionMetadata
-from petronia_common.extension.config.extension_schema import ProtocolExtensionMetadata
+from petronia_common.extension.config import (
+    ApiExtensionMetadata, ImplExtensionMetadata, ProtocolExtensionMetadata,
+)
+from petronia_common.extension.config.extension_schema import ExtensionDependency
 from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, not_none
 from petronia_common.util import i18n as _
 from .search import find_best_extension, find_dependencies
@@ -43,7 +45,15 @@ class ExtensionDependencyOrder:
         """Is this a root dependency?"""
         return len(self.depends_on) <= 0
 
-    def get_everything_dependent_on(
+    def get_ext_dependencies(self) -> List[ExtensionDependency]:
+        """Get the metadata's defined extension dependencies."""
+        metadata = self.ext.metadata
+        ret = list(metadata.depends_on)
+        if isinstance(metadata, ImplExtensionMetadata):
+            ret.extend(metadata.implements)
+        return ret
+
+    def get_everything_requiring(
             self, world: Mapping[str, 'ExtensionDependencyOrder'],
     ) -> Iterable[ExtensionInfo]:
         """Get all the extensions that depend upon this extension."""
@@ -60,6 +70,7 @@ class ExtensionDependencyOrder:
                 req_order = world.get(requires.name)
                 if req_order:
                     required_by[requires.name] = requires
+                    stack.append(req_order)
         return required_by.values()
 
     def can_run(self, loaded_extensions: Iterable[ExtensionInfo]) -> bool:
@@ -80,8 +91,8 @@ class ExtensionDependencyOrder:
                 if not remaining:
                     return True
 
-        if not remaining:
-            return True
+        # At this point, because of the early-out check + initial root check,
+        # this can only mean there are more remaining items.
         return False
 
 
@@ -96,6 +107,8 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
     extensions.
 
     This ignores cycles in the dependency ordering.
+
+    Note: THIS DOES NOT ENSURE THAT ONE AND ONLY ONE API IMPLEMENTATION IS LOADED.
     """
 
     # This ends up performing a topological sort, so that API and implementations can be handled
@@ -117,6 +130,7 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
         ext = not_none(visit_list.pop())
         visited[ext.name] = True
 
+        # Enforce the has-dependency check.
         mtd = ext.metadata
         if mtd.extension_type == 'api' and isinstance(mtd, ApiExtensionMetadata):
             apis[ext.name] = mtd
@@ -139,7 +153,7 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
             ))
 
         for dep_info in found_dependencies:
-            if not visited[dep_info.name]:
+            if dep_info.name not in visited:
                 visit_list.append(dep_info)
 
         # Put this in the return list.
@@ -191,12 +205,13 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
     # Second pass: populate the dependencies and requirements.
     ret: List[ExtensionDependencyOrder] = []
     for ext_order in order.values():
-        for ext_dep in ext_order.ext.metadata.depends_on:
+        for ext_dep in ext_order.get_ext_dependencies():
             dep_order = order[ext_dep.name]
             ext_order.depends_on.append(dep_order.ext)
             dep_order.required_by.append(ext_order.ext)
             if dep_order not in ret:
                 ret.append(dep_order)
+
         ret.append(ext_order)
     return StdRet.pass_ok(ret)
 
@@ -270,7 +285,7 @@ class LoadList:
         # The failed loading extension must never be required by anything in the
         # loading or loaded state.  So this only needs to check the pending list.
         # Likewise, it can never depend on itself.
-        return StdRet.pass_ok(order.get_everything_dependent_on(self.__pending))
+        return StdRet.pass_ok(order.get_everything_requiring(self.__pending))
 
     def get_ready_to_load(self) -> Iterable[ExtensionInfo]:
         """Get the extensions that are ready to be loaded, because all the dependencies

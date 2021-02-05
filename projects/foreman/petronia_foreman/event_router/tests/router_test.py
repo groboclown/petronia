@@ -62,8 +62,14 @@ class OnCloseTargetTest(unittest.TestCase):
         self.assertEqual(b'', reader())
 
 
-class EventRouterTest(unittest.TestCase):
+class EventRouterTest(unittest.TestCase):  # pylint:disable=too-many-public-methods
     """Tests the router basic functionality."""
+
+    def setUp(self) -> None:
+        self.executor = ThreadPoolExecutor()
+
+    def tearDown(self) -> None:
+        self.executor.shutdown(wait=True)
 
     def test_register_channel__blocked(self) -> None:
         """Test register_channel when the registration callback blocks it."""
@@ -71,9 +77,8 @@ class EventRouterTest(unittest.TestCase):
         def create_reader_writer() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
             raise Exception('Should not be called')  # pragma no cover
 
-        executor = ThreadPoolExecutor()
         lock = threading.Semaphore()
-        event_router = router.EventRouter(lock, executor=executor)
+        event_router = router.EventRouter(lock, executor=self.executor)
         event_router.add_reservation_callback('ch', lambda _: StdRet.pass_errmsg(
             'x', i18n('expected error'),
         ))
@@ -124,12 +129,11 @@ class EventRouterTest(unittest.TestCase):
                 SimpleBinaryWriter(),
             ))
 
-        executor = ThreadPoolExecutor()
         lock = threading.Semaphore()
         target = MockTarget(self)
         target.can_handle_returns.append(True)
         target.handle_returns.append(False)
-        event_router = router.EventRouter(lock, executor=executor, target=target)
+        event_router = router.EventRouter(lock, executor=self.executor, target=target)
         res = event_router.register_channel('ch', create_reader_writer)
         self.assertIsNone(res.error)
         self.assertEqual(
@@ -145,7 +149,7 @@ class EventRouterTest(unittest.TestCase):
         # wait for the thread reader to stop
         with condition:
             condition.wait(2.0)
-        executor.shutdown(wait=True)
+        self.executor.shutdown(wait=True)
         target.assert_next_can_handle('e1', 's1', 't1')
         target.assert_next_handle('e1', 's1', 't1', {'x': 'y'})
         target.assert_next_can_handle('e1', 's2', 't2')
@@ -294,9 +298,8 @@ class EventRouterTest(unittest.TestCase):
         def create_reader_writer_2() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
             return StdRet.pass_ok((reader2, writer2))
 
-        executor = ThreadPoolExecutor()
         lock = threading.Semaphore()
-        event_router = router.EventRouter(lock, executor=executor)
+        event_router = router.EventRouter(lock, executor=self.executor)
         res = event_router.register_channel('ch1', create_reader_writer_1)
         self.assertIsNone(res.error)
         res = event_router.register_channel('ch2', create_reader_writer_2)
@@ -318,7 +321,7 @@ class EventRouterTest(unittest.TestCase):
         reader1.send_events()
         reader2.send_events()
 
-        executor.shutdown(wait=True)
+        self.executor.shutdown(wait=True)
 
         h1_collector = CallbackCollector()
         read_event_stream(
@@ -362,9 +365,8 @@ class EventRouterTest(unittest.TestCase):
         def create_reader_writer_1() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
             return StdRet.pass_ok((reader1, writer1))
 
-        executor = ThreadPoolExecutor()
         lock = threading.Semaphore()
-        event_router = router.EventRouter(lock, executor=executor, target=target)
+        event_router = router.EventRouter(lock, executor=self.executor, target=target)
         res = event_router.register_channel('ch1', create_reader_writer_1)
         self.assertIsNone(res.error)
         res = event_router.add_handler('ch1', 'h1', [], [(None, None)], [])
@@ -379,7 +381,7 @@ class EventRouterTest(unittest.TestCase):
         with condition1:
             condition1.wait(2.0)
 
-        executor.shutdown(wait=True)
+        self.executor.shutdown(wait=True)
 
         # Because the target returns True on error, the channel is de-registered.
         self.assertEqual(1, writer1.call_count)
@@ -412,9 +414,11 @@ class EventRouterTest(unittest.TestCase):
 
         event_h1 = to_raw_event_object('e1', 's1', 't2', {})
 
-        executor = ThreadPoolExecutor()
         lock = threading.Semaphore()
-        event_router = router.EventRouter(lock, executor=executor)
+        event_router = router.EventRouter(
+            lock,
+            executor=self.executor,
+        )
 
         # First, without any channel registered...
         res = event_router.inject_event_to_channel('ch1', event_h1)
@@ -426,6 +430,7 @@ class EventRouterTest(unittest.TestCase):
         self.assertIsNone(res.error)
         res = event_router.register_channel('ch3', create_reader_writer_3)
         self.assertIsNone(res.error)
+
         res = event_router.add_handler('ch1', 'h1', [], [(None, None)], [])
         self.assertIsNone(res.error)
         res = event_router.add_handler('ch2', 'h2', [], [(None, None)], [])
@@ -436,8 +441,14 @@ class EventRouterTest(unittest.TestCase):
         # Inject an event, first to a channel which should consume it, then to a channel
         # that should not be liable to consume it...
 
-        event_router.inject_event_to_channel('ch1', event_h1)
-        event_router.inject_event_to_channel('ch3', event_h1)
+        res = event_router.inject_event_to_channel('ch1', event_h1)
+        self.assertIsNone(res.error)
+        res = event_router.inject_event_to_channel('ch3', event_h1)
+        self.assertIsNone(res.error)
+        self.assertEqual(
+            {'ch1', 'ch2', 'ch3'},
+            set(event_router.get_registered_channel_names()),
+        )
 
         # Wait to have an EOF until after the injection, otherwise the channels
         # could be removed before the test has completed.
@@ -445,7 +456,7 @@ class EventRouterTest(unittest.TestCase):
         reader2.send_events()
         reader3.send_events()
 
-        executor.shutdown(wait=True)
+        self.executor.shutdown(wait=True)
 
         h1_collector = CallbackCollector()
         read_event_stream(
@@ -474,6 +485,87 @@ class EventRouterTest(unittest.TestCase):
         )
         h3_collector.next_as_eof(self)
         self.assertTrue(h3_collector.is_empty())
+
+    def test_inject_event_to_channel__with_errors_and_target_removes(self) -> None:
+        """Test inject_event_to_channel, where writing to the channel generates an error."""
+        reader4 = DelayedEofConditionBinaryReader(threading.Condition())
+        writer4 = ErrorBinaryWriter()
+
+        # writer 4 raises an error when a write to its stream happens, so
+        # it should be de-registered.
+        def create_reader_writer_4() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
+            return StdRet.pass_ok((reader4, writer4))
+
+        event_h1 = to_raw_event_object('e1', 's1', 't2', {})
+
+        lock = threading.Semaphore()
+        router_target = MockTarget(self)
+        router_target.on_error_returns.append(True)
+        event_router = router.EventRouter(
+            lock,
+            target=router_target,
+            executor=self.executor,
+        )
+
+        # First, without any channel registered...
+        res = event_router.inject_event_to_channel('ch1', event_h1)
+        self.assertIsNotNone(res.error)
+
+        res = event_router.register_channel('ch4', create_reader_writer_4)
+        self.assertIsNone(res.error)
+
+        res = event_router.add_handler('ch4', 'h4', [], [(None, None)], [])
+        self.assertIsNone(res.error)
+
+        # Inject an event, first to a channel which should consume it, then to a channel
+        # that should not be liable to consume it...
+
+        res = event_router.inject_event_to_channel('ch4', event_h1)
+        self.assertIsNone(res.error)
+        self.assertEqual((), event_router.get_registered_channel_names())
+
+        # Wait to have an EOF until after the injection, otherwise the channels
+        # could be removed before the test has completed.
+        reader4.send_events()
+
+    def test_inject_event_to_channel__with_errors_no_target(self) -> None:
+        """Test inject_event_to_channel, where writing to the channel generates an error."""
+        reader4 = DelayedEofConditionBinaryReader(threading.Condition())
+        writer4 = ErrorBinaryWriter()
+
+        # writer 4 raises an error when a write to its stream happens, so
+        # it should be de-registered.
+        def create_reader_writer_4() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
+            return StdRet.pass_ok((reader4, writer4))
+
+        event_h1 = to_raw_event_object('e1', 's1', 't2', {})
+
+        lock = threading.Semaphore()
+        event_router = router.EventRouter(
+            lock,
+            executor=self.executor,
+        )
+
+        # First, without any channel registered...
+        res = event_router.inject_event_to_channel('ch1', event_h1)
+        self.assertIsNotNone(res.error)
+
+        res = event_router.register_channel('ch4', create_reader_writer_4)
+        self.assertIsNone(res.error)
+
+        res = event_router.add_handler('ch4', 'h4', [], [(None, None)], [])
+        self.assertIsNone(res.error)
+
+        # Inject an event, first to a channel which should consume it, then to a channel
+        # that should not be liable to consume it...
+
+        res = event_router.inject_event_to_channel('ch4', event_h1)
+        self.assertIsNone(res.error)
+        self.assertEqual(('ch4',), event_router.get_registered_channel_names())
+
+        # Wait to have an EOF until after the injection, otherwise the channels
+        # could be removed before the test has completed.
+        reader4.send_events()
 
 
 def _create_reader_writer_ok() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:

@@ -144,7 +144,7 @@ class MockTarget(EventForwarderTarget):
             event_id: str, source_id: str, target_id: str,
     ) -> None:
         """Assertion"""
-        self.__test.assertTrue(len(self.call_stack) > 0)
+        self.__test.assertTrue(len(self.call_stack) > 0, 'action queue is empty')
         name, args = self.call_stack.pop(0)
         self.__test.assertEqual('can_handle', name)
         self.__test.assertEqual(event_id, args[0])
@@ -161,7 +161,7 @@ class MockTarget(EventForwarderTarget):
 
     def assert_next_on_error(self, *messages: UserMessage) -> None:
         """Assertion"""
-        self.__test.assertTrue(len(self.call_stack) > 0)
+        self.__test.assertTrue(len(self.call_stack) > 0, 'action queue is empty')
         name, args = self.call_stack.pop(0)
         self.__test.assertEqual('on_error', name)
         err = args[0]
@@ -178,7 +178,7 @@ class MockTarget(EventForwarderTarget):
 
     def assert_next_on_eof(self) -> None:
         """Assertion"""
-        self.__test.assertTrue(len(self.call_stack) > 0)
+        self.__test.assertTrue(len(self.call_stack) > 0, 'action queue is empty')
         name, _ = self.call_stack.pop(0)
         self.__test.assertEqual('on_eof', name)
 
@@ -195,7 +195,7 @@ class MockTarget(EventForwarderTarget):
             data: Any,
     ) -> None:
         """Assertion"""
-        self.__test.assertTrue(len(self.call_stack) > 0)
+        self.__test.assertTrue(len(self.call_stack) > 0, 'action queue is empty')
         name, args = self.call_stack.pop(0)
         self.__test.assertEqual('handle', name)
         self.__test.assertEqual(event_id, args[0])

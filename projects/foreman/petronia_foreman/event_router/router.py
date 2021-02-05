@@ -67,7 +67,7 @@ class EventRouter:
     def get_registered_channel_names(self) -> Iterable[str]:
         """Get all registered channel names."""
         with self.__lock:
-            return list(self.__channels.keys())
+            return tuple(self.__channels.keys())
 
     def add_reservation_callback(
             self,

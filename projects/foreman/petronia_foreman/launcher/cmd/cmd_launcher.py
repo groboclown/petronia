@@ -2,7 +2,7 @@
 Launch extensions from a child process.
 """
 
-from typing import Sequence, Tuple, Dict, Optional
+from typing import Sequence, Tuple, List, Dict, Optional
 import os
 import tempfile
 
@@ -17,10 +17,11 @@ from ..util import (
     launcher_not_loaded, launcher_category_not_initialized, launcher_already_registered,
     LaunchedInstance,
 )
-from ...configuration import RuntimeConfig
+from ...configuration import RuntimeConfig, platform
 from ...constants import TRANSLATION_CATALOG
 from ...events import foreman
 from ...process_mgmt import ManagedProcess, run_launcher
+from ...user_message import local_display
 
 
 def create_cmd_launcher(options: RuntimeConfig) -> AbcLauncherCategory:
@@ -50,7 +51,7 @@ class CmdLauncherCategory(AbcLauncherCategory):
     ) -> StdRet[None]:
         if not self._context:
             return launcher_category_not_initialized()
-        exec_res = get_runtime_settings(self.config)
+        exec_res = get_runtime_settings(self.config, start_event.location)
         if exec_res.has_error:
             return exec_res.forward()
         if handler_id in self._processes:
@@ -80,7 +81,13 @@ class CmdLauncherCategory(AbcLauncherCategory):
 
             return StdRet.pass_ok((process.reader, process.writer))
 
-        return self._context.register_channel(handler_id, register_callback)
+        res = self._context.register_channel(handler_id, register_callback)
+        if res.ok:
+            self._context.add_handler(
+                handler_id, handler_id,
+                start_event.send_access.event_ids, [], start_event.send_access.source_id_prefixes,
+            )
+        return res
 
     def get_active_handler_ids(self) -> Sequence[str]:
         return tuple(self._processes.keys())
@@ -159,20 +166,51 @@ class LaunchedProcess(LaunchedInstance):
 
 def get_runtime_settings(
         options: RuntimeConfig,
+        location: Sequence[str],
 ) -> StdRet[Tuple[Sequence[str], Dict[str, str]]]:
     """Get the executable settings for the options: the
     executable arguments and the environment variables and temporary directories.
     """
+    abs_locations = safe_location_convert(location)
     executable = options.get_option('exe')
     if executable.has_error:
         return executable.forward()
     if executable.result == 'py':
-        return get_python_runtime_settings(options)
-    return get_native_exec_args(executable.result)
+        return get_python_runtime_settings(options, abs_locations)
+    return get_native_exec_args(executable.result, abs_locations)
+
+
+def safe_location_convert(location: Sequence[str]) -> Sequence[str]:
+    """Safely convert the location strings passed from the extension load request.
+    These must all be relative to the data path or the config path."""
+    ret: List[str] = []
+    for loc in location:
+        search_path: Sequence[str]
+        relative: str
+        if loc.startswith('${DATA_PATH}/') or loc.startswith('${DATA_PATH}\\'):
+            search_path = platform.data_paths
+            relative = loc[13:]
+        elif loc.startswith('${CONFIG_PATH}/') or loc.startswith('${CONFIG_PATH}\\'):
+            search_path = platform.configuration_paths
+            relative = loc[15:]
+        else:
+            local_display(
+                _('Extension load request included non-relative location path: {path}'),
+                path=loc,
+            )
+            continue
+        for path in search_path:
+            attempt = os.path.join(path, relative)
+            if os.path.exists(attempt):
+                # The attempt may be a zip file, in which case it's allowed as a location.
+                ret.append(attempt)
+
+    return tuple(ret)
 
 
 def get_python_runtime_settings(
         options: RuntimeConfig,
+        location: Sequence[str],
 ) -> StdRet[Tuple[Sequence[str], Dict[str, str]]]:
     """Get the runtime settings for a python executable."""
     res_module = options.get_option('module')
@@ -183,6 +221,7 @@ def get_python_runtime_settings(
         module_path = res_module_path.result.split(os.path.pathsep)
     else:
         module_path = []
+    module_path.extend(location)
     res_py_exec = get_python_exec_args(
         res_module.result, module_path, False,
         options.options.get('args', None),

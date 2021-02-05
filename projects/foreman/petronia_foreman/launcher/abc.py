@@ -32,11 +32,11 @@ class RuntimeContext:
             ],
     ) -> StdRet[None]:
         """Creates the channel.  The name must be unique."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def close_channel(self, name: str) -> bool:
         """Closes the channel."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def add_handler(
             self, channel_name: str, handler_id: str,
@@ -46,18 +46,18 @@ class RuntimeContext:
         """Adds the handler to the channel with the given name.  If the
         handler ID is registered anywhere, or the channel does not exist, then
         an error is returned."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def remove_handler(self, handler_id: str) -> bool:
         """Removes the handler from its registered channel.
         Returns True if it was successfully removed."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def add_internal_event_handler(self, channel_name: str, handler: InternalEventHandler) -> None:
         """Adds an internal event handler to manage communication between the launcher and the
         launcher channel.  The handlers are only removed by an invocation that returns
         a removal message."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
 
 class AbcLauncherCategory:
@@ -87,31 +87,31 @@ class AbcLauncherCategory:
 
     A category is declared in the foreman configuration.
     """
-    __slots__ = ('__options',)
+    __slots__ = ('__config',)
 
     def __init__(
             self,
-            options: RuntimeConfig,
+            config: RuntimeConfig,
     ) -> None:
-        self.__options = options
+        self.__config = config
 
     @property
     def config(self) -> RuntimeConfig:
         """Get the configuration for the launcher."""
-        return self.__options
+        return self.__config
 
     @property
     def options(self) -> RuntimeLauncherOptions:
         """List of options used to start the launcher."""
-        return self.__options.options
+        return self.__config.options
 
     def is_valid(self) -> StdRet[None]:
         """Is this launcher valid, including all options?"""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def initialize(self, context: RuntimeContext) -> StdRet[None]:
         """Initialize the launcher.  Only called once."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def start_extension(
             self,
@@ -121,21 +121,21 @@ class AbcLauncherCategory:
         """Start the extension as requested by the event.  This will need to register with the
         RuntimeContext a new handler, and what events the extension is capable of consuming and
         producing."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def get_active_handler_ids(self) -> Sequence[str]:
         """Get the list of all active extension handler IDs."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def stop_extension(self, handler_id: str) -> StdRet[None]:
         """Stops the specific extension.  If the extension is not registered or not running, then
         the appropriate error is returned.  This should run until the extension is completely
         stopped."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
     def stop(self) -> StdRet[None]:
         """Stop all running launchers and shuts down the category.  Called only once."""
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma no cover
 
 
 RuntimeFactory = Callable[[RuntimeConfig], AbcLauncherCategory]

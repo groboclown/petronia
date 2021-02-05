@@ -4,7 +4,7 @@ from typing import Iterable, Set, List, Union
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.extension.config import (
     AbcExtensionMetadata, ApiExtensionMetadata, ImplExtensionMetadata,
-    ExtensionDependency, EventType,
+    ExtensionDependency, EventType, ProtocolExtensionMetadata,
 )
 from ..defs import ExtensionInfo
 from ..search import find_best_extension
@@ -53,10 +53,14 @@ def add_event_send_access(
 
     metadata = extension.metadata
     if isinstance(metadata, ApiExtensionMetadata):
-        # The only thing that declares events...
+        # One of the only thing that declares events...
         for event in metadata.events:
             if can_send_event(event, is_implementation):
                 can_send_events.add(event.name)
+    if isinstance(metadata, ProtocolExtensionMetadata):
+        # All of the protocol events can be sent.
+        for event in metadata.events:
+            can_send_events.add(event.name)
 
     if isinstance(metadata, ImplExtensionMetadata):
         for implements in _get_implemented_apis(metadata, loaded):

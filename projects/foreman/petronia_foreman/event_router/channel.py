@@ -194,8 +194,8 @@ class EventChannel(EventForwarderTarget):
         # All event handlers are called, even if a filter does not allow the event
         # to be passed on.  Returns True if filtered, and False if allowed to be
         # produced by the channel.
-        if DEBUG:
-            low_println(
+        if DEBUG:  # pragma no cover
+            low_println(  # pragma no cover
                 f'[Ch {self.__name}] received event {event_id} '
                 f'from {event_source_id} to {event_target_id}: {event}'
             )

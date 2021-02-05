@@ -112,7 +112,7 @@ class CmdExtensionTest(unittest.TestCase):
     def test_load_extension(self) -> None:
         """Load the extension."""
         self.assertEqual(0, self.foreman_runner.initialize())
-        self.assertEqual(0, self.foreman_runner.boot())
+        self.foreman_runner.boot()
         print("Boot complete")
 
         expires = time.time() + TEST_TIMEOUT_SECONDS

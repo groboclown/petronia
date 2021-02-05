@@ -19,7 +19,7 @@ from ...util import (
 )
 from ...util import i18n as _
 
-ExtensionType = Literal["impl", "api", "standalone", "protocol", "boot"]
+ExtensionType = Literal["impl", "api", "standalone", "protocol"]
 
 
 class ExtensionDependency:
@@ -321,7 +321,7 @@ class ImplExtensionMetadata(AbcExtensionMetadata):
     ) -> None:
         """Constructor."""
         AbcExtensionMetadata.__init__(
-            self, name, version, about, description, "api", depends, licenses, authors,
+            self, name, version, about, description, "impl", depends, licenses, authors,
         )
         self.__implements = tuple(implements)
         self.__runtime = runtime

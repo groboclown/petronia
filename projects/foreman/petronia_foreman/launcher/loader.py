@@ -1,8 +1,8 @@
 """Loads the launchers."""
 
 
-from typing import Mapping
-from petronia_common.util import StdRet, readonly_dict
+from typing import Dict
+from petronia_common.util import StdRet
 from petronia_common.util import i18n as _
 from .abc import AbcLauncherCategory, RuntimeFactory
 from .cmd import create_cmd_launcher
@@ -19,12 +19,15 @@ INTERNAL_EXTENSION_RUNTIME = '<internal>'
 # This should have a better mechanism for defining the registered launchers,
 # but this works for now.  Especially since launchers are currently
 # directly built into foreman.
-IMPLEMENTATIONS: Mapping[str, RuntimeFactory] = readonly_dict({
+# For safety purposes, this should be a Mapping, but for unit test purposes it's a dict.
+# IMPLEMENTATIONS: Mapping[str, RuntimeFactory] = readonly_dict({
+IMPLEMENTATIONS: Dict[str, RuntimeFactory] = {
     # 'docker': ,
     'in-memory': create_memory_launcher,
     # 'sandbox': ,
     'cmd-launcher': create_cmd_launcher,
-})
+}
+# )
 
 
 def create_launcher_category(

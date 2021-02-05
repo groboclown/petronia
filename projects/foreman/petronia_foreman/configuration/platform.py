@@ -124,7 +124,7 @@ def detect_windows() -> StdRet[None]:
             ),
         )
 
-    try:
+    try:  # pragma no cover
         # Linux builds will fail on this ctype detection...
         import ctypes.wintypes  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import  # pragma no cover
         from ctypes import byref  # type: ignore  # pylint: disable=import-outside-toplevel,unused-import  # pragma no cover
