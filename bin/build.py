@@ -12,7 +12,14 @@ import subprocess
 
 # Bump back up after initial good build.
 # MINIMUM_COVERAGE_PERCENT = 99
-MINIMUM_COVERAGE_PERCENT = 88
+MINIMUM_COVERAGE_PERCENT = 90
+
+SPECIAL_EXTENDED_PATHS = {
+    'py-common-lib': [],
+    'foreman': ['py-common-lib'],
+    'py-extension-lib': ['py-common-lib'],
+    'other': ['py-common-lib', 'py-extension-lib'],
+}
 
 
 def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
@@ -32,13 +39,23 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
             fqn = os.path.join(root_project_dir, dirname)
             if fqn not in extra_path and os.path.isdir(fqn):
                 extra_path.append(fqn)
+    elif os.path.dirname(project_dir) in SPECIAL_EXTENDED_PATHS:
+        extra_path.extend([
+            os.path.join(root_project_dir, p)
+            for p in SPECIAL_EXTENDED_PATHS[os.path.dirname(project_dir)]
+        ])
+    else:
+        extra_path.extend([
+            os.path.join(root_project_dir, p)
+            for p in SPECIAL_EXTENDED_PATHS['other']
+        ])
 
     print("")
     print("----------------------------------------------------------------------")
     print("Type Checking...")
     mypy_code = run_python_cmd(
         project_dir,
-        [os.path.abspath(os.path.join(root_project_dir, 'py-common-lib'))],
+        extra_path,
         'mypy',
         mypy_args,
         True,
@@ -57,7 +74,6 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     lint_code = run_python_cmd(
         project_dir,
         [
-            os.path.abspath(os.path.join(root_project_dir, 'py-common-lib')),
             os.path.abspath(os.path.join(root_project_dir, 'extension-tools')),
             *extra_path,
         ],
@@ -83,7 +99,6 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     test_code = run_python_cmd(
         project_dir,
         [
-            os.path.abspath(os.path.join(root_project_dir, 'py-common-lib')),
             *extra_path,
         ],
         'coverage',
@@ -220,7 +235,7 @@ def run_python_cmd(
     return 0
 
 
-PRIORITY_PROJECTS = ('py-common-lib', 'extension-tools',)
+PRIORITY_PROJECTS = ('py-common-lib', 'extension-tools', 'py-extension-lib')
 IGNORED_PROJECT_DIRS = ('py-stubs',)
 TRANSLATION_PROJECTS = ('l10n',)
 

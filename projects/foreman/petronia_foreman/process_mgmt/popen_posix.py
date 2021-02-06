@@ -95,6 +95,9 @@ try:
 
         def write(self, data: bytes) -> None:
             self.__writer.write(data)
+            # Ensure the data is not buffered.  That can lead to events being
+            # delayed on sending.
+            self.__writer.flush()
 
         def close_writer(self) -> None:
             self.__writer.close()

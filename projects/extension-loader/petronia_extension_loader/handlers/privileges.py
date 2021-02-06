@@ -64,14 +64,18 @@ def add_event_send_access(
 
     if isinstance(metadata, ImplExtensionMetadata):
         for implements in _get_implemented_apis(metadata, loaded):
-            add_event_send_access(can_send_events, implements, True, searched_extensions, loaded)
+            # Only add API send access if the owner is an implementation,
+            # not for the dependency's implementation.
+            add_event_send_access(
+                can_send_events, implements, is_implementation, searched_extensions, loaded,
+            )
 
     # All the extensions have send public access.
     for dep in metadata.depends_on:
         ext = find_best_extension(dep.name, dep.minimum_version, dep.below_version, loaded)
         if not ext:
-            # Shouldn't happen... should this problem be reported?
-            continue  # pragma no cover
+            # Shouldn't happen due to preconditions.
+            continue
         add_event_send_access(can_send_events, ext, False, searched_extensions, loaded)
 
     return RET_OK_NONE
@@ -83,7 +87,7 @@ def can_send_event(event: EventType, is_implementation: bool) -> bool:
     """
     # "internal" is registered specially...
     if is_implementation:
-        return event.send_access in ("implementations",)
+        return event.send_access in ("implementations", "target", "public",)
     return event.send_access in ("target", "public",)
 
 
@@ -94,15 +98,11 @@ def _get_implemented_apis(
     ret: List[ExtensionInfo] = []
     for dep in metadata.implements:
         ext = find_best_extension(dep.name, dep.minimum_version, dep.below_version, loaded)
-        if not ext:
+        if not ext:  # pragma no cover
             # Shouldn't happen...  Should it be reported?
-            continue
+            continue  # pragma no cover
         ext_metadata = ext.metadata
-        # Really, implements list is supposed to be only APIs...
+        # Implements list is supposed to be only APIs.  So we only check APIs
         if isinstance(ext_metadata, ApiExtensionMetadata):
             ret.append(ext)
-        elif isinstance(ext_metadata, ImplExtensionMetadata):
-            # Hopefully, everything else that loaded this extension did correct cycle checking.
-            ret.extend(_get_implemented_apis(ext_metadata, loaded))
-        # StandAlone is ignored if its in the implementation list.
     return ret

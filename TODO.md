@@ -20,9 +20,17 @@ These are desired, tactical changes to bits of already written code.
 * add unit test coverage on `petronia_common/extension/runner/message_helper.py` (lines 58, 63-65, 70-72, 79-81, 95->97, 97)
 
 
+### py-extension-lib
+
+* migrate the extension library parts out of py-common-lib into this project.
+  * `petronia_common.extension.runner`
+  * `petronia_common.event_stream.arg_handle`
+* once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
+
+
 ### extension-tools
 
-* make binary event classes generated better.  Right now, they are generated just like object event classes, and as a result they end up failing on lint and code coverage checks.
+* make binary event classes generated better.  Right now, they are generated just like object event classes, and as a result they end up failing on lint and code coverage checks.  See `native-handler` - the implementation must be manually edited to get it to pass lint.
 * improve test generation to have full coverage of some categories of events, such as data-store.
 
 
@@ -34,14 +42,14 @@ These are desired, tactical changes to bits of already written code.
 * document the file format of its configuration files
 * document how the extension-loader loads boot-time extensions
 * define the access permissions required by the extension-loader.
-* massive amounts of code coverage improvements
+* code coverage improvements
 
 
 ### foreman
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * add extension name requirements around the in-memory loader, so that it denies loading an extension if it does not match the glob pattern.
-* massive amounts of code coverage improvements
+* code coverage improvements
 * document how the foreman process loads configuration files
 * document the configuration file formats used by foreman
 * change up the event router so that tests can have better insight into the status of the connected channels.  This may not be practical, but some method for gaining this insight can help eliminate the sleeps.  Perhaps some kind of spy into the internal buffers?
@@ -53,7 +61,8 @@ These are ideas that need clarification and implementation.
 
 ### General
 
-* Extension and launcher error reporting is now ad-hoc, and just sent to the stdout.  This should be redone as logging events.  However, those low-level errors, like failure to send a logging message, requires even lower level logging but in a common way.  Here, that low-level log fd may come in handy.
+* Extension and launcher error reporting is now ad-hoc, and just sent to the stdout.
+  * Where possible, this should be redone as logging events.  This should be moved into the py-extension-lib project.  If sending events fails, then the logging should be a consistent output that doesn't spam the user.
 
 
 ### extension-loader
@@ -61,10 +70,17 @@ These are ideas that need clarification and implementation.
 * Should an explicit unload extension event be allowed?  If so, this will down-stream to foreman to add the corresponding event.
 
 
+### foreman
+
+* stdout from launched processes should be redirected to the logging fd.
+* due to the memory launcher, normal stdout should also be specially handled.
+
+
 ### portals
 
 * migrate the older portals extension into this framework.
 * it needs some improvements, add in portal component id, along with adding portals to the lifecycle.  Even though the portal creation call doesn't make much sense by itself (nothing outside the plugin can explicitly request a creation), the portal component ID and destruction do matter.
+* portals use the theme for drawing borders.
 
 
 ### theme
@@ -73,9 +89,17 @@ These are ideas that need clarification and implementation.
 * allows for appearance choices to be made once for all extensions that want to create UI elements.
 
 
+### hotkey-bindings
+
+* mapping between hotkey combinations and an action to run.
+* registering key combinations here indirectly performs the registration of hotkey actions in the native extension.
+
+
+
 ## Longer Term Improvements
 
 Things that would be nice to have, but aren't necessary until more basic infrastructure is in place.
+
 
 ### extension-loader
 

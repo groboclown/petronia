@@ -1,8 +1,8 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-06T22:09:28.458002
+# Created on 2021-02-06T22:09:32.730364
 
 """
-Data structures and marshalling for extension petronia.core.api.native version 1.0.0.
+Data structures and marshalling for extension petronia.core.api.logging version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
@@ -10,172 +10,26 @@ Data structures and marshalling for extension petronia.core.api.native version 1
 
 
 from typing import (
-    SupportsInt,
-    List,
-    cast,
-    Dict,
-    Union,
-    SupportsFloat,
     Optional,
     Any,
+    Dict,
+    List,
+    Union,
+    cast,
+    SupportsFloat,
+    SupportsInt,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
     not_none,
+    collect_errors_from,
+    StdRet,
 )
 
-EXTENSION_NAME = 'petronia.core.api.native'
+EXTENSION_NAME = 'petronia.core.api.logging'
 EXTENSION_VERSION = (1, 0, 0)
-
-
-class RegisterTranslationEvent:
-    """
-    Allows an extension to add additional messages, new translation languages, or
-    override existing ones. Future events that are either responses to this or
-    registering the binary data use the source ID as the identifier for this
-    registration. This requires a follow-up "register-translation:messages" event to
-    set the messages, if the message-file is not specified. Note that in most cases,
-    the `message_file` can be used, but for complex deployments, like
-    cross-computers, this will fail and the message binary event must instead be
-    used.
-    """
-    __slots__ = ('locale_code', 'catalog_name', 'message_file',)
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation'
-    SHORT_EVENT_NAME = 'register-translation'
-
-    def __init__(
-        self,
-        locale_code: str,
-        catalog_name: str,
-        message_file: str,
-    ) -> None:
-        self.locale_code = locale_code
-        self.catalog_name = catalog_name
-        self.message_file = message_file
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return RegisterTranslationEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'locale_code': self.locale_code,
-            'catalog_name': self.catalog_name,
-            'message_file': self.message_file,
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['RegisterTranslationEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('locale_code')
-        f_locale_code: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='locale_code',
-                name='RegisterTranslationEvent',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='locale_code',
-                    type='str',
-                    name='RegisterTranslationEvent',
-                )
-            f_locale_code = val
-        val = data.get('catalog_name')
-        f_catalog_name: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='catalog_name',
-                name='RegisterTranslationEvent',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='catalog_name',
-                    type='str',
-                    name='RegisterTranslationEvent',
-                )
-            f_catalog_name = val
-        val = data.get('message_file')
-        f_message_file: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='message_file',
-                name='RegisterTranslationEvent',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='message_file',
-                    type='str',
-                    name='RegisterTranslationEvent',
-                )
-            f_message_file = val
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(RegisterTranslationEvent(
-            locale_code=not_none(f_locale_code),
-            catalog_name=not_none(f_catalog_name),
-            message_file=not_none(f_message_file),
-        ))
-
-    def __repr__(self) -> str:
-        return "RegisterTranslationEvent(" + repr(self.export_data()) + ")"
-
-
-class RegisterTranslationSuccessEvent:
-    """
-    Report that the translation was successfully registered. The target is the
-    source ID of the origin of the registration.
-    """
-    __slots__ = ()
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation:success'
-    SHORT_EVENT_NAME = 'register-translation:success'
-
-    def __init__(
-        self,
-    ) -> None:
-        pass
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return RegisterTranslationSuccessEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        return {}
-
-    @staticmethod
-    def parse_data(_data: Dict[str, Any]) -> StdRet['RegisterTranslationSuccessEvent']:
-        """Parse the marshalled data into this structured form.  There are no fields, so this is
-        essentially a no-op."""
-        return StdRet.pass_ok(RegisterTranslationSuccessEvent())
-
-    def __repr__(self) -> str:
-        return "RegisterTranslationSuccessEvent(" + repr(self.export_data()) + ")"
 
 
 class MessageArgumentValue:
@@ -188,16 +42,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
+            List[datetime.datetime],
+            List[str],
+            str,
+            List[bool],
+            bool,
             List[int],
             List[float],
-            datetime.datetime,
-            int,
-            List[str],
-            List[datetime.datetime],
-            List[bool],
-            str,
-            bool,
             float,
+            int,
+            datetime.datetime,
         ],
     ) -> None:
         self.__name = name
@@ -210,16 +64,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
+            List[datetime.datetime],
+            List[str],
+            str,
+            List[bool],
+            bool,
             List[int],
             List[float],
-            datetime.datetime,
-            int,
-            List[str],
-            List[datetime.datetime],
-            List[bool],
-            str,
-            bool,
             float,
+            int,
+            datetime.datetime,
     ]:
         """The selector value."""
         return self.__value
@@ -693,6 +547,90 @@ class LocalizableMessage:
         return "LocalizableMessage(" + repr(self.export_data()) + ")"
 
 
+class LogEvent:
+    """
+    A request to log a message. This can be publicly received, so that any extension
+    can listen to logging messages. For this reason, nothing private should be sent.
+    """
+    __slots__ = ('scope', 'messages',)
+    FULL_EVENT_NAME = 'petronia.core.api.logging:log'
+    SHORT_EVENT_NAME = 'log'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.logging:log'
+    UNIQUE_TARGET_REL = 'log'
+
+    def __init__(
+        self,
+        scope: str,
+        messages: List[LocalizableMessage],
+    ) -> None:
+        self.scope = scope
+        self.messages = messages
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return LogEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'scope': self.scope,
+            'messages': [v.export_data() for v in self.messages],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['LogEvent']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('scope')
+        f_scope: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='scope',
+                name='LogEvent',
+            )
+        else:
+            if val not in ('warning','info','debug','verbose', ):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='scope',
+                    type='str',
+                    name='LogEvent',
+                )
+            f_scope = val
+        val = data.get('messages')
+        f_messages: List[LocalizableMessage]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='messages',
+                name='LogEvent',
+            )
+        else:
+            f_messages = []
+            for item in val:
+                parsed_messages = LocalizableMessage.parse_data(item)
+                if parsed_messages.has_error:
+                    return parsed_messages.forward()
+                f_messages.append(parsed_messages.result)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LogEvent(
+            scope=not_none(f_scope),
+            messages=not_none(f_messages),
+        ))
+
+    def __repr__(self) -> str:
+        return "LogEvent(" + repr(self.export_data()) + ")"
+
+
 class Error:
     """
     A description of a failure.
@@ -836,14 +774,17 @@ class Error:
         return "Error(" + repr(self.export_data()) + ")"
 
 
-class RegisterTranslationFailedEvent:
+class SystemErrorEvent:
     """
-    Report that the translation failed to be registered. The target is the source ID
-    of the origin of the registration.
+    Report an error that's caused by Petronia itself (or an extension), rather than
+    something the user did.
     """
     __slots__ = ('error',)
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation:failed'
-    SHORT_EVENT_NAME = 'register-translation:failed'
+    FULL_EVENT_NAME = 'petronia.core.api.logging:system-error'
+    SHORT_EVENT_NAME = 'system-error'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.logging:error'
+    UNIQUE_TARGET_REL = 'error'
 
     def __init__(
         self,
@@ -854,7 +795,7 @@ class RegisterTranslationFailedEvent:
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return RegisterTranslationFailedEvent.FULL_EVENT_NAME
+        return SystemErrorEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
@@ -864,7 +805,7 @@ class RegisterTranslationFailedEvent:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['RegisterTranslationFailedEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['SystemErrorEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -875,7 +816,7 @@ class RegisterTranslationFailedEvent:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='error',
-                name='RegisterTranslationFailedEvent',
+                name='SystemErrorEvent',
             )
         else:
             parsed_error = Error.parse_data(val)
@@ -892,50 +833,79 @@ class RegisterTranslationFailedEvent:
             f_error = parsed_error.result
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(RegisterTranslationFailedEvent(
+        return StdRet.pass_ok(SystemErrorEvent(
             error=not_none(f_error),
         ))
 
     def __repr__(self) -> str:
-        return "RegisterTranslationFailedEvent(" + repr(self.export_data()) + ")"
+        return "SystemErrorEvent(" + repr(self.export_data()) + ")"
 
 
-class RegisterTranslationMessagesEvent:
+class UserErrorEvent:
     """
-    Binary event
+    Report an error that's caused by the end user, such as a mis-configuration or
+    out-of-disk space.
     """
-    __slots__ = ()
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation:messages'
-    SHORT_EVENT_NAME = 'register-translation:messages'
+    __slots__ = ('user_error',)
+    FULL_EVENT_NAME = 'petronia.core.api.logging:user-error'
+    SHORT_EVENT_NAME = 'user-error'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.logging:error'
+    UNIQUE_TARGET_REL = 'error'
 
     def __init__(
         self,
+        user_error: Error,
     ) -> None:
-        pass
+        self.user_error = user_error
 
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return RegisterTranslationMessagesEvent.FULL_EVENT_NAME
+        return UserErrorEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
+            'user_error': self.user_error.export_data(),
         }
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(_data: Dict[str, Any]) -> StdRet['RegisterTranslationMessagesEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['UserErrorEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
-        # val: Any
+        val: Any
+        val = data.get('user_error')
+        f_user_error: Error
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='user_error',
+                name='UserErrorEvent',
+            )
+        else:
+            parsed_user_error = Error.parse_data(val)
+            if parsed_user_error.has_error:
+                return parsed_user_error.forward()
+            if parsed_user_error.value is None:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='user_error',
+                )
+            f_user_error = parsed_user_error.result
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(RegisterTranslationMessagesEvent(
+        return StdRet.pass_ok(UserErrorEvent(
+            user_error=not_none(f_user_error),
         ))
 
     def __repr__(self) -> str:
-        return "RegisterTranslationMessagesEvent(" + repr(self.export_data()) + ")"
+        return "UserErrorEvent(" + repr(self.export_data()) + ")"
 
 
 def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:

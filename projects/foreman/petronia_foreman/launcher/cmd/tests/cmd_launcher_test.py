@@ -1,6 +1,6 @@
 """Test the module."""
 
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, cast
 import unittest
 import os
 import sys
@@ -8,7 +8,6 @@ import tempfile
 import shutil
 import concurrent.futures
 import threading
-import time
 from configparser import ConfigParser
 from petronia_common.event_stream import (
     EventForwarderTarget, RawBinaryReader, to_raw_event_object,
@@ -115,12 +114,16 @@ class CmdLauncherCategoryTest(unittest.TestCase):  # pylint:disable=too-many-ins
         ))
         self.assertIsNotNone(res.error)
 
-    def test_py_handler_use_case(self) -> None:
-        """Test the initialize functionality."""
-        self.cat = cmd_launcher.create_cmd_launcher(_mk_config(
-            exe='py', module='petronia_foreman.process_mgmt.tests.runner',
-            path=os.pathsep.join(sys.path), args='${WRITE_FD}',
-        ))
+    def test_py_handler_use_case_1(self) -> None:
+        """Test the start + send + receive + end functionality with an explicit extension
+        exit before the stop request is sent."""
+        self.cat = cast(
+            cmd_launcher.CmdLauncherCategory,
+            cmd_launcher.create_cmd_launcher(_mk_config(
+                exe='py', module='petronia_foreman.process_mgmt.tests.runner',
+                path=os.pathsep.join(sys.path), args='${WRITE_FD}',
+            )),
+        )
         # Setup the target anew, in case anything is sitting in it.
         self.mock_target.proxy = MockTarget(self)
         self.mock_target.proxy.can_handle_returns.append(True)
@@ -140,23 +143,30 @@ class CmdLauncherCategoryTest(unittest.TestCase):  # pylint:disable=too-many-ins
             'ch1', to_raw_event_object('ev1', 'ext1:a', 'ext1:b', {}),
         )
         self.assertIsNone(res.error)
-        # Need to figure out how to correctly wait for the process to finish.
-        # For now, this is an okay solution.
-        time.sleep(2.0)
-        b_res = self.router.remove_handler('ch1')
-        self.assertTrue(b_res)
-        b_res = self.router.close_channel('ch1')
-        self.assertTrue(b_res)
+
+        # For the proper use case, we want to leave the process running until we
+        # explicitly stop it, but that isn't reliable on all platforms.
+        self.assertTrue(self.cat.wait_for_process_to_end('ch1', 10.0))
 
         # This is ensuring that the executed command sent this data, not that the event
         # was injected.
         self.mock_target.proxy.assert_next_can_handle('ev1', 'ext1:a', 'ext1:b')
         self.mock_target.proxy.assert_next_handle('ev1', 'ext1:a', 'ext1:b', {})
+        # The category has stopped, because we waited for the process to end.
+        self.mock_target.proxy.assert_next_on_eof()
+        self.mock_target.proxy.assert_end()
 
-        # An EOF is explicitly not sent to the target, because the target is for all of the
-        # router, not just a single channel.
-        # self.mock_target.proxy.assert_next_on_eof()
+        # Removing the handler after it has stopped fails, because it is already stopped.
+        b_res = self.router.remove_handler('ch1')
+        self.assertFalse(b_res)
 
+        # Closing the channel after it has stopped fails, because it is already stopped.
+        b_res = self.router.close_channel('ch1')
+        self.assertFalse(b_res)
+
+        self.cat.stop()
+
+        # Because the category was stopped, an EOF is added to the stream.
         self.mock_target.proxy.assert_end()
 
 

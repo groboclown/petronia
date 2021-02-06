@@ -5,6 +5,7 @@ set -e
 h=$( dirname "$0" )
 pd="${h}/../projects"
 
+
 # Foreman events
 echo foreman/petronia_foreman/events:
 "${h}/generate-events.sh" \
@@ -48,3 +49,19 @@ echo native-handler:
   --output "${pd}/native-handler/petronia_native/common/events/impl" \
   --implementation --api --state \
   "${pd}/native-handler/native-extension.yaml"
+
+
+# Extension lib.
+echo py-extension-lib:
+"${h}/generate-events.sh" \
+  --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
+  --api \
+  "${pd}/core-extensions/datastore-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
+  --api \
+  "${pd}/core-extensions/logging-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
+  --api \
+  "${pd}/core-extensions/timer-extension.yaml"

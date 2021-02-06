@@ -131,6 +131,14 @@ class CmdLauncherCategory(AbcLauncherCategory):
             return StdRet.pass_error(*ret)
         return RET_OK_NONE
 
+    def wait_for_process_to_end(self, handle_id: str, timeout: float) -> bool:
+        """Waits for the handle's process to stop.  If the process not running,
+        is not registered, or stops within the timeout, then True is returned."""
+        launcher = self._get_launcher(handle_id)
+        if launcher.has_error:
+            return True
+        return launcher.result.process.wait_for_stop(timeout)
+
 
 class LaunchedProcess(LaunchedInstance):
     """Information about a launched process"""

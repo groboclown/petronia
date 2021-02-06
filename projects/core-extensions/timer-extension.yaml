@@ -35,6 +35,6 @@ events:
     receive-access: public
     unique-target: heartbeat
     fields:
-      datetime:
+      sent_on:
         description: The time when the heartbeat was sent.
         type: datetime

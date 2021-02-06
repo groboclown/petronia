@@ -771,6 +771,11 @@ class SelectorEventDataType(AbcEventDataType):
 
 
 EventAccessType = Literal["public", "implementations", "internal", "target"]
+PUBLIC_ACCESS: EventAccessType = 'public'
+IMPLEMENTATIONS_ACCESS: EventAccessType = 'implementations'
+INTERNAL_ACCESS: EventAccessType = 'internal'
+TARGET_ACCESS: EventAccessType = 'target'
+
 EventPriorityType = Literal["high", "user", "normal", "io"]
 EVENT_NAME_FORMAT = re.compile(r'^[a-z0-9][a-z0-9]*(?:[-:][a-z0-9][a-z0-9]*)*$')
 

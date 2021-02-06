@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-06T22:09:26.556117
+# Created on 2021-02-06T22:09:35.102440
 
 """
 Tests for the timer module.
@@ -69,83 +69,14 @@ HEARTBEAT_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'sent_on': '20210206:220926.480508:+0000',
+            'sent_on': '20210206:220935.043371:+0000',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'sent_on': '20210206:220926.480543:+0000',
-
-        },
-    ),
-]
-
-
-class HeartbeatIntervalStateTest(unittest.TestCase):
-    """
-    Tests for HeartbeatIntervalState
-    """
-    def test_parse_bad_data(self) -> None:
-        """Data driven tests with validation problems."""
-        self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in HEARTBEAT_INTERVAL_STATE_BAD_PARSE_DATA_TESTS:
-            with self.subTest(name=test_name):
-                res = timer.HeartbeatIntervalState.parse_data(test_data)
-                self.assertIsNone(res.value)
-                expected = {
-                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
-                    for m, a in messages
-                }
-                actual = list(res.valid_error.messages())
-                # The parsing returns at least one of the problems, but not necessarily all.
-                self.assertTrue(len(actual) >= 1, repr(expected))
-                self.assertTrue(expected.issuperset(actual), repr(expected))
-
-    def test_parse_good_exported_data(self) -> None:
-        """Data driven tests with no validation problems."""
-        self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in HEARTBEAT_INTERVAL_STATE_GOOD_PARSE_DATA_TESTS:
-            with self.subTest(name=test_name):
-                res = timer.HeartbeatIntervalState.parse_data(test_data)
-                self.assertIsNone(res.error)
-                self.assertEqual(test_data, res.result.export_data())
-
-
-HEARTBEAT_INTERVAL_STATE_BAD_PARSE_DATA_TESTS: Sequence[
-    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
-] = [
-
-    (
-        'all-fields-missing',
-        {},
-        (
-            (
-                'Required field {field_name} in {name}',
-                dict(field_name='seconds', name='HeartbeatIntervalState'),
-            ),
-
-        ),
-    ),
-
-]
-
-
-HEARTBEAT_INTERVAL_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
-    Tuple[str, Dict[str, Any]],
-] = [
-    (
-        'all-fields-present',
-        {
-            'seconds': 249621.1633141478,
-        },
-    ),
-    (
-        'bare-minimum-fields-present',
-        {
-
-            'seconds': 478857.46052349405,
+            'sent_on': '20210206:220935.043408:+0000',
 
         },
     ),
