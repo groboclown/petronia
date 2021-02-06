@@ -19,7 +19,46 @@ default:
   name: petronia.core.impl.native
   minimum: [1, 0, 0]
 
+
+state-data:
+  # =========================================================================
+  # Translation Service.
+  translations:
+    description: >
+      All registered translations.
+    fields:
+      catalogs:
+        description: The registered translation catalogs.
+        type: array
+        value-type:
+          type: reference
+          ref: registered-translation-catalog
+
+
+  # =========================================================================
+  # Hotkey Service.
+  hotkey-bindings:
+    description: >
+      Hotkey events sent out by the native extension depend upon the binding
+      configuration.
+    fields:
+      master:
+        type: reference
+        ref: master-hotkey-sequence
+      bound:
+        description: >
+          List of key sequences bound to the hotkeys.
+        type: array
+        min-length: 0
+        max-length: 300
+        value-type:
+          type: reference
+          ref: bound-hotkey
+
+
 events:
+  # =========================================================================
+  # Translation Service.
   register-translation:
     description: >
       Allows an extension to add additional messages, new translation languages,
@@ -35,15 +74,11 @@ events:
     receive-access: implementations
     fields:
       locale_code:
-        description: standard language and locale identifier.
-        type: string
-        min-length: 1
-        max-length: 10
+        type: reference
+        ref: locale-code
       catalog_name:
-        description: name of the catalog registered.
-        type: string
-        min-length: 3
-        max-length: 255
+        type: reference
+        ref: catalog-name
       message_file:
         description: >
           Location of the message file.  Most implementations will recognize this as a
@@ -85,8 +120,81 @@ events:
     receive-access: implementations
     is-binary: true
 
+  # =========================================================================
+  # Hotkey Service.
+
+  set-hotkey-bindings:
+    description: >
+      Set the hotkey bindings.  This will reset the existing hotkey settings.  If
+      the request is invalid, an failed event is sent, otherwise a success is sent.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    fields:
+      master:
+        type: reference
+        ref: master-hotkey-sequence
+      bound:
+        description: >
+          List of key sequences bound to the hotkeys.
+        type: array
+        min-length: 0
+        max-length: 300
+        value-type:
+          type: reference
+          ref: bound-hotkey
+
+  "set-hotkey-bindings:success":
+    dsecription: The requested hotkey bindings were processed successfully.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields: {}
+
+  "set-hotkey-bindings:failed":
+    description: >
+      If the state of `hotkey-bindings` is configured incorrectly, this error
+      event is sent to describe what the error was, and what was the cause of the error.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields:
+      master_problem:
+        optional: true
+        type: reference
+        ref: master-hotkey-sequence-problem
+      bound_problems:
+        optional: true
+        type: array
+        value-type:
+          type: reference
+          ref: bound-hotkey-problem
+
+  hotkey-pressed:
+    description: >
+      The user pressed a bound hotkey.  The pressed sequence (not including the
+      master sequence) is returned.
+    priority: user
+    send-access: implementation
+    receive-access: public
+    fields:
+      hotkey:
+        type: reference
+        ref: bound-hotkey
+
+  # =========================================================================
+  # Window State and Actions
+
+  # =========================================================================
+  # Low-Level UI Component Actions
+
+  # =========================================================================
+  # User Events on the Drawn Components
+
 
 references:
+  # =========================================================================
+  # Standard Types
   response-identifier:
     description: >
       An identifier, created by the sender, that is included in the response so the sender matches the
@@ -234,3 +342,80 @@ references:
         description: The localizable error message.
         type: reference
         ref: localizable-message
+
+  # =========================================================================
+  # Custom Types
+
+  registered-translation-catalog:
+    description: A catalog registered for translations
+    type: structure
+    fields:
+      catalog_name:
+        type: reference
+        ref: catalog-name
+      locale_codes:
+        description: list of locale codes this catalog has registered.
+        type: array
+        value-type:
+          type: reference
+          ref: locale-code
+
+  locale-code:
+    description: standard language and locale identifier.
+    type: string
+    min-length: 1
+    max-length: 10
+
+  catalog-name:
+    description: name of the catalog registered.
+    type: string
+    min-length: 3
+    max-length: 255
+
+  master-hotkey-sequence:
+    description: >
+      Master key sequence.  Prefix with `seq:` for a key sequence,
+      or `meta:` for a collection of modifier keys.
+    type: str
+    min-length: 1
+    max-length: 300
+
+  bound-hotkey:
+    description: >
+      A list of key sequences that construe a bound hotkey.  This does not include
+      the master sequence.
+    type: array
+    min-length: 1
+    max-length: 20
+    value-type:
+      description: >
+        A key in the bound hotkey combination.
+      type: string
+      min-length: 1
+      max-length: 100
+
+  bound-hotkey-problem:
+    description: >
+      A problem with a bound hotkey.
+    type: structure
+    fields:
+      hotkey:
+        type: reference
+        ref: bound-hotkey
+      error:
+        type: reference
+        ref: error
+
+  master-hotkey-sequence-problem:
+    description: >
+      A problem with the hotkey master sequence.
+    type: structure
+    fields:
+      master:
+        type: reference
+        ref: master-hotkey-sequence
+      error:
+        type: reference
+        ref: error
+
+

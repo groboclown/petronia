@@ -53,6 +53,7 @@ These are desired, tactical changes to bits of already written code.
 * document how the foreman process loads configuration files
 * document the configuration file formats used by foreman
 * change up the event router so that tests can have better insight into the status of the connected channels.  This may not be practical, but some method for gaining this insight can help eliminate the sleeps.  Perhaps some kind of spy into the internal buffers?
+* `cmd_launcher_test` doesn't work well with Windows on Travis builds.  This could be a timing issue.
 
 
 ## High Level Ideas
