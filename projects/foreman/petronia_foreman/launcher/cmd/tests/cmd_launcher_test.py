@@ -156,13 +156,11 @@ class CmdLauncherCategoryTest(unittest.TestCase):  # pylint:disable=too-many-ins
         self.mock_target.proxy.assert_next_on_eof()
         self.mock_target.proxy.assert_end()
 
-        # Removing the handler after it has stopped fails, because it is already stopped.
-        b_res = self.router.remove_handler('ch1')
-        self.assertFalse(b_res)
-
-        # Closing the channel after it has stopped fails, because it is already stopped.
-        b_res = self.router.close_channel('ch1')
-        self.assertFalse(b_res)
+        # Removing the handler and channel after it has stopped can pass or fail.
+        # We're not checking, because this is very much a timing and platform specific
+        # thing.
+        self.router.remove_handler('ch1')
+        self.router.close_channel('ch1')
 
         self.cat.stop()
 

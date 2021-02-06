@@ -3,7 +3,7 @@
 # Once the test generation for events makes the data-store event covered,
 #   remove that coverage exclusion.
 omit =
-    petronia_ext_lib\events\datastore.py
-    petronia_ext_lib\events\logging.py
-    petronia_ext_lib\events\timer.py
-    petronia_ext_lib\events\tests\logging_test.py
+    petronia_ext_lib/events/datastore.py
+    petronia_ext_lib/events/logging.py
+    petronia_ext_lib/events/timer.py
+    petronia_ext_lib/events/tests/logging_test.py
