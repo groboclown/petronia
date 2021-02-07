@@ -11,6 +11,9 @@ These are desired, tactical changes to bits of already written code.
 
 * raise the minimum coverage percent back up to 99.  It was dropped to 95 to get an initial good build.
 
+### native
+
+* split the native-extension.yaml into one part per service.  The standard implementation will provide an extension that implements all of them.
 
 ### py-common-lib
 

@@ -34,9 +34,37 @@ state-data:
           type: reference
           ref: registered-translation-catalog
 
+  locales:
+    description: >
+      All known locales in the system.
+    fields:
+      locales:
+        description: The list of locales
+        type: array
+        value-type:
+          type: structure
+          fields:
+            name:
+              description: A user-readable name of the locale.
+              type: string
+              min-length: 1
+              max-length: 300
+            code:
+              description: The locale code (e.g. en_US)
+              type: reference
+              ref: locale-code
+
+  active-locale:
+    description: >
+      The currently active locale used by Petronia.
+    fields:
+      locale_code:
+        type: reference
+        ref: locale-code
 
   # =========================================================================
-  # Hotkey Service.
+  # Input Service.
+
   hotkey-bindings:
     description: >
       Hotkey events sent out by the native extension depend upon the binding
@@ -55,6 +83,80 @@ state-data:
           type: reference
           ref: bound-hotkey
 
+  focus-settings:
+    description: >
+      How the window focus events are translated into Petronia events.
+    fields:
+      on_new_window_click:
+        description: >
+          True if the mouse click on a different window generates the focus
+          event.  False means that mouse clicks do not explicitly
+          generate focus events (but note that the underlying Window system may
+          cause them to be generated regardless of this setting).
+        type: bool
+      on_new_window_enter:
+        description: >
+          True if the mouse motion entering into a different window generates
+          the focus event.
+        type: bool
+      on_window_event:
+        description: >
+          True if the underlying Windowing system focus events generates a
+          Petronia focus event.
+
+  # =========================================================================
+  # Font Service.
+
+
+  # =========================================================================
+  # Screen Service.
+
+  active-monitors:
+    description:
+      Information about the user's monitors, giving real and virtual screen
+      information.
+    fields:
+      monitors:
+        type: array
+        min-length: 1
+        max-length: 65535
+        value-type:
+          type: structure
+          fields:
+            description:
+              description: human readable information about the monitor.
+              type: string
+              min-length: 0
+              max-length: 1000
+            real_pixel_size:
+              description: pixel dimensions of the real device.
+              type: reference
+              ref: screen-dimension
+            location:
+              description: location of the device within the virutal layout.
+              type: reference
+              ref: screen-dimension
+
+
+  # =========================================================================
+  # Window Service.
+
+  active-windows:
+    description:
+      Information about the windows that are active in the system.
+      For each window in this list, its window-id is a structure that
+      conforms to the window-state structure in the reference section.
+    fields:
+      windows:
+        type: array
+        min-length: 0
+        max-length: 65535
+        value-type:
+          type: structure
+          fields:
+            window-id:
+              type: reference
+              ref: event-target-id
 
 events:
   # =========================================================================
@@ -120,8 +222,25 @@ events:
     receive-access: implementations
     is-binary: true
 
+  set-locale:
+    description: >
+      Set the current locale.  Must be one of the known locales.  If this fails,
+      then the native extension will report the error to the user; the sender
+      will not know whether the set request worked or not.  Setting the locale
+      may take a while to reload images and fonts, and may interrupt the processing
+      of UI actions.  This only changes Petronia's locale, not necessarily the
+      locale of all running UI elements controlled by other systems.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    fields:
+      locale_code:
+        type: reference
+        ref: locale-code
+
+
   # =========================================================================
-  # Hotkey Service.
+  # Input Service.
 
   set-hotkey-bindings:
     description: >
@@ -182,14 +301,137 @@ events:
         type: reference
         ref: bound-hotkey
 
+  # TODO set focus settings
+
   # =========================================================================
   # Window State and Actions
+
+  window-created:
+    description: >
+      A UI window was created.  The source ID can be used for sending requests
+      to alter the window state.  Additionally, this indicates that the corresponding
+      state object has also been created, and updates to the window state are broadcast
+      to that state object.
+    priority: user
+    send-access: implementation
+    receive-access: public
+    fields:
+      state:
+        type: reference
+        ref: window-state
+
+  window-destroyed:
+    description: >
+      A UI window was destroyed.  In addition to this event, the corresponding state
+      object for the window is also removed.
+    priority: user
+    send-access: implementation
+    receive-access: public
+    fields:
+      reason:
+        description: An OS specific code for why the window was destroyed.
+        type: string
+        min-length: 0
+        max-length: 300
+
+  set-window-positions:
+    description: >
+      Request changes to zero or more window positions.  This is useful for systems that
+      rearrange the whole screen, or move between virtual desktops.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    fields:
+      windows:
+        description: List of windows and their new positions.
+        type: array
+        min-length: 1
+        max-length: 65535
+        value-type:
+          type: structure
+          fields:
+            window_id:
+              type: reference
+              ref: event-target-id
+            location:
+              description: The new location, or don't set to make the window minimized.
+              type: reference
+              ref: screen-dimension
+              optional: true
+
+  window-focused:
+    description: >
+      Sent when a different window receives keyboard focus.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    fields:
+      window_id:
+        type: reference
+        ref: event-target-id
+      keyboard_focus:
+        description: Which keyboard has focus on this window.  -1 means none.
+        type: int
+        min-value: -1
+        max-value: 10000
 
   # =========================================================================
   # Low-Level UI Component Actions
 
+
+  register-image-details:
+    description: >
+      Register an image for display.  This must be followed up with a
+      register-image-bytes event.  The source ID is the image registration
+      ID.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    fields:
+      locale:
+        type: reference
+        ref: locale_code
+      format:
+        description: The mime format of the image.
+        type: string
+        min-length: 1
+        max-length: 100
+
   # =========================================================================
   # User Events on the Drawn Components
+
+  ui-panel-clicked:
+    description: >
+      A UI panel was clicked on.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    fields:
+      identifier:
+        type: reference
+        ref: response-identifier
+      mouse_buttons:
+        description: List of mouse button index that was pressed.  Can also mean a key activation.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: int
+
+  ui-text-field-update:
+    description: >
+      Text inside a text field UI element changed.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    fields:
+      identifier:
+        type: reference
+        ref: response-identifier
+      text:
+        type: string
+        min-length: 0
+        max-length: 1000
 
 
 references:
@@ -203,6 +445,11 @@ references:
     type: int
     min-value: -999999
     max-value: 9999999
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
   localizable-message:
     description: A localizable message for user display.
     type: structure
@@ -418,4 +665,222 @@ references:
         type: reference
         ref: error
 
+  screen-dimension:
+    description: >
+      The screen position and size of a component.  Unless otherwise specified, these
+      are in virtual screen position, meaning that it's spread across all monitors and
+      scaled.
+    type: structure
+    fields:
+      x:
+        type: int
+        description: x-position, with 0 being the "west" of the screen.
+      y:
+        type: int
+        description: y-position, with 0 being the "north" of the screen.
+      width:
+        type: int
+        description: the pixel length along the x-axis
+      height:
+        type: int
+        description: the pixel length along the y-axis
 
+  window-meta-values:
+    description: >
+      Details about a window.  These are generally platform specific.
+      These can be used by other extensions to perform special highlighting
+      or positioning of the window.
+    type: array
+    min-length: 0
+    max-length: 100
+    value-type:
+      type: structure
+      fields:
+        key:
+          description: the meta value's name.
+          type: string
+        value:
+          description: the meta value.
+          type: string
+
+  window-state:
+    description: >
+      The state of a window.
+    type: structure
+    fields:
+      active:
+        description: Is this window active?
+        type: bool
+      keyboard_focus:
+        description: Which keyboard has focus on this window.  -1 means none.
+        type: int
+        min-value: -1
+        max-value: 10000
+      parent_id:
+        type: reference
+        optional: true
+        ref: event-target-id
+      flashing:
+        description: True if the window is marked by the system as important.
+        type: boolean
+      location:
+        type: reference
+        ref: screen-dimension
+      minimized:
+        description: Is this window minimized?
+        type: bool
+      meta:
+        type: reference
+        ref: window-meta-values
+
+  # =========================================================================
+  # Drawn and Interactive UI Elements
+
+  color:
+    description: >
+      A color on the screen.  This is a hex code in the format RRGGBBAA.
+    type: string
+    min-length: 8
+    max-length: 8
+
+  ui-element:
+    description: Something to show.
+    type: selector
+    type-mapping:
+      panel:
+        type: reference
+        ref: ui-panel
+      text:
+        type: reference
+        ref: ui-text
+      image:
+        type: reference
+        ref: ui-image
+
+  ui-text:
+    description: >
+      Text to show to the user.
+    type: structure
+    fields:
+      font_name:
+        type: string
+        optional: true
+      font_size:
+        type: int
+        min-value: 1
+        optional: true
+      italics:
+        type: bool
+        optional: true
+      weight:
+        type: float
+        min-value: 0.0
+        optional: true
+      underline:
+        type: int
+        min-value: 0
+        optional: true
+      color:
+        type: reference
+        ref: color
+      text:
+        description: The text message, which will be translated
+        type: string
+        min-length: 0
+        max-length: 65535
+      catalog:
+        type: reference
+        ref: catalog-name
+
+
+  ui-image:
+    description:
+      A reference to a UI image, which must have been already loaded.
+    type: structure
+    fields:
+      image_ref:
+        description: The reference to the already loaded image.
+        type: reference
+        ref: event-target-id
+      layout:
+        description: How to handle the display of the image.
+        type: enum
+        values:
+          - crop
+          - scale
+
+  ui-text-field:
+    description: >
+      A text field to allow the user to enter text.  Changes to the text
+      will be sent as events.
+    type: structure
+    fields:
+      max_length:
+        type: int
+        min-value: 0
+      font_name:
+        type: string
+        optional: true
+      font_size:
+        type: int
+        min-value: 1
+        optional: true
+      italics:
+        type: bool
+        optional: true
+      weight:
+        type: float
+        min-value: 0.0
+        optional: true
+      underline:
+        type: int
+        min-value: 0
+        optional: true
+      color:
+        type: reference
+        ref: color
+
+
+  ui-panel:
+    description: >
+      A UI component that has a color and can contain other components.
+      Only panels can be directly clicked.  To make something clickable, put it inside
+      a panel.
+    type: structure
+    fields:
+      identifier:
+        type: reference
+        ref: response-identifier
+      clickable:
+        description: Set to True to allow click events to be fired on this element.
+        type: bool
+      color:
+        type: reference
+        ref: color
+      outline_color:
+        type: reference
+        ref: color
+      outline_shape:
+        type: enum
+        values:
+          - rectangle
+          - rounded
+      outline_width:
+        type: int
+        min-value: 0
+        max-value: 1000
+      children:
+        type: array
+        optional: true
+        min-length: 0
+        max-length: 1000
+        value-type:
+          type: structure
+          fields:
+            element:
+              type: reference
+              ref: ui-element
+            location:
+              description: relative location to this panel.
+              type: reference
+              ref: screen-dimension
