@@ -1,0 +1,8 @@
+[run]
+
+# __main__ is intentionally trivial so it doesn't need tests.
+# Once the test generation for events makes the data-store event covered,
+#   remove that coverage exclusion.
+omit =
+    petronia_core/datastore/events/impl/datastore.py
+    petronia_core/timer/events/impl/timer.py

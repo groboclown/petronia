@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-08T21:23:20.901398
+# Created on 2021-02-09T22:29:05.151530+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.monitor version 1.0.0.
@@ -10,17 +10,17 @@ Data structures and marshalling for extension petronia.core.api.native.monitor v
 
 
 from typing import (
-    SupportsInt,
-    List,
     Any,
+    List,
+    SupportsInt,
     Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     StdRet,
     collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.monitor'

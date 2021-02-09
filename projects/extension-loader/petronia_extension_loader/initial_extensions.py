@@ -4,7 +4,7 @@ Load the initial extensions.
 
 from typing import Sequence, Dict, List
 
-from petronia_common.extension.runner import EventRegistryContext
+from petronia_ext_lib.runner import EventRegistryContext
 from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .defs import ExtensionInfo

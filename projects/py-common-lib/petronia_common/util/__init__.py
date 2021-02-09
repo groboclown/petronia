@@ -55,3 +55,5 @@ from . import aio
 
 from . import input_buffer
 from .input_buffer import StreamedBinaryReader, StreamReadState, select_reader, single_reader_loop
+
+from .tzdate import tznow

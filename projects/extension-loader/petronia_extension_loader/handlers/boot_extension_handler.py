@@ -3,9 +3,9 @@
 from typing import Set, Tuple, Iterable
 
 from petronia_common.extension.config import ExtensionVersion
-from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
+from petronia_ext_lib.runner import EventRegistryContext
 from ..events.impl.extension_loader import SystemStartedEvent
 from ..defs import ExtensionInfo, TRANSLATION_CATALOG
 

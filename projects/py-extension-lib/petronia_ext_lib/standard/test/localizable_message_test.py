@@ -3,8 +3,7 @@
 from typing import Sequence, Tuple, List, cast
 import unittest
 import datetime
-
-from petronia_common.util import not_none
+from petronia_common.util import not_none, tznow
 from petronia_common.util.message import UserMessage, UserMessageData, i18n
 from .. import localizable_message
 from ...events import logging
@@ -35,9 +34,16 @@ class LocalizableMessageTest(unittest.TestCase):
 
     def test_create_message_argument_value(self) -> None:
         """Test create_message_argument_value."""
-        now = datetime.datetime.now()
-        today = datetime.datetime(year=now.year, month=now.month, day=now.day)
+        now = tznow()
+        today = datetime.datetime(
+            year=now.year, month=now.month, day=now.day, tzinfo=datetime.timezone.utc,
+        )
         time_now = now
+        time_with_tz = datetime.time(
+            hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond,
+            tzinfo=now.tzinfo,
+        )
+        self.assertEqual(time_now.tzinfo, time_with_tz.tzinfo)
 
         test_data: Sequence[Tuple[
             UserMessageData,
@@ -51,7 +57,11 @@ class LocalizableMessageTest(unittest.TestCase):
             (False, localizable_message.BOOL_LOCALE_ARGUMENT_TYPE, False),
             (now, localizable_message.DATETIME_LOCALE_ARGUMENT_TYPE, now),
             (now.date(), localizable_message.DATETIME_LOCALE_ARGUMENT_TYPE, today),
-            (now.time(), localizable_message.DATETIME_LOCALE_ARGUMENT_TYPE, time_now),
+
+            # Note that, for time, there's a tiny window of opportunity for this test to fail,
+            # where the initial tznow() call is on one day, and this part of the test runs
+            # on the next day.
+            (time_with_tz, localizable_message.DATETIME_LOCALE_ARGUMENT_TYPE, time_now),
             (  # mypy issues
                 cast(List[int], []),
                 localizable_message.STRING_LIST_LOCALE_ARGUMENT_TYPE,
@@ -68,7 +78,7 @@ class LocalizableMessageTest(unittest.TestCase):
                 [today, today],
             ),
             (
-                [now.time(), now.time()],
+                [time_with_tz, time_with_tz],
                 localizable_message.DATETIME_LIST_LOCALE_ARGUMENT_TYPE,
                 [time_now, time_now],
             ),

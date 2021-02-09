@@ -2,8 +2,8 @@
 
 from typing import Iterable, Tuple, Set, Optional
 import json
+from petronia_ext_lib.runner import EventRegistryContext
 from petronia_common.extension.config import ImplExtensionMetadata, StandAloneExtensionMetadata
-from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet
 from petronia_common.util import i18n as _
 from .privileges import add_event_send_access, get_source_id_prefix_access
@@ -14,7 +14,6 @@ from ..events.ext.datastore import StoreDataEvent
 
 
 EXTENSION_LOADER_FOREMAN_SOURCE = extension_loader.EXTENSION_NAME + ':for-foreman'
-EXTENSION_LOADER_STATE_SOURCE = extension_loader.EXTENSION_NAME + ':state'
 
 EventTargetHandle = Tuple[Optional[str], Optional[str]]
 
@@ -70,10 +69,9 @@ def send_loaded_extension_state(
 ) -> StdRet[None]:
     """Send the data store event for the loaded extensions."""
     return context.send_event(
-        EXTENSION_LOADER_STATE_SOURCE,
+        extension_loader.ActiveExtensionsState.UNIQUE_TARGET_FQN,
         StoreDataEvent.UNIQUE_TARGET_FQN,
         StoreDataEvent(
-            extension_loader.ActiveExtensionsState.UNIQUE_TARGET_FQN,
             json.dumps(extension_loader.ActiveExtensionsState([
                 extension_loader.ExtensionInfo(
                     info.name,

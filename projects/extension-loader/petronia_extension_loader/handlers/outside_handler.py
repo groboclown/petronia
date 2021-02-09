@@ -2,11 +2,11 @@
 Handles the full process that loads the extension.
 """
 
-from petronia_common.extension.runner import (
+from petronia_ext_lib.runner import (
     EventRegistryContext, EventObjectTarget, EventObjectParser,
 )
-from petronia_common.util import StdRet
 from petronia_ext_lib.standard.error import create_error_data, ACCESS_RESTRICTION_ERROR_CATEGORY
+from petronia_common.util import StdRet
 from .extension_loader import initiate_load_extension
 from .send import send_load_extension_succeeded, send_load_extension_failed
 from ..shared_state import ExtLoaderSharedState

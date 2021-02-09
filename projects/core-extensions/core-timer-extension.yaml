@@ -1,0 +1,21 @@
+---
+
+name: petronia.core.impl.timer
+type: impl
+version: [1, 0, 0]
+about: Simple timer implementation.
+description: >
+  Simple timer API implementation
+
+implements:
+  - name: petronia.core.api.timer
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+runtime:
+  launcher: core
+  # No permissions necessary
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project

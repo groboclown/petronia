@@ -5,9 +5,9 @@ import unittest.mock
 import tempfile
 import shutil
 
+from petronia_ext_lib.runner import EventRegistryContext
 from petronia_common.extension.config import StandAloneExtensionMetadata
 from petronia_common.extension.config.extension_schema import ExtensionRuntime
-from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import RET_OK_NONE
 from .. import extension_loader
 from ... import setup

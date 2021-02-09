@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-08T21:23:20.833843
+# Created on 2021-02-09T22:29:05.060421+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.i10n version 1.0.0.
@@ -10,13 +10,13 @@ Data structures and marshalling for extension petronia.core.api.native.i10n vers
 
 
 from typing import (
-    Dict,
-    SupportsFloat,
-    cast,
-    Union,
     Any,
-    SupportsInt,
+    Union,
     List,
+    cast,
+    SupportsFloat,
+    SupportsInt,
+    Dict,
     Optional,
 )
 import datetime
@@ -24,8 +24,8 @@ from petronia_common.util import i18n as _
 from petronia_common.util import (
     StdRet,
     collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.i10n'
@@ -188,16 +188,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            float,
-            bool,
-            List[float],
-            List[datetime.datetime],
-            datetime.datetime,
-            List[bool],
             str,
-            int,
-            List[str],
+            bool,
             List[int],
+            int,
+            datetime.datetime,
+            List[float],
+            List[bool],
+            List[str],
+            float,
+            List[datetime.datetime],
         ],
     ) -> None:
         self.__name = name
@@ -210,16 +210,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            float,
-            bool,
-            List[float],
-            List[datetime.datetime],
-            datetime.datetime,
-            List[bool],
             str,
-            int,
-            List[str],
+            bool,
             List[int],
+            int,
+            datetime.datetime,
+            List[float],
+            List[bool],
+            List[str],
+            float,
+            List[datetime.datetime],
     ]:
         """The selector value."""
         return self.__value
@@ -907,35 +907,6 @@ class RegisterTranslationMessagesEvent:
     __slots__ = ()
     FULL_EVENT_NAME = 'petronia.core.api.native.i10n:register-translation:messages'
     SHORT_EVENT_NAME = 'register-translation:messages'
-
-    def __init__(
-        self,
-    ) -> None:
-        pass
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return RegisterTranslationMessagesEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(_data: Dict[str, Any]) -> StdRet['RegisterTranslationMessagesEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        # val: Any
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(RegisterTranslationMessagesEvent(
-        ))
-
-    def __repr__(self) -> str:
-        return "RegisterTranslationMessagesEvent(" + repr(self.export_data()) + ")"
 
 
 class SetLocaleEvent:

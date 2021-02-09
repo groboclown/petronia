@@ -5,8 +5,7 @@ Create the marshaller Python object source.
 
 from typing import Dict, Set, List, Any
 import os
-import datetime
-from petronia_common.util import StdRet, RET_OK_NONE
+from petronia_common.util import StdRet, RET_OK_NONE, tznow
 from petronia_common.util import i18n as _
 from petronia_common.util import STANDARD_PETRONIA_CATALOG as STDC
 from petronia_common.extension.config import AbcExtensionMetadata
@@ -75,7 +74,7 @@ def mk_event_marshal_src(
                     'extension_version_repr': repr(metadata.version),
                     'imports': create_import_struct(imports),
                     'structures': structures,
-                    'now': datetime.datetime.utcnow().isoformat(),
+                    'now': tznow().isoformat(),
                 },
             )))
     except OSError as err:
@@ -105,7 +104,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
                 ret_template.result,
                 {
                     'modules': [{'name': n} for n in sorted(list(_INIT_CONTENTS[init_src]))],
-                    'now': datetime.datetime.utcnow().isoformat(),
+                    'now': tznow().isoformat(),
                 },
             )))
     except OSError as err:
@@ -122,7 +121,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
         with open(test_init_src, 'w') as f:
             f.write(clean_up_text(templatize(
                 ret_template.result,
-                {'now': datetime.datetime.utcnow().isoformat()},
+                {'now': tznow().isoformat()},
             )))
     except OSError as err:
         return StdRet.pass_errmsg(
@@ -153,7 +152,7 @@ def mk_event_marshal_test_src(
                     'imports': create_import_struct(imports),
                     'structures': structures,
                     'module_name': event_module_name,
-                    'now': datetime.datetime.utcnow().isoformat(),
+                    'now': tznow().isoformat(),
                 },
             )))
     except OSError as err:

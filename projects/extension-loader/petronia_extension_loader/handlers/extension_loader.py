@@ -2,9 +2,9 @@
 
 from typing import Sequence, Optional
 from petronia_common.extension.config import ExtensionVersion
-from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
+from petronia_ext_lib.runner import EventRegistryContext
 from ..defs import ExtensionInfo, TRANSLATION_CATALOG
 from ..shared_state import ExtLoaderSharedState
 from ..finder import find_installed_extensions

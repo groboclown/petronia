@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-08T21:23:26.295472
+# Created on 2021-02-09T22:29:14.038279+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.timer version 1.0.0.
@@ -17,10 +17,10 @@ from typing import (
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    not_none,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
     collect_errors_from,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.timer'

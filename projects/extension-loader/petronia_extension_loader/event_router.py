@@ -1,7 +1,7 @@
 """Routes events based on event IDs to handlers."""
 
 from typing import List, Sequence, Tuple, Callable, Optional
-from petronia_common.extension.runner import EventRegistryContext
+from petronia_ext_lib.runner import EventRegistryContext
 from petronia_common.util import StdRet
 from .setup import get_extension_handler_id
 from .shared_state import ExtLoaderSharedState

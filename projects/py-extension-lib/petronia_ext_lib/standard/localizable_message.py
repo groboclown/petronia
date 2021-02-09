@@ -4,7 +4,7 @@ types."""
 from typing import List, Tuple, Callable, Union, Literal, cast
 import collections.abc
 import datetime
-from petronia_common.util import T, V, K
+from petronia_common.util import T, V, K, tznow
 from petronia_common.util.message import UserMessage, UserMessageData, ListUserMessageData
 
 
@@ -106,14 +106,16 @@ def create_message_argument_value(  # pylint:disable=too-many-return-statements
     if isinstance(arg_value, datetime.datetime):
         return DATETIME_LOCALE_ARGUMENT_TYPE, arg_value
     if isinstance(arg_value, datetime.time):
-        now = datetime.datetime.now()
+        now = tznow()
         return DATETIME_LOCALE_ARGUMENT_TYPE, datetime.datetime(
             now.year, now.month, now.day,
             arg_value.hour, arg_value.minute, arg_value.second, arg_value.microsecond,
+            tzinfo=arg_value.tzinfo,
         )
     if isinstance(arg_value, datetime.date):
         return DATETIME_LOCALE_ARGUMENT_TYPE, datetime.datetime(
             arg_value.year, arg_value.month, arg_value.day,
+            tzinfo=datetime.timezone.utc,
         )
 
     # Shouldn't happen, but don't error out.
@@ -146,6 +148,7 @@ def _get_list_message_arguments(  # pylint:disable=too-many-return-statements
             datetime.datetime(
                 now.year, now.month, now.day,
                 arg_value.hour, arg_value.minute, arg_value.second, arg_value.microsecond,
+                tzinfo=arg_value.tzinfo,
             )
             for arg_value in cast(List[datetime.time], values)
         ]
@@ -153,6 +156,7 @@ def _get_list_message_arguments(  # pylint:disable=too-many-return-statements
         return DATETIME_LIST_LOCALE_ARGUMENT_TYPE, [
             datetime.datetime(
                 arg_value.year, arg_value.month, arg_value.day,
+                tzinfo=datetime.timezone.utc,
             )
             for arg_value in cast(List[datetime.date], values)
         ]

@@ -1,0 +1,56 @@
+---
+
+name: petronia.core.api.persist_config
+type: api
+version: [1, 0, 0]
+about: Saves datastore entries as configuration values.
+description: >
+  Performs a save operation to a configuration directory in a form that allows
+  the extension loader to read the data at startup time.
+
+  This is for use with a standard practice of having a "configuration" state data
+  that is also stored in the data section, which allows for persisting user changes
+  to the configuration performed through user interfaces.
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_extension.core.impl.datastore
+  minimum: [1, 0, 0]
+
+state-data:
+  configuration:
+    description: Configuration for this extension.
+    fields:
+      config_dir:
+        description: location to save the configuration files.
+        type: string
+
+
+events:
+  "save":
+    description: >
+      A request to save a stored data piece as the configuration.  The name of the file
+      will reflect the source ID.  It will also save the data as though it's the
+      source data's only configuration data.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: store
+    fields:
+      data_id:
+        description: ID of the data store's data to save.
+        type: reference
+        ref: event-target-id
+
+
+references:
+  # ------------------------------
+  # Standard Types ...
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600

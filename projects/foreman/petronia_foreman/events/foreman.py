@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-08T21:23:09.158903
+# Created on 2021-02-09T22:28:51.945208+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 
 
 from typing import (
-    SupportsInt,
+    cast,
+    Dict,
     List,
+    SupportsFloat,
     Any,
     Union,
-    Dict,
-    SupportsFloat,
+    SupportsInt,
     Optional,
-    cast,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
-    not_none,
     StdRet,
+    collect_errors_from,
+    not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
@@ -517,16 +517,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
             List[float],
-            bool,
-            List[bool],
-            List[datetime.datetime],
             List[str],
             int,
-            float,
-            datetime.datetime,
+            bool,
+            List[datetime.datetime],
             List[int],
+            float,
+            List[bool],
+            str,
+            datetime.datetime,
         ],
     ) -> None:
         self.__name = name
@@ -539,16 +539,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
             List[float],
-            bool,
-            List[bool],
-            List[datetime.datetime],
             List[str],
             int,
-            float,
-            datetime.datetime,
+            bool,
+            List[datetime.datetime],
             List[int],
+            float,
+            List[bool],
+            str,
+            datetime.datetime,
     ]:
         """The selector value."""
         return self.__value

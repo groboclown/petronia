@@ -4,8 +4,8 @@ import unittest
 import unittest.mock
 from petronia_common.extension.config import StandAloneExtensionMetadata
 from petronia_common.extension.config.extension_schema import ExtensionRuntime
-from petronia_common.extension.runner import EventRegistryContext
 from petronia_common.util import StdRet, i18n, RET_OK_NONE
+from petronia_ext_lib.runner import EventRegistryContext
 from .. import shared_state, setup
 from ..defs import ExtensionInfo
 from ..order import ExtensionDependencyOrder

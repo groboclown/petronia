@@ -9,6 +9,12 @@
 * 100% code coverage is the desired state.
 * Spaces, not tabs.
 
+
+### Python Standard Lib Dos And Don'ts
+
+* Python's basic `datetime.datetime` does not include timezone information by default.  Petronia has a helper function `petronia_common.util.tznow` to make sure you get the current date-time with the timezone. 
+
+
 ### Threading Model
 
 All Python sourced parts of Petronia must use the `asyncio` libraries without threading.  Threading introduces all kinds of potential bug states that are hard to track, and also unnecessary wait states for lock acquisition.  The asynchronous libraries allow for running the code in separate context states, without worrying about threading.

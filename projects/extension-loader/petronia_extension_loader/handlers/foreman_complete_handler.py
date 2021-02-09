@@ -1,6 +1,6 @@
 """Handles the foreman extension load complete events."""
 
-from petronia_common.extension.runner import (
+from petronia_ext_lib.runner import (
     EventObjectTarget, EventRegistryContext, EventObjectParser,
 )
 from petronia_common.util import StdRet, RET_OK_NONE

@@ -146,32 +146,36 @@ class WriterTest(unittest.TestCase):
         self.assertEqual((
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
-                i18n(
-                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]',
-                ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
+                i18n('{src}: validation error'),
+                src='write_binary_event_to_stream',
             ),
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
                 i18n(
-                    '{src}: validation error: source-id length must be within [{id_min}, {id_max}]',
+                    'event-id length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
+                id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
                 i18n(
-                    '{src}: validation error: target-id length must be within [{id_min}, {id_max}]',
+                    'source-id length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
+                id_min=1, id_max=10, b_min=0, b_max=10,
             ),
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
                 i18n(
-                    '{src}: validation error: binary event '
-                    'data size must be within [{b_min}, {b_max}]',
+                    'target-id length must be within [{id_min}, {id_max}]',
                 ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=0, b_max=10,
+                id_min=1, id_max=10, b_min=0, b_max=10,
+            ),
+            UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                i18n(
+                    'binary event data size must be within [{b_min}, {b_max}]',
+                ),
+                id_min=1, id_max=10, b_min=0, b_max=10,
             ),
         ), messages)
 
@@ -250,34 +254,28 @@ class WriterTest(unittest.TestCase):
         self.assertEqual((
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
-                i18n(
-                    '{src}: validation error: event-id length must be within [{id_min}, {id_max}]',
-                ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
+                i18n('{src}: validation error'),
+                src='write_binary_event_to_stream',
             ),
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
-                i18n(
-                    '{src}: validation error: source-id '
-                    'length must be within [{id_min}, {id_max}]',
-                ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
+                i18n('event-id length must be within [{id_min}, {id_max}]'),
+                id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
-                i18n(
-                    '{src}: validation error: target-id length '
-                    'must be within [{id_min}, {id_max}]',
-                ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
+                i18n('source-id length must be within [{id_min}, {id_max}]'),
+                id_min=1, id_max=10, b_min=2, b_max=60,
             ),
             UserMessage(
                 STANDARD_PETRONIA_CATALOG,
-                i18n(
-                    '{src}: validation error: event object data '
-                    'size must be within [{b_min}, {b_max}]',
-                ),
-                src='write_binary_event_to_stream', id_min=1, id_max=10, b_min=2, b_max=60,
+                i18n('target-id length must be within [{id_min}, {id_max}]'),
+                id_min=1, id_max=10, b_min=2, b_max=60,
+            ),
+            UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                i18n('event object data size must be within [{b_min}, {b_max}]'),
+                id_min=1, id_max=10, b_min=2, b_max=60,
             ),
         ), messages)
 

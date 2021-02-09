@@ -1,0 +1,25 @@
+---
+
+name: petronia.core.impl.datastore
+type: impl
+version: [1, 0, 0]
+about: Simple in-memory store implementation.
+description: >
+  Non-persistent data store.
+
+implements:
+  - name: petronia.core.api.datastore
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+depends:
+  - name: petronia.core.api.logging
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+runtime:
+  launcher: core
+  # No permissions necessary.
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project

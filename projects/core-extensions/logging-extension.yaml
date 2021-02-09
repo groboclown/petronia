@@ -1,18 +1,19 @@
 ---
 
 name: petronia.core.api.logging
-type: api
+type: protocol
 version: [1, 0, 0]
 about: Logging API, and includes a standard for public error messages.
 description: >
   A common API for logging messages and reporting errors.
+
+  This is a protocol, so there doesn't need to be an implementation, and
+  it doesn't need to be loaded.  This allows for core extensions to
+  log messages without creating a dependency cycle.
 licenses:
   - MIT
 authors:
   - Petronia Project
-default:
-  name: petronia_extension.core.impl.logging
-  minimum: [1, 0, 0]
 
 state-data:
   global-logging:

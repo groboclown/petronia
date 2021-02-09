@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-08T21:23:13.283867
+# Created on 2021-02-09T22:28:57.912986+00:00
 
 """
 Tests for the datastore module.
@@ -54,10 +54,6 @@ STORE_DATA_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='destination', name='StoreDataEvent'),
-            ),
-            (
-                'Required field {field_name} in {name}',
                 dict(field_name='json', name='StoreDataEvent'),
             ),
 
@@ -73,17 +69,14 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'ǿÓүȸӉïӝɒ¬ԧΈÕϡҡǡƒал˴ҵō\u0381ϑɛ%ўċˡ\x90ž',
-            'json': 'ŞɆΣӾɗdРͲƭGȜƍԡʵðҦѓ¨ƘȍʗʚƸǋ˨ÃǃŴЀȎ',
+            'json': 'ПêԅȳǷ˅\x8cˏŖÉʯƩŏį»ʋſӼˋ±ԆÐUǍÚC҇ԣѺө',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': "ĕ'\x9aƮD",
-
-            'json': 'ʮӲ',
+            'json': 'ϸŤ',
 
         },
     ),
@@ -94,22 +87,6 @@ class DeleteDataEventTest(unittest.TestCase):
     """
     Tests for DeleteDataEvent
     """
-    def test_parse_bad_data(self) -> None:
-        """Data driven tests with validation problems."""
-        self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in DELETE_DATA_EVENT_BAD_PARSE_DATA_TESTS:
-            with self.subTest(name=test_name):
-                res = datastore.DeleteDataEvent.parse_data(test_data)
-                self.assertIsNone(res.value)
-                expected = {
-                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
-                    for m, a in messages
-                }
-                actual = list(res.valid_error.messages())
-                # The parsing returns at least one of the problems, but not necessarily all.
-                self.assertTrue(len(actual) >= 1, repr(expected))
-                self.assertTrue(expected.issuperset(actual), repr(expected))
-
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
@@ -120,42 +97,11 @@ class DeleteDataEventTest(unittest.TestCase):
                 self.assertEqual(test_data, res.result.export_data())
 
 
-DELETE_DATA_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
-    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
-] = [
-
-    (
-        'all-fields-missing',
-        {},
-        (
-            (
-                'Required field {field_name} in {name}',
-                dict(field_name='destination', name='DeleteDataEvent'),
-            ),
-
-        ),
-    ),
-
-]
-
-
 DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
-    (
-        'all-fields-present',
-        {
-            'destination': '\u0383z\x9cʂÒʟƘđπŇŤȉz\u0383¯ФϲКΣʛͽԙə˽ɋ\x91њӒȍ¾',
-        },
-    ),
-    (
-        'bare-minimum-fields-present',
-        {
 
-            'destination': 'ɉБåԨť',
-
-        },
-    ),
+    ('basic-parse', {}),
 ]
 
 
@@ -199,7 +145,7 @@ SEND_STATE_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='destination', name='SendStateEvent'),
+                dict(field_name='store_id', name='SendStateEvent'),
             ),
 
         ),
@@ -214,14 +160,14 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'ȶʀД˗ïԗ¢ԫțŃϞѷδʹ˪˺ΌĹżğÜцÔͽEǦХɵßƻ',
+            'store_id': 'ҙΨҞɦÃƥǡʳґʷƞѢΈvҔϒѸǼѳĭԀƭɛӾƊƼȄlzΕ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': 'ѣƻņ˂|',
+            'store_id': 'тӀǚβг',
 
         },
     ),
@@ -287,17 +233,17 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210208:212313.236496:+0000',
-            'json': 'ҙʌpҊЏЦӾČȈӆÃīé˛ҌЂǏƏʘʾƂʯԦǗшӌǕ[ƞӃ',
+            'changed': '20210209:222857.840110:+0000',
+            'json': 'Ȕäx¯ȶïΘͷͺŏʶƴÅйӏŸ%ʯɾËб˓˕ȸЬɋĦʎȰԢ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210208:212313.236534:+0000',
+            'changed': '20210209:222857.840153:+0000',
 
-            'json': 'Ŋâ',
+            'json': 'ғř',
 
         },
     ),

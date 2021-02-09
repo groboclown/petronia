@@ -9,7 +9,7 @@ These are desired, tactical changes to bits of already written code.
 
 ### build
 
-* raise the minimum coverage percent back up to 99.  It was dropped to 95 to get an initial good build.
+* raise the minimum coverage percent back up to 99.  It was dropped to 90 to get an initial good build.
 
 
 ### core-extensions
@@ -37,8 +37,9 @@ This is the next thing that's being worked on.
 * extension event schema doesn't capture the event description for binary events.  This is an artifact of how the events collect their data by using shared code.
 * add unit test coverage on `petronia_common/extension/config/event_loader.py` (lines 83->96, 96, 389->390, 390)
 * add unit test coverage on `petronia_common/extension/config/event_schema.py` (lines 870->874)
-* add unit test coverage on `petronia_common/extension/runner/message_helper.py` (lines 58, 63-65, 70-72, 79-81, 95->97, 97
+* add unit test coverage on `petronia_common/extension/runner/message_helper.py` (lines 58, 63-65, 70-72, 79-81, 95->97, 97)
 * `StdRet.pass_exception` should take a catalog.
+* Create asyncio versions of read & write events.  This essentially forks the API, making duplicates of all kinds of things.  However, only Foreman should be using the thread version.
 
 
 ### py-extension-lib
@@ -46,19 +47,22 @@ This is the next thing that's being worked on.
 * migrate the extension library parts out of py-common-lib into this project.
   * `petronia_common.extension.runner`
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
+* increase coverage.
+* look into making the tools here use asyncio rather than threading.
 
 
 ### extension-tools
 
-* make binary event classes generated better.  Right now, they are generated just like object event classes, and as a result they end up failing on lint and code coverage checks.  See `native-handler` - the implementation must be manually edited to get it to pass lint.
 * improve test generation to have full coverage of some categories of events, such as data-store.
 * add a `configuration` section as well, which is treated the same way as the `stored-data` section, but there is only one configuration object.
+* binary event unit test classes should not exist.
 
 
 ### extension-loader
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * enforce the requirement that only one implementation of an API can be active at a time.  This should be added to the `order.py` file, `add_pending_extensions` function.
+* complete the `request_listener_change_handler` functionality, and wire it up in the `event_router`.
 * document how the extension-loader searches for configuration files
 * document the file format of its configuration files
 * document how the extension-loader loads boot-time extensions
@@ -77,6 +81,11 @@ This is the next thing that's being worked on.
 * change up the event router so that tests can have better insight into the status of the connected channels.  This may not be practical, but some method for gaining this insight can help eliminate the sleeps.  Perhaps some kind of spy into the internal buffers?
 * `cmd_launcher_test` doesn't work well with Windows on Travis builds.  This could be a timing issue.
 * foreman currently has a build dependency on `py-extension-lib` in order to share some very targeted behavior.  Should this be moved over to `py-common-lib`?  Currently, `py-common-lib` includes the arg-handler logic that is only used by extensions, so either move that arg handler over to extension lib, or move the foreman dependent stuff into py-common-lib.
+
+
+### py-extension-lib
+
+* data event listener needs to include a carefully designed listener.  If it's really nice, it can take the event object class and extrapolate all data from that.
 
 
 ## High Level Ideas

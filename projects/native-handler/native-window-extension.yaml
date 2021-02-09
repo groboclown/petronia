@@ -108,7 +108,7 @@ events:
       state object has also been created, and updates to the window state are broadcast
       to that state object.
     priority: user
-    send-access: implementation
+    send-access: implementations
     receive-access: public
     fields:
       state:
@@ -120,7 +120,7 @@ events:
       A UI window was destroyed.  In addition to this event, the corresponding state
       object for the window is also removed.
     priority: user
-    send-access: implementation
+    send-access: implementations
     receive-access: public
     fields:
       reason:
@@ -387,7 +387,7 @@ references:
         ref: event-target-id
       flashing:
         description: True if the window is marked by the system as important.
-        type: boolean
+        type: bool
       location:
         type: reference
         ref: screen-dimension

@@ -1,6 +1,6 @@
 
 """
-Handles writing packets to a binary asyncio stream.
+Handles writing packets to a binary stream.
 """
 
 # This file is an exception for many of the "code simplification" rules,
@@ -21,7 +21,7 @@ class BinaryWriter(Protocol):
     """A protocol for what the event writer needs.  Just a simple
     write method that takes bytes.  The writer doesn't need to be
     an async writer or any other fancy thing.  If it raises exceptions,
-    they should inherit from Exception."""
+    they should inherit such that it's catchable from Exception."""
 
     def write(self, data: bytes) -> None: ...  # pylint: disable=C0116  # pragma no cover
 
@@ -77,7 +77,7 @@ def write_binary_event_to_stream(
     encoded_target_id_len = len(encoded_target_id)
 
     ret = enforce_all(
-        'write_binary_event_to_stream',
+        'write_binary_event_to_stream', STANDARD_PETRONIA_CATALOG,
         (
             _('event-id length must be within [{id_min}, {id_max}]'),
             lambda: consts.MIN_ID_SIZE <= encoded_event_id_len <= consts.MAX_ID_SIZE,
@@ -134,7 +134,7 @@ def write_binary_event_to_stream(
         else:
             remaining = binary_blob_size
             while remaining > 0:
-                data = binary_blob(MAX_READ_SIZE)
+                data = binary_blob(min(remaining, MAX_READ_SIZE))
                 if not data:
                     # fill in the rest of the packet data to avoid
                     # stream errors
@@ -216,7 +216,7 @@ def write_object_event_to_stream(
     encoded_target_id_len = len(encoded_target_id)
 
     ret = enforce_all(
-        'write_binary_event_to_stream',
+        'write_binary_event_to_stream', STANDARD_PETRONIA_CATALOG,
         (
             _('event-id length must be within [{id_min}, {id_max}]'),
             lambda: consts.MIN_ID_SIZE <= encoded_event_id_len <= consts.MAX_ID_SIZE,

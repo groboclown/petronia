@@ -8,6 +8,17 @@ description: >
   A storage mechanism for shared data published and consumed by extensions.  For example,
   an extension that reports on the user's screen dimensions would do so by adding a
   data store.
+
+  The data stored are limited to 60,000 characters of JSON-encoded structured data.  If
+  many extensions listen for the same block of data, then that amplifies the amount of
+  data spread through the extensions.  Where possible, attempt to keep the stored data small.
+
+  The extension intentionally does not provide a mechanism for listing all stored
+  keys.  In general, extensions should provide well defined IDs, and any dynamic IDs
+  should be accessible through references within the well defined IDs.
+
+  This is also not a database; there are no query-like parameters.
+
 licenses:
   - MIT
 authors:
@@ -20,19 +31,14 @@ events:
   "store-data":
     description: >
       A request to store data.  This is either a fresh add or update of the data.
-      For freshly added data, later updates and deletes will only be allowed by events
-      whose source ID match the source ID for the add request.
+      The event's source ID is used as the name of the stored data, which has the
+      implication that it must be associated with the source extension or implemented
+      API.
     priority: io
     send-access: public
     receive-access: implementations
     unique-target: store
     fields:
-      destination:
-        description: >
-          The target ID that will be used when sending out the data information, and also
-          a unique identifier for updates to this data.
-        type: reference
-        ref: event-target-id
       json:
         description: >
           JSON-formatted data to store with the data.  The extension will only allow properly
@@ -42,41 +48,37 @@ events:
 
   "delete-data":
     description: >
-      Deletes the store of data.  This request will only be allowed by events whose
-      source ID matches the source ID that initially created the data.
+      Deletes the store of data whose ID matches the source ID of the event.
     priority: io
     send-access: public
     receive-access: implementations
     unique-target: store
-    fields:
-      destination:
-        description: >
-          The target ID that will be used when sending out the data information, and also
-          a unique identifier for updates to this data.
-        type: reference
-        ref: event-target-id
+    fields: {}
 
   "send-state":
     description: >
       Tells the API to send out a message with the current state of the requested
       target ID data.  Usually only called when an extension first starts and has started
       listening to the data change messages.  If the target ID's data is not currently
-      stored, then a delete message is sent.
+      stored, then a delete message is sent.  The sent message is either a `data-update`
+      event or a `data-removed` event.
     priority: normal
     send-access: public
     receive-access: implementations
     unique-target: store
     fields:
-      destination:
+      store_id:
         description: >
-          The destination ID for the requested data.
+          The ID for the requested data.
         type: reference
         ref: event-target-id
 
   "data-update":
     description: >
       Notification for data that is new or changed.  The target ID is always the data store
-      destination ID.
+      ID.  The `changed` field must be unique per original `store-data` request; if the store
+      data request is identical to the previous store data request, then the changed field
+      is still updated.
     priority: high
     send-access: implementations
     receive-access: public
@@ -94,6 +96,10 @@ events:
   "data-removed":
     description: >
       Notification for data that is deleted.  The target ID is always the data store ID.
+      The event does not include a date field, because the event can be sent at any time
+      requesting for data that was either already removed or never existed, and the extension
+      is not required to maintain a list of all data removed (that could lead to memory
+      issues).
     priority: high
     send-access: implementations
     receive-access: public

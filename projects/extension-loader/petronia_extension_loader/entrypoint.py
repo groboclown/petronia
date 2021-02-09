@@ -1,8 +1,8 @@
 """Event streaming entrypoint."""
 
 from typing import Sequence, Dict, Any
+from petronia_ext_lib.runner.main import extension_runner
 from petronia_common.event_stream import BinaryReader, BinaryWriter
-from petronia_common.extension.runner.main import extension_runner
 from petronia_common.util import StdRet
 from .event_router import create_startup_handlers
 from .setup import initialize

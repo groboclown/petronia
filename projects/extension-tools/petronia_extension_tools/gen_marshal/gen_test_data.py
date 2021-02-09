@@ -5,8 +5,7 @@ Create the marshaller Python object source.
 
 from typing import Dict, List, Any
 import random
-import datetime
-from petronia_common.util import StdRet
+from petronia_common.util import StdRet, tznow
 from petronia_common.extension.config import (
     AbcEventDataType,
     StructureEventDataType,
@@ -77,8 +76,8 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         return StdRet.pass_ok('True' if random.randint(0, 1) == 0 else 'False')  # nosec
 
     if isinstance(fdt, DatetimeEventDataType):
-        return StdRet.pass_ok(repr(datetime.datetime.utcnow().strftime(
-            '%Y%m%d:%H%M%S.%f:+0000',
+        return StdRet.pass_ok(repr(tznow().strftime(
+            '%Y%m%d:%H%M%S.%f:%z',
         )))
 
     if isinstance(fdt, EnumEventDataType):
