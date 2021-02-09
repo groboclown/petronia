@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-06T22:09:14.400507
+# Created on 2021-02-08T21:23:09.158903
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -10,21 +10,21 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 
 
 from typing import (
-    Optional,
-    Dict,
-    cast,
-    Union,
-    Any,
     SupportsInt,
-    SupportsFloat,
     List,
+    Any,
+    Union,
+    Dict,
+    SupportsFloat,
+    Optional,
+    cast,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
-    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    STANDARD_PETRONIA_CATALOG,
+    not_none,
     StdRet,
 )
 
@@ -517,16 +517,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[str],
-            List[datetime.datetime],
-            List[bool],
-            List[float],
-            datetime.datetime,
             str,
+            List[float],
             bool,
+            List[bool],
+            List[datetime.datetime],
+            List[str],
             int,
-            List[int],
             float,
+            datetime.datetime,
+            List[int],
         ],
     ) -> None:
         self.__name = name
@@ -539,16 +539,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[str],
-            List[datetime.datetime],
-            List[bool],
-            List[float],
-            datetime.datetime,
             str,
+            List[float],
             bool,
+            List[bool],
+            List[datetime.datetime],
+            List[str],
             int,
-            List[int],
             float,
+            datetime.datetime,
+            List[int],
     ]:
         """The selector value."""
         return self.__value
@@ -1026,21 +1026,19 @@ class Error:
     """
     A description of a failure.
     """
-    __slots__ = ('identifier', 'categories', 'source', 'corrective_action', 'error_message',)
+    __slots__ = ('identifier', 'categories', 'source', 'messages',)
 
     def __init__(
         self,
         identifier: str,
         categories: List[str],
         source: Optional[str],
-        corrective_action: Optional[LocalizableMessage],
-        error_message: LocalizableMessage,
+        messages: List[LocalizableMessage],
     ) -> None:
         self.identifier = identifier
         self.categories = categories
         self.source = source
-        self.corrective_action = corrective_action
-        self.error_message = error_message
+        self.messages = messages
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
@@ -1048,8 +1046,7 @@ class Error:
             'identifier': self.identifier,
             'categories': list(self.categories),
             'source': self.source,
-            'corrective_action': None if self.corrective_action is None else self.corrective_action.export_data(),
-            'error_message': self.error_message.export_data(),
+            'messages': [v.export_data() for v in self.messages],
         }
         return _strip_none(ret)
 
@@ -1121,44 +1118,29 @@ class Error:
                     name='Error',
                 )
             f_source = val
-        val = data.get('corrective_action')
-        f_corrective_action: Optional[LocalizableMessage] = None
-        if val is not None:
-            parsed_corrective_action = LocalizableMessage.parse_data(val)
-            if parsed_corrective_action.has_error:
-                return parsed_corrective_action.forward()
-            # Value, not result, because it could be optional...
-            f_corrective_action = parsed_corrective_action.value
-        val = data.get('error_message')
-        f_error_message: LocalizableMessage
+        val = data.get('messages')
+        f_messages: List[LocalizableMessage]
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='error_message',
+                field_name='messages',
                 name='Error',
             )
         else:
-            parsed_error_message = LocalizableMessage.parse_data(val)
-            if parsed_error_message.has_error:
-                return parsed_error_message.forward()
-            if parsed_error_message.value is None:
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _(
-                        'Field {field_name} must not be null'
-                    ),
-                    field_name='error_message',
-                )
-            f_error_message = parsed_error_message.result
+            f_messages = []
+            for item in val:
+                parsed_messages = LocalizableMessage.parse_data(item)
+                if parsed_messages.has_error:
+                    return parsed_messages.forward()
+                f_messages.append(parsed_messages.result)
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(Error(
             identifier=not_none(f_identifier),
             categories=not_none(f_categories),
             source=f_source,
-            corrective_action=f_corrective_action,
-            error_message=not_none(f_error_message),
+            messages=not_none(f_messages),
         ))
 
     def __repr__(self) -> str:

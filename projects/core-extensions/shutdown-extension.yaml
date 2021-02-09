@@ -1,0 +1,49 @@
+---
+
+name: petronia.core.api.shutdown
+type: api
+version: [1, 0, 0]
+about: Shutdown Lifecycle API.
+description: >
+  Petronia does not intrinsically provide a shutdown process.  Instead, this extension provides
+  the standard controls that extensions should subscribe to for proper shutdown handling.
+
+  The shutdown happens in phases.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_extension.core.impl.shutdown
+  minimum: [1, 0, 0]
+
+
+events:
+  # application-extension:register
+  #   - during extension startup, the extension can notify the shutdown lifecycle that this
+  #     is an application (non-critical system) extension.
+  # shutdown:request
+  #   - something initiates the shutdown process.  The user usually now has a chance to
+  #     cancel the shutdown.  This can potentially also be a restart request.
+  # shutdown:aborted
+  #   - the shutdown process has been aborted.
+  # shutdown:application
+  #   - the application shutdown phase has begin.  Applications have a time period in which
+  #     they must stop before this extension forces it to stop.
+  #   - the user can still abort the shutdown at this point.
+  # shutdown:system
+  #   - the user can no longer cancel the shutdown.
+  #   - system extensions have a chance to stop nicely.
+  # After this, the foreman shutdown / restart requests are used.
+
+  "start-application-shutdown":
+    description: >
+      The application level shutdown begins.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    unique-target: heartbeat
+    fields:
+      sent_on:
+        description: The time when the heartbeat was sent.
+        type: datetime

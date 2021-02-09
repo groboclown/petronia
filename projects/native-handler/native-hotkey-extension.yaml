@@ -1,0 +1,353 @@
+---
+schema-version: v1
+
+name: petronia.core.api.native.hotkey
+version: [1, 0, 0]
+type: api
+
+about: The Native Process event details.
+description: >
+  A well-defined list of events that are received and sent by the Native process.
+  The native process defines cross-platform actions for interacting with the
+  user.  This handles translation services and UI interactivity.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia.core.impl.native
+  minimum: [1, 0, 0]
+
+
+state-data:
+  # =========================================================================
+  # Translation Service.
+  translations:
+    description: >
+      All registered translations.
+    fields:
+      catalogs:
+        description: The registered translation catalogs.
+        type: array
+        value-type:
+          type: reference
+          ref: registered-translation-catalog
+
+  locales:
+    description: >
+      All known locales in the system.
+    fields:
+      locales:
+        description: The list of locales
+        type: array
+        value-type:
+          type: structure
+          fields:
+            name:
+              description: A user-readable name of the locale.
+              type: string
+              min-length: 1
+              max-length: 300
+            code:
+              description: The locale code (e.g. en_US)
+              type: reference
+              ref: locale-code
+
+  active-locale:
+    description: >
+      The currently active locale used by Petronia.
+    fields:
+      locale_code:
+        type: reference
+        ref: locale-code
+
+  # =========================================================================
+  # Input Service.
+
+  hotkey-bindings:
+    description: >
+      Hotkey events sent out by the native extension depend upon the binding
+      configuration.
+    fields:
+      master:
+        type: reference
+        ref: master-hotkey-sequence
+      bound:
+        description: >
+          List of key sequences bound to the hotkeys.
+        type: array
+        min-length: 0
+        max-length: 300
+        value-type:
+          type: reference
+          ref: bound-hotkey
+
+events:
+
+
+  # =========================================================================
+  # Input Service.
+
+  set-hotkey-bindings:
+    description: >
+      Set the hotkey bindings.  This will reset the existing hotkey settings.  If
+      the request is invalid, an failed event is sent, otherwise a success is sent.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    fields:
+      master:
+        type: reference
+        ref: master-hotkey-sequence
+      bound:
+        description: >
+          List of key sequences bound to the hotkeys.
+        type: array
+        min-length: 0
+        max-length: 300
+        value-type:
+          type: reference
+          ref: bound-hotkey
+
+  "set-hotkey-bindings:success":
+    dsecription: The requested hotkey bindings were processed successfully.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields: {}
+
+  "set-hotkey-bindings:failed":
+    description: >
+      If the state of `hotkey-bindings` is configured incorrectly, this error
+      event is sent to describe what the error was, and what was the cause of the error.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields:
+      master_problem:
+        optional: true
+        type: reference
+        ref: master-hotkey-sequence-problem
+      bound_problems:
+        optional: true
+        type: array
+        value-type:
+          type: reference
+          ref: bound-hotkey-problem
+
+  hotkey-pressed:
+    description: >
+      The user pressed a bound hotkey.  The pressed sequence (not including the
+      master sequence) is returned.
+    priority: user
+    send-access: implementation
+    receive-access: public
+    fields:
+      hotkey:
+        type: reference
+        ref: bound-hotkey
+
+
+references:
+  # =========================================================================
+  # Standard Types
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+  localizable-message:
+    description: A localizable message for user display.
+    type: structure
+    fields:
+      catalog:
+        description: >
+          The name of the translation file, or "domain", that contains
+          the translations.
+        type: string
+        min-length: 2
+        max-length: 300
+      message:
+        description: >
+          The message ID to look up in the catalog.  If the message
+          has no translation, this is directly displayed to the user.
+        type: string
+        min-length: 1
+        max-length: 10000
+      arguments:
+        description: >
+          List of arguments to be inserted into the translated message.
+          Each argument should have a distinct name from all the other
+          arguments in this message; the name is how the message references
+          the arguments.
+        type: array
+        min-length: 0
+        max-length: 100
+        optional: true
+        value-type:
+          type: reference
+          ref: message-argument
+  message-argument:
+    description: An argument to be inserted into the localizable message.
+    type: structure
+    fields:
+      name:
+        description: Name of the arugment, referenced by the message.
+        type: string
+        min-length: 1
+        max-length: 50
+      value:
+        description: Value of the argument.  It must be a simple type.
+        type: reference
+        ref: message-argument-value
+  message-argument-value:
+    description: A replacement value for a named argument in the message.
+    type: selector
+    type-mapping:
+      string:
+        type: string
+        min-length: 0
+        max-length: 10000
+      int:
+        type: int
+      float:
+        type: float
+      bool:
+        type: bool
+      datetime:
+        type: datetime
+      string_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 0
+          max-length: 10000
+      int_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: int
+      float_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: float
+      bool_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: bool
+      datetime_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: datetime
+  error:
+    type: structure
+    description: A description of a failure.
+    fields:
+      identifier:
+        description: >
+          The identifier that uniquely defines this error.  Useful for
+          automation that needs to perform operations based on specific
+          error messages.
+        type: string
+        min-length: 5
+        max-length: 600
+      categories:
+        description: >
+          A collection of general categories that define the error.
+          Useful for automation that can act differently depending on
+          the contents.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          description: General error category.
+          type: enum
+          values:
+            - file
+            - os
+            - configuration
+            - network
+            - access-restriction
+            - invalid-user-action
+            - internal
+      source:
+        description: The source of the error, if known.
+        type: string
+        min-length: 2
+        max-length: 300
+        optional: true
+      messages:
+        description: The localizable messages associated with this error.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+            type: reference
+            ref: localizable-message
+
+  # =========================================================================
+  # Custom Types
+
+  master-hotkey-sequence:
+    description: >
+      Master key sequence.  Prefix with `seq:` for a key sequence,
+      or `meta:` for a collection of modifier keys.
+    type: str
+    min-length: 1
+    max-length: 300
+
+  bound-hotkey:
+    description: >
+      A list of key sequences that construe a bound hotkey.  This does not include
+      the master sequence.
+    type: array
+    min-length: 1
+    max-length: 20
+    value-type:
+      description: >
+        A key in the bound hotkey combination.
+      type: string
+      min-length: 1
+      max-length: 100
+
+  bound-hotkey-problem:
+    description: >
+      A problem with a bound hotkey.
+    type: structure
+    fields:
+      hotkey:
+        type: reference
+        ref: bound-hotkey
+      error:
+        type: reference
+        ref: error
+
+  master-hotkey-sequence-problem:
+    description: >
+      A problem with the hotkey master sequence.
+    type: structure
+    fields:
+      master:
+        type: reference
+        ref: master-hotkey-sequence
+      error:
+        type: reference
+        ref: error

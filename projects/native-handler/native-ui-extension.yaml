@@ -1,0 +1,264 @@
+---
+schema-version: v1
+
+name: petronia.core.api.native.ui
+version: [1, 0, 0]
+type: api
+
+about: The Native UI event details.
+description: >
+  A sub-event for native UI handling.  This handles translation services and
+  UI component interactivity.  Translations are rolled into this bundle because
+  they are used by the text rendering portions.
+
+  The UI elements constructed in this extension are the lowest and simplest.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia.core.impl.native
+  minimum: [1, 0, 0]
+
+
+state-data:
+
+events:
+
+  # =========================================================================
+  # Low-Level UI Component Actions
+
+  register-image-details:
+    description: >
+      Register an image for display.  This must be followed up with a
+      register-image-bytes event.  The source ID is the image registration
+      ID.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    fields:
+      locale:
+        type: reference
+        ref: locale_code
+      format:
+        description: The mime format of the image.
+        type: string
+        min-length: 1
+        max-length: 100
+
+  # =========================================================================
+  # User Events on the Drawn Components
+
+  ui-panel-clicked:
+    description: >
+      A UI panel was clicked on.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    fields:
+      identifier:
+        type: reference
+        ref: response-identifier
+      mouse_buttons:
+        description: List of mouse button index that was pressed.  Can also mean a key activation.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: int
+
+  ui-text-field-update:
+    description: >
+      Text inside a text field UI element changed.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    fields:
+      identifier:
+        type: reference
+        ref: response-identifier
+      text:
+        type: string
+        min-length: 0
+        max-length: 1000
+
+
+references:
+  # =========================================================================
+  # Standard Types
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+
+  # =========================================================================
+  # Custom Types
+
+  locale-code:
+    description: standard language and locale identifier.
+    type: string
+    min-length: 1
+    max-length: 10
+
+
+  # =========================================================================
+  # Drawn and Interactive UI Elements
+
+  color:
+    description: >
+      A color on the screen.  This is a hex code in the format RRGGBBAA.
+    type: string
+    min-length: 8
+    max-length: 8
+
+  ui-element:
+    description: Something to show.
+    type: selector
+    type-mapping:
+      panel:
+        type: reference
+        ref: ui-panel
+      text:
+        type: reference
+        ref: ui-text
+      image:
+        type: reference
+        ref: ui-image
+
+  ui-text:
+    description: >
+      Text to show to the user.
+    type: structure
+    fields:
+      font_name:
+        type: string
+        optional: true
+      font_size:
+        type: int
+        min-value: 1
+        optional: true
+      italics:
+        type: bool
+        optional: true
+      weight:
+        type: float
+        min-value: 0.0
+        optional: true
+      underline:
+        type: int
+        min-value: 0
+        optional: true
+      color:
+        type: reference
+        ref: color
+      text:
+        description: The text message, which will be translated
+        type: string
+        min-length: 0
+        max-length: 65535
+      catalog:
+        type: reference
+        ref: catalog-name
+
+
+  ui-image:
+    description:
+      A reference to a UI image, which must have been already loaded.
+    type: structure
+    fields:
+      image_ref:
+        description: The reference to the already loaded image.
+        type: reference
+        ref: event-target-id
+      layout:
+        description: How to handle the display of the image.
+        type: enum
+        values:
+          - crop
+          - scale
+
+  ui-text-field:
+    description: >
+      A text field to allow the user to enter text.  Changes to the text
+      will be sent as events.
+    type: structure
+    fields:
+      max_length:
+        type: int
+        min-value: 0
+      font_name:
+        type: string
+        optional: true
+      font_size:
+        type: int
+        min-value: 1
+        optional: true
+      italics:
+        type: bool
+        optional: true
+      weight:
+        type: float
+        min-value: 0.0
+        optional: true
+      underline:
+        type: int
+        min-value: 0
+        optional: true
+      color:
+        type: reference
+        ref: color
+
+
+  ui-panel:
+    description: >
+      A UI component that has a color and can contain other components.
+      Only panels can be directly clicked.  To make something clickable, put it inside
+      a panel.
+    type: structure
+    fields:
+      identifier:
+        type: reference
+        ref: response-identifier
+      clickable:
+        description: Set to True to allow click events to be fired on this element.
+        type: bool
+      color:
+        type: reference
+        ref: color
+      outline_color:
+        type: reference
+        ref: color
+      outline_shape:
+        type: enum
+        values:
+          - rectangle
+          - rounded
+      outline_width:
+        type: int
+        min-value: 0
+        max-value: 1000
+      children:
+        type: array
+        optional: true
+        min-length: 0
+        max-length: 1000
+        value-type:
+          type: structure
+          fields:
+            element:
+              type: reference
+              ref: ui-element
+            location:
+              description: relative location to this panel.
+              type: reference
+              ref: screen-dimension

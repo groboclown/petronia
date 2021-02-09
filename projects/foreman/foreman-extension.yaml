@@ -292,16 +292,14 @@ references:
         min-length: 2
         max-length: 300
         optional: true
-      corrective_action:
-        description: >
-          If given, informs the user approaches for fixing the issue.
-        type: reference
-        optional: true
-        ref: localizable-message
-      error_message:
-        description: The localizable error message.
-        type: reference
-        ref: localizable-message
+      messages:
+        description: The localizable messages associated with this error.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+            type: reference
+            ref: localizable-message
   extension-name:
     description: Standard name requirements for an extension.
     type: string

@@ -1,0 +1,105 @@
+---
+schema-version: v1
+
+name: petronia.core.api.native.monitor
+version: [1, 0, 0]
+type: api
+
+about: The Native Monitor Data event details.
+description: >
+  A service that records the current physical monitor device information,
+  and updates it when the display changes, say through the user docking a
+  laptop into a system with 12 monitors.  This extension should be avoided
+  for all but the lowest level rendering and helper tools.  Instead, the
+  screen extension should be used, which has the virtual screen size and
+  position.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia.core.impl.native
+  minimum: [1, 0, 0]
+
+
+state-data:
+  # =========================================================================
+  # Monitor Service.
+
+  active-monitors:
+    description:
+      Information about the user's monitors.  In nearly all cases, a virtual
+      screen layout should be used instead of this low-level detail, so that
+      low-level scaling can be properly used.
+    fields:
+      monitors:
+        type: array
+        min-length: 0
+        max-length: 65535
+        value-type:
+          type: structure
+          fields:
+            identifier:
+              description: >
+                An identifier for this specific monitor.  Can be used for
+                internal mapping for specific monitors.  After Petronia
+                startup, this identifier should only be used to refer to
+                this specific monitor at the time it was mounted.  If it
+                is disconnected then reconnected, it will be assigned a
+                different identifier.
+              type: reference
+              ref: response-identifier
+            description:
+              description: human readable information about the monitor.
+              type: string
+              min-length: 0
+              max-length: 1000
+            real_pixel_width:
+              description: number of pixels of the real device along the x axis.
+              type: int
+              min-value: 0
+              max-value: 2000000000
+            real_pixel_height:
+              description: number of pixels of the real device along the y axis.
+              type: int
+              min-value: 0
+              max-value: 2000000000
+            real_pixel_size_ratio_x:
+              description: >
+                A ratio of width vs height for the real pixel size.  Some resolutions
+                in monitors have non-rectangular pixels.  The program requires knowledge
+                of how the pixel is shaped in order to render squares and circles that
+                look like squares and circles to the user.  Use 0 to indicate that
+                it isn't known.
+              type: int
+              min-value: 0
+            real_pixel_size_ratio_y:
+              description: >
+                A ratio of width vs height for the real pixel size.  Some resolutions
+                in monitors have non-rectangular pixels.  The program requires knowledge
+                of how the pixel is shaped in order to render squares and circles that
+                look like squares and circles to the user.  Use 0 to indicate that
+                it isn't known.
+              type: int
+              min-value: 0
+            supports_rotation:
+              description: >
+                Whether this monitor supports rotating the display, so that it is properly
+                rendered when the user physically rotates the monitor.
+              type: bool
+
+events:
+
+
+references:
+  # =========================================================================
+  # Standard Types
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999

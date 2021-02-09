@@ -48,7 +48,12 @@ echo native-handler:
 "${h}/generate-events.sh" \
   --output "${pd}/native-handler/petronia_native/common/events/impl" \
   --implementation --api --state \
-  "${pd}/native-handler/native-extension.yaml"
+  "${pd}/native-handler/native-hotkey-extension.yaml" \
+  "${pd}/native-handler/native-l10n-extension.yaml" \
+  "${pd}/native-handler/native-monitor-extension.yaml" \
+  "${pd}/native-handler/native-screen-extension.yaml" \
+  "${pd}/native-handler/native-ui-extension.yaml" \
+  "${pd}/native-handler/native-window-extension.yaml"
 
 
 # Extension lib.

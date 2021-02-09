@@ -1,8 +1,8 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-06T22:09:28.458002
+# Created on 2021-02-08T21:23:20.833843
 
 """
-Data structures and marshalling for extension petronia.core.api.native version 1.0.0.
+Data structures and marshalling for extension petronia.core.api.native.i10n version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
@@ -10,14 +10,14 @@ Data structures and marshalling for extension petronia.core.api.native version 1
 
 
 from typing import (
+    Dict,
+    SupportsFloat,
+    cast,
+    Union,
+    Any,
     SupportsInt,
     List,
-    cast,
-    Dict,
-    Union,
-    SupportsFloat,
     Optional,
-    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
@@ -28,7 +28,7 @@ from petronia_common.util import (
     not_none,
 )
 
-EXTENSION_NAME = 'petronia.core.api.native'
+EXTENSION_NAME = 'petronia.core.api.native.i10n'
 EXTENSION_VERSION = (1, 0, 0)
 
 
@@ -44,7 +44,7 @@ class RegisterTranslationEvent:
     used.
     """
     __slots__ = ('locale_code', 'catalog_name', 'message_file',)
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation'
+    FULL_EVENT_NAME = 'petronia.core.api.native.i10n:register-translation'
     SHORT_EVENT_NAME = 'register-translation'
 
     def __init__(
@@ -151,7 +151,7 @@ class RegisterTranslationSuccessEvent:
     source ID of the origin of the registration.
     """
     __slots__ = ()
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation:success'
+    FULL_EVENT_NAME = 'petronia.core.api.native.i10n:register-translation:success'
     SHORT_EVENT_NAME = 'register-translation:success'
 
     def __init__(
@@ -188,16 +188,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[int],
+            float,
+            bool,
             List[float],
-            datetime.datetime,
-            int,
-            List[str],
             List[datetime.datetime],
+            datetime.datetime,
             List[bool],
             str,
-            bool,
-            float,
+            int,
+            List[str],
+            List[int],
         ],
     ) -> None:
         self.__name = name
@@ -210,16 +210,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[int],
+            float,
+            bool,
             List[float],
-            datetime.datetime,
-            int,
-            List[str],
             List[datetime.datetime],
+            datetime.datetime,
             List[bool],
             str,
-            bool,
-            float,
+            int,
+            List[str],
+            List[int],
     ]:
         """The selector value."""
         return self.__value
@@ -842,7 +842,7 @@ class RegisterTranslationFailedEvent:
     of the origin of the registration.
     """
     __slots__ = ('error',)
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation:failed'
+    FULL_EVENT_NAME = 'petronia.core.api.native.i10n:register-translation:failed'
     SHORT_EVENT_NAME = 'register-translation:failed'
 
     def __init__(
@@ -905,7 +905,7 @@ class RegisterTranslationMessagesEvent:
     Binary event
     """
     __slots__ = ()
-    FULL_EVENT_NAME = 'petronia.core.api.native:register-translation:messages'
+    FULL_EVENT_NAME = 'petronia.core.api.native.i10n:register-translation:messages'
     SHORT_EVENT_NAME = 'register-translation:messages'
 
     def __init__(
@@ -936,6 +936,398 @@ class RegisterTranslationMessagesEvent:
 
     def __repr__(self) -> str:
         return "RegisterTranslationMessagesEvent(" + repr(self.export_data()) + ")"
+
+
+class SetLocaleEvent:
+    """
+    Set the current locale. Must be one of the known locales. If this fails, then
+    the native extension will report the error to the user; the sender will not know
+    whether the set request worked or not. Setting the locale may take a while to
+    reload images and fonts, and may interrupt the processing of UI actions. This
+    only changes Petronia's locale, not necessarily the locale of all running UI
+    elements controlled by other systems.
+    """
+    __slots__ = ('locale_code',)
+    FULL_EVENT_NAME = 'petronia.core.api.native.i10n:set-locale'
+    SHORT_EVENT_NAME = 'set-locale'
+
+    def __init__(
+        self,
+        locale_code: str,
+    ) -> None:
+        self.locale_code = locale_code
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return SetLocaleEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'locale_code': self.locale_code,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['SetLocaleEvent']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('locale_code')
+        f_locale_code: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='locale_code',
+                name='SetLocaleEvent',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='locale_code',
+                    type='str',
+                    name='SetLocaleEvent',
+                )
+            f_locale_code = val
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(SetLocaleEvent(
+            locale_code=not_none(f_locale_code),
+        ))
+
+    def __repr__(self) -> str:
+        return "SetLocaleEvent(" + repr(self.export_data()) + ")"
+
+
+class RegisteredTranslationCatalog:
+    """
+    A catalog registered for translations
+    """
+    __slots__ = ('catalog_name', 'locale_codes',)
+
+    def __init__(
+        self,
+        catalog_name: str,
+        locale_codes: List[str],
+    ) -> None:
+        self.catalog_name = catalog_name
+        self.locale_codes = locale_codes
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'catalog_name': self.catalog_name,
+            'locale_codes': list(self.locale_codes),
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['RegisteredTranslationCatalog']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('catalog_name')
+        f_catalog_name: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='catalog_name',
+                name='RegisteredTranslationCatalog',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='catalog_name',
+                    type='str',
+                    name='RegisteredTranslationCatalog',
+                )
+            f_catalog_name = val
+        val = data.get('locale_codes')
+        f_locale_codes: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='locale_codes',
+                name='RegisteredTranslationCatalog',
+            )
+        else:
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='locale_codes',
+                    type='List[str]',
+                    name='RegisteredTranslationCatalog',
+                )
+            f_locale_codes = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='locale_codes',
+                        type='str',
+                        name='RegisteredTranslationCatalog',
+                    )
+                f_locale_codes.append(item)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(RegisteredTranslationCatalog(
+            catalog_name=not_none(f_catalog_name),
+            locale_codes=not_none(f_locale_codes),
+        ))
+
+    def __repr__(self) -> str:
+        return "RegisteredTranslationCatalog(" + repr(self.export_data()) + ")"
+
+
+class TranslationsState:
+    """
+    All registered translations.
+    """
+    __slots__ = ('catalogs',)
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.i10n:translations'
+    UNIQUE_TARGET_REL = 'petronia.core.api.native.i10n:translations'
+
+    def __init__(
+        self,
+        catalogs: List[RegisteredTranslationCatalog],
+    ) -> None:
+        self.catalogs = catalogs
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'catalogs': [v.export_data() for v in self.catalogs],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['TranslationsState']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('catalogs')
+        f_catalogs: List[RegisteredTranslationCatalog]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='catalogs',
+                name='TranslationsState',
+            )
+        else:
+            f_catalogs = []
+            for item in val:
+                parsed_catalogs = RegisteredTranslationCatalog.parse_data(item)
+                if parsed_catalogs.has_error:
+                    return parsed_catalogs.forward()
+                f_catalogs.append(parsed_catalogs.result)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(TranslationsState(
+            catalogs=not_none(f_catalogs),
+        ))
+
+    def __repr__(self) -> str:
+        return "TranslationsState(" + repr(self.export_data()) + ")"
+
+
+class Locales:
+    """
+    (no description)
+    """
+    __slots__ = ('name', 'code',)
+
+    def __init__(
+        self,
+        name: str,
+        code: str,
+    ) -> None:
+        self.name = name
+        self.code = code
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'name': self.name,
+            'code': self.code,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['Locales']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('name')
+        f_name: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='name',
+                name='Locales',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='name',
+                    type='str',
+                    name='Locales',
+                )
+            f_name = val
+        val = data.get('code')
+        f_code: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='code',
+                name='Locales',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='code',
+                    type='str',
+                    name='Locales',
+                )
+            f_code = val
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(Locales(
+            name=not_none(f_name),
+            code=not_none(f_code),
+        ))
+
+    def __repr__(self) -> str:
+        return "Locales(" + repr(self.export_data()) + ")"
+
+
+class LocalesState:
+    """
+    All known locales in the system.
+    """
+    __slots__ = ('locales',)
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.i10n:locales'
+    UNIQUE_TARGET_REL = 'petronia.core.api.native.i10n:locales'
+
+    def __init__(
+        self,
+        locales: List[Locales],
+    ) -> None:
+        self.locales = locales
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'locales': [v.export_data() for v in self.locales],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['LocalesState']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('locales')
+        f_locales: List[Locales]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='locales',
+                name='LocalesState',
+            )
+        else:
+            f_locales = []
+            for item in val:
+                parsed_locales = Locales.parse_data(item)
+                if parsed_locales.has_error:
+                    return parsed_locales.forward()
+                f_locales.append(parsed_locales.result)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(LocalesState(
+            locales=not_none(f_locales),
+        ))
+
+    def __repr__(self) -> str:
+        return "LocalesState(" + repr(self.export_data()) + ")"
+
+
+class ActiveLocaleState:
+    """
+    The currently active locale used by Petronia.
+    """
+    __slots__ = ('locale_code',)
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.i10n:active-locale'
+    UNIQUE_TARGET_REL = 'petronia.core.api.native.i10n:active-locale'
+
+    def __init__(
+        self,
+        locale_code: str,
+    ) -> None:
+        self.locale_code = locale_code
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'locale_code': self.locale_code,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['ActiveLocaleState']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('locale_code')
+        f_locale_code: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='locale_code',
+                name='ActiveLocaleState',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='locale_code',
+                    type='str',
+                    name='ActiveLocaleState',
+                )
+            f_locale_code = val
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(ActiveLocaleState(
+            locale_code=not_none(f_locale_code),
+        ))
+
+    def __repr__(self) -> str:
+        return "ActiveLocaleState(" + repr(self.export_data()) + ")"
 
 
 def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:

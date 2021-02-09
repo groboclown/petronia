@@ -2,6 +2,9 @@
 """
 Tools to help get the file descriptor from the argument list.  The program must define which
 argument is passed the handle, and this tool will return the correct handle.
+
+This remains outside the py-extension-lib, because even Foreman uses this, even though
+for Foreman it's mainly on the unit testing side.
 """
 
 from typing import BinaryIO

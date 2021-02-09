@@ -11,23 +11,40 @@ These are desired, tactical changes to bits of already written code.
 
 * raise the minimum coverage percent back up to 99.  It was dropped to 95 to get an initial good build.
 
+
+### core-extensions
+
+* implement data store extension.  This is #1 priority, because everything else (well, not Foreman) depends upon this working right.
+* finish shutdown extension design.  This needs to borrow heavily from the v3.0 notes.
+* implement the timer extension.
+
+
 ### native
 
-* split the native-extension.yaml into one part per service.  The standard implementation will provide an extension that implements all of them.
+This is the next thing that's being worked on.
+
+1. implement monitor detection + screen change detection for Windows.
+1. implement monitor mapping.  Include in this adding in a "failed to set mapping" event.
+1. implement hotkey capture and reporting for Windows.
+1. implement window handling and event reporting for Windows.
+
+* once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
+* for the ui extension, it must have absolute position for the outer window, but the inner components must be relative, because text display is dynamic (it looks up translations).  On that note, text must also be rotatable, and notes should be made that implementors *should* support BiDi.
+
 
 ### py-common-lib
 
 * extension event schema doesn't capture the event description for binary events.  This is an artifact of how the events collect their data by using shared code.
 * add unit test coverage on `petronia_common/extension/config/event_loader.py` (lines 83->96, 96, 389->390, 390)
 * add unit test coverage on `petronia_common/extension/config/event_schema.py` (lines 870->874)
-* add unit test coverage on `petronia_common/extension/runner/message_helper.py` (lines 58, 63-65, 70-72, 79-81, 95->97, 97)
+* add unit test coverage on `petronia_common/extension/runner/message_helper.py` (lines 58, 63-65, 70-72, 79-81, 95->97, 97
+* `StdRet.pass_exception` should take a catalog.
 
 
 ### py-extension-lib
 
 * migrate the extension library parts out of py-common-lib into this project.
   * `petronia_common.extension.runner`
-  * `petronia_common.event_stream.arg_handle`
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 
 
@@ -35,6 +52,7 @@ These are desired, tactical changes to bits of already written code.
 
 * make binary event classes generated better.  Right now, they are generated just like object event classes, and as a result they end up failing on lint and code coverage checks.  See `native-handler` - the implementation must be manually edited to get it to pass lint.
 * improve test generation to have full coverage of some categories of events, such as data-store.
+* add a `configuration` section as well, which is treated the same way as the `stored-data` section, but there is only one configuration object.
 
 
 ### extension-loader
@@ -46,6 +64,7 @@ These are desired, tactical changes to bits of already written code.
 * document how the extension-loader loads boot-time extensions
 * define the access permissions required by the extension-loader.
 * code coverage improvements
+* add an event that allows for an extension to save its configuration.  Extension loader would save it to an `overrides` directory in a file dedicated to that one extension.  This allows for UIs to alter a configuration and save it.
 
 
 ### foreman
@@ -57,6 +76,7 @@ These are desired, tactical changes to bits of already written code.
 * document the configuration file formats used by foreman
 * change up the event router so that tests can have better insight into the status of the connected channels.  This may not be practical, but some method for gaining this insight can help eliminate the sleeps.  Perhaps some kind of spy into the internal buffers?
 * `cmd_launcher_test` doesn't work well with Windows on Travis builds.  This could be a timing issue.
+* foreman currently has a build dependency on `py-extension-lib` in order to share some very targeted behavior.  Should this be moved over to `py-common-lib`?  Currently, `py-common-lib` includes the arg-handler logic that is only used by extensions, so either move that arg handler over to extension lib, or move the foreman dependent stuff into py-common-lib.
 
 
 ## High Level Ideas

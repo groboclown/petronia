@@ -1,0 +1,399 @@
+---
+schema-version: v1
+
+name: petronia.core.api.native
+version: [1, 0, 0]
+type: api
+
+about: The Native Window event details.
+description: >
+  Manages the native UI windows.  This includes window focus handling.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia.core.impl.native
+  minimum: [1, 0, 0]
+
+
+state-data:
+
+  # =========================================================================
+  # Input Service.
+
+  focus-settings:
+    description: >
+      How the window focus events are translated into Petronia events.
+    fields:
+      on_new_window_click:
+        description: >
+          True if the mouse click on a different window generates the focus
+          event.  False means that mouse clicks do not explicitly
+          generate focus events (but note that the underlying Window system may
+          cause them to be generated regardless of this setting).
+        type: bool
+      on_new_window_enter:
+        description: >
+          True if the mouse motion entering into a different window generates
+          the focus event.
+        type: bool
+      on_window_event:
+        description: >
+          True if the underlying Windowing system focus events generates a
+          Petronia focus event.
+
+  # =========================================================================
+  # Window Service.
+
+  active-windows:
+    description:
+      Information about the windows that are active in the system.
+      For each window in this list, its window-id is a structure that
+      conforms to the window-state structure in the reference section.
+    fields:
+      windows:
+        type: array
+        min-length: 0
+        max-length: 65535
+        value-type:
+          type: structure
+          fields:
+            window-id:
+              type: reference
+              ref: event-target-id
+
+  focused-windows:
+    description: >
+      The windows that have focus.  Focus in Petronia allows multiple input groups
+      to have their own windows, though most underlying UI systems only have support
+      for one user (all keyboards and mice are considered one).  Each index represents
+      that user group.
+    fields:
+      focused:
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: reference
+          ref: event-target-id
+
+  window-details:
+    description: >
+      Details for a single window.
+
+      Note: this is not a state object, but rather a template for the data structure that
+      stores the distinct windows.  There are one of these structures registered for each
+      active window in Petronia.
+    type: reference
+    ref: window-state
+
+
+events:
+
+
+  # =========================================================================
+  # Input Service.
+
+  # TODO set focus settings
+
+  # =========================================================================
+  # Window State and Actions
+
+  window-created:
+    description: >
+      A UI window was created.  The source ID can be used for sending requests
+      to alter the window state.  Additionally, this indicates that the corresponding
+      state object has also been created, and updates to the window state are broadcast
+      to that state object.
+    priority: user
+    send-access: implementation
+    receive-access: public
+    fields:
+      state:
+        type: reference
+        ref: window-state
+
+  window-destroyed:
+    description: >
+      A UI window was destroyed.  In addition to this event, the corresponding state
+      object for the window is also removed.
+    priority: user
+    send-access: implementation
+    receive-access: public
+    fields:
+      reason:
+        description: An OS specific code for why the window was destroyed.
+        type: string
+        min-length: 0
+        max-length: 300
+
+  set-window-positions:
+    description: >
+      Request changes to zero or more window positions.  This is useful for systems that
+      rearrange the whole screen, or move between virtual desktops.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    fields:
+      windows:
+        description: List of windows and their new positions.
+        type: array
+        min-length: 1
+        max-length: 65535
+        value-type:
+          type: structure
+          fields:
+            window_id:
+              type: reference
+              ref: event-target-id
+            location:
+              description: The new location, or don't set to make the window minimized.
+              type: reference
+              ref: screen-dimension
+              optional: true
+
+  window-focused:
+    description: >
+      Sent when a different window receives keyboard focus.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    fields:
+      window_id:
+        type: reference
+        ref: event-target-id
+      keyboard_focus:
+        description: Which keyboard has focus on this window.  -1 means none.
+        type: int
+        min-value: -1
+        max-value: 10000
+
+
+references:
+  # =========================================================================
+  # Standard Types
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+  localizable-message:
+    description: A localizable message for user display.
+    type: structure
+    fields:
+      catalog:
+        description: >
+          The name of the translation file, or "domain", that contains
+          the translations.
+        type: string
+        min-length: 2
+        max-length: 300
+      message:
+        description: >
+          The message ID to look up in the catalog.  If the message
+          has no translation, this is directly displayed to the user.
+        type: string
+        min-length: 1
+        max-length: 10000
+      arguments:
+        description: >
+          List of arguments to be inserted into the translated message.
+          Each argument should have a distinct name from all the other
+          arguments in this message; the name is how the message references
+          the arguments.
+        type: array
+        min-length: 0
+        max-length: 100
+        optional: true
+        value-type:
+          type: reference
+          ref: message-argument
+  message-argument:
+    description: An argument to be inserted into the localizable message.
+    type: structure
+    fields:
+      name:
+        description: Name of the arugment, referenced by the message.
+        type: string
+        min-length: 1
+        max-length: 50
+      value:
+        description: Value of the argument.  It must be a simple type.
+        type: reference
+        ref: message-argument-value
+  message-argument-value:
+    description: A replacement value for a named argument in the message.
+    type: selector
+    type-mapping:
+      string:
+        type: string
+        min-length: 0
+        max-length: 10000
+      int:
+        type: int
+      float:
+        type: float
+      bool:
+        type: bool
+      datetime:
+        type: datetime
+      string_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 0
+          max-length: 10000
+      int_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: int
+      float_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: float
+      bool_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: bool
+      datetime_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: datetime
+  error:
+    type: structure
+    description: A description of a failure.
+    fields:
+      identifier:
+        description: >
+          The identifier that uniquely defines this error.  Useful for
+          automation that needs to perform operations based on specific
+          error messages.
+        type: string
+        min-length: 5
+        max-length: 600
+      categories:
+        description: >
+          A collection of general categories that define the error.
+          Useful for automation that can act differently depending on
+          the contents.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          description: General error category.
+          type: enum
+          values:
+            - file
+            - os
+            - configuration
+            - network
+            - access-restriction
+            - invalid-user-action
+            - internal
+      source:
+        description: The source of the error, if known.
+        type: string
+        min-length: 2
+        max-length: 300
+        optional: true
+      corrective_action:
+        description: >
+          If given, informs the user approaches for fixing the issue.
+        type: reference
+        optional: true
+        ref: localizable-message
+      error_message:
+        description: The localizable error message.
+        type: reference
+        ref: localizable-message
+
+  # =========================================================================
+  # Custom Types
+
+  screen-dimension:
+    description: >
+      The screen position and size of a component.  Unless otherwise specified, these
+      are in virtual screen position, meaning that it's spread across all monitors and
+      scaled.
+    type: structure
+    fields:
+      x:
+        type: int
+        description: x-position, with 0 being the "west" of the screen.
+      y:
+        type: int
+        description: y-position, with 0 being the "north" of the screen.
+      width:
+        type: int
+        description: the pixel length along the x-axis
+      height:
+        type: int
+        description: the pixel length along the y-axis
+
+  window-meta-values:
+    description: >
+      Details about a window.  These are generally platform specific.
+      These can be used by other extensions to perform special highlighting
+      or positioning of the window.
+    type: array
+    min-length: 0
+    max-length: 100
+    value-type:
+      type: structure
+      fields:
+        key:
+          description: the meta value's name.
+          type: string
+        value:
+          description: the meta value.
+          type: string
+
+  window-state:
+    description: >
+      The state of a window.
+    type: structure
+    fields:
+      active:
+        description: Is this window active?
+        type: bool
+      focus:
+        description: Which user input group has focus on this window.  -1 means none.
+        type: int
+        min-value: -1
+        max-value: 10000
+      parent_id:
+        type: reference
+        optional: true
+        ref: event-target-id
+      flashing:
+        description: True if the window is marked by the system as important.
+        type: boolean
+      location:
+        type: reference
+        ref: screen-dimension
+      minimized:
+        description: Is this window minimized?
+        type: bool
+      meta:
+        type: reference
+        ref: window-meta-values

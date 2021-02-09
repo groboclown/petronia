@@ -1,0 +1,207 @@
+---
+schema-version: v1
+
+name: petronia.core.api.native.screen
+version: [1, 0, 0]
+type: api
+
+about: The Native Screen Data event details.
+description: >
+  A service that records the virtual screen space.  This lays out the
+  monitors relative to each other, so that a single pixel position maps to
+  one of the monitors, and handles the user's screen scaling choices.
+
+  The implementation may choose to have the virtual screen space not map
+  directly to a monitor.  For example, a layer on top of the native Windows
+  UI may choose to have the Windows toolbar not be mappable within the
+  virtual screen.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia.core.impl.native
+  minimum: [1, 0, 0]
+
+
+state-data:
+  # =========================================================================
+  # Screen Service.
+
+  virtual-screen:
+    description:
+      Layout of the monitors mapped into a virtual space.  Index 0 is considered
+      the primary screen, and must have a virtual North-West corner pixel set to (0, 0).
+      Note that there isn't necessarily a 1-to-1 screen area to
+      monitor here.  Each screen area is a rectangle.
+    fields:
+      area:
+        type: array
+        min-length: 0
+        max-length: 65535
+        value-type:
+          type: structure
+          fields:
+            # Note: the coordinates are given in (x,y) x (width, height) so that it isn't
+            # possible for an invalid position to be present (e.g. (x1, y1), (x2, y2) has
+            # the possibility of x1 > x2.
+            nw_x_pixel:
+              description: >
+                The virtual screen "x" position of the upper left-hand side of this screen.
+              type: int
+              min-value: -2000000000
+              max-value: 2000000000
+            nw_y_pixel:
+              description: >
+                The virtual screen "y" position of the upper left-hand side of this screen.
+              type: int
+              min-value: -2000000000
+              max-value: 2000000000
+            width:
+              description: >
+                The number of virtual pixels wide for this screen.  The ne most-visible pixel for
+                the virtual screen would be the `nw_x_pixel` + this width - 1.
+              type: int
+              min-value: 0
+              max-value: 2000000000
+            height:
+              description: >
+                The number of virtual pixels tall for this screen.  The sw most-visible pixel for
+                the virtual screen would be the `nw_y_pixel` + this height - 1.
+              type: int
+              min-value: 0
+              max-value: 2000000000
+            ratio_x:
+              dscription: >
+                A ratio of width vs height for the real pixel size.  Some resolutions
+                in monitors have non-rectangular pixels.  The program requires knowledge
+                of how the pixel is shaped in order to render squares and circles that
+                look like squares and circles to the user.  Use 0 to indicate that
+                it isn't known.
+              type: int
+              min-value: 0
+            ratio_y:
+              dscription: >
+                A ratio of width vs height for the real pixel size.  Some resolutions
+                in monitors have non-rectangular pixels.  The program requires knowledge
+                of how the pixel is shaped in order to render squares and circles that
+                look like squares and circles to the user.  Use 0 to indicate that
+                it isn't known.
+              type: int
+              min-value: 0
+
+events:
+
+  "map-monitors:request":
+    description: >
+      Maps monitor identifier numbers to a virtual screen space.  This implicitly includes
+      the scaling factor.
+
+      The map request must be valid.  That means: no pixels are shared between virtual spaces,
+      and requested monitors must exist at the time of the request.  The implementation may have its
+      own additional requirements.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    fields:
+      sceens:
+        description: >
+          list of virtual screens, and their source monitor.  A screen has at most 1 monitor.
+        type: array
+        min-length: 0
+        max-length: 65535
+        value-type:
+          type: reference
+          ref: screen-monitor-mapping
+
+
+references:
+  # =========================================================================
+  # Standard Types
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+
+  # =========================================================================
+  # Custom types
+  screen-monitor-mapping:
+    description: >
+      A description of a virtual screen, and how it maps to an underlying monitor.
+    fields:
+      source_monitor:
+        description: >
+          The source monitor `identifier`.  If no source is given, then it is a non-visible screen.
+        type: reference
+        ref: response-identifier
+        optional: true
+      source_nw_x_pixel:
+        description: >
+          The left-most "x" pixel on the monitor that maps to the east virtual screen pixel.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      source_nw_y_pixel:
+        description: >
+          The top-most "y" pixel on the monitor that maps to the east virtual screen pixel.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      source_pixel_width:
+        description: >
+          The number of pixels wide (along the x-axis) for the source monitor.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      source_pixel_height:
+        description: >
+          The number of pixels tall (along the y-axis) for the source monitor.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+
+      rotation:
+        description: >
+          The rotation of the monitor.  Some OS environments allow telling a monitor
+          to rotate itself, which allows for tall-and-skinny positioning of wide-screen
+          monitors.  In general, the valid values are '0' (normal display), '90' (clockwise
+          one rotation), '180' (you have it upside-down), and '270' (counter-clockwise one
+          rotation).  Some OS environments do this automatically for Petronia.  This value,
+          if supported, means the source pixels are for the post-rotated screen coordinates;
+          For the usual (0, 0) coordinate, then the screen is rotated '90', then the rotated
+          coordinate (0, 0) would look to the end user like it's at (100, 0) for a 100-pixel
+          wide monitor; however, setting this value to '90' makes the (0, 0) screen position
+          still refer to what the user sees as the top-left corner of the monitor.
+        type: int
+        min-value: 0
+        max-value: 359
+
+      virtual_nw_x_pixel:
+        description: >
+          The virtual screen space's "nw_x_pixel" location.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      virtual_nw_y_pixel:
+        description: >
+          The virtual screen space's "nw_y_pixel" location.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      virtual_width:
+        description: >
+          The virtual screen space's pixel count along the x-axis.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      virtual_height:
+        description: >
+          The virtual screen space's pixel count along the y-axis.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000

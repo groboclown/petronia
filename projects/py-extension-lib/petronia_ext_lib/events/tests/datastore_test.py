@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-06T22:09:30.557277
+# Created on 2021-02-08T21:23:22.682357
 
 """
 Tests for the datastore module.
@@ -73,17 +73,17 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'μ˦ǎļ\x89ьӓƖƹёǄΣÎΙԡт\x86ѕы\x8aʰGĲˊŀ¯ȌЊqʄ',
-            'json': 'ЌԜЋhИΌĀˮыʟGǂ{ВϭʪũԕğʦԪ˚ԬдÞɞ҂ϯЧƎ',
+            'destination': 'ΔǚЖâԪѤáŦ\x9eһҝӃ\x93ɖĤʝѢˌƹԄȩɢĔ\x9eαƅǝϏ-Ï',
+            'json': 'Ԍӡ·ӹԉČ¨ӲØÔĘ®ӊʰІˌM`ÓĉхѧԛɺŀǜŵLėҐ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': 'Ӯ˶ԜĥǑ',
+            'destination': 'ұԑćȹШ',
 
-            'json': 'țӝ',
+            'json': 'ɦǿ',
 
         },
     ),
@@ -145,14 +145,14 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': '/RҬǶѵķҲωсӵǉÞˤǈ0ˑЕŬɵǔȻÝɀԤјĕͺƷζԠ',
+            'destination': 'Åʱ˼ɒ9˛ʴƧɒҋcύǂǤρ\x98ŚʪӭΖƒϞβѮɀ΄Ǡēћˆ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': 'ˋKɿϢƂ',
+            'destination': 'ΣǏѓƷſ',
 
         },
     ),
@@ -214,14 +214,14 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'destination': 'ΧαҖɖҁӔͱɉȿ˱Ӽðҭʻȕn8ɊÙӣŔȍʡ˚ҼěѪʧĂϟ',
+            'destination': '˂ц7ʌƃƦʈŚүӛʥҭЃΓŞҙŭʊԖĭŗɨчԃӐӇбѻǺĐ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'destination': 'ı˒ɊɖȘ',
+            'destination': 'èӳ\x98ķȗ',
 
         },
     ),
@@ -287,17 +287,17 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210206:220930.485810:+0000',
-            'json': 'ñ¼ʿƈƺҴƎĒrȯѡÀиʫǲчɱфәŢɤԍˉЈ˫"±²ɠ¼',
+            'changed': '20210208:212322.638142:+0000',
+            'json': 'ѫLԎK˚ȳƆˌPƆĄ\x87|ͱ΅ĮǖǽȚπĨ\x8fʁȒǄѤӡĪϪǰ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210206:220930.485846:+0000',
+            'changed': '20210208:212322.638175:+0000',
 
-            'json': ';Ȱ',
+            'json': 'ș1',
 
         },
     ),

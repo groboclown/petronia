@@ -1,14 +1,15 @@
 """
 Handles the inner-loop execution of requests.
 """
+
 from typing import Dict, Iterable, Tuple, Literal, Optional
 from queue import Queue
 from petronia_common.event_stream import to_raw_event_object
-from petronia_common.extension.runner.message_helper import (
+from petronia_common.util import UserMessage, PetroniaReturnError, not_none
+from petronia_common.util import i18n as _
+from petronia_ext_lib.standard.error import (
     ACCESS_RESTRICTION_ERROR_CATEGORY, CONFIGURATION_ERROR_CATEGORY,
 )
-from petronia_common.util import UserMessage, PetroniaReturnError
-from petronia_common.util import i18n as _
 from .event_handlers import TargetHandlerRuntimeContext
 from .. import event_util
 from ..configuration import BootExtensionMetadata
@@ -197,12 +198,11 @@ class RouterLoopLogic:
                     source,
                     foreman.LauncherStartExtensionFailedEvent(
                         request.name,
-                        event_util.create_error(
+                        not_none(event_util.create_std_ret_errors(
+                            error_msg,
                             'foreman-runtime-not-known',
                             [CONFIGURATION_ERROR_CATEGORY],
-                            error_msg,
-                            corrective_action_msg=corrective_msg,
-                        ),
+                        )),
                     ).export_data(),
                 ))
                 for msg in send_res.error_messages():
@@ -220,10 +220,11 @@ class RouterLoopLogic:
                     source,
                     foreman.LauncherStartExtensionFailedEvent(
                         request.name,
-                        event_util.create_top_std_ret_error(
+                        not_none(event_util.create_std_ret_errors(
                             res.valid_error,
+                            'start-extension-failed',
                             [CONFIGURATION_ERROR_CATEGORY, ACCESS_RESTRICTION_ERROR_CATEGORY],
-                        ),
+                        )),
                     ).export_data(),
                 ))
             else:

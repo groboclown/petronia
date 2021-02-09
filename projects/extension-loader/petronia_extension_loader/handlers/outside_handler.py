@@ -5,8 +5,8 @@ Handles the full process that loads the extension.
 from petronia_common.extension.runner import (
     EventRegistryContext, EventObjectTarget, EventObjectParser,
 )
-from petronia_common.extension.runner import message_helper
 from petronia_common.util import StdRet
+from petronia_ext_lib.standard.error import create_error_data, ACCESS_RESTRICTION_ERROR_CATEGORY
 from .extension_loader import initiate_load_extension
 from .send import send_load_extension_succeeded, send_load_extension_failed
 from ..shared_state import ExtLoaderSharedState
@@ -51,27 +51,17 @@ class LoadExtensionHandler(EventObjectTarget[extension_loader.LoadExtensionReque
             self._state, self._context,
             source, event.name, event.minimum_version, event.below_version, None,
         )
-        if res.has_error:
+        error_data = create_error_data(
+            extension_loader.Error, extension_loader.LocalizableMessage,
+            extension_loader.MessageArgument, extension_loader.MessageArgumentValue,
+            res,
+            [ACCESS_RESTRICTION_ERROR_CATEGORY],
+            'load-extension-initialization-error',
+            extension_loader.EXTENSION_NAME,
+        )
+        if error_data:
             fail_res = send_load_extension_failed(
-                self._context, source, event.name,
-                extension_loader.Error(
-                    'load-extension-initialization-error',
-                    [message_helper.ACCESS_RESTRICTION_ERROR_CATEGORY],
-                    extension_loader.EXTENSION_NAME,
-                    None,
-                    extension_loader.LocalizableMessage(
-                        message_helper.get_message_catalog(res.valid_error.messages()),
-                        message_helper.get_top_message(res.valid_error.messages()),
-                        [
-                            extension_loader.MessageArgument(
-                                name, extension_loader.MessageArgumentValue(type_name, value),
-                            )
-                            for name, type_name, value in message_helper.get_top_message_arguments(
-                                res.valid_error.messages()
-                            )
-                        ],
-                    ),
-                ),
+                self._context, source, event.name, error_data,
             )
             if fail_res.has_error:
                 display_message(

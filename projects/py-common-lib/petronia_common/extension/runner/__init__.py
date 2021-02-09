@@ -1,7 +1,7 @@
 """Runner."""
 
 
-from . import chain, registry, message_helper
+from . import chain, registry
 from .main import extension_runner
 from .registry import (
     EventObjectParser,

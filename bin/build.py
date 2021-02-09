@@ -16,7 +16,7 @@ MINIMUM_COVERAGE_PERCENT = 90
 
 SPECIAL_EXTENDED_PATHS = {
     'py-common-lib': [],
-    'foreman': ['py-common-lib'],
+    'foreman': ['py-common-lib', 'py-extension-lib'],  # see the to-do document.
     'py-extension-lib': ['py-common-lib'],
     'other': ['py-common-lib', 'py-extension-lib'],
 }

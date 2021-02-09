@@ -71,7 +71,10 @@ def load_translation(
         locale_names: Optional[Iterable[str]] = None,
 ) -> None:
     """Use the platform-specific settings to find the translation directory.
-    The locales are not in the platform on purpose."""
+    The locales are not in the platform on purpose.  This overlaps with the
+    native extension, because this is the entrypoint for Petronia, so the user
+    should have friendly, native language translations of the front end
+    part of Petronia."""
     _TRANSLATIONS.clear()
     data_dir = platform.find_data_dir('translations')
     if not data_dir:
