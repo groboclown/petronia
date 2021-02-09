@@ -36,6 +36,9 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     if project_dir.endswith('-tests'):
         # special case for top-level testing projects that require cross-project path.
         for dirname in os.listdir(root_project_dir):
+            # yeah, another special case...
+            if dirname == 'core-extensions':
+                continue
             fqn = os.path.join(root_project_dir, dirname)
             if fqn not in extra_path and os.path.isdir(fqn):
                 extra_path.append(fqn)

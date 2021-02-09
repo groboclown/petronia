@@ -9,6 +9,7 @@ These are desired, tactical changes to bits of already written code.
 
 ### build
 
+* The `core-extensions` and `extension-loader` both use a root package of `petronia`, which causes the integration tests to fail if they are both in the path.  This means that the "core" name detection must be handled in another way, and both of these extensions should get rid of the root `petronia` package.
 * raise the minimum coverage percent back up to 99.  It was dropped to 90 to get an initial good build.
 
 
