@@ -3,6 +3,10 @@
 Native Windows definitions that extend the platform API.
 """
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Sequence, Optional, cast
 import math
 from .windows_common import (

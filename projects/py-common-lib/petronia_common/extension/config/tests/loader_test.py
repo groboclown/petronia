@@ -751,8 +751,8 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [(
-            '`fields` must be a dictionary of field data type structures, found {data}',
-            {'data': '[1]'},
+            '{name}: `fields` must be a dictionary of field data type structures, found {data}',
+            {'data': '[1]', 'name': 'x -> a'},
         )],
     ),
     (

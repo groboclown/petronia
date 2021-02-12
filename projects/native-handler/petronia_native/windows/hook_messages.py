@@ -20,6 +20,10 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
 https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registershellhookwindow
 """
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Tuple, Callable, Optional
 from typing import cast as t_cast
 from ctypes import cast as c_cast
@@ -52,10 +56,10 @@ def display_changed_message(callback: Callable[[], None]) -> MessageEntry:
         callback()
         return True
     # Needs to hook with WM_SETTINGCHANGE with wParam == SPI_SETWORKAREA
-    return False, windows_constants.WM_DISPLAYCHANGE, handler,
+    return False, windows_constants.WM_DISPLAYCHANGE, handler
 
 
-def system_settings_changed_message(callback: Callable[[int], None]) -> MessageEntry:
+def system_settings_changed_message(callback: Callable[[WPARAM], None]) -> MessageEntry:
     """Listens to system settings changes.
 
     These can happen from all different kinds of sources, but should happen
@@ -66,10 +70,10 @@ def system_settings_changed_message(callback: Callable[[int], None]) -> MessageE
     def handler(_source_hwnd: HWND, _message: int, wparam: WPARAM, _lparam: LPARAM) -> bool:
         callback(wparam)
         return True
-    return False, windows_constants.WM_SETTINGCHANGE, handler,
+    return False, windows_constants.WM_SETTINGCHANGE, handler
 
 
-def device_changed_message(callback: Callable[[int], None]) -> MessageEntry:
+def device_changed_message(callback: Callable[[WPARAM], None]) -> MessageEntry:
     """Listens to device changes, such as hot swappable devices.  This can
     include attaching a new monitor or connecting a laptop to a docking station.
 
@@ -78,17 +82,11 @@ def device_changed_message(callback: Callable[[int], None]) -> MessageEntry:
     def handler(_source_hwnd: HWND, _message: int, wparam: WPARAM, _lparam: LPARAM) -> bool:
         callback(wparam)
         return True
-    return False, windows_constants.WM_DEVICECHANGE, handler,
+    return False, windows_constants.WM_DEVICECHANGE, handler
 
 
 def window_minimized_message(callback: Callable[[HWND, RECT], None]) -> MessageEntry:
     """Listens for windows being minimized."""
-
-    class SHELLHOOKINFO(Structure):
-        _fields_ = [
-            ("hwnd", HWND),
-            ("rc", RECT),  # type: ignore
-        ]
 
     def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
         info = c_cast(lparam, POINTER(SHELLHOOKINFO))  # type: ignore
@@ -97,42 +95,42 @@ def window_minimized_message(callback: Callable[[HWND, RECT], None]) -> MessageE
         callback(target_hwnd, window_rect)  # type: ignore
         return True
 
-    return True, windows_constants.HSHELL_GETMINRECT, handler,
+    return True, windows_constants.HSHELL_GETMINRECT, handler
 
 
 def window_created_message(callback: Callable[[HWND], None]) -> MessageEntry:
     """Listens for window creation messages"""
-    return True, windows_constants.HSHELL_WINDOWCREATED, _window_handle_callback(callback),
+    return True, windows_constants.HSHELL_WINDOWCREATED, _window_handle_callback(callback)
 
 
 def window_destroyed_message(callback: Callable[[HWND], None]) -> MessageEntry:
     """Listens for top-level window destroyed messages"""
-    return True, windows_constants.HSHELL_WINDOWDESTROYED, _window_handle_callback(callback),
+    return True, windows_constants.HSHELL_WINDOWDESTROYED, _window_handle_callback(callback)
 
 
 def shell_window_focused_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
     """Listens for the shell window gaining focus."""
-    return True, windows_constants.HSHELL_ACTIVATESHELLWINDOW, _window_handle_callback(callback),
+    return True, windows_constants.HSHELL_ACTIVATESHELLWINDOW, _window_handle_callback(callback)
 
 
 def window_activated_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
     """Listens for the window focus message."""
-    return True, windows_constants.HSHELL_WINDOWACTIVATED, _window_handle_callback(callback),
+    return True, windows_constants.HSHELL_WINDOWACTIVATED, _window_handle_callback(callback)
 
 
 def window_rude_activated_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
     """Listens for the window focus message, sent in a rude way."""
-    return True, windows_constants.HSHELL_RUDEAPPACTIVATED, _window_handle_callback(callback),
+    return True, windows_constants.HSHELL_RUDEAPPACTIVATED, _window_handle_callback(callback)
 
 
 def redraw_message(callback: Callable[[HWND], None]) -> MessageEntry:
     """Listens for the window handle that needs to be redrawn."""
-    return True, windows_constants.HSHELL_REDRAW, _window_handle_callback(callback),
+    return True, windows_constants.HSHELL_REDRAW, _window_handle_callback(callback)
 
 
 def forced_exit_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
     """Listens for a window that should be forced to exit."""
-    return True, windows_constants.HSHELL_ENDTASK, _window_handle_callback(callback),
+    return True, windows_constants.HSHELL_ENDTASK, _window_handle_callback(callback)
 
 
 def window_monitor_changed_message(callback: Callable[[HWND], None]) -> MessageEntry:
@@ -157,12 +155,12 @@ def window_replacing_message(callback: Callable[[HWND, HWND], None]) -> MessageE
         # LPARAM stores a handle to the window replacing the top-level window.
         top = _source_hwnd
         if WINDOWS_FUNCTIONS.window.get_owning_window:
-            t = WINDOWS_FUNCTIONS.window.get_owning_window(_source_hwnd)
-            if isinstance(t, WindowsErrorMessage):
+            handle = WINDOWS_FUNCTIONS.window.get_owning_window(_source_hwnd)
+            if isinstance(handle, WindowsErrorMessage):
                 # TODO do something smart.
                 top = _source_hwnd
             else:
-                top = t
+                top = handle
         callback(t_cast(HWND, lparam), top)
         return True
     return True, windows_constants.HSHELL_WINDOWREPLACING, handler
@@ -184,7 +182,8 @@ def window_replaced_message(callback: Callable[[HWND, HWND], None]) -> MessageEn
 # def app_command_message(callback: Callable[[HWND], None]) -> MessageEntry:
 #     pass
 # HSHELL_APPCOMMAND = 12  # -> The APPCOMMAND which has been unhandled by the application
-# or other hooks. See WM_APPCOMMAND and use the GET_APPCOMMAND_LPARAM macro to retrieve this parameter.
+# or other hooks. See WM_APPCOMMAND and use the GET_APPCOMMAND_LPARAM macro to
+# retrieve this parameter.
 
 
 def system_power_state_changed(callback: Callable[[bool], None]) -> MessageEntry:
@@ -209,7 +208,7 @@ def taskman_message(callback: Callable[[HWND, WPARAM], None]) -> MessageEntry:
         callback(t_cast(HWND, lparam), wparam)
         return True
 
-    return True, windows_constants.HSHELL_TASKMAN, handler,
+    return True, windows_constants.HSHELL_TASKMAN, handler
 
 
 # FIXME need to figure out how to implement these.
@@ -232,3 +231,11 @@ def _window_handle_callback(callback: Callable[[HWND], Optional[bool]]) -> Messa
             return True
         return ret
     return handler
+
+
+class SHELLHOOKINFO(Structure):
+    """The SHELLHOOKINFO structure."""
+    _fields_ = [
+        ("hwnd", HWND),
+        ("rc", RECT),  # type: ignore
+    ]

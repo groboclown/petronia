@@ -6,32 +6,32 @@ Handlers for Windows VirtualKey (VK) codes and key names.
 from typing import Sequence, List, Dict, Set
 
 
-def vk_to_names(vk: int) -> Sequence[str]:
-    """Convert a vk key value into a key name."""
+def vk_to_names(vk_code: int) -> Sequence[str]:
+    """Convert a vk key value into a key name.  This is very inefficient at the moment."""
     maps: List[str] = []
     for vk_str, code in STR_VK_MAP.items():
         # There are multiple mappings; return them all.
-        if code == vk:
+        if code == vk_code:
             maps.append(vk_str)
     if not maps:
-        maps.append("#{0}".format(hex(vk)))
+        maps.append("#{0}".format(hex(vk_code)))
     return maps
 
 
-def is_vk_modifier(vk: int) -> bool:
+def is_vk_modifier(vk_code: int) -> bool:
     """Is this vk key a modifier?"""
-    return vk in _MODIFIER_KEYS
+    return vk_code in _MODIFIER_KEYS
 
 
-def is_specially_handled_vk_key(vk: int) -> bool:
+def is_specially_handled_vk_key(vk_code: int) -> bool:
     """Is this vk key specially handled?"""
-    return vk in SPECIAL_MODIFIER_CHECK_VKEY_CODES
+    return vk_code in SPECIAL_MODIFIER_CHECK_VKEY_CODES
 
 
 def contains_specially_handled_vk_key(vks: Sequence[int]) -> bool:
     """Does this sequence of vk keys include a special key?"""
-    for vk in vks:
-        if vk in SPECIAL_MODIFIER_CHECK_VKEY_CODES:
+    for vk_code in vks:
+        if vk_code in SPECIAL_MODIFIER_CHECK_VKEY_CODES:
             return True
     return False
 
@@ -40,9 +40,9 @@ def get_modifier_vk_keys(include_special: bool) -> Set[int]:
     """Get the vk keys that are modifiers."""
     ret = set(_MODIFIER_KEYS)
     if not include_special:
-        for vk in SPECIAL_MODIFIER_CHECK_VKEY_CODES:
-            if vk in ret:
-                ret.remove(vk)
+        for vk_code in SPECIAL_MODIFIER_CHECK_VKEY_CODES:
+            if vk_code in ret:
+                ret.remove(vk_code)
     return ret
 
 
@@ -115,7 +115,8 @@ STR_VK_MAP: Dict[str, int] = {
     "pause": 0x13,                # VK_PAUSE    PAUSE key
     "caps-lock": 0x14,            # VK_CAPITAL  CAPS LOCK key
     "kana": 0x15,                 # VK_KANA     IME Kana mode
-    "hanguel": 0x15,              # VK_HANGUEL  IME Hanguel mode (maintained for compatibility; use VK_HANGUL)
+    "hanguel": 0x15,              # VK_HANGUEL  IME Hanguel mode
+                                  # (maintained for compatibility; use VK_HANGUL)
     "hangul": 0x15,               # VK_HANGUL   IME Hangul mode
     # - 0x16 Undefined
     "junja": 0x17,                # VK_JUNJA    IME Junja mode
@@ -233,7 +234,8 @@ STR_VK_MAP: Dict[str, int] = {
     # 0xB8-B9 - Reserved
 
     "oem_1": 0xBA,                # VK_OEM_1    Used for miscellaneous characters;
-                                  # it can vary by keyboard.  For the US standard keyboard, the ';:' key
+                                  # it can vary by keyboard.
+                                  # For the US standard keyboard, the ';:' key
     ":": 0xBA,
     ";": 0xBA,
     "colon": 0xBA,
@@ -263,7 +265,8 @@ STR_VK_MAP: Dict[str, int] = {
     "greater-than": 0xBE,
 
     "oem_2": 0xBF,                # VK_OEM_2    Used for miscellaneous characters;
-                                  # it can vary by keyboard.  For the US standard keyboard, the '/?' key
+                                  # it can vary by keyboard.
+                                  # For the US standard keyboard, the '/?' key
     "/": 0xBF,
     "slash": 0xBF,
     "?": 0xBF,
@@ -272,7 +275,8 @@ STR_VK_MAP: Dict[str, int] = {
     "oem2": 0xBF,
 
     "oem_3": 0xC0,                # VK_OEM_3    Used for miscellaneous characters;
-                                  # it can vary by keyboard.  For the US standard keyboard, the '`~' key
+                                  # it can vary by keyboard.
+                                  # For the US standard keyboard, the '`~' key
     "oem3": 0xC0,
     "~": 0xC0,
     "tilde": 0xC0,
@@ -282,7 +286,8 @@ STR_VK_MAP: Dict[str, int] = {
     # 0xD8-DA - Unassigned
 
     "oem_4": 0xDB,                # VK_OEM_4    Used for miscellaneous characters;
-                                  # it can vary by keyboard.  For the US standard keyboard, the '[{' key
+                                  # it can vary by keyboard.
+                                  # For the US standard keyboard, the '[{' key
     "oem4": 0xDB,
     "[": 0xDB,
     "left-bracket": 0xBD,
@@ -296,7 +301,8 @@ STR_VK_MAP: Dict[str, int] = {
     "open-curly-brace": 0xDB,
 
     "oem_5": 0xDC,                # VK_OEM_5    Used for miscellaneous characters;
-                                  # it can vary by keyboard.  For the US standard keyboard, the '\|' key
+                                  # it can vary by keyboard.
+                                  # For the US standard keyboard, the '\|' key
     "oem5": 0xDC,
     "|": 0xDC,
     "\\": 0xDC,
@@ -304,7 +310,8 @@ STR_VK_MAP: Dict[str, int] = {
     "backslash": 0xDC,
 
     "oem_6": 0xDD,                # VK_OEM_6    Used for miscellaneous characters;
-                                  # it can vary by keyboard.  For the US standard keyboard, the ']}' key
+                                  # it can vary by keyboard.
+                                  # For the US standard keyboard, the ']}' key
     "oem6": 0xDD,
     "]": 0xDD,
     "}": 0xDD,
@@ -331,21 +338,24 @@ STR_VK_MAP: Dict[str, int] = {
     "tick": 0xDE,
     "double-quote": 0xDE,
 
-    "oem_8": 0xDF,                # VK_OEM_8    Used for miscellaneous characters; it can vary by keyboard.
+    "oem_8": 0xDF,                # VK_OEM_8    Used for miscellaneous characters;
+                                  # it can vary by keyboard.
     "oem8": 0xDF,
     # 0xE0 - Reserved
     # 0xE1 - OEM specific
 
-    "oem_102": 0xE2,              # VK_OEM_102    Either the angle bracket key or the backslash key on
-                                  # the RT 102-key keyboard
+    "oem_102": 0xE2,              # VK_OEM_102    Either the angle bracket key
+                                  # or the backslash key on the RT 102-key keyboard
     "oem102": 0xE2,
     # 0xE3-E4 - OEM specific
     "processkey": 0xE5,           # VK_PROCESSKEY    IME PROCESS key
     # 0xE6 - OEM specific
     "packet": 0xE7,               # VK_PACKET    Used to pass Unicode characters as if they were
-                                  # keystrokes. The VK_PACKET key is the low word of a 32-bit Virtual
+                                  # keystrokes. The VK_PACKET key is the low
+                                  # word of a 32-bit Virtual
                                   # Key value used for non-keyboard input methods. For more
-                                  # information, see Remark in KEYBDINPUT, SendInput, WM_KEYDOWN, and WM_KEYUP
+                                  # information, see Remark in KEYBDINPUT,
+                                  # SendInput, WM_KEYDOWN, and WM_KEYUP
     # 0xE8 - Unassigned
     # 0xE9-F5 - OEM specific
     "attn": 0xF6,                 # VK_ATTN    Attn key

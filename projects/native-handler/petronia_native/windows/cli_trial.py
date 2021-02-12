@@ -1,13 +1,17 @@
 """Test out the Windows native handler in a stand-alone applicaiton."""
 
-from typing import Tuple, Sequence, Optional
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
+from typing import Tuple, Sequence, List, Optional
 import time
 from petronia_native.windows import hook_messages, pumper, keymap
-from petronia_native.windows.arch.native_funcs.monitor import are_monitors_different
+from petronia_native.windows.arch.native_funcs.monitor import are_monitors_different, WindowsMonitor
 from petronia_native.windows.arch.native_funcs import WINDOWS_FUNCTIONS, HWND, WPARAM
 from petronia_native.common import log
 
-LAST_MONITOR_STATE = list(WINDOWS_FUNCTIONS.monitor.find_monitors())
+LAST_MONITOR_STATE: List[WindowsMonitor] = []
 
 
 def key_callback(
@@ -29,89 +33,111 @@ def key_callback(
 
 def check_monitor_state() -> None:
     """For anything that may cause the monitor state to change."""
-    updated_monitors = WINDOWS_FUNCTIONS.monitor.find_monitors()
-    if are_monitors_different(LAST_MONITOR_STATE, updated_monitors):
-        new_m = [m.info.export_data() for m in updated_monitors]
-        log.low_print('Monitors changed: now {m}'.format(m=new_m))
-        LAST_MONITOR_STATE.clear()
-        LAST_MONITOR_STATE.extend(updated_monitors)
+    if callable(WINDOWS_FUNCTIONS.monitor.find_monitors):
+        updated_monitors = WINDOWS_FUNCTIONS.monitor.find_monitors()  # pylint:disable=not-callable
+        if are_monitors_different(LAST_MONITOR_STATE, updated_monitors):
+            new_m = [m.info.export_data() for m in updated_monitors]
+            log.low_print('Monitors changed: now {m}'.format(m=new_m))
+            LAST_MONITOR_STATE.clear()
+            LAST_MONITOR_STATE.extend(updated_monitors)
 
 
 def display_changed() -> None:
+    """display changed event callback."""
     check_monitor_state()
 
 
-def system_changed(what: int) -> None:
+def system_changed(what: WPARAM) -> None:
+    """system changed event callback."""
     log.low_print(f'System changed: 0x{what:04x}')
     check_monitor_state()
 
 
-def device_changed(what: int) -> None:
+def device_changed(what: WPARAM) -> None:
+    """device changed event callback."""
     log.low_print(f'Device changed: 0x{what:04x}')
     check_monitor_state()
 
 
 def window_created(hwnd: HWND) -> None:
+    """window created callback."""
     log.low_print(f'Window Created: {hwnd:08x}')
 
 
 def window_destroyed(hwnd: HWND) -> None:
+    """window destroyed callback."""
     log.low_print(f'Window Destroyed: {hwnd:08x}')
 
 
-def window_focused(hwnd: HWND) -> Optional[bool]:
+def window_focused(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+    """window focused callback."""
     log.low_print(f'Window Focused: {hwnd:08x}')
     return None
 
 
-def window_activated(hwnd: HWND) -> Optional[bool]:
+def window_activated(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+    """window activated callback."""
     log.low_print(f'Window Activated: {hwnd:08x}')
     return None
 
 
-def window_activated_rude(hwnd: HWND) -> Optional[bool]:
+def window_activated_rude(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+    """window activated rude callback."""
     log.low_print(f'Window Activated (Rudely!): {hwnd:08x}')
     return None
 
 
 def redraw(hwnd: HWND) -> None:
+    """redraw callback."""
     log.low_print(f'Redraw request for {hwnd:08x}')
 
 
-def forced_exit(hwnd: HWND) -> Optional[bool]:
+def forced_exit(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+    """forced exit callback."""
     log.low_print(f'Forced exit: {hwnd:08x}')
     return None
 
 
 def window_changed_monitors(hwnd: HWND) -> None:
+    """window changed monitors callback."""
     log.low_print(f'Window changed monitors: {hwnd:08x}')
 
 
 def window_flashing(hwnd: HWND) -> None:
+    """window flashing callback."""
     log.low_print(f'Window flashing: {hwnd:08x}')
 
 
 def window_replacing(hwnd: HWND, with_hwnd: HWND) -> None:
+    """window start replace callback."""
     log.low_print(f'Window replace start: {hwnd:08x} -> {with_hwnd:08x}')
 
 
 def window_replaced(hwnd: HWND, with_hwnd: HWND) -> None:
+    """window end replace callback."""
     log.low_print(f'Window replace end: {hwnd:08x} -> {with_hwnd:08x}')
 
 
 def power_state_changed(suspending: bool) -> None:
+    """power state changed callback."""
     log.low_print(f'Power state changed (suspended? {suspending}')
 
 
 def taskman(hwnd: HWND, wparam: WPARAM) -> None:
+    """task manager callback; don't expect it to work."""
     log.low_print(f'taskman message: {hwnd:08x} :: 0x{wparam:08x}')
 
 
 def on_exit() -> None:
+    """on message loop exit callback."""
     log.low_print('Exit message encountered.')
 
 
 if __name__ == '__main__':
+    if callable(WINDOWS_FUNCTIONS.monitor.find_monitors):
+        LAST_MONITOR_STATE.clear()
+        LAST_MONITOR_STATE.extend(WINDOWS_FUNCTIONS.monitor.find_monitors())  # pylint:disable=not-callable
+
     log.low_print(f'Initial monitors: {[m.info.export_data() for m in LAST_MONITOR_STATE]}')
     handler = pumper.WindowsHookPumper()
     handler.set_key_handler(key_callback)

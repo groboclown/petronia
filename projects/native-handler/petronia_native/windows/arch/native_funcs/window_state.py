@@ -1,5 +1,9 @@
 """Native Window state information."""
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Iterable, List
 from typing import cast as t_cast
 from .windows_common import (

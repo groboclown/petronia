@@ -9,7 +9,10 @@ from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
 )
 from petronia_common.util import i18n as _
-from petronia_common.extension.config import AbcExtensionMetadata, ApiExtensionMetadata, EventType
+from petronia_common.extension.config import (
+    AbcExtensionMetadata, ApiExtensionMetadata, EventType,
+    ProtocolExtensionMetadata,
+)
 from petronia_common.extension.config.extension_loader import load_extension
 from .state_metadata import StateData, parse_state_data
 
@@ -25,7 +28,7 @@ class ExtensionDataFile:
     @property
     def events(self) -> Sequence[EventType]:
         """Get the events, if any are present."""
-        if isinstance(self.metadata, ApiExtensionMetadata):
+        if isinstance(self.metadata, (ApiExtensionMetadata, ProtocolExtensionMetadata)):
             return self.metadata.events
         return ()
 

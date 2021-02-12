@@ -6,6 +6,10 @@ Windows functions for any architecture or supported version.
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name,too-many-lines
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Dict, Sequence, List, Iterable, Callable, Optional, Tuple, Type, Union
 from typing import cast as t_cast
 import atexit
@@ -769,7 +773,7 @@ def window__create_message_window(
     Create a "message" window - a window that's only for posting messages
     to, and for handling other OS messages.
 
-    However, some broadcast messages we need, like WM_DISPLAYCHANGE.
+    However, we need some broadcast messages , like WM_DISPLAYCHANGE.
     Therefore, it needs to be a real window that is just never shown.
 
     :param message_handler: the handler procedure created by shell__create_global_message_handler
@@ -1440,8 +1444,6 @@ def shell__register_window_hook(
     :param callback:
     :return: the message ID for the shell hook message.
     """
-    assert message_id_callbacks is None or isinstance(message_id_callbacks, dict)
-
     if not RegisterShellHookWindow(hwnd):
         return WindowsErrorMessage('RegisterShellHookWindow')
     message_id = t_cast(int, RegisterWindowMessageW("SHELLHOOK"))
@@ -1466,8 +1468,6 @@ def shell__create_global_message_handler(
         (which are both message specific interpreted).
     :return: the constructed handler callback.
     """
-    assert isinstance(message_id_callbacks, dict)
-
     def handler(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> int:
         log.debug(
             "handling hwnd message 0x{m:08x} 0x{w:08x} 0x{l:08x}",
@@ -1555,7 +1555,6 @@ def shell__system_parameters_info(  # pylint:disable=too-many-branches
     :param values:
     :return: the original values
     """
-    assert isinstance(values, dict)
     ret: Dict[str, Union[int, bool, ANIMATIONINFO, WindowsErrorMessage]] = {}
     for parameter, value in values.items():
         if parameter in _SYSTEM_PARAMETER_MAPPING:

@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-11T17:55:52.868488+00:00
+# Created on 2021-02-12T16:50:58.595260+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.datastore version 1.0.0.
@@ -18,8 +18,8 @@ import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     StdRet,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
     not_none,
 )
 

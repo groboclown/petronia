@@ -3,6 +3,10 @@
 Common Windows imports.
 """
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
@@ -11,7 +15,7 @@ import ctypes
 from ctypes import (
     c_int, c_ulong, c_int64, c_long, c_void_p, POINTER,
     byref, create_unicode_buffer, Structure, wintypes, CFUNCTYPE,
-    _SimpleCData,
+    # _SimpleCData,
     GetLastError,
 )
 from ctypes import sizeof as c_sizeof

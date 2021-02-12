@@ -5,9 +5,13 @@ Windows 10 functions
 # mypy: allow-any-generics
 # mypy: allow-any-explicit
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
+from typing import Dict, Optional
 import traceback
 from ctypes import WinError
-from typing import Dict, Optional
 # from typing import cast as t_cast
 from .windows_common import (
     CFUNCTYPE,

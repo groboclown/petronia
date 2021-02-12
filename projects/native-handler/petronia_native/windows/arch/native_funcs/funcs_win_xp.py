@@ -6,6 +6,10 @@ Windows XP functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Sequence, List, Tuple, Dict, Callable, Union, Optional
 from ctypes import c_wchar_p, c_int
 from ctypes import sizeof as c_sizeof

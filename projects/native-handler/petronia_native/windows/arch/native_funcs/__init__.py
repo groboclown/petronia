@@ -3,9 +3,12 @@
 Top-level native windows functions and types.
 """
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 
 from typing import Sequence
-import sys
 import importlib
 
 # Top-level global def
@@ -33,7 +36,8 @@ def _load_functions(modules: Sequence[str]) -> Functions:
     import struct  # pylint:disable=import-outside-toplevel
 
     # Ensure we're on Windows
-    assert 'windows' in platform.system().lower()
+    if 'windows' not in platform.system().lower():
+        return Functions()
 
     # Set up environment settings to make inspection of the current
     # platform easy for function modules to check.
@@ -83,4 +87,4 @@ WINDOWS_FUNCTIONS = _load_functions([
     __name__ + ".funcs_win7",
     __name__ + ".funcs_win8",
     __name__ + ".funcs_win10",
-    ])
+])

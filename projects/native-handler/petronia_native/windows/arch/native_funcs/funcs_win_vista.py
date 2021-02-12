@@ -5,9 +5,16 @@ Windows Vista functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Sequence, Dict, Tuple, List, Callable, Union, Optional
 import codecs
-import subprocess
+
+# Need to be aware of the issues with calling out to a subprocess...
+import subprocess  # nosec
+
 import re
 import atexit
 import traceback
@@ -38,6 +45,7 @@ from ..windows_constants import (
     INVALID_HANDLE_VALUE,
     WM_NCACTIVATE, WM_NCCALCSIZE, WM_NCHITTEST,
 )
+from ....common import log
 
 
 def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
@@ -105,8 +113,19 @@ def create_shell__find_notification_icons(
 
 def process__load_all_process_details() -> Sequence[Dict[str, str]]:
     """Uses the wmic command, which was introduced in Vista"""
-    with subprocess.Popen(['wmic.exe', 'process', 'list'], stdout=subprocess.PIPE) as proc:
-        pdata = codecs.decode(not_none(proc.stdout).read(), 'utf-8')
+
+    # This calls out to an external process, but there is no user input to the arguments
+    # which would cause a security issue.
+    try:
+        with subprocess.Popen(  # nosec
+                ['wmic.exe', 'process', 'list'], stdout=subprocess.PIPE,
+        ) as proc:
+            pdata = codecs.decode(not_none(proc.stdout).read(), 'utf-8')
+    except Exception as err:  # pylint:disable=broad-except
+        # This can be a decoding issue, an execution issue, or any number of other problems.
+        log.error('Failed to run wmic process: {err}', err=err)
+        return []
+
     # It looks like most of the lines are split by '\r\r\n', which is weird.
     lines = re.split(r'[\r\n]', pdata)
 
@@ -336,7 +355,6 @@ def _dict_to_font(f: FontMetrics, ret: Optional[LOGFONT] = None) -> LOGFONT:
 
 
 def _font_to_dict(f: LOGFONT) -> FontMetrics:
-    assert isinstance(f, LOGFONT)
     return FontMetrics(
         height=f.lfHeight,
         width=f.lfWidth,

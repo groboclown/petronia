@@ -3,6 +3,10 @@
 All supported windows functions, mapped to Python types.
 """
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Callable, Sequence, Iterable, Tuple, Dict, Union, Optional
 from petronia_common.util import T
 from .windows_common import (

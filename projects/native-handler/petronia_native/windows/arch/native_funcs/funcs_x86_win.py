@@ -5,6 +5,10 @@
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import Dict, Union
 from .windows_common import (
     HWND,
@@ -41,8 +45,6 @@ def window__set_style(  # pylint:disable=too-many-branches
     :param style_update:
     :return: the original style values (usable as input to this function).
     """
-    assert isinstance(style_update, dict)
-
     SetWindowLongW = windll.user32.SetWindowLongW
     SetLastError = windll.kernel32.SetLastError
 

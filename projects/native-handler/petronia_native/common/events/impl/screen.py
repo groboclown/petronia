@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-11T17:55:50.534545+00:00
+# Created on 2021-02-12T16:50:56.867511+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.screen version 1.0.0.
@@ -10,17 +10,17 @@ Data structures and marshalling for extension petronia.core.api.native.screen ve
 
 
 from typing import (
-    SupportsInt,
-    Dict,
-    List,
     Any,
+    Dict,
+    SupportsInt,
     Optional,
+    List,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     StdRet,
     not_none,
+    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
 )
 

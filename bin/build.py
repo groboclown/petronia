@@ -27,6 +27,22 @@ OS_PREFIX = (
     '.osx-'
 )
 
+IGNORED_OS_NAMES = (
+    ('x11', 'osx') if sys.platform == 'win32' else
+    ('windows', 'osx') if sys.platform == 'linux' else
+    ('windows', 'x11')
+)
+
+
+def is_project_dir_item_included(fqn: str, name: str) -> bool:
+    """Is the project directory's item (found by os.listdir) included in package search?"""
+    if len(name) <= 0 or '.' in name or name[0] == '_':
+        return False
+    for ignored in IGNORED_OS_NAMES:
+        if name.endswith(ignored):
+            return False
+    return os.path.isdir(fqn)
+
 
 def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     setup_project_for_platform(project_dir)
@@ -34,7 +50,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     mypy_args: List[str] = ['--warn-unused-configs', '--no-incremental']
     for name in os.listdir(project_dir):
         fqn = os.path.join(project_dir, name)
-        if '.' not in name and name[0] != '_' and os.path.isdir(fqn):
+        if is_project_dir_item_included(fqn, name):
             top_package_names.append(name)
             mypy_args.append('--package')
             mypy_args.append(name)

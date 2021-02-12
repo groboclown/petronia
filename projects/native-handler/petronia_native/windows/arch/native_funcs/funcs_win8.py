@@ -5,8 +5,11 @@ Windows 8 & 8.1 functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
+# mypy requirement
+import sys
+assert sys.platform == 'win32'  # nosec
+
 from typing import List, Tuple, Dict, Sequence, Union, Optional
-# from typing import cast as t_cast
 from ctypes import c_bool
 from ctypes import cast as c_cast
 from .windows_common import (
