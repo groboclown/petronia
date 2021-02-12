@@ -5,22 +5,18 @@
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Dict, Union
 from .windows_common import (
     HWND,
     windll,
     WindowsErrorMessage,
 )
+from .supported_functions import (
+    Functions,
+)
 from ..windows_constants import (
     WS_STYLE_BIT_MAP, WS_EX_STYLE_BIT_MAP,
     GWL_STYLE, GWL_EXSTYLE,
-)
-from .supported_functions import (
-    Functions,
 )
 
 

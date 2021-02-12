@@ -6,10 +6,6 @@ Windows functions for any architecture or supported version.
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name,too-many-lines
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Dict, Sequence, List, Iterable, Callable, Optional, Tuple, Type, Union
 from typing import cast as t_cast
 import atexit
@@ -29,6 +25,17 @@ from ctypes import (
     Structure,
 )
 from petronia_common.util import T, STRING_EMPTY_TUPLE, EMPTY_TUPLE
+from petronia_native.common import log
+from petronia_native.common.defs import (
+    OsScreenRect,
+    ScreenUnit,
+    Color,
+)
+from petronia_native.common.defs.color import (
+    color_to_rgba, COLOR_RGBA_ALPHA_INDEX, COLOR_RGBA_RED_INDEX, COLOR_RGBA_GREEN_INDEX,
+    COLOR_RGBA_BLUE_INDEX,
+)
+from petronia_native.common.defs.units import OsScreenSize
 from .windows_common import (
     WINFUNCTYPE, ANIMATIONINFO,
     windll, WindowsErrorMessage,
@@ -96,17 +103,6 @@ from ..windows_constants import (
     SPI_GETBORDER, SPI_SETBORDER,
     CCHDEVICENAME,
 )
-from ....common import log
-from ....common.defs import (
-    OsScreenRect,
-    ScreenUnit,
-    Color,
-)
-from ....common.defs.color import (
-    color_to_rgba, COLOR_RGBA_ALPHA_INDEX, COLOR_RGBA_RED_INDEX, COLOR_RGBA_GREEN_INDEX,
-    COLOR_RGBA_BLUE_INDEX,
-)
-from ....common.defs.units import OsScreenSize
 
 
 def load_functions(_env: Dict[str, str], func_map: Functions) -> None:  # pylint:disable=too-many-statements

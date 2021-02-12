@@ -5,10 +5,6 @@ Windows Vista functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Sequence, Dict, Tuple, List, Callable, Union, Optional
 import codecs
 
@@ -21,6 +17,7 @@ import traceback
 from ctypes import CFUNCTYPE, WinError, windll
 from ctypes import sizeof as c_sizeof
 from petronia_common.util import not_none
+from petronia_native.common import log
 from .windows_common import (
     c_int,
     LONG, DWORD, BYTE, CHAR, BOOL, UINT,
@@ -45,7 +42,6 @@ from ..windows_constants import (
     INVALID_HANDLE_VALUE,
     WM_NCACTIVATE, WM_NCCALCSIZE, WM_NCHITTEST,
 )
-from ....common import log
 
 
 def load_functions(environ: Dict[str, str], func_map: Functions) -> None:

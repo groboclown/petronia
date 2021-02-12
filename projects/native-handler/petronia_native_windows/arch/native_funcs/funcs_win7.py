@@ -5,10 +5,6 @@ Windows 7 functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import List, Sequence, Dict, Union
 from ctypes import sizeof as c_sizeof
 from .windows_common import (
@@ -16,12 +12,12 @@ from .windows_common import (
     create_unicode_buffer, byref, windll,
     WindowsErrorMessage,
 )
+from .supported_functions import (
+    Functions,
+)
 from ..windows_constants import (
     PROCESS_QUERY_INFORMATION, PROCESS_VM_READ,
     MAX_FILENAME_LENGTH,
-)
-from .supported_functions import (
-    Functions,
 )
 
 

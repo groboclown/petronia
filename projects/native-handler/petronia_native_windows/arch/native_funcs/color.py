@@ -3,13 +3,9 @@
 Converts between Petronia colors and native color values.
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Sequence
 import collections.abc
-from ....common.defs import (
+from petronia_native.common.defs import (
     Color,
 
     DEFAULT_COLOR,

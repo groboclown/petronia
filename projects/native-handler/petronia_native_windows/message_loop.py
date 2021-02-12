@@ -7,10 +7,6 @@ https://docs.microsoft.com/en-us/windows/win32/winmsg/using-messages-and-message
 This code is also designed to be testable.
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Optional
 import threading
 

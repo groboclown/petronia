@@ -20,10 +20,6 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
 https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registershellhookwindow
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Tuple, Callable, Optional
 from typing import cast as t_cast
 from ctypes import cast as c_cast

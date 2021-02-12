@@ -5,10 +5,6 @@ Windows 8 & 8.1 functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import List, Tuple, Dict, Sequence, Union, Optional
 from ctypes import c_bool
 from ctypes import cast as c_cast
@@ -24,14 +20,14 @@ from .funcs_any_win import (
     EnumDisplayMonitors, MONITORINFOEXW, GetMonitorInfoW,
 )
 from .monitor import WindowsMonitor
+from .supported_functions import (
+    Functions,
+)
 from ..windows_constants import (
     PROCESS_QUERY_LIMITED_INFORMATION, ERROR_ACCESS_DENIED, TOKEN_QUERY,
     TOKEN_INFORMATION__TOKEN_USER, ERROR_INSUFFICIENT_BUFFER,
     MAX_USERNAME_LENGTH, PROCESS_PER_MONITOR_DPI_AWARE,
     MDT_RAW_DPI, S_OK, SCALE_100_PERCENT, MONITORINFOF_PRIMARY,
-)
-from .supported_functions import (
-    Functions,
 )
 
 

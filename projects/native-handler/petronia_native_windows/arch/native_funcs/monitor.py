@@ -3,17 +3,13 @@
 Native Windows definitions that extend the platform API.
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Sequence, Optional, cast
 import math
+from petronia_native.common import defs
+from petronia_native.common.events.impl.monitor import Monitors as MonitorStruct
 from .windows_common import (
     HMONITOR,
 )
-from ....common import defs
-from ....common.events.impl.monitor import Monitors as MonitorStruct
 
 
 _MONITOR_INDEX = [-999999]

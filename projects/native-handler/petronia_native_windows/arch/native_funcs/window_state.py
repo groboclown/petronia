@@ -1,11 +1,8 @@
 """Native Window state information."""
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Iterable, List
 from typing import cast as t_cast
+from petronia_native.common import defs
 from .windows_common import (
     GUITHREADINFO,
     HWND, RECT,
@@ -17,7 +14,6 @@ from ..windows_constants import (
     GUI_POPUPMENUMODE,
     GUI_SYSTEMMENUMODE,
 )
-from ....common import defs
 
 
 def convert_rect(rect: RECT) -> defs.OsScreenRect:

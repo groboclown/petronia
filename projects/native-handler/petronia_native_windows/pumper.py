@@ -11,15 +11,11 @@ This is being reworked.  The new code is put into message_loop.
 # pylint is confused by optional fields that are callable.
 # pylint:disable=not-callable
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 
 from typing import Dict, Tuple, Sequence, Optional, Callable
 from typing import cast as t_cast
 import threading
-
+from petronia_native.common import log
 from .arch.native_funcs.windows_common import WindowsErrorMessage
 from .arch import windows_constants
 from .arch.native_funcs import (
@@ -29,7 +25,6 @@ from .arch.native_funcs import (
     MessageCallback,
 )
 from .hook_messages import MessageEntry
-from ..common import log
 
 
 _Hook = Callable[[], UINT]

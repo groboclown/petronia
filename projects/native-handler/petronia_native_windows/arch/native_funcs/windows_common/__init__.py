@@ -3,10 +3,6 @@
 Common Windows imports.
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
@@ -19,7 +15,7 @@ from ctypes import (
     GetLastError,
 )
 from ctypes import sizeof as c_sizeof
-import platform
+# import platform
 
 # These are not modules...
 windll = ctypes.windll

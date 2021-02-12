@@ -3,13 +3,10 @@
 Top-level native windows functions and types.
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 
 from typing import Sequence
 import importlib
+import sys
 
 # Top-level global def
 from .funcs_any_win import SHELL__CANCEL_CALLBACK_CHAIN

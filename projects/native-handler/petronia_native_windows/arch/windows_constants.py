@@ -3,10 +3,6 @@
 Constants defined by Windows.
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Dict
 # from typing import cast as t_cast
 from ctypes.wintypes import (

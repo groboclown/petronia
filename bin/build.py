@@ -28,9 +28,9 @@ OS_PREFIX = (
 )
 
 IGNORED_OS_NAMES = (
-    ('x11', 'osx') if sys.platform == 'win32' else
-    ('windows', 'osx') if sys.platform == 'linux' else
-    ('windows', 'x11')
+    ('_x11', '_osx') if sys.platform == 'win32' else
+    ('_windows', '_osx') if sys.platform == 'linux' else
+    ('_windows', '_x11')
 )
 
 
@@ -48,12 +48,15 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     setup_project_for_platform(project_dir)
     top_package_names: List[str] = []
     mypy_args: List[str] = ['--warn-unused-configs', '--no-incremental']
+    lint_dirs: List[str] = []
     for name in os.listdir(project_dir):
         fqn = os.path.join(project_dir, name)
         if is_project_dir_item_included(fqn, name):
             top_package_names.append(name)
             mypy_args.append('--package')
             mypy_args.append(name)
+            lint_dirs.append(fqn)
+    # print(f"   checking packages {', '.join(top_package_names)}")
 
     extra_path: List[str] = []
     if project_dir.endswith('-tests'):
@@ -119,20 +122,34 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     print("")
     print("----------------------------------------------------------------------")
     print("Unit Testing...")
-    test_code = run_python_cmd(
-        project_dir,
-        [
-            *extra_path,
-        ],
-        'coverage',
-        [
-            'run', '--source', '.', '--timid',
-            # We are daring...
-            '--branch',
-            '-m', 'unittest', 'discover', '-s', '.', '-p', '*_test.py',
-        ],
-        True,
-    )
+
+    # Discovery can only have a single start search directory,
+    # so break this up into multiple runs.
+
+    # This means we need to have coverage append, but don't bring in
+    # old coverage numbers from before this run.
+    if os.path.isfile(os.path.join(project_dir, '.coverage')):
+        os.unlink(os.path.join(project_dir, '.coverage'))
+    test_code = 0
+    for start_pkg_name in top_package_names:
+        test_code += run_python_cmd(
+            project_dir,
+            [
+                *extra_path,
+            ],
+            'coverage',
+            [
+                'run', '--append', '--timid',
+                '--source', ','.join(top_package_names),
+                # We are daring...
+                '--branch',
+                '-m', 'unittest', 'discover', '--buffer',
+                '--top-level-directory', project_dir,
+                '--start-directory', start_pkg_name,
+                '-p', '*_test.py',
+            ],
+            True,
+        )
     if test_code != 0:
         print(f"Unit test FAILED: exit code {test_code}")
         failed.append('unit tests')

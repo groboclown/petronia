@@ -1,14 +1,12 @@
 """Test out the Windows native handler in a stand-alone applicaiton."""
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Tuple, Sequence, List, Optional
 import time
-from petronia_native.windows import hook_messages, pumper, keymap
-from petronia_native.windows.arch.native_funcs.monitor import are_monitors_different, WindowsMonitor
-from petronia_native.windows.arch.native_funcs import WINDOWS_FUNCTIONS, HWND, WPARAM
+
+# This is supposed to be runnable as a CLI, so this needs absolute imports.
+from petronia_native_windows import hook_messages, pumper, keymap
+from petronia_native_windows.arch.native_funcs.monitor import are_monitors_different, WindowsMonitor
+from petronia_native_windows.arch.native_funcs import WINDOWS_FUNCTIONS, HWND, WPARAM
 from petronia_native.common import log
 
 LAST_MONITOR_STATE: List[WindowsMonitor] = []

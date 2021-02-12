@@ -3,12 +3,13 @@
 All supported windows functions, mapped to Python types.
 """
 
-# mypy requirement
-import sys
-assert sys.platform == 'win32'  # nosec
-
 from typing import Callable, Sequence, Iterable, Tuple, Dict, Union, Optional
 from petronia_common.util import T
+from petronia_native.common.defs.units import OsScreenSize
+from petronia_native.common.defs import (
+    OsScreenRect,
+    Color,
+)
 from .windows_common import (
     HWND, DWORD, c_int,
     UINT, WPARAM, LPARAM,
@@ -20,11 +21,6 @@ from .window_state import WindowsWindowState
 from .window_metrics import WindowMetrics
 from .process_metrics import ProcessMetrics
 from .monitor import WindowsMonitor
-from ....common.defs import (
-    OsScreenRect,
-    Color,
-)
-from ....common.defs.units import OsScreenSize
 
 PaintCallback = Callable[[HWND, HDC], T]
 
