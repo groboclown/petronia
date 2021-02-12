@@ -6,6 +6,7 @@ import io
 from petronia_common.util import StdRet, UserMessage, i18n
 from petronia_common.util.error import SimplePetroniaReturnError
 from .. import messages
+from ..defs import TRANSLATION_CATALOG
 
 
 class ExtensionRunnerMessagesTest(unittest.TestCase):
@@ -45,7 +46,7 @@ class ExtensionRunnerMessagesTest(unittest.TestCase):
             raise IOError('my err')
         except IOError as ioe:
             err = ioe
-        messages.display_message(StdRet.pass_exception(i18n('s1s'), err))
+        messages.display_message(StdRet.pass_exception(TRANSLATION_CATALOG, i18n('s1s'), err))
         self.assertTrue('s1s' in sys.stdout.getvalue())
         self.assertTrue('my err' in sys.stdout.getvalue())
         self.assertTrue('IOError' in sys.stdout.getvalue())

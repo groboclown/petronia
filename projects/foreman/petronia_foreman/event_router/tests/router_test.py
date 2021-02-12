@@ -16,7 +16,6 @@ from petronia_common.util import (
     StdRet, PetroniaReturnError, UserMessage,
     i18n, join_errors,
 )
-from petronia_common.util.message import USER_MESSAGE_CATALOG_EXCEPTION
 from .. import router
 from ..channel import EventFilterResult
 
@@ -388,7 +387,7 @@ class EventRouterTest(unittest.TestCase):  # pylint:disable=too-many-public-meth
         self.assertEqual((), tuple(event_router.get_registered_channel_names()))
 
         target.assert_next_on_error(UserMessage(
-            USER_MESSAGE_CATALOG_EXCEPTION,
+            'petronia',
             i18n('writing event to stream'), exception=ErrorBinaryWriter.ERROR,
         ))
         target.assert_next_on_eof()

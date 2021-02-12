@@ -58,6 +58,7 @@ def write_binary_event_to_stream(
         encoded_event_id = event_id.encode('utf-8')
     except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
+            STANDARD_PETRONIA_CATALOG,
             _('event-id UTF-8 encoding problem: {exception}'), exp, event_id=event_id,
         )
     encoded_event_id_len = len(encoded_event_id)
@@ -65,6 +66,7 @@ def write_binary_event_to_stream(
         encoded_source_id = source_id.encode('utf-8')
     except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
+            STANDARD_PETRONIA_CATALOG,
             _('source-id UTF-8 encoding problem: {exception}'), exp, source_id=source_id,
         )
     encoded_source_id_len = len(encoded_source_id)
@@ -72,6 +74,7 @@ def write_binary_event_to_stream(
         encoded_target_id = target_id.encode('utf-8')
     except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
+            STANDARD_PETRONIA_CATALOG,
             _('target-id UTF-8 encoding problem: {exception}'), exp, target_id=target_id,
         )
     encoded_target_id_len = len(encoded_target_id)
@@ -148,7 +151,8 @@ def write_binary_event_to_stream(
                 stream.write(data)
     except Exception as err:  # pylint: disable=broad-except
         return StdRet.pass_exception(
-            _('writing event to stream'), err
+            STANDARD_PETRONIA_CATALOG,
+            _('writing event to stream'), err,
         )
 
     return RET_OK_NONE
@@ -186,10 +190,12 @@ def write_object_event_to_stream(
         # Due to the "dumps" method, this shouldn't ever be reached.
         # But, just in case...
         return StdRet.pass_exception(  # pragma no cover
+            STANDARD_PETRONIA_CATALOG,
             _('event object data UTF-8 encoding problem: {exception}'), exp,
         )
     except TypeError as exp:
         return StdRet.pass_exception(
+            STANDARD_PETRONIA_CATALOG,
             _('event object data cannot be marshalled: {exception}'), exp,
         )
     encoded_event_object_len = len(encoded_event_object)
@@ -197,6 +203,7 @@ def write_object_event_to_stream(
         encoded_event_id = event_id.encode('utf-8')
     except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
+            STANDARD_PETRONIA_CATALOG,
             _('event-id UTF-8 encoding problem: {exception}'), exp, event_id=event_id,
         )
     encoded_event_id_len = len(encoded_event_id)
@@ -204,6 +211,7 @@ def write_object_event_to_stream(
         encoded_source_id = source_id.encode('utf-8')
     except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
+            STANDARD_PETRONIA_CATALOG,
             _('source-id UTF-8 encoding problem: {exception}'), exp, source_id=source_id,
         )
     encoded_source_id_len = len(encoded_source_id)
@@ -211,6 +219,7 @@ def write_object_event_to_stream(
         encoded_target_id = target_id.encode('utf-8')
     except UnicodeEncodeError as exp:
         return StdRet.pass_exception(
+            STANDARD_PETRONIA_CATALOG,
             _('target-id UTF-8 encoding problem: {exception}'), exp, target_id=target_id,
         )
     encoded_target_id_len = len(encoded_target_id)
@@ -270,7 +279,8 @@ def write_object_event_to_stream(
         stream.write(encoded_event_object)
     except Exception as err:  # pylint: disable=broad-except
         return StdRet.pass_exception(
-            _('writing event to stream'), err
+            STANDARD_PETRONIA_CATALOG,
+            _('writing event to stream'), err,
         )
 
     return RET_OK_NONE

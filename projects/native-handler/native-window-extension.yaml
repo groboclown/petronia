@@ -1,7 +1,7 @@
 ---
 schema-version: v1
 
-name: petronia.core.api.native
+name: petronia.core.api.native.window
 version: [1, 0, 0]
 type: api
 
@@ -43,6 +43,7 @@ state-data:
         description: >
           True if the underlying Windowing system focus events generates a
           Petronia focus event.
+        type: bool
 
   # =========================================================================
   # Window Service.
@@ -53,14 +54,14 @@ state-data:
       For each window in this list, its window-id is a structure that
       conforms to the window-state structure in the reference section.
     fields:
-      windows:
+      active_ids:
         type: array
         min-length: 0
         max-length: 65535
         value-type:
           type: structure
           fields:
-            window-id:
+            window_id:
               type: reference
               ref: event-target-id
 
@@ -86,8 +87,11 @@ state-data:
       Note: this is not a state object, but rather a template for the data structure that
       stores the distinct windows.  There are one of these structures registered for each
       active window in Petronia.
-    type: reference
-    ref: window-state
+
+    fields:
+      state:
+        type: reference
+        ref: window-state
 
 
 events:
@@ -137,7 +141,7 @@ events:
     send-access: public
     receive-access: implementations
     fields:
-      windows:
+      window_id_positions:
         description: List of windows and their new positions.
         type: array
         min-length: 1

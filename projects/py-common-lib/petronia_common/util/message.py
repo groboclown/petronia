@@ -21,7 +21,6 @@ from typing import Iterable, Mapping, Union, Optional, NewType
 from datetime import datetime, time, date
 
 
-USER_MESSAGE_CATALOG_EXCEPTION = 'internal-errors'
 STANDARD_PETRONIA_CATALOG = 'petronia'
 
 SimpleUserMessageData = Union[str, int, float, bool, datetime, time, date, None, BaseException]

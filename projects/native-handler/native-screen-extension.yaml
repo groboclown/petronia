@@ -133,6 +133,7 @@ references:
   screen-monitor-mapping:
     description: >
       A description of a virtual screen, and how it maps to an underlying monitor.
+    type: structure
     fields:
       source_monitor:
         description: >

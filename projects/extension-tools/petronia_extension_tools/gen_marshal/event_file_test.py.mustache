@@ -14,7 +14,7 @@ from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import {{module_name}}
 {{#structures}}
 
-
+{{^is_binary}}
 class {{structure_class_name}}Test(unittest.TestCase):
     """
     Tests for {{structure_class_name}}
@@ -132,4 +132,5 @@ class {{structure_class_name}}Test(unittest.TestCase):
     {{/has_fields}}
 {{/is_selector}}
 ]
+{{/is_binary}}
 {{/structures}}

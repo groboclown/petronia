@@ -110,6 +110,12 @@ references:
     min-length: 1
     max-length: 10
 
+  catalog-name:
+    description: name of the catalog registered.
+    type: string
+    min-length: 3
+    max-length: 255
+
 
   # =========================================================================
   # Drawn and Interactive UI Elements
@@ -121,46 +127,12 @@ references:
     min-length: 8
     max-length: 8
 
-  ui-element:
-    description: Something to show.
-    type: selector
-    type-mapping:
-      panel:
-        type: reference
-        ref: ui-panel
-      text:
-        type: reference
-        ref: ui-text
-      image:
-        type: reference
-        ref: ui-image
-
   ui-text:
     description: >
-      Text to show to the user.
+      Text to show to the user.  The text will be fitted to match the boundaries
+      of the owning panel, and use the text properties of the owning panel.
     type: structure
     fields:
-      font_name:
-        type: string
-        optional: true
-      font_size:
-        type: int
-        min-value: 1
-        optional: true
-      italics:
-        type: bool
-        optional: true
-      weight:
-        type: float
-        min-value: 0.0
-        optional: true
-      underline:
-        type: int
-        min-value: 0
-        optional: true
-      color:
-        type: reference
-        ref: color
       text:
         description: The text message, which will be translated
         type: string
@@ -187,15 +159,12 @@ references:
           - crop
           - scale
 
-  ui-text-field:
+  text-setting:
     description: >
-      A text field to allow the user to enter text.  Changes to the text
-      will be sent as events.
+      Describes the text display formatting.  This is used by the UI elements
+      to create relative sizes.
     type: structure
     fields:
-      max_length:
-        type: int
-        min-value: 0
       font_name:
         type: string
         optional: true
@@ -217,20 +186,42 @@ references:
       color:
         type: reference
         ref: color
+      orientation:
+        description: >
+          The text orientation, in degrees.  0 means normal direction (which is locale specific,
+          due to BiDi text requirements), 90 means rotated clockwise a quarter turn, 180 means
+          upside-down, and 270 means rotated counter-clockwise a quarter turn.  Some UIs may
+          allow other values, but for compatibility reasons, code should be limited to these 4
+          values.
+        type: int
+        min-value: 0
+        max-value: 359
 
-
-  ui-panel:
+  ui-text-field:
     description: >
-      A UI component that has a color and can contain other components.
-      Only panels can be directly clicked.  To make something clickable, put it inside
-      a panel.
+      A text field to allow the user to enter text.  Changes to the text
+      will be sent as events.
+    type: structure
+    fields:
+      max_length:
+        type: int
+        min-value: 0
+      initial_value:
+        type: string
+        optional: true
+
+  ui-boundary:
+    description: >
+      A boundary space that contains at most 1 other component.
     type: structure
     fields:
       identifier:
         type: reference
         ref: response-identifier
       clickable:
-        description: Set to True to allow click events to be fired on this element.
+        description: >
+          Set to True to allow click events to be fired on this element.  This includes
+          mouse motion while a click is pressed (for drag actions).
         type: bool
       color:
         type: reference
@@ -238,15 +229,53 @@ references:
       outline_color:
         type: reference
         ref: color
-      outline_shape:
-        type: enum
-        values:
-          - rectangle
-          - rounded
+      corner_rounding:
+        description: >
+          The amount to round the corner, in "em" values.  Percentage doesn't make much sense
+          from a UI perspective, so this just uses "em" values.
+        type: float
+        min-value: 0.0
       outline_width:
-        type: int
-        min-value: 0
-        max-value: 1000
+        description: >
+          The width of the outline color, in "em" values.
+        type: float
+        min-value: 0.0
+        max-value: 4.0
+      text_setup:
+        description: >
+          The text description that defines the relative sizing of the internal component.
+          If not set, then this inherits from its parent.
+        optional: true
+        type: reference
+        ref: text-setting
+      child:
+        description: >
+          The contained UI element.
+        optional: true
+        type: selector
+        type-mapping:
+          panel:
+            type: reference
+            ref: ui-panel
+          text:
+            type: reference
+            ref: ui-text
+          image:
+            type: reference
+            ref: ui-image
+          boundary:
+            type: reference
+            ref: ui-boundary
+
+  ui-panel:
+    description: >
+      An internal UI component that contains other panels or boundaries.  It must be
+      contained within a boundary.
+    type: structure
+    fields:
+      identifier:
+        type: reference
+        ref: response-identifier
       children:
         type: array
         optional: true
@@ -256,9 +285,46 @@ references:
           type: structure
           fields:
             element:
+              type: selector
+              type-mapping:
+                panel:
+                  type: reference
+                  ref: ui-panel
+                boundary:
+                  type: reference
+                  ref: ui-boundary
+            north:
+              description: >
+                Relative position of the "north" edge of this contained element against the
+                parent panel.
               type: reference
-              ref: ui-element
-            location:
-              description: relative location to this panel.
+              ref: position
+            south:
+              description: >
+                Relative position of the "south" edge of this contained element against the
+                parent panel.
               type: reference
-              ref: screen-dimension
+              ref: position
+            east:
+              description: >
+                Relative position of the "east" edge of this contained element against the
+                parent panel.
+              type: reference
+              ref: position
+            west:
+              description: >
+                Relative position of the "west" edge of this contained element against the
+                parent panel.
+              type: reference
+              ref: position
+
+  position:
+    description: >
+      A relative position, as either a percentage or a "em" distance, which is a font-relative
+      distance.  Negative values refer to relative distance from the opposite bounding side.
+    type: selector
+    type-mapping:
+      em:
+        type: float
+      per:
+        type: float

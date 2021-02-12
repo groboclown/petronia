@@ -10,6 +10,7 @@ import json
 import collections.abc
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
+from ..defs import TRANSLATION_CATALOG
 
 StructuredDataType = Union[None, Sequence[Any], Mapping[str, Any], int, float, str, bool]
 StructuredPath = Sequence[str]
@@ -26,6 +27,7 @@ def embedded_json_data(data: Optional[str]) -> StdRet[StructuredDataType]:
         return StdRet.pass_ok(json.loads(data))
     except json.JSONDecodeError as err:
         return StdRet.pass_exception(
+            TRANSLATION_CATALOG,
             _('invalid embedded JSON data'),
             err,
         )

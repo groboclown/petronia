@@ -44,7 +44,7 @@ def parse_references(
             return StdRet.pass_errmsg(
                 STDC, _('references must be a dictionary of event data type dictionaries'),
             )
-        ret_reference = load_event_data_type(raw_reference)
+        ret_reference = load_event_data_type(reference_name, raw_reference)
         if ret_reference.has_error:
             return StdRet.pass_error(join_errors(
                 UserMessage(
@@ -71,7 +71,7 @@ def load_event_schema(  # pylint:disable=too-many-locals
     ret_send_access = load_dict_str_value('send-access', raw)
     ret_receive_access = load_dict_str_value('receive-access', raw)
     ret_unique_target = load_event_optional_str_value('unique-target', raw)
-    ret_data_type = load_event_structure_data_type_or_binary(raw)
+    ret_data_type = load_event_structure_data_type_or_binary(event_name, raw)
     error = collect_errors_from(
         ret_priority, ret_send_access, ret_receive_access, ret_unique_target, ret_data_type,
     )
@@ -231,7 +231,10 @@ def update_reference(  # pylint: disable=R0911,R0912
 
 
 # pylint: disable=R0911
-def load_event_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.AbcEventDataType]:
+def load_event_data_type(
+        src_name: str,
+        raw: Dict[str, Any],
+) -> StdRet[event_schema.AbcEventDataType]:
     """Reads an event data type object."""
     data_type = raw.get('type')
     if data_type == 'string':
@@ -247,16 +250,21 @@ def load_event_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.AbcEventDat
     if data_type == 'datetime':
         return load_event_datetime_data_type(raw)
     if data_type == 'array':
-        return load_event_array_data_type(raw)
+        return load_event_array_data_type(src_name, raw)
     if data_type == 'structure':
-        return load_event_structure_data_type(raw)
+        return load_event_structure_data_type(src_name, raw)
     if data_type == 'selector':
-        return load_event_selector_data_type(raw)
+        return load_event_selector_data_type(src_name, raw)
     if data_type == 'reference':
         return load_event_reference_data_type(raw)
+    if not data_type:
+        return StdRet.pass_errmsg(
+            STDC, _('{name}: "type" value not specified'),
+            name=src_name, data_type=data_type,
+        )
     return StdRet.pass_errmsg(
-        STDC, _('unknown data type `{data_type}`'),
-        data_type=data_type,
+        STDC, _('{name}: unknown "type" `{data_type}`'),
+        name=src_name, data_type=data_type,
     )
 
 
@@ -357,7 +365,10 @@ def load_event_datetime_data_type(
     return StdRet.pass_ok(event_schema.DatetimeEventDataType(ret_description.value))
 
 
-def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.ArrayEventDataType]:
+def load_event_array_data_type(
+        src_name: str,
+        raw: Dict[str, Any],
+) -> StdRet[event_schema.ArrayEventDataType]:
     """Reads an event array data type"""
     ret_description = load_event_type_description(raw)
     ret_max_length = load_event_numeric_val_with_default(
@@ -369,29 +380,41 @@ def load_event_array_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.Array
     raw_data_type = raw.get('value-type')
     if not isinstance(raw_data_type, dict):
         return StdRet.pass_errmsg(
-            STDC, _('`value-type` must be a dictionary of a data type structure'),
+            STDC, _('{name}: `value-type` must be a dictionary of a data type structure'),
+            name=src_name,
         )
-    ret_data_type = load_event_data_type(raw_data_type)
+    ret_data_type = load_event_data_type(src_name, raw_data_type)
     error = collect_errors_from(
         ret_description, ret_max_length, ret_min_length, ret_data_type,
     )
     if error:
-        return StdRet.pass_error(error)
+        return StdRet.pass_error(
+            join_errors(
+                UserMessage(
+                    STDC,
+                    _('{name}: problem(s) with event data type'),
+                    name=src_name,
+                ),
+                *error.messages(),
+            ),
+        )
     return StdRet.pass_ok(event_schema.ArrayEventDataType(
         ret_description.value, ret_data_type.result, ret_min_length.result, ret_max_length.result,
     ))
 
 
 def load_event_structure_data_type_or_binary(
+        src_name: str,
         raw: Dict[str, Any],
 ) -> StdRet[Optional[event_schema.StructureEventDataType]]:
     """Reads an event structure data type"""
     if raw.get('is-binary') is True:
         return RET_OK_NONE
-    return load_event_structure_data_type(raw)
+    return load_event_structure_data_type(src_name, raw)
 
 
 def load_event_structure_data_type(
+        src_name: str,
         raw: Dict[str, Any],
 ) -> StdRet[event_schema.StructureEventDataType]:
     """Reads an event structure data type"""
@@ -401,8 +424,9 @@ def load_event_structure_data_type(
     raw_fields = raw.get('fields')
     if not isinstance(raw_fields, dict):
         return StdRet.pass_errmsg(
-            STDC, _('`fields` must be a dictionary of field data type structures, found {data}'),
-            data=repr(raw_fields),
+            STDC,
+            _('{name}: `fields` must be a dictionary of field data type structures, found {data}'),
+            name=src_name, data=repr(raw_fields),
         )
     fields: Dict[str, event_schema.StructureFieldType] = {}
     for field_name, raw_field in raw_fields.items():
@@ -415,7 +439,7 @@ def load_event_structure_data_type(
             )
         else:
             optional = raw_optional
-        ret_field_data_type = load_event_data_type(raw_field)
+        ret_field_data_type = load_event_data_type(f'{src_name} -> {field_name}', raw_field)
         if not ret_field_data_type.ok:
             return ret_field_data_type.forward()
         fields[field_name] = event_schema.StructureFieldType(ret_field_data_type.result, optional)
@@ -425,6 +449,7 @@ def load_event_structure_data_type(
 
 
 def load_event_selector_data_type(
+        src_name: str,
         raw: Dict[str, Any],
 ) -> StdRet[event_schema.SelectorEventDataType]:
     """Reads an event selector data type"""
@@ -434,15 +459,18 @@ def load_event_selector_data_type(
     raw_type_mapping = raw.get('type-mapping')
     if not isinstance(raw_type_mapping, dict):
         return StdRet.pass_errmsg(
-            STDC, _('`type-mapping` must be a dictionary of data type structures'),
+            STDC, _('{name}: `type-mapping` must be a dictionary of data type structures'),
+            name=src_name,
         )
     mapping: Dict[str, event_schema.AbcEventDataType] = {}
     for key, raw_type in raw_type_mapping.items():
         if not isinstance(raw_type, dict):
             return StdRet.pass_errmsg(
-                STDC, _('`type-mapping` must be a dictionary of data type structures'),
+                STDC,
+                _('{name} -> {key}: `type-mapping` must be a dictionary of data type structures'),
+                name=src_name, key=key,
             )
-        ret_type = load_event_data_type(raw_type)
+        ret_type = load_event_data_type(f'{src_name} -> {key}', raw_type)
         if not ret_type.ok:
             return ret_type.forward()
         mapping[key] = ret_type.result

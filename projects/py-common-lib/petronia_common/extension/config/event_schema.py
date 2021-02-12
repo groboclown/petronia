@@ -73,6 +73,17 @@ class BoolEventDataType(AbcEventDataType):
     def __repr__(self) -> str:
         return f'BoolEventDataType({repr(self.description)})'
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, BoolEventDataType):
+            return False
+        return self.description == other.description
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.description) + 4
+
     def validate_type(self) -> Optional[PetroniaReturnError]:
         return None
 
@@ -107,6 +118,21 @@ class StringEventDataType(AbcEventDataType):
             f'min_length={self.min_length}, '
             f'max_length = {self.max_length})'
         )
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, StringEventDataType):
+            return False
+        return (
+            self.description == other.description
+            and self.min_length == other.min_length
+            and self.max_length == other.max_length
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.description) + self.min_length + self.max_length + 5
 
     @property
     def min_length(self) -> int:
@@ -182,6 +208,21 @@ class IntEventDataType(AbcEventDataType):
             f'max_value={self.max_value})'
         )
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, IntEventDataType):
+            return False
+        return (
+            self.description == other.description
+            and self.min_value == other.min_value
+            and self.max_value == other.max_value
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.description) + self.min_value + self.max_value + 3
+
     @property
     def min_value(self) -> int:
         """Integer values cannot be less than this value."""
@@ -247,6 +288,21 @@ class FloatEventDataType(AbcEventDataType):
             f'max_value={self.max_value})'
         )
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, FloatEventDataType):
+            return False
+        return (
+            self.description == other.description
+            and self.min_value == other.min_value
+            and self.max_value == other.max_value
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.description) + hash(self.min_value) + hash(self.max_value) + 2
+
     @property
     def min_value(self) -> Optional[float]:
         """If given, floating point numbers cannot be less than this value."""
@@ -301,6 +357,20 @@ class EnumEventDataType(AbcEventDataType):
 
     def __repr__(self) -> str:
         return f'EnumEventDataType({repr(self.description)}, values={repr(self.__values)})'
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, EnumEventDataType):
+            return False
+        return (
+            self.description == other.description
+            and self.values == other.values
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.description) + hash(self.values) + 1
 
     @property
     def values(self) -> Sequence[str]:
@@ -367,6 +437,17 @@ class DatetimeEventDataType(AbcEventDataType):
     def __repr__(self) -> str:
         return f'DatetimeEventDataType({repr(self.description)})'
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, DatetimeEventDataType):
+            return False
+        return self.description == other.description
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.description) + 12
+
     def validate_type(self) -> Optional[PetroniaReturnError]:
         return None
 
@@ -377,6 +458,7 @@ class DatetimeEventDataType(AbcEventDataType):
             return StdRet.pass_ok(datetime.datetime.strptime(raw_value, '%Y%m%d:%H%M%S.%f:%z'))
         except ValueError as err:
             return StdRet.pass_exception(
+                STANDARD_PETRONIA_CATALOG,
                 _('invalid formatted date string ({date})'),
                 err,
                 date=raw_value,
@@ -465,6 +547,25 @@ class ArrayEventDataType(AbcEventDataType):
             f'value_type={repr(self.value_type)}, '
             f'min_length={self.min_length}, '
             f'max_length={self.max_length})'
+        )
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ArrayEventDataType):
+            return False
+        return (
+            self.description == other.description
+            and self.value_type == other.value_type
+            and self.min_length == other.min_length
+            and self.max_length == other.max_length
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return (
+            hash(self.description) +
+            hash(self.value_type) + self.min_length + self.max_length
         )
 
     @property

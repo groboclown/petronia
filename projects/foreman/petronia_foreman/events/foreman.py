@@ -1,30 +1,30 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:28:51.945208+00:00
+# Created on 2021-02-11T17:55:36.498802+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
 
 from typing import (
-    cast,
-    Dict,
-    List,
-    SupportsFloat,
     Any,
+    SupportsFloat,
     Union,
     SupportsInt,
+    Dict,
+    List,
+    cast,
     Optional,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    collect_errors_from,
     not_none,
+    collect_errors_from,
+    StdRet,
     STANDARD_PETRONIA_CATALOG,
 )
 
@@ -517,15 +517,15 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[float],
-            List[str],
-            int,
-            bool,
-            List[datetime.datetime],
-            List[int],
-            float,
             List[bool],
+            List[int],
+            bool,
             str,
+            int,
+            List[str],
+            List[datetime.datetime],
+            float,
+            List[float],
             datetime.datetime,
         ],
     ) -> None:
@@ -539,15 +539,15 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[float],
-            List[str],
-            int,
-            bool,
-            List[datetime.datetime],
-            List[int],
-            float,
             List[bool],
+            List[int],
+            bool,
             str,
+            int,
+            List[str],
+            List[datetime.datetime],
+            float,
+            List[float],
             datetime.datetime,
     ]:
         """The selector value."""

@@ -1,6 +1,6 @@
 ---
 
-name: petronia.core.impl.datastore
+name: petronia_core.datastore
 type: impl
 version: [1, 0, 0]
 about: Simple in-memory store implementation.
@@ -12,9 +12,10 @@ implements:
     minimum: [1, 0, 0]
     below: [2, 0, 0]
 depends:
-  - name: petronia.core.api.logging
+  - name: petronia.core.protocol.logging
     minimum: [1, 0, 0]
     below: [2, 0, 0]
+
 runtime:
   launcher: core
   # No permissions necessary.

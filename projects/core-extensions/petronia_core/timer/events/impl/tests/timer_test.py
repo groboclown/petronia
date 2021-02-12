@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:29:02.758771+00:00
+# Created on 2021-02-11T17:55:46.938648+00:00
 
 """
 Tests for the timer module.
@@ -12,7 +12,6 @@ import unittest
 from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import timer
-
 
 class HeartbeatEventTest(unittest.TestCase):
     """
@@ -69,19 +68,18 @@ HEARTBEAT_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'sent_on': '20210209:222902.702170:+0000',
+            'sent_on': '20210211:175546.881144:+0000',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'sent_on': '20210209:222902.702229:+0000',
+            'sent_on': '20210211:175546.881194:+0000',
 
         },
     ),
 ]
-
 
 class HeartbeatIntervalStateTest(unittest.TestCase):
     """
@@ -138,14 +136,14 @@ HEARTBEAT_INTERVAL_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'seconds': 851535.3305946462,
+            'seconds': 447869.54575299926,
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'seconds': 229066.5171246577,
+            'seconds': 743287.2954967753,
 
         },
     ),

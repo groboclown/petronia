@@ -1,24 +1,24 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:29:05.151530+00:00
+# Created on 2021-02-11T17:55:50.465118+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.monitor version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
 
 from typing import (
-    Any,
-    List,
-    SupportsInt,
     Dict,
+    SupportsInt,
+    List,
+    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     collect_errors_from,
+    StdRet,
     not_none,
     STANDARD_PETRONIA_CATALOG,
 )
@@ -31,7 +31,7 @@ class Monitors:
     """
     (no description)
     """
-    __slots__ = ('identifier', 'description', 'real_pixel_width', 'real_pixel_height', 'real_pixel_size_ratio_x', 'real_pixel_size_ratio_y', 'supports_rotation',)
+    __slots__ = ('identifier', 'description', 'real_pixel_width', 'real_pixel_height', 'dpi_x', 'dpi_y', 'supports_rotation',)
 
     def __init__(
         self,
@@ -39,16 +39,16 @@ class Monitors:
         description: str,
         real_pixel_width: int,
         real_pixel_height: int,
-        real_pixel_size_ratio_x: int,
-        real_pixel_size_ratio_y: int,
+        dpi_x: int,
+        dpi_y: int,
         supports_rotation: bool,
     ) -> None:
         self.identifier = identifier
         self.description = description
         self.real_pixel_width = real_pixel_width
         self.real_pixel_height = real_pixel_height
-        self.real_pixel_size_ratio_x = real_pixel_size_ratio_x
-        self.real_pixel_size_ratio_y = real_pixel_size_ratio_y
+        self.dpi_x = dpi_x
+        self.dpi_y = dpi_y
         self.supports_rotation = supports_rotation
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
@@ -58,8 +58,8 @@ class Monitors:
             'description': self.description,
             'real_pixel_width': self.real_pixel_width,
             'real_pixel_height': self.real_pixel_height,
-            'real_pixel_size_ratio_x': self.real_pixel_size_ratio_x,
-            'real_pixel_size_ratio_y': self.real_pixel_size_ratio_y,
+            'dpi_x': self.dpi_x,
+            'dpi_y': self.dpi_y,
             'supports_rotation': self.supports_rotation,
         }
         return _strip_none(ret)
@@ -145,13 +145,13 @@ class Monitors:
                     name='Monitors',
                 )
             f_real_pixel_height = int(val)
-        val = data.get('real_pixel_size_ratio_x')
-        f_real_pixel_size_ratio_x: int
+        val = data.get('dpi_x')
+        f_dpi_x: int
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='real_pixel_size_ratio_x',
+                field_name='dpi_x',
                 name='Monitors',
             )
         else:
@@ -159,18 +159,18 @@ class Monitors:
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='real_pixel_size_ratio_x',
+                    field_name='dpi_x',
                     type='int',
                     name='Monitors',
                 )
-            f_real_pixel_size_ratio_x = int(val)
-        val = data.get('real_pixel_size_ratio_y')
-        f_real_pixel_size_ratio_y: int
+            f_dpi_x = int(val)
+        val = data.get('dpi_y')
+        f_dpi_y: int
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='real_pixel_size_ratio_y',
+                field_name='dpi_y',
                 name='Monitors',
             )
         else:
@@ -178,11 +178,11 @@ class Monitors:
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='real_pixel_size_ratio_y',
+                    field_name='dpi_y',
                     type='int',
                     name='Monitors',
                 )
-            f_real_pixel_size_ratio_y = int(val)
+            f_dpi_y = int(val)
         val = data.get('supports_rotation')
         f_supports_rotation: bool
         if val is None:  # pylint:disable=no-else-return
@@ -209,8 +209,8 @@ class Monitors:
             description=not_none(f_description),
             real_pixel_width=not_none(f_real_pixel_width),
             real_pixel_height=not_none(f_real_pixel_height),
-            real_pixel_size_ratio_x=not_none(f_real_pixel_size_ratio_x),
-            real_pixel_size_ratio_y=not_none(f_real_pixel_size_ratio_y),
+            dpi_x=not_none(f_dpi_x),
+            dpi_y=not_none(f_dpi_y),
             supports_rotation=not_none(f_supports_rotation),
         ))
 

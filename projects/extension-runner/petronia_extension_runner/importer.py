@@ -52,6 +52,7 @@ def load_module_from_path(fullname: str, path: List[str]) -> StdRet[types.Module
         return StdRet.pass_ok(ret)
     except Exception as err:  # pylint:disable=broad-except
         return StdRet.pass_exception(
+            TRANSLATION_CATALOG,
             _('extension-runner could not load Python module {name} from path {path}'),
             err,
             name=fullname,

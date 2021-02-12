@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:29:00.144263+00:00
+# Created on 2021-02-11T17:55:44.615831+00:00
 
 """
 Tests for the datastore module.
@@ -12,7 +12,6 @@ import unittest
 from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import datastore
-
 
 class StoreDataEventTest(unittest.TestCase):
     """
@@ -69,19 +68,18 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'json': 'kΐԦĮȸϴԅˇԨΣ\u038bхƪɸ\x90ΎΊ1\u0378ɿǗӈOӞǏзPċΑ\xad',
+            'json': 'ĞơʥŦ˕ƒńϼԋ¦˛уͲƗσȈ®ɵȽԛ5ĐТ$dԥˍɂЙҩ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': '.\u0380',
+            'json': 'ʍȓ',
 
         },
     ),
 ]
-
 
 class DeleteDataEventTest(unittest.TestCase):
     """
@@ -103,7 +101,6 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 
     ('basic-parse', {}),
 ]
-
 
 class SendStateEventTest(unittest.TestCase):
     """
@@ -160,19 +157,18 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'store_id': 'Iơȭ\x93tΧύεȰǔŧŞGȦ\x98ˮњǊΓǀEþ\x92ťϰ\u038b˩ɇϰđ',
+            'store_id': 'Ëԫ[ԬѭėÎȊǡȴӘtѷºʩȁÛgΥ\u0379РҢϖưǕӏ\u0378ϰɀѲ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': 'Ľ0ŕɈǼ',
+            'store_id': 'ʠВђɭҧ',
 
         },
     ),
 ]
-
 
 class DataUpdateEventTest(unittest.TestCase):
     """
@@ -233,22 +229,21 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210209:222900.075614:+0000',
-            'json': 'ˍЉмBǔʿɓ\x90˫ҜŮԮɹĩѤýX˒\x90ŨĭǗªԍ˷ɣ)ŷū˧',
+            'changed': '20210211:175544.566334:+0000',
+            'json': 'ƛҭʯДȑπυЏυӭɅ\x87ÑȼΝɳŦΟʩǐˮȪ\x95ѷdЉҝҜҚС',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210209:222900.075653:+0000',
+            'changed': '20210211:175544.566377:+0000',
 
-            'json': 'ǸЖ',
+            'json': 'ĝϿ',
 
         },
     ),
 ]
-
 
 class DataRemovedEventTest(unittest.TestCase):
     """

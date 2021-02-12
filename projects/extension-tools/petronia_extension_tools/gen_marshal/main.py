@@ -6,7 +6,7 @@ Entry for the event marshal generation tool.
 from typing import Sequence, List
 import os
 import argparse
-from petronia_common.extension.config import ApiExtensionMetadata
+from petronia_common.extension.config import ApiExtensionMetadata, ProtocolExtensionMetadata
 from petronia_common.util import i18n as _
 from .load_definition import ExtensionDataFile, load_extension_file
 from .create_api_marshaller import create_api_marshal_source
@@ -76,7 +76,7 @@ def main(cmd_args: Sequence[str]) -> int:
 
     for metadata in ext_metadata:
         if generate_apis or generate_internals:
-            if not isinstance(metadata.metadata, ApiExtensionMetadata):
+            if not isinstance(metadata.metadata, (ApiExtensionMetadata, ProtocolExtensionMetadata)):
                 display(
                     _('Skipping {name}: only generating events for API extensions.'),
                     name=metadata.metadata.name,

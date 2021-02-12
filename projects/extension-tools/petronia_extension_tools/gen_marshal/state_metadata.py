@@ -53,7 +53,7 @@ def parse_state_data(
         for key, value in raw_state_data.items():
             if not isinstance(value, dict):
                 continue
-            structure_res = load_event_structure_data_type(value)
+            structure_res = load_event_structure_data_type(key, value)
             if structure_res.has_error:
                 return structure_res.forward()
             ref_res = update_reference(structure_res.result, parsed_references, [])

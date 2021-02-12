@@ -1,27 +1,27 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:29:02.740175+00:00
+# Created on 2021-02-11T17:55:46.922266+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.timer version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
 
 from typing import (
+    Dict,
     SupportsFloat,
     Any,
-    Dict,
     List,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
-    StdRet,
     collect_errors_from,
+    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.timer'

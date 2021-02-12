@@ -65,24 +65,24 @@ state-data:
               type: int
               min-value: 0
               max-value: 2000000000
-            real_pixel_size_ratio_x:
+            dpi_x:
+              description: >
+                The number of pixels stuffed into an inch along the x-axis.  Some resolutions
+                in monitors have non-rectangular pixels.  The program requires knowledge
+                of how the pixel is shaped in order to render squares and circles that
+                look like squares and circles to the user.  If the DPI is not known, then
+                set the x and y to 1.
+              type: int
+              min-value: 1
+            dpi_y:
               description: >
                 A ratio of width vs height for the real pixel size.  Some resolutions
                 in monitors have non-rectangular pixels.  The program requires knowledge
                 of how the pixel is shaped in order to render squares and circles that
-                look like squares and circles to the user.  Use 0 to indicate that
-                it isn't known.
+                look like squares and circles to the user.  If the DPI is not known, then
+                set the x and y to 1.
               type: int
-              min-value: 0
-            real_pixel_size_ratio_y:
-              description: >
-                A ratio of width vs height for the real pixel size.  Some resolutions
-                in monitors have non-rectangular pixels.  The program requires knowledge
-                of how the pixel is shaped in order to render squares and circles that
-                look like squares and circles to the user.  Use 0 to indicate that
-                it isn't known.
-              type: int
-              min-value: 0
+              min-value: 1
             supports_rotation:
               description: >
                 Whether this monitor supports rotating the display, so that it is properly

@@ -10,10 +10,10 @@ from petronia_common.event_stream.thread_stream import ThreadedStreamForwarder
 from petronia_common.event_stream.thread_writer import ThreadSafeEventWriter
 from petronia_common.util import StdRet, PetroniaReturnError, T, RET_OK_NONE
 from petronia_common.util import i18n as _
-from petronia_common.util.message import USER_MESSAGE_CATALOG_EXCEPTION
 from .registry import (
     EventRegistryContext, EventObject, EventBinaryTarget, EventObjectTarget, EventObjectParser,
 )
+from ..defs import TRANSLATION_CATALOG
 
 
 def extension_runner(
@@ -59,7 +59,7 @@ class EventRegistryContextImpl(EventRegistryContext):
         parser = self._obj_parsers.get(event_id)
         if not parser:
             return StdRet.pass_errmsg(
-                USER_MESSAGE_CATALOG_EXCEPTION,
+                TRANSLATION_CATALOG,
                 _('No registered parser for {event_id}'),
                 event_id=event_id,
             )

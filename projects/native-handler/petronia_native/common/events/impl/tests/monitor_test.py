@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:29:05.173184+00:00
+# Created on 2021-02-11T17:55:50.481567+00:00
 
 """
 Tests for the monitor module.
@@ -12,7 +12,6 @@ import unittest
 from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import monitor
-
 
 class MonitorsTest(unittest.TestCase):
     """
@@ -70,11 +69,11 @@ MONITORS_BAD_PARSE_DATA_TESTS: Sequence[
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='real_pixel_size_ratio_x', name='Monitors'),
+                dict(field_name='dpi_x', name='Monitors'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='real_pixel_size_ratio_y', name='Monitors'),
+                dict(field_name='dpi_y', name='Monitors'),
             ),
             (
                 'Required field {field_name} in {name}',
@@ -93,37 +92,36 @@ MONITORS_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 5713693,
-            'description': '˔ȶ҅RɯɅˢȓҶÒrҳѻĈď\x96ȎаƂƠԋmnɎŴŷǊğѲŦ',
-            'real_pixel_width': -1715133876962353630,
-            'real_pixel_height': -2432216593971556617,
-            'real_pixel_size_ratio_x': -3718873564209659983,
-            'real_pixel_size_ratio_y': 1988352925260875254,
-            'supports_rotation': False,
+            'identifier': -322853,
+            'description': 'ɓΚ3еΘøИǴɴßǅцǉϵԡʜʀɖԨİĠιāXƁŋ˽ǥöƤ',
+            'real_pixel_width': -7931428217582481050,
+            'real_pixel_height': -9189160859954427283,
+            'dpi_x': 2499220797258195911,
+            'dpi_y': 7550344538779925151,
+            'supports_rotation': True,
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 3908152,
+            'identifier': 3235591,
 
             'description': '',
 
-            'real_pixel_width': -683266644150852158,
+            'real_pixel_width': -3790372290716295131,
 
-            'real_pixel_height': -4624194123081318025,
+            'real_pixel_height': -4311920662671119246,
 
-            'real_pixel_size_ratio_x': 8756073727448751928,
+            'dpi_x': 5112997597883769730,
 
-            'real_pixel_size_ratio_y': 8229499795789889118,
+            'dpi_y': 1590314644419596584,
 
             'supports_rotation': False,
 
         },
     ),
 ]
-
 
 class ActiveMonitorsStateTest(unittest.TestCase):
     """
@@ -182,94 +180,94 @@ ACTIVE_MONITORS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         {
             'monitors': [
                 {
-                    'identifier': 4076768,
-                    'description': '6ĬĞ҄Źûƅȶŭ˕êʾ[ΈшФˁϭəʭvȨӺ¼ɰѵ-mǋñ',
-                    'real_pixel_width': -7819361189334770642,
-                    'real_pixel_height': -3125856847104394262,
-                    'real_pixel_size_ratio_x': 1351907248482233933,
-                    'real_pixel_size_ratio_y': -3513489059505309977,
+                    'identifier': 4098253,
+                    'description': 'öĶ²Ͻɞɇ\x8f§ҥδ˃ǚȕˣĒǤǬΣͼӐȗ˵ԩӝŜϒĠȅ\x9aʾ',
+                    'real_pixel_width': -6940239251467998368,
+                    'real_pixel_height': -3404774507342364620,
+                    'dpi_x': 6875058981905361646,
+                    'dpi_y': 890858859583127682,
                     'supports_rotation': True,
                 },
                 {
-                    'identifier': 9698208,
-                    'description': 'ӹʚћȷɓ\x90ʹɝЮĎ˄+ӫҼȄѱƧĭĔҖɆϲȫ˥˺˧\x80ͷѠȟ',
-                    'real_pixel_width': -5364154892414821209,
-                    'real_pixel_height': -4029486763125658064,
-                    'real_pixel_size_ratio_x': 8972541733931520045,
-                    'real_pixel_size_ratio_y': 5372679582873556416,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': 5165896,
-                    'description': 'ϚƿŌϐi˚ǷĻыбͳжȰ˰Ȉfԓɤţ\x8aŀʩȒ ¹½ѽȬưç',
-                    'real_pixel_width': -5278801859826959663,
-                    'real_pixel_height': -2022172933955094687,
-                    'real_pixel_size_ratio_x': -4935768002292009237,
-                    'real_pixel_size_ratio_y': 7422971742889788729,
+                    'identifier': 612991,
+                    'description': 'yǀҟ˽ɮɇΑԕuû\u0382ӀҒЛWͼĉ˺ЖϿɭŔvΫџǵƠʾ͵İ',
+                    'real_pixel_width': -8199213164593697043,
+                    'real_pixel_height': -1526124351150773772,
+                    'dpi_x': 3985760193735528999,
+                    'dpi_y': 1147122972301304739,
                     'supports_rotation': True,
                 },
                 {
-                    'identifier': -199757,
-                    'description': '˜ϋԖʶҌӻ\x85ƔѪˍҖàšœųɎ)þӴĨ҄π]ӣŠūԑϾĔӇ',
-                    'real_pixel_width': -5331184787080699705,
-                    'real_pixel_height': -4657570806105799416,
-                    'real_pixel_size_ratio_x': 2462642867803276213,
-                    'real_pixel_size_ratio_y': 8855815352100163064,
+                    'identifier': 8237437,
+                    'description': 'ϝƣӁ\x9d¯νǙӶ\x8cͼ΄Ɠȡ<ķɏҊ(ӤӠÙȷƆ0ѕÒюȑӋʶ',
+                    'real_pixel_width': -4127684070208016050,
+                    'real_pixel_height': -4936836240410833726,
+                    'dpi_x': 1179154999918662628,
+                    'dpi_y': 8008538414004015022,
                     'supports_rotation': False,
                 },
                 {
-                    'identifier': 3396087,
-                    'description': "҄ɻҲ[ƀ\x88\x84(ιǐzǬØ$ʸϦȄkԬ'ˤwʢʝàɅɢˉŲϭ",
-                    'real_pixel_width': -134418100884540109,
-                    'real_pixel_height': -7186833392968760499,
-                    'real_pixel_size_ratio_x': 4657079163419785838,
-                    'real_pixel_size_ratio_y': -3067480077751670124,
+                    'identifier': 8060112,
+                    'description': 'ƿϓ\u0382ºŗЍȕІȲ|Əʭˋ°ʣǮȃБя˝vŨԚϓ\x94',
+                    'real_pixel_width': -8623608956114973399,
+                    'real_pixel_height': -8103007994781068896,
+                    'dpi_x': 3781663718292051452,
+                    'dpi_y': 2210395665537197267,
                     'supports_rotation': False,
                 },
                 {
-                    'identifier': 6596241,
-                    'description': 'ˋɒϱą҃Ƽ\u0383ЩѤŁАǿRáҥκ\xadη\x88ѪӘpȬĂΣǋӽŰУʓ',
-                    'real_pixel_width': -2053756628957660731,
-                    'real_pixel_height': -1838001140668586747,
-                    'real_pixel_size_ratio_x': -2167131128978735360,
-                    'real_pixel_size_ratio_y': -5788150506236335200,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': 7893380,
-                    'description': 'ӧҼШϲ-ɲѺȃˑ]˥БɷӗɓѲũƲϭϿҠɎΤĠΰʵˀӀΒϹ',
-                    'real_pixel_width': -2737081455879813064,
-                    'real_pixel_height': -8360208537595407241,
-                    'real_pixel_size_ratio_x': 7493322251733092497,
-                    'real_pixel_size_ratio_y': -2035234008465022410,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': 3295628,
-                    'description': 'Ǣʦ_БǵİļȲØˉʙҖӷҘȱļ',
-                    'real_pixel_width': -4655905764525439910,
-                    'real_pixel_height': -2962648642391141103,
-                    'real_pixel_size_ratio_x': -3945584153590129876,
-                    'real_pixel_size_ratio_y': -3080958279511472052,
+                    'identifier': 8017040,
+                    'description': 'ўʂӐƕκ\u0382ȕĆôƱԅĀƓǷǻВĄдɻфύУѠÛúȕʤȵЭʜ',
+                    'real_pixel_width': -3690696606702245095,
+                    'real_pixel_height': -227446835887084466,
+                    'dpi_x': 2951574627208275946,
+                    'dpi_y': 3521238537590529944,
                     'supports_rotation': True,
                 },
                 {
-                    'identifier': 1928063,
-                    'description': 'Ǯ҉θaщ˹ɹɑ£ЖɈÔǢJЍҕķхƳҟʰфÂ¹ĈεӣʡΒą',
-                    'real_pixel_width': -6826755720756903223,
-                    'real_pixel_height': -3090928954016869806,
-                    'real_pixel_size_ratio_x': -2062989325494167170,
-                    'real_pixel_size_ratio_y': -4542641003834893351,
+                    'identifier': 8810004,
+                    'description': "ŇӗИÑȶĈ'μѿǲ˗˛ӑԢ1ǊέƊάǃʛбȬ҂оȨƸǗƺɜ",
+                    'real_pixel_width': -2215937885460481767,
+                    'real_pixel_height': -405564313108977947,
+                    'dpi_x': 5070018250864044827,
+                    'dpi_y': 6688320652475544204,
                     'supports_rotation': True,
                 },
                 {
-                    'identifier': 2864552,
-                    'description': 'ԜȩȡϠύ½θːŊԘчσǙΆѺ',
-                    'real_pixel_width': -2309244653618961409,
-                    'real_pixel_height': -794653637725173466,
-                    'real_pixel_size_ratio_x': 5312096957528579071,
-                    'real_pixel_size_ratio_y': -1644126491453246205,
+                    'identifier': 7896340,
+                    'description': 'æ˯öǭгˎҬɃDһƩҜϏԈҤϭƊӢ\x97˧\x96ЮƌǴʾ\x95әɹɎ±',
+                    'real_pixel_width': -9021882179973750997,
+                    'real_pixel_height': -1142666132597406868,
+                    'dpi_x': 7836118980378747515,
+                    'dpi_y': 2655990695430202686,
                     'supports_rotation': False,
+                },
+                {
+                    'identifier': 4352463,
+                    'description': 'ɨÆʆ\x8f˙qœεaΰҖĊȐК\x9cɝŁ˳ʳԋВ\u038b¯ΣƎʵɊҴŀʀ',
+                    'real_pixel_width': -8051669988158439537,
+                    'real_pixel_height': -1670714286380847070,
+                    'dpi_x': 452890180084904792,
+                    'dpi_y': 3434412189119550114,
+                    'supports_rotation': True,
+                },
+                {
+                    'identifier': 5592350,
+                    'description': 'b5ȰÓǒͰңƯ¹ќΥʷʶǈƇӈóΑŒ£ɐǿʑϤҦθпʴѮj',
+                    'real_pixel_width': -5130245061228236815,
+                    'real_pixel_height': -5309209244363058532,
+                    'dpi_x': 5726483246212349016,
+                    'dpi_y': 4524417963826554108,
+                    'supports_rotation': True,
+                },
+                {
+                    'identifier': 1385658,
+                    'description': '¾˺ʬʚƲ\x99јɧДɆjǧΜӧ˯ЛɈϘΗʠš¥ȿĊ\x83ʹӏÿƗԝ',
+                    'real_pixel_width': -1178337815619831738,
+                    'real_pixel_height': -3323130912367990261,
+                    'dpi_x': 6304176997598077589,
+                    'dpi_y': 5998333188126934115,
+                    'supports_rotation': True,
                 },
             ],
         },

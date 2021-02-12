@@ -7,6 +7,7 @@ from petronia_common.util import i18n as _
 from .setup import initialize, get_entrypoint_name, get_module_name, get_python_path
 from .messages import low_println
 from .importer import get_entrypoint_function
+from .defs import TRANSLATION_CATALOG
 
 
 def entrypoint(args: Sequence[str], inp: BinaryReader, outp: BinaryWriter) -> StdRet[None]:
@@ -35,6 +36,7 @@ def entrypoint(args: Sequence[str], inp: BinaryReader, outp: BinaryWriter) -> St
         return func_res
     except BaseException as err:  # pylint:disable=broad-except
         return StdRet.pass_exception(
+            TRANSLATION_CATALOG,
             _('Python extension {name} execution encountered an unhandled error'),
             err,
             name=get_module_name(),

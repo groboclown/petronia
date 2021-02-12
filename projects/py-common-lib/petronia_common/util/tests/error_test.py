@@ -116,7 +116,7 @@ class StdRetTest(unittest.TestCase):
     def test_pass_exception_1(self) -> None:
         """Send an exception."""
         ex = IOError('1')
-        ret: error.StdRet[int] = error.StdRet.pass_exception(i18n('a'), ex, a=1, b='a')
+        ret: error.StdRet[int] = error.StdRet.pass_exception('c', i18n('a'), ex, a=1, b='a')
         self.assertIsNotNone(ret)
         self.assertTrue(ret.has_error)
         self.assertFalse(ret.ok)
@@ -126,6 +126,7 @@ class StdRetTest(unittest.TestCase):
         err = ret.error
         assert err is not None  # mypy required
         self.assertEqual(1, len(err.messages()))
+        self.assertEqual('c', err.messages()[0].catalog)
         self.assertIsInstance(err, error.ExceptionPetroniaReturnError)
         assert isinstance(err, error.ExceptionPetroniaReturnError)  # mypy required
         self.assertEqual(ex, err.exception())

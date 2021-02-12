@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:29:07.283433+00:00
+# Created on 2021-02-11T17:55:52.884237+00:00
 
 """
 Tests for the datastore module.
@@ -12,7 +12,6 @@ import unittest
 from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import datastore
-
 
 class StoreDataEventTest(unittest.TestCase):
     """
@@ -69,19 +68,18 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'json': 'iʪ°ϰŇ&ɡљϥΈнЃŮƈϸъϾʒÁеȪΏάe»<ӝɆ϶Ǐ',
+            'json': 'ԂƑȲwξʃϱĲԇƀӿҙņʭĲϙșαħаѕ˫ʟɤ\x97ƭҙbz\x8b',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': 'Ýҧ',
+            'json': '˚ī',
 
         },
     ),
 ]
-
 
 class DeleteDataEventTest(unittest.TestCase):
     """
@@ -103,7 +101,6 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 
     ('basic-parse', {}),
 ]
-
 
 class SendStateEventTest(unittest.TestCase):
     """
@@ -160,19 +157,18 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'store_id': 'ʍȌĕɧ˰Ёԫǌ-˱ΒͻŹЬ¸Ѱȼ¡ԊůҋϫŐµʗϏɪԅҺ^',
+            'store_id': 'žƵӋūҡʁӏɒÍԫ\x83ҴƩƁΌ×ѷԃťɏʹ1˜ȗϼ\x91ΗŨʿО',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': 'Ќ\x91»ˇ\x80',
+            'store_id': 'Ӡ4\x93ԍɁ',
 
         },
     ),
 ]
-
 
 class DataUpdateEventTest(unittest.TestCase):
     """
@@ -233,22 +229,21 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210209:222907.233158:+0000',
-            'json': 'ёώĉǆĭұƀ9ίŅĎԝϳъӶˣԅq¢ęĨȭŌlũђѨț0Т',
+            'changed': '20210211:175552.835650:+0000',
+            'json': 'ʧĊӕ¶ϧƅɧʄ`ãzнԦG˨ lũʨ«Øǽ˜`ɧͰǋ`ĕƥ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210209:222907.233200:+0000',
+            'changed': '20210211:175552.835692:+0000',
 
-            'json': 'ΏȻ',
+            'json': 'ԉÑ',
 
         },
     ),
 ]
-
 
 class DataRemovedEventTest(unittest.TestCase):
     """

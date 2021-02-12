@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:28:57.912986+00:00
+# Created on 2021-02-11T17:55:42.111018+00:00
 
 """
 Tests for the datastore module.
@@ -12,7 +12,6 @@ import unittest
 from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import datastore
-
 
 class StoreDataEventTest(unittest.TestCase):
     """
@@ -69,19 +68,18 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'json': 'ПêԅȳǷ˅\x8cˏŖÉʯƩŏį»ʋſӼˋ±ԆÐUǍÚC҇ԣѺө',
+            'json': 'ЏʩȨӨäӟɡªВÏȚýpҎΤȪÐUөҚáŉϥŅ¿ȷʗ$ǋж',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': 'ϸŤ',
+            'json': '®Ě',
 
         },
     ),
 ]
-
 
 class DeleteDataEventTest(unittest.TestCase):
     """
@@ -103,7 +101,6 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 
     ('basic-parse', {}),
 ]
-
 
 class SendStateEventTest(unittest.TestCase):
     """
@@ -160,19 +157,18 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'store_id': 'ҙΨҞɦÃƥǡʳґʷƞѢΈvҔϒѸǼѳĭԀƭɛӾƊƼȄlzΕ',
+            'store_id': 'ӂȅӿШůΧƲ^ϓϓɲ{ȍȓq˴ÜʤюȾƥӊɴщʦrϐ¢Ȏ×',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': 'тӀǚβг',
+            'store_id': 'ɰ\x9fȇōБ',
 
         },
     ),
 ]
-
 
 class DataUpdateEventTest(unittest.TestCase):
     """
@@ -233,22 +229,21 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210209:222857.840110:+0000',
-            'json': 'Ȕäx¯ȶïΘͷͺŏʶƴÅйӏŸ%ʯɾËб˓˕ȸЬɋĦʎȰԢ',
+            'changed': '20210211:175542.038980:+0000',
+            'json': 'ÍɋЁɆǶ¿(ϓÒƌɲ˹Ưԍ(ҩ҂ӳçˮцȽӲ\x85ɰsȞ¤ŵʪ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210209:222857.840153:+0000',
+            'changed': '20210211:175542.039021:+0000',
 
-            'json': 'ғř',
+            'json': 'ƁҴ',
 
         },
     ),
 ]
-
 
 class DataRemovedEventTest(unittest.TestCase):
     """

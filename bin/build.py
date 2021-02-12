@@ -21,8 +21,15 @@ SPECIAL_EXTENDED_PATHS = {
     'other': ['py-common-lib', 'py-extension-lib'],
 }
 
+OS_PREFIX = (
+    '.win-' if sys.platform == 'win32' else
+    '.linux-' if sys.platform == 'linux' else
+    '.osx-'
+)
+
 
 def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
+    setup_project_for_platform(project_dir)
     top_package_names: List[str] = []
     mypy_args: List[str] = ['--warn-unused-configs', '--no-incremental']
     for name in os.listdir(project_dir):
@@ -36,9 +43,6 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     if project_dir.endswith('-tests'):
         # special case for top-level testing projects that require cross-project path.
         for dirname in os.listdir(root_project_dir):
-            # yeah, another special case...
-            if dirname == 'core-extensions':
-                continue
             fqn = os.path.join(root_project_dir, dirname)
             if fqn not in extra_path and os.path.isdir(fqn):
                 extra_path.append(fqn)
@@ -236,6 +240,27 @@ def run_python_cmd(
     if fail_on_nonzero:
         return result.returncode
     return 0
+
+
+PROJECT_BUILD_FILES = (
+    '.coveragerc', 'mypy.ini', 'pylintrc',
+)
+
+
+def setup_project_for_platform(project_dir: str) -> None:
+    """Setup a project directory for running a build, changing the structure
+    based on the platform-specific config files."""
+    replaced = False
+    for build_file in PROJECT_BUILD_FILES:
+        os_build_file = os.path.join(project_dir, OS_PREFIX + build_file)
+        if os.path.isfile(os_build_file):
+            real_file = os.path.join(project_dir, build_file)
+            if os.path.isfile(real_file):
+                os.unlink(real_file)
+            shutil.copy(os_build_file, real_file)
+            replaced = True
+    if replaced:
+        print(f"(Prepared project's build environment for {sys.platform})")
 
 
 PRIORITY_PROJECTS = ('py-common-lib', 'extension-tools', 'py-extension-lib')

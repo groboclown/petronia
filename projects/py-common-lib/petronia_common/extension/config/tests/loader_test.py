@@ -270,7 +270,28 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             "events": {"x": {}},
             "references": {"x": 1},
         },
-        [('references must be a dictionary of event data type dictionaries', {})],
+        [
+            ('references must be a dictionary of event data type dictionaries', {}),
+        ],
+    ),
+    (
+        'No reference type',
+        {
+            'type': 'api', 'name': "bad.version", "version": [1, 0, 0],
+            "about": "s", "description": "t", "licenses": [], "authors": [],
+            "depends": [],
+            "events": {"x": {}},
+            "references": {"x": {}},
+        },
+        [
+            (
+                'error in reference definition for `{name}`',
+                dict(name='x'),
+            ), (
+                '{name}: "type" value not specified',
+                dict(name='x', data_type=None),
+            ),
+        ],
     ),
     (
         'Bad reference type',
@@ -286,8 +307,8 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 'error in reference definition for `{name}`',
                 dict(name='x'),
             ), (
-                'unknown data type `{data_type}`',
-                dict(data_type='blah'),
+                '{name}: unknown "type" `{data_type}`',
+                dict(name='x', data_type='blah'),
             ),
         ],
     ),
@@ -672,7 +693,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`value-type` must be a dictionary of a data type structure', {},)],
+        [(
+            '{name}: `value-type` must be a dictionary of a data type structure',
+            dict(name='x -> a'),
+        )],
     ),
     (
         'Event data - bad array value structure',
@@ -689,7 +713,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('unknown data type `{data_type}`', dict(data_type='foo'),)],
+        [
+            ('{name}: problem(s) with event data type', dict(name='x -> a')),
+            ('{name}: unknown "type" `{data_type}`', dict(name='x -> a', data_type='foo')),
+        ],
     ),
     (
         'Event data - bad structure description',
@@ -779,7 +806,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`type-mapping` must be a dictionary of data type structures', {},)],
+        [(
+            '{name}: `type-mapping` must be a dictionary of data type structures',
+            dict(name='x -> a'),
+        )],
     ),
     (
         'Event data - bad selector type-mapping entry type',
@@ -796,7 +826,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`type-mapping` must be a dictionary of data type structures', {},)],
+        [(
+            '{name} -> {key}: `type-mapping` must be a dictionary of data type structures',
+            dict(name='x -> a', key='x'),
+        )],
     ),
     (
         'Event data - bad selector type-mapping entry type value',
@@ -815,7 +848,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('unknown data type `{data_type}`', dict(data_type='foo'),)],
+        [('{name}: unknown "type" `{data_type}`', dict(name='x -> a -> x', data_type='foo'),)],
     ),
     (
         'Event data - bad reference ref type',

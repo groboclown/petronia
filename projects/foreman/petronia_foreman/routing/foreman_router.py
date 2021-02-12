@@ -27,8 +27,7 @@ from ..events import foreman
 from ..launcher import AbcLauncherCategory, RuntimeContext, create_launcher_category
 from ..launcher.internal import create_internal_launcher
 from ..launcher.loader import INTERNAL_EXTENSION_RUNTIME
-from ..user_message import display_error
-from ..user_message import low_println
+from ..user_message import display_error, low_println
 
 
 DEBUG = True
@@ -429,6 +428,7 @@ class LauncherCategoryState:
             init_res = executor.submit(category_res.result.initialize, context).result()
         except RuntimeError as err:
             return StdRet.pass_exception(
+                TRANSLATION_CATALOG,
                 _('failed creating launcher {name}'),
                 err,
                 name=self.config.runtime_name,

@@ -1,29 +1,29 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-09T22:29:05.060421+00:00
+# Created on 2021-02-11T17:55:50.376254+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.i10n version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint: disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
 
 from typing import (
-    Any,
-    Union,
+    SupportsInt,
+    SupportsFloat,
+    Dict,
     List,
     cast,
-    SupportsFloat,
-    SupportsInt,
-    Dict,
+    Any,
+    Union,
     Optional,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     collect_errors_from,
+    StdRet,
     not_none,
     STANDARD_PETRONIA_CATALOG,
 )
@@ -188,16 +188,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
-            bool,
-            List[int],
             int,
+            str,
             datetime.datetime,
-            List[float],
+            List[int],
+            bool,
             List[bool],
+            List[float],
             List[str],
-            float,
             List[datetime.datetime],
+            float,
         ],
     ) -> None:
         self.__name = name
@@ -210,16 +210,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
-            bool,
-            List[int],
             int,
+            str,
             datetime.datetime,
-            List[float],
+            List[int],
+            bool,
             List[bool],
+            List[float],
             List[str],
-            float,
             List[datetime.datetime],
+            float,
     ]:
         """The selector value."""
         return self.__value

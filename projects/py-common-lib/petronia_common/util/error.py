@@ -20,7 +20,6 @@ import collections.abc
 from .memory import T, T_co, V, EMPTY_TUPLE
 from .message import (
     I18n, UserMessage, UserMessageData,
-    USER_MESSAGE_CATALOG_EXCEPTION,
 )
 
 # These typing functions are in Python 3.8, but MyPy doesn't recognize them.
@@ -114,15 +113,16 @@ class StdRet(Generic[T_co]):
 
     @staticmethod
     def pass_exception(
-            source: I18n,
+            catalog: str,
+            cause: I18n,
             exception: BaseException,
             **details: UserMessageData,
     ) -> StdRet[T_co]:
         """Constructor that generates a forced error with no value.
-        The 'source' text can include an {exception} expression for
+        The 'cause' text can include an {exception} expression for
         replacement with the error itself."""
         return StdRet(ExceptionPetroniaReturnError(
-            UserMessage(USER_MESSAGE_CATALOG_EXCEPTION, source, **details, exception=exception),
+            UserMessage(catalog, cause, **details, exception=exception),
             exception,
         ), None)
 

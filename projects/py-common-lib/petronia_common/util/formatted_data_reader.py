@@ -29,6 +29,7 @@ def load_structured_file(filename: str) -> StdRet[StructuredFileData]:
                 data = json.load(r_f)
         except (OSError, json.JSONDecodeError) as err:
             return StdRet.pass_exception(
+                STANDARD_PETRONIA_CATALOG,
                 _('failed reading json file {filename}'),
                 err,
                 filename=filename,
@@ -39,6 +40,7 @@ def load_structured_file(filename: str) -> StdRet[StructuredFileData]:
                 res_data = load_yaml_documents(r_f.read())
         except OSError as err:
             return StdRet.pass_exception(
+                STANDARD_PETRONIA_CATALOG,
                 _('failed reading yaml file {filename}'),
                 err,
                 filename=filename,

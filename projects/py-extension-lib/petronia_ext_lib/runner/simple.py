@@ -76,12 +76,13 @@ class SimpleEventRegistryContext(EventRegistryContext):
             ),
             (
                 _('a target handler for event {event_id} is already registered'),
-                lambda: handler is not None and handler.target is None,
+                lambda: handler is None or handler.target is None,
             ),
             (
                 _("only targets that don't time out are supported."),
                 lambda: timeout < 0,
             ),
+            event_id=event_id,
         )
         if res:
             return StdRet.pass_error(res)

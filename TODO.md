@@ -9,13 +9,11 @@ These are desired, tactical changes to bits of already written code.
 
 ### build
 
-* The `core-extensions` and `extension-loader` both use a root package of `petronia`, which causes the integration tests to fail if they are both in the path.  This means that the "core" name detection must be handled in another way, and both of these extensions should get rid of the root `petronia` package.
 * raise the minimum coverage percent back up to 99.  It was dropped to 90 to get an initial good build.
 
 
 ### core-extensions
 
-* implement data store extension.  This is #1 priority, because everything else (well, not Foreman) depends upon this working right.
 * finish shutdown extension design.  This needs to borrow heavily from the v3.0 notes.
 * implement the timer extension.
 
@@ -31,6 +29,10 @@ This is the next thing that's being worked on.
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * for the ui extension, it must have absolute position for the outer window, but the inner components must be relative, because text display is dynamic (it looks up translations).  On that note, text must also be rotatable, and notes should be made that implementors *should* support BiDi.
+* `native-hotkey-extenison.yaml` defines `bound-hotkey` as a structure containing an array.  This is due to a limitation in the generator.  If the generator can eventually deal with this, then it should go back to being an array.
+* Running lint on the generated events tree takes minutes to run, so these are currently omitted in the `pylintrc` file.
+* `native-ui-extension.yaml` produces a cycle.  This needs to be solved by the generator, due to the need for recursive data structures.
+* The Windows version of `pylintrc` is ignoring the fixme messages.  This needs to be removed.
 
 
 ### py-common-lib
@@ -39,8 +41,7 @@ This is the next thing that's being worked on.
 * add unit test coverage on `petronia_common/extension/config/event_loader.py` (lines 83->96, 96, 389->390, 390)
 * add unit test coverage on `petronia_common/extension/config/event_schema.py` (lines 870->874)
 * add unit test coverage on `petronia_common/extension/runner/message_helper.py` (lines 58, 63-65, 70-72, 79-81, 95->97, 97)
-* `StdRet.pass_exception` should take a catalog.
-* Create asyncio versions of read & write events.  This essentially forks the API, making duplicates of all kinds of things.  However, only Foreman should be using the thread version.
+* Create asyncio versions of read & write events.  This essentially forks the API, making duplicates of all kinds of things.  However, only Foreman should be using the thread version.  *This may not be needed.  It could be that most things are single-threaded.*
 
 
 ### py-extension-lib
@@ -69,7 +70,6 @@ This is the next thing that's being worked on.
 * document how the extension-loader loads boot-time extensions
 * define the access permissions required by the extension-loader.
 * code coverage improvements
-* add an event that allows for an extension to save its configuration.  Extension loader would save it to an `overrides` directory in a file dedicated to that one extension.  This allows for UIs to alter a configuration and save it.
 
 
 ### foreman
@@ -82,6 +82,7 @@ This is the next thing that's being worked on.
 * change up the event router so that tests can have better insight into the status of the connected channels.  This may not be practical, but some method for gaining this insight can help eliminate the sleeps.  Perhaps some kind of spy into the internal buffers?
 * `cmd_launcher_test` doesn't work well with Windows on Travis builds.  This could be a timing issue.
 * foreman currently has a build dependency on `py-extension-lib` in order to share some very targeted behavior.  Should this be moved over to `py-common-lib`?  Currently, `py-common-lib` includes the arg-handler logic that is only used by extensions, so either move that arg handler over to extension lib, or move the foreman dependent stuff into py-common-lib.
+* should there be an implementation file for foreman?  It should never be started by the extension loader, but it may need it for completing its graph.
 
 
 ### py-extension-lib

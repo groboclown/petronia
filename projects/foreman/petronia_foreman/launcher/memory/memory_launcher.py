@@ -96,6 +96,7 @@ class MemoryLauncherCategory(AbcLauncherCategory):
             config_data = json.loads(start_event.configuration or '{}')
         except json.JSONDecodeError as err:
             return StdRet.pass_exception(
+                TRANSLATION_CATALOG,
                 _('extension {name}-{version} configuration data'),
                 err,
                 name=start_event.name,
@@ -192,6 +193,7 @@ class MemoryLauncherCategory(AbcLauncherCategory):
     def _on_error(module_name: str, extension_point: str, err: BaseException) -> None:
         user_message.display_error(
             StdRet.pass_exception(
+                TRANSLATION_CATALOG,
                 _('Encountered error running extension in module {mod_name}, function {func_name}'),
                 err,
                 mod_name=module_name,

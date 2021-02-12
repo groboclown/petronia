@@ -5,7 +5,7 @@ Create the marshaller Python object source.
 
 from typing import Dict, List, Sequence, Iterable, Set, Tuple, Union, Optional, Any
 import functools
-from petronia_common.util import StdRet
+from petronia_common.util import StdRet, i18n
 from petronia_common.extension.config import (
     AbcEventDataType,
     StructureEventDataType,
@@ -111,6 +111,17 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
         seen_structures[structure].append(struct_name)
 
     if structure:
+        for seen_struct, seen_names in seen_structures.items():
+            if struct_name in seen_names:
+                return StdRet.pass_errmsg(
+                    'errors',
+                    i18n(
+                        'Duplicate structure name encountered: {name}; alternate names: {seen}; '
+                        'original structure: {struct1}, overriding structure: {struct2}'
+                    ),
+                    name=struct_name, seen=seen_names,
+                    struct1=repr(seen_struct), struct2=repr(structure),
+                )
         seen_structures[structure] = [struct_name]
 
     ret: List[Dict[str, Any]] = []
