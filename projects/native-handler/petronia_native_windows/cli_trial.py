@@ -4,7 +4,7 @@ from typing import Tuple, Sequence, List, Optional
 import time
 
 # This is supposed to be runnable as a CLI, so this needs absolute imports.
-from petronia_native_windows import hook_messages, pumper, keymap
+from petronia_native_windows import hook_messages, message_loop, keymap
 from petronia_native_windows.arch.native_funcs.monitor import are_monitors_different, WindowsMonitor
 from petronia_native_windows.arch.native_funcs import WINDOWS_FUNCTIONS, HWND, WPARAM
 from petronia_native.common import log
@@ -137,7 +137,7 @@ if __name__ == '__main__':
         LAST_MONITOR_STATE.extend(WINDOWS_FUNCTIONS.monitor.find_monitors())  # pylint:disable=not-callable
 
     log.low_print(f'Initial monitors: {[m.info.export_data() for m in LAST_MONITOR_STATE]}')
-    handler = pumper.WindowsHookPumper()
+    handler = message_loop.WindowsMessageLoop()
     handler.set_key_handler(key_callback)
     handler.add_message_handler(hook_messages.display_changed_message(display_changed))
     handler.add_message_handler(hook_messages.system_settings_changed_message(system_changed))
@@ -157,7 +157,8 @@ if __name__ == '__main__':
     handler.add_message_handler(hook_messages.window_replaced_message(window_replaced))
     handler.add_message_handler(hook_messages.system_power_state_changed(power_state_changed))
     handler.add_message_handler(hook_messages.taskman_message(taskman))
-    handler.start(on_exit)
+    handler.set_on_exit_callback(on_exit)
+    handler.start()
 
     log.low_print("Press ctrl-c to stop.")
     while True:

@@ -1491,7 +1491,7 @@ def shell__pump_messages(on_exit_callback: Callable[[], None]) -> None:
     while True:
         msg = GetMessageW(byref(message), 0, 0, 0)
         if msg <= 0:
-            log.trace("quit message in queue")
+            log.trace("quit message in queue ({value})", value=msg)
             # 0 means WM_QUIT, < 0 means error
             on_exit_callback()
             # Is this right?

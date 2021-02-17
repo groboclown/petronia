@@ -5,6 +5,7 @@
 #   remove that coverage exclusion.
 omit =
     petronia_native/__main__.py
+    petronia_native_windows/cli_trial.py
     petronia_native/common/events/impl/i10n.py
     petronia_native/common/events/impl/tests/i10n_test.py
     petronia_native/common/events/impl/monitor.py
