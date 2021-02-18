@@ -3,7 +3,7 @@
 Units for display sizes.
 """
 
-from typing import Tuple, NewType, cast
+from typing import Tuple, NewType, Any, cast
 
 # Pixels according to the screen size measurement.
 ScreenUnit = NewType('ScreenUnit', int)
@@ -124,27 +124,46 @@ class ScreenRect:  # pylint:disable=too-many-instance-attributes
         """bottom"""
         return self.__bottom
 
-    def copy(self) -> 'ScreenRect':
-        """copy to another object"""
-        return ScreenRect(
-            x=self.__x,
-            y=self.__y,
-            width=self.__width,
-            height=self.__height,
-            left=self.__left,
-            right=self.__right,
-            top=self.__top,
-            bottom=self.__bottom,
-        )
-
     def get_area(self) -> ScreenArea:
         """get as an area"""
         return self.__x, self.__y, self.__width, self.__height
+
+    @staticmethod
+    def from_border(
+            left: int,
+            right: int,
+            top: int,
+            bottom: int,
+    ) -> 'ScreenRect':
+        """Create a ScreenRect from the border position."""
+        return ScreenRect(
+            cast(ScreenUnit, left), cast(ScreenUnit, top),
+            cast(ScreenUnit, right - left + 1), cast(ScreenUnit, bottom - top + 1),
+            cast(ScreenUnit, left), cast(ScreenUnit, right),
+            cast(ScreenUnit, top), cast(ScreenUnit, bottom),
+        )
 
     def __repr__(self) -> str:
         return 'ScreenRect(x={0}, y={1}, w={2}, h={3})'.format(
             self.__x, self.__y, self.__width, self.__height,
         )
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ScreenRect):
+            return False
+        return (
+            self.__x == other.x
+            and self.__y == other.y
+            and self.__width == other.width
+            and self.__height == other.height
+            # the other values SHOULD be constructed the same.
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return self.__x + self.__y + self.__width + self.__height
 
 
 EMPTY_SCREEN_RECT = ScreenRect(
@@ -253,3 +272,17 @@ class OsScreenRect:  # pylint:disable=too-many-arguments,too-many-instance-attri
         """Creates a structure based on the border positions.
         This will always make a visible rectangle; the smallest it can be is 1x1."""
         return OsScreenRect.from_coordinates(left, top, right, bottom)
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, OsScreenRect):
+            return False
+        return (
+            self.__x == other.x
+            and self.__y == other.y
+            and self.__width == other.width
+            and self.__height == other.height
+            # The others should be the same if this was constructed correctly.
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)

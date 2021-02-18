@@ -1455,6 +1455,11 @@ def shell__create_global_message_handler(
         message_id_callbacks: Dict[int, MessageCallback],
 ) -> NativeMessageCallback:
     """
+    Create a callback function.  It handles close and destroy messages,
+    and forwarding messages.  The called-in dictionary is not cloned, so it
+    can be modified after initial call to change which messages are being
+    handled; take note to only modify this structure from within the
+    message handling thread to avoid thread safety issues.
 
     :param message_id_callbacks: a dictionary that stores a mapping
         between the message ID (uint) and a callback that handles
@@ -1465,7 +1470,8 @@ def shell__create_global_message_handler(
     :return: the constructed handler callback.
     """
     def handler(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> int:
-        log.debug(
+        # This handler must be highly optimized.  No fluff where it isn't needed.
+        log.trace(
             "handling hwnd message 0x{m:08x} 0x{w:08x} 0x{l:08x}",
             m=message, w=wparam, l=lparam,
         )

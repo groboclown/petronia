@@ -33,8 +33,12 @@ from ..windows_constants import (
 
 def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     """Load all the functions in this module, if the platform is windows 8"""
-    if environ['system'].lower() == 'windows' and (
-            environ['release'].lower() == '8' or environ['release'].lower() == '8.1'
+    if (
+            environ['system'].lower() == 'windows'
+            and environ['release'].lower() in (
+                '8', '8.1', '2012server', '2012serverr2', 'post8.1',
+                'post2012serverr2',
+            )
     ):
         load_all_functions(func_map)
 

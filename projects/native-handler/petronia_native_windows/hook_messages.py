@@ -82,7 +82,8 @@ def device_changed_message(callback: Callable[[WPARAM], None]) -> MessageEntry:
 
 
 def window_minimized_message(callback: Callable[[HWND, RECT], None]) -> MessageEntry:
-    """Listens for windows being minimized."""
+    """Listens for windows being minimized.  The rectangle object is only viable within this
+    callback; after that, the pointer is probably gone."""
 
     def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
         info = c_cast(lparam, POINTER(SHELLHOOKINFO))  # type: ignore
@@ -147,14 +148,13 @@ def window_replacing_message(callback: Callable[[HWND, HWND], None]) -> MessageE
     the second is the HWND of the replaced window.
 
     The callback should be reused with window_replaced_message."""
-    def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
+    def handler(source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
         # LPARAM stores a handle to the window replacing the top-level window.
-        top = _source_hwnd
+        top = source_hwnd
         if WINDOWS_FUNCTIONS.window.get_owning_window:
-            handle = WINDOWS_FUNCTIONS.window.get_owning_window(_source_hwnd)
+            handle = WINDOWS_FUNCTIONS.window.get_owning_window(source_hwnd)
             if isinstance(handle, WindowsErrorMessage):
-                # TODO do something smart.
-                top = _source_hwnd
+                top = source_hwnd
             else:
                 top = handle
         callback(t_cast(HWND, lparam), top)
@@ -168,9 +168,9 @@ def window_replaced_message(callback: Callable[[HWND, HWND], None]) -> MessageEn
     the second is the HWND of the replaced window.
 
     The callback should be reused with window_replacing_message."""
-    def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
+    def handler(source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
         # LPARAM stores a handle to the window being replaced.
-        callback(t_cast(HWND, lparam), _source_hwnd)
+        callback(t_cast(HWND, lparam), source_hwnd)
         return True
     return True, windows_constants.HSHELL_WINDOWREPLACED, handler
 
@@ -207,7 +207,7 @@ def taskman_message(callback: Callable[[HWND, WPARAM], None]) -> MessageEntry:
     return True, windows_constants.HSHELL_TASKMAN, handler
 
 
-# FIXME need to figure out how to implement these.
+# need to figure out how to implement these.
 # HSHELL_LANGUAGE = 8  # -> ???
 # HSHELL_SYSMENU = 9  # -> ???
 # HSHELL_ACCESSIBILITYSTATE = 11  # -> ???

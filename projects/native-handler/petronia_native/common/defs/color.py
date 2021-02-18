@@ -64,15 +64,15 @@ def color_str_to_rgba(color: ColorStr) -> ColorRGBA:  # pylint:disable=too-many-
                 return (
                     int(color[1:3], 16),
                     int(color[3:5], 16),
-                    int(color[5:6], 16),
+                    int(color[5:7], 16),
                     0xff,
                 )
             if len(color) == 9:
                 return (
                     int(color[1:3], 16),
                     int(color[3:5], 16),
-                    int(color[5:6], 16),
-                    int(color[6:8], 16),
+                    int(color[5:7], 16),
+                    int(color[7:9], 16),
                 )
         return COLOR_NAME_MAP[color]
     except (ValueError, KeyError):

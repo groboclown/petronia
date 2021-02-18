@@ -30,8 +30,10 @@ from .. import windows_constants
 
 def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     """Load all the functions, if this is running on windows xp"""
-    # TODO include Windows Server 2003 detection
-    if environ['system'].lower() == 'windows' and environ['release'].lower() == 'xp':
+    if (
+            environ['system'].lower() == 'windows'
+            and environ['release'].lower() in ('xp', '2003server', 'post2003')
+    ):
         func_map.shell.find_notification_icons = create_shell__find_notification_icons(func_map)
         func_map.process.load_all_process_details = process__load_all_process_details
         load_psapi_functions(func_map)

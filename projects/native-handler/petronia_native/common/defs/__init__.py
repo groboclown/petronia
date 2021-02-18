@@ -21,4 +21,5 @@ from .color import (
     Color,
     DEFAULT_COLOR,
     color_str_to_rgba,
+    color_to_rgba,
 )

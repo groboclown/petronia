@@ -41,8 +41,8 @@ def get_modifier_vk_keys(include_special: bool) -> Set[int]:
     ret = set(_MODIFIER_KEYS)
     if not include_special:
         for vk_code in SPECIAL_MODIFIER_CHECK_VKEY_CODES:
-            if vk_code in ret:
-                ret.remove(vk_code)
+            # all special modifiers should always be in the modifier keys.
+            ret.remove(vk_code)
     return ret
 
 

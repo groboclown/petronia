@@ -28,13 +28,13 @@ from .windows_common import (
 )
 
 
-def _load_functions(modules: Sequence[str]) -> Functions:
+def internal_load_functions(modules: Sequence[str]) -> Functions:
     import platform  # pylint:disable=import-outside-toplevel
     import struct  # pylint:disable=import-outside-toplevel
 
     # Ensure we're on Windows
-    if 'windows' not in platform.system().lower():
-        return Functions()
+    if 'windows' not in platform.system().lower():  # pragma no cover
+        return Functions()  # pragma no cover
 
     # Set up environment settings to make inspection of the current
     # platform easy for function modules to check.
@@ -43,6 +43,8 @@ def _load_functions(modules: Sequence[str]) -> Functions:
     environ = {
         '32-bit': void_ptr_bits == 32,
         '64-bit': void_ptr_bits == 64,
+
+        # Release name is in Lib/platform.py
         'release': platform.release(),
         'version': platform.version(),
         'system': platform.system(),
@@ -55,23 +57,18 @@ def _load_functions(modules: Sequence[str]) -> Functions:
 
     ret = Functions()
     for name in modules:
-        if isinstance(name, str):
-            try:
-                mod = importlib.import_module(name, __name__)
-            except:
-                print("Problem loading module " + name)
-                raise
-        else:
-            mod = name
-        if hasattr(mod, 'load_functions'):
-            mod.load_functions(environ, ret)  # type: ignore
+        # This can cause all kinds of errors.  However, those errors should be picked
+        # up in unit tests (it's all based on hard-coded strings, not user-configurable
+        # stuff).  So error checking doesn't exist here.
+        mod = importlib.import_module(name, __name__)
+        getattr(mod, 'load_functions')(environ, ret)
     return ret
 
 
 # Defines the list of modules that contains platform specific functions.
 # They are loaded in a specific order to overwrite previous, less-specific
 # versions of the functions.
-WINDOWS_FUNCTIONS = _load_functions([
+WINDOWS_FUNCTIONS = internal_load_functions([
     __name__ + ".funcs_x86_win",
     __name__ + ".funcs_x64_win",
 

@@ -23,8 +23,10 @@ from ..windows_constants import (
 
 def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     """Load the windows 7 functions, if the current platform is windows 7."""
-    # TODO include Windows Server 2008 R2 detection
-    if environ['system'].lower() == 'windows' and environ['release'].lower() == '7':
+    if (
+            environ['system'].lower() == 'windows'
+            and environ['release'].lower() in ('7', '2008serverr2')
+    ):
         load_all_functions(func_map)
 
 
@@ -97,7 +99,8 @@ def process__get_all_pids() -> Union[WindowsErrorMessage, Sequence[DWORD]]:
     process_buff = (DWORD * 2048)()
     process_size = DWORD()
     res = windll.psapi.EnumProcesses(process_buff, c_sizeof(process_buff), byref(process_size))
-    if res != 0:
+    # If the function succeeds, the return value is nonzero.
+    if res == 0:
         return WindowsErrorMessage('psapi.EnumProcesses')
     count = process_size.value // c_sizeof(DWORD)
     ret: List[DWORD] = []

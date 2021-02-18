@@ -13,5 +13,8 @@ Registry access.
 
 # Allow tests to run on non-Windows platforms.
 import sys
-if sys.platform.startswith('win'):
+from . import error_codes_common
+
+if sys.platform.startswith('win'):  # pragma no cover
     from . import native_funcs
+    from . import windows_constants

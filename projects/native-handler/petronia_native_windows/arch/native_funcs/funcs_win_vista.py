@@ -47,7 +47,10 @@ from ..windows_constants import (
 def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     """Load all the functions, if this is running on Windows Vista."""
     # TODO also detect Windows Server 2008
-    if environ['system'].lower() == 'windows' and environ['release'].lower() == 'vista':
+    if (
+            environ['system'].lower() == 'windows'
+            and environ['release'].lower() in ('6', 'vista', '2008server')
+    ):
         load_all_functions(func_map)
 
 

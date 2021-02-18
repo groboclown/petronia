@@ -22,24 +22,24 @@ def low_print(message: str) -> None:
         sys.stdout.flush()
 
 
-def info(msg: str, **kwargs: Any) -> None:
+def info(message_text: str, **kwargs: Any) -> None:
     """Info level logging"""
     if LOG_INFO:
-        low_print('[Native INFO] ' + (msg.format(**kwargs)))
+        low_print('[Native INFO] ' + (message_text.format(**kwargs)))
 
 
-def debug(msg: str, **kwargs: Any) -> None:
+def debug(message_text: str, **kwargs: Any) -> None:
     """Debug level logging"""
     if LOG_DEBUG:
-        low_print('[Native DEBUG] ' + (msg.format(**kwargs)))
+        low_print('[Native DEBUG] ' + (message_text.format(**kwargs)))
 
 
-def trace(msg: str, **kwargs: Any) -> None:
+def trace(message_text: str, **kwargs: Any) -> None:
     """Trace level logging"""
     if LOG_TRACE:
-        low_print('[Native TRACE] ' + (msg.format(**kwargs)))
+        low_print('[Native TRACE] ' + (message_text.format(**kwargs)))
 
 
-def error(msg: str, **kwargs: Any) -> None:
+def error(message_text: str, **kwargs: Any) -> None:
     """Log an error message."""
-    low_print('[Native ERROR] ' + (msg.format(**kwargs)))
+    low_print('[Native ERROR] ' + (message_text.format(**kwargs)))
