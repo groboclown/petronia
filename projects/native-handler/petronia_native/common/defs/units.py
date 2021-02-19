@@ -245,14 +245,13 @@ class OsScreenRect:  # pylint:disable=too-many-arguments,too-many-instance-attri
 
     @staticmethod
     def from_coordinates(x1: int, y1: int, x2: int, y2: int) -> 'OsScreenRect':  # pylint:disable=invalid-name
-        """Creates a structure based on (x, y) -> (x, y) screen coordinates.
-        This will always make a visible rectangle; the smallest it can be is 1x1."""
+        """Creates a structure based on (x, y) -> (x, y) screen coordinates."""
         min_x = min(x1, x2)
         min_y = min(y1, y2)
         max_x = max(x1, x2)
         max_y = max(y1, y2)
         return OsScreenRect(
-            min_x, min_y, max_x - min_x + 1,  max_y - min_y + 1,
+            min_x, min_y, max_x - min_x,  max_y - min_y,
             min_x, max_x, min_y, max_y,
         )
 
@@ -264,14 +263,31 @@ class OsScreenRect:  # pylint:disable=too-many-arguments,too-many-instance-attri
         r_h = max(1, height)
         return OsScreenRect(
             x, y, r_w, r_h,
-            x, x + r_w - 1, y, y + r_h - 1,
+            x, x + r_w, y, y + r_h,
         )
 
     @staticmethod
     def from_border(left: int, right: int, top: int, bottom: int) -> 'OsScreenRect':
-        """Creates a structure based on the border positions.
-        This will always make a visible rectangle; the smallest it can be is 1x1."""
-        return OsScreenRect.from_coordinates(left, top, right, bottom)
+        """Creates a structure based on the border positions."""
+        # This is based on experiments from returned values on Windows.
+        return OsScreenRect(
+            x=left,
+            y=top,
+            width=right - left,
+            height=bottom - top,
+            left=left,
+            right=right,
+            top=top,
+            bottom=bottom,
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f'OsScreenRect('
+            f'left={self.left}, right={self.right}, top={self.top}, bottom={self.bottom}'
+            # f', x={self.x}, y={self.y}, w={self.width}, h={self.height}'
+            f')'
+        )
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, OsScreenRect):

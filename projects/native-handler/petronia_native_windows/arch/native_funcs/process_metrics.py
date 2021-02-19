@@ -35,7 +35,6 @@ class ProcessMetrics:  # pylint:disable=too-many-instance-attributes
             wait_time_millis_hint: int,
             process_id: int,
             flags: Sequence[str],
-
     ):
         self.display_name = display_name
         self.service_name = service_name

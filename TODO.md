@@ -22,7 +22,6 @@ These are desired, tactical changes to bits of already written code.
 
 This is the next thing that's being worked on.
 
-1. implement monitor detection + screen change detection for Windows.
 1. implement monitor mapping.  Include in this adding in a "failed to set mapping" event.
 1. implement hotkey capture and reporting for Windows.
 1. implement window handling and event reporting for Windows.
@@ -33,6 +32,8 @@ This is the next thing that's being worked on.
 * Running lint on the generated events tree takes minutes to run, so these are currently omitted in the `pylintrc` file.
 * `native-ui-extension.yaml` produces a cycle.  This needs to be solved by the generator, due to the need for recursive data structures.
 * The Windows version of `pylintrc` is ignoring the fixme messages.  This needs to be removed.
+* Turn back off the `func_*.py` disabled in the code coverage (`.coveragerc`).
+* Remove the `fixme` that's been disabled in the lint config (`pylintrc`).
 
 
 ### py-common-lib

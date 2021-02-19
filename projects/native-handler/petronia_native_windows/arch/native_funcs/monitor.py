@@ -40,8 +40,11 @@ class WindowsMonitor:
     ) -> None:
         identifier = _MONITOR_INDEX[0]
         _MONITOR_INDEX[0] += 1
-        if _MONITOR_INDEX[0] > _MAX_MONITOR_INDEX:
-            _MONITOR_INDEX[0] = _MIN_MONITOR_INDEX
+
+        # This happens so rarely...
+        if _MONITOR_INDEX[0] > _MAX_MONITOR_INDEX:  # pragma no cover
+            _MONITOR_INDEX[0] = _MIN_MONITOR_INDEX  # pragma no cover
+
         self.__handle = monitor_handle
         self.__info = MonitorStruct(
             identifier=identifier,
@@ -71,8 +74,8 @@ class WindowsMonitor:
         self.__work_area: defs.MonitorArea = (
             monitor_index,
             cast(defs.MonitorUnit, work_left), cast(defs.MonitorUnit, work_top),
-            cast(defs.MonitorUnit, work_right - work_left + 1),
-            cast(defs.MonitorUnit, work_bottom - work_top + 1),
+            cast(defs.MonitorUnit, work_right - work_left),
+            cast(defs.MonitorUnit, work_bottom - work_top),
         )
 
     @property
@@ -91,6 +94,11 @@ class WindowsMonitor:
         covers multiple monitor pixel units, and less than 100 means that a screen pixel unit
         is a subdivision of a single monitor pixel."""
         return self.__scale
+
+    @property
+    def work_area(self) -> defs.MonitorArea:
+        """The usable work area within the monitor."""
+        return self.__work_area
 
     def transform_pixel_to_screen(
             self,

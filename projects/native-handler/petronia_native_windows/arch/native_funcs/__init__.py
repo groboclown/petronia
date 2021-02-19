@@ -29,6 +29,7 @@ from .windows_common import (
 
 
 def internal_load_functions(modules: Sequence[str]) -> Functions:
+    """Load the functions from the list of modules."""
     import platform  # pylint:disable=import-outside-toplevel
     import struct  # pylint:disable=import-outside-toplevel
 

@@ -18,11 +18,7 @@ from ..windows_constants import (
 
 def convert_rect(rect: RECT) -> defs.OsScreenRect:
     """Convert a Windows RECT structure into the common NativeScreenRect structure."""
-    return defs.OsScreenRect(
-        x=t_cast(int, rect.left),
-        y=t_cast(int, rect.top),
-        width=t_cast(int, rect.right) - t_cast(int, rect.left),
-        height=t_cast(int, rect.bottom) - t_cast(int, rect.top),
+    return defs.OsScreenRect.from_border(
         left=t_cast(int, rect.left),
         right=t_cast(int, rect.right),
         top=t_cast(int, rect.top),

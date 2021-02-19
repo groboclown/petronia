@@ -20,7 +20,7 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
 https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registershellhookwindow
 """
 
-from typing import Tuple, Callable, Optional
+from typing import Tuple, Callable, Union
 from typing import cast as t_cast
 from ctypes import cast as c_cast
 from ctypes import (
@@ -38,6 +38,12 @@ from .arch.native_funcs import WINDOWS_FUNCTIONS
 from .arch.native_funcs.windows_common import WindowsErrorMessage
 
 MessageEntry = Tuple[bool, int, MessageCallback]
+
+
+WindowHandleCallback = Union[
+    Callable[[HWND], None],
+    Callable[[HWND], bool],
+]
 
 
 def display_changed_message(callback: Callable[[], None]) -> MessageEntry:
@@ -95,48 +101,48 @@ def window_minimized_message(callback: Callable[[HWND, RECT], None]) -> MessageE
     return True, windows_constants.HSHELL_GETMINRECT, handler
 
 
-def window_created_message(callback: Callable[[HWND], None]) -> MessageEntry:
+def window_created_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for window creation messages"""
     return True, windows_constants.HSHELL_WINDOWCREATED, _window_handle_callback(callback)
 
 
-def window_destroyed_message(callback: Callable[[HWND], None]) -> MessageEntry:
+def window_destroyed_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for top-level window destroyed messages"""
     return True, windows_constants.HSHELL_WINDOWDESTROYED, _window_handle_callback(callback)
 
 
-def shell_window_focused_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
+def shell_window_focused_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for the shell window gaining focus."""
     return True, windows_constants.HSHELL_ACTIVATESHELLWINDOW, _window_handle_callback(callback)
 
 
-def window_activated_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
+def window_activated_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for the window focus message."""
     return True, windows_constants.HSHELL_WINDOWACTIVATED, _window_handle_callback(callback)
 
 
-def window_rude_activated_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
+def window_rude_activated_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for the window focus message, sent in a rude way."""
     return True, windows_constants.HSHELL_RUDEAPPACTIVATED, _window_handle_callback(callback)
 
 
-def redraw_message(callback: Callable[[HWND], None]) -> MessageEntry:
+def redraw_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for the window handle that needs to be redrawn."""
     return True, windows_constants.HSHELL_REDRAW, _window_handle_callback(callback)
 
 
-def forced_exit_message(callback: Callable[[HWND], Optional[bool]]) -> MessageEntry:
+def forced_exit_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for a window that should be forced to exit."""
     return True, windows_constants.HSHELL_ENDTASK, _window_handle_callback(callback)
 
 
-def window_monitor_changed_message(callback: Callable[[HWND], None]) -> MessageEntry:
+def window_monitor_changed_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for a window that moved to a different monitor.  This can mean a
     rescale is necessary."""
     return True, windows_constants.HSHELL_MONITORCHANGED, _window_handle_callback(callback)
 
 
-def window_flash_message(callback: Callable[[HWND], None]) -> MessageEntry:
+def window_flash_message(callback: WindowHandleCallback) -> MessageEntry:
     """Listens for the window flashing, meaning it wants user attention."""
     return True, windows_constants.HSHELL_FLASH, _window_handle_callback(callback)
 
@@ -151,12 +157,12 @@ def window_replacing_message(callback: Callable[[HWND, HWND], None]) -> MessageE
     def handler(source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
         # LPARAM stores a handle to the window replacing the top-level window.
         top = source_hwnd
-        if WINDOWS_FUNCTIONS.window.get_owning_window:
+        if WINDOWS_FUNCTIONS.window.get_owning_window:  # pragma no cover
             handle = WINDOWS_FUNCTIONS.window.get_owning_window(source_hwnd)
-            if isinstance(handle, WindowsErrorMessage):
-                top = source_hwnd
-            else:
-                top = handle
+            if isinstance(handle, WindowsErrorMessage):  # pragma no cover
+                top = source_hwnd  # pragma no cover
+            else:  # pragma no cover
+                top = handle  # pragma no cover
         callback(t_cast(HWND, lparam), top)
         return True
     return True, windows_constants.HSHELL_WINDOWREPLACING, handler
@@ -218,7 +224,7 @@ def taskman_message(callback: Callable[[HWND, WPARAM], None]) -> MessageEntry:
 
 # ---------------------------------------------------------------------------
 
-def _window_handle_callback(callback: Callable[[HWND], Optional[bool]]) -> MessageCallback:
+def _window_handle_callback(callback: WindowHandleCallback) -> MessageCallback:
     def handler(_source_hwnd: HWND, _message: int, _wparam: WPARAM, lparam: LPARAM) -> bool:
         # LPARAM stores the HWND of the window.
         ret = callback(t_cast(HWND, lparam))

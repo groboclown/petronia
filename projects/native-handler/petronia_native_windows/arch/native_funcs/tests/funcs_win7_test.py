@@ -40,12 +40,13 @@ class FuncsWin7Test(unittest.TestCase):
     def test_process__get_executable_filename(self) -> None:
         """Test getting the executable filename for a thread PID."""
         handles = list(window__find_handles())
-        if not handles:
-            print('Skipping test - no window handles.')
-        tpid = window__get_process_id(handles[0])
-        filename = funcs_win7.process__get_executable_filename(tpid)
-        self.assertIsInstance(filename, str)
-        print(filename)
+        if not handles:  # pragma no cover
+            print('Skipping test - no window handles.')  # pragma no cover
+            return  # pragma no cover
+        tpid = window__get_process_id(handles[0])  # pragma no cover
+        filename = funcs_win7.process__get_executable_filename(tpid)  # pragma no cover
+        self.assertIsInstance(filename, str)  # pragma no cover
+        print(filename)  # pragma no cover
 
     @unittest.skipIf(_is_not_supported(), 'Not running at least Windows 7')
     def test_process__get_all_pids(self) -> None:

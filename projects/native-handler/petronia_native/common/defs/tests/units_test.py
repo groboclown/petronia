@@ -61,9 +61,9 @@ class UnitsTest(unittest.TestCase):
 
     def test_os_screen_rect(self) -> None:
         """Test the OsScreenRect structure."""
-        rect1 = units.OsScreenRect.from_coordinates(1, 20, 10, 199)
-        rect2 = units.OsScreenRect.from_border(1, 10, 20, 199)
-        rect3 = units.OsScreenRect.from_size(1, 20, 10, 180)
+        rect1 = units.OsScreenRect.from_coordinates(1, 20, 10, 200)
+        rect2 = units.OsScreenRect.from_border(1, 10, 20, 200)
+        rect3 = units.OsScreenRect.from_size(1, 20, 9, 180)
         rect_list = (rect1, rect2, rect3)
         for i in range(len(rect_list)):  # pylint:disable=consider-using-enumerate
             rect = rect_list[i]
@@ -73,11 +73,16 @@ class UnitsTest(unittest.TestCase):
                 self.assertEqual(20, rect.y)
                 self.assertEqual(20, rect.top)
                 self.assertEqual(10, rect.right)
-                self.assertEqual(199, rect.bottom)
-                self.assertEqual(10, rect.width)
+                self.assertEqual(200, rect.bottom)
+                self.assertEqual(9, rect.width)
                 self.assertEqual(180, rect.height)
 
         self.assertTrue(rect1.__eq__(rect1))
         self.assertFalse(rect1.__ne__(rect1))
         self.assertTrue(rect1.__eq__(rect2))
         self.assertFalse(rect1.__eq__('x'))
+
+        self.assertEqual(
+            'OsScreenRect(left=1, right=10, top=20, bottom=200)',
+            repr(rect1),
+        )

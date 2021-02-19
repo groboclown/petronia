@@ -12,6 +12,10 @@ from .units import (
     ScreenArea,
     ScreenRect,
     ScreenPosition,
+
+    MONITOR_AREA_X, MONITOR_AREA_Y,
+    MONITOR_AREA_W, MONITOR_AREA_H, MONITOR_AREA_WIDTH, MONITOR_AREA_HEIGHT,
+
 )
 
 from . import color

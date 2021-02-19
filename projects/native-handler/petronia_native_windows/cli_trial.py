@@ -1,6 +1,6 @@
 """Test out the Windows native handler in a stand-alone applicaiton."""
 
-from typing import Tuple, Sequence, List, Optional
+from typing import Tuple, Sequence, List
 import time
 
 # This is supposed to be runnable as a CLI, so this needs absolute imports.
@@ -67,22 +67,19 @@ def window_destroyed(hwnd: HWND) -> None:
     log.low_print(f'Window Destroyed: {hwnd:08x}')
 
 
-def window_focused(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+def window_focused(hwnd: HWND) -> None:
     """window focused callback."""
     log.low_print(f'Window Focused: {hwnd:08x}')
-    return None
 
 
-def window_activated(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+def window_activated(hwnd: HWND) -> None:
     """window activated callback."""
     log.low_print(f'Window Activated: {hwnd:08x}')
-    return None
 
 
-def window_activated_rude(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+def window_activated_rude(hwnd: HWND) -> None:
     """window activated rude callback."""
     log.low_print(f'Window Activated (Rudely!): {hwnd:08x}')
-    return None
 
 
 def redraw(hwnd: HWND) -> None:
@@ -90,10 +87,9 @@ def redraw(hwnd: HWND) -> None:
     log.low_print(f'Redraw request for {hwnd:08x}')
 
 
-def forced_exit(hwnd: HWND) -> Optional[bool]:  # pylint:disable=useless-return
+def forced_exit(hwnd: HWND) -> None:
     """forced exit callback."""
     log.low_print(f'Forced exit: {hwnd:08x}')
-    return None
 
 
 def window_changed_monitors(hwnd: HWND) -> None:
