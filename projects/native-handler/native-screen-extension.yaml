@@ -26,11 +26,9 @@ default:
 
 
 state-data:
-  # =========================================================================
-  # Screen Service.
 
   virtual-screen:
-    description:
+    description: >
       Layout of the monitors mapped into a virtual space.  Index 0 is considered
       the primary screen, and must have a virtual North-West corner pixel set to (0, 0).
       Note that there isn't necessarily a 1-to-1 screen area to
@@ -41,79 +39,80 @@ state-data:
         min-length: 0
         max-length: 65535
         value-type:
-          type: structure
-          fields:
-            # Note: the coordinates are given in (x,y) x (width, height) so that it isn't
-            # possible for an invalid position to be present (e.g. (x1, y1), (x2, y2) has
-            # the possibility of x1 > x2.
-            nw_x_pixel:
-              description: >
-                The virtual screen "x" position of the upper left-hand side of this screen.
-              type: int
-              min-value: -2000000000
-              max-value: 2000000000
-            nw_y_pixel:
-              description: >
-                The virtual screen "y" position of the upper left-hand side of this screen.
-              type: int
-              min-value: -2000000000
-              max-value: 2000000000
-            width:
-              description: >
-                The number of virtual pixels wide for this screen.  The ne most-visible pixel for
-                the virtual screen would be the `nw_x_pixel` + this width - 1.
-              type: int
-              min-value: 0
-              max-value: 2000000000
-            height:
-              description: >
-                The number of virtual pixels tall for this screen.  The sw most-visible pixel for
-                the virtual screen would be the `nw_y_pixel` + this height - 1.
-              type: int
-              min-value: 0
-              max-value: 2000000000
-            ratio_x:
-              dscription: >
-                A ratio of width vs height for the real pixel size.  Some resolutions
-                in monitors have non-rectangular pixels.  The program requires knowledge
-                of how the pixel is shaped in order to render squares and circles that
-                look like squares and circles to the user.  Use 0 to indicate that
-                it isn't known.
-              type: int
-              min-value: 0
-            ratio_y:
-              dscription: >
-                A ratio of width vs height for the real pixel size.  Some resolutions
-                in monitors have non-rectangular pixels.  The program requires knowledge
-                of how the pixel is shaped in order to render squares and circles that
-                look like squares and circles to the user.  Use 0 to indicate that
-                it isn't known.
-              type: int
-              min-value: 0
+          type: reference
+          ref: virtual-screen-block
+
+  configuration:
+    description: >
+      The virtual screen mapping for different screen sizes.  Any call to set the current monitor
+      mapping will change the current value in this configuration.  If the monitor state changes,
+      then this is used to reference the new virtual-screen setting.
+    fields:
+      mapped_screens_by_monitors:
+        type: array
+        min-length: 1
+        max-length: 1000
+        value-type:
+          type: reference
+          ref: screen-monitor-mapping-config-group
+
 
 events:
 
-  "map-monitors:request":
+  "set-screen-configuration:request":
     description: >
-      Maps monitor identifier numbers to a virtual screen space.  This implicitly includes
-      the scaling factor.
+      Request to set the screen configuration.  It will only be set if the configuration is
+      valid.
 
-      The map request must be valid.  That means: no pixels are shared between virtual spaces,
-      and requested monitors must exist at the time of the request.  The implementation may have its
-      own additional requirements.
+      If the request is valid, then the screen configuration datastore is updated and a
+      success message is sent.  Additionally, the active virtual-screen datastore value may
+      be updated if this caused a change.
+
     priority: io
     send-access: public
     receive-access: implementations
+    unique-target: configuration
     fields:
-      sceens:
-        description: >
-          list of virtual screens, and their source monitor.  A screen has at most 1 monitor.
+      request_id:
+        type: reference
+        ref: response-identifier
+      mapped_screens_by_monitors:
+        description: The configuration of monitor to screen dimension mapping.
         type: array
         min-length: 0
-        max-length: 65535
+        max-length: 1000
         value-type:
           type: reference
-          ref: screen-monitor-mapping
+          ref: screen-monitor-mapping-config-group
+
+  "set-screen-configuration:success":
+    description: >
+      The screen configuration request was successful.  The request_id will be set to the
+      original configuration set request, and the event's target_id is set to the original
+      source_id.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields:
+      request_id:
+        type: reference
+        ref: response-identifier
+
+  "set-screen-configuration:failure":
+    description: >
+      The screen configuration request failed due to a problem with the request.  The request_id
+      will be set to the original configuration set request, and the event's target_id is set
+      to the original source_id.
+    priority: normal
+    send-access: implementations
+    receive-access: public
+    fields:
+      request_id:
+        type: reference
+        ref: response-identifier
+      error:
+        type: reference
+        ref: error
 
 
 references:
@@ -127,12 +126,150 @@ references:
     type: int
     min-value: -999999
     max-value: 9999999
+  localizable-message:
+    description: A localizable message for user display.
+    type: structure
+    fields:
+      catalog:
+        description: >
+          The name of the translation file, or "domain", that contains
+          the translations.
+        type: string
+        min-length: 2
+        max-length: 300
+      message:
+        description: >
+          The message ID to look up in the catalog.  If the message
+          has no translation, this is directly displayed to the user.
+        type: string
+        min-length: 1
+        max-length: 10000
+      arguments:
+        description: >
+          List of arguments to be inserted into the translated message.
+          Each argument should have a distinct name from all the other
+          arguments in this message; the name is how the message references
+          the arguments.
+        type: array
+        min-length: 0
+        max-length: 100
+        optional: true
+        value-type:
+          type: reference
+          ref: message-argument
+  message-argument:
+    description: An argument to be inserted into the localizable message.
+    type: structure
+    fields:
+      name:
+        description: Name of the arugment, referenced by the message.
+        type: string
+        min-length: 1
+        max-length: 50
+      value:
+        description: Value of the argument.  It must be a simple type.
+        type: reference
+        ref: message-argument-value
+  message-argument-value:
+    description: A replacement value for a named argument in the message.
+    type: selector
+    type-mapping:
+      string:
+        type: string
+        min-length: 0
+        max-length: 10000
+      int:
+        type: int
+      float:
+        type: float
+      bool:
+        type: bool
+      datetime:
+        type: datetime
+      string_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 0
+          max-length: 10000
+      int_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: int
+      float_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: float
+      bool_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: bool
+      datetime_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: datetime
+  error:
+    type: structure
+    description: A description of a failure.
+    fields:
+      identifier:
+        description: >
+          The identifier that uniquely defines this error.  Useful for
+          automation that needs to perform operations based on specific
+          error messages.
+        type: string
+        min-length: 5
+        max-length: 600
+      categories:
+        description: >
+          A collection of general categories that define the error.
+          Useful for automation that can act differently depending on
+          the contents.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          description: General error category.
+          type: enum
+          values:
+            - file
+            - os
+            - configuration
+            - network
+            - access-restriction
+            - invalid-user-action
+            - internal
+      source:
+        description: The source of the error, if known.
+        type: string
+        min-length: 2
+        max-length: 300
+        optional: true
+      messages:
+        description: The localizable messages associated with this error.
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+            type: reference
+            ref: localizable-message
 
   # =========================================================================
   # Custom types
   screen-monitor-mapping:
     description: >
-      A description of a virtual screen, and how it maps to an underlying monitor.
+      A description of a virtual screen, and how it maps to an underlying monitor.  It's possible
+      to define multiple of these mappings per monitor, but serves no real purpose.
     type: structure
     fields:
       source_monitor:
@@ -206,3 +343,102 @@ references:
         type: int
         min-value: -2000000000
         max-value: 2000000000
+
+  virtual-screen-block:
+    description: A single block of virtual screen space, usually maps to a single monitor.
+    type: structure
+    fields:
+      # Note: the coordinates are given in (x,y) x (width, height) so that it isn't
+      # possible for an invalid position to be present (e.g. (x1, y1), (x2, y2) has
+      # the possibility of x1 > x2.
+      nw_x_pixel:
+        description: >
+          The virtual screen "x" position of the upper left-hand side of this screen.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      nw_y_pixel:
+        description: >
+          The virtual screen "y" position of the upper left-hand side of this screen.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      width:
+        description: >
+          The number of virtual pixels wide for this screen.  The ne most-visible pixel for
+          the virtual screen would be the `nw_x_pixel` + this width - 1.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      height:
+        description: >
+          The number of virtual pixels tall for this screen.  The sw most-visible pixel for
+          the virtual screen would be the `nw_y_pixel` + this height - 1.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      ratio_x:
+        dscription: >
+          A ratio of width vs height for the real pixel size.  Some resolutions
+          in monitors have non-rectangular pixels.  The program requires knowledge
+          of how the pixel is shaped in order to render squares and circles that
+          look like squares and circles to the user.  Use 0 to indicate that
+          it isn't known.
+        type: int
+        min-value: 0
+      ratio_y:
+        dscription: >
+          A ratio of width vs height for the real pixel size.  Some resolutions
+          in monitors have non-rectangular pixels.  The program requires knowledge
+          of how the pixel is shaped in order to render squares and circles that
+          look like squares and circles to the user.  Use 0 to indicate that
+          it isn't known.
+        type: int
+        min-value: 0
+
+
+  screen-monitor-mapping-config-group:
+    description: >
+      A single configuration defining how all the virtual screen sections are mapped into
+      the monitor space.
+    type: structure
+    fields:
+      description:
+        description: An optional description for this configuration.
+        optional: true
+        type: string
+        min-length: 0
+        max-length: 1000
+      monitors:
+        description: List of source monitors.  The closest match monitor config will be used.
+        type: array
+        min-length: 1
+        max-length: 65535
+        value-type:
+          type: reference
+          ref: source-monitor
+      screen:
+        description: List of the virtual-screen blocks to monitor space.
+        type: array
+        min-length: 1
+        max-length: 65535
+        value-type:
+          type: reference
+          ref: screen-monitor-mapping
+
+  source-monitor:
+    description: A source monitor to match the virtual screen configuration against.
+    type: structure
+    fields:
+      identifier:
+        description: A monitor identifier, used in the virtual screen mapping.
+        type: reference
+        ref: response-identifier
+      width:
+        description: Source monitor width in pixels.
+        type: int
+        min-value: 0
+      height:
+        description: Source monitor height in pixels.
+        type: int
+        min-value: 0

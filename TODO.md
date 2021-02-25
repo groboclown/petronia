@@ -22,6 +22,7 @@ These are desired, tactical changes to bits of already written code.
 
 This is the next thing that's being worked on.
 
+1. implement event handling loop.
 1. implement monitor mapping.  Include in this adding in a "failed to set mapping" event.
 1. implement hotkey capture and reporting for Windows.
 1. implement window handling and event reporting for Windows.
@@ -34,6 +35,10 @@ This is the next thing that's being worked on.
 * The Windows version of `pylintrc` is ignoring the fixme messages.  This needs to be removed.
 * Turn back off the `func_*.py` disabled in the code coverage (`.coveragerc`).
 * Remove the `fixme` that's been disabled in the lint config (`pylintrc`).
+* The `monitor_screen.py` common function `store_virtual_screen_state` should take into account the real dpi + screen mapping distortion.  Right now, the ratio is hard-coded as 1-1.
+* Windows:
+  * the native functions should return a `StdRet` instead of a union with a `WindowsErrorMessage`.
+  * the `windows_vd.py` module needs some love, to make it properly inject the OS virtual desktop coordinates and the Petronia coordinates.
 
 
 ### py-common-lib
@@ -57,7 +62,6 @@ This is the next thing that's being worked on.
 ### extension-tools
 
 * improve test generation to have full coverage of some categories of events, such as data-store.
-* add a `configuration` section as well, which is treated the same way as the `stored-data` section, but there is only one configuration object.
 * binary event unit test classes should not exist.
 
 
@@ -99,6 +103,8 @@ These are ideas that need clarification and implementation.
 
 * Extension and launcher error reporting is now ad-hoc, and just sent to the stdout.
   * Where possible, this should be redone as logging events.  This should be moved into the py-extension-lib project.  If sending events fails, then the logging should be a consistent output that doesn't spam the user.
+* Allow for an additional data field type for events - zlib compressed object data.
+  * The maximum size for the underlying data should remain the same.
 
 
 ### extension-loader
@@ -144,10 +150,20 @@ Things that would be nice to have, but aren't necessary until more basic infrast
 * add PGP and checksum validation to the zip loader.
 
 
+### configuration-store
+
+Add the extension that will, on a send event, store all "configuration" data store items to disk.  This will use a defined directory that should be in the override directory that the extension-loader reads.  The process should go like: the extension listens for the save request, when it's received, the extension first gets all active extensions (from datastore), then requests datastore to send out all `(extension-name):configuration` data objects.  The ones that are returned are saved to disk under `(extension-name).json` in the override directory.
+
+
 ### foreman
 
 * add docker launcher.
 * add [sandbox](https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md) launcher.  If we eventually go with OSX, then Blastdoor would be another option.
+
+
+### native-handler
+
+* It may be useful to have the handler be multi-process rather than multi-threaded, to have better performance on the main UI loop. 
 
 
 ## Old Code Carryover Improvements

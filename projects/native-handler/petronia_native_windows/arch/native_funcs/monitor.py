@@ -6,7 +6,7 @@ Native Windows definitions that extend the platform API.
 from typing import Sequence, Optional, cast
 import math
 from petronia_native.common import defs
-from petronia_native.common.events.impl.monitor import Monitors as MonitorStruct
+from petronia_native.common.events.impl.monitor import Monitor as MonitorStruct
 from .windows_common import (
     HMONITOR,
 )
@@ -17,13 +17,14 @@ _MIN_MONITOR_INDEX = -999999
 _MAX_MONITOR_INDEX = 9999999
 
 
-class WindowsMonitor:
+class WindowsMonitor:  # pylint:disable=too-many-instance-attributes
     """Windows-specific information on a monitor.  It includes DPI and scaling
     information for more accurate placement."""
     __slots__ = (
         '__handle',
         '__info',
         '__scale',
+        '__virtual_desktop_rect',
         '__straight_scale',
         '__index',
         '__work_area',
@@ -35,6 +36,7 @@ class WindowsMonitor:
             monitor_handle: HMONITOR, monitor_index: int,
             monitor_left: int, monitor_right: int, monitor_top: int, monitor_bottom: int,
             work_left: int, work_right: int, work_top: int, work_bottom: int,
+            vd_left: int, vd_right: int, vd_top: int, vd_bottom: int,
             name: Optional[str], is_primary: bool,
             dpi_x: int, dpi_y: int, scale_factor: int,
     ) -> None:
@@ -77,6 +79,9 @@ class WindowsMonitor:
             cast(defs.MonitorUnit, work_right - work_left),
             cast(defs.MonitorUnit, work_bottom - work_top),
         )
+        self.__virtual_desktop_rect = defs.OsScreenRect.from_border(
+            vd_left, vd_right, vd_top, vd_bottom,
+        )
 
     @property
     def handle(self) -> HMONITOR:
@@ -99,6 +104,18 @@ class WindowsMonitor:
     def work_area(self) -> defs.MonitorArea:
         """The usable work area within the monitor."""
         return self.__work_area
+
+    @property
+    def virtual_desktop_area(self) -> defs.OsScreenRect:
+        """The location of the monitor in Window's virtual desktop."""
+        return self.__virtual_desktop_rect
+
+    def is_in_virtual_desktop_area(self, pos_x: int, pos_y: int) -> bool:
+        """Does this monitor's Windows' virtual screen area contain this pixel?"""
+        return (
+            self.__virtual_desktop_rect.left <= pos_x < self.__virtual_desktop_rect.right
+            and self.__virtual_desktop_rect.top <= pos_y < self.__virtual_desktop_rect.bottom
+        )
 
     def transform_pixel_to_screen(
             self,

@@ -16,7 +16,7 @@ def create_std_ret_errors(
     category_list = list(categories)
     return create_error_data(
         error_factory=foreman.Error,
-        message_factory=foreman.LocalizableMessage,
+        localizable_message_factory=foreman.LocalizableMessage,
         argument_factory=foreman.MessageArgument,
         argument_value_factory=foreman.MessageArgumentValue,
         identifier=identifier,

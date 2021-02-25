@@ -1,12 +1,27 @@
 """Listens to datastore update/delete events."""
 
 from typing import Callable, Generic, Optional
-from petronia_common.util import StdRet, T, tznow, RET_OK_NONE
+from petronia_common.util import StdRet, join_results, T, tznow, RET_OK_NONE
 from ..events import datastore
 from ..runner.registry import (
-    EventObjectParser,
+    EventObjectParser, EventRegistryContext, EventObjectTarget,
 )
 from ..standard.embedded_json_data import embedded_json_data
+
+
+def register_datastore_update_parsers(context: EventRegistryContext) -> StdRet[None]:
+    """Register the datastore event parsers, for the listening end."""
+    return join_results(
+        lambda x: None,
+        context.register_event_parser(
+            datastore.DataUpdateEvent.FULL_EVENT_NAME,
+            datastore.DataUpdateEvent.parse_data,
+        ),
+        context.register_event_parser(
+            datastore.DeleteDataEvent.FULL_EVENT_NAME,
+            datastore.DeleteDataEvent.parse_data,
+        )
+    )
 
 
 class CachedInstance(Generic[T]):
@@ -58,3 +73,54 @@ class CachedInstance(Generic[T]):
         if self.callback:
             self.callback(parsed)
         return ret
+
+
+def register_datastore_target_listener(
+        context: EventRegistryContext,
+        source_id: str,
+        cache: CachedInstance[T],
+) -> StdRet[None]:
+    """Listens to events sent *to* the source_id (which is the datastore ID),
+    and updates the cache accordingly.
+
+    This requires the context to be able to listen to events sent to an event id + target."""
+    # Ignore errors from this registration step, because we don't care if it's already
+    # been registered.
+    register_datastore_update_parsers(context)
+    return join_results(
+        lambda x: None,
+        context.register_target(
+            datastore.DataRemovedEvent.FULL_EVENT_NAME,
+            source_id, StoreDeleteEventListener(cache),
+        ),
+        context.register_target(
+            datastore.DataUpdateEvent.FULL_EVENT_NAME,
+            source_id, StoreUpdateEventListener(cache),
+        ),
+    )
+
+
+class StoreDeleteEventListener(EventObjectTarget[datastore.DataRemovedEvent], Generic[T]):
+    """Listens to the delete event."""
+    __slots__ = ('__cache',)
+
+    def __init__(self, cache: CachedInstance[T]):
+        self.__cache = cache
+
+    def on_event(self, source: str, target: str, event: datastore.DataRemovedEvent) -> bool:
+        # Note: throws away the error.
+        self.__cache.on_delete()
+        return False
+
+
+class StoreUpdateEventListener(EventObjectTarget[datastore.DataUpdateEvent], Generic[T]):
+    """Listens to the delete event."""
+    __slots__ = ('__cache',)
+
+    def __init__(self, cache: CachedInstance[T]):
+        self.__cache = cache
+
+    def on_event(self, source: str, target: str, event: datastore.DataUpdateEvent) -> bool:
+        # Note: throws away the error.
+        self.__cache.update(event)
+        return False

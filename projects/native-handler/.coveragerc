@@ -12,5 +12,6 @@ omit =
     petronia_native/common/events/impl/hotkey.py
     petronia_native/common/events/impl/tests/hotkey_test.py
     petronia_native/common/events/impl/screen.py
+    petronia_native/common/events/impl/tests/screen_test.py
     petronia_native/common/events/impl/window.py
     petronia_native_windows/arch/native_funcs/funcs_*.py

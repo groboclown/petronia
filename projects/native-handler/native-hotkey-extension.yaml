@@ -56,6 +56,7 @@ events:
     priority: normal
     send-access: public
     receive-access: implementations
+    unique-target: bindings
     fields:
       master:
         type: reference
@@ -99,10 +100,11 @@ events:
   hotkey-pressed:
     description: >
       The user pressed a bound hotkey.  The pressed sequence (not including the
-      master sequence) is returned.
+      master sequence) is returned.  The target is always the unique target id.
     priority: user
     send-access: implementations
     receive-access: public
+    unique-target: press
     fields:
       hotkey:
         type: reference

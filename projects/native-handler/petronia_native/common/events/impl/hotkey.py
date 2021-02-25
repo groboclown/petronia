@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-12T16:50:56.589329+00:00
+# Created on 2021-02-24T16:41:11.716842+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.hotkey version 1.0.0.
@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.native.hotkey ve
 
 
 from typing import (
-    SupportsFloat,
-    Union,
-    Any,
-    Dict,
     SupportsInt,
-    Optional,
+    Dict,
+    Any,
     List,
+    Union,
+    Optional,
+    SupportsFloat,
     cast,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    not_none,
     collect_errors_from,
+    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.hotkey'
@@ -107,6 +107,9 @@ class SetHotkeyBindingsEvent:
     __slots__ = ('master', 'bound',)
     FULL_EVENT_NAME = 'petronia.core.api.native.hotkey:set-hotkey-bindings'
     SHORT_EVENT_NAME = 'set-hotkey-bindings'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.hotkey:bindings'
+    UNIQUE_TARGET_REL = 'bindings'
 
     def __init__(
         self,
@@ -222,15 +225,15 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
-            List[datetime.datetime],
-            List[str],
             List[float],
             int,
             datetime.datetime,
             float,
-            List[bool],
+            List[str],
             List[int],
+            List[bool],
+            str,
+            List[datetime.datetime],
             bool,
         ],
     ) -> None:
@@ -244,15 +247,15 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
-            List[datetime.datetime],
-            List[str],
             List[float],
             int,
             datetime.datetime,
             float,
-            List[bool],
+            List[str],
             List[int],
+            List[bool],
+            str,
+            List[datetime.datetime],
             bool,
     ]:
         """The selector value."""
@@ -1079,11 +1082,14 @@ class SetHotkeyBindingsFailedEvent:
 class HotkeyPressedEvent:
     """
     The user pressed a bound hotkey. The pressed sequence (not including the master
-    sequence) is returned.
+    sequence) is returned. The target is always the unique target id.
     """
     __slots__ = ('hotkey',)
     FULL_EVENT_NAME = 'petronia.core.api.native.hotkey:hotkey-pressed'
     SHORT_EVENT_NAME = 'hotkey-pressed'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.hotkey:press'
+    UNIQUE_TARGET_REL = 'press'
 
     def __init__(
         self,

@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-12T16:50:56.728844+00:00
+# Created on 2021-02-24T16:41:11.854389+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.i10n version 1.0.0.
@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.native.i10n vers
 
 
 from typing import (
-    SupportsFloat,
-    Union,
-    Any,
-    Dict,
     SupportsInt,
-    Optional,
+    Dict,
+    Any,
     List,
+    Union,
+    Optional,
+    SupportsFloat,
     cast,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    not_none,
     collect_errors_from,
+    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.i10n'
@@ -188,15 +188,15 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
-            List[datetime.datetime],
-            List[str],
             List[float],
             int,
             datetime.datetime,
             float,
-            List[bool],
+            List[str],
             List[int],
+            List[bool],
+            str,
+            List[datetime.datetime],
             bool,
         ],
     ) -> None:
@@ -210,15 +210,15 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
-            List[datetime.datetime],
-            List[str],
             List[float],
             int,
             datetime.datetime,
             float,
-            List[bool],
+            List[str],
             List[int],
+            List[bool],
+            str,
+            List[datetime.datetime],
             bool,
     ]:
         """The selector value."""

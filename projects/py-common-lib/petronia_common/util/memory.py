@@ -37,7 +37,7 @@ class ValueHolder(Generic[T]):
 class DelayedValueHolder(Generic[T]):
     """Holds a piece of data tha can be delayed in its setup until later.
     Used for passing to a child object that can assign the value at some
-    later time."""
+    later time.  This is not thread safe."""
     __slots__ = ('value',)
 
     def __init__(self, val: Optional[T] = None) -> None:

@@ -1,4 +1,15 @@
-# Important General Guidelines With Windows Messages
+# Important Notes
+
+These are important notes to keep in mind when working with the Windows version of the native handler.
+
+## Petronia Monitor / Screen Mapping and Windows
+
+Windows OS can report the information on individual monitors, but the reporting for GUI windows is in terms of the virtual screen space.  Petronia, on the other hand, uses its own virtual screen space.  This means that Windows has an extra layer of indirection - Petronia virtual screen -> Windows virtual desktop -> monitor.
+
+This is intended to be handled with the `windows_vd.py` module.
+
+
+## Important General Guidelines With Windows Messages
 
 Applications should send WM_SETTINGCHANGE to all top-level windows when they make changes to system parameters. (This message cannot be sent directly to a window.) To send the WM_SETTINGCHANGE message to all top-level windows, use the SendMessageTimeout function with the hwnd parameter set to HWND_BROADCAST.
 

@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-12T16:50:56.820119+00:00
+# Created on 2021-02-24T16:41:11.975052+00:00
 
 """
 Tests for the monitor module.
@@ -13,16 +13,16 @@ from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import monitor
 
-class MonitorsTest(unittest.TestCase):
+class MonitorTest(unittest.TestCase):
     """
-    Tests for Monitors
+    Tests for Monitor
     """
     def test_parse_bad_data(self) -> None:
         """Data driven tests with validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in MONITORS_BAD_PARSE_DATA_TESTS:
+        for test_name, test_data, messages in MONITOR_BAD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = monitor.Monitors.parse_data(test_data)
+                res = monitor.Monitor.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
@@ -36,14 +36,14 @@ class MonitorsTest(unittest.TestCase):
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in MONITORS_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in MONITOR_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = monitor.Monitors.parse_data(test_data)
+                res = monitor.Monitor.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-MONITORS_BAD_PARSE_DATA_TESTS: Sequence[
+MONITOR_BAD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
 ] = [
 
@@ -53,31 +53,31 @@ MONITORS_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='identifier', name='Monitors'),
+                dict(field_name='identifier', name='Monitor'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='description', name='Monitors'),
+                dict(field_name='description', name='Monitor'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='real_pixel_width', name='Monitors'),
+                dict(field_name='real_pixel_width', name='Monitor'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='real_pixel_height', name='Monitors'),
+                dict(field_name='real_pixel_height', name='Monitor'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='dpi_x', name='Monitors'),
+                dict(field_name='dpi_x', name='Monitor'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='dpi_y', name='Monitors'),
+                dict(field_name='dpi_y', name='Monitor'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='supports_rotation', name='Monitors'),
+                dict(field_name='supports_rotation', name='Monitor'),
             ),
 
         ),
@@ -86,36 +86,36 @@ MONITORS_BAD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-MONITORS_GOOD_PARSE_DATA_TESTS: Sequence[
+MONITOR_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
     (
         'all-fields-present',
         {
-            'identifier': 9500088,
-            'description': '/çΛ\x8cʪɟĺǶ/ԍ«ʇӹϓşǫÃәͶ÷U΅ԆȪΉɎňωҫɄ',
-            'real_pixel_width': -6584820642337145709,
-            'real_pixel_height': -5705056206004034687,
-            'dpi_x': 925531995527785563,
-            'dpi_y': 9217610629856042685,
-            'supports_rotation': True,
+            'identifier': 6020938,
+            'description': 'зΒĭʑÇǕеŊËǚʠȄ˸ȪԚ·ͳśɑϤɼӄɽǴĔŨƞǦӫС',
+            'real_pixel_width': -3769435829523365812,
+            'real_pixel_height': -6699403016561817076,
+            'dpi_x': 237920237263383342,
+            'dpi_y': 3477373194239660235,
+            'supports_rotation': False,
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 546904,
+            'identifier': 8979524,
 
             'description': '',
 
-            'real_pixel_width': -843527287101333512,
+            'real_pixel_width': -8066745897621122644,
 
-            'real_pixel_height': -7630889560823689988,
+            'real_pixel_height': -6451482319990103846,
 
-            'dpi_x': 5275925131239675061,
+            'dpi_x': 5045211240840765406,
 
-            'dpi_y': 6874416231894763649,
+            'dpi_y': 2861896971569168647,
 
             'supports_rotation': True,
 
@@ -180,93 +180,93 @@ ACTIVE_MONITORS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         {
             'monitors': [
                 {
-                    'identifier': -782826,
-                    'description': '˶Ν',
-                    'real_pixel_width': -5174983917240452273,
-                    'real_pixel_height': -5660467485554992616,
-                    'dpi_x': 4447690704329167654,
-                    'dpi_y': 7622713616401423657,
+                    'identifier': 411043,
+                    'description': 'Ѕӱ2ȱϚʖӪԓŦőǆƕҗaҦͻϰϙłȝĳɬЪͽǌТ£@Ϭʾ',
+                    'real_pixel_width': -218794257076484655,
+                    'real_pixel_height': -1117647737281355086,
+                    'dpi_x': 3283362896635544547,
+                    'dpi_y': 4103460996420764603,
                     'supports_rotation': True,
                 },
                 {
-                    'identifier': 3904846,
-                    'description': 'ÌӳɹԒRԤũΰʳФʪΥpŮɲҪƂļtӢΈпΣǎʇюƝшѦʯ',
-                    'real_pixel_width': -5152273860295222857,
-                    'real_pixel_height': -717777945541006960,
-                    'dpi_x': 6136964183531836337,
-                    'dpi_y': 1525284811070993937,
+                    'identifier': 6981998,
+                    'description': '\x8e\x99ЭȏĞ¦Јҋ{ʚђǑáԞŷ\x9dȖЊ±ŤȲôĿȳǎȻϖō˂ó',
+                    'real_pixel_width': -2977722916191870799,
+                    'real_pixel_height': -6462066757529768407,
+                    'dpi_x': 5545469967436353657,
+                    'dpi_y': 5028862052302346083,
+                    'supports_rotation': False,
+                },
+                {
+                    'identifier': 9825749,
+                    'description': 'ԃѝǂҊĻż$ĬȁԗkȭӐӹйͻЁӺҴ\x85ȼȈŰ\x86˅ô{Ɏщȅ',
+                    'real_pixel_width': -149627726185150052,
+                    'real_pixel_height': -1606249603376072538,
+                    'dpi_x': 1043333297983317471,
+                    'dpi_y': 6758194617847847685,
+                    'supports_rotation': False,
+                },
+                {
+                    'identifier': 7778876,
+                    'description': 'ɻ\x93ұơǥ*Ȓɕ˟ӁӤ˽ʭсɈɴ\x9bȗňǐƧԡ˳Ǌӄ\u0379жҬƕȆ',
+                    'real_pixel_width': -6643951095695356640,
+                    'real_pixel_height': -7459328650242488315,
+                    'dpi_x': 6474915006576182618,
+                    'dpi_y': 6362958276064607403,
+                    'supports_rotation': False,
+                },
+                {
+                    'identifier': 3066415,
+                    'description': 'ɐgϮuҗšåŵɩӫǞŽΑФĔ\x8bëD0ѼзДǕ',
+                    'real_pixel_width': -2651350292887303993,
+                    'real_pixel_height': -1676173245829259804,
+                    'dpi_x': 9205821107760075812,
+                    'dpi_y': 7864046338074030319,
                     'supports_rotation': True,
                 },
                 {
-                    'identifier': 5177181,
-                    'description': 'ӉҾ6˗8ȣϔѿ\x8dɌӚүˉϖҫӘ9:ӲĬʟШКÆ\u0379ԎǷ=ӮԬ',
-                    'real_pixel_width': -2527805501626032399,
-                    'real_pixel_height': -7554225026701286120,
-                    'dpi_x': 1110544958934235606,
-                    'dpi_y': 3425738011363792755,
+                    'identifier': 8193481,
+                    'description': 'ҽŖϹј_\x9eЗϓɱųƶίȾңƛʛ1ѰʄȰƳѠȩɪѕɞҘΗÎ\x8f',
+                    'real_pixel_width': -5968535323782706329,
+                    'real_pixel_height': -8096018295671037998,
+                    'dpi_x': 8346340403501996721,
+                    'dpi_y': 8713221909301501763,
+                    'supports_rotation': False,
+                },
+                {
+                    'identifier': 1998782,
+                    'description': 'ъŖńƕʋ˪ҺԈӕʴÐĺВҙЅϠɕfȣˋż£ɦζΖƑλ\x7fĒò',
+                    'real_pixel_width': -6430908493783677973,
+                    'real_pixel_height': -7089348409033462229,
+                    'dpi_x': 5721149245055090557,
+                    'dpi_y': 2380516338449061861,
+                    'supports_rotation': False,
+                },
+                {
+                    'identifier': 9553489,
+                    'description': 'ҹҷќΥɄӪΫ$ĊĂʱӸĝҎξͽҍȣ҃əƷѯГӑδȕčʋºӿ',
+                    'real_pixel_width': -1541190425908651087,
+                    'real_pixel_height': -6101954003884478392,
+                    'dpi_x': 5232189234608002611,
+                    'dpi_y': 2341312894929529556,
+                    'supports_rotation': False,
+                },
+                {
+                    'identifier': 5580717,
+                    'description': 'МϼǠӑшԒ˟αǗǣΓşɎˋ˝ϊ˜џˤǭŴƗnҒҚŔȌ΄ҪŦ',
+                    'real_pixel_width': -4269262966140215831,
+                    'real_pixel_height': -7887637383708902565,
+                    'dpi_x': 6232874365116086069,
+                    'dpi_y': 2729748924447411525,
                     'supports_rotation': True,
                 },
                 {
-                    'identifier': 8520481,
-                    'description': 'ϸʺcǺгʋʖѳнȮϧϓʁđƏȪӞҏǥˌæiϥИπΉ×˯ʠč',
-                    'real_pixel_width': -1874173591012383690,
-                    'real_pixel_height': -8983429614881512149,
-                    'dpi_x': 7962774965166640854,
-                    'dpi_y': 8850913382587880547,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': 9252081,
-                    'description': 'ɵwϧҫɅƋ«ŤˬʙìØԨǴŘƌҩǿġĐħѯˈԧ-\x82ҹTԓИ',
-                    'real_pixel_width': -6984135902601960333,
-                    'real_pixel_height': -2762169275820160207,
-                    'dpi_x': 753221004975990473,
-                    'dpi_y': 8275349669366211733,
-                    'supports_rotation': True,
-                },
-                {
-                    'identifier': 473346,
-                    'description': 'ʏơ˛Xč\x94Ƽ2ҰÂǜҳǘЄΪƅѡľ¾ŔÉ΄ғжҦ\u0381ͻͰȯ&',
-                    'real_pixel_width': -3597107650912350028,
-                    'real_pixel_height': -8029606905554746055,
-                    'dpi_x': 4132133375478276863,
-                    'dpi_y': 802902262466039481,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': 5622438,
-                    'description': '³ŻΟɲŕԙʚӃţÙ 7[ŵțȜóĐĉΕΖǛɽǰÕ¡ǙϮ8Ǻ',
-                    'real_pixel_width': -6760611742624059830,
-                    'real_pixel_height': -5221342096479597415,
-                    'dpi_x': 4691533071423256518,
-                    'dpi_y': 3455385928361461193,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': 8821052,
-                    'description': 'ȝȀɁʁͶхȠàЩ҇ʨϷȜāȌțϗUПЁҁȔͼҚщДĢ˄ѨǇ',
-                    'real_pixel_width': -3488977928233891789,
-                    'real_pixel_height': -7170876156046898063,
-                    'dpi_x': 3100824143145288387,
-                    'dpi_y': 3399717393859392516,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': 9755439,
-                    'description': 'µʹϣѭìͶӵê\x83҇łϡ˕\x86ìĵσ\x93l;ыȖȗ\u0382>ЛɾʂΩʗ',
-                    'real_pixel_width': -2666855230069743600,
-                    'real_pixel_height': -723395193900354539,
-                    'dpi_x': 4525263092302112636,
-                    'dpi_y': 2179488638662359539,
-                    'supports_rotation': False,
-                },
-                {
-                    'identifier': -856038,
-                    'description': 'ǪϛłȮd҈Ьÿɜ]ӞRЀ˦϶ҡΐƟύԚǏҬк?ѼѫgΝˤď',
-                    'real_pixel_width': -4138687802016554426,
-                    'real_pixel_height': -7309697410752437211,
-                    'dpi_x': 5139078751069955375,
-                    'dpi_y': 8211587352472907649,
+                    'identifier': 3438349,
+                    'description': 'Ω\x92·ŲїzƍRԁƤƹɏʙΖśνщ8ѻЩжҧӺΞȕϼӨȚƮӀ',
+                    'real_pixel_width': -3606854703109524257,
+                    'real_pixel_height': -2762564302396107848,
+                    'dpi_x': 3045325424257235034,
+                    'dpi_y': 5984060781641927536,
                     'supports_rotation': False,
                 },
             ],

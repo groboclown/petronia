@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-12T16:50:56.795372+00:00
+# Created on 2021-02-24T16:41:11.950137+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.monitor version 1.0.0.
@@ -10,26 +10,26 @@ Data structures and marshalling for extension petronia.core.api.native.monitor v
 
 
 from typing import (
-    Dict,
     SupportsInt,
-    Any,
     List,
+    Dict,
+    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    not_none,
     collect_errors_from,
+    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.monitor'
 EXTENSION_VERSION = (1, 0, 0)
 
 
-class Monitors:
+class Monitor:
     """
-    (no description)
+    The details for A single low-level monitor.
     """
     __slots__ = ('identifier', 'description', 'real_pixel_width', 'real_pixel_height', 'dpi_x', 'dpi_y', 'supports_rotation',)
 
@@ -65,7 +65,7 @@ class Monitors:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Monitors']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['Monitor']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -76,7 +76,7 @@ class Monitors:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='identifier',
-                name='Monitors',
+                name='Monitor',
             )
         else:
             if not isinstance(val, SupportsInt):
@@ -85,7 +85,7 @@ class Monitors:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='identifier',
                     type='int',
-                    name='Monitors',
+                    name='Monitor',
                 )
             f_identifier = int(val)
         val = data.get('description')
@@ -95,7 +95,7 @@ class Monitors:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='description',
-                name='Monitors',
+                name='Monitor',
             )
         else:
             if not isinstance(val, str):
@@ -104,7 +104,7 @@ class Monitors:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='description',
                     type='str',
-                    name='Monitors',
+                    name='Monitor',
                 )
             f_description = val
         val = data.get('real_pixel_width')
@@ -114,7 +114,7 @@ class Monitors:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='real_pixel_width',
-                name='Monitors',
+                name='Monitor',
             )
         else:
             if not isinstance(val, SupportsInt):
@@ -123,7 +123,7 @@ class Monitors:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='real_pixel_width',
                     type='int',
-                    name='Monitors',
+                    name='Monitor',
                 )
             f_real_pixel_width = int(val)
         val = data.get('real_pixel_height')
@@ -133,7 +133,7 @@ class Monitors:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='real_pixel_height',
-                name='Monitors',
+                name='Monitor',
             )
         else:
             if not isinstance(val, SupportsInt):
@@ -142,7 +142,7 @@ class Monitors:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='real_pixel_height',
                     type='int',
-                    name='Monitors',
+                    name='Monitor',
                 )
             f_real_pixel_height = int(val)
         val = data.get('dpi_x')
@@ -152,7 +152,7 @@ class Monitors:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='dpi_x',
-                name='Monitors',
+                name='Monitor',
             )
         else:
             if not isinstance(val, SupportsInt):
@@ -161,7 +161,7 @@ class Monitors:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='dpi_x',
                     type='int',
-                    name='Monitors',
+                    name='Monitor',
                 )
             f_dpi_x = int(val)
         val = data.get('dpi_y')
@@ -171,7 +171,7 @@ class Monitors:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='dpi_y',
-                name='Monitors',
+                name='Monitor',
             )
         else:
             if not isinstance(val, SupportsInt):
@@ -180,7 +180,7 @@ class Monitors:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='dpi_y',
                     type='int',
-                    name='Monitors',
+                    name='Monitor',
                 )
             f_dpi_y = int(val)
         val = data.get('supports_rotation')
@@ -190,7 +190,7 @@ class Monitors:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='supports_rotation',
-                name='Monitors',
+                name='Monitor',
             )
         else:
             if not isinstance(val, bool):
@@ -199,12 +199,12 @@ class Monitors:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='supports_rotation',
                     type='bool',
-                    name='Monitors',
+                    name='Monitor',
                 )
             f_supports_rotation = val
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(Monitors(
+        return StdRet.pass_ok(Monitor(
             identifier=not_none(f_identifier),
             description=not_none(f_description),
             real_pixel_width=not_none(f_real_pixel_width),
@@ -215,7 +215,7 @@ class Monitors:
         ))
 
     def __repr__(self) -> str:
-        return "Monitors(" + repr(self.export_data()) + ")"
+        return "Monitor(" + repr(self.export_data()) + ")"
 
 
 class ActiveMonitorsState:
@@ -231,7 +231,7 @@ class ActiveMonitorsState:
 
     def __init__(
         self,
-        monitors: List[Monitors],
+        monitors: List[Monitor],
     ) -> None:
         self.monitors = monitors
 
@@ -248,7 +248,7 @@ class ActiveMonitorsState:
         errors: List[StdRet[None]] = []
         val: Any
         val = data.get('monitors')
-        f_monitors: List[Monitors]
+        f_monitors: List[Monitor]
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
@@ -259,7 +259,7 @@ class ActiveMonitorsState:
         else:
             f_monitors = []
             for item in val:
-                parsed_monitors = Monitors.parse_data(item)
+                parsed_monitors = Monitor.parse_data(item)
                 if parsed_monitors.has_error:
                     return parsed_monitors.forward()
                 f_monitors.append(parsed_monitors.result)

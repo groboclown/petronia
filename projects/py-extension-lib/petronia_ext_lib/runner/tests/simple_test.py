@@ -84,30 +84,30 @@ class SimpleTest(unittest.TestCase):
                 'register_target: validation error',
                 'event ID e1 does not have a registered parser',
                 "only targets that don't time out are supported.",
-             ],
+            ],
             [m.debug() for m in res.error_messages()],
         )
 
-        # Register with an registered event parser, and the timer is given.
+        # Register with a registered event parser, and the timer is given.
         res = context.register_target('e', None, EventObjectTarget(), timeout=2.0)
         self.assertEqual(
             [
                 'register_target: validation error',
                 "only targets that don't time out are supported.",
-             ],
+            ],
             [m.debug() for m in res.error_messages()],
         )
 
-        # Register with an registered event parser, and no timer is given.
+        # Register with a registered event parser, and no timer is given.
         res = context.register_target('e', None, EventObjectTarget())
         self.assertIsNone(res.error)
 
-        # Register with an registered event parser that already has a registration
+        # Register with a registered event parser that already has a registration
         res = context.register_target('e', None, EventObjectTarget())
         self.assertEqual(
             [
                 'register_target: validation error',
                 'a target handler for event e is already registered',
-             ],
+            ],
             [m.debug() for m in res.error_messages()],
         )

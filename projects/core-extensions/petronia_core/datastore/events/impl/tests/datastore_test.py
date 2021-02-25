@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-12T16:50:52.814705+00:00
+# Created on 2021-02-24T16:41:06.068601+00:00
 
 """
 Tests for the datastore module.
@@ -68,14 +68,14 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'json': 'ͿԦʱηˤ¤яԎǺχɿа£ĈpŶĈ\x89ԇ\x87ŠѧӶċЁĪ˵ϊӦχ',
+            'json': 'ƛӕ\x7f\x82ɨ;έлˍԨȾӅRӟЩИmƞѿϫǇǰǉ#MНк\x7fǀл',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': 'ʋˈ',
+            'json': 'tЕ',
 
         },
     ),
@@ -157,14 +157,14 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'store_id': '\u03a2\u0383\x95ɛˀҕȭƆғǠŞŁԎж,ŷӰĢҷƿҍϭӘϪЩλһӾɜŀ',
+            'store_id': 'Ӈ7ǄĿñΔwτ\\ä˫Ϟȉ˾ɖçǱşў±Ψɬ]ēŒ¹еǃɬȸ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': 'Ϯˢϰ˛ɴ',
+            'store_id': 'Άŵȑϱů',
 
         },
     ),
@@ -229,17 +229,17 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210212:165052.761529:+0000',
-            'json': 'ΔƦǯӘЮȝ¾ĴӃƇƚδ9ĻǕңǪŲùͱћуӎ\x96ʧӳ\x87Ɵˑõ',
+            'changed': '20210224:164106.000654:+0000',
+            'json': 'ӀƬäηģʉύĹȰаƊĹ˷ΨƷƥʭź§łƥ˘ɖҽĤҖɽӾƲЃ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210212:165052.761565:+0000',
+            'changed': '20210224:164106.000692:+0000',
 
-            'json': 'ŢĮ',
+            'json': 'Ӌκ',
 
         },
     ),

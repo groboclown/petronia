@@ -79,10 +79,9 @@ class EventRegistryContext:
             self,
             event_id: str,
             target_id: Optional[str],
-            target: EventObjectTarget,
+            target: EventObjectTarget[T],
             source_id: Optional[str] = None,
             timeout: float = -1.0,
-            parallel: bool = False,
     ) -> StdRet[None]:
         """Register a new event target."""
         raise NotImplementedError  # pragma no cover
@@ -90,13 +89,15 @@ class EventRegistryContext:
     def register_binary_target(  # pylint:disable=too-many-arguments
             self,
             event_id: str,
-            target_id: str,
+            target_id: Optional[str],
             target: EventBinaryTarget,
             source_id: Optional[str] = None,
             timeout: float = -1.0,
-            parallel: bool = False,
     ) -> StdRet[None]:
-        """Register a new event target"""
+        """Register a new binary event target.
+
+        The target_id can be None for cases like setting the background image for a single
+        window."""
         raise NotImplementedError  # pragma no cover
 
     def send_event(self, source_id: str, target_id: str, event: EventObject) -> StdRet[None]:

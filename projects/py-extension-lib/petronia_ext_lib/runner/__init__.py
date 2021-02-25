@@ -9,3 +9,5 @@ from .registry import (
     EventBinaryTarget,
     EventRegistryContext,
 )
+from .lookup import LookupEventRegistryContext
+from .simple import SimpleEventRegistryContext

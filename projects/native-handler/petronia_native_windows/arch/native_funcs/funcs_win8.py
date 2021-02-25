@@ -9,7 +9,7 @@ from typing import List, Tuple, Dict, Sequence, Union, Optional
 from ctypes import c_bool
 from ctypes import cast as c_cast
 from .windows_common import (
-    DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE, UINT, c_int, HDC, LPRECT, LPARAM,
+    DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE, UINT, LONG, c_int, HDC, LPRECT, LPARAM,
     HMONITOR, WINFUNCTYPE,
     POINTER, byref, c_sizeof,
     windll,
@@ -161,15 +161,19 @@ def monitor__set_native_dpi_awareness() -> Optional[WindowsErrorMessage]:
 
 def monitor__find_monitors() -> Sequence[WindowsMonitor]:
     """Get the list of monitors."""
-    monitor_handles: List[HMONITOR] = []
+    monitor_handles: List[Tuple[HMONITOR, LONG, LONG, LONG, LONG]] = []
 
     def callback(
-            h_monitor: HMONITOR, _hdc_monitor: HDC, _lprc_monitor: LPRECT, _l_param: LPARAM,
+            h_monitor: HMONITOR, _hdc_monitor: HDC, lprc_monitor: LPRECT, _l_param: LPARAM,
     ) -> bool:
         # hMonitor: display monitor handle
         # hdcMonitor: device context handle; color attributes + clipping region; may be null
         # lprcMonitor: RECT structure w/ device-context coordinates.
-        monitor_handles.append(h_monitor)
+        monitor_handles.append((
+            h_monitor,
+            lprc_monitor.contents.left, lprc_monitor.contents.right,
+            lprc_monitor.contents.top, lprc_monitor.contents.bottom,
+        ))
         return True
 
     enum_monitor_proc = WINFUNCTYPE(c_bool, HMONITOR, HDC, LPRECT, LPARAM)
@@ -181,7 +185,7 @@ def monitor__find_monitors() -> Sequence[WindowsMonitor]:
     dpi_x = UINT()
     dpi_y = UINT()
     scale_factor = c_int()
-    for monitor_handle in monitor_handles:
+    for monitor_handle, vd_l, vd_r, vd_t, vd_b in monitor_handles:
         info = MONITORINFOEXW()
         info.cbSize = c_sizeof(MONITORINFOEXW)
         if GetMonitorInfoW(monitor_handle, byref(info)) != 0:
@@ -227,6 +231,11 @@ def monitor__find_monitors() -> Sequence[WindowsMonitor]:
                 work_right=info.rcWork.right,
                 work_top=info.rcWork.top,
                 work_bottom=info.rcWork.bottom,
+
+                vd_left=vd_l.value,
+                vd_right=vd_r.value,
+                vd_top=vd_t.value,
+                vd_bottom=vd_b.value,
 
                 name=info.szDevice,
                 is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == 1,

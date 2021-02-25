@@ -9,7 +9,7 @@ from petronia_common.event_stream import (
     is_raw_event_object, as_raw_event_object_data,
     raw_event_id, raw_event_source_id, raw_event_target_id,
 )
-from petronia_common.util import StdRet, RET_OK_NONE, PetroniaReturnError, enforce_all, not_none
+from petronia_common.util import StdRet, RET_OK_NONE, T, PetroniaReturnError, enforce_all, not_none
 from petronia_common.util import i18n as _
 from .registry import (
     EventRegistryContext, EventObjectParser, EventObjectTarget, EventBinaryTarget, EventObject,
@@ -61,10 +61,9 @@ class SimpleEventRegistryContext(EventRegistryContext):
             self,
             event_id: str,
             target_id: Optional[str],
-            target: EventObjectTarget,
+            target: EventObjectTarget[T],
             source_id: Optional[str] = None,
             timeout: float = -1.0,
-            parallel: bool = False,
     ) -> StdRet[None]:
         handler = self.__handlers.get(event_id)
         res = enforce_all(
@@ -92,11 +91,10 @@ class SimpleEventRegistryContext(EventRegistryContext):
     def register_binary_target(  # pylint:disable=too-many-arguments
             self,
             event_id: str,
-            target_id: str,
+            target_id: Optional[str],
             target: EventBinaryTarget,
             source_id: Optional[str] = None,
             timeout: float = -1.0,
-            parallel: bool = False,
     ) -> StdRet[None]:
         return StdRet.pass_errmsg(
             TRANSLATION_CATALOG,
@@ -147,7 +145,10 @@ class SimpleEventRegistryContext(EventRegistryContext):
         return not self.__reader.alive
 
     def _eof_listener(self) -> None:
-        """Do nothing"""
+        """Close off the handlers."""
+        for handler in self.__handlers.values():
+            if handler.target:
+                handler.target.on_close()
 
     def _error_listener(self, error: PetroniaReturnError) -> bool:
         """Error listener."""

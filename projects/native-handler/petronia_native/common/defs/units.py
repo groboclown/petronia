@@ -42,18 +42,18 @@ ZERO_SCREEN_AREA: ScreenArea = (
 MonitorUnit = NewType('MonitorUnit', int)
 ZERO_MONITOR_UNIT = cast(MonitorUnit, 0)
 
-# x, y
+# identifier, x, y
 MonitorPosition = Tuple[int, MonitorUnit, MonitorUnit]
-MONITOR_POSITION_MONITOR_INDEX = 0
+MONITOR_POSITION_MONITOR_IDENTIFIER = 0
 MONITOR_POSITION_X = 1
 MONITOR_POSITION_Y = 2
 
 # width, height
 MonitorSize = Tuple[MonitorUnit, MonitorUnit]
-NATIVE_SCREEN_SIZE_WIDTH = 0
-NATIVE_SCREEN_SIZE_HEIGHT = 1
-NATIVE_SCREEN_SIZE_W = NATIVE_SCREEN_SIZE_WIDTH
-NATIVE_SCREEN_SIZE_H = NATIVE_SCREEN_SIZE_HEIGHT
+MONITOR_SIZE_WIDTH = 0
+MONITOR_SIZE_HEIGHT = 1
+MONITOR_SIZE_W = MONITOR_SIZE_WIDTH
+MONITOR_SIZE_H = MONITOR_SIZE_HEIGHT
 
 # x, y, width, height
 MonitorArea = Tuple[int, MonitorUnit, MonitorUnit, MonitorUnit, MonitorUnit]
@@ -172,7 +172,14 @@ EMPTY_SCREEN_RECT = ScreenRect(
 )
 
 
+OsScreenPosition = Tuple[int, int]
+OS_SCREEN_POSITION_X = 0
+OS_SCREEN_POSITION_Y = 1
+
+
 OsScreenSize = Tuple[int, int]
+OS_SCREEN_SIZE_WIDTH = 0
+OS_SCREEN_SIZE_HEIGHT = 1
 
 
 class OsScreenRect:  # pylint:disable=too-many-arguments,too-many-instance-attributes

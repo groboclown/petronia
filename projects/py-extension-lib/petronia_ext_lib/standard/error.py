@@ -30,7 +30,7 @@ def create_error_data(  # pylint:disable=too-many-arguments
             [str, List[str], Optional[str], List[K]],
             Z,
         ],
-        message_factory: Callable[
+        localizable_message_factory: Callable[
             [str, str, List[V]],
             K,
         ],
@@ -58,7 +58,7 @@ def create_error_data(  # pylint:disable=too-many-arguments
         # isinstance(error, collections.abc.Iterable)
         messages = list(error)
     return create_error_message_data(
-        error_factory, message_factory, argument_factory, argument_value_factory,
+        error_factory, localizable_message_factory, argument_factory, argument_value_factory,
         messages,
         categories, identifier, source,
     )

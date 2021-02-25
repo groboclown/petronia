@@ -268,6 +268,12 @@ class FunctionTest(unittest.TestCase):
         self.assertTrue(res.ok)
         self.assertEqual(1 + 2 + 3, res.result)
 
+    def test_join_results_none_value(self) -> None:
+        """Test out joining several results together."""
+        res = error.join_results(lambda x: None, error.RET_OK_NONE)
+        self.assertTrue(res.ok)
+        self.assertIsNone(res.value)
+
     def test_join_results_several_errors(self) -> None:
         """Test out joining several error results together."""
         mess1 = _m('message1')

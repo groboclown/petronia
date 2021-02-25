@@ -285,7 +285,8 @@ def join_results(
         if value.has_error:
             errors.append(value.valid_error)
         else:
-            valid.append(value.result)
+            # T might be None, so we don't want null checking
+            valid.append(value.value)  # type: ignore
     if errors:
         return StdRet.pass_error(join_errors(errors=errors))
     return StdRet.pass_ok(joiner(valid))

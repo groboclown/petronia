@@ -50,10 +50,9 @@ class EventRegistryContextImpl(EventRegistryContext):
         return RET_OK_NONE
 
     def register_target(  # pylint:disable=too-many-arguments
-            self, event_id: str, target_id: Optional[str], target: EventObjectTarget,
+            self, event_id: str, target_id: Optional[str], target: EventObjectTarget[T],
             source_id: Optional[str] = None,
             timeout: float = -1.0,
-            parallel: bool = False,
     ) -> StdRet[None]:
         # assert parallel is False, 'parallel running is not yet supported.'
         parser = self._obj_parsers.get(event_id)
@@ -69,9 +68,8 @@ class EventRegistryContextImpl(EventRegistryContext):
         return RET_OK_NONE
 
     def register_binary_target(  # pylint:disable=too-many-arguments
-            self, event_id: str, target_id: str, target: EventBinaryTarget,
+            self, event_id: str, target_id: Optional[str], target: EventBinaryTarget,
             source_id: Optional[str] = None, timeout: float = -1.0,
-            parallel: bool = False,
     ) -> StdRet[None]:
         # assert parallel is False, 'parallel running is not yet supported.'
         self._forwarder.add_target(EventBinaryForwarderTarget(
@@ -188,7 +186,7 @@ class EventBinaryForwarderTarget(AbstractEventForwarderTarget):
             self,
             event_id: str,
             source_id: Optional[str],
-            target_id: str,
+            target_id: Optional[str],
             timeout: float,
             handler: EventBinaryTarget,
     ) -> None:

@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-12T16:51:02.057865+00:00
+# Created on 2021-02-24T16:41:19.683394+00:00
 
 """
 Tests for the timer module.
@@ -68,14 +68,14 @@ HEARTBEAT_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'sent_on': '20210212:165102.014968:+0000',
+            'sent_on': '20210224:164119.628555:+0000',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'sent_on': '20210212:165102.014999:+0000',
+            'sent_on': '20210224:164119.628591:+0000',
 
         },
     ),
