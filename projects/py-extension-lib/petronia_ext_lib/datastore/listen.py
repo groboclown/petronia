@@ -20,7 +20,7 @@ def register_datastore_update_parsers(context: EventRegistryContext) -> StdRet[N
         context.register_event_parser(
             datastore.DeleteDataEvent.FULL_EVENT_NAME,
             datastore.DeleteDataEvent.parse_data,
-        )
+        ),
     )
 
 
