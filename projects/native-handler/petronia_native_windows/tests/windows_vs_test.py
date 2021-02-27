@@ -1,11 +1,12 @@
 """Test the module"""
 
-from typing import List, Tuple, Union, Optional, cast
+from typing import List, Tuple, Optional, cast
 import unittest
+from petronia_common.util import StdRet
 from petronia_native.common.defs import OsScreenSize
 from .. import windows_vs
 from ..arch.native_funcs import WINDOWS_FUNCTIONS
-from ..arch.native_funcs.windows_common import WindowsErrorMessage, HFONT, HWND, HDC
+from ..arch.native_funcs.windows_common import HFONT, HWND, HDC, WindowsReturnError
 
 
 class WindowsVSTest(unittest.TestCase):
@@ -33,9 +34,9 @@ class WindowsVSTest(unittest.TestCase):
 
         def callback(
                 font: HFONT, text_sample: str, hwnd: Optional[HWND], hdc: Optional[HDC],
-        ) -> Union[OsScreenSize, WindowsErrorMessage]:
+        ) -> StdRet[OsScreenSize]:
             called_args.append((font, text_sample, hwnd, hdc))
-            return WindowsErrorMessage('get_text_size')
+            return WindowsReturnError.stdret('get_text_size', 15100)
 
         WINDOWS_FUNCTIONS.window.get_text_size = callback
 

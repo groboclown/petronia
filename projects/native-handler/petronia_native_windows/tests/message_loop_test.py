@@ -1,6 +1,6 @@
 """Test the module."""
 
-from typing import Tuple, Sequence, List, cast
+from typing import Tuple, Sequence, List, Callable, cast
 import unittest
 import time
 
@@ -119,6 +119,7 @@ class WindowsMessageLoopTest(unittest.TestCase):
     )
     def test_thread(self) -> None:
         """Test the thread execution with an on-exit callback."""
+        print("test_thread starting")
 
         on_exit_called: List[bool] = []
 
@@ -128,6 +129,7 @@ class WindowsMessageLoopTest(unittest.TestCase):
         loop = message_loop.WindowsMessageLoop()
         loop.set_on_exit_callback(on_exit)
         self.running.append(loop)
+        print(" - starting thread")
         loop.start()
         expires = time.time() + 2.0
         while not loop.is_running() and time.time() < expires:  # pragma no cover
@@ -135,13 +137,13 @@ class WindowsMessageLoopTest(unittest.TestCase):
         self.assertTrue(loop.is_running())
         self.assertIsNotNone(loop.hwnd)
 
-        get_process_id = WINDOWS_FUNCTIONS.window.get_process_id
-        assert get_process_id  # nosec  # mypy requirement
-        windows_pid = get_process_id(not_none(loop.hwnd))
+        get_process_id: Callable[[HWND], DWORD] = not_none(WINDOWS_FUNCTIONS.window.get_process_id)
+        # Even with the casting, pylint is confused here.
+        windows_pid = get_process_id(not_none(loop.hwnd))  # pylint:disable=not-callable
         self.assertIsInstance(windows_pid, DWORD)
 
-        loop.dispose(2.0)
-        expires = time.time() + 2.0
+        loop.dispose(20.0)
+        expires = time.time() + 25.0
         while loop.is_alive() and time.time() < expires:  # pragma no cover
             time.sleep(1.0)  # pragma no cover
         self.assertFalse(loop.is_alive())

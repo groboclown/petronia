@@ -16,8 +16,9 @@ import atexit
 import traceback
 from ctypes import CFUNCTYPE, WinError, windll
 from ctypes import sizeof as c_sizeof
-from petronia_common.util import not_none
-from petronia_native.common import log
+from petronia_common.util import StdRet, not_none, RET_OK_NONE
+from petronia_common.util import i18n as _
+from petronia_native.common import log, user_messages
 from .windows_common import (
     c_int,
     LONG, DWORD, BYTE, CHAR, BOOL, UINT,
@@ -25,7 +26,7 @@ from .windows_common import (
     windll, Structure,
     byref, create_unicode_buffer,
     MessageCallback,
-    WindowsErrorMessage,
+    WindowsReturnError,
 )
 from .supported_functions import (
     Functions,
@@ -171,7 +172,7 @@ def process__load_all_process_details() -> Sequence[Dict[str, str]]:
     return ret
 
 
-def monitor__set_native_dpi_awareness() -> Optional[WindowsErrorMessage]:
+def monitor__set_native_dpi_awareness() -> StdRet[None]:
     """Set the native DPI awareness for this process."""
     # In Windows Vista and Windows 7, this is the equivalent of turning on
     # system DPI aware mode:
@@ -181,10 +182,8 @@ def monitor__set_native_dpi_awareness() -> Optional[WindowsErrorMessage]:
     # adjust to the new DPI value. It will be automatically scaled
     # up or down by the system when the DPI changes from the system
     # value.
-    success = windll.user32.SetProcessDPIAware()
-    if success:
-        return None
-    return WindowsErrorMessage('user32.SetProcessDPIAware')
+    res = windll.user32.SetProcessDPIAware()
+    return WindowsReturnError.checked_stdret('user32.SetProcessDPIAware', res)
 
 
 class LOGFONT(Structure):  # pylint:disable=too-many-instance-attributes
@@ -236,12 +235,13 @@ class NONCLIENTMETRICS(Structure):
     )
 
 
-def shell__get_window_metrics() -> Union[WindowMetrics, WindowsErrorMessage]:
+def shell__get_window_metrics() -> StdRet[WindowMetrics]:
     """Get the global window metrics."""
-    metrics = shell__get_raw_window_metrics()
-    if isinstance(metrics, WindowsErrorMessage):
-        return metrics
-    return WindowMetrics(
+    metrics_res = shell__get_raw_window_metrics()
+    if metrics_res.has_error:
+        return metrics_res.forward()
+    metrics = metrics_res.result
+    return StdRet.pass_ok(WindowMetrics(
         # pylint is confused about what type metrics is.
         # pylint also thinks that metrics is a WindowsErrorMessage, even though it's
         # explicitly checked for and returned above.
@@ -260,10 +260,10 @@ def shell__get_window_metrics() -> Union[WindowMetrics, WindowsErrorMessage]:
         status_font=_font_to_dict(metrics.lfStatusFont),  # pylint:disable=attribute-defined-outside-init,no-member
         message_font=_font_to_dict(metrics.lfMessageFont),  # pylint:disable=attribute-defined-outside-init,no-member
         padded_border_width=metrics.iPaddedBorderWidth,  # pylint:disable=attribute-defined-outside-init,no-member
-    )
+    ))
 
 
-def shell__get_raw_window_metrics() -> Union[NONCLIENTMETRICS, WindowsErrorMessage]:
+def shell__get_raw_window_metrics() -> StdRet[NONCLIENTMETRICS]:
     """Get the raw window metrics."""
     # First, gather the border
     SystemParametersInfoW = windll.user32.SystemParametersInfoW
@@ -271,22 +271,22 @@ def shell__get_raw_window_metrics() -> Union[NONCLIENTMETRICS, WindowsErrorMessa
     # pylint is confused by structures.
     metrics.cbSize = c_sizeof(NONCLIENTMETRICS)  # pylint:disable=attribute-defined-outside-init
     res = SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, byref(metrics), 0)
-    if res != 0:
-        return WindowsErrorMessage('user32.SystemParametersInfoW')
-    return metrics
+    if res == 0:
+        return WindowsReturnError.stdret('user32.SystemParametersInfoW')
+    return StdRet.pass_ok(metrics)
 
 
 _BASE_OS_METRICS: List[Optional[NONCLIENTMETRICS]] = [None]
 
 
-def shell__set_window_metrics(metrics: WindowMetrics) -> Optional[WindowsErrorMessage]:
+def shell__set_window_metrics(metrics: WindowMetrics) -> StdRet[None]:
     """Set the window metrics"""
     return inner__set_window_metrics(metrics)
 
 
 def inner__set_window_metrics(
         metrics: Union[NONCLIENTMETRICS, WindowMetrics],
-) -> Optional[WindowsErrorMessage]:
+) -> StdRet[None]:
     """Set the windows metrics."""
     SystemParametersInfoW = windll.user32.SystemParametersInfoW
 
@@ -294,17 +294,17 @@ def inner__set_window_metrics(
     root_metrics = None
     if _BASE_OS_METRICS[0] is None:
         root_metrics = shell__get_raw_window_metrics()
-        if isinstance(root_metrics, WindowsErrorMessage):
-            return root_metrics
-        _BASE_OS_METRICS[0] = root_metrics
-        atexit.register(shell__set_window_metrics, root_metrics)
+        if root_metrics.has_error:
+            return root_metrics.forward()
+        _BASE_OS_METRICS[0] = root_metrics.result
+        atexit.register(shell__set_window_metrics, root_metrics.result)
 
     m: NONCLIENTMETRICS
     if isinstance(metrics, WindowMetrics):
         mx = root_metrics or shell__get_raw_window_metrics()
-        if isinstance(mx, WindowsErrorMessage):
-            return mx
-        m = mx
+        if mx.has_error:
+            return mx.forward()
+        m = mx.result
         m.cbSize = c_sizeof(NONCLIENTMETRICS)
         m.iBorderWidth = metrics.border_width
         m.iScrollWidth = metrics.scroll_width
@@ -326,9 +326,7 @@ def inner__set_window_metrics(
     m.cbSize = c_sizeof(NONCLIENTMETRICS)
     # TODO change 0 to SPIF_SENDCHANGE
     res = SystemParametersInfoW(SPI_SETNONCLIENTMETRICS, m.cbSize, byref(m), 0)
-    if res != 0:
-        return WindowsErrorMessage('user32.SystemParametersInfoW')
-    return None
+    return WindowsReturnError.checked_stdret('user32.SystemParametersInfoW', res)
 
 
 def _dict_to_font(f: FontMetrics, ret: Optional[LOGFONT] = None) -> LOGFONT:
@@ -372,12 +370,13 @@ def _font_to_dict(f: LOGFONT) -> FontMetrics:
     )
 
 
-def shell__set_border_size(border_width: int, border_padding: int) -> Optional[WindowsErrorMessage]:
+def shell__set_border_size(border_width: int, border_padding: int) -> StdRet[None]:
     """Set the global border size for the standard Windows shell."""
-    metrics = shell__get_raw_window_metrics()
-    if isinstance(metrics, WindowsErrorMessage):
-        return metrics
-    # pylint is confused by structures.
+    metrics_res = shell__get_raw_window_metrics()
+    if metrics_res.has_error:
+        return metrics_res.forward()
+    # pylint is confused by this structure.
+    metrics = metrics_res.result
     metrics.iBorderWidth = border_width  # pylint:disable=attribute-defined-outside-init
     metrics.iPaddedBorderWidth = border_padding  # pylint:disable=attribute-defined-outside-init
     return inner__set_window_metrics(metrics)
@@ -410,12 +409,12 @@ class WINDOWPLACEMENT(Structure):
     ]
 
 
-def shell__open_start_menu(show_taskbar: bool) -> Optional[WindowsErrorMessage]:  # pylint:disable=too-many-statements
+def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disable=too-many-statements
     """Try to open the start menu."""
     # Find the task bar window
     taskbar_hwnd = windll.user32.FindWindowW("Shell_TrayWnd", None)
     if taskbar_hwnd is None or taskbar_hwnd == 0:
-        return WindowsErrorMessage('user32.FindWindowW')
+        return WindowsReturnError.stdret('user32.FindWindowW')
     taskbar_size = RECT()
     windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
 
@@ -436,6 +435,7 @@ def shell__open_start_menu(show_taskbar: bool) -> Optional[WindowsErrorMessage]:
         # The trick Windows uses is pushing it off-screen, so it's just barely
         # visible.
 
+        # TODO error checking
         windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
         # Figure out which corner it's in.  It's either top, left, right, or bottom.
         # We do this by finding a "0", which indicates where on the screen it's
@@ -581,7 +581,7 @@ def shell__open_start_menu(show_taskbar: bool) -> Optional[WindowsErrorMessage]:
         res = windll.kernel32.Thread32First(hsnapshot, byref(thread_entry))
         # print("DEBUG :: first: {0}".format(res))
         if res == 0:
-            return WindowsErrorMessage('kernel32.Thread32First')
+            return WindowsReturnError.stdret('kernel32.Thread32First')
         while res != 0:
             # pylint is confused by structures.
             if thread_entry.dwSize > THREADENTRY32.th32OwnerProcessID.offset:  # pylint:disable=attribute-defined-outside-init
@@ -600,9 +600,12 @@ def shell__open_start_menu(show_taskbar: bool) -> Optional[WindowsErrorMessage]:
         # print(f"DEBUG Iterating over windows for thread {thread_id} in pid {taskbar_pid}")
         windll.user32.EnumThreadWindows(thread_id, callback_ptr, 0)
         if triggered_start[0]:
-            return None
+            return RET_OK_NONE
 
-    return WindowsErrorMessage("Could not find start button")
+    return StdRet.pass_errmsg(
+        user_messages.TRANSLATION_CATALOG,
+        _('could not find start button'),
+    )
 
 
 class MARGINS(Structure):
@@ -620,7 +623,7 @@ def create_window__create_borderless_window(
         func_map: Functions
 ) -> Callable[
         [str, str, MessageCallback, Dict[int, MessageCallback], Optional[bool], Optional[bool]],
-        Union[HWND, WindowsErrorMessage]
+        StdRet[HWND],
 ]:
     """Create a borderless window."""
     # Use an inner window, so that we can use the func_map for accessing other functions
@@ -638,7 +641,7 @@ def create_window__create_borderless_window(
             callback_map: Dict[int, MessageCallback],
             show_on_taskbar: Optional[bool] = True,
             always_on_top: Optional[bool] = False,
-    ) -> Union[HWND, WindowsErrorMessage]:
+    ) -> StdRet[HWND]:
         margins = MARGINS()
         # pylint doesn't understand structures.
         margins.cxLeftWidth = 0  # pylint:disable=attribute-defined-outside-init
@@ -680,11 +683,14 @@ def create_window__create_borderless_window(
         callback_map[WM_NCHITTEST] = hit_test
 
         if func_map.window.create_display_window:
-            hwnd = func_map.window.create_display_window(
+            hwnd_res = func_map.window.create_display_window(
                 class_name, title, message_handler, style_flags,
             )
             # windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, byref(margins))
-            return hwnd
-        return WindowsErrorMessage('not supported')
+            return hwnd_res
+        return StdRet.pass_errmsg(
+            user_messages.TRANSLATION_CATALOG,
+            _('not supported'),
+        )
 
     return window__create_borderless_window

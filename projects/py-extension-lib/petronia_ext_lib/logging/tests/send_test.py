@@ -25,7 +25,7 @@ class SendTest(unittest.TestCase):
         context = EventRegistryContextImpl(create_read_stream(b''), writer)
         res = send.send_system_error(
             context, 'my-event:source', SimplePetroniaReturnError(),
-            [FILE_ERROR_CATEGORY], 'msg-ident',
+            'msg-ident', [FILE_ERROR_CATEGORY],
         )
         self.assertIsNone(res.error)
         reader = create_read_stream(writer.getvalue())
@@ -44,7 +44,7 @@ class SendTest(unittest.TestCase):
         send.send_system_error(
             context, 'my-event:source',
             SimplePetroniaReturnError(UserMessage('c1', i18n('m1'))),
-            [FILE_ERROR_CATEGORY], 'my-msg',
+            'my-msg', [FILE_ERROR_CATEGORY],
         )
         reader = create_read_stream(writer.getvalue())
         collector = CallbackCollector()

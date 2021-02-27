@@ -5,15 +5,17 @@ Windows 8 & 8.1 functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-from typing import List, Tuple, Dict, Sequence, Union, Optional
+from typing import List, Tuple, Dict, Sequence
+from typing import cast as t_cast
 from ctypes import c_bool
 from ctypes import cast as c_cast
+from petronia_common.util import StdRet, RET_OK_NONE
 from .windows_common import (
-    DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE, UINT, LONG, c_int, HDC, LPRECT, LPARAM,
+    DWORD, BOOL, HANDLE, LPVOID, LPCWSTR, BYTE, UINT, c_int, HDC, LPRECT, LPARAM,
     HMONITOR, WINFUNCTYPE,
     POINTER, byref, c_sizeof,
     windll,
-    WindowsErrorMessage,
+    WindowsReturnError,
     create_unicode_buffer,
 )
 from .funcs_any_win import (
@@ -55,7 +57,7 @@ def load_all_functions(func_map: Functions) -> None:
 
 def process__get_username_domain_for_pid(  # pylint:disable=too-many-branches,too-many-return-statements,too-many-locals
         thread_pid: DWORD,
-) -> Union[Tuple[str, str], WindowsErrorMessage]:
+) -> StdRet[Tuple[str, str]]:
     """
 
     :param thread_pid:
@@ -79,37 +81,37 @@ def process__get_username_domain_for_pid(  # pylint:disable=too-many-branches,to
     # Win 8 uses the more limited query.
     hproc = windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, thread_pid)
     if hproc == 0:
-        err = WindowsErrorMessage('kernel32.OpenProcess')
+        err = WindowsReturnError('kernel32.OpenProcess')
         if err.errno == ERROR_ACCESS_DENIED:
             # Don't raise a problem in this situation.  Instead, return unique information.
-            return "[denied]", "[denied]"
-        return err
+            return StdRet.pass_ok(("[denied]", "[denied]"))
+        return StdRet.pass_error(err)
     try:
         access_token = HANDLE()
         res = OpenProcessToken(hproc, DWORD(TOKEN_QUERY), byref(access_token))
         if res == 0 or access_token is None:
-            return WindowsErrorMessage('advapi32.OpenProcessToken')
+            return WindowsReturnError.stdret('advapi32.OpenProcessToken')
         try:
             length = DWORD(0)
 
             if GetTokenInformation(
                     access_token, TOKEN_INFORMATION__TOKEN_USER, None, 0, byref(length),
             ) == 0:
-                err = WindowsErrorMessage('advapi32.GetTokenInformation')
+                err = WindowsReturnError('advapi32.GetTokenInformation')
                 if err.errno != ERROR_INSUFFICIENT_BUFFER:
-                    return err
+                    return StdRet.pass_error(err)
                 base_sid_info = (BYTE * length.value)()
                 if base_sid_info is None:
                     # Could not allocate space.
                     # May be wrong error...
-                    return WindowsErrorMessage('malloc')
+                    return WindowsReturnError.stdret('malloc')
                 sid_info = c_cast(base_sid_info, POINTER(LPVOID))
             else:
                 sid_info = POINTER(LPVOID)()
             if GetTokenInformation(
                     access_token, TOKEN_INFORMATION__TOKEN_USER, sid_info, length, byref(length),
             ) == 0:
-                return WindowsErrorMessage('advapi32.GetTokenInformation')
+                return WindowsReturnError.stdret('advapi32.GetTokenInformation')
 
             # The "sid_info" is a pointer to a structure, but the only thing we care about
             # is the first value in the structure (index 0), which is itself a pointer to a
@@ -127,41 +129,41 @@ def process__get_username_domain_for_pid(  # pylint:disable=too-many-branches,to
                 domain, byref(domain_size), byref(sid_name_type),
             )
             if res == 0:
-                return WindowsErrorMessage('advapi32.LookupAccountSidW')
+                return WindowsReturnError.stdret('advapi32.LookupAccountSidW')
 
             # return username.value[0:username_size], domain.value[0:domain_size]
-            return username.value, domain.value
+            return StdRet.pass_ok((username.value, domain.value))
         finally:
             windll.kernel32.CloseHandle(access_token)
     finally:
         windll.kernel32.CloseHandle(hproc)
 
 
-def process__get_current_username_domain() -> Union[Tuple[str, str], WindowsErrorMessage]:
+def process__get_current_username_domain() -> StdRet[Tuple[str, str]]:
     """Get the current username / domain"""
     # Just the username is easy (GetUserName), but the domain takes more work.
     return process__get_username_domain_for_pid(windll.kernel32.GetCurrentProcessId())
 
 
-def monitor__set_native_dpi_awareness() -> Optional[WindowsErrorMessage]:
+def monitor__set_native_dpi_awareness() -> StdRet[None]:
     """Set the DPI awareness for this process.  This affects how the API calls act on
     screen pixel units."""
     awareness = c_int()
     error_code = windll.shcore.GetProcessDpiAwareness(0, byref(awareness))
     if error_code != 0:  # S_OK
-        return WindowsErrorMessage('shcore.GetProcessDpiAwareness', error_code)
+        return WindowsReturnError.stdret('shcore.GetProcessDpiAwareness', error_code)
 
     if awareness != PROCESS_PER_MONITOR_DPI_AWARE:
         error_code = windll.shcore.SetProcessDpiAwareness(2)
         if error_code != 0:  # S_OK
-            return WindowsErrorMessage('shcore.SetProcessDpiAwareness', error_code)
+            return WindowsReturnError.stdret('shcore.SetProcessDpiAwareness', error_code)
 
-    return None
+    return RET_OK_NONE
 
 
 def monitor__find_monitors() -> Sequence[WindowsMonitor]:
     """Get the list of monitors."""
-    monitor_handles: List[Tuple[HMONITOR, LONG, LONG, LONG, LONG]] = []
+    monitor_handles: List[Tuple[HMONITOR, int, int, int, int]] = []
 
     def callback(
             h_monitor: HMONITOR, _hdc_monitor: HDC, lprc_monitor: LPRECT, _l_param: LPARAM,
@@ -171,8 +173,11 @@ def monitor__find_monitors() -> Sequence[WindowsMonitor]:
         # lprcMonitor: RECT structure w/ device-context coordinates.
         monitor_handles.append((
             h_monitor,
-            lprc_monitor.contents.left, lprc_monitor.contents.right,
-            lprc_monitor.contents.top, lprc_monitor.contents.bottom,
+
+            # Actual execution reports that these are of type int, but MyPy thinks it's of
+            # type c_long.
+            t_cast(int, lprc_monitor.contents.left), t_cast(int, lprc_monitor.contents.right),
+            t_cast(int, lprc_monitor.contents.top), t_cast(int, lprc_monitor.contents.bottom),
         ))
         return True
 
@@ -232,10 +237,10 @@ def monitor__find_monitors() -> Sequence[WindowsMonitor]:
                 work_top=info.rcWork.top,
                 work_bottom=info.rcWork.bottom,
 
-                vd_left=vd_l.value,
-                vd_right=vd_r.value,
-                vd_top=vd_t.value,
-                vd_bottom=vd_b.value,
+                vd_left=vd_l,
+                vd_right=vd_r,
+                vd_top=vd_t,
+                vd_bottom=vd_b,
 
                 name=info.szDevice,
                 is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == 1,

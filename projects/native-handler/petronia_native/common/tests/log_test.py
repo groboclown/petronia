@@ -40,7 +40,7 @@ class LogTest(unittest.TestCase):
         sys.stdout = self._io()
         log.info('info {msg} {n}', msg='aaa', n=1234)
         self.assertEqual(
-            '[Native INFO] info aaa 1234\n',
+            '[Native  INFO] info aaa 1234\n',
             sys.stdout.getvalue(),
         )
         log.LOG_INFO = False

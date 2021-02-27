@@ -5,10 +5,10 @@ Windows 10 functions
 # mypy: allow-any-generics
 # mypy: allow-any-explicit
 
-from typing import Dict, Optional
+from typing import Dict
 import traceback
 from ctypes import WinError
-# from typing import cast as t_cast
+from petronia_common.util import StdRet, RET_OK_NONE
 from .windows_common import (
     CFUNCTYPE,
     DWORD,
@@ -22,7 +22,7 @@ from .windows_common import (
     RECT,
 
     Structure,
-    WindowsErrorMessage,
+    WindowsReturnError,
     create_unicode_buffer,
     windll,
     byref,
@@ -77,12 +77,12 @@ class WINDOWPLACEMENT(Structure):
     ]
 
 
-def shell__open_start_menu(_show_taskbar: bool) -> Optional[WindowsErrorMessage]:
+def shell__open_start_menu(_show_taskbar: bool) -> StdRet[None]:
     """Try to open the start menu."""
     # Find the task bar window
     taskbar_hwnd = windll.user32.FindWindowW("Shell_TrayWnd", None)
     if taskbar_hwnd is None or taskbar_hwnd == 0:
-        return WindowsErrorMessage('user32.FindWindowW')
+        return WindowsReturnError.stdret('user32.FindWindowW')
     taskbar_size = RECT()
     windll.user32.GetWindowRect(taskbar_hwnd, byref(taskbar_size))
 
@@ -135,4 +135,4 @@ def shell__open_start_menu(_show_taskbar: bool) -> Optional[WindowsErrorMessage]
     # if not triggered_start[0]:
     #     raise OSError("Could not find start button")
 
-    return None
+    return RET_OK_NONE

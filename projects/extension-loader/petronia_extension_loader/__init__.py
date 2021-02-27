@@ -7,3 +7,4 @@ Executable that manages:
     3. Send requests to launchers to start extensions.
     4. Send requests to launchers to stop extensions.
 """
+from .entrypoint import extension_entrypoint

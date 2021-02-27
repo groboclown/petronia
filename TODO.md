@@ -23,7 +23,7 @@ These are desired, tactical changes to bits of already written code.
 This is the next thing that's being worked on.
 
 1. implement event handling loop.
-1. implement monitor mapping.  Include in this adding in a "failed to set mapping" event.
+1. implement monitor mapping for Windows.
 1. implement hotkey capture and reporting for Windows.
 1. implement window handling and event reporting for Windows.
 
@@ -37,8 +37,8 @@ This is the next thing that's being worked on.
 * Remove the `fixme` that's been disabled in the lint config (`pylintrc`).
 * The `monitor_screen.py` common function `store_virtual_screen_state` should take into account the real dpi + screen mapping distortion.  Right now, the ratio is hard-coded as 1-1.
 * Windows:
-  * the native functions should return a `StdRet` instead of a union with a `WindowsErrorMessage`.
-  * the `windows_vd.py` module needs some love, to make it properly inject the OS virtual desktop coordinates and the Petronia coordinates.
+  * the `windows_vs.py` module needs some love, to make it properly inject the OS virtual desktop coordinates and the Petronia coordinates.
+  * test out running the loop with monitor change detection, attach a second monitor, ensure the monitor detection happens, then move the relative positions between monitors, and ensure that the monitor change detection happens again.
 
 
 ### py-common-lib

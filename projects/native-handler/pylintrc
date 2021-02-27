@@ -139,7 +139,8 @@ confidence=
 #         deprecated-sys-function,
 #         exception-escape,
 #         comprehension-escape
-disable=fixme
+disable=duplicate-code,
+        fixme
 
 
 # Enable the message, report, category or checker with the given id(s). You can

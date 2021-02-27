@@ -5,11 +5,12 @@
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-from typing import Dict, Union
+from typing import Dict
+from petronia_common.util import StdRet
 from .windows_common import (
     HWND,
     windll,
-    WindowsErrorMessage,
+    WindowsReturnError,
 )
 from .supported_functions import (
     Functions,
@@ -30,7 +31,7 @@ def load_functions(environ: Dict[str, bool], func_map: Functions) -> None:
 
 def window__set_style(  # pylint:disable=too-many-branches
         hwnd: HWND, style_update: Dict[str, bool],
-) -> Union[WindowsErrorMessage, Dict[str, bool]]:
+) -> StdRet[Dict[str, bool]]:
     """
     Update a window's style.  "style_update" is a dictionary of style
     keys that map to either True or False, depending on how the style
@@ -60,7 +61,7 @@ def window__set_style(  # pylint:disable=too-many-branches
         SetLastError(0)
         res = SetWindowLongW(hwnd, GWL_STYLE, std_bits)
         if res == 0:
-            return WindowsErrorMessage('user32.SetWindowLongW')
+            return WindowsReturnError.stdret('user32.SetWindowLongW')
 
     ex_style_update = False
     ex_bits = 0
@@ -76,7 +77,7 @@ def window__set_style(  # pylint:disable=too-many-branches
         SetLastError(0)
         res = SetWindowLongW(hwnd, GWL_EXSTYLE, ex_bits)
         if res == 0:
-            return WindowsErrorMessage('user32.SetWindowLongW')
+            return WindowsReturnError.stdret('user32.SetWindowLongW')
 
     # Sometimes, it only changed some of the values.
     # Double check.
@@ -88,7 +89,7 @@ def window__set_style(  # pylint:disable=too-many-branches
         #      expected_style, final_style))
         pass
 
-    return original_style
+    return StdRet.pass_ok(original_style)
 
 
 def window__has_style(hwnd_handle: HWND, style: str) -> bool:

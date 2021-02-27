@@ -4,7 +4,7 @@ All supported windows functions, mapped to Python types.
 """
 
 from typing import Callable, Sequence, Iterable, Tuple, Dict, Union, Optional
-from petronia_common.util import T
+from petronia_common.util import StdRet, T
 from petronia_native.common.defs.units import OsScreenSize
 from petronia_native.common.defs import (
     OsScreenRect,
@@ -14,8 +14,7 @@ from .windows_common import (
     HWND, DWORD, c_int,
     UINT, WPARAM, LPARAM,
     HDC, HFONT, HHOOK, ANIMATIONINFO,
-    MessageCallback, NativeMessageCallback,
-    WindowsErrorMessage,
+    MessageCallback, NativeMessageCallback, WindowsReturnError,
 )
 from .window_state import WindowsWindowState
 from .window_metrics import WindowMetrics
@@ -74,7 +73,7 @@ class WindowFunctions:  # pylint:disable=too-many-instance-attributes
         'create_borderless_window',
     )
     find_handles: Optional[Callable[[], Sequence[HWND]]]
-    enum_window_handles: Optional[Callable[[Callable[[HWND], bool]], None]]
+    enum_window_handles: Optional[Callable[[Callable[[HWND], bool]], StdRet[None]]]
     find_handle_for_class_title: Optional[Callable[[str, str], Optional[HWND]]]
     find_handle_for_child_class_title: Optional[
         Callable[[HWND, Optional[HWND], str, str], Optional[HWND]]
@@ -82,25 +81,25 @@ class WindowFunctions:  # pylint:disable=too-many-instance-attributes
     get_title: Optional[Callable[[HWND], str]]
     is_visible: Optional[Callable[[HWND], bool]]
     get_process_id: Optional[Callable[[HWND], DWORD]]
-    get_class_name: Optional[Callable[[HWND], Union[WindowsErrorMessage, str]]]
-    get_module_filename: Optional[Callable[[HWND], Union[WindowsErrorMessage, str]]]
-    get_thread_window_handles: Optional[Callable[[DWORD], Sequence[HWND]]]
-    get_child_window_handles: Optional[Callable[[HWND], Sequence[HWND]]]
-    get_owning_window: Optional[Callable[[HWND], Union[WindowsErrorMessage, HWND]]]
-    border_rectangle: Optional[Callable[[HWND], Union[WindowsErrorMessage, OsScreenRect]]]
-    client_rectangle: Optional[Callable[[HWND], Union[WindowsErrorMessage, OsScreenRect]]]
+    get_class_name: Optional[Callable[[HWND], StdRet[str]]]
+    get_module_filename: Optional[Callable[[HWND], StdRet[str]]]
+    get_thread_window_handles: Optional[Callable[[DWORD], StdRet[Sequence[HWND]]]]
+    get_child_window_handles: Optional[Callable[[HWND], StdRet[Sequence[HWND]]]]
+    get_owning_window: Optional[Callable[[HWND], StdRet[HWND]]]
+    border_rectangle: Optional[Callable[[HWND], StdRet[OsScreenRect]]]
+    client_rectangle: Optional[Callable[[HWND], StdRet[OsScreenRect]]]
     move_resize: Optional[Callable[[HWND, int, int, int, int, Optional[bool]], bool]]
     redraw: Optional[Callable[[HWND, Optional[bool]], bool]]
-    repaint: Optional[Callable[[HWND], Optional[WindowsErrorMessage]]]
-    wait_gui_thread_idle: Optional[Callable[[HWND, Optional[int]], Optional[WindowsErrorMessage]]]
+    repaint: Optional[Callable[[HWND], StdRet[None]]]
+    wait_gui_thread_idle: Optional[Callable[[HWND, Optional[int]], StdRet[None]]]
     send_message: Optional[
-        Callable[[HWND, UINT, WPARAM, LPARAM], Union[WindowsErrorMessage, LPARAM]]
+        Callable[[HWND, UINT, WPARAM, LPARAM], StdRet[LPARAM]]
     ]
-    post_message: Optional[Callable[[HWND, UINT, WPARAM, LPARAM], Optional[WindowsErrorMessage]]]
-    close: Optional[Callable[[HWND], Optional[WindowsErrorMessage]]]
-    maximize: Optional[Callable[[HWND], Optional[WindowsErrorMessage]]]
-    minimize: Optional[Callable[[HWND], Optional[WindowsErrorMessage]]]
-    restore: Optional[Callable[[HWND], Optional[WindowsErrorMessage]]]
+    post_message: Optional[Callable[[HWND, UINT, WPARAM, LPARAM], StdRet[None]]]
+    close: Optional[Callable[[HWND], StdRet[None]]]
+    maximize: Optional[Callable[[HWND], StdRet[None]]]
+    minimize: Optional[Callable[[HWND], StdRet[None]]]
+    restore: Optional[Callable[[HWND], StdRet[None]]]
     get_visibility_states: Optional[Callable[[HWND], Sequence[str]]]
     draw_border_outline: Optional[Callable[
         [OsScreenRect, Color, int, Optional[int], Optional[int], Optional[HWND]],
@@ -108,35 +107,35 @@ class WindowFunctions:  # pylint:disable=too-many-instance-attributes
     ]]
     set_position: Optional[Callable[
         [HWND, Union[HWND, str], OsScreenRect, Iterable[str]],
-        Optional[WindowsErrorMessage]
+        StdRet[None],
     ]]
-    set_layered_attributes: Optional[Callable[[HWND, Color], Optional[WindowsErrorMessage]]]
+    set_layered_attributes: Optional[Callable[[HWND, Color], StdRet[None]]]
     get_active_window: Optional[Callable[[], Optional[HWND]]]
-    activate: Optional[Callable[[HWND], Optional[WindowsErrorMessage]]]
+    activate: Optional[Callable[[HWND], StdRet[None]]]
     create_message_window: Optional[
-        Callable[[str, NativeMessageCallback], Union[HWND, WindowsErrorMessage]]
+        Callable[[str, NativeMessageCallback], StdRet[HWND]]
     ]
     create_display_window: Optional[Callable[
         [str, str, MessageCallback, Iterable[str]],
-        Union[HWND, WindowsErrorMessage]
+        StdRet[HWND],
     ]]
     get_font_for_description: Optional[
         Callable[[str, Optional[HWND], Optional[HDC]], Optional[HFONT]]
     ]
     get_text_size: Optional[Callable[
         [HFONT, str, Optional[HWND], Optional[HDC]],
-        Union[OsScreenSize, WindowsErrorMessage],
+        StdRet[OsScreenSize],
     ]]
-    do_paint: Optional[Callable[[HWND, PaintCallback[T]], Union[T, WindowsErrorMessage]]]
-    do_draw: Optional[Callable[[HWND, PaintCallback[T]], Union[T, WindowsErrorMessage]]]
+    do_paint: Optional[Callable[[HWND, PaintCallback[T]], StdRet[T]]]
+    do_draw: Optional[Callable[[HWND, PaintCallback[T]], StdRet[T]]]
     set_style: Optional[
-        Callable[[HWND, Dict[str, bool]], Union[WindowsErrorMessage, Dict[str, bool]]]
+        Callable[[HWND, Dict[str, bool]], StdRet[Dict[str, bool]]]
     ]
     has_style: Optional[Callable[[HWND, str], bool]]
     get_style: Optional[Callable[[HWND], Dict[str, bool]]]
     create_borderless_window: Optional[Callable[
         [str, str, MessageCallback, Dict[int, MessageCallback], Optional[bool], Optional[bool]],
-        Union[HWND, WindowsErrorMessage]
+        StdRet[HWND]
     ]]
 
     def __init__(self) -> None:
@@ -192,14 +191,14 @@ class PaintFunctions:
         'draw_text',
         'draw_outline_text',
     )
-    draw_rect: Optional[Callable[[HDC, OsScreenRect, Color], Optional[WindowsErrorMessage]]]
+    draw_rect: Optional[Callable[[HDC, OsScreenRect, Color], StdRet[None]]]
     draw_text: Optional[Callable[
         [HDC, HFONT, str, int, int, int, int, Optional[Color], Optional[Color]],
-        Optional[WindowsErrorMessage],
+        StdRet[None],
     ]]
     draw_outline_text: Optional[Callable[
         [HDC, HFONT, str, int, int, int, Color, Color, Optional[Color]],
-        Optional[WindowsErrorMessage],
+        StdRet[None],
     ]]
 
     def __init__(self) -> None:
@@ -236,17 +235,17 @@ class ShellFunctions:  # pylint:disable=too-many-instance-attributes
     is_key_pressed: Optional[Callable[[c_int], bool]]
     keyboard_hook: Optional[Callable[
         [Callable[[int, int, bool, bool], Optional[str]]],
-        Union[HHOOK, WindowsErrorMessage]
+        StdRet[HHOOK],
     ]]
     shell_hook: Optional[Callable[
-        [Callable[[int, WPARAM, LPARAM], Optional[str]]], Union[HHOOK, WindowsErrorMessage],
+        [Callable[[int, WPARAM, LPARAM], Optional[str]]], StdRet[HHOOK],
     ]]
     unhook: Optional[Callable[[HHOOK], None]]
     inject_scancode: Optional[Callable[[int, bool], bool]]
     lock_workstation: Optional[Callable[[], bool]]
     register_window_hook: Optional[Callable[
         [HWND, Optional[Dict[int, MessageCallback]], Optional[MessageCallback]],
-        Union[int, WindowsErrorMessage],
+        StdRet[int],
     ]]
     create_global_message_handler: Optional[
         Callable[[Dict[int, MessageCallback]], NativeMessageCallback]
@@ -254,13 +253,13 @@ class ShellFunctions:  # pylint:disable=too-many-instance-attributes
     pump_messages: Optional[Callable[[Callable[[], None]], None]]
     system_parameters_info: Optional[Callable[
         [Dict[str, Union[int, bool, ANIMATIONINFO]]],
-        Optional[Dict[str, Union[int, bool, ANIMATIONINFO, WindowsErrorMessage]]],
+        Optional[Dict[str, Union[int, bool, ANIMATIONINFO, WindowsReturnError]]],
     ]]
-    open_start_menu: Optional[Callable[[bool], Optional[WindowsErrorMessage]]]
+    open_start_menu: Optional[Callable[[bool], StdRet[None]]]
     find_notification_icons: Optional[Callable[[], Sequence[HWND]]]
-    get_window_metrics: Optional[Callable[[], Union[WindowMetrics, WindowsErrorMessage]]]
-    set_window_metrics: Optional[Callable[[WindowMetrics], Optional[WindowsErrorMessage]]]
-    set_border_size: Optional[Callable[[int, int], Optional[WindowsErrorMessage]]]
+    get_window_metrics: Optional[Callable[[], StdRet[WindowMetrics]]]
+    set_window_metrics: Optional[Callable[[WindowMetrics], StdRet[None]]]
+    set_border_size: Optional[Callable[[int, int], StdRet[None]]]
 
     def __init__(self) -> None:
         self.get_task_bar_window_handles = None
@@ -292,7 +291,7 @@ class MonitorFunctions:
         'set_native_dpi_awareness'
     )
     find_monitors: Optional[Callable[[], Sequence[WindowsMonitor]]]
-    set_native_dpi_awareness: Optional[Callable[[], Optional[WindowsErrorMessage]]]
+    set_native_dpi_awareness: Optional[Callable[[], StdRet[None]]]
 
     def __init__(self) -> None:
         self.find_monitors = None
@@ -317,19 +316,19 @@ class ProcessFunctions:  # pylint:disable=too-many-instance-attributes
         'get_all_service_information',
     )
     get_exit_code: Optional[Callable[[DWORD], Optional[int]]]
-    get_window_state: Optional[Callable[[DWORD], Union[WindowsWindowState, WindowsErrorMessage]]]
+    get_window_state: Optional[Callable[[DWORD], StdRet[WindowsWindowState]]]
     get_current_pid: Optional[Callable[[], DWORD]]
     get_username_domain_for_pid: Optional[
-        Callable[[DWORD], Union[Tuple[str, str], WindowsErrorMessage]]
+        Callable[[DWORD], StdRet[Tuple[str, str]]]
     ]
     get_current_username_domain: Optional[
-        Callable[[], Union[Tuple[str, str], WindowsErrorMessage]]
+        Callable[[], StdRet[Tuple[str, str]]]
     ]
-    get_executable_filename: Optional[Callable[[DWORD], Union[WindowsErrorMessage, str, None]]]
-    get_all_pids: Optional[Callable[[], Union[WindowsErrorMessage, Sequence[DWORD]]]]
+    get_executable_filename: Optional[Callable[[DWORD], StdRet[Optional[str]]]]
+    get_all_pids: Optional[Callable[[], StdRet[Sequence[DWORD]]]]
     load_all_process_details: Optional[Callable[[], Sequence[Dict[str, str]]]]
     get_all_service_information: Optional[
-        Callable[[], Union[WindowsErrorMessage, Sequence[ProcessMetrics]]]
+        Callable[[], StdRet[Sequence[ProcessMetrics]]]
     ]
 
     def __init__(self) -> None:

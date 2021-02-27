@@ -38,12 +38,11 @@ The call to WINDOWS_FUNCTIONS.monitors.find_monitors() includes the virtual desk
 
 from typing import List, Sequence, Union, Optional, cast
 import threading
-from petronia_common.util import ValueHolder
-from petronia_native.common import defs, virtual_screen
+from petronia_common.util import ValueHolder, StdRet, join_none_results
+from petronia_native.common import defs, virtual_screen, log
 from .arch.native_funcs.monitor import WindowsMonitor
 from .arch.native_funcs.windows_common import (
     HWND, HFONT,
-    WindowsErrorMessage,
 )
 from .arch.native_funcs import (
     WINDOWS_FUNCTIONS,
@@ -55,19 +54,18 @@ DEFAULT_WINDOW_HEIGHT = cast(defs.ScreenUnit, 100)
 DEFAULT_PADDING = cast(defs.ScreenUnit, 4)
 
 
-def bootstrap_screens() -> Sequence[WindowsErrorMessage]:
+def bootstrap_screens() -> StdRet[None]:
     """
     Initialize the process for the screen settings.
 
     This attempts to make the window position be low-level monitor pixel aware.  In this
     regard, the os-reported sizes *should* match up with the monitor sizes.
     """
-    ret: List[WindowsErrorMessage] = []
+    ret: List[StdRet] = []
     if WINDOWS_FUNCTIONS.monitor.set_native_dpi_awareness:
-        err = WINDOWS_FUNCTIONS.monitor.set_native_dpi_awareness()
-        if err:
-            ret.append(err)
-    return ret
+        # pylint is getting confused here...
+        ret.append(WINDOWS_FUNCTIONS.monitor.set_native_dpi_awareness())  # pylint:disable=not-callable
+    return join_none_results(*ret)
 
 
 class WindowsDesktopScreen:
@@ -289,10 +287,17 @@ def get_text_size(
         text_sample = text_size
     else:
         text_sample = 'm' * text_size
-    res = WINDOWS_FUNCTIONS.window.get_text_size(hfont, text_sample, hwnd, None)
-    if isinstance(res, WindowsErrorMessage):
+
+    # pylint is confused here
+    res = WINDOWS_FUNCTIONS.window.get_text_size(hfont, text_sample, hwnd, None)  # pylint:disable=not-callable
+    if res.has_error:
+        log.info(
+            'Failed to fetch text size: {err}',
+            err=[m.debug() for m in res.error_messages()],
+        )
+        # Report error?
         return None
     return (
-        cast(defs.ScreenUnit, res[defs.OS_SCREEN_SIZE_WIDTH]),
-        cast(defs.ScreenUnit, res[defs.OS_SCREEN_SIZE_HEIGHT]),
+        cast(defs.ScreenUnit, res.result[defs.OS_SCREEN_SIZE_WIDTH]),
+        cast(defs.ScreenUnit, res.result[defs.OS_SCREEN_SIZE_HEIGHT]),
     )

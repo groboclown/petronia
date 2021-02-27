@@ -40,7 +40,9 @@ def boot_extensions(
     boot_extensions_res = find_boot_extensions(installed)
     if boot_extensions_res.has_error:
         return boot_extensions_res.forward()
-    add_boot_time_extensions(boot_extensions_res.result.values())
+    add_res = add_boot_time_extensions(boot_extensions_res.result.values())
+    if add_res.has_error:
+        return add_res.forward()
     pending_res = add_pending_extensions(
         shared_state.load_list(),
         boot_extensions_res.result.values(),

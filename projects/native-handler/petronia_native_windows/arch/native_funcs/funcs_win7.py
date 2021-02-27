@@ -5,12 +5,13 @@ Windows 7 functions
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-from typing import List, Sequence, Dict, Union
+from typing import List, Sequence, Dict
 from ctypes import sizeof as c_sizeof
+from petronia_common.util import StdRet
 from .windows_common import (
     DWORD,
     create_unicode_buffer, byref, windll,
-    WindowsErrorMessage,
+    WindowsReturnError,
 )
 from .supported_functions import (
     Functions,
@@ -44,7 +45,7 @@ def load_kernel_functions(func_map: Functions) -> None:
     func_map.process.get_all_pids = process__get_all_pids
 
 
-def process__get_executable_filename(thread_pid: DWORD) -> Union[WindowsErrorMessage, str]:
+def process__get_executable_filename(thread_pid: DWORD) -> StdRet[str]:
     """Get executable filename for the thread PIDs; processes not services."""
 
     GetProcessImageFileName = windll.kernel32.K32GetProcessImageFileNameW
@@ -57,7 +58,7 @@ def process__get_executable_filename(thread_pid: DWORD) -> Union[WindowsErrorMes
         # err = WindowsErrorMessage('kernel32.OpenProcess')
         # print(f"WARNING *** Failed to open process handle for pid {thread_pid}: {err}")
         # return err
-        return WindowsErrorMessage('kernel32.OpenProcess')
+        return WindowsReturnError.stdret('kernel32.OpenProcess')
     try:
         filename = create_unicode_buffer(MAX_FILENAME_LENGTH + 1)
 
@@ -65,9 +66,9 @@ def process__get_executable_filename(thread_pid: DWORD) -> Union[WindowsErrorMes
         res = GetProcessImageFileName(hproc, byref(filename), MAX_FILENAME_LENGTH + 1)
         if res <= 0:
             # print(f"DEBUG failed to read filename for handle {hproc} pid {thread_pid}")
-            return WindowsErrorMessage('kernel32.K32GetProcessImageFileNameW')
+            return WindowsReturnError.stdret('kernel32.K32GetProcessImageFileNameW')
         # print(f"DEBUG found filename for pid {thread_pid}: {filename.value}")
-        return str(filename.value[:res])
+        return StdRet.pass_ok(str(filename.value[:res]))
     finally:
         windll.kernel32.CloseHandle(hproc)
 
@@ -94,16 +95,16 @@ def process__get_executable_filename(thread_pid: DWORD) -> Union[WindowsErrorMes
 #         raise WinError()
 
 
-def process__get_all_pids() -> Union[WindowsErrorMessage, Sequence[DWORD]]:
+def process__get_all_pids() -> StdRet[Sequence[DWORD]]:
     """Get all PIDs for running processes."""
     process_buff = (DWORD * 2048)()
     process_size = DWORD()
     res = windll.psapi.EnumProcesses(process_buff, c_sizeof(process_buff), byref(process_size))
     # If the function succeeds, the return value is nonzero.
     if res == 0:
-        return WindowsErrorMessage('psapi.EnumProcesses')
+        return WindowsReturnError.stdret('psapi.EnumProcesses')
     count = process_size.value // c_sizeof(DWORD)
     ret: List[DWORD] = []
     for i in range(count):
         ret.append(DWORD(process_buff[i]))
-    return tuple(ret)
+    return StdRet.pass_ok(tuple(ret))

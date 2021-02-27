@@ -85,7 +85,12 @@ class StdRet(Generic[T_co]):
 
     The helper constructors can enforce different rules.
     """
-    __slots__ = ('__error', '__value',)
+
+    # Special debugging:
+    #   Check whether the error condition was ever inspected.
+    #   If not, then that means that the code has a problem.
+
+    __slots__ = ('__error', '__value', '__checked_error')
 
     def __init__(
             self,
@@ -94,6 +99,7 @@ class StdRet(Generic[T_co]):
     ) -> None:
         self.__error: Final[Optional[PetroniaReturnError]] = error
         self.__value: Final[Optional[T_co]] = value
+        self.__checked_error = False
 
     @staticmethod
     def pass_error(
@@ -137,6 +143,7 @@ class StdRet(Generic[T_co]):
         """Checks whether an error exists, and returns True if there is
         no error.  Note that the value can be None as well as no
         error."""
+        self.__checked_error = True
         return self.__error is None
 
     @property
@@ -146,12 +153,14 @@ class StdRet(Generic[T_co]):
         presence of an error does not preclude the existence of a
         value; that is, even if there is an error, the value
         can be non-None."""
+        self.__checked_error = True
         return self.__error is not None
 
     @property
     @final
     def error(self) -> Optional[PetroniaReturnError]:
         """Return the error, which can be None."""
+        self.__checked_error = True
         return self.__error
 
     @property
@@ -171,6 +180,11 @@ class StdRet(Generic[T_co]):
         """Forward this error as another type.  It doesn't allocate a
         new value.  This can ONLY be used if the value is known to be None."""
         assert self.__value is None
+
+        # This counts as checking for an error, because the responsibility
+        # now rests with the receiver.
+        self.__checked_error = True
+
         return cast(StdRet[V], self)
 
     @property
@@ -178,6 +192,8 @@ class StdRet(Generic[T_co]):
     def valid_error(self) -> PetroniaReturnError:
         """Return a non-null version of the error.  Only call if you know it to
         be non-null."""
+        # This does not count as checking for an error, because this should only
+        # be called if it was checked.
         assert self.__error
         return self.__error
 
@@ -187,6 +203,8 @@ class StdRet(Generic[T_co]):
         """The non-None version of the value.  If the type itself is optional,
         this will still fail if the value is not None, but the returned type will
         still be Optional."""
+        # This does not count as checking for an error, because this should only
+        # be called if it was checked.
         assert self.__value is not None
         return self.__value
 
@@ -195,9 +213,23 @@ class StdRet(Generic[T_co]):
         """Returns a list of error messages associated with the error, or
         an empty list if there is no error.  This is valid to call in any
         circumstance."""
+
+        # This counts as checking for an error.
+        self.__checked_error = True
+
         if self.__error:
             return self.__error.messages()
         return cast(Sequence[UserMessage], EMPTY_TUPLE)
+
+    # Debugging code.  This can be removed when in production.
+    def __del__(self) -> None:
+        if not self.__checked_error:
+            if self.__error:
+                raise ValueError(
+                    f'Non-error checked StdRet with error '
+                    f'({[m.debug() for m in self.__error.messages()]})'
+                )
+            raise ValueError(f'Non-error checked StdRet with value {self.__value}')
 
 
 def error_message(
@@ -290,6 +322,18 @@ def join_results(
     if errors:
         return StdRet.pass_error(join_errors(errors=errors))
     return StdRet.pass_ok(joiner(valid))
+
+
+def join_none_results(*values: StdRet[Any]) -> StdRet[None]:
+    """Join all the errors together, if any, without regard for the return values.
+    A common pattern."""
+    errors: List[PetroniaReturnError] = []
+    for value in values:
+        if value.has_error:
+            errors.append(value.valid_error)
+    if errors:
+        return StdRet.pass_error(join_errors(errors=errors))
+    return RET_OK_NONE
 
 
 # A generic constant for return types that may have an error

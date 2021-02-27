@@ -24,7 +24,7 @@ from ctypes import (
     create_unicode_buffer,
     Structure,
 )
-from petronia_common.util import T, STRING_EMPTY_TUPLE, EMPTY_TUPLE
+from petronia_common.util import T, STRING_EMPTY_TUPLE, EMPTY_TUPLE, StdRet, RET_OK_NONE
 from petronia_native.common import log
 from petronia_native.common.defs import (
     OsScreenRect,
@@ -38,7 +38,7 @@ from petronia_native.common.defs.color import (
 from petronia_native.common.defs.units import OsScreenSize
 from .windows_common import (
     WINFUNCTYPE, ANIMATIONINFO,
-    windll, WindowsErrorMessage,
+    windll, WindowsReturnError,
     LPCWSTR, LPVOID, LPRECT,
     DWORD, WORD, BOOL, BYTE, UINT, WCHAR, SHORT, LONG, LRESULT, WINTYPE_SIZE,
     COLORREF, RECT, POINT, RGB, HFONT, HDC,
@@ -251,14 +251,15 @@ def window__find_handles() -> Sequence[HWND]:
     return ret
 
 
-def window__enum_window_handles(callback: Callable[[HWND], bool]) -> None:
+def window__enum_window_handles(callback: Callable[[HWND], bool]) -> StdRet[None]:
     """Run the callback for each window handle found."""
     # noinspection PyUnusedLocal
     def callback_wrapper(hwnd: HWND, _lparam: LPARAM) -> bool:
         return callback(hwnd)
 
     enum_win_proc = WINFUNCTYPE(c_bool, c_int, POINTER(c_int))
-    windll.user32.EnumWindows(enum_win_proc(callback_wrapper), None)
+    res = windll.user32.EnumWindows(enum_win_proc(callback_wrapper), None)
+    return WindowsReturnError.checked_stdret('user32.EnumWindows', res)
 
 
 def window__find_handle_for_class_title(class_name: str, title: str) -> Optional[HWND]:
@@ -300,25 +301,25 @@ def window__get_process_id(hwnd_handle: HWND) -> DWORD:
     return pid
 
 
-def window__get_class_name(hwnd_handle: HWND) -> Union[WindowsErrorMessage, str]:
+def window__get_class_name(hwnd_handle: HWND) -> StdRet[str]:
     """Get the class name for the window handle."""
     buff = create_unicode_buffer(MAX_CLASS_NAME_LENGTH + 1)
     size = windll.user32.GetClassNameW(hwnd_handle, buff, MAX_CLASS_NAME_LENGTH + 1)
     if size <= 0:
-        return WindowsErrorMessage('user32.GetClassNameW')
-    return buff.value[:size]
+        return WindowsReturnError.stdret('user32.GetClassNameW')
+    return StdRet.pass_ok(buff.value[:size])
 
 
-def window__get_module_filename(hwnd_handle: HWND) -> Union[WindowsErrorMessage, str]:
+def window__get_module_filename(hwnd_handle: HWND) -> StdRet[str]:
     """Get the module filename for the window with the handle."""
     buff = create_unicode_buffer(MAX_FILENAME_LENGTH + 1)
     size = windll.user32.GetWindowModuleFileNameW(hwnd_handle, buff, MAX_FILENAME_LENGTH + 1)
     if size <= 0:
-        return WindowsErrorMessage('user32.GetWindowModuleFileNameW')
-    return buff.value[:size]
+        return WindowsReturnError.stdret('user32.GetWindowModuleFileNameW')
+    return StdRet.pass_ok(buff.value[:size])
 
 
-def window__get_thread_window_handles(thread_process_id: DWORD) -> Sequence[HWND]:
+def window__get_thread_window_handles(thread_process_id: DWORD) -> StdRet[Sequence[HWND]]:
     """
     Get all the window handles for the thread PID.
 
@@ -332,12 +333,14 @@ def window__get_thread_window_handles(thread_process_id: DWORD) -> Sequence[HWND
         return True
 
     enum_win_proc = WINFUNCTYPE(c_bool, POINTER(c_int), POINTER(c_int))
-    windll.user32.EnumThreadWindows(thread_process_id, enum_win_proc(callback), None)
+    res = windll.user32.EnumThreadWindows(thread_process_id, enum_win_proc(callback), None)
+    if res == 0:
+        return WindowsReturnError.stdret('user32.EnumThreadWindows')
 
-    return ret
+    return StdRet.pass_ok(ret)
 
 
-def window__get_child_window_handles(hwnd_parent: HWND) -> Sequence[HWND]:
+def window__get_child_window_handles(hwnd_parent: HWND) -> StdRet[Sequence[HWND]]:
     """Get all the child window handles for the parent handle."""
     ret: List[HWND] = []
 
@@ -346,12 +349,14 @@ def window__get_child_window_handles(hwnd_parent: HWND) -> Sequence[HWND]:
         return True
 
     enum_win_proc = WINFUNCTYPE(c_bool, POINTER(c_int), POINTER(c_int))
-    windll.user32.EnumChildWindows(hwnd_parent, enum_win_proc(callback), None)
+    res = windll.user32.EnumChildWindows(hwnd_parent, enum_win_proc(callback), None)
+    if res == 0:
+        return WindowsReturnError.stdret('user32.EnumChildWindows')
 
-    return ret
+    return StdRet.pass_ok(ret)
 
 
-def window__get_owning_window(hwnd_child: HWND) -> Union[WindowsErrorMessage, HWND]:
+def window__get_owning_window(hwnd_child: HWND) -> StdRet[HWND]:
     """Get the window that owns the given child handle."""
     # "GetTopWindow" gets the top-Z level *child window* for the given window.
     # "GetWindow(..., GW_OWNER)" gets the Owning child (not parent window) for the
@@ -359,11 +364,11 @@ def window__get_owning_window(hwnd_child: HWND) -> Union[WindowsErrorMessage, HW
     # parent is none (e.g. the desktop).
     ret = windll.user32.GetWindow(hwnd_child, GW_OWNER)
     if ret == 0 or ret is None:
-        return WindowsErrorMessage('user32.GetWindow')
-    return t_cast(HWND, ret)
+        return WindowsReturnError.stdret('user32.GetWindow')
+    return StdRet.pass_ok(t_cast(HWND, ret))
 
 
-def window__border_rectangle(hwnd: HWND) -> Union[WindowsErrorMessage, OsScreenRect]:
+def window__border_rectangle(hwnd: HWND) -> StdRet[OsScreenRect]:
     """
     The outer border size and position of the window
 
@@ -373,11 +378,11 @@ def window__border_rectangle(hwnd: HWND) -> Union[WindowsErrorMessage, OsScreenR
     rect = RECT()
     res = windll.user32.GetWindowRect(hwnd, byref(rect))
     if res == 0:
-        return WindowsErrorMessage('user32.GetWindowRect')
-    return convert_rect(rect)
+        return WindowsReturnError.stdret('user32.GetWindowRect')
+    return StdRet.pass_ok(convert_rect(rect))
 
 
-def window__client_rectangle(hwnd: HWND) -> Union[WindowsErrorMessage, OsScreenRect]:
+def window__client_rectangle(hwnd: HWND) -> StdRet[OsScreenRect]:
     """
     The client-usable space within the border rectangle.  Top and Left
     are always 0.
@@ -388,8 +393,8 @@ def window__client_rectangle(hwnd: HWND) -> Union[WindowsErrorMessage, OsScreenR
     client_rect = RECT()
     res = windll.user32.GetClientRect(hwnd, byref(client_rect))
     if res == 0:
-        return WindowsErrorMessage('user32.GetClientRect')
-    return convert_rect(client_rect)
+        return WindowsReturnError.stdret('user32.GetClientRect')
+    return StdRet.pass_ok(convert_rect(client_rect))
 
 
 def window__move_resize(
@@ -433,19 +438,20 @@ def window__redraw(hwnd: HWND, force: Optional[bool] = False) -> bool:
     return False
 
 
-def window__repaint(hwnd: HWND) -> Optional[WindowsErrorMessage]:
+def window__repaint(hwnd: HWND) -> StdRet[None]:
     """Ask the window handle to be repainted."""
     # res = windll.user32.InvalidateRect(hwnd, None, False)
     res = windll.user32.RedrawWindow(hwnd, None, None, RDW_INVALIDATE)
-    if res == 0:
-        return WindowsErrorMessage('user32.RedrawWindow')
-    return None
+    return WindowsReturnError.checked_stdret('user32.RedrawWindow', res)
 
 
 def window__wait_gui_thread_idle(
         hwnd: HWND, timeout: Optional[int] = 1000,
-) -> Optional[WindowsErrorMessage]:
+) -> StdRet[None]:
     """Wait for a handle to go idle."""
+
+    # TODO check for more error results from WinAPI calls.
+
     thread_pid = window__get_process_id(hwnd)
     if thread_pid:
         hproc = windll.kernel32.OpenProcess(
@@ -457,37 +463,46 @@ def window__wait_gui_thread_idle(
             # == WAIT_TIMEOUT: wait timed out
             # == WAIT_FAILED: error occurred
             if res != 0:
-                return WindowsErrorMessage('user32.WaitForInputIdle')
+                return WindowsReturnError.stdret('user32.WaitForInputIdle')
         finally:
             windll.kernel32.CloseHandle(hproc)
     windll.user32.WaitGuiThreadIdle(hwnd)
-    return None
+    return RET_OK_NONE
 
 
 def window__send_message(
-        hwnd: HWND, key: UINT, arg1: WPARAM, arg2: LPARAM,
-) -> Union[WindowsErrorMessage, LRESULT]:
+        hwnd: HWND, message: UINT, wparam: WPARAM, lparam: LPARAM,
+) -> StdRet[LRESULT]:
     """Send a message to a window handle."""
     err = _attach_message_queue_to_thread(hwnd)
-    if err:
-        return err
-    return t_cast(LRESULT, windll.user32.SendMessageW(hwnd, key, arg1, arg2))
+    if err.has_error:
+        return err.forward()
+    res = windll.user32.SendMessageW(
+        hwnd, message, wparam, lparam,
+    )
+    log.trace(
+        'send_message({hwnd:04x}, {message:04x}) = {res}',
+        hwnd=hwnd, message=message.value, res=res,
+    )
+    return StdRet.pass_ok(t_cast(LRESULT, res))
 
 
 def window__post_message(
-        hwnd: HWND, key: UINT, arg1: WPARAM, arg2: LPARAM,
-) -> Optional[WindowsErrorMessage]:
+        hwnd: HWND, message: UINT, wparam: WPARAM, lparam: LPARAM,
+) -> StdRet[None]:
     """'post' a message to a window handle."""
     err = _attach_message_queue_to_thread(hwnd)
-    if err:
+    if err.has_error:
         return err
-    res = windll.user32.PostMessageW(hwnd, key, arg1, arg2)
-    if res == 0:
-        return WindowsErrorMessage('user32.PostMessageW')
-    return None
+    res = windll.user32.PostMessageW(hwnd, message, wparam, lparam)
+    log.trace(
+        'post_message({hwnd:04x}, {message:04x})',
+        hwnd=hwnd, message=message.value,
+    )
+    return WindowsReturnError.checked_stdret('user32.PostMessageW', res)
 
 
-def window__close(hwnd: HWND) -> Optional[WindowsErrorMessage]:
+def window__close(hwnd: HWND) -> StdRet[None]:
     """Close a window handle.  Just posts a message to that handle."""
     # Code modified from http://msdn.microsoft.com/msdnmag/issues/02/08/CQA/
 
@@ -497,23 +512,19 @@ def window__close(hwnd: HWND) -> Optional[WindowsErrorMessage]:
     )
 
 
-def window__maximize(hwnd: HWND) -> Optional[WindowsErrorMessage]:
+def window__maximize(hwnd: HWND) -> StdRet[None]:
     """Maximize a window handle."""
     res = windll.user32.ShowWindow(hwnd, SW_MAXIMIZE)
-    if res == 0:
-        return WindowsErrorMessage('user32.ShowWindow')
-    return None
+    return WindowsReturnError.checked_stdret('user32.ShowWindow', res)
 
 
-def window__minimize(hwnd: HWND) -> Optional[WindowsErrorMessage]:
+def window__minimize(hwnd: HWND) -> StdRet[None]:
     """Minimize a window handle."""
     res = windll.user32.ShowWindow(hwnd, SW_MINIMIZE)
-    if res == 0:
-        return WindowsErrorMessage('user32.ShowWindow')
-    return None
+    return WindowsReturnError.checked_stdret('user32.ShowWindow', res)
 
 
-def window__restore(hwnd: HWND) -> Optional[WindowsErrorMessage]:  # pylint:disable=useless-return
+def window__restore(hwnd: HWND) -> StdRet[None]:
     """Restore a window handle."""
     # This needs to be called twice, because of the situation
     # where a window was maximized then minimized.  The first
@@ -524,8 +535,7 @@ def window__restore(hwnd: HWND) -> Optional[WindowsErrorMessage]:  # pylint:disa
     # So, only call it twice if it was minimized.
     if windll.user32.ShowWindow(hwnd, SW_RESTORE) == 0:
         windll.user32.ShowWindow(hwnd, SW_RESTORE)
-    # mypy requires a return, but pylint thinks it isn't necessary.  MyPy wins.
-    return None
+    return RET_OK_NONE
 
 
 class WINDOWPLACEMENT(Structure):
@@ -670,7 +680,7 @@ def window__set_position(
         hwnd_after_zorder: Union[HWND, str],
         rect: OsScreenRect,
         flags: Iterable[str],
-) -> Optional[WindowsErrorMessage]:
+) -> StdRet[None]:
     """Set a window's size and position."""
     zorder = hwnd_after_zorder
     if isinstance(zorder, str) and zorder in HWND_ZORDER_MAP:
@@ -684,14 +694,12 @@ def window__set_position(
         else:
             log.error("Unknown SWP set position flag {flag}", flag=flag)
     res = SetWindowPos(hwnd, zorder, rect.x, rect.y, rect.width, rect.height, uflags)
-    if res == 0:
-        return WindowsErrorMessage('user32.SetWindowPos')
-    return None
+    return WindowsReturnError.checked_stdret('user32.SetWindowPos', res)
 
 
 def window__set_layered_attributes(
         hwnd: HWND, color: Color,
-) -> Optional[WindowsErrorMessage]:
+) -> StdRet[None]:
     """Set layered attributes."""
     rgba = color_to_rgba(color)
     res = SetLayeredWindowAttributes(
@@ -700,9 +708,7 @@ def window__set_layered_attributes(
         rgba[COLOR_RGBA_ALPHA_INDEX],
         LWA_ALPHA,
     )
-    if res == 0:
-        return WindowsErrorMessage('user32.SetLayeredWindowAttributes')
-    return None
+    return WindowsReturnError.checked_stdret('user32.SetLayeredWindowAttributes', res)
 
 
 def window__get_active_window() -> Optional[HWND]:
@@ -715,7 +721,7 @@ def window__get_active_window() -> Optional[HWND]:
     return hwnd
 
 
-def window__activate(hwnd: HWND) -> Optional[WindowsErrorMessage]:
+def window__activate(hwnd: HWND) -> StdRet[None]:
     """Give the window the focus."""
     # Give the window the focus.  This is the Microsoft Magic Focus Dance.
     current_hwnd = windll.user32.GetForegroundWindow()
@@ -725,14 +731,14 @@ def window__activate(hwnd: HWND) -> Optional[WindowsErrorMessage]:
         res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
         # ERROR_INVALID_PARAMETER means that the two threads are already attached.
         if res == 0:
-            err = WindowsErrorMessage('user32.AttachThreadInput')
+            err = WindowsReturnError('user32.AttachThreadInput')
             if err.errno != ERROR_INVALID_PARAMETER:
                 # "WARN: could not attach thread input to thread
                 # {thread_process_id} ({GetLastError()})"
-                return err
+                return StdRet.pass_error(err)
     res = windll.user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE)
     if res == 0:
-        return WindowsErrorMessage('user32.SetWindowPos')
+        return WindowsReturnError.stdret('user32.SetWindowPos')
     # At this point, the window hwnd is valid, so we don't need to fail out
     # if the results are non-zero.  Some of these will not succeed due to
     # attributes of the window, rather than the window not existing.
@@ -741,7 +747,7 @@ def window__activate(hwnd: HWND) -> Optional[WindowsErrorMessage]:
     windll.user32.SetForegroundWindow(hwnd)
     windll.user32.SetFocus(hwnd)
     windll.user32.SetActiveWindow(hwnd)
-    return None
+    return RET_OK_NONE
 
 
 class WNDCLASSEX(Structure):  # pylint:disable=too-many-instance-attributes
@@ -764,12 +770,12 @@ class WNDCLASSEX(Structure):  # pylint:disable=too-many-instance-attributes
 
 def window__create_message_window(
         class_name: str, message_handler: NativeMessageCallback,
-) -> Union[HWND, WindowsErrorMessage]:
+) -> StdRet[HWND]:
     """
     Create a "message" window - a window that's only for posting messages
     to, and for handling other OS messages.
 
-    However, we need some broadcast messages , like WM_DISPLAYCHANGE.
+    However, we need some broadcast messages, like WM_DISPLAYCHANGE.
     Therefore, it needs to be a real window that is just never shown.
 
     :param message_handler: the handler procedure created by shell__create_global_message_handler
@@ -780,13 +786,16 @@ def window__create_message_window(
     if not class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
         class_name = PETRONIA_CREATED_WINDOW__CLASS_PREFIX + class_name
 
+    hinst = GetModuleHandleW(None)
+    if hinst is None or hinst == 0:
+        return WindowsReturnError.stdret('kernel32.GetModuleHandleW')
+
     # A persistent pointer to a handler.  Must be persisted so it isn't
     # removed when we exit this method.
-    log.debug("creating a windows procedure for {handler}", handler=message_handler)
     window_proc = WNDPROCTYPE(message_handler)
-    hinst = GetModuleHandleW(None)
+
     window_class = WNDCLASSEX()
-    # pylint doesn't understand structures.
+    # pylint doesn't understand this structure.
     window_class.cbSize = c_sizeof(WNDCLASSEX)  # pylint:disable=attribute-defined-outside-init
     window_class.style = 0  # pylint:disable=attribute-defined-outside-init
     window_class.lpfnWndProc = window_proc  # pylint:disable=attribute-defined-outside-init
@@ -800,8 +809,9 @@ def window__create_message_window(
     window_class.lpszClassName = class_name  # pylint:disable=attribute-defined-outside-init
     window_class.hIconSm = 0  # pylint:disable=attribute-defined-outside-init
 
-    if not RegisterClassExW(byref(window_class)):
-        return WindowsErrorMessage('user32.RegisterClassExW')
+    class_handle = RegisterClassExW(byref(window_class))
+    if class_handle == 0:
+        return WindowsReturnError.stdret('user32.RegisterClassExW')
     # Top level, never viewed, window.  Note that we set title to
     # "null" to further emphasize that this is a non-viewable window.
     # We don't use a message-only window, so that the window can
@@ -811,10 +821,11 @@ def window__create_message_window(
         WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, HWND_DESKTOP, None, hinst, None,
     )
     if hwnd is None or hwnd == 0:
-        return WindowsErrorMessage('user32.CreateWindowExW')
+        return WindowsReturnError.stdret('user32.CreateWindowExW')
 
+    # Persist the pointer
     _CALLBACK_POINTERS[hwnd] = window_proc
-    return hwnd
+    return StdRet.pass_ok(hwnd)
 
 
 def window__create_display_window(
@@ -822,7 +833,7 @@ def window__create_display_window(
         title: str,
         message_handler: MessageCallback,
         style_flags: Iterable[str],
-) -> Union[HWND, WindowsErrorMessage]:
+) -> StdRet[HWND]:
     """Create a window."""
     if not class_name.startswith(PETRONIA_CREATED_WINDOW__CLASS_PREFIX):
         class_name = PETRONIA_CREATED_WINDOW__CLASS_PREFIX + class_name
@@ -857,8 +868,9 @@ def window__create_display_window(
     window_class.lpszClassName = class_name  # pylint:disable=attribute-defined-outside-init
     window_class.hIconSm = small_icon  # pylint:disable=attribute-defined-outside-init
 
-    if not RegisterClassExW(byref(window_class)):
-        return WindowsErrorMessage('user32.RegisterClassExW')
+    class_handle = RegisterClassExW(byref(window_class))
+    if class_handle == 0:
+        return WindowsReturnError.stdret('user32.RegisterClassExW')
 
     ex_style = 0
     for flag in style_flags:
@@ -878,12 +890,12 @@ def window__create_display_window(
         None, hinst, None,
     ))
     if hwnd is None or hwnd == 0:
-        return WindowsErrorMessage('user32.CreateWindowExW')
+        return WindowsReturnError.stdret('user32.CreateWindowExW')
     windll.user32.ShowWindow(hwnd, SW_SHOWNORMAL)
     windll.user32.UpdateWindow(hwnd)
 
     _CALLBACK_POINTERS[hwnd] = window_proc
-    return hwnd
+    return StdRet.pass_ok(hwnd)
 
 
 _FONT_HANDLES: Dict[str, Optional[HFONT]] = {}
@@ -964,7 +976,7 @@ def _delete_gdi_object(obj_handle: HANDLE) -> None:
 def window__get_text_size(
         hfont: HFONT, text: str,
         hwnd: Optional[HWND] = None, base_hdc: Optional[HDC] = None,
-) -> Union[OsScreenSize, WindowsErrorMessage]:
+) -> StdRet[OsScreenSize]:
     """
     Can be called within or outside a paint context.
 
@@ -997,10 +1009,10 @@ def window__get_text_size(
                 byref(size),
             )
             if res == 0:
-                return WindowsErrorMessage('gdi32.GetTextExtentPoint32W')
+                return WindowsReturnError.stdret('gdi32.GetTextExtentPoint32W')
             height += size.cy.value
             width = max(width, size.cx.value)
-        return t_cast(ScreenUnit, width), t_cast(ScreenUnit, height)
+        return StdRet.pass_ok((t_cast(ScreenUnit, width), t_cast(ScreenUnit, height)))
     finally:
         # To prevent a memory leak
         if hdc is not None and old_hfont is not None:
@@ -1025,7 +1037,7 @@ class PAINTSTRUCT(Structure):
 
 def window__do_paint(
         hwnd: HWND, paint_callback: PaintCallback[T],
-) -> Union[T, WindowsErrorMessage]:
+) -> StdRet[T]:
     """
     Start the paint callback message.
 
@@ -1036,27 +1048,27 @@ def window__do_paint(
     ps = PAINTSTRUCT()
     hdc = windll.user32.BeginPaint(hwnd, byref(ps))
     if hdc == 0 or hdc is None:
-        return WindowsErrorMessage('user32.BeginPaint')
+        return WindowsReturnError.stdret('user32.BeginPaint')
     try:
-        return paint_callback(hwnd, hdc)
+        return StdRet.pass_ok(paint_callback(hwnd, hdc))
     finally:
         windll.user32.EndPaint(hwnd, byref(ps))
 
 
-def window__do_draw(hwnd: HWND, paint_callback: PaintCallback[T]) -> Union[T, WindowsErrorMessage]:
+def window__do_draw(hwnd: HWND, paint_callback: PaintCallback[T]) -> StdRet[T]:
     """Tell a function to draw itself, along with a callback to run on the paint."""
     hdc: HDC = windll.user32.GetDC(hwnd)
     if hdc == 0 or hdc is None:
-        return WindowsErrorMessage('user32.GetDC')
+        return WindowsReturnError.stdret('user32.GetDC')
     try:
-        return paint_callback(hwnd, hdc)
+        return StdRet.pass_ok(paint_callback(hwnd, hdc))
     finally:
         windll.user32.ReleaseDC(hdc)
 
 
 def paint__draw_rect(
         hdc: HDC, area: OsScreenRect, color: Color,
-) -> Optional[WindowsErrorMessage]:
+) -> StdRet[None]:
     """Paint a rectangle."""
     rect = RECT()
     rect.left = c_long(area.left)
@@ -1068,9 +1080,7 @@ def paint__draw_rect(
     try:
         fill_brush = windll.gdi32.CreateSolidBrush(fill_rgb)
         res = windll.user32.FillRect(hdc, byref(rect), fill_brush)
-        if res == 0:
-            return WindowsErrorMessage('user32.FillRect')
-        return None
+        return WindowsReturnError.checked_stdret('user32.FillRect', res)
     finally:
         if fill_brush is not None:
             _delete_gdi_object(fill_brush)
@@ -1081,7 +1091,7 @@ def paint__draw_text(  # pylint:disable=too-many-arguments
         text: str,
         pos_x: int, pos_y: int, width: int, height: int,
         fg_color: Optional[Color], bg_color: Optional[Color],
-) -> Optional[WindowsErrorMessage]:
+) -> StdRet[None]:
     """Draw some text."""
     old_hfont = None
     try:
@@ -1104,13 +1114,11 @@ def paint__draw_text(  # pylint:disable=too-many-arguments
         rect.right = c_long(pos_x + width)
         rect.bottom = c_long(pos_y + height)
 
-        ret = windll.user32.DrawTextW(
+        res = windll.user32.DrawTextW(
             hdc, create_unicode_buffer(text), len(text), byref(rect),
             DT_LEFT | DT_TOP | DT_NOPREFIX,
         )
-        if ret == 0:
-            return WindowsErrorMessage('user32.DrawTextW')
-        return None
+        return WindowsReturnError.checked_stdret('user32.DrawTextW', res)
     finally:
         # To prevent a memory leak
         if old_hfont is not None:
@@ -1122,7 +1130,7 @@ def paint__draw_outline_text(  # pylint:disable=too-many-locals,too-many-argumen
         text: str,
         pos_x: int, pos_y: int,
         outline_width: int, outline_color: Color, fill_color: Color, bg_color: Optional[Color],
-) -> Optional[WindowsErrorMessage]:
+) -> StdRet[None]:
     """
 
     :param hdc:
@@ -1163,9 +1171,7 @@ def paint__draw_outline_text(  # pylint:disable=too-many-locals,too-many-argumen
         windll.gdi32.TextOutW(hdc, pos_x, pos_y, create_unicode_buffer(text), len(text))
         windll.gdi32.EndPath(hdc)
         res = windll.gdi32.StrokeAndFillPath(hdc)
-        if res == 0:
-            return WindowsErrorMessage('gdi32.StrokeAndFillPath')
-        return None
+        return WindowsReturnError.checked_stdret('gdi32.StrokeAndFillPath', res)
     finally:
         if fill_brush is not None:
             _delete_gdi_object(fill_brush)
@@ -1221,7 +1227,7 @@ _CALLBACK_POINTERS = {}
 
 def shell__keyboard_hook(
         callback: Callable[[int, int, bool, bool], Optional[str]],
-) -> Union[HHOOK, WindowsErrorMessage]:
+) -> StdRet[HHOOK]:
     """
     Adds a global keyboard hook, called when any key is pressed in any
     context (except for a few OS specific ones, like the task manager or
@@ -1297,18 +1303,18 @@ def shell__keyboard_hook(
         WH_KEYBOARD_LL, callback_pointer, GetModuleHandleW(None), 0,
     ))
     if hook_id == 0:
-        return WindowsErrorMessage('SetWindowsHookExW / keyboard')
+        return WindowsReturnError.stdret('SetWindowsHookExW / keyboard')
     _CALLBACK_POINTERS[hook_id] = callback_pointer
 
     # Ensure that the hook is *always* uninstalled at exit to prevent OS
     # resource leaks.
     atexit.register(shell__unhook, hook_id)
-    return hook_id
+    return StdRet.pass_ok(hook_id)
 
 
 def shell__shell_hook(
         callback: Callable[[int, WPARAM, LPARAM], Optional[str]],
-) -> Union[HHOOK, WindowsErrorMessage]:
+) -> StdRet[HHOOK]:
     """
     Adds a global shell hook, called when any key is pressed in any
     context.  The callback is called directly in the thread that invoked
@@ -1329,7 +1335,7 @@ def shell__shell_hook(
     work-around is implemented.
     The crazy work around is to register a DLL to handle this, and have
     the DLL be loaded into the shell process.  The DLL also needs both a
-    x86 and x64 version.
+    x86 and x64 version.  And the DLL pipes the events back to this process.
 
     https://stackoverflow.com/questions/61413733/setwindowshookex-method-fails-with-code-1428-dll-injection
 
@@ -1339,7 +1345,7 @@ def shell__shell_hook(
 
     hmod = GetModuleHandleW(None)
     if hmod is None is None:
-        return WindowsErrorMessage('GetModuleHandleW')
+        return WindowsReturnError.stdret('kernel32.GetModuleHandleW')
 
     # See https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
     hook_id = None
@@ -1373,7 +1379,7 @@ def shell__shell_hook(
     callback_pointer = HOOK_CALLBACK_TYPE(shell_handler)
     hook_id = t_cast(HHOOK, SetWindowsHookExW(WH_SHELL, callback_pointer, hmod, 0))
     if hook_id == 0:
-        return WindowsErrorMessage('SetWindowsHookExW / shell')
+        return WindowsReturnError.stdret('user32.SetWindowsHookExW / shell')
     log.trace("started shell hook {hook}", hook=repr(hook_id))
     _CALLBACK_POINTERS[hook_id] = callback_pointer
 
@@ -1381,7 +1387,7 @@ def shell__shell_hook(
     # resource leaks.
     atexit.register(shell__unhook, hook_id)
 
-    return hook_id
+    return StdRet.pass_ok(hook_id)
 
 
 def shell__unhook(hook_id: HHOOK) -> None:
@@ -1429,7 +1435,7 @@ def shell__register_window_hook(
         hwnd: HWND,
         message_id_callbacks: Optional[Dict[int, MessageCallback]] = None,
         callback: Optional[MessageCallback] = None,
-) -> Union[int, WindowsErrorMessage]:
+) -> StdRet[int]:
     """
     Registers the "shell hook" window message with the window, and inserts the
     callback into the message_id_callbacks dict for processing, because
@@ -1440,15 +1446,15 @@ def shell__register_window_hook(
     :param callback:
     :return: the message ID for the shell hook message.
     """
-    if not RegisterShellHookWindow(hwnd):
-        return WindowsErrorMessage('RegisterShellHookWindow')
+    if RegisterShellHookWindow(hwnd) == 0:
+        return WindowsReturnError.stdret('user32.RegisterShellHookWindow')
     message_id = t_cast(int, RegisterWindowMessageW("SHELLHOOK"))
     if message_id == 0:
-        return WindowsErrorMessage('RegisterWindowMessageW')
+        return WindowsReturnError.stdret('user32.RegisterWindowMessageW')
     if message_id_callbacks is not None and callback:
         log.debug("window hook message {mid}", mid=message_id)
         message_id_callbacks[message_id] = callback
-    return message_id
+    return StdRet.pass_ok(message_id)
 
 
 def shell__create_global_message_handler(
@@ -1472,7 +1478,7 @@ def shell__create_global_message_handler(
     def handler(hwnd: HWND, message: int, wparam: WPARAM, lparam: LPARAM) -> int:
         # This handler must be highly optimized.  No fluff where it isn't needed.
         log.trace(
-            "handling hwnd message 0x{m:08x} 0x{w:08x} 0x{l:08x}",
+            "gmh: handling hwnd message 0x{m:08x} 0x{w:08x} 0x{l:08x}",
             m=message, w=wparam, l=lparam,
         )
         if message in message_id_callbacks:
@@ -1481,11 +1487,17 @@ def shell__create_global_message_handler(
                 return 1
             # False return code means run the standard DefWindowProc.
         elif message == WM_CLOSE:
+            log.trace('gmh: hwnd close message triggering DestroyWindow call')
             windll.user32.DestroyWindow(hwnd)
             return 0
         elif message == WM_DESTROY:
+            log.trace('gmh: hwnd destroy message triggering PostQuitMessage call')
             windll.user32.PostQuitMessage(0)
             return 0
+        else:
+            log.trace('gmh: did not handle message.')
+
+        # MyPy requirement.
         return t_cast(int, DefWindowProcW(hwnd, message, wparam, lparam))
 
     return handler
@@ -1494,8 +1506,14 @@ def shell__create_global_message_handler(
 def shell__pump_messages(on_exit_callback: Callable[[], None]) -> None:
     """Process the next window message."""
     message = MSG()
+    log.trace("shell__pump_messages start")
     while True:
+        log.trace("shell__pump_messages getting messages")
         msg = GetMessageW(byref(message), 0, 0, 0)
+        # log.trace(
+        #     "shell__pump_messages {msg:04x}: h {h:04x}; m {m:04x}; w {w:04x}; l: {l:04x}",
+        #     msg=msg, h=message.hWnd, m=message.message, w=message.wParam, l=message.lParam,
+        # )
         if msg <= 0:
             log.trace("quit message in queue ({value})", value=msg)
             # 0 means WM_QUIT, < 0 means error
@@ -1504,6 +1522,7 @@ def shell__pump_messages(on_exit_callback: Callable[[], None]) -> None:
             break
         TranslateMessage(byref(message))
         DispatchMessageW(byref(message))
+    log.trace("shell__pump_messages stopped")
 
 
 # Maps the key to the (getter, setter, type, is pv_param?)
@@ -1544,7 +1563,7 @@ _SYSTEM_PARAMETER_MAPPING: Dict[
 
 def shell__system_parameters_info(  # pylint:disable=too-many-branches
         values: Dict[str, Union[int, bool, ANIMATIONINFO]],
-) -> Dict[str, Union[int, bool, ANIMATIONINFO, WindowsErrorMessage]]:
+) -> Dict[str, Union[int, bool, ANIMATIONINFO, WindowsReturnError]]:
     """
     Sets the values (a dictionary of system parameters to their values), and
     for every value set, it is retrieved first and returned in a corresponding
@@ -1557,7 +1576,7 @@ def shell__system_parameters_info(  # pylint:disable=too-many-branches
     :param values:
     :return: the original values
     """
-    ret: Dict[str, Union[int, bool, ANIMATIONINFO, WindowsErrorMessage]] = {}
+    ret: Dict[str, Union[int, bool, ANIMATIONINFO, WindowsReturnError]] = {}
     for parameter, value in values.items():
         if parameter in _SYSTEM_PARAMETER_MAPPING:
             # get
@@ -1570,10 +1589,9 @@ def shell__system_parameters_info(  # pylint:disable=too-many-branches
                 _SYSTEM_PARAMETER_MAPPING[parameter][0],
                 ui_param, byref(val), 0,
             )
-            if res != 0:
-                # Nope!  This can lose critical information
-                # raise WinError()
-                ret[parameter] = WindowsErrorMessage('SystemParametersInfoW')
+            if res == 0:
+                # "If the function fails, the return value is zero"
+                ret[parameter] = WindowsReturnError('user32.SystemParametersInfoW')
                 continue
             if _SYSTEM_PARAMETER_MAPPING[parameter][2] == BOOL:
                 ret[parameter] = val == 0
@@ -1710,14 +1728,14 @@ def process__get_exit_code(thread_pid: DWORD) -> Optional[int]:
         windll.kernel32.CloseHandle(hproc)
 
 
-def process__get_window_state(thread_pid: DWORD) -> Union[WindowsWindowState, WindowsErrorMessage]:
+def process__get_window_state(thread_pid: DWORD) -> StdRet[WindowsWindowState]:
     """Get the thread PID's window state."""
     gui_info = GUITHREADINFO()
     gui_info.cbSize = c_sizeof(gui_info)
     res = windll.user32.GetGUIThreadInfo(thread_pid, byref(gui_info))
-    if not res:
-        return WindowsErrorMessage('user32.GetGUIThreadInfo')
-    return create_windows_window_state(gui_info)
+    if res == 0:
+        return WindowsReturnError.stdret('user32.GetGUIThreadInfo')
+    return StdRet.pass_ok(create_windows_window_state(gui_info))
 
 
 def process__get_current_pid() -> DWORD:
@@ -1725,17 +1743,17 @@ def process__get_current_pid() -> DWORD:
     return t_cast(DWORD, windll.kernel32.GetCurrentProcessId())
 
 
-def _attach_message_queue_to_thread(current_hwnd: HWND) -> Optional[WindowsErrorMessage]:
+def _attach_message_queue_to_thread(current_hwnd: HWND) -> StdRet[None]:
     current_thread_id = windll.kernel32.GetCurrentThreadId()
     thread_process_id = windll.user32.GetWindowThreadProcessId(current_hwnd, None)
     if thread_process_id != current_thread_id:
         res = windll.user32.AttachThreadInput(thread_process_id, current_thread_id, True)
         # ERROR_INVALID_PARAMETER means that the two threads are already attached.
         if res == 0:
-            err = WindowsErrorMessage('user32.AttachThreadInput')
+            err = WindowsReturnError('user32.AttachThreadInput')
             if err.errno != ERROR_INVALID_PARAMETER:
                 # print(f"WARN: could not attach thread input to thread
                 # f"{thread_process_id} ({GetLastError()})")
-                return err
+                return StdRet.pass_error(err)
     windll.user32.AttachThreadInput(thread_process_id, current_thread_id, False)
-    return None
+    return RET_OK_NONE

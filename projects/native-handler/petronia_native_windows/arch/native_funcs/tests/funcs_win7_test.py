@@ -2,7 +2,6 @@
 
 import unittest
 import platform
-import collections.abc
 from .. import funcs_win7
 from ..supported_functions import Functions
 from ..funcs_any_win import window__find_handles, window__get_process_id
@@ -45,14 +44,13 @@ class FuncsWin7Test(unittest.TestCase):
             return  # pragma no cover
         tpid = window__get_process_id(handles[0])  # pragma no cover
         filename = funcs_win7.process__get_executable_filename(tpid)  # pragma no cover
-        self.assertIsInstance(filename, str)  # pragma no cover
-        print(filename)  # pragma no cover
+        self.assertIsNone(filename.error)
+        print(filename.result)  # pragma no cover
 
     @unittest.skipIf(_is_not_supported(), 'Not running at least Windows 7')
     def test_process__get_all_pids(self) -> None:
         """Test process__get_all_pids"""
         pids = funcs_win7.process__get_all_pids()
-        self.assertIsInstance(pids, collections.abc.Sequence)
-        assert isinstance(pids, collections.abc.Sequence)  # nosec
+        self.assertIsNone(pids.error)
         # There will always be at least 1 process.
-        self.assertGreater(len(pids), 0)
+        self.assertGreater(len(pids.result), 0)

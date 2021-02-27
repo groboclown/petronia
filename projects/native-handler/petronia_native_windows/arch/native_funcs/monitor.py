@@ -153,6 +153,7 @@ def are_monitors_different(
             or first[i].info.real_pixel_height != second[i].info.real_pixel_height
             or first[i].info.dpi_x != second[i].info.dpi_x
             or first[i].info.dpi_y != second[i].info.dpi_y
+            or first[i].virtual_desktop_area != second[i].virtual_desktop_area
         ):
             return True
     return False

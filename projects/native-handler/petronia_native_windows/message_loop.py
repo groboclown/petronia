@@ -14,8 +14,10 @@ from typing import Dict, Tuple, Sequence, Optional, Callable
 from typing import cast as t_cast
 import threading
 import atexit
-from petronia_native.common import log
-from .arch.native_funcs.windows_common import WindowsErrorMessage
+import traceback
+from petronia_common.util import StdRet, RET_OK_NONE
+from petronia_common.util import i18n as _
+from petronia_native.common import log, user_messages
 from .arch import windows_constants
 from .arch.native_funcs import (
     WINDOWS_FUNCTIONS,
@@ -23,7 +25,7 @@ from .arch.native_funcs import (
     HWND, HHOOK, UINT, WPARAM, LPARAM,
     MessageCallback,
 )
-from .hook_messages import MessageEntry
+from .hook_messages import MessageEntry, get_message_id_from_custom_user_message
 
 
 _Hook = Callable[[], UINT]
@@ -32,8 +34,9 @@ THREAD_STATE__NOT_STARTED = 0
 THREAD_STATE__THREAD_INITIALIZING = 1
 THREAD_STATE__THREAD_STARTED = 2
 THREAD_STATE__THREAD_LOOPING = 3
-THREAD_STATE__THREAD_STOPPING = 4
-THREAD_STATE__THREAD_STOPPED = 5
+THREAD_STATE__DISPOSING = 4
+THREAD_STATE__THREAD_STOPPING = 5
+THREAD_STATE__THREAD_STOPPED = 6
 
 
 class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
@@ -70,6 +73,21 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
     def hwnd(self) -> Optional[HWND]:
         """Get the running message window's HWND."""
         return self._hwnd
+
+    def send_custom_message_to_self(
+            self, custom_message_id: int, wparam: WPARAM, lparam: LPARAM,
+    ) -> StdRet[None]:
+        """Send a message to the running message window's HWND."""
+        message = UINT(get_message_id_from_custom_user_message(custom_message_id))
+        if self._hwnd and WINDOWS_FUNCTIONS.window.send_message:
+            res = WINDOWS_FUNCTIONS.window.send_message(self._hwnd, message, wparam, lparam)
+            if res.has_error:
+                return res.forward()
+            return RET_OK_NONE
+        return StdRet.pass_errmsg(
+            user_messages.TRANSLATION_CATALOG,
+            _('not running or not SendMessage implemented'),
+        )
 
     def set_key_handler(
             self, callback: Callable[
@@ -123,32 +141,60 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
 
     def dispose(self, timeout: float = -1.0) -> None:
         """Close all the connections."""
-        log.info("message_pumper: Stopping the Windows message pumper thread.")
+        if self.__state == THREAD_STATE__DISPOSING:
+            # Already triggered dispose...
+            log.info('dispose: stopping re-entrance of dispose call.')
+            return
+        log.info(
+            "dispose: Stopping the Windows message pumper thread (state = {state}).",
+            state=self.__state,
+        )
+        if self.__state == THREAD_STATE__THREAD_LOOPING:
+            self.__state = THREAD_STATE__DISPOSING
         if self._hwnd and WINDOWS_FUNCTIONS.window.close:  # pragma no cover
-            WINDOWS_FUNCTIONS.window.close(self._hwnd)
+            log.trace("dispose: Sending close message to self {h:04x}.", h=self._hwnd)
+            close_res = WINDOWS_FUNCTIONS.window.close(self._hwnd)
+            if close_res.has_error:
+                log.error(
+                    "dispose: Failed to close self: {errors}",
+                    errors=[m.debug() for m in close_res.error_messages()],
+                )
         if (  # pragma no cover
-                self.__state == THREAD_STATE__THREAD_LOOPING
+                self.__state in (THREAD_STATE__THREAD_LOOPING, THREAD_STATE__DISPOSING)
                 and WINDOWS_FUNCTIONS.window.send_message and self._hwnd
         ):
-            log.info('dispose: Sending shutdown to window message consumer.')
-            WINDOWS_FUNCTIONS.window.send_message(
+            log.info('dispose: Sending shutdown to window message consumer {h:04x}.', h=self._hwnd)
+            send_res = WINDOWS_FUNCTIONS.window.send_message(
                 self._hwnd, UINT(windows_constants.WM_QUIT), t_cast(WPARAM, 0), t_cast(LPARAM, 0),
             )
+            if send_res.has_error:
+                log.error(
+                    "dispose: Failed to send quit message to self: {errors}",
+                    errors=[m.debug() for m in send_res.error_messages()],
+                )
+            else:
+                log.trace('dispose: Send message returned {code}', code=send_res.value)
+        else:
+            log.trace('dispose: skipped shutdown due to state {state}', state=self.__state)
+
+        # This seems to not be encountered, but is here to ensure the message loop
+        # stops correctly.
+        if self._thread and self._thread.is_alive():  # pragma no cover
+            log.trace('dispose: joining thread timing out after {t} seconds', t=timeout)
+            self._thread.join(None if timeout <= 0 else timeout)  # pragma no cover
+
+        self._unhook()
+        self.__state = THREAD_STATE__THREAD_STOPPED
+        self._hwnd = None
+        self._thread = None
+
+    def _unhook(self) -> None:
         if self._key_hook and WINDOWS_FUNCTIONS.shell.unhook:  # pragma no cover
             WINDOWS_FUNCTIONS.shell.unhook(self._key_hook)
             self._key_hook = None
         if self._shell_hook and WINDOWS_FUNCTIONS.shell.unhook:  # pragma no cover
             WINDOWS_FUNCTIONS.shell.unhook(self._shell_hook)
             self._shell_hook = None
-        self.__state = THREAD_STATE__THREAD_STOPPED
-        self._hwnd = None
-
-        # This seems to not be encountered, but is here to ensure the message loop
-        # stops correctly.
-        if self._thread and self._thread.is_alive():  # pragma no cover
-            self._thread.join(timeout)  # pragma no cover
-
-        self._thread = None
 
     def _message_pumper(self) -> None:
         # This runs in a background thread.
@@ -157,74 +203,96 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
         # event message queue either didn't run soon enough, or it
         # was never triggered.
 
-        log.trace('message_pump: In the message pumper')
-
         # This shouldn't happen, but just to be sure, because it being wrong could be
         # catastrophic to a system.
-        if self.__state != THREAD_STATE__THREAD_INITIALIZING:  # pragma no cover
+        if (  # pragma no cover
+            self._hwnd is not None
+            or self.__state != THREAD_STATE__THREAD_INITIALIZING
+        ):
             raise ValueError('already running (or finished running)')  # pragma no cover
         self.__state = THREAD_STATE__THREAD_STARTED
 
-        # These MUST be in the same thread!
-        # So this registration can only happen right before the loop starts.
+        try:
+            log.trace('message_pump: In the message pumper')
 
-        if WINDOWS_FUNCTIONS.shell.keyboard_hook:  # pragma no cover
-            hook = WINDOWS_FUNCTIONS.shell.keyboard_hook(self.message_key_handler)
-            if isinstance(hook, WindowsErrorMessage):
-                log.error("message_pump: Failed to register key handler: {hook}", hook=hook)
-            else:
-                self._key_hook = hook
-                log.trace("message_pump: Registered keyboard hook {hook}", hook=hook)
+            # Message window creation + hook registration MUST be in the same thread!
+            # So this registration can only happen right before the loop starts.
 
-        if (  # pragma no cover
-                WINDOWS_FUNCTIONS.shell.create_global_message_handler
-                and WINDOWS_FUNCTIONS.window.create_message_window
-                and WINDOWS_FUNCTIONS.shell.register_window_hook
-                and WINDOWS_FUNCTIONS.shell.pump_messages
-        ):
-            message_callback_handler = WINDOWS_FUNCTIONS.shell.create_global_message_handler(
-                self._window_message_map,
-            )
-            hwnd = WINDOWS_FUNCTIONS.window.create_message_window(
-                "PyWinShell Hooks", message_callback_handler,
-            )
-            if isinstance(hwnd, WindowsErrorMessage):  # pragma no cover
-                log.error(  # pragma no cover
-                    "message_pump: Error creating message window: {hwnd}; cannot continue.",
-                    hwnd=hwnd,
-                )
-                return
-            self._hwnd = hwnd
-            if self._hwnd:  # pragma no cover
-                log.trace("message_pump: Registering window hook {hwnd}", hwnd=self._hwnd)
-                msg = WINDOWS_FUNCTIONS.shell.register_window_hook(
-                    self._hwnd, self._window_message_map, self.message_shell_handler,
-                )
-                if isinstance(msg, WindowsErrorMessage):  # pragma no cover
-                    log.error(  # pragma no cover
-                        "message_pump: Failed to register window hook: {mesg}; cannot continue",
-                        mesg=msg,
+            if WINDOWS_FUNCTIONS.shell.keyboard_hook:  # pragma no cover
+                hook_res = WINDOWS_FUNCTIONS.shell.keyboard_hook(self.message_key_handler)
+                if hook_res.has_error:
+                    log.error(
+                        "message_pump: Failed to register key handler: {errors}",
+                        errors=[m.debug() for m in hook_res.error_messages()],
                     )
                 else:
-                    log.trace("message_pump: Register window hook message id: {mesg}", mesg=msg)
+                    self._key_hook = hook_res.result
+                    log.trace("message_pump: Registered keyboard hook {hook}", hook=hook_res.result)
 
-            log.debug("message_pump: Pumping messages...")
+            if (  # pragma no cover
+                    WINDOWS_FUNCTIONS.shell.create_global_message_handler
+                    and WINDOWS_FUNCTIONS.window.create_message_window
+                    and WINDOWS_FUNCTIONS.shell.register_window_hook
+                    and WINDOWS_FUNCTIONS.shell.pump_messages
+            ):
+                message_callback_handler = WINDOWS_FUNCTIONS.shell.create_global_message_handler(
+                    self._window_message_map,
+                )
+                hwnd_res = WINDOWS_FUNCTIONS.window.create_message_window(
+                    "PyWinShell Hooks", message_callback_handler,
+                )
+                if hwnd_res.has_error:  # pragma no cover
+                    log.error(  # pragma no cover
+                        "message_pump: Error creating message window: {errors}; cannot continue.",
+                        errors=[m.debug() for m in hwnd_res.error_messages()],
+                    )
+                    # Note: we do still continue here, because there's state stuff that needs to
+                    # happen.
+                self._hwnd = hwnd_res.value
 
-            # Thread sort-of-safety thing here...
-            # It's hard to duplicate, so we skip it.  It's an added comfort thing that
-            # could potentially still cause problems because of the lack of locks.
-            if self.__state != THREAD_STATE__THREAD_STARTED:  # pragma no cover
-                self.__state = THREAD_STATE__THREAD_STOPPING  # pragma no cover
-                self.dispose()  # pragma no cover
-                return  # pragma no cover
+                if self._hwnd:  # pragma no cover
+                    log.trace("message_pump: Registering window hook {hwnd:04x}", hwnd=self._hwnd)
+                    msg_res = WINDOWS_FUNCTIONS.shell.register_window_hook(
+                        self._hwnd, self._window_message_map, self.message_shell_handler,
+                    )
+                    if msg_res.has_error:  # pragma no cover
+                        log.error(  # pragma no cover
+                            "message_pump: Failed to register window hook: {errs}; cannot continue",
+                            errs=[m.debug() for m in msg_res.error_messages()],
+                        )
+                    else:
+                        log.trace(
+                            "message_pump: Register window hook message id: {mid:04x}",
+                            mid=msg_res.result,
+                        )
 
-            self.__state = THREAD_STATE__THREAD_LOOPING
-            WINDOWS_FUNCTIONS.shell.pump_messages(self._on_exit)
-        else:  # pragma no cover
+                log.debug("message_pump: Pumping messages on hwnd 0x{hwnd:04x}", hwnd=self._hwnd)
+
+                # Thread sort-of-safety thing here...
+                # It's hard to duplicate, so we skip it.  It's an added comfort thing that
+                # could potentially still cause problems because of the lack of locks.
+                if self.__state != THREAD_STATE__THREAD_STARTED:  # pragma no cover
+                    log.error(  # pragma no cover
+                        'weird state while starting the thread: {state}', state=self.__state,
+                    )
+                    self.__state = THREAD_STATE__THREAD_STOPPING  # pragma no cover
+                    self.dispose()  # pragma no cover
+                    return  # pragma no cover
+
+                self.__state = THREAD_STATE__THREAD_LOOPING
+                WINDOWS_FUNCTIONS.shell.pump_messages(self._on_exit)
+                log.debug("message_pump: Pump messages ended.")
+            else:  # pragma no cover
+                log.error(  # pragma no cover
+                    "message_pump: Basic platform functions not defined; cannot continue"
+                )
+        except BaseException as err:  # pylint:disable=broad-except  # pragma no cover
             log.error(  # pragma no cover
-                "message_pump: Basic platform functions not defined; cannot continue"
+                "message_pump: generated unexpected exception {err}", err=err,
             )
+            traceback.print_exception(type(err), err, err.__traceback__)  # pragma no cover
 
+        self._unhook()
         log.info('message_pump: Stopping the Windows message pumper')
         self.__state = THREAD_STATE__THREAD_STOPPING
 
@@ -278,4 +346,4 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
 
 
 def default_on_exit() -> None:
-    """The default on-exit handler. Does nothing"""
+    """The default on-exit handler. Does nothing."""

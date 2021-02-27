@@ -1,0 +1,58 @@
+---
+
+name: petronia_native_windows
+type: impl
+version: [1, 0, 0]
+about: Windows specific native interface extension.
+description: >
+  Windows specific native interface extension.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+
+runtime:
+  launcher: core
+  permissions:
+    platform:
+      - windows-only
+    windows-api:
+      - detect-monitors
+      - capture-keys
+      - get-processes
+      - get-style
+      - set-style
+      - get-windows
+      - move-window
+      - close-window
+
+implements:
+  - name: petronia.core.api.native.hotkey
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.l10n
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.monitor
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.screen
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+
+  # This needs to have the data structure cycle fixed.
+  #- name: petronia.core.api.native.ui
+  #  minimum: [1, 0, 0]
+  #  below: [2, 0, 0]
+
+  - name: petronia.core.api.native.window
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+
+depends:
+  - name: petronia.core.api.datastore
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.protocol.logging
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]

@@ -41,8 +41,8 @@ class StoreDataHandler(EventObjectTarget[datastore.StoreDataEvent]):
                 self.__context,
                 datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
                 valid_data.valid_error,
-                [INTERNAL_ERROR_CATEGORY],
                 'invalid-json-data',
+                [INTERNAL_ERROR_CATEGORY],
             )
             return False
         _updated, new_date = shared_state.store_data(source, data)

@@ -1,6 +1,6 @@
 ---
 
-name: petronia.core.impl.extension_loader
+name: petronia_extension_loader
 type: impl
 version: [1, 0, 0]
 about: Core implementation of the extension loader.

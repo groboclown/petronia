@@ -35,7 +35,6 @@ from .arch.native_funcs.windows_common import (
 )
 from .arch import windows_constants
 from .arch.native_funcs import WINDOWS_FUNCTIONS
-from .arch.native_funcs.windows_common import WindowsErrorMessage
 
 MessageEntry = Tuple[bool, int, MessageCallback]
 
@@ -158,11 +157,11 @@ def window_replacing_message(callback: Callable[[HWND, HWND], None]) -> MessageE
         # LPARAM stores a handle to the window replacing the top-level window.
         top = source_hwnd
         if WINDOWS_FUNCTIONS.window.get_owning_window:  # pragma no cover
-            handle = WINDOWS_FUNCTIONS.window.get_owning_window(source_hwnd)
-            if isinstance(handle, WindowsErrorMessage):  # pragma no cover
+            handle_res = WINDOWS_FUNCTIONS.window.get_owning_window(source_hwnd)
+            if handle_res.has_error:  # pragma no cover
                 top = source_hwnd  # pragma no cover
             else:  # pragma no cover
-                top = handle  # pragma no cover
+                top = handle_res.result  # pragma no cover
         callback(t_cast(HWND, lparam), top)
         return True
     return True, windows_constants.HSHELL_WINDOWREPLACING, handler
@@ -199,6 +198,33 @@ def system_power_state_changed(callback: Callable[[bool], None]) -> MessageEntry
         # The other events don't affect Petronia.
         return True
     return True, windows_constants.WM_POWERBROADCAST, handler
+
+
+def get_message_id_from_custom_user_message(user_message: int) -> int:
+    """Translate a custom message ID into the Windows message.
+
+    The message_id must be in the range 0 to 0x7bff."""
+    custom_message_id = user_message + windows_constants.WM_USER
+    if windows_constants.WM_USER <= custom_message_id < windows_constants.WM_APP:
+        return custom_message_id
+    raise ValueError(f'Message ID {user_message} out of bounds')
+
+
+def custom_user_message(
+        message_id: int, callback: Callable[[WPARAM, LPARAM], None],
+) -> MessageEntry:
+    """Creates a custom user message callback.
+
+    To call a custom message, use the SendMessage into the window HWND.
+
+    The message_id must be in the range 0 to 0x7bff.
+    """
+
+    def handler(_source_hwnd: HWND, _message: int, wparam: WPARAM, lparam: LPARAM) -> bool:
+        callback(wparam, lparam)
+        return True
+
+    return False, get_message_id_from_custom_user_message(message_id), handler
 
 
 # ---------------------------------------------------------------------------

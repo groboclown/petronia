@@ -36,7 +36,7 @@ class CmdExtensionTest(unittest.TestCase):
                 self.tempdir, 'data', 'boot-extensions', 'extension-loader.json',
         ), 'w') as f:
             json.dump({
-                'name': 'petronia.core.impl.extension_loader',
+                'name': 'petronia_extension_loader',
                 'version': [1, 0, 0],
                 'runtime': {
                     'launcher': 'extension-loader',

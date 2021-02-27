@@ -25,7 +25,7 @@ def low_print(message: str) -> None:
 def info(message_text: str, **kwargs: Any) -> None:
     """Info level logging"""
     if LOG_INFO:
-        low_print('[Native INFO] ' + (message_text.format(**kwargs)))
+        low_print('[Native  INFO] ' + (message_text.format(**kwargs)))
 
 
 def debug(message_text: str, **kwargs: Any) -> None:

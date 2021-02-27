@@ -6,7 +6,7 @@ Common Windows imports.
 # Many places use Windows naming convention for things, not Python.
 # pylint:disable=invalid-name
 
-from typing import Callable, Optional
+from typing import Callable
 import ctypes
 from ctypes import (
     c_int, c_ulong, c_int64, c_long, c_void_p, POINTER,
@@ -15,9 +15,11 @@ from ctypes import (
     GetLastError,
 )
 from ctypes import sizeof as c_sizeof
+from .win_error import WindowsReturnError
 # import platform
 
 # These are not modules...
+
 windll = ctypes.windll
 WinDLL = ctypes.WinDLL
 WINFUNCTYPE = ctypes.WINFUNCTYPE
@@ -94,36 +96,3 @@ class ANIMATIONINFO(Structure):
         ("time", DWORD),
         ("dwExtraInfo", c_void_p),
     )
-
-
-class WindowsErrorMessage:
-    """Common windows error message."""
-    __slots__ = (
-        '__called',
-        '__errno', '__errmsg',
-    )
-
-    def __init__(self, called_function: str, last_error: Optional[int] = None):
-        self.__called = called_function
-        if last_error is None:
-            self.__errno = GetLastError()
-        else:
-            self.__errno = last_error
-
-        # Should use "FormatMessage", but can't find it.
-
-    @property
-    def errno(self) -> int:
-        """The windows error code."""
-        return self.__errno
-
-    @property
-    def called_function(self) -> str:
-        """What the function called was named."""
-        return self.__called
-
-    def __repr__(self) -> str:
-        return 'WindowsErrorMessage(called={0}, errno={1})'.format(
-            repr(self.__called),
-            repr(self.__errno)
-        )

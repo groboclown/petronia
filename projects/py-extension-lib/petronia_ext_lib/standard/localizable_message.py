@@ -108,13 +108,14 @@ def create_message_argument_value(  # pylint:disable=too-many-return-statements
     if isinstance(arg_value, datetime.time):
         now = tznow()
         return DATETIME_LOCALE_ARGUMENT_TYPE, datetime.datetime(
-            now.year, now.month, now.day,
-            arg_value.hour, arg_value.minute, arg_value.second, arg_value.microsecond,
+            year=now.year, month=now.month, day=now.day,
+            hour=arg_value.hour, minute=arg_value.minute,
+            second=arg_value.second, microsecond=arg_value.microsecond,
             tzinfo=arg_value.tzinfo,
         )
     if isinstance(arg_value, datetime.date):
         return DATETIME_LOCALE_ARGUMENT_TYPE, datetime.datetime(
-            arg_value.year, arg_value.month, arg_value.day,
+            year=arg_value.year, month=arg_value.month, day=arg_value.day,
             tzinfo=datetime.timezone.utc,
         )
 
@@ -143,11 +144,12 @@ def _get_list_message_arguments(  # pylint:disable=too-many-return-statements
     if isinstance(val0, datetime.datetime):
         return DATETIME_LIST_LOCALE_ARGUMENT_TYPE, cast(List[datetime.datetime], values)
     if isinstance(val0, datetime.time):
-        now = datetime.datetime.now()
+        now = tznow()
         return DATETIME_LIST_LOCALE_ARGUMENT_TYPE, [
             datetime.datetime(
-                now.year, now.month, now.day,
-                arg_value.hour, arg_value.minute, arg_value.second, arg_value.microsecond,
+                year=now.year, month=now.month, day=now.day,
+                hour=arg_value.hour, minute=arg_value.minute, second=arg_value.second,
+                microsecond=arg_value.microsecond,
                 tzinfo=arg_value.tzinfo,
             )
             for arg_value in cast(List[datetime.time], values)
