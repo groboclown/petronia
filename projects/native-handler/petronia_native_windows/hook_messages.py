@@ -86,6 +86,26 @@ def device_changed_message(callback: Callable[[WPARAM], None]) -> MessageEntry:
     return False, windows_constants.WM_DEVICECHANGE, handler
 
 
+def session_changed_message(callback: Callable[[WPARAM, LPARAM], None]) -> MessageEntry:
+    """Listens to session changed messages (WTM).  The session id is in LPARAM, and WPARAM
+    defines the kind of session changes.  Currently, ony the user running Petronia's session
+    has messages reported.
+
+    The big messages to consider are:
+
+    WTS_SESSION_LOCK - session enters locked state.  Once here, all active keys pressed or
+        released will not be reported to the key handler.
+    WTS_SESSION_UNLOCK - session is unlocked.  At this point, Petronia should assume all keys
+        are released.
+
+    See https://docs.microsoft.com/en-us/windows/win32/termserv/wm-wtssession-change
+    """
+    def handler(_source_hwnd: HWND, _message: int, wparam: WPARAM, lparam: LPARAM) -> bool:
+        callback(wparam, lparam)
+        return True
+    return False, windows_constants.WM_WTSSESSION_CHANGE, handler
+
+
 def window_minimized_message(callback: Callable[[HWND, RECT], None]) -> MessageEntry:
     """Listens for windows being minimized.  The rectangle object is only viable within this
     callback; after that, the pointer is probably gone."""

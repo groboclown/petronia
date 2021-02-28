@@ -220,6 +220,8 @@ class ShellFunctions:  # pylint:disable=too-many-instance-attributes
         'shell_hook',
         'unhook',
         'register_window_hook',
+        'register_session_notification',
+        'unregister_session_notification',
         'create_global_message_handler',
         'inject_scancode',
         'lock_workstation',
@@ -247,6 +249,11 @@ class ShellFunctions:  # pylint:disable=too-many-instance-attributes
         [HWND, Optional[Dict[int, MessageCallback]], Optional[MessageCallback]],
         StdRet[int],
     ]]
+    register_session_notification: Optional[Callable[
+        [HWND, bool],
+        StdRet[None],
+    ]]
+    unregister_session_notification: Optional[Callable[[HWND], StdRet[None]]]
     create_global_message_handler: Optional[
         Callable[[Dict[int, MessageCallback]], NativeMessageCallback]
     ]
@@ -267,6 +274,8 @@ class ShellFunctions:  # pylint:disable=too-many-instance-attributes
         self.keyboard_hook = None
         self.shell_hook = None
         self.register_window_hook = None
+        self.register_session_notification = None
+        self.unregister_session_notification = None
         self.create_global_message_handler = None
         self.unhook = None
         self.inject_scancode = None

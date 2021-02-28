@@ -46,6 +46,19 @@ def get_modifier_vk_keys(include_special: bool) -> Set[int]:
     return ret
 
 
+def get_vk_keys_for_alias(alias: str, only_modifiers: bool) -> Sequence[int]:
+    """For the given alias, find the list of vk keys.  If only_modifiers
+    is True, then only the aliases that are in the MODIFIERS list are used."""
+    l_aliases = [alias.strip().lower()]
+    if l_aliases[0] in VK_ALIASES:
+        l_aliases.extend(VK_ALIASES[l_aliases[0]])
+    ret: List[int] = []
+    for l_alias in l_aliases:
+        if (not only_modifiers or l_alias in MODIFIERS) and l_alias in STR_VK_MAP:
+            ret.append(STR_VK_MAP[l_alias])
+    return ret
+
+
 # Built-in alias VK keys that represent several keys.
 # Specific for modifiers.
 VK_ALIASES: Dict[str, Sequence[str]] = {

@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-24T16:41:12.140357+00:00
+# Created on 2021-02-28T02:46:15.178278+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.screen version 1.0.0.
@@ -10,11 +10,11 @@ Data structures and marshalling for extension petronia.core.api.native.screen ve
 
 
 from typing import (
-    SupportsInt,
+    Union,
     Dict,
     Any,
+    SupportsInt,
     List,
-    Union,
     Optional,
     SupportsFloat,
     cast,
@@ -22,10 +22,10 @@ from typing import (
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
     not_none,
+    StdRet,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.screen'
@@ -631,16 +631,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[float],
-            int,
-            datetime.datetime,
-            float,
             List[str],
-            List[int],
-            List[bool],
-            str,
+            float,
             List[datetime.datetime],
+            List[bool],
+            List[int],
+            List[float],
+            str,
+            datetime.datetime,
             bool,
+            int,
         ],
     ) -> None:
         self.__name = name
@@ -653,16 +653,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[float],
-            int,
-            datetime.datetime,
-            float,
             List[str],
-            List[int],
-            List[bool],
-            str,
+            float,
             List[datetime.datetime],
+            List[bool],
+            List[int],
+            List[float],
+            str,
+            datetime.datetime,
             bool,
+            int,
     ]:
         """The selector value."""
         return self.__value
@@ -1571,62 +1571,6 @@ class VirtualScreenState:
 
     def __repr__(self) -> str:
         return "VirtualScreenState(" + repr(self.export_data()) + ")"
-
-
-class ConfigurationState:
-    """
-    The virtual screen mapping for different screen sizes. Any call to set the
-    current monitor mapping will change the current value in this configuration. If
-    the monitor state changes, then this is used to reference the new virtual-screen
-    setting.
-    """
-    __slots__ = ('mapped_screens_by_monitors',)
-
-    UNIQUE_TARGET_FQN = 'petronia.core.api.native.screen:configuration'
-    UNIQUE_TARGET_REL = 'petronia.core.api.native.screen:configuration'
-
-    def __init__(
-        self,
-        mapped_screens_by_monitors: List[ScreenMonitorMappingConfigGroup],
-    ) -> None:
-        self.mapped_screens_by_monitors = mapped_screens_by_monitors
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'mapped_screens_by_monitors': [v.export_data() for v in self.mapped_screens_by_monitors],
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['ConfigurationState']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('mapped_screens_by_monitors')
-        f_mapped_screens_by_monitors: List[ScreenMonitorMappingConfigGroup]
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='mapped_screens_by_monitors',
-                name='ConfigurationState',
-            )
-        else:
-            f_mapped_screens_by_monitors = []
-            for item in val:
-                parsed_mapped_screens_by_monitors = ScreenMonitorMappingConfigGroup.parse_data(item)
-                if parsed_mapped_screens_by_monitors.has_error:
-                    return parsed_mapped_screens_by_monitors.forward()
-                f_mapped_screens_by_monitors.append(parsed_mapped_screens_by_monitors.result)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(ConfigurationState(
-            mapped_screens_by_monitors=not_none(f_mapped_screens_by_monitors),
-        ))
-
-    def __repr__(self) -> str:
-        return "ConfigurationState(" + repr(self.export_data()) + ")"
 
 
 def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:

@@ -42,12 +42,12 @@ from ..windows_constants import (
     TH32CS_SNAPTHREAD,
     INVALID_HANDLE_VALUE,
     WM_NCACTIVATE, WM_NCCALCSIZE, WM_NCHITTEST,
+    NOTIFY_FOR_ALL_SESSIONS, NOTIFY_FOR_THIS_SESSION
 )
 
 
 def load_functions(environ: Dict[str, str], func_map: Functions) -> None:
     """Load all the functions, if this is running on Windows Vista."""
-    # TODO also detect Windows Server 2008
     if (
             environ['system'].lower() == 'windows'
             and environ['release'].lower() in ('6', 'vista', '2008server')
@@ -63,6 +63,8 @@ def load_all_functions(func_map: Functions) -> None:
     func_map.shell.find_notification_icons = create_shell__find_notification_icons(func_map)
     func_map.process.load_all_process_details = process__load_all_process_details
     func_map.monitor.set_native_dpi_awareness = monitor__set_native_dpi_awareness
+    func_map.shell.register_session_notification = shell__register_session_notification
+    func_map.shell.unregister_session_notification = shell__unregister_session_notification
     func_map.shell.get_window_metrics = shell__get_window_metrics
     func_map.shell.set_window_metrics = shell__set_window_metrics
     func_map.shell.set_border_size = shell__set_border_size
@@ -91,8 +93,7 @@ def create_shell__find_notification_icons(
         # Only need one handle
         taskbars = shell__get_task_bar_window_handles()
         if len(taskbars) <= 0:
-            # TODO proper logging
-            print("No taskbars found")
+            log.info("No taskbars found")
             return ()
         parent_area = fw(fw(taskbars[0], "TrayNotifyWnd"), "SysPager")
         if not parent_area:
@@ -184,6 +185,23 @@ def monitor__set_native_dpi_awareness() -> StdRet[None]:
     # value.
     res = windll.user32.SetProcessDPIAware()
     return WindowsReturnError.checked_stdret('user32.SetProcessDPIAware', res)
+
+
+def shell__register_session_notification(
+        receiving_window: HWND, for_all_sessions: bool,
+) -> StdRet[None]:
+    """Register the receiving window with notifications about the session."""
+    res = windll.wtsapi32.WTSRegisterSessionNotification(
+        receiving_window,
+        NOTIFY_FOR_ALL_SESSIONS if for_all_sessions else NOTIFY_FOR_THIS_SESSION,
+    )
+    return WindowsReturnError.checked_stdret('wtsapi32.WTSRegisterSessionNotification', res)
+
+
+def shell__unregister_session_notification(receiving_window: HWND) -> StdRet[None]:
+    """Unregister from the shell__register_session_notification call.  Must be done."""
+    res = windll.wtsapi32.WTSUnRegisterSessionNotification(receiving_window)
+    return WindowsReturnError.checked_stdret('wtsapi32.WTSUnRegisterSessionNotification', res)
 
 
 class LOGFONT(Structure):  # pylint:disable=too-many-instance-attributes
@@ -445,7 +463,7 @@ def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disabl
         #   taskbar_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW)
 
         # TODO show the task bar.
-        # print("<<Don't know how to show the task bar>>")
+        # log.info("<<Don't know how to show the task bar>>")
 
     # Find the process ID of the taskbar window.
     taskbar_pid = DWORD()
@@ -460,7 +478,7 @@ def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disabl
         if length > 0:
             buff = create_unicode_buffer(length + 1)
             windll.user32.GetWindowTextW(hwnd, buff, length + 1)
-            # print("DEBUG - Inspecting {0} = {1}".format(hwnd, buff.value))
+            # log.debug("Inspecting {hwnd} = {buff}", hwnd=hwnd, buff=buff.value)
             if buff.value == "Start":
                 # Found the window
                 # print("DEBUG sending Click message")
@@ -470,7 +488,7 @@ def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disabl
                     triggered_start[0] = True
                     return False
                 try:
-                    print("<<ERROR pressing start button>>")
+                    log.error("<<ERROR pressing start button>>")
                     raise WinError()
                 except OSError:
                     traceback.print_exc()
@@ -488,10 +506,10 @@ def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disabl
                                 SW_SHOW, SW_SHOWNA, SW_RESTORE,
                         ):
                             # Hide the window
-                            # print("DEBUG hiding the start menu {0}".format(show_cmd))
+                            # log.debug("hiding the start menu {cmd}", cmd=show_cmd)
                             windll.user32.ShowWindow(hwnd, SW_HIDE)
                             return False
-                # print("DEBUG showing the start menu ({0})".format(placement.showCmd))
+                # log.debug("showing the start menu ({cmd})", cmd=placement.showCmd)
                 windll.user32.ShowWindow(hwnd, SW_SHOW)
 
                 # If the task bar is hidden, then part of the start window is not shown fully.
@@ -564,7 +582,7 @@ def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disabl
 
                 return False
         # else:
-        #     print("DEBUG - Inspecting {0} => no title, ignoring".format(hwnd))
+        #     log.debug("Inspecting {hwnd} => no title, ignoring", hwnd=hwnd)
         return True
 
     # Find the threads for the process ID
@@ -577,9 +595,9 @@ def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disabl
         thread_entry = THREADENTRY32()
         thread_entry.dwSize = c_sizeof(THREADENTRY32)  # pylint:disable=attribute-defined-outside-init
 
-        # print("DEBUG Getting threads for pid {0}".format(taskbar_pid))
+        # log.debug("Getting threads for pid {pid}", pid=taskbar_pid)
         res = windll.kernel32.Thread32First(hsnapshot, byref(thread_entry))
-        # print("DEBUG :: first: {0}".format(res))
+        # log.debug(" :: first: {res}", res=res)
         if res == 0:
             return WindowsReturnError.stdret('kernel32.Thread32First')
         while res != 0:
@@ -587,17 +605,17 @@ def shell__open_start_menu(show_taskbar: bool) -> StdRet[None]:  # pylint:disabl
             if thread_entry.dwSize > THREADENTRY32.th32OwnerProcessID.offset:  # pylint:disable=attribute-defined-outside-init
                 thread_ids.append(thread_entry.th32ThreadID)  # pylint:disable=attribute-defined-outside-init
             # else:
-            #     print("DEBUG - returned too small size {0}".format(thread_entry.dwSize))
+            #     log.debug("returned too small size {size}", size=thread_entry.dwSize)
             thread_entry.dwSize = c_sizeof(THREADENTRY32)  # pylint:disable=attribute-defined-outside-init
             res = windll.kernel32.Thread32Next(hsnapshot, byref(thread_entry))
-            # print("DEBUG :: next: {0}".format(res))
+            # log.debug(" :: next: {res}", res=res)
     finally:
         windll.kernel32.CloseHandle(hsnapshot)
 
     callback_type = CFUNCTYPE(BOOL, HWND, LPARAM)
     callback_ptr = callback_type(thread_window_callback)
     for thread_id in thread_ids:
-        # print(f"DEBUG Iterating over windows for thread {thread_id} in pid {taskbar_pid}")
+        # log.debug(f"Iterating over windows for thread {thread_id} in pid {taskbar_pid}")
         windll.user32.EnumThreadWindows(thread_id, callback_ptr, 0)
         if triggered_start[0]:
             return RET_OK_NONE

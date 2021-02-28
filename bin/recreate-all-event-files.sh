@@ -54,7 +54,10 @@ echo native-handler:
   "${pd}/native-handler/native-screen-extension.yaml" \
   "${pd}/native-handler/native-ui-extension.yaml" \
   "${pd}/native-handler/native-window-extension.yaml"
-
+"${h}/generate-events.sh" \
+  --output "${pd}/native-handler/petronia_native_windows/datastore" \
+  --state \
+  "${pd}/native-handler/windows-native-impl-extension.yaml"
 
 # Extension lib.
 echo py-extension-lib:

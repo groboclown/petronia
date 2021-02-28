@@ -42,20 +42,6 @@ state-data:
           type: reference
           ref: virtual-screen-block
 
-  configuration:
-    description: >
-      The virtual screen mapping for different screen sizes.  Any call to set the current monitor
-      mapping will change the current value in this configuration.  If the monitor state changes,
-      then this is used to reference the new virtual-screen setting.
-    fields:
-      mapped_screens_by_monitors:
-        type: array
-        min-length: 1
-        max-length: 1000
-        value-type:
-          type: reference
-          ref: screen-monitor-mapping-config-group
-
 
 events:
 

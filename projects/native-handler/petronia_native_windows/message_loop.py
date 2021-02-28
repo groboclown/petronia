@@ -183,10 +183,70 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
             log.trace('dispose: joining thread timing out after {t} seconds', t=timeout)
             self._thread.join(None if timeout <= 0 else timeout)  # pragma no cover
 
+        # Must be called before unsetting _hwnd
         self._unhook()
         self.__state = THREAD_STATE__THREAD_STOPPED
         self._hwnd = None
         self._thread = None
+
+    def __hook(self) -> StdRet[None]:
+        """Creates the message window, and hooks all the listeners to the window.
+        This must be done inside the message loop, which is why it's a private method."""
+
+        if (
+            WINDOWS_FUNCTIONS.shell.create_global_message_handler is None
+            or WINDOWS_FUNCTIONS.window.create_message_window is None
+            or WINDOWS_FUNCTIONS.shell.register_window_hook is None
+        ):
+            return RET_OK_NONE
+
+        if WINDOWS_FUNCTIONS.shell.keyboard_hook:  # pragma no cover
+            hook_res = WINDOWS_FUNCTIONS.shell.keyboard_hook(self.message_key_handler)
+            if hook_res.has_error:
+                log.error(
+                    "registration: Failed to register key handler: {errors}",
+                    errors=[m.debug() for m in hook_res.error_messages()],
+                )
+            else:
+                self._key_hook = hook_res.result
+                log.trace("registration: Registered keyboard hook {hook}", hook=hook_res.result)
+
+        message_callback_handler = WINDOWS_FUNCTIONS.shell.create_global_message_handler(
+            self._window_message_map,
+        )
+        hwnd_res = WINDOWS_FUNCTIONS.window.create_message_window(
+            "PyWinShell Hooks", message_callback_handler,
+        )
+        if hwnd_res.has_error:  # pragma no cover
+            log.error(  # pragma no cover
+                "registration: Error creating message window: {errors}; cannot continue.",
+                errors=[m.debug() for m in hwnd_res.error_messages()],
+            )
+            # Note: we do still continue here, because there's state stuff that needs to
+            # happen.
+        self._hwnd = hwnd_res.value
+
+        if self._hwnd:  # pragma no cover
+            log.trace("registration: Registering window hook {hwnd:04x}", hwnd=self._hwnd)
+            msg_res = WINDOWS_FUNCTIONS.shell.register_window_hook(
+                self._hwnd, self._window_message_map, self.message_shell_handler,
+            )
+            if msg_res.has_error:
+                log.error(
+                    "registration: Failed to register window hook: {errs}; cannot continue",
+                    errs=[m.debug() for m in msg_res.error_messages()],
+                )
+
+            if WINDOWS_FUNCTIONS.shell.register_session_notification:
+                sess_res = WINDOWS_FUNCTIONS.shell.register_session_notification(
+                    self._hwnd, False,
+                )
+                if sess_res.has_error:
+                    log.error(
+                        "registration: Failed to register for session notifications: {errs}",
+                        errs=[m.debug() for m in sess_res.error_messages()],
+                    )
+        return RET_OK_NONE
 
     def _unhook(self) -> None:
         if self._key_hook and WINDOWS_FUNCTIONS.shell.unhook:  # pragma no cover
@@ -195,6 +255,10 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
         if self._shell_hook and WINDOWS_FUNCTIONS.shell.unhook:  # pragma no cover
             WINDOWS_FUNCTIONS.shell.unhook(self._shell_hook)
             self._shell_hook = None
+        if self._hwnd and WINDOWS_FUNCTIONS.shell.unregister_session_notification:  # pragma no cover
+            user_messages.report_send_receive_problems(
+                WINDOWS_FUNCTIONS.shell.unregister_session_notification(self._hwnd)
+            )
 
     def _message_pumper(self) -> None:
         # This runs in a background thread.
@@ -218,54 +282,16 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
             # Message window creation + hook registration MUST be in the same thread!
             # So this registration can only happen right before the loop starts.
 
-            if WINDOWS_FUNCTIONS.shell.keyboard_hook:  # pragma no cover
-                hook_res = WINDOWS_FUNCTIONS.shell.keyboard_hook(self.message_key_handler)
-                if hook_res.has_error:
-                    log.error(
-                        "message_pump: Failed to register key handler: {errors}",
-                        errors=[m.debug() for m in hook_res.error_messages()],
-                    )
-                else:
-                    self._key_hook = hook_res.result
-                    log.trace("message_pump: Registered keyboard hook {hook}", hook=hook_res.result)
+            res = self.__hook()
+            if res.has_error:
+                # Can't continue
+                self.__state = THREAD_STATE__THREAD_STOPPING
+                return
 
-            if (  # pragma no cover
-                    WINDOWS_FUNCTIONS.shell.create_global_message_handler
-                    and WINDOWS_FUNCTIONS.window.create_message_window
-                    and WINDOWS_FUNCTIONS.shell.register_window_hook
-                    and WINDOWS_FUNCTIONS.shell.pump_messages
+            if (
+                self._hwnd
+                and WINDOWS_FUNCTIONS.shell.pump_messages
             ):
-                message_callback_handler = WINDOWS_FUNCTIONS.shell.create_global_message_handler(
-                    self._window_message_map,
-                )
-                hwnd_res = WINDOWS_FUNCTIONS.window.create_message_window(
-                    "PyWinShell Hooks", message_callback_handler,
-                )
-                if hwnd_res.has_error:  # pragma no cover
-                    log.error(  # pragma no cover
-                        "message_pump: Error creating message window: {errors}; cannot continue.",
-                        errors=[m.debug() for m in hwnd_res.error_messages()],
-                    )
-                    # Note: we do still continue here, because there's state stuff that needs to
-                    # happen.
-                self._hwnd = hwnd_res.value
-
-                if self._hwnd:  # pragma no cover
-                    log.trace("message_pump: Registering window hook {hwnd:04x}", hwnd=self._hwnd)
-                    msg_res = WINDOWS_FUNCTIONS.shell.register_window_hook(
-                        self._hwnd, self._window_message_map, self.message_shell_handler,
-                    )
-                    if msg_res.has_error:  # pragma no cover
-                        log.error(  # pragma no cover
-                            "message_pump: Failed to register window hook: {errs}; cannot continue",
-                            errs=[m.debug() for m in msg_res.error_messages()],
-                        )
-                    else:
-                        log.trace(
-                            "message_pump: Register window hook message id: {mid:04x}",
-                            mid=msg_res.result,
-                        )
-
                 log.debug("message_pump: Pumping messages on hwnd 0x{hwnd:04x}", hwnd=self._hwnd)
 
                 # Thread sort-of-safety thing here...
@@ -327,11 +353,10 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
         wparam_msg = t_cast(int, wparam)
         if wparam_msg in self._shell_message_map:
             log.trace(
-                'shell: {source}: {message} ({wparam}: {wparam_msg})',
+                'shell: {source}: {message} ({wparam})',
                 source=source_hwnd,
                 message=message,
                 wparam=wparam,
-                wparam_msg=self._shell_message_map.get(wparam_msg),
             )
             return self._shell_message_map[wparam_msg](source_hwnd, message, wparam, lparam)
         log.trace(

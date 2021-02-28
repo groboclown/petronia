@@ -5,11 +5,8 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, join_errors, RET_OK_NONE
 from petronia_ext_lib.runner.lookup import LookupEventRegistryContext
 from petronia_ext_lib import logging
-from petronia_native.common.events.impl import screen
+from .datastore.petronia_native_windows import ConfigurationState, EXTENSION_NAME
 from . import setup
-
-
-EXTENSION_NAME = 'petronia_native_windows'
 
 
 def extension_entrypoint(
@@ -20,21 +17,25 @@ def extension_entrypoint(
 ) -> StdRet[None]:
     """Standardized entrypoint."""
     context = LookupEventRegistryContext(reader, writer, None, None)
-    res1 = screen.ConfigurationState.parse_data(config)
-    res2 = setup.setup_context(context)
+    config_res = ConfigurationState.parse_data(config)
+    loop_res = setup.setup_context(context, config_res.value)
 
     # Bad configuration isn't a failure state.
 
-    if res2.has_error:
+    if loop_res.has_error:
         # ... but report the bad configuration if setup fails.
         return StdRet.pass_error(join_errors(
-            *res1.error_messages(), *res2.error_messages(),
+            *config_res.error_messages(), *loop_res.error_messages(),
         ))
-    if res1.has_error:
+    if config_res.has_error:
         logging.send_user_error(
-            context, EXTENSION_NAME + ':configuration', res1.valid_error,
+            context, EXTENSION_NAME + ':configuration', config_res.valid_error,
             'invalid-configuration',
         )
 
-    context.process_reader()
+    loop_res.result.start()
+    try:
+        context.process_reader()
+    finally:
+        loop_res.result.dispose(-1)
     return RET_OK_NONE

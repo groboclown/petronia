@@ -6,7 +6,8 @@ import time
 # This is supposed to be runnable as a CLI, so this needs absolute imports.
 from petronia_native_windows import hook_messages, message_loop, keymap
 from petronia_native_windows.arch.native_funcs.monitor import are_monitors_different, WindowsMonitor
-from petronia_native_windows.arch.native_funcs import WINDOWS_FUNCTIONS, HWND, WPARAM
+from petronia_native_windows.arch.native_funcs import WINDOWS_FUNCTIONS, HWND, WPARAM, LPARAM
+from petronia_native_windows.arch import windows_constants
 from petronia_native.common import log
 
 LAST_MONITOR_STATE: List[WindowsMonitor] = []
@@ -57,9 +58,34 @@ def device_changed(what: WPARAM) -> None:
     check_monitor_state()
 
 
+def session_changed(how: WPARAM, what: LPARAM) -> None:
+    """Session, like the lock state, changed."""
+    if how == windows_constants.WTS_SESSION_LOCK:
+        log.low_print(f'Session {what} locked')
+    elif how == windows_constants.WTS_SESSION_UNLOCK:
+        log.low_print(f'Session {what} unlocked')
+    else:
+        log.low_print(f'Session {what} changed: {how}')
+
+
 def window_created(hwnd: HWND) -> None:
     """window created callback."""
     log.low_print(f'Window Created: {hwnd:08x}')
+    if WINDOWS_FUNCTIONS.window.get_process_id:
+        pid = WINDOWS_FUNCTIONS.window.get_process_id(hwnd)
+        if pid != 0 and WINDOWS_FUNCTIONS.process.get_executable_filename:
+            filename_res = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)
+            if filename_res.has_error or filename_res.value is None:
+                log.low_print(
+                    f' :: {hwnd:08x} - pid {pid} (could not get filename : '
+                    f'{[m.debug() for m in filename_res.error_messages()]})'
+                )
+            else:
+                log.low_print(
+                    f' :: {hwnd:08x} - pid {pid} filename {filename_res.value}'
+                )
+        else:
+            log.low_print(f' :: {hwnd:08x} - pid {pid}')
 
 
 def window_destroyed(hwnd: HWND) -> None:
@@ -138,6 +164,7 @@ if __name__ == '__main__':
     handler.add_message_handler(hook_messages.display_changed_message(display_changed))
     handler.add_message_handler(hook_messages.system_settings_changed_message(system_changed))
     handler.add_message_handler(hook_messages.device_changed_message(device_changed))
+    handler.add_message_handler(hook_messages.session_changed_message(session_changed))
     handler.add_message_handler(hook_messages.window_created_message(window_created))
     handler.add_message_handler(hook_messages.window_destroyed_message(window_destroyed))
     handler.add_message_handler(hook_messages.shell_window_focused_message(window_focused))

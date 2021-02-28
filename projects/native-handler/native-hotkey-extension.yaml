@@ -270,8 +270,10 @@ references:
 
   master-hotkey-sequence:
     description: >
-      Master key sequence.  Prefix with `seq:` for a key sequence,
-      or `meta:` for a collection of modifier keys.
+      Master key sequence.  The value is dependent upon the OS and implementation.
+      All hotkey sequences must follow the rule defined by this master sequence.
+      Usually, this is one or two keys that need to be held to trigger a
+      hotkey sequence.
     type: string
     min-length: 1
     max-length: 300

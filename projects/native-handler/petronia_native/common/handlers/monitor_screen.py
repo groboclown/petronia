@@ -2,7 +2,7 @@
 
 from typing import Sequence, List, Set, Optional, cast
 from petronia_common.util import (
-    StdRet, PetroniaReturnError, RET_OK_NONE, EMPTY_TUPLE, join_results, not_none,
+    StdRet, PetroniaReturnError, RET_OK_NONE, EMPTY_TUPLE, not_none, join_none_results,
 )
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget, EventObjectParser
 from petronia_ext_lib import datastore
@@ -92,58 +92,6 @@ def send_screen_configuration_bad(
     )
 
 
-def store_screen_configuration(
-        context: EventRegistryContext,
-        original_source_id: Optional[str],
-        original_request_id: int,
-        config: virtual_screen.VirtualScreenSettings,
-        virtual_screen_changed: bool,
-) -> StdRet[None]:
-    """Set the current screen configuration, active virtual screen (if different),
-    and send a success message to the requester, if there was one."""
-    errors: List[StdRet[None]] = []
-
-    if virtual_screen_changed:
-        errors.append(store_virtual_screen_state(context, config.active_screen))
-
-    errors.append(datastore.send_store_data(
-        context,
-        screen.ConfigurationState.UNIQUE_TARGET_FQN,
-        screen.ConfigurationState([
-            screen.ScreenMonitorMappingConfigGroup(
-                scg.name,
-                [
-                    screen.SourceMonitor(
-                        smr[defs.MONITOR_POSITION_MONITOR_IDENTIFIER],
-                        smr[defs.MONITOR_POSITION_X],
-                        smr[defs.MONITOR_POSITION_Y],
-                    )
-                    for smr in scg.monitor_defs
-                ],
-                [
-                    screen.ScreenMonitorMapping(
-                        blk.monitor_id,
-                        blk.monitor_l, blk.monitor_t, blk.monitor_w, blk.monitor_h,
-                        blk.monitor_rotation,
-                        blk.screen_l, blk.screen_t, blk.screen_w, blk.screen_h,
-                    )
-                    for blk in scg.screen.blocks
-                ],
-            )
-            for scg in config.screen_configurations
-        ]),
-    ))
-
-    if original_source_id:
-        errors.append(context.send_event(
-            screen.SetScreenConfigurationRequestEvent.UNIQUE_TARGET_FQN,
-            original_source_id,
-            screen.SetScreenConfigurationSuccessEvent(original_request_id),
-        ))
-
-    return join_results(lambda x: None, *errors)
-
-
 class AbstractScreenHandler:
     """Callback class for handling events directed towards the native implementation.
 
@@ -180,7 +128,7 @@ class AbstractScreenHandler:
             errors.append(
                 self.callback_virtual_screen_update(self.__context, self._settings.active_screen)
             )
-        return join_results(lambda x: None, *errors)
+        return join_none_results(*errors)
 
     def on_configuration_update(
             self,
@@ -200,13 +148,13 @@ class AbstractScreenHandler:
 
         if errors:
             # The configuration had problems.
-            error_msg = join_results(lambda x: None, *errors).valid_error
             if original_source_id:
                 errors.append(send_screen_configuration_bad(
-                    self.__context, original_source_id, original_request_id, error_msg,
+                    self.__context, original_source_id, original_request_id,
+                    # Ugly, but meh.
+                    join_none_results(*errors).valid_error,
                 ))
-            # Ugly, but meh.
-            return join_results(lambda x: None, *errors)
+            return join_none_results(*errors)
 
         # Change our current settings to a copy of the old ones, so that
         # any updates from the implementation can be easily reverted.
@@ -222,10 +170,31 @@ class AbstractScreenHandler:
 
         # Configuration change okay.  Perform the notification chain.
         # Note that there shouldn't be any errors at this point.
-        return store_screen_configuration(
-            self.__context, original_source_id, original_request_id,
-            self._settings, screen_changed,
-        )
+
+        if screen_changed:
+            errors.append(store_virtual_screen_state(self.__context, self._settings.active_screen))
+
+        errors.append(self.on_screen_configuration_settings_changed(
+            self.__context, self._settings.screen_configurations,
+        ))
+
+        if original_source_id:
+            errors.append(self.__context.send_event(
+                screen.SetScreenConfigurationRequestEvent.UNIQUE_TARGET_FQN,
+                original_source_id,
+                screen.SetScreenConfigurationSuccessEvent(original_request_id),
+            ))
+
+        return join_none_results(*errors)
+
+    def on_screen_configuration_settings_changed(
+            self, context: EventRegistryContext,
+            screen_configs: Sequence[virtual_screen.VirtualScreenConfig],
+    ) -> StdRet[None]:
+        """Called when the configuration for the virtual screens has changed successfully.
+        this should perform necessary steps to update the datastore configuration for the
+        extension, if necessary."""
+        raise NotImplementedError
 
     def callback_virtual_screen_update(
             self, context: EventRegistryContext, active_screen: virtual_screen.VirtualScreen,

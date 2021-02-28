@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-24T16:41:17.189418+00:00
+# Created on 2021-02-28T02:46:21.940493+00:00
 
 """
 Data structures and marshalling for extension petronia.core.protocol.logging version 1.0.0.
@@ -11,20 +11,20 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 
 from typing import (
     List,
-    Any,
     SupportsInt,
-    Union,
+    Any,
     Dict,
+    cast,
+    Union,
     Optional,
     SupportsFloat,
-    cast,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
     collect_errors_from,
+    StdRet,
     not_none,
 )
 
@@ -42,16 +42,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
+            List[int],
+            List[str],
+            List[bool],
+            float,
+            int,
+            List[float],
+            List[datetime.datetime],
+            datetime.datetime,
             str,
             bool,
-            List[float],
-            List[str],
-            List[int],
-            datetime.datetime,
-            List[datetime.datetime],
-            float,
-            List[bool],
-            int,
         ],
     ) -> None:
         self.__name = name
@@ -64,16 +64,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
+            List[int],
+            List[str],
+            List[bool],
+            float,
+            int,
+            List[float],
+            List[datetime.datetime],
+            datetime.datetime,
             str,
             bool,
-            List[float],
-            List[str],
-            List[int],
-            datetime.datetime,
-            List[datetime.datetime],
-            float,
-            List[bool],
-            int,
     ]:
         """The selector value."""
         return self.__value
@@ -595,7 +595,7 @@ class LogEvent:
                 name='LogEvent',
             )
         else:
-            if val not in ('info','verbose','warning','debug', ):
+            if val not in ('verbose','info','debug','warning', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

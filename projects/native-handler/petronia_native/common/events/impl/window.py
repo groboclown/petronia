@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-24T16:41:12.256898+00:00
+# Created on 2021-02-28T02:46:15.277169+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.window version 1.0.0.
@@ -10,19 +10,19 @@ Data structures and marshalling for extension petronia.core.api.native.window ve
 
 
 from typing import (
-    SupportsInt,
     Dict,
     Any,
+    SupportsInt,
     List,
     Optional,
     cast,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
     not_none,
+    StdRet,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.window'
