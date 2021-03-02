@@ -21,31 +21,6 @@ default:
 state-data:
 
   # =========================================================================
-  # Input Service.
-
-  focus-settings:
-    description: >
-      How the window focus events are translated into Petronia events.
-    fields:
-      on_new_window_click:
-        description: >
-          True if the mouse click on a different window generates the focus
-          event.  False means that mouse clicks do not explicitly
-          generate focus events (but note that the underlying Window system may
-          cause them to be generated regardless of this setting).
-        type: bool
-      on_new_window_enter:
-        description: >
-          True if the mouse motion entering into a different window generates
-          the focus event.
-        type: bool
-      on_window_event:
-        description: >
-          True if the underlying Windowing system focus events generates a
-          Petronia focus event.
-        type: bool
-
-  # =========================================================================
   # Window Service.
 
   active-windows:
@@ -70,7 +45,7 @@ state-data:
       The windows that have focus.  Focus in Petronia allows multiple input groups
       to have their own windows, though most underlying UI systems only have support
       for one user (all keyboards and mice are considered one).  Each index represents
-      that user group.
+      that input group.
     fields:
       focused:
         type: array
@@ -93,14 +68,22 @@ state-data:
         type: reference
         ref: window-state
 
+  global-settings:
+    description: >
+      An implementation specific listing of various settings that can be made.  This includes
+      things like how focus is followed (mouse click, keyboard, or mouse movement), general
+      window styles, and the like.
+    fields:
+      settings:
+        type: array
+        min-length: 0
+        max-length: 1000
+        value-type:
+          type: reference
+          ref: native-meta-value
+
 
 events:
-
-
-  # =========================================================================
-  # Input Service.
-
-  # TODO set focus settings
 
   # =========================================================================
   # Window State and Actions
@@ -112,6 +95,7 @@ events:
       state object has also been created, and updates to the window state are broadcast
       to that state object.
     priority: user
+    unique-target: window
     send-access: implementations
     receive-access: public
     fields:
@@ -124,6 +108,7 @@ events:
       A UI window was destroyed.  In addition to this event, the corresponding state
       object for the window is also removed.
     priority: user
+    unique-target: window
     send-access: implementations
     receive-access: public
     fields:
@@ -133,11 +118,41 @@ events:
         min-length: 0
         max-length: 300
 
+  window-focused:
+    description: >
+      Sent when a different window receives keyboard focus.  The source ID is the
+      newly focused window ID.
+    priority: user
+    unique-target: window
+    send-access: implementations
+    receive-access: public
+    fields:
+      keyboard_focus:
+        description: Which keyboard has focus on this window.  -1 means none.
+        type: int
+        min-value: -1
+        max-value: 10000
+
+  window-flashed:
+    description: >
+      Sent when a different window sends an alert that it requires user attention.
+      The "flashing" state is not part of the window state, because the duration of
+      a window being "flashing" and when it stops flashing is determined by other
+      extensions that use this.
+
+      The source ID is the window ID that flashed.
+    priority: user
+    unique-target: window
+    send-access: implementations
+    receive-access: public
+    fields: {}
+
   set-window-positions:
     description: >
-      Request changes to zero or more window positions.  This is useful for systems that
+      Request changes to one or more window positions.  This is useful for systems that
       rearrange the whole screen, or move between virtual desktops.
     priority: user
+    unique-target: window
     send-access: public
     receive-access: implementations
     fields:
@@ -153,26 +168,83 @@ events:
               type: reference
               ref: event-target-id
             location:
-              description: The new location, or don't set to make the window minimized.
+              description: >
+                The new location, or don't set to make the window minimized.
+                The minimize option allows for mass-minimizing windows that are
+                no longer on the screen after the new positioning event.
               type: reference
               ref: screen-dimension
               optional: true
 
-  window-focused:
+  "close-window:request":
     description: >
-      Sent when a different window receives keyboard focus.
+      Request that an active window be closed.
     priority: user
-    send-access: implementations
-    receive-access: public
+    send-access: public
+    receive-access: implementations
+    fields: {}
+
+  "minimize-window:request":
+    description: >
+      Request that an active window be minimized.  Some windowing systems may ignore this
+      request.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    fields: {}
+
+  "maximize-window:request":
+    description: >
+      Request that an active window be maximized.  Some windowing systems may ignore this
+      request.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    fields: {}
+
+  "restore-window:request":
+    description: >
+      Request that an active window be restored after a minimize or maximize.
+      Some windowing systems may ignore this request.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    fields: {}
+
+  set-window-settings:
+    description: >
+      Requests that a subset of a single window's meta values be changed.  The target ID
+      must be the window ID.
+    priority: io
+    send-access: public
+    receive-access: implementations
     fields:
-      window_id:
-        type: reference
-        ref: event-target-id
-      keyboard_focus:
-        description: Which keyboard has focus on this window.  -1 means none.
-        type: int
-        min-value: -1
-        max-value: 10000
+      settings:
+        type: array
+        min-length: 0
+        max-length: 1000
+        value-type:
+          type: reference
+          ref: native-meta-value
+
+  set-global-settings:
+    description: >
+      Requests that a subset of global settings be changed.  Errors are not reported
+      in an explicit response event (though they should be posted as a user configuration
+      problem to the logging extension).  Valid changes update the global datastore value.
+      Settings not specified remain unchanged.
+    priority: io
+    unique-target: global
+    send-access: public
+    receive-access: implementations
+    fields:
+      settings:
+        type: array
+        min-length: 0
+        max-length: 1000
+        value-type:
+          type: reference
+          ref: native-meta-value
 
 
 references:
@@ -363,14 +435,8 @@ references:
     min-length: 0
     max-length: 100
     value-type:
-      type: structure
-      fields:
-        key:
-          description: the meta value's name.
-          type: string
-        value:
-          description: the meta value.
-          type: string
+      type: reference
+      ref: native-meta-value
 
   window-state:
     description: >
@@ -386,12 +452,10 @@ references:
         min-value: -1
         max-value: 10000
       parent_id:
+        description: The owning window ID, or not set if this is a parent window.
         type: reference
-        optional: true
         ref: event-target-id
-      flashing:
-        description: True if the window is marked by the system as important.
-        type: bool
+        optional: true
       location:
         type: reference
         ref: screen-dimension
@@ -401,3 +465,24 @@ references:
       meta:
         type: reference
         ref: window-meta-values
+
+  native-meta-value:
+    description: A native implementation's extra information.
+    type: structure
+    fields:
+      key:
+        description: The simple key name for this meta value.
+        type: string
+        min-length: 1
+        max-length: 50
+      description:
+        description: A long textual description about the details for this key.
+        type: string
+        min-length: 0
+        max-length: 2000
+        optional: true
+      value:
+        description: string representation of the value.
+        type: string
+        min-length: 0
+        max-length: 500

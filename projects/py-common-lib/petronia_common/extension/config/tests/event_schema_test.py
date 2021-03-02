@@ -4,7 +4,7 @@
 from typing import List, Dict, cast
 import unittest
 from .. import event_schema
-from ....util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
+from ....util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG, not_none
 from ....util.test_helpers import verified_not_none
 
 
@@ -315,11 +315,11 @@ class EventSchemaArrayTest(unittest.TestCase):
         # Just use a trivial, valid type.
         inner_type = event_schema.BoolEventDataType(None)
         schema = event_schema.ArrayEventDataType(
-            'xxz', inner_type, 1, 11,
+            'xxz', _internal_type(inner_type), 1, 11,
         )
         self.assertEqual('array', schema.type_name)
         self.assertEqual('xxz', schema.description)
-        self.assertIs(inner_type, schema.value_type)
+        self.assertIs(inner_type, schema.value_type.not_none())
         self.assertEqual(1, schema.min_length)
         self.assertEqual(11, schema.max_length)
         self.assertIsNone(schema.validate_type())
@@ -357,20 +357,24 @@ class EventSchemaArrayTest(unittest.TestCase):
     def test_array__2(self) -> None:
         """type validation issues for an array"""
         schema = event_schema.ArrayEventDataType(
-            None, event_schema.ReferenceEventDataType(None, 'x'), 1, 2,
+            None, _internal_type(event_schema.IntEventDataType(None, -1, -2)), 1, 2,
         )
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
-            (
-                UserMessage(STANDARD_PETRONIA_CATALOG, i18n('`reference` type not replaced')),
-            ),
+            (UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                i18n(
+                    'min_value ({min_value}) must be equal to or less than max_value ({max_value})'
+                ),
+                min_value=-1, max_value=-2,
+            ),),
             error.messages(),
         )
 
     def test_array__3(self) -> None:
         """type validation issues for an array"""
         schema = event_schema.ArrayEventDataType(
-            None, event_schema.BoolEventDataType(None), 2, 1,
+            None, _internal_type(event_schema.BoolEventDataType(None)), 2, 1,
         )
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
@@ -390,7 +394,7 @@ class EventSchemaArrayTest(unittest.TestCase):
     def test_array__4(self) -> None:
         """type validation issues for an array"""
         schema = event_schema.ArrayEventDataType(
-            None, event_schema.BoolEventDataType(None), -1, 100,
+            None, _internal_type(event_schema.BoolEventDataType(None)), -1, 100,
         )
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
@@ -407,7 +411,8 @@ class EventSchemaArrayTest(unittest.TestCase):
     def test_array__5(self) -> None:
         """type validation issues for an array"""
         schema = event_schema.ArrayEventDataType(
-            None, event_schema.BoolEventDataType(None), 0, event_schema.MAX_ARRAY_LENGTH + 1,
+            None, _internal_type(event_schema.BoolEventDataType(None)), 0,
+            event_schema.MAX_ARRAY_LENGTH + 1,
         )
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
@@ -435,8 +440,8 @@ class EventSchemaStructureTest(unittest.TestCase):
         field2 = event_schema.BoolEventDataType(None)
         schema = event_schema.StructureEventDataType(
             'x', {
-                "abc": event_schema.StructureFieldType(field1, False),
-                "def": event_schema.StructureFieldType(field2, True),
+                "abc": event_schema.StructureFieldType(_internal_type(field1), False),
+                "def": event_schema.StructureFieldType(_internal_type(field2), True),
             },
         )
         self.assertEqual('x', schema.description)
@@ -444,11 +449,11 @@ class EventSchemaStructureTest(unittest.TestCase):
         self.assertEqual({'abc', 'def'}, set(schema.field_names()))
         self.assertIs(
             field1,
-            verified_not_none(schema.get_field_type('abc'), self).data_type,
+            verified_not_none(schema.get_field_type('abc'), self).data_type.raw_type,
         )
         self.assertIs(
             field2,
-            verified_not_none(schema.get_field_type('def'), self).data_type,
+            verified_not_none(schema.get_field_type('def'), self).data_type.raw_type,
         )
         self.assertIsNone(schema.get_field_type('xyz'))
         self.assertIsNone(schema.validate_type())
@@ -469,14 +474,14 @@ class EventSchemaStructureTest(unittest.TestCase):
 
         schema2 = event_schema.StructureEventDataType(
             'x', {
-                "abc": event_schema.StructureFieldType(field1, False),
-                "def": event_schema.StructureFieldType(field2, True),
+                "abc": event_schema.StructureFieldType(_internal_type(field1), False),
+                "def": event_schema.StructureFieldType(_internal_type(field2), True),
             },
         )
         schema3 = event_schema.StructureEventDataType(
             'y', {
-                "abc": event_schema.StructureFieldType(field1, False),
-                "def": event_schema.StructureFieldType(field2, True),
+                "abc": event_schema.StructureFieldType(_internal_type(field1), False),
+                "def": event_schema.StructureFieldType(_internal_type(field2), True),
             },
         )
         self.assertTrue(schema.__eq__(schema))
@@ -491,7 +496,9 @@ class EventSchemaStructureTest(unittest.TestCase):
         """Test that the object has a hash code, and is thus capable of being hashed"""
         schema = event_schema.StructureEventDataType(
             'y', {
-                "abc": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
+                "abc": event_schema.StructureFieldType(
+                    _internal_type(event_schema.BoolEventDataType(None)), False,
+                ),
             },
         )
         res = {schema: 1}
@@ -501,13 +508,21 @@ class EventSchemaStructureTest(unittest.TestCase):
         """bad schema validation."""
         schema = event_schema.StructureEventDataType(
             None, {
-                "": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
-                ("x" * event_schema.MAX_FIELD_NAME_LENGTH): event_schema.StructureFieldType(
-                    event_schema.BoolEventDataType(None), False,
+                "": event_schema.StructureFieldType(
+                    _internal_type(event_schema.BoolEventDataType(None)), False,
                 ),
-                "_": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
-                "$": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
-                "a%": event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False),
+                ("x" * event_schema.MAX_FIELD_NAME_LENGTH): event_schema.StructureFieldType(
+                    _internal_type(event_schema.BoolEventDataType(None)), False,
+                ),
+                "_": event_schema.StructureFieldType(
+                    _internal_type(event_schema.BoolEventDataType(None)), False,
+                ),
+                "$": event_schema.StructureFieldType(
+                    _internal_type(event_schema.BoolEventDataType(None)), False,
+                ),
+                "a%": event_schema.StructureFieldType(
+                    _internal_type(event_schema.BoolEventDataType(None)), False,
+                ),
             },
         )
         error = verified_not_none(schema.validate_type(), self)
@@ -545,14 +560,24 @@ class EventSchemaStructureTest(unittest.TestCase):
         schema = event_schema.StructureEventDataType(
             None, {
                 "x": event_schema.StructureFieldType(
-                    event_schema.ReferenceEventDataType(None, "x"), False,
+                    _internal_type(event_schema.IntEventDataType(None, 2, 1)), False,
                 ),
             },
         )
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (
-                UserMessage(STANDARD_PETRONIA_CATALOG, i18n('`reference` type not replaced')),
+                UserMessage(
+                    STANDARD_PETRONIA_CATALOG, i18n('error in field {field_name}'), field_name='x',
+                ),
+                UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    i18n(
+                        'min_value ({min_value}) must be equal to or less than '
+                        'max_value ({max_value})'
+                    ),
+                    min_value=2, max_value=1,
+                ),
             ),
             error.messages(),
         )
@@ -564,10 +589,10 @@ class StructureFieldTypeTest(unittest.TestCase):
         """Test the equality function."""
         dt_bool1 = event_schema.BoolEventDataType(None)
         dt_bool2 = event_schema.BoolEventDataType('other')
-        field1a = event_schema.StructureFieldType(dt_bool1, False)
-        field1b = event_schema.StructureFieldType(dt_bool1, False)
-        field2 = event_schema.StructureFieldType(dt_bool1, True)
-        field3 = event_schema.StructureFieldType(dt_bool2, False)
+        field1a = event_schema.StructureFieldType(_internal_type(dt_bool1), False)
+        field1b = event_schema.StructureFieldType(_internal_type(dt_bool1), False)
+        field2 = event_schema.StructureFieldType(_internal_type(dt_bool1), True)
+        field3 = event_schema.StructureFieldType(_internal_type(dt_bool2), False)
 
         self.assertTrue(field1a.__eq__(field1a))
         self.assertFalse(field1a.__ne__(field1a))
@@ -582,7 +607,11 @@ class StructureFieldTypeTest(unittest.TestCase):
 
     def test_hash(self) -> None:
         """Test that the object has a hash code, and is thus capable of being hashed"""
-        res = {event_schema.StructureFieldType(event_schema.BoolEventDataType(None), False): 1}
+        res = {
+            event_schema.StructureFieldType(
+                _internal_type(event_schema.BoolEventDataType(None)), False,
+            ): 1,
+        }
         self.assertEqual(1, len(res))
 
 
@@ -593,13 +622,13 @@ class EventSchemaSelectorTest(unittest.TestCase):
         type_1 = event_schema.BoolEventDataType(None)
         type_2 = event_schema.StringEventDataType(None, 0, 10)
         schema = event_schema.SelectorEventDataType(
-            'des', {"t1": type_1, "2": type_2},
+            'des', {"t1": _internal_type(type_1), "2": _internal_type(type_2)},
         )
         self.assertEqual('des', schema.description)
         self.assertEqual('selector', schema.type_name)
         self.assertEqual({'t1', '2'}, set(schema.selectors))
-        self.assertEqual(type_1, schema.get_type_for('t1'))
-        self.assertEqual(type_2, schema.get_type_for('2'))
+        self.assertEqual(type_1, not_none(schema.get_type_for('t1')).raw_type)
+        self.assertEqual(type_2, not_none(schema.get_type_for('2')).raw_type)
         self.assertIsNone(schema.get_type_for('t2'))
         self.assertIsNone(schema.validate_type())
 
@@ -636,17 +665,17 @@ class EventSchemaSelectorTest(unittest.TestCase):
 
     def test_ok_type__2(self) -> None:
         """max number of selectors"""
-        type_mapping: Dict[str, event_schema.AbcEventDataType] = {}
+        type_mapping: Dict[str, event_schema.InternalType] = {}
         for i in range(0, event_schema.MAX_TYPE_MAPPING_VALUES):
-            type_mapping[str(i)] = event_schema.BoolEventDataType(None)
+            type_mapping[str(i)] = _internal_type(event_schema.BoolEventDataType(None))
         schema = event_schema.SelectorEventDataType(None, type_mapping)
         self.assertIsNone(schema.validate_type())
 
     def test_bad_type__2(self) -> None:
         """wrong number of selectors"""
-        type_mapping: Dict[str, event_schema.AbcEventDataType] = {}
+        type_mapping: Dict[str, event_schema.InternalType] = {}
         for i in range(0, event_schema.MAX_TYPE_MAPPING_VALUES + 1):
-            type_mapping[str(i)] = event_schema.BoolEventDataType(None)
+            type_mapping[str(i)] = _internal_type(event_schema.BoolEventDataType(None))
         schema = event_schema.SelectorEventDataType(None, type_mapping)
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
@@ -666,9 +695,9 @@ class EventSchemaSelectorTest(unittest.TestCase):
     def test_bad_type__3(self) -> None:
         """wrong selector name size"""
         schema = event_schema.SelectorEventDataType(None, {
-            "": event_schema.BoolEventDataType(None),
+            "": _internal_type(event_schema.BoolEventDataType(None)),
             ("x" * (event_schema.MAX_TYPE_MAPPING_KEY_LENGTH + 1)):
-                event_schema.BoolEventDataType(None),
+                _internal_type(event_schema.BoolEventDataType(None)),
         })
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
@@ -691,12 +720,19 @@ class EventSchemaSelectorTest(unittest.TestCase):
     def test_bad_type__4(self) -> None:
         """bad subtype"""
         schema = event_schema.SelectorEventDataType(None, {
-            "x": event_schema.ReferenceEventDataType(None, "x"),
+            "x": _internal_type(event_schema.IntEventDataType(None, 1, 0)),
         })
         error = verified_not_none(schema.validate_type(), self)
         self.assertEqual(
             (
-                UserMessage(STANDARD_PETRONIA_CATALOG, i18n('`reference` type not replaced')),
+                UserMessage(
+                    STANDARD_PETRONIA_CATALOG,
+                    i18n(
+                        'min_value ({min_value}) must be equal to or less than '
+                        'max_value ({max_value})'
+                    ),
+                    min_value=1, max_value=0,
+                ),
             ),
             error.messages(),
         )
@@ -752,7 +788,7 @@ class EventTypeTest(unittest.TestCase):
         """Test out the validate_type with a bad schema."""
         schema_bad = event_schema.SelectorEventDataType('des', {})
         schema = event_schema.StructureEventDataType(None, {
-            'foo': event_schema.StructureFieldType(schema_bad, False),
+            'foo': event_schema.StructureFieldType(_internal_type(schema_bad), False),
         })
         event = event_schema.EventType(
             'event-name', 'high', 'public', 'internal', schema, 'the-target',
@@ -760,6 +796,17 @@ class EventTypeTest(unittest.TestCase):
         results = event.validate_type()
         self.assertIsNotNone(results)
         assert results is not None  # mypy requirement
-        self.assertEqual(1, len(results.messages()))
+        self.assertEqual(2, len(results.messages()))
         # We don't care what the message is (that's tested above), just that the
-        # inner bad message is added.
+        # inner bad messages are added.
+
+
+def _internal_type(data_type: event_schema.AbcEventDataType) -> event_schema.InternalType:
+    ret = event_schema.InternalType()
+    res = ret.set(data_type)
+    if res.has_error:
+        raise AssertionError(
+            f'internal type value setting generated an error: '
+            f'{[m.debug() for m in res.error_messages()]}'
+        )
+    return ret

@@ -177,6 +177,7 @@ class AbstractScreenHandler:
         errors.append(self.on_screen_configuration_settings_changed(
             self.__context, self._settings.screen_configurations,
         ))
+        errors.append(store_screen_setups_state(self.__context, self._settings))
 
         if original_source_id:
             errors.append(self.__context.send_event(
@@ -193,7 +194,8 @@ class AbstractScreenHandler:
     ) -> StdRet[None]:
         """Called when the configuration for the virtual screens has changed successfully.
         this should perform necessary steps to update the datastore configuration for the
-        extension, if necessary."""
+        extension, if necessary.  Errors reported from this do not stop the configuration
+        from being changed in this object."""
         raise NotImplementedError
 
     def callback_virtual_screen_update(
@@ -327,4 +329,38 @@ def create_screen_config_from_mapped_screen(
                 for scn in sbm.screen
             ]
         ),
+    )
+
+
+def store_screen_setups_state(
+        context: EventRegistryContext,
+        config: virtual_screen.VirtualScreenSettings,
+) -> StdRet[None]:
+    """Send the store data request for the ScreenSetupsState value."""
+    return datastore.send_store_data(
+        context,
+        screen.ScreenSetupsState.UNIQUE_TARGET_FQN,
+        screen.ScreenSetupsState([
+            screen.ScreenMonitorMappingConfigGroup(
+                scg.name,
+                [
+                    screen.SourceMonitor(
+                        smr[defs.MONITOR_POSITION_MONITOR_IDENTIFIER],
+                        smr[defs.MONITOR_POSITION_X],
+                        smr[defs.MONITOR_POSITION_Y],
+                    )
+                    for smr in scg.monitor_defs
+                ],
+                [
+                    screen.ScreenMonitorMapping(
+                        blk.monitor_id,
+                        blk.monitor_l, blk.monitor_t, blk.monitor_w, blk.monitor_h,
+                        blk.monitor_rotation,
+                        blk.screen_l, blk.screen_t, blk.screen_w, blk.screen_h,
+                    )
+                    for blk in scg.screen.blocks
+                ],
+            )
+            for scg in config.screen_configurations
+        ]),
     )

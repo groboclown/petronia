@@ -72,9 +72,9 @@ def window_created(hwnd: HWND) -> None:
     """window created callback."""
     log.low_print(f'Window Created: {hwnd:08x}')
     if WINDOWS_FUNCTIONS.window.get_process_id:
-        pid = WINDOWS_FUNCTIONS.window.get_process_id(hwnd)
+        pid = WINDOWS_FUNCTIONS.window.get_process_id(hwnd)  # pylint:disable=not-callable
         if pid != 0 and WINDOWS_FUNCTIONS.process.get_executable_filename:
-            filename_res = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)
+            filename_res = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)  # pylint:disable=not-callable
             if filename_res.has_error or filename_res.value is None:
                 log.low_print(
                     f' :: {hwnd:08x} - pid {pid} (could not get filename : '

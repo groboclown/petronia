@@ -34,7 +34,7 @@ def add_boot_time_extensions(extensions: Iterable[ExtensionInfo]) -> StdRet[None
 
 
 def clear_boot_time_extensions() -> None:
-    """Used for unit testing."""
+    """Used for initial setup and unit testing."""
     _BOOT_TIME_EXTENSIONS.clear()
     _REMAINING_BOOT_TIME_EXTENSIONS.clear()
     _STARTUP_COMPLETE_SENT[0] = False

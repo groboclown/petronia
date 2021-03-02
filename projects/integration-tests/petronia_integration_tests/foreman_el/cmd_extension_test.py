@@ -12,6 +12,7 @@ from configparser import ConfigParser
 from petronia_foreman.configuration import platform, ForemanConfig
 from petronia_foreman.configuration.foreman import BOOT_SECTION
 from petronia_foreman.foreman_runner import ForemanRunner
+import petronia_extension_loader.setup
 
 # Seconds before the test times out and exits with an error.
 # If you're debugging, set this to a large-enough number, like
@@ -23,6 +24,8 @@ TEST_TIMEOUT_SECONDS = 10.0
 class CmdExtensionTest(unittest.TestCase):
     """Load an extension, starting with an event to the extension loader."""
     def setUp(self) -> None:
+        print(" ===================== CMD TEST =====================")
+        self._orig_ext_loader_setup = petronia_extension_loader.setup.for_unittest_backup()
         self.tempdir = tempfile.mkdtemp()
         os.makedirs(os.path.join(self.tempdir, 'configs'))
         os.makedirs(os.path.join(self.tempdir, 'data', 'extensions'))
@@ -108,6 +111,7 @@ class CmdExtensionTest(unittest.TestCase):
         for thread in threading.enumerate():
             print(" - " + thread.name + ": alive? " + str(thread.is_alive()))
         print("Completed teardown")
+        petronia_extension_loader.setup.for_unittest_restore(self._orig_ext_loader_setup)
 
     def test_load_extension(self) -> None:
         """Load the extension."""

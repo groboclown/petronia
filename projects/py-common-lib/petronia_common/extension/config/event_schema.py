@@ -5,6 +5,8 @@ Events have a common structure.
 See `docs/events.md` for details.
 """
 
+# pylint:disable=too-many-lines
+
 from typing import Sequence, Dict, List, Iterable, Tuple, Optional, Union, Literal, Any
 from abc import ABC
 import re
@@ -15,7 +17,7 @@ from .defs import AbcConfigType
 from ...util import (
     PetroniaReturnError, UserMessage, StdRet,
     possible_error, readonly_dict, not_none,
-    STANDARD_PETRONIA_CATALOG,
+    STANDARD_PETRONIA_CATALOG, RET_OK_NONE, EMPTY_TUPLE,
 )
 from ...util import i18n as _
 
@@ -62,6 +64,84 @@ class AbcEventDataType(AbcConfigType, ABC):
         raise NotImplementedError()  # pragma no cover
 
 
+class InternalType(AbcConfigType):
+    """Holder for another type owned by a parent. It may have been a reference,
+    but the data type stored cannot be a reference."""
+    __slots__ = ('__ref_name', '__data_type')
+
+    def __init__(self, ref_name: Optional[str] = None) -> None:
+        self.__ref_name = ref_name
+        self.__data_type: Optional[AbcEventDataType] = None
+
+    def __repr__(self) -> str:
+        return f'InternalType({repr(self.__ref_name)}, {type(self.__data_type)})'
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, InternalType):
+            return False
+        if self.__data_type is None:
+            return self.__ref_name == other.ref_name
+        return self.__data_type == other.raw_type
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
+    def __hash__(self) -> int:
+        return hash(self.__data_type) + 99
+
+    @property
+    def raw_type(self) -> Optional[AbcEventDataType]:
+        """Get the type, possibly None."""
+        return self.__data_type
+
+    @property
+    def ref_name(self) -> Optional[str]:
+        """Reference name, if this came from a reference."""
+        return self.__ref_name
+
+    def is_not_set(self) -> bool:
+        """Has the data type not been set yet?"""
+        return self.__data_type is None
+
+    def set(self, data_type: AbcEventDataType) -> StdRet[None]:
+        """Set the data type; can be called only once."""
+        if isinstance(data_type, ReferenceEventDataType):
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('cannot store a reference type in an internal type ({name})'),
+                name=self.__ref_name or 'not reference',
+            )
+        if self.__data_type is None:
+            self.__data_type = data_type
+            return RET_OK_NONE
+        return StdRet.pass_errmsg(
+            STANDARD_PETRONIA_CATALOG,
+            _('attempted double setting of internal type ({name})'),
+            name=self.__ref_name or 'not reference',
+        )
+
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
+        """Check if this value has been set."""
+        if self.__data_type is None:
+            return possible_error([UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                _('internal type not set ({name})'),
+                name=self.__ref_name or 'not reference',
+            )])
+        # Prevent infinite recursion...
+        for parent in parents:
+            if parent is self:
+                return None
+        return self.__data_type.validate_type((*parents, self))
+
+    def not_none(self) -> AbcEventDataType:
+        """Return the valid set value.  Must be valid to call."""
+        assert self.__data_type is not None  # nosec
+        return self.__data_type
+
+
 class BoolEventDataType(AbcEventDataType):
     """Boolean type, represents true or false."""
     __slots__ = ()
@@ -84,7 +164,9 @@ class BoolEventDataType(AbcEventDataType):
     def __hash__(self) -> int:
         return hash(self.description) + 4
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         return None
 
     def validate_value(self, value: Any) -> bool:
@@ -144,7 +226,9 @@ class StringEventDataType(AbcEventDataType):
         """String values can have no more than this number of characters."""
         return self.__max_length
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         if self.min_length > self.max_length:
             messages.append(UserMessage(
@@ -233,7 +317,9 @@ class IntEventDataType(AbcEventDataType):
         """Integer values cannot be more than this value."""
         return self.__max_value
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         if self.min_value > self.max_value:
             messages.append(UserMessage(
@@ -313,7 +399,9 @@ class FloatEventDataType(AbcEventDataType):
         """If given, floating point numbers cannot be more than this value."""
         return self.__max_value
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         if (
                 self.min_value is not None and
@@ -377,7 +465,9 @@ class EnumEventDataType(AbcEventDataType):
         """The list of valid values"""
         return tuple(self.__values)
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         if len(self.__values) <= 0:
             messages.append(UserMessage(
@@ -448,7 +538,9 @@ class DatetimeEventDataType(AbcEventDataType):
     def __hash__(self) -> int:
         return hash(self.description) + 12
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         return None
 
     @staticmethod
@@ -491,7 +583,7 @@ class ReferenceEventDataType(AbcEventDataType):
     contain one.
     """
 
-    __slots__ = ('__ref',)
+    __slots__ = ('__ref', '__references')
 
     def __init__(self, description: Optional[str], ref: str) -> None:
         """Constructor."""
@@ -510,7 +602,9 @@ class ReferenceEventDataType(AbcEventDataType):
         # This is never valid.
         return False
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         # This type is never valid.
         return possible_error([UserMessage(
             STANDARD_PETRONIA_CATALOG,
@@ -531,7 +625,7 @@ class ArrayEventDataType(AbcEventDataType):
     def __init__(
             self,
             description: Optional[str],
-            value_type: AbcEventDataType,
+            value_type: InternalType,
             min_length: Union[int, float],
             max_length: Union[int, float],
     ) -> None:
@@ -569,7 +663,7 @@ class ArrayEventDataType(AbcEventDataType):
         )
 
     @property
-    def value_type(self) -> AbcEventDataType:
+    def value_type(self) -> InternalType:
         """The per-item type."""
         return self.__value_type
 
@@ -583,9 +677,11 @@ class ArrayEventDataType(AbcEventDataType):
         """Arrays of this length cannot have more than this number of items."""
         return self.__max_length
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
-        error = self.value_type.validate_type()
+        error = self.value_type.validate_type(parents)
         if error:
             messages.extend(error.messages())
         if self.min_length > self.max_length:
@@ -619,8 +715,10 @@ class ArrayEventDataType(AbcEventDataType):
             return False
         if not self.min_length <= len(value) <= self.max_length:
             return False
+        if self.value_type.is_not_set():
+            return False
         for item in value:
-            if not self.value_type.validate_value(item):
+            if not self.value_type.not_none().validate_value(item):
                 return False
         return True
 
@@ -629,7 +727,7 @@ class StructureFieldType:
     """A structured field definition."""
     __slots__ = ('__optional', '__data_type',)
 
-    def __init__(self, data_type: AbcEventDataType, optional: bool) -> None:
+    def __init__(self, data_type: InternalType, optional: bool) -> None:
         """The field type, which can optionally exist."""
         self.__data_type = data_type
         self.__optional = optional
@@ -654,8 +752,21 @@ class StructureFieldType:
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
+    def validate(
+            self, field_name: str, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
+        """Is this field valid?"""
+        res = self.__data_type.validate_type(parents)
+        if res is not None:
+            res = possible_error(messages=[UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                _('error in field {field_name}'),
+                field_name=field_name,
+            )], errors=[res])
+        return res
+
     @property
-    def data_type(self) -> AbcEventDataType:
+    def data_type(self) -> InternalType:
         """The contained data type."""
         return self.__data_type
 
@@ -737,7 +848,9 @@ class StructureEventDataType(AbcEventDataType):
         """All fields that must be present."""
         return self.__required_field_names
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         for field_name, field_type in self.fields():
             if not MIN_FIELD_NAME_LENGTH <= len(field_name) <= MAX_FIELD_NAME_LENGTH:
@@ -766,7 +879,8 @@ class StructureEventDataType(AbcEventDataType):
                             field_name=field_name,
                         ))
                         break
-            error = field_type.data_type.validate_type()
+
+            error = field_type.validate(field_name)
             if error:
                 messages.extend(error.messages())
         return possible_error(messages=messages)
@@ -786,7 +900,10 @@ class StructureEventDataType(AbcEventDataType):
                 # To allow for future versions of events, there can be extra
                 # fields in the event data.  These are ignored.
                 continue
-            if not field_type.data_type.validate_value(val):
+            if (
+                    field_type.data_type.is_not_set()
+                    or not field_type.data_type.not_none().validate_value(val)
+            ):
                 return False
         return True
 
@@ -806,7 +923,7 @@ class SelectorEventDataType(AbcEventDataType):
     def __init__(
             self,
             description: Optional[str],
-            type_mapping: Dict[str, AbcEventDataType],
+            type_mapping: Dict[str, InternalType],
     ) -> None:
         """Constructor."""
         AbcEventDataType.__init__(self, "selector", description)
@@ -823,11 +940,11 @@ class SelectorEventDataType(AbcEventDataType):
         """List of selector names."""
         return tuple(self.__type_mapping.keys())
 
-    def get_type_for(self, selector: str) -> Optional[AbcEventDataType]:
+    def get_type_for(self, selector: str) -> Optional[InternalType]:
         """Returns the type for the selector, if it exists, or None."""
         return self.__type_mapping.get(selector)
 
-    def selector_items(self) -> Iterable[Tuple[str, AbcEventDataType]]:
+    def selector_items(self) -> Iterable[Tuple[str, InternalType]]:
         """Returns a list of selector name, selector type."""
         return self.__type_mapping.items()
 
@@ -839,14 +956,16 @@ class SelectorEventDataType(AbcEventDataType):
             return False
         data = value.get('$')
         data_type = self.get_type_for(selector)
-        if not data_type or not data_type.validate_value(data):
+        if not data_type or data_type.is_not_set() or not data_type.not_none().validate_value(data):
             return False
         return True
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         if not MIN_TYPE_MAPPING_VALUES <= len(self.__type_mapping) <= MAX_TYPE_MAPPING_VALUES:
-            messages.append((UserMessage(
+            messages.append(UserMessage(
                 STANDARD_PETRONIA_CATALOG,
                 _(
                     'must have {MIN_TYPE_MAPPING_VALUES} to '
@@ -855,17 +974,17 @@ class SelectorEventDataType(AbcEventDataType):
                 count=len(self.__type_mapping),
                 MIN_TYPE_MAPPING_VALUES=MIN_TYPE_MAPPING_VALUES,
                 MAX_TYPE_MAPPING_VALUES=MAX_TYPE_MAPPING_VALUES,
-            )))
+            ))
         for key, value in self.__type_mapping.items():
             if not MIN_TYPE_MAPPING_KEY_LENGTH <= len(key) <= MAX_TYPE_MAPPING_KEY_LENGTH:
-                messages.append((UserMessage(
+                messages.append(UserMessage(
                     STANDARD_PETRONIA_CATALOG,
                     _('selector ({selector}) must have {n} to {x} characters'),
                     selector=key,
                     n=MIN_TYPE_MAPPING_KEY_LENGTH,
                     x=MAX_TYPE_MAPPING_KEY_LENGTH,
-                )))
-            error = value.validate_type()
+                ))
+            error = value.validate_type((*parents, self))
             if error:
                 messages.extend(error.messages())
         return possible_error(messages)
@@ -964,7 +1083,9 @@ class EventType:
         """If given, the only target ID allowed for the event. Must be a relative target ID."""
         return self.__unique_target
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         """Validates whether this event definition is valid."""
         messages: List[UserMessage] = []
         if EVENT_NAME_FORMAT.match(self.name) is None:
@@ -974,7 +1095,7 @@ class EventType:
                 event_name=self.name,
             ))
         if self.structure:
-            struct_validate = self.structure.validate_type()
+            struct_validate = self.structure.validate_type(parents)
             if struct_validate:
                 messages.extend(struct_validate.messages())
         return possible_error(messages)

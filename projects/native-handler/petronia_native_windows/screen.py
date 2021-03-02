@@ -3,7 +3,7 @@
 from typing import Sequence, Optional
 import threading
 from concurrent.futures.thread import ThreadPoolExecutor
-from petronia_common.util import StdRet, EMPTY_TUPLE
+from petronia_common.util import StdRet, EMPTY_TUPLE, RET_OK_NONE
 from petronia_ext_lib.runner import EventRegistryContext
 from petronia_native.common import virtual_screen, user_messages, defs
 from petronia_native.common.handlers import monitor_screen
@@ -30,7 +30,7 @@ class WindowsScreen(monitor_screen.AbstractScreenHandler):
         self.__executor = executor or ThreadPoolExecutor(1)
         self.__old_monitors: Sequence[WindowsMonitor] = EMPTY_TUPLE
         if native_funcs.WINDOWS_FUNCTIONS.monitor.find_monitors:
-            self.__old_monitors = native_funcs.WINDOWS_FUNCTIONS.monitor.find_monitors()
+            self.__old_monitors = native_funcs.WINDOWS_FUNCTIONS.monitor.find_monitors()  # pylint:disable=not-callable
 
     def register_with_loop(self, loop: message_loop.WindowsMessageLoop) -> None:
         """Register this handler with the loop."""
@@ -48,7 +48,7 @@ class WindowsScreen(monitor_screen.AbstractScreenHandler):
         """Callback for display_changed_message hook"""
         self.__executor.submit(self._maybe_monitors_changed)
 
-    def on_system_settings_changed_message(self, _what_changed: native_funcs.LPARAM) -> None:
+    def on_system_settings_changed_message(self, _what_changed: native_funcs.WPARAM) -> None:
         """Callback for system_settings_changed_message hook"""
         self.__executor.submit(self._maybe_monitors_changed)
 
@@ -59,7 +59,7 @@ class WindowsScreen(monitor_screen.AbstractScreenHandler):
     def _maybe_monitors_changed(self) -> None:
         """Did the monitors change at all?  Should be run outside the message loop."""
         if native_funcs.WINDOWS_FUNCTIONS.monitor.find_monitors:
-            new_monitors = native_funcs.WINDOWS_FUNCTIONS.monitor.find_monitors()
+            new_monitors = native_funcs.WINDOWS_FUNCTIONS.monitor.find_monitors()  # pylint:disable=not-callable
             with self.__lock:
                 if are_monitors_different(self.__old_monitors, new_monitors):
                     self.__old_monitors = new_monitors
@@ -72,30 +72,33 @@ class WindowsScreen(monitor_screen.AbstractScreenHandler):
             self, context: EventRegistryContext,
             screen_configs: Sequence[virtual_screen.VirtualScreenConfig],
     ) -> StdRet[None]:
-        self.__config.get_config().virtual_screens = VirtualScreens([
-            ScreenMonitorMappingConfigGroup(
-                scf.name,
-                [
-                    SourceMonitor(
-                        smd[defs.MONITOR_POSITION_MONITOR_IDENTIFIER],
-                        smd[defs.MONITOR_POSITION_X],
-                        smd[defs.MONITOR_POSITION_Y],
-                    )
-                    for smd in scf.monitor_defs
-                ],
-                [
-                    ScreenMonitorMapping(
-                        sbk.monitor_id,
-                        sbk.monitor_l, sbk.monitor_t, sbk.monitor_w, sbk.monitor_h,
-                        sbk.monitor_rotation,
-                        sbk.screen_l, sbk.screen_t, sbk.screen_w, sbk.screen_h,
-                    )
-                    for sbk in scf.screen.blocks
-                ],
-            )
-            for scf in screen_configs
-        ])
-        return self.__config.put_in_datastore(context)
+        config = self.__config.get_config()
+        if config:
+            config.virtual_screens = VirtualScreens([
+                ScreenMonitorMappingConfigGroup(
+                    scf.name,
+                    [
+                        SourceMonitor(
+                            smd[defs.MONITOR_POSITION_MONITOR_IDENTIFIER],
+                            smd[defs.MONITOR_POSITION_X],
+                            smd[defs.MONITOR_POSITION_Y],
+                        )
+                        for smd in scf.monitor_defs
+                    ],
+                    [
+                        ScreenMonitorMapping(
+                            sbk.monitor_id,
+                            sbk.monitor_l, sbk.monitor_t, sbk.monitor_w, sbk.monitor_h,
+                            sbk.monitor_rotation,
+                            sbk.screen_l, sbk.screen_t, sbk.screen_w, sbk.screen_h,
+                        )
+                        for sbk in scf.screen.blocks
+                    ],
+                )
+                for scf in screen_configs
+            ])
+            return self.__config.put_in_datastore(context)
+        return RET_OK_NONE
 
     def callback_virtual_screen_update(
             self, context: EventRegistryContext,

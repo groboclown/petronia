@@ -213,7 +213,9 @@ class ProtocolExtensionMetadata(AbcExtensionMetadata):
         """Events defined by this API."""
         return self.__events
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         validate_name(self.name, messages)
         validate_dependencies(self.depends_on, messages)
@@ -228,7 +230,7 @@ class ProtocolExtensionMetadata(AbcExtensionMetadata):
                 ))
             else:
                 event_names.add(event.name)
-            validation = event.validate_type()
+            validation = event.validate_type((*parents, self))
             if validation:
                 messages.extend(validation.messages())
             if event.receive_access not in ("public", "target"):
@@ -283,7 +285,9 @@ class ApiExtensionMetadata(AbcExtensionMetadata):
         """The optional default implementation, if the end-user does not define one."""
         return self.__default_implementation
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         validate_name(self.name, messages)
         validate_dependencies(self.depends_on, messages)
@@ -342,7 +346,9 @@ class ImplExtensionMetadata(AbcExtensionMetadata):
         """The runtime environment description."""
         return self.__runtime
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         validate_name(self.name, messages)
         validate_dependencies(self.depends_on, messages)
@@ -379,7 +385,9 @@ class StandAloneExtensionMetadata(AbcExtensionMetadata):
         """The runtime environment."""
         return self.__runtime
 
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         messages: List[UserMessage] = []
         validate_name(self.name, messages)
         validate_dependencies(self.depends_on, messages)

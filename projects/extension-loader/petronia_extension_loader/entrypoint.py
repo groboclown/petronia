@@ -8,6 +8,7 @@ from .event_router import create_startup_handlers
 from .setup import initialize
 from .shared_state import ExtLoaderSharedState
 from .messages import display_message, low_println, low_traceback
+from .handlers import boot_extension_handler
 
 
 def extension_entrypoint(
@@ -16,6 +17,7 @@ def extension_entrypoint(
 ) -> StdRet[None]:
     """Standardized entrypoint for event stream handling.
     Can be used for the in-memory launcher."""
+    boot_extension_handler.clear_boot_time_extensions()
     low_println(f"Starting up extension-loader with arguments {args}")
     try:
         init_res = initialize(*args)

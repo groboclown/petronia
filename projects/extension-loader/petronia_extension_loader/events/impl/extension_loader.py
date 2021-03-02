@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-28T02:46:04.462474+00:00
+# Created on 2021-03-01T15:28:41.697744+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.extension_loader version 1.0.0.
@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.extension_loader
 
 
 from typing import (
-    Union,
-    SupportsInt,
     Any,
-    Optional,
-    SupportsFloat,
+    SupportsInt,
     Dict,
-    List,
     cast,
+    Union,
+    List,
+    SupportsFloat,
+    Optional,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
     collect_errors_from,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.extension_loader'
@@ -167,16 +167,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
-            float,
             int,
-            List[bool],
-            List[datetime.datetime],
-            List[str],
-            List[float],
-            bool,
-            datetime.datetime,
+            str,
             List[int],
+            List[str],
+            datetime.datetime,
+            List[float],
+            float,
+            List[bool],
+            bool,
+            List[datetime.datetime],
         ],
     ) -> None:
         self.__name = name
@@ -189,16 +189,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
-            float,
             int,
-            List[bool],
-            List[datetime.datetime],
-            List[str],
-            List[float],
-            bool,
-            datetime.datetime,
+            str,
             List[int],
+            List[str],
+            datetime.datetime,
+            List[float],
+            float,
+            List[bool],
+            bool,
+            List[datetime.datetime],
     ]:
         """The selector value."""
         return self.__value

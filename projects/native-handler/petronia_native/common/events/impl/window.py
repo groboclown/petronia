@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-28T02:46:15.277169+00:00
+# Created on 2021-03-01T15:28:50.656133+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.window version 1.0.0.
@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia.core.api.native.window ve
 
 
 from typing import (
-    Dict,
-    Any,
     SupportsInt,
+    cast,
     List,
     Optional,
-    cast,
+    Dict,
+    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    StdRet,
     STANDARD_PETRONIA_CATALOG,
     not_none,
-    StdRet,
     collect_errors_from,
 )
 
@@ -153,30 +153,33 @@ class ScreenDimension:
         return "ScreenDimension(" + repr(self.export_data()) + ")"
 
 
-class Meta:
+class NativeMetaValue:
     """
-    (no description)
+    A native implementation's extra information.
     """
-    __slots__ = ('key', 'value',)
+    __slots__ = ('key', 'description', 'value',)
 
     def __init__(
         self,
         key: str,
+        description: Optional[str],
         value: str,
     ) -> None:
         self.key = key
+        self.description = description
         self.value = value
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'key': self.key,
+            'description': self.description,
             'value': self.value,
         }
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Meta']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['NativeMetaValue']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -187,7 +190,7 @@ class Meta:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='key',
-                name='Meta',
+                name='NativeMetaValue',
             )
         else:
             if not isinstance(val, str):
@@ -196,9 +199,21 @@ class Meta:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='key',
                     type='str',
-                    name='Meta',
+                    name='NativeMetaValue',
                 )
             f_key = val
+        val = data.get('description')
+        f_description: Optional[str] = None
+        if val is not None:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='description',
+                    type='str',
+                    name='NativeMetaValue',
+                )
+            f_description = val
         val = data.get('value')
         f_value: str
         if val is None:  # pylint:disable=no-else-return
@@ -206,7 +221,7 @@ class Meta:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='value',
-                name='Meta',
+                name='NativeMetaValue',
             )
         else:
             if not isinstance(val, str):
@@ -215,40 +230,39 @@ class Meta:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='value',
                     type='str',
-                    name='Meta',
+                    name='NativeMetaValue',
                 )
             f_value = val
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(Meta(
+        return StdRet.pass_ok(NativeMetaValue(
             key=not_none(f_key),
+            description=f_description,
             value=not_none(f_value),
         ))
 
     def __repr__(self) -> str:
-        return "Meta(" + repr(self.export_data()) + ")"
+        return "NativeMetaValue(" + repr(self.export_data()) + ")"
 
 
 class WindowState:
     """
     The state of a window.
     """
-    __slots__ = ('active', 'focus', 'parent_id', 'flashing', 'location', 'minimized', 'meta',)
+    __slots__ = ('active', 'focus', 'parent_id', 'location', 'minimized', 'meta',)
 
     def __init__(
         self,
         active: bool,
         focus: int,
         parent_id: Optional[str],
-        flashing: bool,
         location: ScreenDimension,
         minimized: bool,
-        meta: List[Meta],
+        meta: List[NativeMetaValue],
     ) -> None:
         self.active = active
         self.focus = focus
         self.parent_id = parent_id
-        self.flashing = flashing
         self.location = location
         self.minimized = minimized
         self.meta = meta
@@ -259,7 +273,6 @@ class WindowState:
             'active': self.active,
             'focus': self.focus,
             'parent_id': self.parent_id,
-            'flashing': self.flashing,
             'location': self.location.export_data(),
             'minimized': self.minimized,
             'meta': [v.export_data() for v in self.meta],
@@ -321,25 +334,6 @@ class WindowState:
                     name='WindowState',
                 )
             f_parent_id = val
-        val = data.get('flashing')
-        f_flashing: bool
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='flashing',
-                name='WindowState',
-            )
-        else:
-            if not isinstance(val, bool):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='flashing',
-                    type='bool',
-                    name='WindowState',
-                )
-            f_flashing = val
         val = data.get('location')
         f_location: ScreenDimension
         if val is None:  # pylint:disable=no-else-return
@@ -382,7 +376,7 @@ class WindowState:
                 )
             f_minimized = val
         val = data.get('meta')
-        f_meta: List[Meta]
+        f_meta: List[NativeMetaValue]
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
@@ -393,7 +387,7 @@ class WindowState:
         else:
             f_meta = []
             for item in val:
-                parsed_meta = Meta.parse_data(item)
+                parsed_meta = NativeMetaValue.parse_data(item)
                 if parsed_meta.has_error:
                     return parsed_meta.forward()
                 f_meta.append(parsed_meta.result)
@@ -403,7 +397,6 @@ class WindowState:
             active=not_none(f_active),
             focus=not_none(f_focus),
             parent_id=f_parent_id,
-            flashing=not_none(f_flashing),
             location=not_none(f_location),
             minimized=not_none(f_minimized),
             meta=not_none(f_meta),
@@ -423,6 +416,9 @@ class WindowCreatedEvent:
     __slots__ = ('state',)
     FULL_EVENT_NAME = 'petronia.core.api.native.window:window-created'
     SHORT_EVENT_NAME = 'window-created'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:window'
+    UNIQUE_TARGET_REL = 'window'
 
     def __init__(
         self,
@@ -488,6 +484,9 @@ class WindowDestroyedEvent:
     FULL_EVENT_NAME = 'petronia.core.api.native.window:window-destroyed'
     SHORT_EVENT_NAME = 'window-destroyed'
 
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:window'
+    UNIQUE_TARGET_REL = 'window'
+
     def __init__(
         self,
         reason: str,
@@ -538,6 +537,108 @@ class WindowDestroyedEvent:
 
     def __repr__(self) -> str:
         return "WindowDestroyedEvent(" + repr(self.export_data()) + ")"
+
+
+class WindowFocusedEvent:
+    """
+    Sent when a different window receives keyboard focus. The source ID is the newly
+    focused window ID.
+    """
+    __slots__ = ('keyboard_focus',)
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:window-focused'
+    SHORT_EVENT_NAME = 'window-focused'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:window'
+    UNIQUE_TARGET_REL = 'window'
+
+    def __init__(
+        self,
+        keyboard_focus: int,
+    ) -> None:
+        self.keyboard_focus = keyboard_focus
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return WindowFocusedEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'keyboard_focus': self.keyboard_focus,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['WindowFocusedEvent']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('keyboard_focus')
+        f_keyboard_focus: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='keyboard_focus',
+                name='WindowFocusedEvent',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='keyboard_focus',
+                    type='int',
+                    name='WindowFocusedEvent',
+                )
+            f_keyboard_focus = int(val)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(WindowFocusedEvent(
+            keyboard_focus=not_none(f_keyboard_focus),
+        ))
+
+    def __repr__(self) -> str:
+        return "WindowFocusedEvent(" + repr(self.export_data()) + ")"
+
+
+class WindowFlashedEvent:
+    """
+    Sent when a different window sends an alert that it requires user attention. The
+    "flashing" state is not part of the window state, because the duration of a
+    window being "flashing" and when it stops flashing is determined by other
+    extensions that use this. The source ID is the window ID that flashed.
+    """
+    __slots__ = ()
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:window-flashed'
+    SHORT_EVENT_NAME = 'window-flashed'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:window'
+    UNIQUE_TARGET_REL = 'window'
+
+    def __init__(
+        self,
+    ) -> None:
+        pass
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return WindowFlashedEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        return {}
+
+    @staticmethod
+    def parse_data(_data: Dict[str, Any]) -> StdRet['WindowFlashedEvent']:
+        """Parse the marshalled data into this structured form.  There are no fields, so this is
+        essentially a no-op."""
+        return StdRet.pass_ok(WindowFlashedEvent())
+
+    def __repr__(self) -> str:
+        return "WindowFlashedEvent(" + repr(self.export_data()) + ")"
 
 
 class WindowIdPositions:
@@ -607,12 +708,15 @@ class WindowIdPositions:
 
 class SetWindowPositionsEvent:
     """
-    Request changes to zero or more window positions. This is useful for systems
-    that rearrange the whole screen, or move between virtual desktops.
+    Request changes to one or more window positions. This is useful for systems that
+    rearrange the whole screen, or move between virtual desktops.
     """
     __slots__ = ('window_id_positions',)
     FULL_EVENT_NAME = 'petronia.core.api.native.window:set-window-positions'
     SHORT_EVENT_NAME = 'set-window-positions'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:window'
+    UNIQUE_TARGET_REL = 'window'
 
     def __init__(
         self,
@@ -663,189 +767,256 @@ class SetWindowPositionsEvent:
         return "SetWindowPositionsEvent(" + repr(self.export_data()) + ")"
 
 
-class WindowFocusedEvent:
+class CloseWindowRequestEvent:
     """
-    Sent when a different window receives keyboard focus.
+    Request that an active window be closed.
     """
-    __slots__ = ('window_id', 'keyboard_focus',)
-    FULL_EVENT_NAME = 'petronia.core.api.native.window:window-focused'
-    SHORT_EVENT_NAME = 'window-focused'
+    __slots__ = ()
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:close-window:request'
+    SHORT_EVENT_NAME = 'close-window:request'
 
     def __init__(
         self,
-        window_id: str,
-        keyboard_focus: int,
     ) -> None:
-        self.window_id = window_id
-        self.keyboard_focus = keyboard_focus
+        pass
 
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return WindowFocusedEvent.FULL_EVENT_NAME
+        return CloseWindowRequestEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'window_id': self.window_id,
-            'keyboard_focus': self.keyboard_focus,
-        }
-        return _strip_none(ret)
+        return {}
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['WindowFocusedEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('window_id')
-        f_window_id: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='window_id',
-                name='WindowFocusedEvent',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='window_id',
-                    type='str',
-                    name='WindowFocusedEvent',
-                )
-            f_window_id = val
-        val = data.get('keyboard_focus')
-        f_keyboard_focus: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='keyboard_focus',
-                name='WindowFocusedEvent',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='keyboard_focus',
-                    type='int',
-                    name='WindowFocusedEvent',
-                )
-            f_keyboard_focus = int(val)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(WindowFocusedEvent(
-            window_id=not_none(f_window_id),
-            keyboard_focus=not_none(f_keyboard_focus),
-        ))
+    def parse_data(_data: Dict[str, Any]) -> StdRet['CloseWindowRequestEvent']:
+        """Parse the marshalled data into this structured form.  There are no fields, so this is
+        essentially a no-op."""
+        return StdRet.pass_ok(CloseWindowRequestEvent())
 
     def __repr__(self) -> str:
-        return "WindowFocusedEvent(" + repr(self.export_data()) + ")"
+        return "CloseWindowRequestEvent(" + repr(self.export_data()) + ")"
 
 
-class FocusSettingsState:
+class MinimizeWindowRequestEvent:
     """
-    How the window focus events are translated into Petronia events.
+    Request that an active window be minimized. Some windowing systems may ignore
+    this request.
     """
-    __slots__ = ('on_new_window_click', 'on_new_window_enter', 'on_window_event',)
-
-    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:focus-settings'
-    UNIQUE_TARGET_REL = 'petronia.core.api.native.window:focus-settings'
+    __slots__ = ()
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:minimize-window:request'
+    SHORT_EVENT_NAME = 'minimize-window:request'
 
     def __init__(
         self,
-        on_new_window_click: bool,
-        on_new_window_enter: bool,
-        on_window_event: bool,
     ) -> None:
-        self.on_new_window_click = on_new_window_click
-        self.on_new_window_enter = on_new_window_enter
-        self.on_window_event = on_window_event
+        pass
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return MinimizeWindowRequestEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        return {}
+
+    @staticmethod
+    def parse_data(_data: Dict[str, Any]) -> StdRet['MinimizeWindowRequestEvent']:
+        """Parse the marshalled data into this structured form.  There are no fields, so this is
+        essentially a no-op."""
+        return StdRet.pass_ok(MinimizeWindowRequestEvent())
+
+    def __repr__(self) -> str:
+        return "MinimizeWindowRequestEvent(" + repr(self.export_data()) + ")"
+
+
+class MaximizeWindowRequestEvent:
+    """
+    Request that an active window be maximized. Some windowing systems may ignore
+    this request.
+    """
+    __slots__ = ()
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:maximize-window:request'
+    SHORT_EVENT_NAME = 'maximize-window:request'
+
+    def __init__(
+        self,
+    ) -> None:
+        pass
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return MaximizeWindowRequestEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        return {}
+
+    @staticmethod
+    def parse_data(_data: Dict[str, Any]) -> StdRet['MaximizeWindowRequestEvent']:
+        """Parse the marshalled data into this structured form.  There are no fields, so this is
+        essentially a no-op."""
+        return StdRet.pass_ok(MaximizeWindowRequestEvent())
+
+    def __repr__(self) -> str:
+        return "MaximizeWindowRequestEvent(" + repr(self.export_data()) + ")"
+
+
+class RestoreWindowRequestEvent:
+    """
+    Request that an active window be restored after a minimize or maximize. Some
+    windowing systems may ignore this request.
+    """
+    __slots__ = ()
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:restore-window:request'
+    SHORT_EVENT_NAME = 'restore-window:request'
+
+    def __init__(
+        self,
+    ) -> None:
+        pass
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return RestoreWindowRequestEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        return {}
+
+    @staticmethod
+    def parse_data(_data: Dict[str, Any]) -> StdRet['RestoreWindowRequestEvent']:
+        """Parse the marshalled data into this structured form.  There are no fields, so this is
+        essentially a no-op."""
+        return StdRet.pass_ok(RestoreWindowRequestEvent())
+
+    def __repr__(self) -> str:
+        return "RestoreWindowRequestEvent(" + repr(self.export_data()) + ")"
+
+
+class SetWindowSettingsEvent:
+    """
+    Requests that a subset of a single window's meta values be changed. The target
+    ID must be the window ID.
+    """
+    __slots__ = ('settings',)
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:set-window-settings'
+    SHORT_EVENT_NAME = 'set-window-settings'
+
+    def __init__(
+        self,
+        settings: List[NativeMetaValue],
+    ) -> None:
+        self.settings = settings
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return SetWindowSettingsEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'on_new_window_click': self.on_new_window_click,
-            'on_new_window_enter': self.on_new_window_enter,
-            'on_window_event': self.on_window_event,
+            'settings': [v.export_data() for v in self.settings],
         }
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['FocusSettingsState']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['SetWindowSettingsEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        val = data.get('on_new_window_click')
-        f_on_new_window_click: bool
+        val = data.get('settings')
+        f_settings: List[NativeMetaValue]
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='on_new_window_click',
-                name='FocusSettingsState',
+                field_name='settings',
+                name='SetWindowSettingsEvent',
             )
         else:
-            if not isinstance(val, bool):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='on_new_window_click',
-                    type='bool',
-                    name='FocusSettingsState',
-                )
-            f_on_new_window_click = val
-        val = data.get('on_new_window_enter')
-        f_on_new_window_enter: bool
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='on_new_window_enter',
-                name='FocusSettingsState',
-            )
-        else:
-            if not isinstance(val, bool):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='on_new_window_enter',
-                    type='bool',
-                    name='FocusSettingsState',
-                )
-            f_on_new_window_enter = val
-        val = data.get('on_window_event')
-        f_on_window_event: bool
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='on_window_event',
-                name='FocusSettingsState',
-            )
-        else:
-            if not isinstance(val, bool):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='on_window_event',
-                    type='bool',
-                    name='FocusSettingsState',
-                )
-            f_on_window_event = val
+            f_settings = []
+            for item in val:
+                parsed_settings = NativeMetaValue.parse_data(item)
+                if parsed_settings.has_error:
+                    return parsed_settings.forward()
+                f_settings.append(parsed_settings.result)
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(FocusSettingsState(
-            on_new_window_click=not_none(f_on_new_window_click),
-            on_new_window_enter=not_none(f_on_new_window_enter),
-            on_window_event=not_none(f_on_window_event),
+        return StdRet.pass_ok(SetWindowSettingsEvent(
+            settings=not_none(f_settings),
         ))
 
     def __repr__(self) -> str:
-        return "FocusSettingsState(" + repr(self.export_data()) + ")"
+        return "SetWindowSettingsEvent(" + repr(self.export_data()) + ")"
+
+
+class SetGlobalSettingsEvent:
+    """
+    Requests that a subset of global settings be changed. Errors are not reported in
+    an explicit response event (though they should be posted as a user configuration
+    problem to the logging extension). Valid changes update the global datastore
+    value. Settings not specified remain unchanged.
+    """
+    __slots__ = ('settings',)
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:set-global-settings'
+    SHORT_EVENT_NAME = 'set-global-settings'
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:global'
+    UNIQUE_TARGET_REL = 'global'
+
+    def __init__(
+        self,
+        settings: List[NativeMetaValue],
+    ) -> None:
+        self.settings = settings
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return SetGlobalSettingsEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'settings': [v.export_data() for v in self.settings],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['SetGlobalSettingsEvent']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('settings')
+        f_settings: List[NativeMetaValue]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='settings',
+                name='SetGlobalSettingsEvent',
+            )
+        else:
+            f_settings = []
+            for item in val:
+                parsed_settings = NativeMetaValue.parse_data(item)
+                if parsed_settings.has_error:
+                    return parsed_settings.forward()
+                f_settings.append(parsed_settings.result)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(SetGlobalSettingsEvent(
+            settings=not_none(f_settings),
+        ))
+
+    def __repr__(self) -> str:
+        return "SetGlobalSettingsEvent(" + repr(self.export_data()) + ")"
 
 
 class ActiveIds:
@@ -961,7 +1132,7 @@ class FocusedWindowsState:
     The windows that have focus. Focus in Petronia allows multiple input groups to
     have their own windows, though most underlying UI systems only have support for
     one user (all keyboards and mice are considered one). Each index represents that
-    user group.
+    input group.
     """
     __slots__ = ('focused',)
 
@@ -1087,6 +1258,61 @@ class WindowDetailsState:
 
     def __repr__(self) -> str:
         return "WindowDetailsState(" + repr(self.export_data()) + ")"
+
+
+class GlobalSettingsState:
+    """
+    An implementation specific listing of various settings that can be made. This
+    includes things like how focus is followed (mouse click, keyboard, or mouse
+    movement), general window styles, and the like.
+    """
+    __slots__ = ('settings',)
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.window:global-settings'
+    UNIQUE_TARGET_REL = 'petronia.core.api.native.window:global-settings'
+
+    def __init__(
+        self,
+        settings: List[NativeMetaValue],
+    ) -> None:
+        self.settings = settings
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'settings': [v.export_data() for v in self.settings],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['GlobalSettingsState']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('settings')
+        f_settings: List[NativeMetaValue]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='settings',
+                name='GlobalSettingsState',
+            )
+        else:
+            f_settings = []
+            for item in val:
+                parsed_settings = NativeMetaValue.parse_data(item)
+                if parsed_settings.has_error:
+                    return parsed_settings.forward()
+                f_settings.append(parsed_settings.result)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(GlobalSettingsState(
+            settings=not_none(f_settings),
+        ))
+
+    def __repr__(self) -> str:
+        return "GlobalSettingsState(" + repr(self.export_data()) + ")"
 
 
 def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:

@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-28T02:46:15.305939+00:00
+# Created on 2021-03-01T15:28:50.682950+00:00
 
 """
 Tests for the window module.
@@ -80,38 +80,38 @@ SCREEN_DIMENSION_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'x': 800740904613907326,
-            'y': -4844580933679434310,
-            'width': 5812860711515869945,
-            'height': 921393359080297383,
+            'x': 2445350951560220955,
+            'y': 1635930407134517988,
+            'width': -883140456381414249,
+            'height': 3846197494682898373,
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'x': 8840827512776384819,
+            'x': 2556667276273731382,
 
-            'y': -7887398670006555832,
+            'y': -1507598795250355718,
 
-            'width': 3293626775761455410,
+            'width': -2472926867441257015,
 
-            'height': -6594590910547344093,
+            'height': -7290876884953616982,
 
         },
     ),
 ]
 
-class MetaTest(unittest.TestCase):
+class NativeMetaValueTest(unittest.TestCase):
     """
-    Tests for Meta
+    Tests for NativeMetaValue
     """
     def test_parse_bad_data(self) -> None:
         """Data driven tests with validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in META_BAD_PARSE_DATA_TESTS:
+        for test_name, test_data, messages in NATIVE_META_VALUE_BAD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = window.Meta.parse_data(test_data)
+                res = window.NativeMetaValue.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
@@ -125,14 +125,14 @@ class MetaTest(unittest.TestCase):
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in META_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in NATIVE_META_VALUE_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = window.Meta.parse_data(test_data)
+                res = window.NativeMetaValue.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-META_BAD_PARSE_DATA_TESTS: Sequence[
+NATIVE_META_VALUE_BAD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
 ] = [
 
@@ -142,11 +142,11 @@ META_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='key', name='Meta'),
+                dict(field_name='key', name='NativeMetaValue'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='value', name='Meta'),
+                dict(field_name='value', name='NativeMetaValue'),
             ),
 
         ),
@@ -155,21 +155,22 @@ META_BAD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-META_GOOD_PARSE_DATA_TESTS: Sequence[
+NATIVE_META_VALUE_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
     (
         'all-fields-present',
         {
-            'key': '®ːƸ\u0383ɣόҘǫΞŕвνʦӗȢȨ˷˺ԝѣɷsʈͳςɤɣšӛ҈',
-            'value': 'Ͽͺϥӝ˭ȨñȅŪĳô\x8bøӭă4\x8eζχȡΝǅƻѰú©Ġëˣʛ',
+            'key': 'ʙ҇Ņ\x9b%\x8aħҌ˕ďӅ\x9cϘ®Ȧӡ',
+            'description': 'ȞԦʹ¢QřřƣƹŧʹΖӌҮʕµϧπňɖȍϚԗ˦б8Ȗʺɱȟ',
+            'value': 'ʴӗʯ_ųҥї¯еΏьɿzϧˬӕŐźфǁáҫҲ;ƙ˷ШӼʘԟ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'key': '',
+            'key': 'ѿ',
 
             'value': '',
 
@@ -225,10 +226,6 @@ WINDOW_STATE_BAD_PARSE_DATA_TESTS: Sequence[
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='flashing', name='WindowState'),
-            ),
-            (
-                'Required field {field_name} in {name}',
                 dict(field_name='location', name='WindowState'),
             ),
             (
@@ -252,57 +249,66 @@ WINDOW_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'active': True,
-            'focus': 1148,
-            'parent_id': 'ŌŪЪѓϬΗ\x8bϻΙ\x87Ţ҈ɔϼʄĂ³\x90τҌƫ¾\x9b\x9bôˤøÙŚԕ',
-            'flashing': True,
+            'active': False,
+            'focus': 4969,
+            'parent_id': 'ʤKģӊɐԗҭż¶Ɲ˩ˀҙʷӴιϡbζ˘ӊϔ˾\x8dӱǒҠħɫʲ',
             'location': {
-                'x': 9171058961302081159,
-                'y': 5169693088545200885,
-                'width': 3252803616187300812,
-                'height': -24867060726289516,
+                'x': 5896639654708668925,
+                'y': -7873633741477204092,
+                'width': 5991220673116771132,
+                'height': 6342476105724492082,
             },
             'minimized': True,
             'meta': [
                 {
-                    'key': 'ʾČϼӅɼњʸȾǡøЋȠǣҫШУßԮѰМϡїǝɮ»р9',
-                    'value': 'ŗɖ҈єʽŞ7ѰɜƠӾ©°ЈˡǗʑϽʸтԫ:ӒԚêřĭҨуϬ',
+                    'key': 'ƤӀ\u0380ǆɹ;υВЯҺƹɉƐЂʃɏǣðŲƧćСшƿþ©ϫʀȌǋ',
+                    'description': 'һ¬ɑЂʚĴʪǊˍdűˬʕʏҸǂʒӞҽӮˈҡ΅ŬȽŏ\x82ǹӈѺ',
+                    'value': 'ȯчğʿǜ{˲Ǥ\x8bƯЁēƆŷŔǮþ5Κʲ˜ÜІǸNōяˍͳԄ',
                 },
                 {
-                    'key': '˥ӿĘƎõϺǰÿҵǔɖҢѪξɄĩȾ˸ϗȂƴÃѴΕ·ҢĦʫŠŤ',
-                    'value': '˖υȜČϛƆŢҪƂѶˢв°ɾӰΑɣĞƴӓʖYǕʟɇͺĶӛҶ',
+                    'key': 'Ɓǧͽ_ӷьҤвҡŧǜʥƢӇʠŘ',
+                    'description': 'ƃ\\ǂŃbƬ\x99ѦƢƂҦ˘\xad_ӐԥӇÔлā°ЛȢѲțӿԬ&Џʴ',
+                    'value': 'ю®Ś\x93ɶļòCД\x98ӻ͵\u0382ƮƊɊµɳŌǯѳ˛Ħ\x9daʝԎɆѲȼ',
                 },
                 {
-                    'key': 'ӡiȦҽØźЊ,ġu±ɘQùĐ\x97Л\x84ɍ\x81Eӳ˄]ʙɖŰǬħǤ',
-                    'value': 'ԖÌƒʺǬɳːɿΪԍÍҿȿ˱ɾ0ωǜƕǛõ˲¨GvȦєʐ˝ǃ',
+                    'key': 'Ӗ˄',
+                    'description': 'ǤȑƗǀýǙӀҩƩѳȸ˩ЭԜԞ!АȫҐɴºϬўŁˋŴЈӷˠɁ',
+                    'value': 'ĶΤəȳԝүĳɌʡ҆ûҗΜӻ"ÙψӗǄΠ\x9cBôǴǫƂȶф&ҭ',
                 },
                 {
-                    'key': 'ǲ˛ɒɽѶɴӖ"ǣҨɾ҈ƒʬɅǀʍ)\x87˚ӞÇƦ0ӭКƍáԋԆ',
-                    'value': '҃ĮώęɤʑʳÑ/ʡʒ[ϹіԘϕҗҍԪŅȺќЛӾȻÂǱȇɥŸ',
+                    'key': 'Ȩ;Āɍӗϡ\x96˩ȃ¿ӷƮРȪƉѫìȅŐ.ė҂\x85яĜȲ',
+                    'description': 'ԡɊĺĩ\x91%\x90г\x8aӠӆɰXĺÒԏĞǽDҲǡЈҒӇӬԒĚВťȭ',
+                    'value': 'ҌÝŴÀɫ΅bʂÊ˵ǡȏǉǟʙκӴˇлɿʠˮ\x9aϵýκԮƜȉǑ',
                 },
                 {
-                    'key': '×Ô\x92МɈ,Ŵō~<ŬЫҭVʠϯɀєƊɛеӞȧȟԓ\u0381ǻƽʆ',
-                    'value': 'ϕΏ\x97ǯʘͶ§Йǲҫm\u038dĵ\x8bОϏƈԊΦV˻Ѷдőғħ¥ɆƔ`',
+                    'key': 'ҴϧnҐ',
+                    'description': 'ҠǽѹƀѲқ¬ȒΥǾɘкŨȈ\x90\x99ҧȋǇǺͿӶъӏԚʷƴśϓϨ',
+                    'value': 'Ļ\x83ēҜśҴŕЭοȻωǛȀİϥɔȡ˕еÜĄθxƅǫѺюǤӔϬ',
                 },
                 {
-                    'key': 'ЧňĤźӺěѐȹȾԆmơԣ˻ĖΜɜǮǊͻԄӂҺ҃ƼˌȆĝђб',
-                    'value': 'Ιȹȡԩ˽һЉƃ½ˮМѐФ·ƫʹΐɞʜѯǶԓѼÏӗ\x86ĪцҊP',
+                    'key': '½ҼʭѷĘ˗đȘѩǸ¥ǢѭͻǯŏҤҡЬЛĄ3ÊӤ\x92ԌҖzϿА',
+                    'description': 'ԗ#ĖϟѤ\x80ΦѰñА1ǛԊƃ˫?Ъčʭ;ȣdЍȖħÀſǞʺ˼',
+                    'value': 'ҋҰӧпɤдѸҹҼчŚwӂůȍǃNҦſεѪ\u0378ѧͻ´ÆžʵǿҌ',
                 },
                 {
-                    'key': 'ϚȗЁȋtÏ$lԏўѽʄХQ΅нɓƍΗeѥġ3ŻӲ&ҽ8Ƈƪ',
-                    'value': 'jћñɭԈӤŀϬΑӦ\u0378ѝÔǌȇɊӼņ`ǣҞǐĖѽȑňԒō˧Ԋ',
+                    'key': 'ǉƻŪń!ΆƕĥȤ¤.UϪԭġƑɋӏϰԋýԪ;ťϜ\x86ƔҺË˱',
+                    'description': 'ԫɯ\x88лʥ\x8f˴ƗԤМ7ȫѻ\x8aπ;ϐáŸéĦ²Θ\u038bџóɲФϗǹ',
+                    'value': 'żĪ]}ͰǷǓ,˄ҘӯҊĜƉΪĐŶƓÈϲϵӌ-ϦğŰƞѶԉȘ',
                 },
                 {
-                    'key': 'ƮӣԛмћÎθҀɣȨψЎǷǔSУƼǃцŷĖ|Ĭ˨Də"î.\x82',
-                    'value': 'ǤƎ˹ѕήϋɸИЅѫBȭ¢2ùȓΐβѻӽτĕɍ˞Ӻɛ˨ǊНü',
+                    'key': 'ԃƵ˗Ĥυěјσ²ÒƏŕԂƝÀXʝ¼ɅӵϰþĐýÐÙʹοƶ\x9a',
+                    'description': '\x9bҀƻÞ҃җʠ<ǉ*ɺʕХˮǹMǑЮʃԁЄó˺§`2ӬωĲИ',
+                    'value': 'ØϬįΏʮҫͰ˗Ǆ\xa0`сњÎ®Ǿ\x88Ʈͺ˳б˔ȐbŔȹϓӨïǔ',
                 },
                 {
-                    'key': 'ŅҚĳɮƊӁıʨ˵ΐӟӇӶèӸˍˆДƗϻů\u038dѬϧɓÑɨǱΥͻ',
-                    'value': 'ĹͿԓћ¸ɔɴɾCʚψɇVǳӵѱĮяÈɧʴ\x98ЯßΑǕ¦Ŕ;Ğ',
+                    'key': 'ƞԨɀƔˢɐ{Ζ\x81ĸɝÜӅǍάʒƒêÌԈ@ɞ˘ȹКǀϳχЃ',
+                    'description': '6ҵŀÝŉĚΑª\u0378BϋʒƸŊЏê˨ǝºϹ˃ɴƇ\u0380ЩĂˇāˠɻ',
+                    'value': 'ɻҨɠ¸ΫȉȅǱsξʩͼ˫З˦ïϩéãį\\ù¡șϢϫʻŪɲƆ',
                 },
                 {
-                    'key': 'ɰԝªҺΗũҟӚѭ˺иwФѶɀPрϻđӑӄǂțΔƧΫнϺΔů',
-                    'value': 'ěѬ҆ĞAη¬н.ʿʑ;тĜƀůӢȨ\x91ˡ:ŗΛːҲg6ĭìБ',
+                    'key': 'Ύ˛-˒ǟ˸зėϛԬƋɤȵ²ίРҧ҃ϷǍǁδ\x87ˉʼ',
+                    'description': 'Ћѻ_ĞUʃӵǒӗÏ˗øɨ\x8fӪϦ²ư¼ԏҘʝ1ʈ38nӿЀͲ',
+                    'value': "V'ҊȀɵ˄ʀυ;нԇΡ˫Ӯӆ½϶\x8aŴЅҰɺƆӆԣӸѝ\x8dÿµ",
                 },
             ],
         },
@@ -311,17 +317,15 @@ WINDOW_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'active': True,
+            'active': False,
 
-            'focus': 3897,
-
-            'flashing': True,
+            'focus': 991,
 
             'location': {
-                'x': -8458622404849870331,
-                'y': -4923028491809466062,
-                'width': -5710850213102664265,
-                'height': 3469408142106928763,
+                'x': 3125094686764197327,
+                'y': 4605287159334146348,
+                'width': -4877383477455108991,
+                'height': -8882722464458529620,
             },
 
             'minimized': True,
@@ -390,56 +394,40 @@ WINDOW_CREATED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         {
             'state': {
                 'active': False,
-                'focus': 4983,
-                'parent_id': 'ӽǂșѧʌȑ˦îԉşĈƀΘʌƐͿʉ0ɘĕ~ŋĬаΒĝư©ʽϘ',
-                'flashing': False,
+                'focus': 4520,
+                'parent_id': 'Ӎø\x86ĒũëʸΨIξůʖŪȻȢͱŶӍ\x86UÉԣ¢ӺˡȆȽЋŨԂ',
                 'location': {
-                    'x': -4852395463184874038,
-                    'y': -1892882458236128201,
-                    'width': 2547117630991179096,
-                    'height': -4656196798285787606,
+                    'x': -1971018547670220665,
+                    'y': -5520569132405664320,
+                    'width': -4366528188193322648,
+                    'height': -6690134600469966093,
                 },
                 'minimized': True,
                 'meta': [
                     {
-                            'key': 'ÚÁкȸ\x9bȥҷӌԖȤѮɦĭҡŇǞԍƧȉĶ¡ǩʮԅϻΛòΊԦǊ',
-                            'value': 'ÅϚƜ\x84ЃΐΰԎ?ǫӸˮѭ0ы~«ñþ҅ë˾ʘВūϞʫɓŪӦ',
+                            'key': 'ŸӚƈƷԪĆȘϬпĬвѢ[Ȓ8p\x80L˛\x8fěʮ˂ȆԎ',
+                            'description': 'ǳ¨ùņīӁάºrƸȺĆѬяĂԚeϴʪſӳξțάӭƘӎȁλĸ',
+                            'value': '͵ѷЛѝ˸ԪӾϹ+ҩŃϝŖԇԞˀƈ˨Ⱦ\x84ԆЍ˕υˋÛŎԉǩϟ',
                         },
                     {
-                            'key': 'ęҁ͵ҽзȽӀϰˤʦέάѭȢƹЛγ\x82ҔϥÔǛš`®ҖѱϞ\x89ʞ',
-                            'value': 'ԬϣhǎĄАʙɣƱНǚӹХƒлӇɛƽԧǝƐјɿԩͲƘșғǨ@',
+                            'key': 'ҮӉʞɼІɦˉºʓ',
+                            'description': 'ѹ҉ǗĻϛÞÖԎʿ\x7f1\x92ȍɲςŕtĬҍҗγË\xadϺӮŖƗτҞӥ',
+                            'value': 'ҐϺѵгзɁɲȬàˉ`\x8e»ӰԐ0ɊLiҦɭΫă˓ØÅΊ˻˻ˑ',
                         },
                     {
-                            'key': 'ʲǍμщǞԫƅg˻Њ\x96οϺĲώƉµΐǵ˄҅ɁÊԄȬɂďɆ$ϱ',
-                            'value': 'ɿϜǖӷĖƮϱīϻʽȿэ\x83\x94ϔӘ\x9cԏ\x8dцͱѼȻ\x7fĹǌʮήmХ',
+                            'key': 'ϗьĭ§ƂǶә\x82ı',
+                            'description': 'ȤĠϴάŒҐʖѴɨ-\x93ìԞ\x81ƴ©ѶĒȏГԇ˺ÿԠĐșʟō@Ρ',
+                            'value': 'ӆӋôćȹЧȢˆƿǨѸҠҩˏɳȂФӥŽͰʯŌʫ҄ƽȚӭ˞ϊf',
                         },
                     {
-                            'key': 'Λǜ\x9fƹζͶ)ÈŋǤъʈāԄΦҶƚƑԜǏΟʭкǔ\x7f½Ⱥɐ˙І',
-                            'value': 'ŕ\x8aГӛеͺȧƳć·ÆɥΚ=ɆϙyƅȚсȝ\x83ʔΜоF\x97αңԒ',
+                            'key': 'ä\x84ʪµӤ҂ȺХΨԖŁ˻ƕЈ=ή\x99˽Э+\x83άȢɕ\u038d`ǒƯΞ¹',
+                            'description': '˯ǽʬ©ɊxϧUԬţİʝԐBЦΉɺʴӬ~ɆBȗʔű½ϋнѴʞ',
+                            'value': 'ʭõѧǠ\x99\x8aʶӗİӜԣϦ|ÚΞ\u0382ȅ\x85ўԤѽîɕƳ¶ϽЊǻҍ\x94',
                         },
                     {
-                            'key': 'Ė1ԋɈӛʾԂӜȻsĚǔϻрƴ¤ˇxù˶Aʿ=(ѪЌŋÀаq',
-                            'value': 'юʫÀί¹ǧʐвĖ\x87áƶψűɲΰЌͿƬєіȶɣҮІ\u0379҆ǽԦЩ',
-                        },
-                    {
-                            'key': 'ϑ˸Ҭяˮц¤ΆˍGċřǟӞ\x8f¤΄-їŲɕұ΅˰ǖӆkʛeˠ',
-                            'value': 'o҃ːȅǿϳEƋӛ\x89ƉÌ#ћǪσөɏΠƼßϔ\xa0ĺЍϛҩτ˞ҝ',
-                        },
-                    {
-                            'key': '˥ԝƅ˲˂ʸΩӸȇ҂ɚȋȪ˫ʘЧтѣ˲ǏȂ¯ɥʊɹ\x80ĊƴȈƼ',
-                            'value': 'ÃǼϣǏèĘʝƗϡʔԜСŮƻãȀӗĢȈӶSÂʶÁϰͱĻαЬп',
-                        },
-                    {
-                            'key': '«˝ȶūÑǕҳ\x8d\x95\u0380:żӯ˟ԟĂƈñ[МɠӅˋ҇ƿˋáϨƠɦ',
-                            'value': 'ЙРˁќÑ>ĮԋԨĲǪɞʆԪʐх˞ŸЗψО҉ɨбŤҭőϑɮƹ',
-                        },
-                    {
-                            'key': '˛дƿĘϰʓĊӃ"ǢǰȎ˳ʩ҃т˙ıʊĊʄȌĖр˄šĨһÙĒ',
-                            'value': 'ҟØʣŁŷ\x97ȸű_Ǚϸ˘Дҝ˘ϼɎСӆśфjлх˘ӄ$ɀ»H',
-                        },
-                    {
-                            'key': 'ҡGĨɄӿЀĎӥ!ãwͽȲʎҵΞИΞťÛǭϞϭέǌʕҲωϓ҃',
-                            'value': 'ϷǞ͵ȱѰʡȰ˶ѮǝӤĞȼɥԄӫƬȭ8TӜхȢʵhеСν\x89ǥ',
+                            'key': 'ǟ3©ÒƂ',
+                            'description': 'ȞØȶҞƷÀΚŞĩһ˥ә҇\x8eНУÈƩӛ¡iƷ˶ˡΚȽϯƪϗɋ',
+                            'value': 'd҂ϓƦˑυžʾϮɮ˙ȏϼǴ$ˍė˹ͲӋѐɥΈˣҥҙCѠiȝ',
                         },
                 ],
             },
@@ -451,13 +439,12 @@ WINDOW_CREATED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 
             'state': {
                 'active': True,
-                'focus': 7870,
-                'flashing': False,
+                'focus': 173,
                 'location': {
-                    'x': 8834648259259036118,
-                    'y': -95366180761229674,
-                    'width': -4104062624072085672,
-                    'height': -6294904168670451213,
+                    'x': 1918386699333565854,
+                    'y': 4971241038930373504,
+                    'width': 7020375678402706129,
+                    'height': 9050441267690457791,
                 },
                 'minimized': True,
                 'meta': [
@@ -523,7 +510,7 @@ WINDOW_DESTROYED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'reason': 'ɦƊɄѕѲǤ¾ƤæӺʗVǣԬĉǩǴƇŰ\x87˲Òλ¯ʽØöԧԇϡ',
+            'reason': 'òɣȓύǾҹЩɡƶ\u0380цƨРŕҏзŗωÖȮʱǍFřȎЎш\x9eś˜',
         },
     ),
     (
@@ -534,6 +521,95 @@ WINDOW_DESTROYED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 
         },
     ),
+]
+
+class WindowFocusedEventTest(unittest.TestCase):
+    """
+    Tests for WindowFocusedEvent
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in WINDOW_FOCUSED_EVENT_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.WindowFocusedEvent.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = {
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                }
+                actual = list(res.valid_error.messages())
+                # The parsing returns at least one of the problems, but not necessarily all.
+                self.assertTrue(len(actual) >= 1, repr(expected))
+                self.assertTrue(expected.issuperset(actual), repr(expected))
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in WINDOW_FOCUSED_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.WindowFocusedEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+WINDOW_FOCUSED_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+
+    (
+        'all-fields-missing',
+        {},
+        (
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='keyboard_focus', name='WindowFocusedEvent'),
+            ),
+
+        ),
+    ),
+
+]
+
+
+WINDOW_FOCUSED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'keyboard_focus': 2339,
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+            'keyboard_focus': 5410,
+
+        },
+    ),
+]
+
+class WindowFlashedEventTest(unittest.TestCase):
+    """
+    Tests for WindowFlashedEvent
+    """
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in WINDOW_FLASHED_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.WindowFlashedEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+WINDOW_FLASHED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+
+    ('basic-parse', {}),
 ]
 
 class WindowIdPositionsTest(unittest.TestCase):
@@ -591,12 +667,12 @@ WINDOW_ID_POSITIONS_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'window_id': '¾Ϣ\x9a\x84ɵ;ʌȚȂ΅К˰ţӌѹʮÌѺϠŇҚˑĳл cýӝѿɯ',
+            'window_id': 'ƅ¦ĩǌŻҖ(ϳ:ӫȀһȒ˘ьй\x85˷ǙώӶʾχΥϥѧФԕͶƴ',
             'location': {
-                'x': 7613932527508466860,
-                'y': 4580892650226600011,
-                'width': 2840537788093478351,
-                'height': 5666462939302248021,
+                'x': 2071271802973259344,
+                'y': -6094124585236483661,
+                'width': 1647673007637047887,
+                'height': -1501851389423969442,
             },
         },
     ),
@@ -604,7 +680,7 @@ WINDOW_ID_POSITIONS_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'window_id': '˛Ǎƫ³Ɩ',
+            'window_id': 'ɥΨҌ\x85ʷ',
 
         },
     ),
@@ -667,93 +743,93 @@ SET_WINDOW_POSITIONS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         {
             'window_id_positions': [
                 {
-                    'window_id': 'ƨƙ϶»Ǧв"Șѓ\x8dˀΌ\x9cTŻɀ\x91ÚĦϷϦǺóϢġ\x90їȱȢ·',
+                    'window_id': 'ŗǶҭǐƢsҚƒİ*Ϸȣ²ǆÑĴĹ¯¹ǘÚԠūǗĉɑƗɖЯï',
                     'location': {
-                            'x': -7405130838426688290,
-                            'y': 627009817947455365,
-                            'width': -155124173143994528,
-                            'height': -8127885312183747140,
+                            'x': -7299079081032517810,
+                            'y': 283037596459656212,
+                            'width': 2934456575265585105,
+                            'height': 3885960901622281391,
                         },
                 },
                 {
-                    'window_id': 'DǑ\x96˦\x8dҐЯ˞ԙǡ®Ćŧ˹ҨԏȔѯԅˇ\x80ʓΙȚрʋHĶ\x90˜',
+                    'window_id': 'ӧ\x98ʩ\x81Tʤ¹ԟѣʤȒɗǈ§ȣ¶ŰѨʯ˝ŒԏTȘɖЩ(ϮΞ\u038b',
                     'location': {
-                            'x': 8672094064689293908,
-                            'y': -8694097697742450383,
-                            'width': -7770297908546359875,
-                            'height': -7301610184582967429,
+                            'x': -9141680885676517553,
+                            'y': -5746495950206174962,
+                            'width': 2795402990645598170,
+                            'height': -298328462587170101,
                         },
                 },
                 {
-                    'window_id': 'Ǐ˷Ԥө\u0381Ç~ԏЉºĠŤϰήӳǊ\x8d1&4ԅ¶ʪŨóːȬʭ¸S',
+                    'window_id': 'ѡĠ˚\u0383и˝ίƵ^ȻǹѐГąȗɻǃ%ŎʇìњȂǁ\x86уÞɒͺʡ',
                     'location': {
-                            'x': 7076503490947234782,
-                            'y': -6502897995815447535,
-                            'width': 7141673334660999725,
-                            'height': 1306797958974734351,
+                            'x': 9035351652709280118,
+                            'y': -7470070345642002050,
+                            'width': -4258242146544865183,
+                            'height': -2940759886667056658,
                         },
                 },
                 {
-                    'window_id': 'ԃ΄ЉrxċʏǱƧ˹ǡ˗Ҏ҃~ſǙІȋϖґҸĆϩžʎǵҴˤӧ',
+                    'window_id': 'Ԋ˗ěåüǊȏїˍ\x8aȻüъŜԢѲԨѡɲΤԇ°˵ҁјҌhƒҏˮ',
                     'location': {
-                            'x': 7461843982489014864,
-                            'y': 9012982871518824265,
-                            'width': -6080683031537832130,
-                            'height': 3631767008774309813,
+                            'x': -5928844153020458768,
+                            'y': 1663601159340843735,
+                            'width': -2211479391505008243,
+                            'height': 6981732745864243987,
                         },
                 },
                 {
-                    'window_id': 'я\x84Ӫɬή»şiǅôҾȿŭɹ˴\x89ġXВԌӵĲΩӑ΅Ζ\x90·ɶʁ',
+                    'window_id': 'Ӭǥ_ӱɿ°ĽðWū\u0382ǔèþɐƅʨ˹ƗʄРЍˋĿǣӵʉˆіğ',
                     'location': {
-                            'x': 7577603599700772964,
-                            'y': 4651286154083788860,
-                            'width': -3173735620119870064,
-                            'height': -8728378811424830549,
+                            'x': 1114284265404895688,
+                            'y': 4241255261359759697,
+                            'width': 3404248979132953018,
+                            'height': 2778185780902718943,
                         },
                 },
                 {
-                    'window_id': 'DàńыҿӀƫώЌ,ԣσВïГ˘Ȗęǁωȟ\x8dZȚεӬĊΥɝƛ',
+                    'window_id': 'ҽŜȺʁчȪӀį҃ԧЮӾыгɔǜЂ˥śˢȉŨXjʔкBȶÉĹ',
                     'location': {
-                            'x': 836523147640641872,
-                            'y': 6300515719041092949,
-                            'width': 7963836483088264837,
-                            'height': 2359429983360538959,
+                            'x': 1143802681860219614,
+                            'y': 436462695821824018,
+                            'width': 5945483961399994411,
+                            'height': 3730852654384928765,
                         },
                 },
                 {
-                    'window_id': 'ԔƪΫѠͽÔz҆ˑϰҎҹʘ;ŨɆҒʂҠԪӺǋѪͶĜϩҟ£ДA',
+                    'window_id': 'ŃΎČςѸ?ɮюϭȿ҄ÀӠȰƢĝͲɦ\x8aΦʐɠȀ1όэӽȭǣΑ',
                     'location': {
-                            'x': -3752879901202457548,
-                            'y': 8224009445225303350,
-                            'width': -2262499047885586676,
-                            'height': 3049916217966383528,
+                            'x': 3063123258424523478,
+                            'y': -2016009930577613823,
+                            'width': 1671843464733874362,
+                            'height': -242167172296662583,
                         },
                 },
                 {
-                    'window_id': 'ɓΉøϐȋԎi3ЄıѽċȀΙƶҭʣҸԕZǊϙϡħŞ2·ЧtΚ',
+                    'window_id': 'Ȧ´«{ԐАʫèфԞp˖ǋǮȬÚ\u038bԎӿƍŔEӆʉғŋҠлεN',
                     'location': {
-                            'x': 8078873528050374517,
-                            'y': 3047486209777782847,
-                            'width': -7479638101365877571,
-                            'height': 3436924043224573996,
+                            'x': 5132460219314076136,
+                            'y': 2972234646010566184,
+                            'width': -2235681093460159084,
+                            'height': 1146030294490265194,
                         },
                 },
                 {
-                    'window_id': 'ěҗ·ȤʭдλГĥΜɶ§ʾ΄ӻА˔ǜˮӡҙŵѥѓӇeӎüƨϕ',
+                    'window_id': "ǬҷǿмюϩȍЍϮɛ²͵Ͼʎɨзċ'Ɓϩ©ĎȷѰɘN",
                     'location': {
-                            'x': 1293641267770395996,
-                            'y': -693167453501847013,
-                            'width': 269383039444291713,
-                            'height': 4965191624283337434,
+                            'x': -7162178962600172386,
+                            'y': 5473977616959015088,
+                            'width': 8012771393197358934,
+                            'height': 6220627645640030172,
                         },
                 },
                 {
-                    'window_id': 'œ˟ʩԀ\x8bŭύXˋȢʿɱӍƊĥԇǜӔЋԥԕҗԠƞӝЂƭÑˈĄ',
+                    'window_id': 'ԮҁǷÎҽɭӹBÙΏШЎϊ,ůҟţϱ_ϲ\x8fǁnǯǵɉɺ\x80Ϯǿ',
                     'location': {
-                            'x': 9040010746747453336,
-                            'y': -910800552239471021,
-                            'width': 8998019154618854667,
-                            'height': -8470388882794645892,
+                            'x': -7178569745099971964,
+                            'y': -6135175047772336954,
+                            'width': -3139690682420062820,
+                            'height': 4402129036586866117,
                         },
                 },
             ],
@@ -765,7 +841,7 @@ SET_WINDOW_POSITIONS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 
             'window_id_positions': [
                 {
-                    'window_id': '¢ѫ˲Ξŷ',
+                    'window_id': 'wњˆТǼ',
                 },
             ],
 
@@ -773,16 +849,100 @@ SET_WINDOW_POSITIONS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     ),
 ]
 
-class WindowFocusedEventTest(unittest.TestCase):
+class CloseWindowRequestEventTest(unittest.TestCase):
     """
-    Tests for WindowFocusedEvent
+    Tests for CloseWindowRequestEvent
+    """
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in CLOSE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.CloseWindowRequestEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+CLOSE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+
+    ('basic-parse', {}),
+]
+
+class MinimizeWindowRequestEventTest(unittest.TestCase):
+    """
+    Tests for MinimizeWindowRequestEvent
+    """
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in MINIMIZE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.MinimizeWindowRequestEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+MINIMIZE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+
+    ('basic-parse', {}),
+]
+
+class MaximizeWindowRequestEventTest(unittest.TestCase):
+    """
+    Tests for MaximizeWindowRequestEvent
+    """
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in MAXIMIZE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.MaximizeWindowRequestEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+MAXIMIZE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+
+    ('basic-parse', {}),
+]
+
+class RestoreWindowRequestEventTest(unittest.TestCase):
+    """
+    Tests for RestoreWindowRequestEvent
+    """
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in RESTORE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.RestoreWindowRequestEvent.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+RESTORE_WINDOW_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+
+    ('basic-parse', {}),
+]
+
+class SetWindowSettingsEventTest(unittest.TestCase):
+    """
+    Tests for SetWindowSettingsEvent
     """
     def test_parse_bad_data(self) -> None:
         """Data driven tests with validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in WINDOW_FOCUSED_EVENT_BAD_PARSE_DATA_TESTS:
+        for test_name, test_data, messages in SET_WINDOW_SETTINGS_EVENT_BAD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = window.WindowFocusedEvent.parse_data(test_data)
+                res = window.SetWindowSettingsEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
@@ -796,14 +956,14 @@ class WindowFocusedEventTest(unittest.TestCase):
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in WINDOW_FOCUSED_EVENT_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in SET_WINDOW_SETTINGS_EVENT_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = window.WindowFocusedEvent.parse_data(test_data)
+                res = window.SetWindowSettingsEvent.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-WINDOW_FOCUSED_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+SET_WINDOW_SETTINGS_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
 ] = [
 
@@ -813,11 +973,7 @@ WINDOW_FOCUSED_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='window_id', name='WindowFocusedEvent'),
-            ),
-            (
-                'Required field {field_name} in {name}',
-                dict(field_name='keyboard_focus', name='WindowFocusedEvent'),
+                dict(field_name='settings', name='SetWindowSettingsEvent'),
             ),
 
         ),
@@ -826,38 +982,87 @@ WINDOW_FOCUSED_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-WINDOW_FOCUSED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+SET_WINDOW_SETTINGS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
     (
         'all-fields-present',
         {
-            'window_id': 'ŀȂÖŻΤħάͶЎŝПň(ķēžǔΜјҠçǗȡӣʤɶęɋǎÊ',
-            'keyboard_focus': 9410,
+            'settings': [
+                {
+                    'key': 'βʅÒxȕМǓƻEӻʇȏ\xadԣӆηҸåӖΩ˴Ұ|£Ԧžǆώ΅Č',
+                    'description': ',˧ǅ˝ҏĪҡͷԆϓǏ˂Ϥǡԩϭΐ\x832ԥҜΓ\x83ːăǶΩ6Ţ2',
+                    'value': 'ɣïԜƽφǆöϞσíƪʰϏӾˋǹΡҋИƑшţſŬʵ˗ǦӉΒӀ',
+                },
+                {
+                    'key': 'ʱΒʱαȌʦʣʇǴ\x8bɹɽ',
+                    'description': 'ԇӾŭ\u0378άϮǘμΞƷѐǒɣĆ\x96ƲȫϩɞȤċſҞX°χƿЍ˺Ӑ',
+                    'value': '×đ¯πȧ/ҶĊ÷ťœʹіąԌÙɟÝâб˙ӈ¤ƯϮͿ=ƟĀţ',
+                },
+                {
+                    'key': '"ϴӵȽÕÅŞƻҿȅԕǆȪ\x90Ǯ#Χӡ',
+                    'description': 'çϛʵ\x8cðѾΊİʆӒѧ"ȀĨƹyƄĞΠǮǠтЯųуϗӬқ\\Ŗ',
+                    'value': 'ΠØļŔɂʔԆȳӴǩ@˶#\x96ѡę\x9bέǴєtƳĤȍÑӉŉɎɉȝ',
+                },
+                {
+                    'key': 'ϸϨҌʾʪ\x92Ō1Н҄ЎȬѰtƬśϭɔˈ§ǍɹȝʓåƂēԢǚ#',
+                    'description': 'ũ˺рEǿĒҳĲȊɏbԃŴүĬ¬ȼсƓШǘҟôӃð\\ɭ\x7fȯ8',
+                    'value': 'ΞϽәŌŭ,ǋñȲȏаЦȾyĸǏԁҠ\u0380ˬЏӔɂеϘ\xadү4ѹ\x8c',
+                },
+                {
+                    'key': '\x97ȋɑйΠΒӕWԬȅəϒԂΕ˙¡ċЦЛӔœӉҙʂĕŉˣӉŞɜ',
+                    'description': 'x»ǊүW϶ѺĶҎŭŭƱ\x86¼х\x9aȧ˷˼ǴԩБÞӵɁŘΤɗSǭ',
+                    'value': 'ҸƌƋԇȍԁqѻѴ΅ϝįʯ³ȏȕƌŋгɭXǆʴĕņɣӤžFæ',
+                },
+                {
+                    'key': 'ŕРƙ\x96ŧІʝ¶ʜR\x96ɥО\x83μŬǋԮϕϰƦē˅ѴȤԇäсƼ\\',
+                    'description': 'ҿωůˢʂǪүÀƊЍƭîхɶɶΞ\x8eԊʹǎɊɠ\x91ȵǃԈşӧ҅ń',
+                    'value': 'ɵ\x85ӬѴ΄ļȕŵÃӛíϣ\x9cѫÜʯ´ͻǧϺ2ǗÅ=ʹ\x94ӷǣȃ',
+                },
+                {
+                    'key': 'ēžřкϗ҄ʩҁ`ϸҼʪˋҡԆwқ',
+                    'description': 'ĄάҥЃŴȖĸэő˔ҡȂŬλ°ʺӯұĩҽǖӪęÅpΔǊКȔҤ',
+                    'value': 'вǱ\x8dƧҷhєğęƔԨIɁƅѲRE\xadҠƤʭԪǗȌʆӾ˨\x8dȷƐ',
+                },
+                {
+                    'key': 'ɫґʆ÷ѩźӉҭ¯бӽħ"ťϿŲŵɼБЖäЂțԢԂƶ˭WǺ(',
+                    'description': 'řȄӬȧËƨΝ\x87ΤķlҲȉȪīĂѭѿĢƒӗɽЩˎΣ',
+                    'value': "ϱ\x8eƬϥ¸Ѐ\u0381ǜӁÜǅÌМƨɛ`ϩύǔґмϸ¼Ʉ'ƈ",
+                },
+                {
+                    'key': 'εÌ9ςșËϖʲ¬ЬˋήǫгłώŲҶяɽȚӃԇͲʪʃlԝǮȍ',
+                    'description': 'ƓΟ²ȭ&ƘѣŐËɟÓĂԠSÄҮkԤϚÛȪɆЂΓĹkЀƦ҄ӈ',
+                    'value': 'ԔȕƸŏÖ°ȁ͵ʇŷ\x9cЅɰʍǐİЄù˂ĈфɹħΟч\x90Ïì`ç',
+                },
+                {
+                    'key': 'σC\xadƬ\u0380ϣϨȊԈԟΞ˗ѽСĺôҗɸ\x9aӻԫ~¾CҺƕĽϟ²˴',
+                    'description': 'ͳɂʕkƿƱwɑϾѾǙÃ´\u03a2\x92ӢӾĝЦԔɽȓҷϛŖăƚОЅƇ',
+                    'value': 'ɳўīƞŠҖҊŭzź˅ҭŅkѻǪȯӜӠ¢ҊȁϒŔˁȢūƩІź',
+                },
+            ],
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'window_id': 'ɣVϹҧȥ',
-
-            'keyboard_focus': 6543,
+            'settings': [
+            ],
 
         },
     ),
 ]
 
-class FocusSettingsStateTest(unittest.TestCase):
+class SetGlobalSettingsEventTest(unittest.TestCase):
     """
-    Tests for FocusSettingsState
+    Tests for SetGlobalSettingsEvent
     """
     def test_parse_bad_data(self) -> None:
         """Data driven tests with validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in FOCUS_SETTINGS_STATE_BAD_PARSE_DATA_TESTS:
+        for test_name, test_data, messages in SET_GLOBAL_SETTINGS_EVENT_BAD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = window.FocusSettingsState.parse_data(test_data)
+                res = window.SetGlobalSettingsEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
@@ -871,14 +1076,14 @@ class FocusSettingsStateTest(unittest.TestCase):
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in FOCUS_SETTINGS_STATE_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in SET_GLOBAL_SETTINGS_EVENT_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = window.FocusSettingsState.parse_data(test_data)
+                res = window.SetGlobalSettingsEvent.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-FOCUS_SETTINGS_STATE_BAD_PARSE_DATA_TESTS: Sequence[
+SET_GLOBAL_SETTINGS_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
 ] = [
 
@@ -888,15 +1093,7 @@ FOCUS_SETTINGS_STATE_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='on_new_window_click', name='FocusSettingsState'),
-            ),
-            (
-                'Required field {field_name} in {name}',
-                dict(field_name='on_new_window_enter', name='FocusSettingsState'),
-            ),
-            (
-                'Required field {field_name} in {name}',
-                dict(field_name='on_window_event', name='FocusSettingsState'),
+                dict(field_name='settings', name='SetGlobalSettingsEvent'),
             ),
 
         ),
@@ -905,26 +1102,72 @@ FOCUS_SETTINGS_STATE_BAD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-FOCUS_SETTINGS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
+SET_GLOBAL_SETTINGS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
     (
         'all-fields-present',
         {
-            'on_new_window_click': True,
-            'on_new_window_enter': True,
-            'on_window_event': False,
+            'settings': [
+                {
+                    'key': 'ϜИˌȼYʕӅĂ\x87ԗϖԍǙ˴οђŤ˹˟А³ʇƠĐӪѸŤԗϾђ',
+                    'description': 'ÿҟғZeʉˆԞЊɖǁɔțiԮfÁɊɚι˅Фϒ`4ʩȼƋґщ',
+                    'value': 'ҳЇţ\x9fěӋγ\x8aԡѠ˔çȹӶïȭbԐԡxšĝƲɢjԠɞŵӁɗ',
+                },
+                {
+                    'key': '¸ƇѸ\u03a2ŭ˵ӋWȰԠĤS«А˴FąʁʈǟȧɘϝȨŐȓҍƎҬ·',
+                    'description': 'ǀĻ˕ˊ˨ϠƸӱ@ìРþцÔɮƾҡʭTȆҌ¬æȝѠíȢԕĔȧ',
+                    'value': '˩űϔ˛',
+                },
+                {
+                    'key': 'ЮʜȮǈǩÊȧʌİ\x83Ƭ!Ʀʧǥ³ѰѬĚȊʥ¯jЎmѶϮɸ\x99à',
+                    'description': 'ѓȨҩĥƟqˍ\x8eXΔі+ґ\xadӕԞ¤јπʆIӅƍʻĳӜǷԝӇҽ',
+                    'value': '˖мҁ˲İʩǽѠɩƩľƆčąĺƋˁϭѐʒуӝ\x8aГǪрόώƨľ',
+                },
+                {
+                    'key': 'ӧǶЬўԇлѲϢȐҌЬԝ\x9dҁȢˉϐ˸\xadԠƺ˘ėˣȵǧǯγȾÇ',
+                    'description': 'ǻӉŌиµî΄ѐʺȨϷѢȎσЇȐ˓m\x9fѻʔΓɇȝô¯ȗŋƻ6',
+                    'value': 'ƺɵǦǅőĳɻ}ѠʑδԃғĺŃɅ˶ʘԛӆҙеͰMЧϙ\xadċЭ˼',
+                },
+                {
+                    'key': 'ӄԅƙԖЬ³ЋҚɣɐԓҭ\x9a˽ή:oӚ\x80īҝʗӅЈοҩƚÙĂz',
+                    'description': '˸ӎĖеĻɓԐÇϡШѹѢ-h8Ӡ¡¦ǙȳƂͻǓЬǄɽƊͰƍˉ',
+                    'value': 'ĄǸѠ˶ÎėƍΧΚӮŎѦͲҾɋҧĽ\x9dԕқјȢАʢƹɾ42ŝ\\',
+                },
+                {
+                    'key': 'qЧԨҖϗԙɝѐйЮ4ʞˏơɭӬĦСԖĴǥЄȗͱԮǛЄкϰҸ',
+                    'description': 'ƉγӰ:ǼťŬгĜ(Q',
+                    'value': '϶ϖƄƀѺ˒αҮҿҙʰԝÒ\x90ӟ\u0380ƆƴċǨϠӬǪ¤ǪbcҘѠʺ',
+                },
+                {
+                    'key': 'YȨʈíá\x99ǫ¯ρЬԭӞįȎδ˷ʽЊƤǯʾѝҔǨ',
+                    'description': '¶ʦǓʁрǚ_ȁ\x85ƍɡάŰ\x86ТԥϷˍŋƆǐӾƃņϊӈӝΰęʢ',
+                    'value': 'ўȩİâÂěŜ0ԙӵΒòęμƾjҘ˭;ŊȻ\u0379wˮҰʗǬҤԂ˝',
+                },
+                {
+                    'key': '\x94˟Ɉѕ˵ӀϑœΒп\x8dΚBɇ',
+                    'description': 'ǵϝł˼Ԇ˃ɆѤÇσԨãñƚϞФŽĦĝţцŐoɇԂηį/ʴƛ',
+                    'value': '¿Ƕжһ˭ȍԌ¼Ƕǔԟǿó҂@Ӂƒ\x8dʈκCӠіÝϰϣċьˇʿ',
+                },
+                {
+                    'key': ')ʿ\u03a2źǉöɱʟɁ˥ς\u03a2҆;мÛ϶ΧˌɿʕҿŁӎҥˈţѲҔс',
+                    'description': 'êƴ\u0381ƙd7ҬȒѬμ£Ťρ\x95×Ğīκҿɓԭ\u038dіŰɧƻˇ!Ƨō',
+                    'value': 'ɕВϒͽ\u0378ʐӟʭЁӉҋŞÒɲOЂöҹφĲý\x85ȦűП˪ƘϖfԆ',
+                },
+                {
+                    'key': 'ĕЃϢĝʩʌ¯$¶ґĊ',
+                    'description': "\x820ѼĴ˺ҔͶбӎɃӴÓâ'ХˇҀˑӀҪѥī\x98χʿԬВЧǛ˙",
+                    'value': "țƢģ7ŴǪðǻ\x89ѹΆʹϬ'оѨаοͰ-hŚΘЇ°ϽϿєĉԃ",
+                },
+            ],
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'on_new_window_click': True,
-
-            'on_new_window_enter': True,
-
-            'on_window_event': False,
+            'settings': [
+            ],
 
         },
     ),
@@ -985,14 +1228,14 @@ ACTIVE_IDS_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'window_id': 'Οɼ\x88ʧъ˦ȷǖ\x84Ýиҭǂ\x9eÀÛWҩ\u038b\u0383ʪˈ®ʙŖžȿɞьД',
+            'window_id': 'ɘϕ˼n\x9cдΆȹөӄĵΜdρϴʇ®ŖÏȸŋȾΌƽˣΫʀʶĨǙ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'window_id': 'ȮИӑϦӟ',
+            'window_id': 'џOӧǔϏ',
 
         },
     ),
@@ -1055,34 +1298,34 @@ ACTIVE_WINDOWS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         {
             'active_ids': [
                 {
-                    'window_id': 'OҜϷŕƚžʬΕyȁßÿ\x95ǉЙԑѤņέƢԊʤϠȸĿůǰԎ ɜ',
+                    'window_id': 'ŌʮπͺJýϖ\u038b÷Pǒ˕МɯɆˡϦЂͻɅVԃɆԅķüƱ\x85ҼІ',
                 },
                 {
-                    'window_id': 'ΰʨȰьȩ,ԤŇĖɲԢŏƱÑӉϐƌɖÒҭԦ!ɁѨɒǱɹŌËˣ',
+                    'window_id': 'ÄƘęȏǛӖΓƸԭ{ˤʣô҇ҾėŔȔϼӪÑӄ\\˂ÀğҪ³ɚō',
                 },
                 {
-                    'window_id': 'ЀШʬӌƽΖǪĺӰł\u038bŀ[ĢдрMŧ˦ͰуɜȬŷϞϤΜѿ͵ԫ',
+                    'window_id': '˷ӞȸѳЏ$Іԝʨ¶ŔҾɀĄ·Ӏǖ˼ƷɛψλǿүОӴ!˜ŰŜ',
                 },
                 {
-                    'window_id': 'ɗԜˈêƔͳŲƬŅňαɵӏӺÛɱԋΐ˗$Ǻˁґɺŉԫ\u038bÏɟЌ',
+                    'window_id': 'ΜƐԌљϛΩXɁϯȟɹȶŝǏãνƭʚΘȾÄ]ΦǷǂŋțѢȓǺ',
                 },
                 {
-                    'window_id': 'ƾςųå˕ԦϜɯԥχҹęȵҽɗԓѽûƁʲ_ԦʩʡʷİǫΗҠϣ',
+                    'window_id': 'ύѐԤҹ»ІϧҼƹŶΒːå;ƮγйĴԂɑƾ`әҔɨΧ[Yӳř',
                 },
                 {
-                    'window_id': 'ΆȒ˟˻ƁđrŒ¾ҫŪõtĀɤΒͷŭΓҶɨҭƃKΙйӀ+ɯ\x96',
+                    'window_id': '\x93˼[ýɽʐӿ\x9cQ˫ƺѨίʽ½ƓťıGʝʛΕȲxǎʣ˄їɕϺ',
                 },
                 {
-                    'window_id': '˱ƋŖʀĻżǬϸѢƽФԐ\u0382ѓ ˾ʍĩҎϤҳҩЅɓƎӵĺʻѴǺ',
+                    'window_id': 'ΧΧʌΊίЀĀėϫăϤʮÇ%ą,ӈЄΌҤAͽԃê+řçʷŔů',
                 },
                 {
-                    'window_id': 'ӎŏХ\x87>ϦJ\u0380ДʭЩbʢ\x9eԖфĹΔͽПԠčƋӦˉSĀƿ;Ƚ',
+                    'window_id': 'ȯƕƼҵɜƪ`Ԇ҆ȱǁʯ\x82ͷǷλΒ\x85ѮʃɢϦΝӅƮʕԊʖɻv',
                 },
                 {
-                    'window_id': 'Ƌ˽¨ЀѣЈƹɴθӠјԅķӞьҽƬϟ¢ҽ˜ǷȐѽˋɴҐȣȊˤ',
+                    'window_id': 'ӠþάȇǙжʏӋβМЉȅěǭΆʽζʏȧ§ɓПǔʃёCƻǉƟc',
                 },
                 {
-                    'window_id': 'ҌǽԖуƤхɩ\x85ѨŐЩɑΈĝԧȽKԛљǒХŢΞÔј\x80ӼƤɌǵ',
+                    'window_id': 'ȏЋç\u0382šǆǳȰėΦЅʮΊɶъˍԓӏǜőÕӺӇ\xa0КɑyĶϏƧ',
                 },
             ],
         },
@@ -1154,16 +1397,16 @@ FOCUSED_WINDOWS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         'all-fields-present',
         {
             'focused': [
-                'ǌʋ˼НФЪ҄=ѷаʄЄѵƞсχŵӨҞΞŸӳϱïȃʨůɥӾЄ',
-                'ӐƆΦȟ¢Ȥ¤҄¢ɛҷ\x87\x93ɯĀȥџʋѦSƩè}˽ԓƀȩ ʃЍ',
-                'ċǭǊРȟюϱ˖˰nćëǯƝĻѱΊƈҪKŵˆѬňΐŀµŭʗς',
-                'ƔȴԨdʆǿҨϐφʝ˩кčҶǖӒɡͻȧH˩ƫӤӁ^ʝ:ȸʋȀ',
-                'Ϋς\x85Ìt@ƊˬϒʛȇĳΟŗɹìƋѨҴѸɒǽǣҚɔȸ;ĴÅŻ',
-                'ƈЈϋǋˑωͷƪЀкśқŻȋƮǩȉмҼȡ?ѝoŞƄĂϿzɖ҇',
-                'ʝ.ӓ3щǻѰ:Ӑȯ˝2ɉƔүPѿЮҩIљɔϔˆĞɤӖ˟Bʹ',
-                'ǎԒŞʳàÒҮfԭʆɂ˵M&â ',
-                'ӆjѴϮʅÚaOԜӦӨǪƤƴ\x9dѯAËŉɅ[ԩϠǷ*ХɍǏќė',
-                'ɽ²ȥȢƻɐАҘɢɏǉkɟɏƲʪ˂ɖԇύƻcЖӊӆʓ\\Ќ@ҧ',
+                'Ŷ\x8dөΉ¤ԪſǤѲɧïtǥΡƤҹԡҾЉ%SķʦΏǁ¦ʆǎƺϱ',
+                'ԢӾ.Ъԩ{ȇ&ӜʀεȲЈВôӽǳʚ?ϸ˃ſÎѣɻOͷÒƒ\x88',
+                'ΖńӄƕΧцɢӈĂΪԞʗӭԐʳǟǆ«(ýȇѻΆǭǜģ%ɴŦљ',
+                'ӪȇʜԧͶßЎ;ӵԓѱȺ~ӔʚƕБѺȼȽ˟Őσʀό\x8cұНnʚ',
+                'ʺ\x88ƁσҋƓиÁΡʗÁ"īΫԎˮӶ&ԎєTǜΊΑ®ϙͷј¡Ƹ',
+                'ψε¿ȅ\x7fǼҤ)үǇȊɋİ\x8bĝХǜÁžɺϳÁyӇΔЀ÷ȡʩƓ',
+                'ŏĉuкǻȽԔˬϙѐŜϗkԛηȫöЍǽϼŎȦďԉɁӃԙʊ˃Ƌ',
+                'ӸǽĂЦѴʲʺΘĺǭԋIȎˠҔƺʧ˷ÚшžϢ҃ƊахϪbфЉ',
+                'ѫɳθƷƨұϒãʪѪҽȒȈưͰĈԧЭÒŐԀͱ҃ǚҟэɹͷҽғ',
+                'ĦƬZßȑƇȷѦΧͻ\u0382ÇȺ˞ʣǣӾ\u0378˽МӹǗӱӕОǴΡʵ£_',
             ],
         },
     ),
@@ -1172,7 +1415,7 @@ FOCUSED_WINDOWS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         {
 
             'focused': [
-                'GѤӎӱA',
+                'ǲŗѸ\x89a',
             ],
 
         },
@@ -1236,56 +1479,65 @@ WINDOW_DETAILS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         {
             'state': {
                 'active': True,
-                'focus': 120,
-                'parent_id': 'ʲǩϸȥъӇҘүí,ʀѕʹYИɖσϐΡДČƮгç%ЗԓÝӓź',
-                'flashing': False,
+                'focus': 8084,
+                'parent_id': 'ϥȃĚȖx҇ҠȦǧžɴϪˢρ²Ӕ΄ΎŕǋύЊ϶aʧϲƂȹůí',
                 'location': {
-                    'x': -1542208407158826501,
-                    'y': -8035781052812326265,
-                    'width': 9094759380440864102,
-                    'height': -1084276561567970364,
+                    'x': -685314486929626447,
+                    'y': 4251975311082184551,
+                    'width': -5209383625833165313,
+                    'height': 1430712880381555362,
                 },
                 'minimized': True,
                 'meta': [
                     {
-                            'key': 'ϛǝҜȊɃĲаĝΉɟƦȼʆӀŵ҃ҙѰGΟĤŎ˻Ƨ¯ÏâϘϚ3',
-                            'value': 'ϳƱΣѺǭǏӹӵxɼþWÞ£å\x8bˇˇӕ²\x9aʦĭƨťīǄ\xadǨʎ',
+                            'key': 'ӟўʹǟϰŚ]ҏΊ\x9aΒċӤȮFfȎƀDҩɼ҆ǱѿШȱɨȻ\x8bk',
+                            'description': '˱ΎƢȨԮȲXɀòȧǯЧӬâŅɜЙˬиβ\x8cʫҒзѨȎÝGгť',
+                            'value': 'ŊŐ·ǤΰΩ{ľrɈҏӓ˃ӏӮԘ¢ǧŸʛƒǸ¹\x8cгЖ.ɈĮΊ',
                         },
                     {
-                            'key': 'ѡƵŵDԘ¥ĕ1ӟҍɅʎŷϲhпåΧϡ˪Ȍ˔KŎúʳίCЂҼ',
-                            'value': '˰ӑηȓºӮ\x89(!ɁЇЋȴŪŝ¯ПӅ\x8bµԂѫĽǣδ.ӪʄƕĶ',
+                            'key': '\x86ίВı°&˙ŮƔ\x9fŵȆ_ЄӐϘǁŜһӽWҞƎҋƭO˂ʹΌµ',
+                            'description': 'ԞΎƉιJsȓqɟ.ÊƸɶJэʮӎ˲қuŎȧ˚ϩȮѭĖ˦Ѿҕ',
+                            'value': 'ԝәŎÐφɰT\x81˳˛þǟ˶҇ҵɞΞɾϰУŖιđіȺ\x86Жąōǭ',
                         },
                     {
-                            'key': '³Ƿķ͵ʉ\x85ξȣĽȞѥÇ˧3SѳҐǕǼĚg ȻƬ÷ɩǡĈį˰',
-                            'value': 'ĔɤӊӋvǸкAл˩ӓ7˰҄ļмÞŉĔмЩƬŇϑԠ\u038dƐȧɮʵ',
+                            'key': 'ŬsҺʝ҆Їɧ\x9aμǑŕKŋΠɬĶѰƬϓư½ІǠӳ',
+                            'description': 'ǐʗäŵ\u03a2ϧјϡʁƈ\x83¶ĺϩ{ԃ\x89§ˡDŤȁϦѵԓӐҲθȝā',
+                            'value': 'ΟѾˉɭǤԣѮΩ˪΄ʡÑǈмÓ\u038d@ţϚȷȱƬɨVF΅Ȧ-č\u0383',
                         },
                     {
-                            'key': 'ˎҭɴȩɋʤiӣɓɶ\x88¯ƙӡ˸ȋÒδɌǵ\x95˜wЀͰϱԇȅЩK',
-                            'value': 'Үǩɢ˒ӳǕ\x8bѴԒShќ\u0381ɴϚΉόћðÀѹкӏƺԥǼ¡í˻҃',
+                            'key': 'ȪĤXѨЖɔ',
+                            'description': 'ѣîҢ҆Ǵ˛ÍɢуѺʄOӣ˵\x91êƋéкǯϤZoҤύ~ÑДԟϏ',
+                            'value': 'ƺȈЉ˖V\x9dːǸíѫƳҐӢʸѢɉƝŉǼ¤Ú˪ïΕʛӼȒ¿ʀŬ',
                         },
                     {
-                            'key': 'ďȊǃĄ͵ɇ҅ìȧà҄ĄŦgƔāґəҭǇκʹԚβ²ȺʚTТԐ',
-                            'value': 'śʙѦƍƐǾӉȤýȗǙИģκÒΓǠĮťůȕýϘaˣǂǠқƊƞ',
+                            'key': 'ȅ;ɘ{ЛɵҒćǰԎİЉ^ěԍšӲҒφWζơğπIȧĜϘ:Ӂ',
+                            'description': '˚pƔǾƐɉɃ˲ϣЏ1ЕšīӅŪȌɇ"\x98ȻƖǷĀ˝ʺĜǈɆХ',
+                            'value': 'ǾŜѴһΔɅ˾\u038bïΖͶ˅\x92ҾūNʌРȾĚоԪȖ˹ϗщӁƸȪ˓',
                         },
                     {
-                            'key': '҂ɓΘƟ҂˻ÊJͱʞɊčƨŖȴԬ˸ŧŀéӓӧә\x96ćŚĴЏыǫ',
-                            'value': 'ˍʴǐˋåΧͼ˶ǿōоǅǗж҇δ϶²łɇϰ_ӞZąӴψǅ˫0',
+                            'key': 'ʣд˴Į\x82ж\x8c\u038dΧ¶X)ǟАTјǃ',
+                            'description': 'ϧЈҞɼћʇɡя˔ѫƎŎ\u0378ԓкҔőɓгʘĵrɔÎéÂȅȚ8Ҍ',
+                            'value': '\x9fÇҒʬҚɂ#ˀӌиӀˇɔЭ˅Ċ3£ѧћԗȧВ°ʖɑ˹Ӝӡφ',
                         },
                     {
-                            'key': "ɽͿɪĸ¿ȯҁʎϫѨ´ƴβ!ɎʴƄƺϧ˅˫ӧԋ?'Ͻϯ҇XЎ",
-                            'value': "ӉÄ\x92ѵĂιŜÚƟȺԗǨгȨƫ\\'¶ɰЂƽȐȗўɆpǗƵЧF",
+                            'key': 'ыĘɯˁȥϓȹŰӛǓԨԝ\x9aЯюϫ͵/ǉ\x87<Ҽ7ˋЌɲ',
+                            'description': 'ɂнӃɝËyŕӨёάǠÍɨЃϩӈԊĺѸѢϢСԬ²θӿʭΔΡӳ',
+                            'value': 'ǆˋǏƶ˨ʀ\x8cŗɬћáƾԓƃʅȏg˄Ѹç{ӖČͼΥÒ\x8dσɻБ',
                         },
                     {
-                            'key': 'ωƓÿ\x90Ԩ\x8fǞϫȍ\x86ԩºÙȽŋǣ\u0379ĥ½ψƓπæе˄п\x9dёҟǤ',
-                            'value': 'yмĂӯҖ',
+                            'key': 'ҦW\x98Όӏυàɐţǀ\x9e+',
+                            'description': '˪ҋběȅУ(ǹλԊhȩťƄǻƀņ3\x86ɓQǤМʰÁΚĵθ$˦',
+                            'value': 'ҋϋӶÀя\x8fǭʈͶрҳĹТ\x98ѷóɚ\x93ѽΰʉʄԡƙѺǁңʯ§ʈ',
                         },
                     {
-                            'key': 'Ѭi˕ȺϝŸԟɨʄȖƩϳǊɵǨϞȜˉɡы˼ĠȄȽȰȼϮф\x8bԣ',
-                            'value': 'Εɟ\u0378.şǍȀŦӢȄζжъʾÞӉӕ҄ЍϼȔt\x91йǼǯĮђГҀ',
+                            'key': 'ęҶ˥˄ԭҸZӹɽżôҒϥӹ͵ϵǌ',
+                            'description': 'Ύ©ʣǶňǖ\x97ʿşƓϺ5СҠÐħq\x86ȆΡƉΆøǜɟʂēƼƑˊ',
+                            'value': 'ϨǕƙĪǋʆƱo·œϋшΎΆľ^ŝľ҅ɯԇˠәрƆЯӖ˶ӧ\x7f',
                         },
                     {
-                            'key': 'ÉǆėҲ˾ƤЍνºŷѣɗ',
-                            'value': 'ɾνжӤDИˊӟɗΙzΎ|&ɔƌ\x8dмǧДųɄ\u0380ӱǽ˩úѯŹΫ',
+                            'key': 'ǔ˩ҏ',
+                            'description': 'ɇϖ϶',
+                            'value': 'мxʵѢлŶδь\x90ҍ\x92ϵѠλӕσώʀâƋˤԪžӕГӏό^źϬ',
                         },
                 ],
             },
@@ -1296,19 +1548,138 @@ WINDOW_DETAILS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
         {
 
             'state': {
-                'active': True,
-                'focus': 9080,
-                'flashing': True,
+                'active': False,
+                'focus': 9073,
                 'location': {
-                    'x': 6661546861929470097,
-                    'y': 5368507414155889437,
-                    'width': 5752877757637141638,
-                    'height': 7713713404683671427,
+                    'x': -2114080508592327269,
+                    'y': 6398143148425021522,
+                    'width': -8528526693864980868,
+                    'height': -7689661349164838834,
                 },
                 'minimized': False,
                 'meta': [
                 ],
             },
+
+        },
+    ),
+]
+
+class GlobalSettingsStateTest(unittest.TestCase):
+    """
+    Tests for GlobalSettingsState
+    """
+    def test_parse_bad_data(self) -> None:
+        """Data driven tests with validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data, messages in GLOBAL_SETTINGS_STATE_BAD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.GlobalSettingsState.parse_data(test_data)
+                self.assertIsNone(res.value)
+                expected = {
+                    UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
+                    for m, a in messages
+                }
+                actual = list(res.valid_error.messages())
+                # The parsing returns at least one of the problems, but not necessarily all.
+                self.assertTrue(len(actual) >= 1, repr(expected))
+                self.assertTrue(expected.issuperset(actual), repr(expected))
+
+    def test_parse_good_exported_data(self) -> None:
+        """Data driven tests with no validation problems."""
+        self.maxDiff = None  # pylint: disable=C0103
+        for test_name, test_data in GLOBAL_SETTINGS_STATE_GOOD_PARSE_DATA_TESTS:
+            with self.subTest(name=test_name):
+                res = window.GlobalSettingsState.parse_data(test_data)
+                self.assertIsNone(res.error)
+                self.assertEqual(test_data, res.result.export_data())
+
+
+GLOBAL_SETTINGS_STATE_BAD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
+] = [
+
+    (
+        'all-fields-missing',
+        {},
+        (
+            (
+                'Required field {field_name} in {name}',
+                dict(field_name='settings', name='GlobalSettingsState'),
+            ),
+
+        ),
+    ),
+
+]
+
+
+GLOBAL_SETTINGS_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
+    Tuple[str, Dict[str, Any]],
+] = [
+    (
+        'all-fields-present',
+        {
+            'settings': [
+                {
+                    'key': 'ЂĨȖ˙ѽŝό',
+                    'description': '\x84ȤӚǝŻν¶șǽΆ',
+                    'value': 'ԨAĵ\x7fЩŹũȴ\u038bʭСɈϐбӿЍĉӼÉѼ¿ˀƓRēԎϮԀьӞ',
+                },
+                {
+                    'key': 'ЅˣϖéŝѿγӻŗЭЩяΨɞƔкЄɀњͷЂӸɶďʀƦ²ÜӰÌ',
+                    'description': 'ԍǾkťŶ Ϊ˳ĔԎá`ŚǚңĐƧЁĿ÷±ЁӥŌѳŊЈ¿ѫʑ',
+                    'value': 'ΞǘɥʫԋЀԨέѳϳшƞǄŚԬұũѮ˔ZьƓά\x8aТкЅƤÙɝ',
+                },
+                {
+                    'key': 'BфȅЍ҉àӃŠBүˇΕʓŎʝϾӠʊМϋϣɝ\x9dɩ',
+                    'description': "ɟҹč'Ǥ\x93Ԑƞѭƙnώҡƭǁԇ¿\u03a2ԄѼϙǗɬňђʋр˯ņѸ",
+                    'value': 'ůˇλԫƵғ_ˮ҆\x7fǓ˸ÎÛ˒6ʦƺȠπʹиɞϗϩԥȨЃ\xa0˷',
+                },
+                {
+                    'key': 'ȡɘӲzӵĂτцѩ³û˥ҧƺŖ\u038bбΑ',
+                    'description': 'ɭγϰӓ˫ӦӋȐԏӫğϵϨѿӵξңʥӹЛÙǇ\x91¨ɉŢƵӿӂɾ',
+                    'value': 'ĳ7¦÷Ǳ¤Оŭǉο²\u0382˥ȊŮŞxӐЊҝŚњѢϡсήϞìʈǳ',
+                },
+                {
+                    'key': 'чɽϲçɛΈϒǓďҝňȞŘʾǦѲԀƱԓɝɒİƊʐҥǱÏ',
+                    'description': 'ӘӹԈ7ȶʫ;\u038dл43ȨéˊҀñXϸȝƂıÊΫȿĿT\x9aæљά',
+                    'value': 'ӊʵśǙŐ$ϚÀԙɊčĶͳȜ\x99cӆˉ;ųC˥¸ʶËюӺΗԏƭ',
+                },
+                {
+                    'key': 'ъӰ\x98ϝ˾CŢČҖʳĥȸú>ʋ\x82\x84ɏěǨωԊ2ϡӏȽƹĔҶ\u038b',
+                    'description': 'Đ΅ėϋĘǎɉÅɑˋɡȳφхʉE\x97ǒѸa҂ˁ+ӱԛƝќћΛ˅',
+                    'value': 'ąѴʷӗş\x8eÞĐSϟͶƈ§ƈȋɷ˘Öȧ\x99Ґˇǰɕư´Јόϼ*',
+                },
+                {
+                    'key': 'ЂŕþАҫƉrǸŽ΄ɧґăѢ',
+                    'description': 'џӲ¥ΘɼѯēҏïƨΛƷÙŶѩы\x80ӏ¹ӌΌãӉʴƝуϋϔӯǎ',
+                    'value': 'Ўůćȿũơ˟Ĥ˫ÑΩϔӿ·ҁϴЇϖůûԠϱïуҺԇϴԐβʷ',
+                },
+                {
+                    'key': 'ʨeѵŬȴCԫ\x9dġϤɝ',
+                    'description': 'ʧɴûĀʦūŲʨΫéǗӤїOʟτĉҾȓȖϦƚ\x82EƑЃϢâӤĶ',
+                    'value': 'ɿ&ӌȭį\x9cԠѽǻǛ˷\x9d?a\x92҈ǦъѢʂ˖ҶĴȍȒŊŭÿѩȋ',
+                },
+                {
+                    'key': 'ͶǕƬɐźώͽƥФľ5ĽΆΜwȸ_ϜÃ',
+                    'description': 'δаÛʯȩȨÕpԠÏǍȎňʌΜˆҿʔƗ\x92ˮ\x9eѮΣŮŏŸɤȇ˩',
+                    'value': 'e˲#Ǫцьħ͵ҎɢţƞϒčԬϽѲĲɚϭĺϢɎ\x87¸ʺԖĳУå',
+                },
+                {
+                    'key': 'ҺʁƠўǵ·ѻ\x8bǞѪΐѩǚεžǭȍϜϘ¹\xa0ӚΩʼȜŵüʈˑЬ',
+                    'description': 'ʲ҇ζřʨӍΤϧƳȒɒāΎŭøӫúʤӥ΄ҘōâΡȸӨɴ6åį',
+                    'value': 'ƕˆҹѝ7ӽхԡ\u0380ʖǽ\x9dÉǊѶE˝ŊʀōʈōgΕʷÜ˖ӄǎ¯',
+                },
+            ],
+        },
+    ),
+    (
+        'bare-minimum-fields-present',
+        {
+
+            'settings': [
+            ],
 
         },
     ),

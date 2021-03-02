@@ -6,7 +6,7 @@ Tests out the extension and event loader modules.
 # This has a lot of lines in it, because there's a lot of ways to test it.
 # pylint: disable=C0302
 
-from typing import List, Sequence, Tuple, Dict, Any
+from typing import List, Sequence, Tuple, Dict, Optional, Any
 import unittest
 from .. import extension_schema
 from .. import event_schema
@@ -40,6 +40,15 @@ class ExtensionLoaderTest(unittest.TestCase):
                 self.assertIsNone(res.error)
                 self.assertTrue(res.ok)
                 self.assertEqual(repr(expected), repr(res.result))
+
+
+def _internal_type(
+        data_type: event_schema.AbcEventDataType,
+        name: Optional[str] = None,
+) -> event_schema.InternalType:
+    ret = event_schema.InternalType(name)
+    ret.set(data_type)
+    return ret
 
 
 BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]]] = [
@@ -280,7 +289,10 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             'type': 'api', 'name': "bad.version", "version": [1, 0, 0],
             "about": "s", "description": "t", "licenses": [], "authors": [],
             "depends": [],
-            "events": {"x": {}},
+            "events": {"e": {
+                'priority': 'io', 'send-access': 'public', 'receive-access': 'public',
+                'fields': {'a': {'type': 'reference', 'ref': 'x'}},
+            }},
             "references": {"x": {}},
         },
         [
@@ -311,23 +323,6 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 dict(name='x', data_type='blah'),
             ),
         ],
-    ),
-    (
-        'Cyclic reference',
-        {
-            'type': 'api', 'name': "bad.version", "version": [1, 0, 0],
-            "about": "s", "description": "t", "licenses": [], "authors": [],
-            "depends": [],
-            "events": {"x": {"fields": {"a": {"type": "reference", "ref": "y"}}}},
-            "references": {
-                "y": {"type": "reference", "ref": "z"},
-                "z": {"type": "reference", "ref": "y"},
-            },
-        },
-        [(
-            'cyclic reference `{reference}`',
-            dict(reference='z'),
-        )],
     ),
     (
         'Event data - bad priority',
@@ -447,10 +442,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            'unknown reference `{reference}`',
-            dict(reference='z'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('unknown reference `{reference}`', dict(reference='z')),
+        ],
     ),
     (
         'Event data - bad resolved array reference',
@@ -467,10 +463,12 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            'unknown reference `{reference}`',
-            dict(reference='z'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('{name}: problem(s) with event data type', dict(name='x -> a')),
+            ('unknown reference `{reference}`', dict(reference='z')),
+        ],
     ),
     (
         'Event data - bad resolved structure reference',
@@ -490,10 +488,13 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            'unknown reference `{reference}`',
-            dict(reference='z'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('{name}: problem(s) in declaration', dict(name='x -> a')),
+            ('{field}: issue with declared type', dict(field='x')),
+            ('unknown reference `{reference}`', dict(reference='z')),
+        ],
     ),
     (
         'Event data - bad resolved selector reference',
@@ -513,10 +514,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            'unknown reference `{reference}`',
-            dict(reference='z'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('unknown reference `{reference}`', dict(reference='z')),
+        ],
     ),
     (
         'Event data - bad string length types',
@@ -533,13 +535,12 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '`{key}` must be a number',
-            dict(key='max-length'),
-        ), (
-            '`{key}` must be a number',
-            dict(key='min-length'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a number', dict(key='max-length')),
+            ('`{key}` must be a number', dict(key='min-length')),
+        ],
     ),
     (
         'Event data - bad int value types',
@@ -556,13 +557,12 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '`{key}` must be a number',
-            dict(key='max-value'),
-        ), (
-            '`{key}` must be a number',
-            dict(key='min-value'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a number', dict(key='max-value')),
+            ('`{key}` must be a number', dict(key='min-value')),
+        ],
     ),
     (
         'Event data - bad float value types',
@@ -579,13 +579,12 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '`{key}` must be a number',
-            dict(key='max-value'),
-        ), (
-            '`{key}` must be a number',
-            dict(key='min-value'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a number', dict(key='max-value')),
+            ('`{key}` must be a number', dict(key='min-value')),
+        ],
     ),
     (
         'Event data - bad bool description',
@@ -602,7 +601,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`{key}` must be a string value', dict(key='description'),)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a string value', dict(key='description')),
+        ],
     ),
     (
         'Event data - bad enum description',
@@ -619,7 +622,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`{key}` must be a string value', dict(key='description'),)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a string value', dict(key='description')),
+        ],
     ),
     (
         'Event data - bad enum values type',
@@ -636,10 +643,14 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            'enum values must be a list of strings, found {value_type}',
-            {"value_type": "<class 'bool'>"},
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            (
+                'enum values must be a list of strings, found {value_type}',
+                dict(value_type="<class 'bool'>"),
+            ),
+        ],
     ),
     (
         'Event data - bad enum value type',
@@ -656,10 +667,14 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            'enum values must be a list of strings, found item of type {value_type}',
-            {"value_type": "<class 'int'>"},
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            (
+                'enum values must be a list of strings, found item of type {value_type}',
+                dict(value_type="<class 'int'>"),
+            ),
+        ],
     ),
     (
         'Event data - bad datetime description',
@@ -676,7 +691,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`{key}` must be a string value', dict(key='description'),)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a string value', dict(key='description')),
+        ],
     ),
     (
         'Event data - bad array value type',
@@ -693,10 +712,14 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '{name}: `value-type` must be a dictionary of a data type structure',
-            dict(name='x -> a'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            (
+                '{name}: `value-type` must be a dictionary of a data type structure',
+                dict(name='x -> a'),
+            ),
+        ],
     ),
     (
         'Event data - bad array value structure',
@@ -714,6 +737,8 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
             ('{name}: problem(s) with event data type', dict(name='x -> a')),
             ('{name}: unknown "type" `{data_type}`', dict(name='x -> a', data_type='foo')),
         ],
@@ -733,7 +758,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`{key}` must be a string value', dict(key='description'),)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a string value', dict(key='description')),
+        ],
     ),
     (
         'Event data - bad structure fields type',
@@ -750,10 +779,14 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '{name}: `fields` must be a dictionary of field data type structures, found {data}',
-            {'data': '[1]', 'name': 'x -> a'},
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            (
+                '{name}: `fields` must be a dictionary of field data type structures, found {data}',
+                dict(data='[1]', name='x -> a'),
+            ),
+        ],
     ),
     (
         'Event data - bad structure optional type',
@@ -772,7 +805,12 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`optional` must be `true` or `false`', {},)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('{name}: problem(s) in declaration', dict(name='x -> a')),
+            ('{field}: `optional` must be `true` or `false`', dict(field='x')),
+        ],
     ),
     (
         'Event data - bad selector description',
@@ -789,7 +827,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`{key}` must be a string value', dict(key='description'),)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a string value', dict(key='description')),
+        ],
     ),
     (
         'Event data - bad selector type-mapping type',
@@ -806,10 +848,14 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '{name}: `type-mapping` must be a dictionary of data type structures',
-            dict(name='x -> a'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            (
+                '{name}: `type-mapping` must be a dictionary of data type structures',
+                dict(name='x -> a'),
+            ),
+        ],
     ),
     (
         'Event data - bad selector type-mapping entry type',
@@ -826,10 +872,14 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '{name} -> {key}: `type-mapping` must be a dictionary of data type structures',
-            dict(name='x -> a', key='x'),
-        )],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            (
+                '{name} -> {key}: `type-mapping` must be a dictionary of data type structures',
+                dict(name='x -> a', key='x'),
+            ),
+        ],
     ),
     (
         'Event data - bad selector type-mapping entry type value',
@@ -848,7 +898,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('{name}: unknown "type" `{data_type}`', dict(name='x -> a -> x', data_type='foo'),)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('{name}: unknown "type" `{data_type}`', dict(name='x -> a -> x', data_type='foo')),
+        ],
     ),
     (
         'Event data - bad reference ref type',
@@ -866,57 +920,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description'),),
             ('`{key}` must be a string value', dict(key='ref'),),
         ],
-    ),
-    (
-        'Reference depth',
-        {
-            'type': 'api', 'name': "bad.version", "version": [1, 0, 0],
-            "about": "s", "description": "t", "licenses": [], "authors": [],
-            "depends": [],
-            "events": {"x": {
-                "priority": "io", 'send-access': 'public', 'receive-access': 'public',
-                'fields': {
-                    "a": {
-                        "type": "selector",
-                        "type-mapping": {"x": {"type": "reference", "ref": "01"}},
-                    },
-                },
-            }},
-            "references": {
-                "01": {"type": "reference", "ref": "02"},
-                "02": {"type": "reference", "ref": "03"},
-                "03": {"type": "reference", "ref": "04"},
-                "04": {"type": "reference", "ref": "05"},
-                "05": {"type": "reference", "ref": "06"},
-                "06": {"type": "reference", "ref": "07"},
-                "07": {"type": "reference", "ref": "08"},
-                "08": {"type": "reference", "ref": "09"},
-                "09": {"type": "reference", "ref": "10"},
-                "10": {"type": "reference", "ref": "11"},
-                "11": {"type": "reference", "ref": "12"},
-                "12": {"type": "reference", "ref": "13"},
-                "13": {"type": "reference", "ref": "14"},
-                "14": {"type": "reference", "ref": "15"},
-                "15": {"type": "reference", "ref": "16"},
-                "16": {"type": "reference", "ref": "17"},
-                "17": {"type": "reference", "ref": "18"},
-                "18": {"type": "reference", "ref": "19"},
-                "19": {"type": "reference", "ref": "20"},
-                "20": {"type": "reference", "ref": "21"},
-                "21": {"type": "reference", "ref": "22"},
-                "22": {"type": "bool"},
-            },
-        },
-        [(
-            'reference depth too deep ({depth})',
-            dict(depth=[
-                '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14',
-                '15', '16', '17', '18', '19', '20', '21',
-            ]),
-        )],
     ),
     (
         'Runtime - bad type',
@@ -1040,7 +1048,11 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [('`{key}` must be a string value', dict(key='description'),)],
+        [
+            ('{name}: problem(s) in declaration', dict(name='x')),
+            ('{field}: issue with declared type', dict(field='a')),
+            ('`{key}` must be a string value', dict(key='description')),
+        ],
     ),
 ]
 
@@ -1055,6 +1067,40 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
         extension_schema.ApiExtensionMetadata(
             name="simplest.api", version=(1, 0, 5), about="s", description="t",
             depends=[], licenses=[], authors=[], events=[], default_implementation=None,
+        ),
+    ),
+    (
+        'Cyclic reference',
+        {
+            'type': 'protocol', 'name': "protocol.with.cycles", "version": [2, 1, 5],
+            "about": "s1", "description": "t1", "licenses": [], "authors": [], "depends": [],
+            "events": {"x": {
+                'priority': 'io',
+                'send-access': 'public',
+                'receive-access': 'public',
+                "fields": {"a": {"type": "reference", "ref": "y"}},
+            }},
+            "references": {
+                "y": {"type": "array", "value-type": {"type": "reference", "ref": "z"}},
+                "z": {"type": "array", "value-type": {"type": "reference", "ref": "y"}},
+            },
+        },
+        extension_schema.ProtocolExtensionMetadata(
+            name="protocol.with.cycles", version=(2, 1, 5), about="s1", description="t1",
+            licenses=[], authors=[],
+            events=[event_schema.EventType(
+                'x', 'io', 'public', 'public', event_schema.StructureEventDataType(
+                    None, {
+                        'a': event_schema.StructureFieldType(
+                            _internal_type(event_schema.ArrayEventDataType(
+                                None, event_schema.InternalType('z'), 0, 65535,
+                            ), 'y'),
+                            False,
+                        )
+                    }
+                ),
+                None,
+            )],
         ),
     ),
     (
@@ -1139,8 +1185,13 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                     },
                 },
                 'y': {
-                    'type': 'reference',
-                    'ref': 'z',
+                    'type': 'structure',
+                    'fields': {
+                        'bb': {
+                            'type': 'reference',
+                            'ref': 'z',
+                        },
+                    },
                 },
                 'z': {
                     'type': 'bool',
@@ -1163,74 +1214,88 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                     structure=event_schema.StructureEventDataType(
                         None, {
                             'first': event_schema.StructureFieldType(
-                                event_schema.StructureEventDataType(
+                                _internal_type(event_schema.StructureEventDataType(
                                     description=None, field_types={
                                         'f1': event_schema.StructureFieldType(
-                                            event_schema.ArrayEventDataType(
+                                            _internal_type(event_schema.ArrayEventDataType(
                                                 None,
-                                                event_schema.BoolEventDataType(None),
+                                                _internal_type(
+                                                    event_schema.BoolEventDataType(None)
+                                                ),
                                                 1, 5,
-                                            ),
+                                            )),
                                             False,
                                         ),
                                         'f2': event_schema.StructureFieldType(
-                                            event_schema.IntEventDataType(
+                                            _internal_type(event_schema.IntEventDataType(
                                                 None,
                                                 event_schema.DEFAULT_MIN_INT_VALUE,
                                                 event_schema.DEFAULT_MAX_INT_VALUE,
-                                            ),
+                                            )),
                                             False,
                                         ),
                                         'f3': event_schema.StructureFieldType(
-                                            event_schema.StringEventDataType(
+                                            _internal_type(event_schema.StringEventDataType(
                                                 None,
                                                 event_schema.DEFAULT_MIN_STRING_LENGTH,
                                                 event_schema.DEFAULT_MAX_STRING_LENGTH,
-                                            ),
+                                            )),
                                             False,
                                         ),
                                         'f4': event_schema.StructureFieldType(
-                                            event_schema.FloatEventDataType(None, -5.2, None),
+                                            _internal_type(
+                                                event_schema.FloatEventDataType(None, -5.2, None)
+                                            ),
                                             False,
                                         ),
                                         'f5': event_schema.StructureFieldType(
-                                            event_schema.ArrayEventDataType(
+                                            _internal_type(event_schema.ArrayEventDataType(
                                                 None,
-                                                event_schema.IntEventDataType(None, 5, 6),
+                                                _internal_type(
+                                                    event_schema.IntEventDataType(None, 5, 6)
+                                                ),
                                                 event_schema.DEFAULT_MIN_ARRAY_LENGTH,
                                                 event_schema.DEFAULT_MAX_ARRAY_LENGTH,
-                                            ),
+                                            )),
                                             False,
                                         ),
                                         'f6': event_schema.StructureFieldType(
-                                            event_schema.EnumEventDataType(
+                                            _internal_type(event_schema.EnumEventDataType(
                                                 None, ['a', 'b'],
-                                            ),
+                                            )),
                                             False,
                                         ),
                                         'f7': event_schema.StructureFieldType(
-                                            event_schema.DatetimeEventDataType(None),
+                                            _internal_type(
+                                                event_schema.DatetimeEventDataType(None)
+                                            ),
                                             False,
                                         ),
                                         'f8': event_schema.StructureFieldType(
-                                            event_schema.SelectorEventDataType(
+                                            _internal_type(event_schema.SelectorEventDataType(
                                                 None, {
-                                                    "x": event_schema.BoolEventDataType(None),
-                                                    "y": event_schema.BoolEventDataType(None),
+                                                    "x": _internal_type(
+                                                        event_schema.BoolEventDataType(None)
+                                                    ),
+                                                    "y": _internal_type(
+                                                        event_schema.BoolEventDataType(None)
+                                                    ),
                                                 },
-                                            ),
+                                            )),
                                             False,
                                         ),
                                         'f9': event_schema.StructureFieldType(
-                                            event_schema.SelectorEventDataType(
+                                            _internal_type(event_schema.SelectorEventDataType(
                                                 None, {
-                                                    "x": event_schema.BoolEventDataType(None),
+                                                    "x": _internal_type(
+                                                        event_schema.BoolEventDataType(None)
+                                                    ),
                                                 },
-                                            ),
+                                            )),
                                             False,
                                         ),
                                     },
-                                ), True,
+                                )), True,
                             ),
                         },
                     ),
@@ -1299,7 +1364,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                     structure=event_schema.StructureEventDataType(
                         description='ds', field_types={
                             'first': event_schema.StructureFieldType(
-                                data_type=event_schema.BoolEventDataType(None),
+                                data_type=_internal_type(event_schema.BoolEventDataType(None)),
                                 optional=True,
                             )
                         }

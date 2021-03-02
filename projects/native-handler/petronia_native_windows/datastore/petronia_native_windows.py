@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-02-28T02:46:17.431523+00:00
+# Created on 2021-03-01T15:28:52.891736+00:00
 
 """
 Data structures and marshalling for extension petronia_native_windows version 1.0.0.
@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia_native_windows version 1.
 
 
 from typing import (
-    Optional,
     Dict,
     SupportsInt,
-    List,
     Any,
+    List,
+    Optional,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
-    not_none,
     StdRet,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia_native_windows'

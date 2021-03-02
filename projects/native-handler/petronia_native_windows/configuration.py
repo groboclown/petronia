@@ -37,7 +37,6 @@ class ConfigurationStore:
         """Put the internal configuration state into the datastore."""
         if self._cache is None:
             return datastore.send_delete_data(context, ConfigurationState.UNIQUE_TARGET_FQN)
-        else:
-            return datastore.send_store_data(
-                context, ConfigurationState.UNIQUE_TARGET_FQN, self._cache,
-            )
+        return datastore.send_store_data(
+            context, ConfigurationState.UNIQUE_TARGET_FQN, self._cache,
+        )

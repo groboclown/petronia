@@ -15,6 +15,7 @@ from __future__ import annotations
 from typing import (
     Sequence, Iterable, List, Callable, Union, Optional, Generic, Any, cast, TYPE_CHECKING,
 )
+import traceback
 import collections
 import collections.abc
 from .memory import T, T_co, V, EMPTY_TUPLE
@@ -90,7 +91,12 @@ class StdRet(Generic[T_co]):
     #   Check whether the error condition was ever inspected.
     #   If not, then that means that the code has a problem.
 
-    __slots__ = ('__error', '__value', '__checked_error')
+    __slots__ = (
+        '__error', '__value',
+
+        # DEBUG
+        '__checked_error', '__source',
+    )
 
     def __init__(
             self,
@@ -100,6 +106,7 @@ class StdRet(Generic[T_co]):
         self.__error: Final[Optional[PetroniaReturnError]] = error
         self.__value: Final[Optional[T_co]] = value
         self.__checked_error = False
+        self.__source = traceback.extract_stack()
 
     @staticmethod
     def pass_error(
@@ -225,6 +232,7 @@ class StdRet(Generic[T_co]):
     def __del__(self) -> None:
         if not self.__checked_error:
             if self.__error:
+                print(self.__source)
                 raise ValueError(
                     f'Non-error checked StdRet with error '
                     f'({[m.debug() for m in self.__error.messages()]})'

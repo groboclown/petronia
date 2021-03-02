@@ -255,7 +255,9 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
         if self._shell_hook and WINDOWS_FUNCTIONS.shell.unhook:  # pragma no cover
             WINDOWS_FUNCTIONS.shell.unhook(self._shell_hook)
             self._shell_hook = None
-        if self._hwnd and WINDOWS_FUNCTIONS.shell.unregister_session_notification:  # pragma no cover
+        if (  # pragma no cover
+                self._hwnd and WINDOWS_FUNCTIONS.shell.unregister_session_notification
+        ):
             user_messages.report_send_receive_problems(
                 WINDOWS_FUNCTIONS.shell.unregister_session_notification(self._hwnd)
             )

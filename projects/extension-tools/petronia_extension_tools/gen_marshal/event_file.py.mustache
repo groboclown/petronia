@@ -8,7 +8,8 @@ Data structures and marshalling for extension {{extension_name}} version {{exten
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 {{#imports}}
 {{#renamed_import}}
 from {{import_package}} import {{import_name}} as {{import_rename}}

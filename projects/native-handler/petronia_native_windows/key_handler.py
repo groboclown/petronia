@@ -16,7 +16,7 @@ from . import hook_messages
 from . import keymap
 
 
-class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):
+class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-many-instance-attributes
     """Windows integration between the message loop and the
     Petronia events.
 
@@ -153,6 +153,7 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):
             # Send the hotkey action.  This needs to be done in a worker thread, so that
             # it doesn't block the message loop.
             self.__executor.submit(self.send_hotkey, next_parts)
+            return True, EMPTY_TUPLE
 
     def send_hotkey(self, next_parts: Iterable[str]) -> None:
         """Send the hotkey associated with this sequence name."""

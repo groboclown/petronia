@@ -3,8 +3,8 @@
 Basic definitions for configuration objects.
 """
 
-from typing import Optional
-from ...util import PetroniaReturnError
+from typing import Sequence, Optional
+from ...util import PetroniaReturnError, EMPTY_TUPLE
 
 
 class AbcConfigType:
@@ -14,7 +14,9 @@ class AbcConfigType:
     """
 
     # pragma no cover
-    def validate_type(self) -> Optional[PetroniaReturnError]:
+    def validate_type(
+            self, parents: Sequence['AbcConfigType'] = EMPTY_TUPLE,
+    ) -> Optional[PetroniaReturnError]:
         """Validate whether this type was created in a way consistent with
         the expected constraints."""
         raise NotImplementedError()  # pragma no cover

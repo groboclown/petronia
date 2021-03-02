@@ -5,7 +5,7 @@ Loads extension information from a simple data structure.
 Simple data structures means list, dict, int, float, bool, str, None
 """
 
-from typing import List, Dict, Optional, Any, cast
+from typing import List, Dict, Mapping, Optional, Any, cast
 from . import event_schema
 from ...util import StdRet, UserMessage, collect_errors_from, join_errors, EMPTY_TUPLE, RET_OK_NONE
 from ...util import i18n as _
@@ -14,10 +14,10 @@ from ...util import STANDARD_PETRONIA_CATALOG as STDC
 
 def load_full_event_schema(
         raw_event_schemas: Dict[str, Any],
-        references: Dict[str, Any],
+        raw_references: Dict[str, Any],
 ) -> StdRet[List[event_schema.EventType]]:
     """Loads a full event schema object, including resolving references."""
-    parsed_references_res = parse_references(references)
+    parsed_references_res = parse_references(raw_references)
     if not parsed_references_res.ok:
         return parsed_references_res.forward()
     parsed_references = parsed_references_res.result
@@ -35,34 +35,55 @@ def load_full_event_schema(
 
 
 def parse_references(
-        references: Dict[str, Any],
-) -> StdRet[Dict[str, event_schema.AbcEventDataType]]:
+        raw: Dict[str, Any],
+) -> StdRet[Mapping[str, event_schema.InternalType]]:
     """Parse the references from the references section of the metadata definition."""
-    partial_parsed_references: Dict[str, event_schema.AbcEventDataType] = {}
-    for reference_name, raw_reference in references.items():
+    references: Mapping[str, event_schema.InternalType] = {
+        # The references raw dictionary contains all the reference names that are
+        # known and can be referenced, so the key list will never grow.
+        key: event_schema.InternalType(key)
+        for key in raw.keys()
+    }
+    errors: List[UserMessage] = []
+    for reference_name, raw_reference in raw.items():
         if not isinstance(raw_reference, dict):
             return StdRet.pass_errmsg(
                 STDC, _('references must be a dictionary of event data type dictionaries'),
             )
-        ret_reference = load_event_data_type(reference_name, raw_reference)
-        if ret_reference.has_error:
-            return StdRet.pass_error(join_errors(
-                UserMessage(
-                    STDC,
-                    _('error in reference definition for `{name}`'),
-                    name=reference_name,
-                ),
-                errors=(ret_reference.valid_error,),
+        ref_res = load_event_data_type(
+            reference_name, raw_reference, references,
+        )
+        if ref_res.has_error:
+            errors.append(UserMessage(
+                STDC,
+                _('error in reference definition for `{name}`'),
+                name=reference_name,
             ))
-        ret_reference.result.suggested_name = reference_name
-        partial_parsed_references[reference_name] = ret_reference.result
-    return update_references(partial_parsed_references)
+            errors.extend(ref_res.error_messages())
+        else:
+            ref = ref_res.result
+            if isinstance(ref, event_schema.ReferenceEventDataType):
+                errors.append(UserMessage(
+                    STDC,
+                    _(
+                        'reference definition `{name}` is itself a reference to {ref_name}, '
+                        'which is not allowed.  Just change the references to point to {ref_name} '
+                        'instead.'
+                    ),
+                    name=reference_name, ref_name=ref.reference,
+                ))
+            else:
+                ref.suggested_name = reference_name
+                references[reference_name].set(ref_res.result)
+    if errors:
+        return StdRet.pass_error(join_errors(*errors))
+    return StdRet.pass_ok(references)
 
 
 def load_event_schema(  # pylint:disable=too-many-locals
         event_name: str,
         raw: Dict[str, Any],
-        references: Dict[str, event_schema.AbcEventDataType],
+        references: Mapping[str, event_schema.InternalType],
 ) -> StdRet[event_schema.EventType]:
     """Loads the schema, but does not perform type validation."""
     # Note: must perform update_reference!
@@ -71,7 +92,7 @@ def load_event_schema(  # pylint:disable=too-many-locals
     ret_send_access = load_dict_str_value('send-access', raw)
     ret_receive_access = load_dict_str_value('receive-access', raw)
     ret_unique_target = load_event_optional_str_value('unique-target', raw)
-    ret_data_type = load_event_structure_data_type_or_binary(event_name, raw)
+    ret_data_type = load_event_structure_data_type_or_binary(event_name, raw, references)
     error = collect_errors_from(
         ret_priority, ret_send_access, ret_receive_access, ret_unique_target, ret_data_type,
     )
@@ -81,18 +102,18 @@ def load_event_schema(  # pylint:disable=too-many-locals
     data_type: Optional[event_schema.StructureEventDataType]
     declared_data_type = ret_data_type.value
     if declared_data_type is not None:
-        ret_data_type_resolved = update_reference(declared_data_type, references, [])
-        if ret_data_type_resolved.has_error:
-            return ret_data_type_resolved.forward()
-        possible_data_type = ret_data_type_resolved.result
-        if not isinstance(possible_data_type, event_schema.StructureEventDataType):
+        # Object type
+        if (  # pragma no cover
+                not isinstance(declared_data_type, event_schema.StructureEventDataType)
+        ):
             # This is an internal error...
             raise RuntimeError(  # pragma no cover
-                f'Incorrectly re-formatted structure to {ret_data_type_resolved.result}',
+                f'Incorrectly re-formatted structure for {event_name} to {declared_data_type}',
             )
-        data_type = possible_data_type
+        data_type = declared_data_type
         data_type.suggested_name = data_type.suggested_name or event_name
     else:
+        # Binary type
         data_type = None
     if ret_priority.result not in ("high", "user", "normal", "io"):
         return StdRet.pass_errmsg(
@@ -119,121 +140,11 @@ def load_event_schema(  # pylint:disable=too-many-locals
     ))
 
 
-def update_references(
-        refs: Dict[str, event_schema.AbcEventDataType],
-) -> StdRet[Dict[str, event_schema.AbcEventDataType]]:
-    """
-    Replaces all "reference" types with the actual value.
-
-    :param refs:
-    :return:
-    """
-    for ref, data_type in refs.items():
-        ret_updated = update_reference(data_type, refs, [])
-        if not ret_updated.ok:
-            return ret_updated.forward()
-        refs[ref] = ret_updated.result
-    return StdRet.pass_ok(refs)
-
-
-MAX_REFERENCE_DEPTH = 20
-
-
-def update_reference(  # pylint: disable=R0911,R0912
-        data_type: event_schema.AbcEventDataType,
-        refs: Dict[str, event_schema.AbcEventDataType],
-        reference_depth: List[str],
-) -> StdRet[event_schema.AbcEventDataType]:
-    """Replaces references with the same type object it references."""
-    new_type: event_schema.AbcEventDataType
-    if isinstance(data_type, event_schema.ArrayEventDataType):
-        ret_internal = update_reference(data_type.value_type, refs, reference_depth)
-        if not ret_internal.ok:
-            return ret_internal
-        if ret_internal.result is not data_type.value_type:
-            new_type = event_schema.ArrayEventDataType(
-                data_type.description, ret_internal.result,
-                data_type.min_length, data_type.max_length,
-            )
-            new_type.suggested_name = data_type.suggested_name
-            return StdRet.pass_ok(new_type)
-        # No replacement needed.
-        return StdRet.pass_ok(data_type)
-    if isinstance(data_type, event_schema.StructureEventDataType):
-        new_fields: Dict[str, event_schema.StructureFieldType] = {}
-        changed = False
-        for key, value in data_type.fields():
-            ret_internal = update_reference(value.data_type, refs, reference_depth)
-            if not ret_internal.ok:
-                return ret_internal
-            if ret_internal.result is not value.data_type:
-                changed = True
-                new_fields[key] = event_schema.StructureFieldType(
-                    ret_internal.result, value.is_optional,
-                )
-            else:
-                new_fields[key] = value
-        if changed:
-            new_type = event_schema.StructureEventDataType(
-                data_type.description, new_fields,
-            )
-            new_type.suggested_name = data_type.suggested_name
-            return StdRet.pass_ok(new_type)
-        # No replacement needed.
-        return StdRet.pass_ok(data_type)
-    if isinstance(data_type, event_schema.SelectorEventDataType):
-        selector_types: Dict[str, event_schema.AbcEventDataType] = {}
-        changed = False
-        for key, selector_type in data_type.selector_items():
-            ret_internal = update_reference(selector_type, refs, reference_depth)
-            if not ret_internal.ok:
-                return ret_internal
-            if ret_internal.result is not selector_type:
-                changed = True
-                selector_types[key] = ret_internal.result
-            else:
-                selector_types[key] = selector_type
-        if changed:
-            new_type = event_schema.SelectorEventDataType(
-                data_type.description, selector_types,
-            )
-            new_type.suggested_name = data_type.suggested_name
-            return StdRet.pass_ok(new_type)
-        # No replacement needed
-        return StdRet.pass_ok(data_type)
-    if isinstance(data_type, event_schema.ReferenceEventDataType):
-        if data_type.reference in reference_depth:
-            return StdRet.pass_errmsg(
-                STDC, _('cyclic reference `{reference}`'),
-                reference=data_type.reference,
-            )
-        replacement = refs.get(data_type.reference)
-        if not replacement:
-            return StdRet.pass_errmsg(
-                STDC, _('unknown reference `{reference}`'),
-                reference=data_type.reference,
-            )
-        new_depth = [*reference_depth, data_type.reference]
-        if len(new_depth) > MAX_REFERENCE_DEPTH:
-            return StdRet.pass_errmsg(
-                STDC, _('reference depth too deep ({depth})'),
-                depth=reference_depth,
-            )
-        ret_internal = update_reference(replacement, refs, new_depth)
-        if not ret_internal.ok:
-            return ret_internal
-        # Do not change the suggested name.
-        refs[data_type.reference] = ret_internal.result
-        return ret_internal
-
-    # It's not a reference-able object
-    return StdRet.pass_ok(data_type)
-
-
 # pylint: disable=R0911
 def load_event_data_type(
         src_name: str,
         raw: Dict[str, Any],
+        references: Mapping[str, event_schema.InternalType],
 ) -> StdRet[event_schema.AbcEventDataType]:
     """Reads an event data type object."""
     data_type = raw.get('type')
@@ -250,11 +161,11 @@ def load_event_data_type(
     if data_type == 'datetime':
         return load_event_datetime_data_type(raw)
     if data_type == 'array':
-        return load_event_array_data_type(src_name, raw)
+        return load_event_array_data_type(src_name, raw, references)
     if data_type == 'structure':
-        return load_event_structure_data_type(src_name, raw)
+        return load_event_structure_data_type(src_name, raw, references)
     if data_type == 'selector':
-        return load_event_selector_data_type(src_name, raw)
+        return load_event_selector_data_type(src_name, raw, references)
     if data_type == 'reference':
         return load_event_reference_data_type(raw)
     if not data_type:
@@ -368,6 +279,7 @@ def load_event_datetime_data_type(
 def load_event_array_data_type(
         src_name: str,
         raw: Dict[str, Any],
+        references: Mapping[str, event_schema.InternalType],
 ) -> StdRet[event_schema.ArrayEventDataType]:
     """Reads an event array data type"""
     ret_description = load_event_type_description(raw)
@@ -383,9 +295,13 @@ def load_event_array_data_type(
             STDC, _('{name}: `value-type` must be a dictionary of a data type structure'),
             name=src_name,
         )
-    ret_data_type = load_event_data_type(src_name, raw_data_type)
+    internal_type_res = _get_internal_type(
+        load_event_data_type(src_name, raw_data_type, references),
+        references,
+    )
+
     error = collect_errors_from(
-        ret_description, ret_max_length, ret_min_length, ret_data_type,
+        ret_description, ret_max_length, ret_min_length, internal_type_res,
     )
     if error:
         return StdRet.pass_error(
@@ -399,23 +315,27 @@ def load_event_array_data_type(
             ),
         )
     return StdRet.pass_ok(event_schema.ArrayEventDataType(
-        ret_description.value, ret_data_type.result, ret_min_length.result, ret_max_length.result,
+        ret_description.value,
+        internal_type_res.result,
+        ret_min_length.result, ret_max_length.result,
     ))
 
 
 def load_event_structure_data_type_or_binary(
         src_name: str,
         raw: Dict[str, Any],
+        references: Mapping[str, event_schema.InternalType],
 ) -> StdRet[Optional[event_schema.StructureEventDataType]]:
     """Reads an event structure data type"""
     if raw.get('is-binary') is True:
         return RET_OK_NONE
-    return load_event_structure_data_type(src_name, raw)
+    return load_event_structure_data_type(src_name, raw, references)
 
 
 def load_event_structure_data_type(
         src_name: str,
         raw: Dict[str, Any],
+        references: Mapping[str, event_schema.InternalType],
 ) -> StdRet[event_schema.StructureEventDataType]:
     """Reads an event structure data type"""
     ret_description = load_event_type_description(raw)
@@ -429,20 +349,35 @@ def load_event_structure_data_type(
             name=src_name, data=repr(raw_fields),
         )
     fields: Dict[str, event_schema.StructureFieldType] = {}
+    errors: List[UserMessage] = []
     for field_name, raw_field in raw_fields.items():
         raw_optional = raw_field.get('optional')
-        if raw_optional is None:
-            optional = False
-        elif not isinstance(raw_optional, bool):
-            return StdRet.pass_errmsg(
-                STDC, _('`optional` must be `true` or `false`'),
-            )
+        if raw_optional is not None and not isinstance(raw_optional, bool):
+            errors.append(UserMessage(
+                STDC, _('{field}: `optional` must be `true` or `false`'),
+                field=field_name,
+            ))
         else:
-            optional = raw_optional
-        ret_field_data_type = load_event_data_type(f'{src_name} -> {field_name}', raw_field)
-        if not ret_field_data_type.ok:
-            return ret_field_data_type.forward()
-        fields[field_name] = event_schema.StructureFieldType(ret_field_data_type.result, optional)
+            optional = False if raw_optional is None else raw_optional
+            ret_field_data_type_res = load_event_data_type(
+                f'{src_name} -> {field_name}', raw_field, references,
+            )
+            internal_type_res = _get_internal_type(ret_field_data_type_res, references)
+            if internal_type_res.has_error:
+                errors.append(UserMessage(
+                    STDC, _('{field}: issue with declared type'),
+                    field=field_name,
+                ))
+                errors.extend(internal_type_res.error_messages())
+            else:
+                fields[field_name] = event_schema.StructureFieldType(
+                    internal_type_res.result, optional,
+                )
+    if errors:
+        return StdRet.pass_error(join_errors(
+            UserMessage(STDC, _('{name}: problem(s) in declaration'), name=src_name),
+            *errors,
+        ))
     return StdRet.pass_ok(event_schema.StructureEventDataType(
         ret_description.value, fields,
     ))
@@ -451,6 +386,7 @@ def load_event_structure_data_type(
 def load_event_selector_data_type(
         src_name: str,
         raw: Dict[str, Any],
+        references: Mapping[str, event_schema.InternalType],
 ) -> StdRet[event_schema.SelectorEventDataType]:
     """Reads an event selector data type"""
     ret_description = load_event_optional_str_value('description', raw)
@@ -462,7 +398,7 @@ def load_event_selector_data_type(
             STDC, _('{name}: `type-mapping` must be a dictionary of data type structures'),
             name=src_name,
         )
-    mapping: Dict[str, event_schema.AbcEventDataType] = {}
+    mapping: Dict[str, event_schema.InternalType] = {}
     for key, raw_type in raw_type_mapping.items():
         if not isinstance(raw_type, dict):
             return StdRet.pass_errmsg(
@@ -470,10 +406,11 @@ def load_event_selector_data_type(
                 _('{name} -> {key}: `type-mapping` must be a dictionary of data type structures'),
                 name=src_name, key=key,
             )
-        ret_type = load_event_data_type(f'{src_name} -> {key}', raw_type)
-        if not ret_type.ok:
-            return ret_type.forward()
-        mapping[key] = ret_type.result
+        ret_type_res = load_event_data_type(f'{src_name} -> {key}', raw_type, references)
+        internal_type_res = _get_internal_type(ret_type_res, references)
+        if internal_type_res.has_error:
+            return internal_type_res.forward()
+        mapping[key] = internal_type_res.result
     return StdRet.pass_ok(event_schema.SelectorEventDataType(
         ret_description.value, mapping,
     ))
@@ -554,3 +491,25 @@ def load_event_optional_numeric_val(key: str, raw: Dict[str, Any]) -> StdRet[Opt
         STDC, _('`{key}` must be a number'),
         key=key,
     )
+
+
+def _get_internal_type(
+        data_type_res: StdRet[event_schema.AbcEventDataType],
+        references: Mapping[str, event_schema.InternalType],
+) -> StdRet[event_schema.InternalType]:
+    """Get the internal type value for the given data type."""
+    if data_type_res.has_error:
+        return data_type_res.forward()
+    data_type = data_type_res.result
+    if isinstance(data_type, event_schema.ReferenceEventDataType):
+        ret = references.get(data_type.reference)
+        if ret is None:
+            return StdRet.pass_errmsg(
+                STDC,
+                _('unknown reference `{reference}`'),
+                reference=data_type.reference,
+            )
+        return StdRet.pass_ok(ret)
+    ret = event_schema.InternalType()
+    ret.set(data_type)
+    return StdRet.pass_ok(ret)
