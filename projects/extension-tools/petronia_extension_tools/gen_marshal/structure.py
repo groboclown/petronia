@@ -160,9 +160,10 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             'raw_name': name,
             'is_event': False,
         }
-        for s_key, s_type in structure.selector_items():
+        for s_key, s_type_intern in structure.selector_items():
             # Assertion for mypy requirements
             assert isinstance(s_key, str)  # nosec
+            s_type = s_type_intern.not_none()
             if not isinstance(s_type, (SelectorEventDataType, StructureEventDataType)):
                 # Casting is added for non-simple types.
                 imports.append(('typing', 'cast', None))
@@ -210,7 +211,7 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
         last_field: Optional[Dict[str, Any]] = None
         for field_name, field_type in structure.fields():
             ret_field = get_field_struct(
-                field_name, field_type.data_type, field_type.is_optional,
+                field_name, field_type.data_type.not_none(), field_type.is_optional,
                 structure, ret, seen_structures, imports,
             )
             if ret_field.has_error:

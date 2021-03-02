@@ -208,23 +208,37 @@ class EventRouterTest(unittest.TestCase):  # pylint:disable=too-many-public-meth
     def test_add_handler__duplicate(self) -> None:
         """Test add_handler with a duplicate ID."""
         lock = threading.Semaphore()
-        event_router = router.EventRouter(lock)
-        res = event_router.register_channel('ch1', _create_reader_writer_ok)
-        self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [], [])
-        self.assertIsNone(res.error)
-        res = event_router.add_handler('ch1', 'h1', [], [], [])
-        self.assertIsNotNone(res.error)
-        res = event_router.register_channel('ch2', _create_reader_writer_ok)
-        self.assertIsNone(res.error)
-        # the handler ID should be unique across channels.
-        res = event_router.add_handler('ch1', 'h1', [], [], [])
-        self.assertIsNotNone(res.error)
+        condition = threading.Condition()
+        reader = DelayedEofConditionBinaryReader(condition)
 
-        # Removing the handler, though, allows for the other channel to add it.
-        self.assertTrue(event_router.remove_handler('h1'))
-        res = event_router.add_handler('ch1', 'h1', [], [], [])
-        self.assertIsNone(res.error)
+        def create_reader_writer() -> StdRet[Tuple[BinaryReader, BinaryWriter]]:
+            return StdRet.pass_ok((reader, SimpleBinaryWriter()))
+
+        try:
+            event_router = router.EventRouter(lock)
+
+            # This first channel needs to stay around, otherwise registering the
+            # handle and de-registering it can happen after it's been removed.
+            res = event_router.register_channel('ch1', create_reader_writer)
+            self.assertIsNone(res.error)
+
+            res = event_router.add_handler('ch1', 'h1', [], [], [])
+            self.assertIsNone(res.error)
+            res = event_router.add_handler('ch1', 'h1', [], [], [])
+            self.assertIsNotNone(res.error)
+            res = event_router.register_channel('ch2', _create_reader_writer_ok)
+            self.assertIsNone(res.error)
+            # the handler ID should be unique across channels.
+            res = event_router.add_handler('ch1', 'h1', [], [], [])
+            self.assertIsNotNone(res.error)
+
+            # Removing the handler, though, allows for the other channel to add it.
+            self.assertTrue(event_router.remove_handler('h1'))
+            res = event_router.add_handler('ch1', 'h1', [], [], [])
+            self.assertIsNone(res.error)
+        finally:
+            # Un-wait the reader.
+            reader.send_events()
 
     def test_add_handler__no_channel(self) -> None:
         """Test add_handler with a not-registered channel."""

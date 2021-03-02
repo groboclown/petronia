@@ -17,7 +17,7 @@ import petronia_extension_loader.setup
 # Seconds before the test times out and exits with an error.
 # If you're debugging, set this to a large-enough number, like
 # 5 hours.
-TEST_TIMEOUT_SECONDS = 10.0
+TEST_TIMEOUT_SECONDS = 20.0
 # TEST_TIMEOUT_SECONDS = 60.0 * 60.0 * 5.0
 
 

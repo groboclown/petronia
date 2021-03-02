@@ -87,7 +87,7 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
     if isinstance(fdt, SelectorEventDataType):
         # This isn't cryptographically strong, which is fine for test data.
         selected_key, selected_type = random.choice(tuple(fdt.selector_items()))  # nosec
-        data_value = create_field_data_sample(selected_type, fill_all_fields, depth + 1)
+        data_value = create_field_data_sample(selected_type.not_none(), fill_all_fields, depth + 1)
         if data_value.has_error:
             return data_value.forward()
         return run_template(
@@ -106,7 +106,7 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
                 continue
             if fill_all_fields or not field_dt.is_optional:
                 data_value = create_field_data_sample(
-                    field_dt.data_type, fill_all_fields, depth + 1,
+                    field_dt.data_type.not_none(), fill_all_fields, depth + 1,
                 )
                 if data_value.has_error:
                     return data_value.forward()
@@ -126,7 +126,9 @@ def create_field_data_sample(  # pylint: disable=R0911,R0912,R0914
         else:
             length = fdt.min_length
         for _ in range(length):
-            data_value = create_field_data_sample(fdt.value_type, fill_all_fields, depth + 1)
+            data_value = create_field_data_sample(
+                fdt.value_type.not_none(), fill_all_fields, depth + 1,
+            )
             if data_value.has_error:
                 return data_value.forward()
             ret_val.append(data_value.result)

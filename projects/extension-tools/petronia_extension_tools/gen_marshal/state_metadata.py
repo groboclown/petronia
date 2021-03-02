@@ -3,8 +3,7 @@
 from typing import Iterable, List, Dict, Any
 from petronia_common.extension.config.event_schema import StructureEventDataType
 from petronia_common.extension.config.event_loader import (
-    load_event_structure_data_type,
-    update_reference, parse_references,
+    load_event_structure_data_type, parse_references,
 )
 from petronia_common.util import StdRet
 
@@ -53,13 +52,10 @@ def parse_state_data(
         for key, value in raw_state_data.items():
             if not isinstance(value, dict):
                 continue
-            structure_res = load_event_structure_data_type(key, value)
+            structure_res = load_event_structure_data_type(key, value, parsed_references)
             if structure_res.has_error:
                 return structure_res.forward()
-            ref_res = update_reference(structure_res.result, parsed_references, [])
-            if ref_res.has_error:
-                return ref_res.forward()
-            data_type = ref_res.result
+            data_type = structure_res.result
             if not isinstance(data_type, StructureEventDataType):
                 # This is an internal error...
                 raise RuntimeError(  # pragma no cover
