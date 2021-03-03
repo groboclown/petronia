@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-01T15:28:52.891736+00:00
+# Created on 2021-03-02T17:01:48.770420+00:00
 
 """
 Data structures and marshalling for extension petronia_native_windows version 1.0.0.
@@ -8,20 +8,21 @@ Data structures and marshalling for extension petronia_native_windows version 1.
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 from typing import (
-    Dict,
-    SupportsInt,
-    Any,
     List,
     Optional,
+    Any,
+    Dict,
+    SupportsInt,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
-    collect_errors_from,
-    StdRet,
     not_none,
+    StdRet,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia_native_windows'

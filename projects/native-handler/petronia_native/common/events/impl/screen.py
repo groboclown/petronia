@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-01T15:28:50.545162+00:00
+# Created on 2021-03-02T17:00:14.369157+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.screen version 1.0.0.
@@ -8,22 +8,23 @@ Data structures and marshalling for extension petronia.core.api.native.screen ve
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 from typing import (
-    SupportsFloat,
     SupportsInt,
-    Union,
     cast,
-    List,
+    Union,
+    SupportsFloat,
     Optional,
     Dict,
+    List,
     Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
     not_none,
     collect_errors_from,
 )
@@ -631,16 +632,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            bool,
-            List[float],
-            int,
-            List[bool],
-            float,
+            List[int],
             List[str],
             str,
-            List[datetime.datetime],
-            List[int],
+            bool,
+            List[float],
             datetime.datetime,
+            List[bool],
+            List[datetime.datetime],
+            float,
+            int,
         ],
     ) -> None:
         self.__name = name
@@ -653,16 +654,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            bool,
-            List[float],
-            int,
-            List[bool],
-            float,
+            List[int],
             List[str],
             str,
-            List[datetime.datetime],
-            List[int],
+            bool,
+            List[float],
             datetime.datetime,
+            List[bool],
+            List[datetime.datetime],
+            float,
+            int,
     ]:
         """The selector value."""
         return self.__value

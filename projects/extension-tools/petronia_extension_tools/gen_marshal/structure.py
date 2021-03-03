@@ -385,7 +385,7 @@ def get_field_struct(  # pylint: disable=R0912,R0913,R0915
             return ret_type.forward()
         field['field_python_type'] = ret_type.result
     elif isinstance(fdt, ArrayEventDataType):
-        item_type = fdt.value_type
+        item_type = fdt.value_type.not_none()
         if isinstance(item_type, (StructureEventDataType, SelectorEventDataType)):
             field['is_array_struct_type'] = True
             ret_type = find_or_add_structure(

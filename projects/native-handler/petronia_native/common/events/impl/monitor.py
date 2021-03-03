@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-01T15:28:50.345950+00:00
+# Created on 2021-03-02T16:58:22.592636+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.monitor version 1.0.0.
@@ -8,17 +8,18 @@ Data structures and marshalling for extension petronia.core.api.native.monitor v
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 from typing import (
     SupportsInt,
+    Any,
     List,
     Dict,
-    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
     not_none,
     collect_errors_from,
 )

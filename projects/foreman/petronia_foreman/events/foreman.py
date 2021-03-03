@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-01T15:28:39.379513+00:00
+# Created on 2021-03-02T16:51:55.989202+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -8,23 +8,24 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 from typing import (
-    SupportsInt,
-    SupportsFloat,
-    Optional,
-    List,
     cast,
-    Any,
     Dict,
+    Optional,
+    Any,
     Union,
+    SupportsFloat,
+    List,
+    SupportsInt,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     not_none,
-    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    STANDARD_PETRONIA_CATALOG,
     StdRet,
 )
 
@@ -517,16 +518,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
+            str,
             List[int],
-            datetime.datetime,
+            float,
+            bool,
             List[str],
             List[bool],
             List[float],
-            float,
-            int,
-            bool,
-            str,
             List[datetime.datetime],
+            datetime.datetime,
+            int,
         ],
     ) -> None:
         self.__name = name
@@ -539,16 +540,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
+            str,
             List[int],
-            datetime.datetime,
+            float,
+            bool,
             List[str],
             List[bool],
             List[float],
-            float,
-            int,
-            bool,
-            str,
             List[datetime.datetime],
+            datetime.datetime,
+            int,
     ]:
         """The selector value."""
         return self.__value

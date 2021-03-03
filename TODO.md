@@ -31,7 +31,7 @@ This is the next thing that's being worked on.
 * for the ui extension, it must have absolute position for the outer window, but the inner components must be relative, because text display is dynamic (it looks up translations).  On that note, text must also be rotatable, and notes should be made that implementors *should* support BiDi.
 * `native-hotkey-extenison.yaml` defines `bound-hotkey` as a structure containing an array.  This is due to a limitation in the generator.  If the generator can eventually deal with this, then it should go back to being an array.
 * Running lint on the generated events tree takes minutes to run, so these are currently omitted in the `pylintrc` file.
-* `native-ui-extension.yaml` produces a cycle.  This needs to be solved by the generator, due to the need for recursive data structures.
+* `native-ui-extension.yaml` produces a cycle, which is fine, but the generated data structures don't appear.
 * The Windows version of `pylintrc` is ignoring the fixme messages.  This needs to be removed.
 * Turn back off the `func_*.py` disabled in the code coverage (`.coveragerc`).
 * Remove the `fixme` that's been disabled in the lint config (`pylintrc`).
@@ -62,7 +62,9 @@ This is the next thing that's being worked on.
 ### extension-tools
 
 * improve test generation to have full coverage of some categories of events, such as data-store.
-* binary event unit test classes should not exist.
+* binary event unit test classes should not exist.  Or should be made differently.
+* random number generator should have a seed based on extension information, so that regenerating the tests will have consistent test data.  Maybe a seed can be set in the yaml file?
+* after the change to allow cycles, the source generator is horribly slow.  Need to figure out where the slow-down is happening.  Probably in the cycle code ;)
 
 
 ### extension-loader

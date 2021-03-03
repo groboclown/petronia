@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-01T15:28:41.563166+00:00
+# Created on 2021-03-02T16:53:19.605364+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -8,23 +8,24 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 from typing import (
     Any,
     SupportsInt,
-    Dict,
     cast,
     Union,
-    List,
     SupportsFloat,
     Optional,
+    List,
+    Dict,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
     not_none,
+    collect_errors_from,
     StdRet,
 )
 
@@ -517,16 +518,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            int,
+            bool,
+            float,
+            datetime.datetime,
+            List[bool],
             str,
             List[int],
             List[str],
-            datetime.datetime,
             List[float],
-            float,
-            List[bool],
-            bool,
             List[datetime.datetime],
+            int,
         ],
     ) -> None:
         self.__name = name
@@ -539,16 +540,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            int,
+            bool,
+            float,
+            datetime.datetime,
+            List[bool],
             str,
             List[int],
             List[str],
-            datetime.datetime,
             List[float],
-            float,
-            List[bool],
-            bool,
             List[datetime.datetime],
+            int,
     ]:
         """The selector value."""
         return self.__value

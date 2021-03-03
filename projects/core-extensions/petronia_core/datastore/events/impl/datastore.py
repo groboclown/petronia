@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-01T15:28:45.821673+00:00
+# Created on 2021-03-02T16:54:15.773461+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.datastore version 1.0.0.
@@ -8,19 +8,20 @@ Data structures and marshalling for extension petronia.core.api.datastore versio
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 from typing import (
-    Any,
     Dict,
     List,
+    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.datastore'

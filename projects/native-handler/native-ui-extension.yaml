@@ -40,7 +40,7 @@ events:
     fields:
       locale:
         type: reference
-        ref: locale_code
+        ref: locale-code
       format:
         description: The mime format of the image.
         type: string

@@ -1,5 +1,5 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-01T15:28:56.980386+00:00
+# Created on 2021-03-02T17:03:03.107705+00:00
 
 """
 Data structures and marshalling for extension petronia.core.protocol.logging version 1.0.0.
@@ -8,23 +8,24 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
 # pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
 
-
+# Allow forward references and thus cyclic data types
+from __future__ import annotations
 from typing import (
-    Union,
     Optional,
-    List,
     cast,
-    SupportsInt,
-    SupportsFloat,
-    Dict,
     Any,
+    Dict,
+    SupportsFloat,
+    SupportsInt,
+    List,
+    Union,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    STANDARD_PETRONIA_CATALOG,
     not_none,
     collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     StdRet,
 )
 
@@ -42,16 +43,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            bool,
-            List[bool],
-            List[int],
-            List[str],
             float,
-            List[float],
             List[datetime.datetime],
             int,
-            str,
+            List[str],
             datetime.datetime,
+            List[float],
+            List[bool],
+            str,
+            bool,
+            List[int],
         ],
     ) -> None:
         self.__name = name
@@ -64,16 +65,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            bool,
-            List[bool],
-            List[int],
-            List[str],
             float,
-            List[float],
             List[datetime.datetime],
             int,
-            str,
+            List[str],
             datetime.datetime,
+            List[float],
+            List[bool],
+            str,
+            bool,
+            List[int],
     ]:
         """The selector value."""
         return self.__value
@@ -595,7 +596,7 @@ class LogEvent:
                 name='LogEvent',
             )
         else:
-            if val not in ('debug','warning','verbose','info', ):
+            if val not in ('info','debug','warning','verbose', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

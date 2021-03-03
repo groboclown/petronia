@@ -2,7 +2,9 @@
 
 from typing import Mapping, Dict, List, Optional, Any, Hashable
 import concurrent.futures
-from petronia_common.util import StdRet, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none
+from petronia_common.util import (
+    StdRet, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none,
+)
 from petronia_native.common import user_messages
 from petronia_native.common.handlers import window
 from petronia_native.common.events.impl import window as window_events
@@ -279,7 +281,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             new_window = WindowsNativeWindow(old_window.window_id, new_hwnd, old_window.state)
             self.replace_native_id(old_window, new_window)
 
-    def on_set_window_position_request(
+    def on_set_window_position_request(  # pylint:disable=arguments-differ
             self, wnd: WindowsNativeWindow, new_location: window_events.ScreenDimension,
     ) -> StdRet[None]:
         if self.__queue:
@@ -288,35 +290,43 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             )
         return RET_OK_NONE
 
-    def on_close_window_request(self, wnd: WindowsNativeWindow) -> StdRet[None]:
+    def on_close_window_request(  # pylint:disable=arguments-differ
+            self, wnd: WindowsNativeWindow,
+    ) -> StdRet[None]:
         if self.__queue:
             return self.__queue.queue_message(
                 _CLOSE_WINDOW, wnd,
             )
         return RET_OK_NONE
 
-    def on_minimize_window_request(self, wnd: WindowsNativeWindow) -> StdRet[None]:
+    def on_minimize_window_request(  # pylint:disable=arguments-differ
+            self, wnd: WindowsNativeWindow,
+    ) -> StdRet[None]:
         if self.__queue:
             return self.__queue.queue_message(
                 _MINIMIZE_WINDOW, wnd,
             )
         return RET_OK_NONE
 
-    def on_maximize_window_request(self, wnd: WindowsNativeWindow) -> StdRet[None]:
+    def on_maximize_window_request(  # pylint:disable=arguments-differ
+            self, wnd: WindowsNativeWindow,
+    ) -> StdRet[None]:
         if self.__queue:
             return self.__queue.queue_message(
                 _MAXIMIZE_WINDOW, wnd,
             )
         return RET_OK_NONE
 
-    def on_restore_window_request(self, wnd: WindowsNativeWindow) -> StdRet[None]:
+    def on_restore_window_request(  # pylint:disable=arguments-differ
+            self, wnd: WindowsNativeWindow,
+    ) -> StdRet[None]:
         if self.__queue:
             return self.__queue.queue_message(
                 _RESTORE_WINDOW, wnd,
             )
         return RET_OK_NONE
 
-    def on_set_window_settings(
+    def on_set_window_settings(  # pylint:disable=arguments-differ
             self, wnd: WindowsNativeWindow, settings: Mapping[str, str],
     ) -> StdRet[None]:
         if self.__queue:
@@ -342,7 +352,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             # This call will just ask another window to close itself.  If it actually closes, then
             # that will be triggered as a separate message that this handler can respond to.
             user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.close(arg.native_id)
+                WINDOWS_FUNCTIONS.window.close(arg.native_id)  # pylint:disable=not-callable
             )
 
     @staticmethod
@@ -353,7 +363,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         if WINDOWS_FUNCTIONS.window.minimize:
             assert isinstance(arg, WindowsNativeWindow)  # nosec
             user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.minimize(arg.native_id)
+                WINDOWS_FUNCTIONS.window.minimize(arg.native_id)  # pylint:disable=not-callable
             )
 
     @staticmethod
@@ -364,7 +374,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         if WINDOWS_FUNCTIONS.window.maximize:
             assert isinstance(arg, WindowsNativeWindow)  # nosec
             user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.maximize(arg.native_id)
+                WINDOWS_FUNCTIONS.window.maximize(arg.native_id)  # pylint:disable=not-callable
             )
 
     @staticmethod
@@ -375,7 +385,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         if WINDOWS_FUNCTIONS.window.restore:
             assert isinstance(arg, WindowsNativeWindow)  # nosec
             user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.restore(arg.native_id)
+                WINDOWS_FUNCTIONS.window.restore(arg.native_id)  # pylint:disable=not-callable
             )
 
     @staticmethod
@@ -389,7 +399,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             assert isinstance(wnd, WindowsNativeWindow)  # nosec
             assert isinstance(new_location, window_events.ScreenDimension)  # nosec
 
-            success = WINDOWS_FUNCTIONS.window.move_resize(
+            success = WINDOWS_FUNCTIONS.window.move_resize(  # pylint:disable=not-callable
                 wnd.native_id,
                 new_location.x, new_location.y, new_location.width, new_location.height,
                 True,
@@ -416,7 +426,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
                 if bool_val is not None and key in WINDOW_META_STYLES:
                     style[WINDOW_META_STYLES[key]] = bool_val
 
-            res = WINDOWS_FUNCTIONS.window.set_style(wnd.native_id, style)
+            res = WINDOWS_FUNCTIONS.window.set_style(wnd.native_id, style)  # pylint:disable=not-callable
             if res.ok:
                 # TODO: change the settings in the datastore
                 pass
@@ -431,7 +441,9 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             padded_border_width = _get_int(GLOBAL_SETTING__METRICS_BORDER_WIDTH, arg, 4)
             if border_width >= 0:
                 user_messages.report_send_receive_problems(
-                    WINDOWS_FUNCTIONS.shell.set_border_size(border_width, padded_border_width)
+                    WINDOWS_FUNCTIONS.shell.set_border_size(  # pylint:disable=not-callable
+                        border_width, padded_border_width,
+                    )
                 )
             new_settings_res = WindowsNativeHandler._load_global_settings()
             user_messages.report_send_receive_problems(new_settings_res)
@@ -498,7 +510,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         """Read all the global OS settings, and update the state.
         This should be run from the windows message loop."""
         if WINDOWS_FUNCTIONS.shell.get_window_metrics:
-            metrics = WINDOWS_FUNCTIONS.shell.get_window_metrics()
+            metrics = WINDOWS_FUNCTIONS.shell.get_window_metrics()  # pylint:disable=not-callable
             if metrics.has_error:
                 return metrics.forward()
             return StdRet.pass_ok({
@@ -552,9 +564,9 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
         focused_hwnd: Optional[HWND] = None
         if WINDOWS_FUNCTIONS.window.get_active_window:
-            focused_hwnd = WINDOWS_FUNCTIONS.window.get_active_window()
+            focused_hwnd = WINDOWS_FUNCTIONS.window.get_active_window()  # pylint:disable=not-callable
         if WINDOWS_FUNCTIONS.window.find_handles:
-            handles = WINDOWS_FUNCTIONS.window.find_handles()
+            handles = WINDOWS_FUNCTIONS.window.find_handles()  # pylint:disable=not-callable
             for handle in handles:
                 wnd = active_windows.get(handle)
                 if not wnd:
@@ -603,7 +615,9 @@ def _get_int(key: str, struct: Mapping[str, str], default: int) -> int:
     return default
 
 
-def update_window_state(hwnd: HWND, state: window_events.WindowState) -> StdRet[None]:
+def update_window_state(  # pylint:disable=too-many-branches
+        hwnd: HWND, state: window_events.WindowState,
+) -> StdRet[None]:
     """Load the window state data.  Should be called from the Windows message loop."""
     res: List[StdRet[None]] = []
     meta: Dict[str, str] = {
@@ -611,7 +625,9 @@ def update_window_state(hwnd: HWND, state: window_events.WindowState) -> StdRet[
         for m in state.meta
     }
     if WINDOWS_FUNCTIONS.window.border_rectangle:
-        rect_res = WINDOWS_FUNCTIONS.window.border_rectangle(hwnd)
+        rect_res = WINDOWS_FUNCTIONS.window.border_rectangle(  # pylint:disable=not-callable
+            hwnd,
+        )
         res.append(rect_res.forward())
         if rect_res.ok:
             state.location.x = rect_res.result.x
@@ -619,37 +635,49 @@ def update_window_state(hwnd: HWND, state: window_events.WindowState) -> StdRet[
             state.location.width = rect_res.result.width
             state.location.height = rect_res.result.height
     if WINDOWS_FUNCTIONS.window.get_style:
-        style = WINDOWS_FUNCTIONS.window.get_style(hwnd)
+        style = WINDOWS_FUNCTIONS.window.get_style(  # pylint:disable=not-callable
+            hwnd,
+        )
         meta.update({
             key: 'true' if style.get(WINDOW_META_STYLES[key], False) else 'false'
-            for key in WINDOW_META_STYLES.keys()
+            for key in WINDOW_META_STYLES  # keys()
         })
     pid: DWORD = DWORD(0)
     if WINDOWS_FUNCTIONS.window.get_process_id:
-        pid = WINDOWS_FUNCTIONS.window.get_process_id(hwnd)
+        pid = WINDOWS_FUNCTIONS.window.get_process_id(  # pylint:disable=not-callable
+            hwnd,
+        )
         meta[WINDOW_META__PID] = str(pid)
     if WINDOWS_FUNCTIONS.window.get_class_name:
-        name_res = WINDOWS_FUNCTIONS.window.get_class_name(hwnd)
+        name_res = WINDOWS_FUNCTIONS.window.get_class_name(  # pylint:disable=not-callable
+            hwnd,
+        )
         if name_res.ok:
             meta[WINDOW_META__WINDOW_CLASS_NAME] = name_res.result
         else:
             res.append(name_res.forward())
     if WINDOWS_FUNCTIONS.window.get_module_filename:
-        name_res = WINDOWS_FUNCTIONS.window.get_module_filename(hwnd)
+        name_res = WINDOWS_FUNCTIONS.window.get_module_filename(  # pylint:disable=not-callable
+            hwnd,
+        )
         if name_res.ok:
             meta[WINDOW_META__WINDOW_MODULE_FILENAME] = name_res.result
         else:
             res.append(name_res.forward())
     if WINDOWS_FUNCTIONS.window.get_title:
-        meta[WINDOW_META__WINDOW_TITLE] = WINDOWS_FUNCTIONS.window.get_title(hwnd)
+        meta[WINDOW_META__WINDOW_TITLE] = WINDOWS_FUNCTIONS.window.get_title(  # pylint:disable=not-callable
+            hwnd,
+        )
     if WINDOWS_FUNCTIONS.process.get_username_domain_for_pid and pid != 0:
-        user_domain_res = WINDOWS_FUNCTIONS.process.get_username_domain_for_pid(pid)
+        user_domain_res = WINDOWS_FUNCTIONS.process.get_username_domain_for_pid(  # pylint:disable=not-callable
+            pid,
+        )
         if user_domain_res.ok:
             meta[WINDOW_META__OWNER] = f'{user_domain_res.result[0]}/{user_domain_res.result[1]}'
         else:
-            res.append(user_domain_res.forward())
+            res.append(user_domain_res.forward())  # pylint:disable=not-callable
     if WINDOWS_FUNCTIONS.process.get_executable_filename and pid != 0:
-        exec_fn_res = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)
+        exec_fn_res = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)  # pylint:disable=not-callable
         if exec_fn_res.ok and exec_fn_res.value:
             meta[WINDOW_META__PROGRAM] = not_none(exec_fn_res.value)
         else:

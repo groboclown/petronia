@@ -196,7 +196,7 @@ class AbstractScreenHandler:
         this should perform necessary steps to update the datastore configuration for the
         extension, if necessary.  Errors reported from this do not stop the configuration
         from being changed in this object."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma no cover
 
     def callback_virtual_screen_update(
             self, context: EventRegistryContext, active_screen: virtual_screen.VirtualScreen,
@@ -206,7 +206,7 @@ class AbstractScreenHandler:
         change due to its own reasoning.
 
         If this returns an error, then the change to the configuration will be reverted."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma no cover
 
 
 def register_screen_listener(
