@@ -144,7 +144,9 @@ class AbstractScreenHandler:
         # First, check if the configurations are valid.
         errors: List[StdRet[None]] = []
         for config in new_configs:
-            errors.append(config.validate())
+            res = config.validate()
+            if res.has_error:
+                errors.append(res)
 
         if errors:
             # The configuration had problems.

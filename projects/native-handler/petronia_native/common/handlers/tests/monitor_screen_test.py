@@ -109,16 +109,200 @@ class AbstractScreenHandlerTest(unittest.TestCase):
         res = handler.on_configuration_update(None, -1, [])
         self.assertIsNone(res.error)
 
-    def test_detected_monitor_changed(self) -> None:
+    def test_detected_monitor_changed(self) -> None:  # pylint:disable=too-many-statements
         """Test detected_monitor_changed."""
         context = unittest.mock.Mock(EventRegistryContext())
         context.send_event.return_value = RET_OK_NONE
         handler = MockScreenHandler(context)
-        res = handler.detected_monitor_changed([
-            monitor.Monitor(1, 'x', 1, 1, 1, 1, False),
-        ])
+        monitor_set_1 = [
+            monitor.Monitor(1, 'x', 2, 3, 4, 5, False),
+        ]
+        res = handler.detected_monitor_changed(monitor_set_1)
         self.assertIsNone(res.error)
-        context.send_event.assert_not_called()
+        context.send_event.assert_called()
+        self.assertEqual(2, len(context.send_event.call_args_list))
+
+        call1_args = context.send_event.call_args_list[0].args
+        self.assertEqual(call1_args[0], monitor.ActiveMonitorsState.UNIQUE_TARGET_FQN)
+        self.assertEqual(call1_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        event_obj = call1_args[2]
+        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
+        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertEqual(
+            json.dumps({'monitors': [
+                {
+                    'identifier': 1, 'description': 'x', 'real_pixel_width': 2,
+                    'real_pixel_height': 3, 'dpi_x': 4, 'dpi_y': 5, 'supports_rotation': False,
+                },
+            ]}),
+            event_obj.json,
+        )
+
+        call2_args = context.send_event.call_args_list[1].args
+        self.assertEqual(call2_args[0], screen.VirtualScreenState.UNIQUE_TARGET_FQN)
+        self.assertEqual(call2_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        event_obj = call2_args[2]
+        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
+        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertEqual(
+            json.dumps({'area': [
+                {
+                    'nw_x_pixel': 0, 'nw_y_pixel': 0, 'width': 2, 'height': 3,
+
+                    # This ratio isn't right; it need to take DPI into account.
+                    'ratio_x': 1, 'ratio_y': 1,
+                },
+            ]}),
+            event_obj.json,
+        )
+
+        # Perform the same update, and ensure that the screen handler correctly ignored the
+        # update.
+        monitor_set_2 = [
+            monitor.Monitor(1, 'x', 2, 3, 4, 5, False),
+        ]
+        context.reset_mock()
+        res = handler.detected_monitor_changed(monitor_set_2)
+        self.assertIsNone(res.error)
+        context.send_event.assert_called()
+        self.assertEqual(1, len(context.send_event.call_args_list))
+        call1_args = context.send_event.call_args_list[0].args
+        self.assertEqual(call1_args[0], monitor.ActiveMonitorsState.UNIQUE_TARGET_FQN)
+        self.assertEqual(call1_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        event_obj = call1_args[2]
+        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
+        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertEqual(
+            json.dumps({'monitors': [
+                {
+                    'identifier': 1, 'description': 'x', 'real_pixel_width': 2,
+                    'real_pixel_height': 3, 'dpi_x': 4, 'dpi_y': 5, 'supports_rotation': False,
+                },
+            ]}),
+            event_obj.json,
+        )
+
+        # Perform a different monitor configuration update, and ensure that the screen handler
+        # correctly identifies the update.
+        monitor_set_3 = [
+            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
+            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
+        ]
+        context.reset_mock()
+        res = handler.detected_monitor_changed(monitor_set_3)
+        self.assertIsNone(res.error)
+        context.send_event.assert_called()
+        self.assertEqual(2, len(context.send_event.call_args_list))
+
+        call1_args = context.send_event.call_args_list[0].args
+        self.assertEqual(call1_args[0], monitor.ActiveMonitorsState.UNIQUE_TARGET_FQN)
+        self.assertEqual(call1_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        event_obj = call1_args[2]
+        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
+        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertEqual(
+            json.dumps({'monitors': [
+                {
+                    'identifier': 7, 'description': 'x', 'real_pixel_width': 7,
+                    'real_pixel_height': 12, 'dpi_x': 15, 'dpi_y': 99, 'supports_rotation': False,
+                },
+                {
+                    'identifier': 17, 'description': 'y', 'real_pixel_width': 9,
+                    'real_pixel_height': 8, 'dpi_x': 7, 'dpi_y': 6, 'supports_rotation': False,
+                },
+            ]}),
+            event_obj.json,
+        )
+
+        call2_args = context.send_event.call_args_list[1].args
+        self.assertEqual(call2_args[0], screen.VirtualScreenState.UNIQUE_TARGET_FQN)
+        self.assertEqual(call2_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        event_obj = call2_args[2]
+        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
+        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertEqual(
+            json.dumps({'area': [
+                {
+                    'nw_x_pixel': 0, 'nw_y_pixel': 0, 'width': 7, 'height': 12,
+                    'ratio_x': 1, 'ratio_y': 1,
+                },
+                {
+                    'nw_x_pixel': 7, 'nw_y_pixel': 0, 'width': 9, 'height': 8,
+                    'ratio_x': 1, 'ratio_y': 1,
+                },
+            ]}),
+            event_obj.json,
+        )
+
+    def test_on_configuration_update(self) -> None:
+        """Test the on_configuration_update method."""
+        context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
+        handler = MockScreenHandler(context)
+        # Setup the initial monitors
+        monitor_set = [
+            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
+            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
+        ]
+        res = handler.detected_monitor_changed(monitor_set)
+        self.assertIsNone(res.error)
+        context.reset_mock()
+
+        res = handler.on_configuration_update(
+            's1', 12, [
+                virtual_screen.VirtualScreenConfig(
+                    'not-used',
+                    [(7, defs.MonitorUnit(7), defs.MonitorUnit(12))],
+                    virtual_screen.VirtualScreen([
+                        virtual_screen.VirtualScreenBlock(
+                            (
+                                7, defs.MonitorUnit(0), defs.MonitorUnit(0),
+                                defs.MonitorUnit(7), defs.MonitorUnit(12),
+                            ),
+                            (
+                                defs.ScreenUnit(0), defs.ScreenUnit(0),
+                                defs.ScreenUnit(7), defs.ScreenUnit(12),
+                            ),
+                            0,
+                        )
+                    ]),
+                ),
+                virtual_screen.VirtualScreenConfig(
+                    'used',
+                    [
+                        (7, defs.MonitorUnit(7), defs.MonitorUnit(12)),
+                        (17, defs.MonitorUnit(9), defs.MonitorUnit(8)),
+                    ],
+                    virtual_screen.VirtualScreen([
+                        virtual_screen.VirtualScreenBlock(
+                            (
+                                7, defs.MonitorUnit(1), defs.MonitorUnit(2),
+                                defs.MonitorUnit(5), defs.MonitorUnit(8),
+                            ),
+                            (
+                                defs.ScreenUnit(0), defs.ScreenUnit(0),
+                                defs.ScreenUnit(5), defs.ScreenUnit(8),
+                            ),
+                            0,
+                        ),
+                        virtual_screen.VirtualScreenBlock(
+                            (
+                                17, defs.MonitorUnit(0), defs.MonitorUnit(1),
+                                defs.MonitorUnit(8), defs.MonitorUnit(2),
+                            ),
+                            (
+                                defs.ScreenUnit(2), defs.ScreenUnit(8),
+                                defs.ScreenUnit(8), defs.ScreenUnit(2),
+                            ),
+                            0,
+                        ),
+                    ]),
+                )
+            ],
+        )
+        self.assertIsNone(res.error)
+        calls = context.send_event.call_args_list
+        self.assertEqual(3, len(calls))
 
 
 class MockScreenHandler(monitor_screen.AbstractScreenHandler):

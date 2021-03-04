@@ -22,7 +22,7 @@ class WindowsNativeWindow(window.ActiveWindow[HWND]):
             hwnd: HWND,
             state: window_events.WindowState,
     ) -> None:
-        window.ActiveWindow.__init__(self, window_id, hwnd, str(hwnd.value), state)
+        window.ActiveWindow.__init__(self, window_id, hwnd, str(hwnd), state)
 
 
 _CLOSE_WINDOW = 0

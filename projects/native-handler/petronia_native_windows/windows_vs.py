@@ -79,6 +79,8 @@ class WindowsDesktopScreen:
     The Petronia virtual screen block is a mapping between the Petronia screen to the
     underlying monitor.
 
+    Default virtual screen generation should be based on this.
+
     This is thread safe.
     """
 

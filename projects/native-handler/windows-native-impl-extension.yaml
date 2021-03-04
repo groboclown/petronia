@@ -39,12 +39,9 @@ implements:
   - name: petronia.core.api.native.screen
     minimum: [1, 0, 0]
     below: [2, 0, 0]
-
-  # This needs to have the data structure cycle fixed.
-  #- name: petronia.core.api.native.ui
-  #  minimum: [1, 0, 0]
-  #  below: [2, 0, 0]
-
+  - name: petronia.core.api.native.ui
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
   - name: petronia.core.api.native.window
     minimum: [1, 0, 0]
     below: [2, 0, 0]

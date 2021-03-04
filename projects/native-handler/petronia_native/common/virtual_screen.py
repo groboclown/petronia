@@ -200,27 +200,24 @@ class VirtualScreen:
 
 def is_overlapping(screen1: defs.ScreenArea, screen2: defs.ScreenArea) -> bool:
     """Do the two screen areas overlap?"""
-    return (
-        (
-            screen2[defs.SCREEN_AREA_X]
-            <= screen1[defs.SCREEN_AREA_X]
-            <= screen2[defs.SCREEN_AREA_X] + screen2[defs.SCREEN_AREA_WIDTH]
-        )
-        or (
-            screen2[defs.SCREEN_AREA_X]
-            <= screen1[defs.SCREEN_AREA_X] + screen1[defs.SCREEN_AREA_WIDTH]
-            <= screen2[defs.SCREEN_AREA_X] + screen2[defs.SCREEN_AREA_WIDTH]
-        )
-        or (
-            screen2[defs.SCREEN_AREA_Y]
-            <= screen1[defs.SCREEN_AREA_Y]
-            <= screen2[defs.SCREEN_AREA_Y] + screen2[defs.SCREEN_AREA_HEIGHT]
-        )
-        or (
-            screen2[defs.SCREEN_AREA_Y]
-            <= screen1[defs.SCREEN_AREA_Y] + screen1[defs.SCREEN_AREA_HEIGHT]
-            <= screen2[defs.SCREEN_AREA_Y] + screen2[defs.SCREEN_AREA_HEIGHT]
-        )
+    # Algorithm: Two rectangles do not overlap if one of the following conditions is true.
+    # 1) One rectangle is above top edge of other rectangle.
+    # 2) One rectangle is on left side of left edge of other rectangle.
+    r1_x1 = screen1[defs.SCREEN_AREA_X]
+    r1_x2 = screen1[defs.SCREEN_AREA_X] + screen1[defs.SCREEN_AREA_WIDTH]
+    r2_x1 = screen2[defs.SCREEN_AREA_X]
+    r2_x2 = screen2[defs.SCREEN_AREA_X] + screen2[defs.SCREEN_AREA_WIDTH]
+    r1_y1 = screen1[defs.SCREEN_AREA_Y]
+    r1_y2 = screen1[defs.SCREEN_AREA_Y] + screen1[defs.SCREEN_AREA_HEIGHT]
+    r2_y1 = screen2[defs.SCREEN_AREA_Y]
+    r2_y2 = screen2[defs.SCREEN_AREA_Y] + screen2[defs.SCREEN_AREA_HEIGHT]
+
+    return not (
+        # one rectangle is on left side of the other
+        r1_x1 >= r2_x2 or r1_x2 >= r2_x1
+
+        # one rectangle is above the other
+        or r1_y1 <= r2_y2 or r1_y2 <= r2_y1
     )
 
 

@@ -99,12 +99,17 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     print("Linting...")
     lint_code = run_python_cmd(
         project_dir,
-        [
-            os.path.abspath(os.path.join(root_project_dir, 'extension-tools')),
-            *extra_path,
-        ],
+        extra_path,
         'pylint',
         [
+            # New to pylint 2.7.2: petronia_extension_tools has a plugin that runs while the lint
+            # is running on the same project.  In that case, we need to explicitly add the
+            # directory to the sys path.  This needs to happen even if extension tools is already on
+            # the PYTHONPATH.  So now we just use this instead of putting it on the path.
+            f'--init-hook=sys.path.append("'
+            f'{os.path.abspath(os.path.join(root_project_dir, "extension-tools"))}'
+            f'")',
+
             '--load-plugins',
             'petronia_extension_tools.pylint_plugins.trailing_commas',
             *top_package_names,
@@ -264,7 +269,9 @@ def run_python_cmd(
         "-m", module,
         *args,
     ]
-    # print("Running " + str(cmd))
+    # print(f"Running {cmd}")
+    # print(f" - cwd: {cwd}")
+    # print(f" - path: {env}")
     result = subprocess.run(
         cmd,
         cwd=cwd,

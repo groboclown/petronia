@@ -23,22 +23,21 @@ These are desired, tactical changes to bits of already written code.
 This is the next thing that's being worked on.
 
 1. implement event handling loop.
-1. implement monitor mapping for Windows.
-1. implement hotkey capture and reporting for Windows.
 1. implement window handling and event reporting for Windows.
+1. implement a simple test approach for running Petronia with the windows native extension, reporting all the store changes, and design initial setup, and maybe injecting window change requests.
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * for the ui extension, it must have absolute position for the outer window, but the inner components must be relative, because text display is dynamic (it looks up translations).  On that note, text must also be rotatable, and notes should be made that implementors *should* support BiDi.
 * `native-hotkey-extenison.yaml` defines `bound-hotkey` as a structure containing an array.  This is due to a limitation in the generator.  If the generator can eventually deal with this, then it should go back to being an array.
 * Running lint on the generated events tree takes minutes to run, so these are currently omitted in the `pylintrc` file.
 * `native-ui-extension.yaml` produces a cycle, which is fine, but the generated data structures don't appear.
-* The Windows version of `pylintrc` is ignoring the fixme messages.  This needs to be removed.
 * Turn back off the `func_*.py` disabled in the code coverage (`.coveragerc`).
 * Remove the `fixme` that's been disabled in the lint config (`pylintrc`).
 * The `monitor_screen.py` common function `store_virtual_screen_state` should take into account the real dpi + screen mapping distortion.  Right now, the ratio is hard-coded as 1-1.
 * Windows:
-  * the `windows_vs.py` module needs some love, to make it properly inject the OS virtual desktop coordinates and the Petronia coordinates.
+  * change default monitor -> virtual screen map to instead use `windows_vs`.
   * test out running the loop with monitor change detection, attach a second monitor, ensure the monitor detection happens, then move the relative positions between monitors, and ensure that the monitor change detection happens again.
+* Hotkey chain requires meta-characters that are still pressed after ok should then be passed again; the hotkey chain forgets meta-characters one the action is completed.  This shows itself as a bug where pressing a hotkey requires releasing then pressing the meta-keys again.
 
 
 ### py-common-lib
@@ -109,6 +108,12 @@ These are ideas that need clarification and implementation.
   * The maximum size for the underlying data should remain the same.
 
 
+### on-the-fly configuration changes and saving
+
+* The configuration for extensions is intended to be stored in the datastore, which is good for future plugins to have interfaces for changing it around.  However, this is very ad-hoc at the moment, because to change a config, you need to know the API on the specific extension to contact.  Instead, this could be made into a prototype with conventions around the target name and data store name.
+* Create an extension that will, on a send event, store all "configuration" data store items to disk.  This will use a defined directory that should be in the override directory that the extension-loader reads.  The process should go like: the extension listens for the save request, when it's received, the extension first gets all active extensions (from datastore), then requests datastore to send out all `(extension-name):configuration` data objects.  The ones that are returned are saved to disk under `(extension-name).json` in the override directory.
+
+
 ### extension-loader
 
 * Should an explicit unload extension event be allowed?  If so, this will down-stream to foreman to add the corresponding event.
@@ -118,6 +123,7 @@ These are ideas that need clarification and implementation.
 
 * stdout from launched processes should be redirected to the logging fd.
 * due to the memory launcher, normal stdout should also be specially handled.
+* memory launcher needs to add an extra requirement to have full initialization, including resetting module data, on extension loading.  This allows restart actions to be more consistent.
 
 
 ### portals
@@ -129,7 +135,7 @@ These are ideas that need clarification and implementation.
 
 ### theme
 
-* an API extension for the theme, which sits on top of the native-handler to make common actions easy.
+* an API extension for the theme, which sits on top of the native-handler to make common UI element creation and manipulation easy.
 * allows for appearance choices to be made once for all extensions that want to create UI elements.
 
 
@@ -137,7 +143,7 @@ These are ideas that need clarification and implementation.
 
 * mapping between hotkey combinations and an action to run.
 * registering key combinations here indirectly performs the registration of hotkey actions in the native extension.
-
+* "actions" for the binding should be public sending events.  This unfortunately means that the extension needs to be able to send any event, but the extension loader security restrictions prevent this.  What other approaches are there?  Datastore may be one, but that's not a good match.  Could also have a hotkey binding API notification system that means extensions must be explicitly hotkey-bind enabled; this would be forward compatible across user configurations, and give users a consistent configuration, maybe.
 
 
 ## Longer Term Improvements
@@ -145,16 +151,16 @@ These are ideas that need clarification and implementation.
 Things that would be nice to have, but aren't necessary until more basic infrastructure is in place.
 
 
+### build
+
+Now that pylint supports Python 3.9, look at migrating to that.
+
+
 ### extension-loader
 
 * add loading extensions from a zip file.
     * When this is added, uncomment the no-cover bit from the extension code.
 * add PGP and checksum validation to the zip loader.
-
-
-### configuration-store
-
-Add the extension that will, on a send event, store all "configuration" data store items to disk.  This will use a defined directory that should be in the override directory that the extension-loader reads.  The process should go like: the extension listens for the save request, when it's received, the extension first gets all active extensions (from datastore), then requests datastore to send out all `(extension-name):configuration` data objects.  The ones that are returned are saved to disk under `(extension-name).json` in the override directory.
 
 
 ### foreman
@@ -175,8 +181,6 @@ Add the extension that will, on a send event, store all "configuration" data sto
 Early development that caused rethinking of how things are done, but that code needs to be revisited to do over again.
 
 * All state providers should also provide a `create_(state)_state_watch(ListenerSet)` function which returns a `StateWatch`.  This allows encapsulation of the state ID and typing.
-* Make key-down metas have a timeout.  If too much time between keystrokes elapses, then the hotkey combo is canceled.
-* Hotkey meta-characters should be passed as still down after hotkey is processed.
 * Unit tests everywhere.
 
 
