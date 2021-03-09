@@ -212,12 +212,12 @@ def is_overlapping(screen1: defs.ScreenArea, screen2: defs.ScreenArea) -> bool:
     r2_y1 = screen2[defs.SCREEN_AREA_Y]
     r2_y2 = screen2[defs.SCREEN_AREA_Y] + screen2[defs.SCREEN_AREA_HEIGHT]
 
-    return not (
-        # one rectangle is on left side of the other
-        r1_x1 >= r2_x2 or r1_x2 >= r2_x1
+    return (
+        # one rectangle is on west side of the other
+        not (r1_x1 >= r2_x2 or r2_x1 >= r1_x2)
 
-        # one rectangle is above the other
-        or r1_y1 <= r2_y2 or r1_y2 <= r2_y1
+        # one rectangle is on south side of the other
+        and not (r1_y1 >= r2_y2 or r2_y1 >= r1_y2)
     )
 
 
@@ -303,7 +303,7 @@ class VirtualScreenConfig:
     """Configuration of a virtual screen to all its monitors.  Used for matching to create
     the virtual screen layout when the monitor state changes."""
 
-    __slots__ = ('monitor_defs', 'screen', 'name')
+    __slots__ = ('monitor_defs', 'screen', 'name', 'is_default')
 
     def __init__(
             self, name: str, monitors: Sequence[defs.MonitorPosition], screen: VirtualScreen,
@@ -312,6 +312,7 @@ class VirtualScreenConfig:
         self.monitor_defs = tuple(monitors)
         self.screen = screen
         self.name = name
+        self.is_default = False
 
     def validate(self) -> StdRet[None]:
         """Is this definition valid?  The monitors must all have at least one screen block,
@@ -387,7 +388,9 @@ class VirtualScreenConfig:
             ))
             next_x += active_monitor.real_pixel_width
 
-        return VirtualScreenConfig(f'default-{len(blocks)}', monitor_defs, VirtualScreen(blocks))
+        ret = VirtualScreenConfig(f'default-{len(blocks)}', monitor_defs, VirtualScreen(blocks))
+        ret.is_default = True
+        return ret
 
 
 class VirtualScreenSettings:
@@ -464,6 +467,15 @@ class VirtualScreenSettings:
         return self._monitors
 
     @property
-    def screen_configurations(self) -> Sequence[VirtualScreenConfig]:
-        """The current list of screen configurations."""
+    def all_screen_configurations(self) -> Sequence[VirtualScreenConfig]:
+        """The current list of all screen configurations."""
         return tuple(self._configuration)
+
+    @property
+    def user_screen_configurations(self) -> Sequence[VirtualScreenConfig]:
+        """The non-default screen configurations."""
+        ret: List[VirtualScreenConfig] = []
+        for config in self._configuration:
+            if not config.is_default:
+                ret.append(config)
+        return tuple(ret)

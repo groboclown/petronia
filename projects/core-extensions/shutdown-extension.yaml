@@ -42,7 +42,7 @@ events:
     priority: user
     send-access: implementations
     receive-access: public
-    unique-target: heartbeat
+    unique-target: shutdown
     fields:
       sent_on:
         description: The time when the heartbeat was sent.

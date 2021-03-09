@@ -61,10 +61,16 @@ def load_extension_file(filename: str) -> StdRet[Sequence[ExtensionDataFile]]:
 
 def process_extension(data: Dict[str, Any]) -> StdRet[ExtensionDataFile]:
     """Process the extension section."""
+    # start = time.time()
     ret_ext = load_extension(data)
+    # end = time.time()
+    # print(f"(took {end - start} seconds to process the extension structure)")
     if ret_ext.has_error:
         return ret_ext.forward()
+    # start = time.time()
     ret_state_data = parse_state_data(ret_ext.result.name, data)
+    # end = time.time()
+    # print(f"(took {end - start} seconds to process the state data structure)")
     if ret_state_data.has_error:
         return ret_state_data.forward()
     return StdRet.pass_ok(ExtensionDataFile(ret_ext.result, ret_state_data.result))

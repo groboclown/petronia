@@ -17,7 +17,11 @@ from .arch.native_funcs.monitor import WindowsMonitor, are_monitors_different
 
 
 class WindowsScreen(monitor_screen.AbstractScreenHandler):
-    """Windows state for the monitors and screens, tying the message loop and events together."""
+    """Windows state for the monitors and screens, tying the message loop and events together.
+
+    For Windows, the OS handles the screen layout (relative position between each other).
+
+    """
     __slots__ = ('__config', '__old_monitors', '__executor', '__lock')
 
     def __init__(

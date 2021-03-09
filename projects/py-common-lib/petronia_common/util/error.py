@@ -199,8 +199,11 @@ class StdRet(Generic[T_co]):
     def valid_error(self) -> PetroniaReturnError:
         """Return a non-null version of the error.  Only call if you know it to
         be non-null."""
-        # This does not count as checking for an error, because this should only
-        # be called if it was checked.
+        # This should only be called if it was checked, but there are some circumstances
+        # where the caller knows that the stderr was created with an error, then immediately
+        # uses the construction.  It's not the best pattern to use, though.
+        self.__checked_error = True
+
         assert self.__error
         return self.__error
 

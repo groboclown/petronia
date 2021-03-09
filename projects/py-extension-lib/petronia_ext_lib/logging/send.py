@@ -1,10 +1,11 @@
 """Send log events."""
 
-from typing import Sequence
-from petronia_common.util import PetroniaReturnError, StdRet, RET_OK_NONE
+from typing import Sequence, Iterable, Literal
+from petronia_common.util import PetroniaReturnError, StdRet, RET_OK_NONE, UserMessage
 from ..events import logging
 from ..runner import EventRegistryContext
 from ..standard.error import create_error_data, ErrorCategoryType, CONFIGURATION_ERROR_CATEGORY
+from ..standard.localizable_message import create_localizable_message
 
 
 def send_system_error(
@@ -56,4 +57,32 @@ def send_user_error(
         source_id,
         logging.UserErrorEvent.UNIQUE_TARGET_FQN,
         logging.UserErrorEvent(error),
+    )
+
+
+LogScope = Literal['debug', 'verbose', 'warning', 'info']
+
+
+def send_log_message(
+        context: EventRegistryContext,
+        source_id: str,
+        scope: LogScope,
+        messages: Iterable[UserMessage],
+) -> StdRet[None]:
+    """Send a log message."""
+    return context.send_event(
+        source_id,
+        logging.LogEvent.UNIQUE_TARGET_FQN,
+        logging.LogEvent(
+            scope,
+            [
+                create_localizable_message(
+                    logging.LocalizableMessage,
+                    logging.MessageArgument,
+                    logging.MessageArgumentValue,
+                    m,
+                )
+                for m in messages
+            ]
+        ),
     )

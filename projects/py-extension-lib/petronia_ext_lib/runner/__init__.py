@@ -9,5 +9,6 @@ from .registry import (
     EventBinaryTarget,
     EventRegistryContext,
 )
+from .chain import DecisionHandlerProxy
 from .lookup import LookupEventRegistryContext
 from .simple import SimpleEventRegistryContext

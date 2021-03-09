@@ -24,7 +24,7 @@ licenses:
 authors:
   - Petronia Project
 default:
-  name: petronia_extension.core.impl.datastore
+  name: petronia_core.datastore
   minimum: [1, 0, 0]
 
 events:

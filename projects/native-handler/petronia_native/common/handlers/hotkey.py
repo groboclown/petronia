@@ -122,12 +122,13 @@ class HotkeyBindingsTarget(runner.EventObjectTarget[hotkey.SetHotkeyBindingsEven
             # State did not change.
             report_send_receive_problems(
                 internal__send_bind_hotkey_failed(
-                    self._context, source, master_error, bound_errors,
+                    self._context, source, event.request,
+                    master_error, bound_errors,
                 )
             )
         else:
             report_send_receive_problems(
-                internal__send_bind_hotkey_success(self._context, source)
+                internal__send_bind_hotkey_success(self._context, source, event.request)
             )
             report_send_receive_problems(
                 internal__send_hotkey_state(self._context, event.master, event.bound)
@@ -137,7 +138,7 @@ class HotkeyBindingsTarget(runner.EventObjectTarget[hotkey.SetHotkeyBindingsEven
 
 def internal__send_bind_hotkey_failed(
         context: runner.EventRegistryContext,
-        target_id: str,
+        target_id: str, request_id: int,
         master_error: Optional[hotkey.MasterHotkeySequenceProblem],
         bound_errors: List[hotkey.BoundHotkeyProblem],
 ) -> StdRet[None]:
@@ -145,18 +146,18 @@ def internal__send_bind_hotkey_failed(
     return context.send_event(
         hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
         target_id,
-        hotkey.SetHotkeyBindingsFailedEvent(master_error, bound_errors),
+        hotkey.SetHotkeyBindingsFailedEvent(request_id, master_error, bound_errors),
     )
 
 
 def internal__send_bind_hotkey_success(
-        context: runner.EventRegistryContext, target_id: str,
+        context: runner.EventRegistryContext, target_id: str, request_id: int,
 ) -> StdRet[None]:
     """Send a bind hotkey success event."""
     return context.send_event(
         hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
         target_id,
-        hotkey.SetHotkeyBindingsSuccessEvent(),
+        hotkey.SetHotkeyBindingsSuccessEvent(request_id),
     )
 
 

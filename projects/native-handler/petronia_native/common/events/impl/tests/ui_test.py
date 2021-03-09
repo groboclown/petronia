@@ -1,5 +1,4 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-02T17:00:15.239772+00:00
 
 """
 Tests for the ui module.
@@ -72,17 +71,17 @@ REGISTER_IMAGE_DETAILS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'locale': 'Ϻɵҝ*ÎȅӐ',
-            'format': 'ԦҩҼǯǼȦ˄ȱѿΊ¬ɨϼλԢɩ˻ŔŐɵɗÒCɧЕąϦǖĊʹ',
+            'locale': 'ІąЭӅ',
+            'format': 'ӤƔЉԩʼ\u0380ѓҗѽz˱Ļѯјȉ3ʏдћŢǪ͵Ǔ7Ԅȋ˂Ӯȕâ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'locale': 'ӄ',
+            'locale': 'Ɛ',
 
-            'format': 'э',
+            'format': 'ȝ',
 
         },
     ),
@@ -147,18 +146,18 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 2052049,
+            'identifier': 8169017,
             'mouse_buttons': [
-                -1026645478703960666,
-                -2248261658833838846,
-                1281923645915492565,
-                -6374100892086403413,
-                2086924221723121321,
-                -7156266427089798047,
-                -8323562278040440699,
-                -8398897619199466777,
-                758531779794820387,
-                -6614145136891391841,
+                3660461504220348046,
+                -1158302147379922736,
+                -1842220351355844075,
+                -1476231485407829188,
+                8567970357046981628,
+                -6658247164923184127,
+                7109310148680576664,
+                6430984091574674059,
+                2837901638984408733,
+                -8103093797135407023,
             ],
         },
     ),
@@ -166,10 +165,10 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 7337046,
+            'identifier': 6558793,
 
             'mouse_buttons': [
-                -6293814185569849581,
+                1293558003487294325,
             ],
 
         },
@@ -235,15 +234,15 @@ UI_TEXT_FIELD_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 1564296,
-            'text': '\x9dëΉʥȯĊʶđуØβ\x87ΚƾƫԓʗǰȆĽŦѷѦɎvҏџΛыˁ',
+            'identifier': 5504415,
+            'text': 'Ô_ĭŴҕƾĠŧďɺǬɸѵŤŖʓͼòͻƳɋƢțȲˮyaҔӨh',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 179630,
+            'identifier': 3913791,
 
             'text': '',
 

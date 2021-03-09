@@ -1,5 +1,4 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-02T16:58:22.592636+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.monitor version 1.0.0.
@@ -11,16 +10,16 @@ Data structures and marshalling for extension petronia.core.api.native.monitor v
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    SupportsInt,
     Any,
-    List,
+    SupportsInt,
     Dict,
+    List,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
     not_none,
+    StdRet,
     collect_errors_from,
 )
 

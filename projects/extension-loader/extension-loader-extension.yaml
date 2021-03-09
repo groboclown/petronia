@@ -105,6 +105,7 @@ events:
     priority: normal
     send-access: public
     receive-access: implementations
+    unique-target: listener-registration
     fields:
       events:
         description: list of the events to listen to.
@@ -122,6 +123,7 @@ events:
     priority: normal
     send-access: public
     receive-access: implementations
+    unique-target: listener-registration
     fields:
       events:
         description: list of the events to stop listening to.

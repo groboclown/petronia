@@ -1,0 +1,318 @@
+---
+
+name: petronia.core.api.hotkey_binding
+type: api
+version: [1, 0, 0]
+about: Central hotkey binding interface for users and extensions.
+description: >
+  A simple, centralized location for users to create hotkey binds that relate to extension actions,
+  and for extensions to listen to triggered actions.
+
+  This is a layer between the low-level hotkey binding API of the native layer and the applications.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_extension.hotkey_binding
+  minimum: [1, 0, 0]
+
+
+state-data:
+  bound-keys:
+    description: >
+      All the bound key sequences and their triggered event data.
+    fields:
+      sequence_type:
+        description: >
+          The kind of key pressing that this master sequence describes.  "meta" means any order,
+          usually used for meta-keys, like "shift", "alt", and "super". "sequence" means a
+          series of keys that must be pressed in that order.
+        type: reference
+        ref: sequence-type
+      master_sequence:
+        description: The primary sequence of keys that begins all hotkey sequences.
+        type: reference
+        ref: key-sequence
+      bindings:
+        description: List of all bound keys and their triggered events.
+        type: array
+        min-length: 0
+        max-length: 2000
+        value-type:
+          type: reference
+          ref: bound-hotkey
+
+  extension-events:
+    description: >
+      All events registered by extensions for usable events.
+    fields:
+      events:
+        description: list of events.
+        type: array
+        min-length: 0
+        max-length: 2000
+        value-type:
+          type: structure
+          fields:
+            name:
+              description: Simple name for the event.
+              type: string
+              min-length: 3
+              max-length: 200
+            description:
+              description: Detailed description about the event.
+              type: string
+              optional: true
+              min-length: 0
+              max-length: 2000
+            target_id:
+              description: Target for the generated event.
+              type: reference
+              ref: event-target-id
+            parameters:
+              description: List of available parameters to send with the event.
+              type: array
+              min-length: 0
+              max-length: 100
+              value-type:
+                type: reference
+                ref: event-parameter-description
+
+events:
+  "set-master-sequence:request":
+    description: >
+      Sets the primary sequence that begins all hotkey sequences.  For example, this could be
+      simply the "super" key.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: master-sequence
+    fields:
+      sequence_type:
+        description: >
+          The kind of key pressing that this master sequence describes.  "meta" means any order,
+          usually used for meta-keys, like "shift", "alt", and "super". "sequence" means a
+          series of keys that must be pressed in that order.
+        type: reference
+        ref: sequence-type
+      keys:
+        description: >
+          Sequence of keys which triggers the start of a bound key match.
+        type: reference
+        ref: key-sequence
+      comment:
+        description: >
+          User comment for information about the master sequence.
+        optional: true
+        type: reference
+        ref: comment
+
+  "bound-key:register":
+    description: >
+      Binds a key sequence to a triggered event.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: key
+    fields:
+      keys:
+        description: >
+          Sequence of keys, not including the master sequence, that trigger this binding.
+        type: reference
+        ref: key-sequence
+      comment:
+        description: >
+          A user-defined comment to aid in remembering what this key is for.
+        optional: true
+        type: reference
+        ref: comment
+      event:
+        description: >
+          The event triggered when the key sequence completes.
+        type: reference
+        ref: bound-event
+
+  "bound-key:remove":
+    description: >
+      Remove a bound key sequence.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: key
+    fields:
+      keys:
+        description: >
+          Sequence of keys, not including the master sequence, to remove.  The order of the keys
+          must match the existing bound registration, even if the key ordering is ignored by the
+          key bind matching.
+        type: reference
+        ref: key-sequence
+
+  "extension-event:register":
+    description: >
+      Registers a description about a known extension's event.  This is useful to end-users for
+      understanding which key bound events an extension can handle.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: extension-event
+    fields:
+      name:
+        description: Simple name for the event.
+        type: string
+        min-length: 3
+        max-length: 200
+      description:
+        description: Detailed description about the event.
+        type: string
+        optional: true
+        min-length: 0
+        max-length: 2000
+      target_id:
+        description: Target for the generated event.
+        type: reference
+        ref: event-target-id
+      parameters:
+        description: List of available parameters to send with the event.
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: reference
+          ref: event-parameter-description
+
+  hotkey-fired:
+    description: A bound hotkey event fired.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    unique-target: hotkey
+    fields:
+      event:
+        description: >
+          The event triggered when the key sequence completes.
+        type: reference
+        ref: bound-event
+
+
+
+references:
+  # ------------------------------
+  # Standard Types ...
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+
+  # -------------------------------------------
+  # Local structures
+
+  key-sequence:
+    description: >
+      A list of key names that are pressed in sequence.
+    type: array
+    min-length: 1
+    max-length: 30
+    value-type:
+      type: reference
+      ref: single-key
+
+  bound-event:
+    description: >
+      Generated event details that are sent when a bound key sequence is pressed.
+    type: structure
+    fields:
+      target_id:
+        description: >
+          Event destination.  Should be an ID in the extension that handles this event.
+        type: reference
+        ref: event-target-id
+      parameters:
+        description: List of bound parameters that are sent with the event.
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: reference
+          ref: bound-event-parameter
+
+  bound-event-parameter:
+    description: >
+      A single parameter value sent with a triggered bound hotkey event.
+    type: structure
+    fields:
+      key:
+        description: parameter name
+        type: string
+        min-length: 1
+        max-length: 100
+      value:
+        description: parameter value
+        type: string
+        min-length: 0
+        max-length: 2000
+
+  bound-hotkey:
+    description: >
+      A single hotkey sequence bound to an event.
+    type: structure
+    fields:
+      keys:
+        description: The key sequence, without the master sequence, for this hotkey.
+        type: reference
+        ref: key-sequence
+      event:
+        description: The event triggered when the key sequence is pressed.
+        type: reference
+        ref: bound-event
+      comment:
+        description: >
+          A user-defined comment to aid in remembering what this key is for.
+        optional: true
+        type: reference
+        ref: comment
+
+  event-parameter-description:
+    description: >
+      Information about a bound event parameter.
+    type: structure
+    fields:
+      key:
+        description: parameter name
+        type: string
+        min-length: 1
+        max-length: 100
+      description:
+        description: details about the parameter.
+        type: reference
+        ref: comment
+      default_value:
+        description: default value for the parameter, if not specified
+        type: string
+        optional: true
+        min-length: 0
+        max-length: 2000
+
+  sequence-type:
+    description: >
+      The kind of key pressing that this master sequence describes.  "meta" means any order,
+      usually used for meta-keys, like "shift", "alt", and "super". "sequence" means a
+      series of keys that must be pressed in that order.
+    type: enum
+    values:
+      - sequence
+      - meta
+
+  single-key:
+    description: The primary sequence of keys that begins all hotkey sequences.
+    type: string
+    min-length: 1
+    max-length: 30
+
+  comment:
+    description: Additional descriptive information.
+    type: string
+    min-length: 0
+    max-length: 2000

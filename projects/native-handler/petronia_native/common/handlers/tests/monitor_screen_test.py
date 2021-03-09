@@ -9,7 +9,7 @@ from petronia_ext_lib.runner import EventRegistryContext
 from petronia_ext_lib.events import datastore as datastore_events
 from .. import monitor_screen
 from ...events.impl import monitor, screen
-from ... import defs, virtual_screen
+from ... import defs, virtual_screen, user_messages
 
 
 class MonitorScreenTest(unittest.TestCase):
@@ -303,6 +303,147 @@ class AbstractScreenHandlerTest(unittest.TestCase):
         self.assertIsNone(res.error)
         calls = context.send_event.call_args_list
         self.assertEqual(3, len(calls))
+
+    def test_on_configuration_update__with_config_validation_error(self) -> None:
+        """Test the on_configuration_update method."""
+        context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
+        handler = MockScreenHandler(context)
+        # Setup the initial monitors
+        monitor_set = [
+            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
+            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
+        ]
+        res = handler.detected_monitor_changed(monitor_set)
+        self.assertIsNone(res.error)
+        context.reset_mock()
+
+        # Setup the configuration that overlaps.
+        res = handler.on_configuration_update(
+            's1', 12, [
+                virtual_screen.VirtualScreenConfig(
+                    'used',
+                    [
+                        (1, defs.MonitorUnit(10), defs.MonitorUnit(10)),
+                        (2, defs.MonitorUnit(20), defs.MonitorUnit(20)),
+                    ],
+                    virtual_screen.VirtualScreen([
+                        virtual_screen.VirtualScreenBlock(
+                            (
+                                1, defs.MonitorUnit(0), defs.MonitorUnit(0),
+                                defs.MonitorUnit(10), defs.MonitorUnit(10),
+                            ),
+                            (
+                                defs.ScreenUnit(0), defs.ScreenUnit(0),
+                                defs.ScreenUnit(10), defs.ScreenUnit(10),
+                            ),
+                            0,
+                        ),
+                        virtual_screen.VirtualScreenBlock(
+                            (
+                                2, defs.MonitorUnit(0), defs.MonitorUnit(0),
+                                defs.MonitorUnit(20), defs.MonitorUnit(20),
+                            ),
+                            (
+                                defs.ScreenUnit(5), defs.ScreenUnit(5),
+                                defs.ScreenUnit(20), defs.ScreenUnit(20),
+                            ),
+                            0,
+                        ),
+                    ]),
+                )
+            ],
+        )
+        self.assertEqual(
+            ['configuration used: screen blocks overlap'],
+            [m.debug() for m in res.error_messages()],
+        )
+        calls = context.send_event.call_args_list
+        self.assertEqual(1, len(calls))
+        args = calls[0].args
+        self.assertEqual(
+            args[0],
+            screen.SetScreenConfigurationRequestEvent.UNIQUE_TARGET_FQN,
+        )
+        self.assertEqual(
+            args[1],
+            's1',
+        )
+        event_obj = args[2]
+        self.assertIsInstance(event_obj, screen.SetScreenConfigurationFailureEvent)
+        assert isinstance(event_obj, screen.SetScreenConfigurationFailureEvent)  # nosec
+        self.assertEqual(
+            {'request_id': 12, 'error': {
+                'categories': ['invalid-user-action'],
+                'identifier': 'bad-config',
+                'source': 'native-screen',
+                'messages': [{
+                    'arguments': [{'name': 'name', 'value': {'$': 'used', '^': 'string'}}],
+                    'catalog': user_messages.TRANSLATION_CATALOG,
+                    'message': 'configuration {name}: screen blocks overlap',
+                }],
+            }},
+            event_obj.export_data(),
+        )
+
+    def test_on_configuration_update__with_config_validation_error__no_source(self) -> None:
+        """Test the on_configuration_update method."""
+        context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
+        handler = MockScreenHandler(context)
+        # Setup the initial monitors
+        monitor_set = [
+            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
+            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
+        ]
+        res = handler.detected_monitor_changed(monitor_set)
+        self.assertIsNone(res.error)
+        context.reset_mock()
+
+        # Setup the configuration that overlaps.
+        res = handler.on_configuration_update(
+            None, -1, [
+                virtual_screen.VirtualScreenConfig(
+                    'used',
+                    [
+                        (1, defs.MonitorUnit(10), defs.MonitorUnit(10)),
+                        (2, defs.MonitorUnit(20), defs.MonitorUnit(20)),
+                    ],
+                    virtual_screen.VirtualScreen([
+                        virtual_screen.VirtualScreenBlock(
+                            (
+                                1, defs.MonitorUnit(0), defs.MonitorUnit(0),
+                                defs.MonitorUnit(10), defs.MonitorUnit(10),
+                            ),
+                            (
+                                defs.ScreenUnit(0), defs.ScreenUnit(0),
+                                defs.ScreenUnit(10), defs.ScreenUnit(10),
+                            ),
+                            0,
+                        ),
+                        virtual_screen.VirtualScreenBlock(
+                            (
+                                2, defs.MonitorUnit(0), defs.MonitorUnit(0),
+                                defs.MonitorUnit(20), defs.MonitorUnit(20),
+                            ),
+                            (
+                                defs.ScreenUnit(5), defs.ScreenUnit(5),
+                                defs.ScreenUnit(20), defs.ScreenUnit(20),
+                            ),
+                            0,
+                        ),
+                    ]),
+                )
+            ],
+        )
+        self.assertEqual(
+            ['configuration used: screen blocks overlap'],
+            [m.debug() for m in res.error_messages()],
+        )
+
+        # No source, so nothing is sent.
+        calls = context.send_event.call_args_list
+        self.assertEqual([], calls)
 
 
 class MockScreenHandler(monitor_screen.AbstractScreenHandler):

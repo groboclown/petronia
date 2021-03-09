@@ -1,5 +1,4 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-02T16:51:55.989202+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.foreman version 1.0.0.
@@ -11,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    cast,
+    Union,
+    Any,
+    SupportsInt,
+    List,
     Dict,
     Optional,
-    Any,
-    Union,
+    cast,
     SupportsFloat,
-    List,
-    SupportsInt,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
-    collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     StdRet,
+    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
@@ -518,16 +517,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
-            List[int],
-            float,
-            bool,
-            List[str],
-            List[bool],
             List[float],
-            List[datetime.datetime],
-            datetime.datetime,
+            bool,
+            float,
             int,
+            List[int],
+            str,
+            List[datetime.datetime],
+            List[str],
+            datetime.datetime,
+            List[bool],
         ],
     ) -> None:
         self.__name = name
@@ -540,16 +539,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
-            List[int],
-            float,
-            bool,
-            List[str],
-            List[bool],
             List[float],
-            List[datetime.datetime],
-            datetime.datetime,
+            bool,
+            float,
             int,
+            List[int],
+            str,
+            List[datetime.datetime],
+            List[str],
+            datetime.datetime,
+            List[bool],
     ]:
         """The selector value."""
         return self.__value

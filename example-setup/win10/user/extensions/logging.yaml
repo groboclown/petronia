@@ -1,21 +1,18 @@
 ---
 
 Logger:
-  extension: default.logging.file
+  extension: petronia_core.file_logger
   enabled: true
   properties:
-    filename: petronia.log
-    # filename: "-"
-    format: "%H:%M:%S [{LEVEL}] {src:16s}: {msg}"
-    default: warn
-    category-levels:
-      - cat: "petronia.base."
-        level: trace
-      - cat: "petronia.boot."
-        level: trace
-      - cat: "petronia.defimpl.layout."
-        level: debug
-      - cat: "petronia.defimpl.platform."
-        level: debug
-      - cat: "petronia.defimpl.shutdown."
-        level: trace
+    files:
+      - filename: petronia.log
+        # filename: "-"
+        message_format: "{now} {src:16s}: {text}"
+        categories:
+          - "*user"
+          - "*system"
+          - "*log"
+          - debug
+          - verbose
+          - info
+          - warning

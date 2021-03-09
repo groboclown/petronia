@@ -1,5 +1,4 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-02T17:03:03.107705+00:00
 
 """
 Data structures and marshalling for extension petronia.core.protocol.logging version 1.0.0.
@@ -11,22 +10,22 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Optional,
-    cast,
-    Any,
-    Dict,
-    SupportsFloat,
-    SupportsInt,
-    List,
     Union,
+    cast,
+    List,
+    Dict,
+    SupportsInt,
+    Optional,
+    SupportsFloat,
+    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    STANDARD_PETRONIA_CATALOG,
     not_none,
-    collect_errors_from,
     StdRet,
+    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.protocol.logging'
@@ -43,16 +42,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            float,
-            List[datetime.datetime],
             int,
-            List[str],
-            datetime.datetime,
             List[float],
-            List[bool],
-            str,
-            bool,
             List[int],
+            List[datetime.datetime],
+            List[bool],
+            bool,
+            str,
+            float,
+            datetime.datetime,
+            List[str],
         ],
     ) -> None:
         self.__name = name
@@ -65,16 +64,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            float,
-            List[datetime.datetime],
             int,
-            List[str],
-            datetime.datetime,
             List[float],
-            List[bool],
-            str,
-            bool,
             List[int],
+            List[datetime.datetime],
+            List[bool],
+            bool,
+            str,
+            float,
+            datetime.datetime,
+            List[str],
     ]:
         """The selector value."""
         return self.__value
@@ -596,7 +595,7 @@ class LogEvent:
                 name='LogEvent',
             )
         else:
-            if val not in ('info','debug','warning','verbose', ):
+            if val not in ('info','verbose','warning','debug', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

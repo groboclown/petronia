@@ -34,8 +34,11 @@ This is the next thing that's being worked on.
 * Turn back off the `func_*.py` disabled in the code coverage (`.coveragerc`).
 * Remove the `fixme` that's been disabled in the lint config (`pylintrc`).
 * The `monitor_screen.py` common function `store_virtual_screen_state` should take into account the real dpi + screen mapping distortion.  Right now, the ratio is hard-coded as 1-1.
+* `virtual_screen` config matching updates:
+  * needs to take priority on user configurations, and include default ones if no user configuration matches "enough".
+  * add a limit to config matching; if a match is not above a certain value, then it isn't used.
 * Windows:
-  * change default monitor -> virtual screen map to instead use `windows_vs`.
+  * change default monitor -> virtual screen map to instead use `windows_vs`.  This should be done by adding a default config on monitor updates before sending the monitor update request.
   * test out running the loop with monitor change detection, attach a second monitor, ensure the monitor detection happens, then move the relative positions between monitors, and ensure that the monitor change detection happens again.
 * Hotkey chain requires meta-characters that are still pressed after ok should then be passed again; the hotkey chain forgets meta-characters one the action is completed.  This shows itself as a bug where pressing a hotkey requires releasing then pressing the meta-keys again.
 
@@ -108,9 +111,8 @@ These are ideas that need clarification and implementation.
   * The maximum size for the underlying data should remain the same.
 
 
-### on-the-fly configuration changes and saving
+### on-the-fly configuration saving
 
-* The configuration for extensions is intended to be stored in the datastore, which is good for future plugins to have interfaces for changing it around.  However, this is very ad-hoc at the moment, because to change a config, you need to know the API on the specific extension to contact.  Instead, this could be made into a prototype with conventions around the target name and data store name.
 * Create an extension that will, on a send event, store all "configuration" data store items to disk.  This will use a defined directory that should be in the override directory that the extension-loader reads.  The process should go like: the extension listens for the save request, when it's received, the extension first gets all active extensions (from datastore), then requests datastore to send out all `(extension-name):configuration` data objects.  The ones that are returned are saved to disk under `(extension-name).json` in the override directory.
 
 

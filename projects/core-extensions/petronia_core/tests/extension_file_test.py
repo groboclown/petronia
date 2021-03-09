@@ -10,6 +10,7 @@ from petronia_common.util import load_structured_file
 CORE_EXTENSION_FILES = (
     'core-datastore-extension.yaml',
     'core-timer-extension.yaml',
+    'core-file-logger-extension.yaml',
 )
 
 

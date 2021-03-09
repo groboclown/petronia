@@ -177,7 +177,7 @@ class AbstractScreenHandler:
             errors.append(store_virtual_screen_state(self.__context, self._settings.active_screen))
 
         errors.append(self.on_screen_configuration_settings_changed(
-            self.__context, self._settings.screen_configurations,
+            self.__context, self._settings.user_screen_configurations,
         ))
         errors.append(store_screen_setups_state(self.__context, self._settings))
 
@@ -363,6 +363,6 @@ def store_screen_setups_state(
                     for blk in scg.screen.blocks
                 ],
             )
-            for scg in config.screen_configurations
+            for scg in config.user_screen_configurations
         ]),
     )

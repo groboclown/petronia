@@ -3,11 +3,11 @@
 # Extensions that the system defines to load.
 
 Timer:
-  extension: default.timer
+  extension: petronia_core.timer
   enabled: true
   properties:
     interval_seconds: 1.2
 
-CoreHotkeyBindings:
-  extension: core.hotkeys.binding
+Datastore:
+  extension: petronia_core.datastore
   enabled: true

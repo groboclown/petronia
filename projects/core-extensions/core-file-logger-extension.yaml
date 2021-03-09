@@ -1,0 +1,74 @@
+---
+
+name: petronia_core.file_logger
+type: standalone
+version: [1, 0, 0]
+about: Simple file logger.
+description: >
+  Stores log events to files.  This early version should be open enough to allow for
+  extending to more complex use cases.
+
+depends:
+  - name: petronia.core.protocol.logging
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.datastore
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.protocol.configuration
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+
+runtime:
+  launcher: core
+  permissions:
+    file-write:
+      - ${DATA_DIR}/logs
+
+state-data:
+  configuration:
+    description: >
+      Configuration for the logger files.
+    fields:
+      files:
+        description: List of log files.
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: reference
+          ref: logfile_settings
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+
+
+references:
+  logfile_settings:
+    description: Settings for a single logfile.
+    type: structure
+    fields:
+      filename:
+        type: string
+        description: >
+          Name of the log file.  This is always placed in the "log" subdirectory
+          under the data directory.
+      message_format:
+        type: string
+        description: Python format-like string for outputting the message.
+      categories:
+        description: >
+          A collection of general error categories to capture.  If this is empty or
+          not given, then all categories are captured.  The special categories
+          "*user" and "*system" are for listening to user errors and system errors,
+          respectively.  For normal logging messages, this is the "scope".  To force
+          a category to must exist, prefix the category name with a '+'.  For the rest
+          of the categories, at least one of them must be set.
+        optional: true
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+            type: string

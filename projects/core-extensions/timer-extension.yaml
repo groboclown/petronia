@@ -13,7 +13,7 @@ licenses:
 authors:
   - Petronia Project
 default:
-  name: petronia_extension.core.impl.timer
+  name: petronia_core.timer
   minimum: [1, 0, 0]
 
 state-data:

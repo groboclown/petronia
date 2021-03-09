@@ -33,14 +33,26 @@ echo core-extensions:
   --output "${pd}/core-extensions/petronia_core/datastore/events/impl" \
   --implementation --api --state \
   "${pd}/core-extensions/datastore-extension.yaml"
-#"${h}/generate-events.sh" \
-#  --output "${pd}/core-extensions/petronia_core/logging/events/impl" \
-#  --implementation --api --state \
-#  "${pd}/core-extensions/logging-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/file_logger/state" \
+  --state \
+  "${pd}/core-extensions/core-file-logger-extension.yaml"
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/timer/events/impl" \
   --implementation --api --state \
   "${pd}/core-extensions/timer-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/hotkey_binding/events/impl" \
+  --implementation --api --state \
+  "${pd}/core-extensions/hotkey-binding-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/hotkey_binding/events/ext" \
+  --api \
+  "${pd}/native-handler/native-hotkey-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/hotkey_binding/state" \
+  --state \
+  "${pd}/core-extensions/core-hotkey-binding-extension.yaml"
 
 
 # Native
@@ -73,3 +85,7 @@ echo py-extension-lib:
   --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
   --api \
   "${pd}/core-extensions/timer-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
+  --api \
+  "${pd}/extension-loader/extension-loader-extension.yaml"

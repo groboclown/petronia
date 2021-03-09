@@ -1,5 +1,4 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-02T16:58:01.657309+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.hotkey version 1.0.0.
@@ -11,26 +10,117 @@ Data structures and marshalling for extension petronia.core.api.native.hotkey ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    SupportsInt,
+    Any,
+    Dict,
     cast,
+    List,
     Union,
     SupportsFloat,
+    SupportsInt,
     Optional,
-    Dict,
-    List,
-    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
     not_none,
+    StdRet,
     collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.hotkey'
 EXTENSION_VERSION = (1, 0, 0)
+
+
+class MasterHotkeySequence:
+    """
+    Master key sequence. The value is dependent upon the OS and implementation. All
+    hotkey sequences must follow the rule defined by this master sequence. Usually,
+    this is one or two keys that need to be held to trigger a hotkey sequence.
+    """
+    __slots__ = ('sequence_type', 'sequence',)
+
+    def __init__(
+        self,
+        sequence_type: str,
+        sequence: List[str],
+    ) -> None:
+        self.sequence_type = sequence_type
+        self.sequence = sequence
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'sequence_type': self.sequence_type,
+            'sequence': list(self.sequence),
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['MasterHotkeySequence']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('sequence_type')
+        f_sequence_type: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='sequence_type',
+                name='MasterHotkeySequence',
+            )
+        else:
+            if val not in ('sequence','meta', ):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='sequence_type',
+                    type='str',
+                    name='MasterHotkeySequence',
+                )
+            f_sequence_type = val
+        val = data.get('sequence')
+        f_sequence: List[str]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='sequence',
+                name='MasterHotkeySequence',
+            )
+        else:
+            if not isinstance(val, list):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='sequence',
+                    type='List[str]',
+                    name='MasterHotkeySequence',
+                )
+            f_sequence = []
+            for item in val:
+                if not isinstance(item, str):
+                    return StdRet.pass_errmsg(
+                        STANDARD_PETRONIA_CATALOG,
+                        _(
+                            'Field {field_name} must contain items '
+                            'of type {type} for structure {name}'
+                        ),
+                        field_name='sequence',
+                        type='str',
+                        name='MasterHotkeySequence',
+                    )
+                f_sequence.append(item)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(MasterHotkeySequence(
+            sequence_type=not_none(f_sequence_type),
+            sequence=not_none(f_sequence),
+        ))
+
+    def __repr__(self) -> str:
+        return "MasterHotkeySequence(" + repr(self.export_data()) + ")"
 
 
 class BoundHotkey:
@@ -103,9 +193,9 @@ class BoundHotkey:
 class SetHotkeyBindingsEvent:
     """
     Set the hotkey bindings. This will reset the existing hotkey settings. If the
-    request is invalid, an failed event is sent, otherwise a success is sent.
+    request is invalid, a failed event is sent, otherwise a success is sent.
     """
-    __slots__ = ('master', 'bound',)
+    __slots__ = ('request', 'master', 'bound',)
     FULL_EVENT_NAME = 'petronia.core.api.native.hotkey:set-hotkey-bindings'
     SHORT_EVENT_NAME = 'set-hotkey-bindings'
 
@@ -114,9 +204,11 @@ class SetHotkeyBindingsEvent:
 
     def __init__(
         self,
-        master: str,
+        request: int,
+        master: MasterHotkeySequence,
         bound: List[BoundHotkey],
     ) -> None:
+        self.request = request
         self.master = master
         self.bound = bound
 
@@ -128,7 +220,8 @@ class SetHotkeyBindingsEvent:
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'master': self.master,
+            'request': self.request,
+            'master': self.master.export_data(),
             'bound': [v.export_data() for v in self.bound],
         }
         return _strip_none(ret)
@@ -138,8 +231,27 @@ class SetHotkeyBindingsEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
+        val = data.get('request')
+        f_request: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='request',
+                name='SetHotkeyBindingsEvent',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='request',
+                    type='int',
+                    name='SetHotkeyBindingsEvent',
+                )
+            f_request = int(val)
         val = data.get('master')
-        f_master: str
+        f_master: MasterHotkeySequence
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
@@ -148,15 +260,18 @@ class SetHotkeyBindingsEvent:
                 name='SetHotkeyBindingsEvent',
             )
         else:
-            if not isinstance(val, str):
+            parsed_master = MasterHotkeySequence.parse_data(val)
+            if parsed_master.has_error:
+                return parsed_master.forward()
+            if parsed_master.value is None:
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
                     field_name='master',
-                    type='str',
-                    name='SetHotkeyBindingsEvent',
                 )
-            f_master = val
+            f_master = parsed_master.result
         val = data.get('bound')
         f_bound: List[BoundHotkey]
         if val is None:  # pylint:disable=no-else-return
@@ -176,6 +291,7 @@ class SetHotkeyBindingsEvent:
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(SetHotkeyBindingsEvent(
+            request=not_none(f_request),
             master=not_none(f_master),
             bound=not_none(f_bound),
         ))
@@ -188,14 +304,15 @@ class SetHotkeyBindingsSuccessEvent:
     """
     (no description)
     """
-    __slots__ = ()
+    __slots__ = ('request',)
     FULL_EVENT_NAME = 'petronia.core.api.native.hotkey:set-hotkey-bindings:success'
     SHORT_EVENT_NAME = 'set-hotkey-bindings:success'
 
     def __init__(
         self,
+        request: int,
     ) -> None:
-        pass
+        self.request = request
 
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
@@ -204,13 +321,40 @@ class SetHotkeyBindingsSuccessEvent:
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
-        return {}
+        ret: Dict[str, Any] = {
+            'request': self.request,
+        }
+        return _strip_none(ret)
 
     @staticmethod
-    def parse_data(_data: Dict[str, Any]) -> StdRet['SetHotkeyBindingsSuccessEvent']:
-        """Parse the marshalled data into this structured form.  There are no fields, so this is
-        essentially a no-op."""
-        return StdRet.pass_ok(SetHotkeyBindingsSuccessEvent())
+    def parse_data(data: Dict[str, Any]) -> StdRet['SetHotkeyBindingsSuccessEvent']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('request')
+        f_request: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='request',
+                name='SetHotkeyBindingsSuccessEvent',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='request',
+                    type='int',
+                    name='SetHotkeyBindingsSuccessEvent',
+                )
+            f_request = int(val)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(SetHotkeyBindingsSuccessEvent(
+            request=not_none(f_request),
+        ))
 
     def __repr__(self) -> str:
         return "SetHotkeyBindingsSuccessEvent(" + repr(self.export_data()) + ")"
@@ -226,16 +370,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[int],
+            List[float],
+            float,
             List[str],
+            List[datetime.datetime],
             str,
             bool,
-            List[float],
-            datetime.datetime,
-            List[bool],
-            List[datetime.datetime],
-            float,
             int,
+            List[bool],
+            List[int],
+            datetime.datetime,
         ],
     ) -> None:
         self.__name = name
@@ -248,16 +392,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[int],
+            List[float],
+            float,
             List[str],
+            List[datetime.datetime],
             str,
             bool,
-            List[float],
-            datetime.datetime,
-            List[bool],
-            List[datetime.datetime],
-            float,
             int,
+            List[bool],
+            List[int],
+            datetime.datetime,
     ]:
         """The selector value."""
         return self.__value
@@ -864,7 +1008,7 @@ class MasterHotkeySequenceProblem:
 
     def __init__(
         self,
-        master: str,
+        master: MasterHotkeySequence,
         error: Error,
     ) -> None:
         self.master = master
@@ -873,7 +1017,7 @@ class MasterHotkeySequenceProblem:
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'master': self.master,
+            'master': self.master.export_data(),
             'error': self.error.export_data(),
         }
         return _strip_none(ret)
@@ -884,7 +1028,7 @@ class MasterHotkeySequenceProblem:
         errors: List[StdRet[None]] = []
         val: Any
         val = data.get('master')
-        f_master: str
+        f_master: MasterHotkeySequence
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
@@ -893,15 +1037,18 @@ class MasterHotkeySequenceProblem:
                 name='MasterHotkeySequenceProblem',
             )
         else:
-            if not isinstance(val, str):
+            parsed_master = MasterHotkeySequence.parse_data(val)
+            if parsed_master.has_error:
+                return parsed_master.forward()
+            if parsed_master.value is None:
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
                     field_name='master',
-                    type='str',
-                    name='MasterHotkeySequenceProblem',
                 )
-            f_master = val
+            f_master = parsed_master.result
         val = data.get('error')
         f_error: Error
         if val is None:  # pylint:disable=no-else-return
@@ -1022,15 +1169,17 @@ class SetHotkeyBindingsFailedEvent:
     If the state of `hotkey-bindings` is configured incorrectly, this error event is
     sent to describe what the error was, and what was the cause of the error.
     """
-    __slots__ = ('master_problem', 'bound_problems',)
+    __slots__ = ('request', 'master_problem', 'bound_problems',)
     FULL_EVENT_NAME = 'petronia.core.api.native.hotkey:set-hotkey-bindings:failed'
     SHORT_EVENT_NAME = 'set-hotkey-bindings:failed'
 
     def __init__(
         self,
+        request: int,
         master_problem: Optional[MasterHotkeySequenceProblem],
         bound_problems: Optional[List[BoundHotkeyProblem]],
     ) -> None:
+        self.request = request
         self.master_problem = master_problem
         self.bound_problems = bound_problems
 
@@ -1042,6 +1191,7 @@ class SetHotkeyBindingsFailedEvent:
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
+            'request': self.request,
             'master_problem': None if self.master_problem is None else self.master_problem.export_data(),
             'bound_problems': None if self.bound_problems is None else [v.export_data() for v in self.bound_problems],
         }
@@ -1052,6 +1202,25 @@ class SetHotkeyBindingsFailedEvent:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
+        val = data.get('request')
+        f_request: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='request',
+                name='SetHotkeyBindingsFailedEvent',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='request',
+                    type='int',
+                    name='SetHotkeyBindingsFailedEvent',
+                )
+            f_request = int(val)
         val = data.get('master_problem')
         f_master_problem: Optional[MasterHotkeySequenceProblem] = None
         if val is not None:
@@ -1072,6 +1241,7 @@ class SetHotkeyBindingsFailedEvent:
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(SetHotkeyBindingsFailedEvent(
+            request=not_none(f_request),
             master_problem=f_master_problem,
             bound_problems=f_bound_problems,
         ))
@@ -1159,7 +1329,7 @@ class HotkeyBindingsState:
 
     def __init__(
         self,
-        master: str,
+        master: MasterHotkeySequence,
         bound: List[BoundHotkey],
     ) -> None:
         self.master = master
@@ -1168,7 +1338,7 @@ class HotkeyBindingsState:
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'master': self.master,
+            'master': self.master.export_data(),
             'bound': [v.export_data() for v in self.bound],
         }
         return _strip_none(ret)
@@ -1179,7 +1349,7 @@ class HotkeyBindingsState:
         errors: List[StdRet[None]] = []
         val: Any
         val = data.get('master')
-        f_master: str
+        f_master: MasterHotkeySequence
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
@@ -1188,15 +1358,18 @@ class HotkeyBindingsState:
                 name='HotkeyBindingsState',
             )
         else:
-            if not isinstance(val, str):
+            parsed_master = MasterHotkeySequence.parse_data(val)
+            if parsed_master.has_error:
+                return parsed_master.forward()
+            if parsed_master.value is None:
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
                     field_name='master',
-                    type='str',
-                    name='HotkeyBindingsState',
                 )
-            f_master = val
+            f_master = parsed_master.result
         val = data.get('bound')
         f_bound: List[BoundHotkey]
         if val is None:  # pylint:disable=no-else-return

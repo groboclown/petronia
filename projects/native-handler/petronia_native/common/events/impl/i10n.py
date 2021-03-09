@@ -1,5 +1,4 @@
 # GENERATED CODE - DO NOT MODIFY
-# Created on 2021-03-02T16:58:20.179740+00:00
 
 """
 Data structures and marshalling for extension petronia.core.api.native.i10n version 1.0.0.
@@ -11,21 +10,21 @@ Data structures and marshalling for extension petronia.core.api.native.i10n vers
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    SupportsInt,
+    Any,
+    Dict,
     cast,
+    List,
     Union,
     SupportsFloat,
+    SupportsInt,
     Optional,
-    Dict,
-    List,
-    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
     not_none,
+    StdRet,
     collect_errors_from,
 )
 
@@ -189,16 +188,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[int],
+            List[float],
+            float,
             List[str],
+            List[datetime.datetime],
             str,
             bool,
-            List[float],
-            datetime.datetime,
-            List[bool],
-            List[datetime.datetime],
-            float,
             int,
+            List[bool],
+            List[int],
+            datetime.datetime,
         ],
     ) -> None:
         self.__name = name
@@ -211,16 +210,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[int],
+            List[float],
+            float,
             List[str],
+            List[datetime.datetime],
             str,
             bool,
-            List[float],
-            datetime.datetime,
-            List[bool],
-            List[datetime.datetime],
-            float,
             int,
+            List[bool],
+            List[int],
+            datetime.datetime,
     ]:
         """The selector value."""
         return self.__value

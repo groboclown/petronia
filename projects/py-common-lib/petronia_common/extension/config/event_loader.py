@@ -86,7 +86,6 @@ def load_event_schema(  # pylint:disable=too-many-locals
         references: Mapping[str, event_schema.InternalType],
 ) -> StdRet[event_schema.EventType]:
     """Loads the schema, but does not perform type validation."""
-    # Note: must perform update_reference!
     # Note: must not perform type validation!
     ret_priority = load_dict_str_value('priority', raw)
     ret_send_access = load_dict_str_value('send-access', raw)
@@ -97,7 +96,10 @@ def load_event_schema(  # pylint:disable=too-many-locals
         ret_priority, ret_send_access, ret_receive_access, ret_unique_target, ret_data_type,
     )
     if error:
-        return StdRet.pass_error(error)
+        return StdRet.pass_error(join_errors(
+            UserMessage(STDC, _('Problem(s) in event {name}'), name=event_name),
+            *error.messages(),
+        ))
 
     data_type: Optional[event_schema.StructureEventDataType]
     declared_data_type = ret_data_type.value

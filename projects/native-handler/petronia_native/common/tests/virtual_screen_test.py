@@ -9,6 +9,88 @@ from .. import virtual_screen, defs
 class VirtualScreenBlockTest(unittest.TestCase):
     """Test the VirtualScreenBlock class."""
 
+    def test__is_overlapping(self) -> None:
+        """Test the different scenarios for is_overlapping"""
+
+        # Same square
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(0, 0, 5, 5),
+        ))
+
+        # Completely inside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(2, 2, 2, 2),
+        ))
+
+        # west edge inside, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(2, -2, 5, 10),
+        ))
+        # west edge same, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(0, -2, 10, 10),
+        ))
+        # east edge inside, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(-2, -2, 5, 10),
+        ))
+        # east edge same, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(-2, -2, 7, 10),
+        ))
+        # north edge inside, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(-2, 2, 10, 10),
+        ))
+        # north edge same, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(-2, 0, 10, 10),
+        ))
+        # south edge inside, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(-2, -2, 5, 5),
+        ))
+        # south edge same, all other edges outside
+        self.assertTrue(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(-2, -2, 7, 7),
+        ))
+
+        # outside - x in bounds, y out of bounds
+        self.assertFalse(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(0, 5, 2, 2),
+        ))
+        # outside - x out in bounds, y in bounds
+        self.assertFalse(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(5, 0, 2, 2),
+        ))
+        # outside - se of other screen
+        self.assertFalse(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(5, 5, 2, 2),
+        ))
+        # outside - x out of bounds on west side, y overlaps
+        self.assertFalse(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(-2, 0, 2, 2),
+        ))
+        # outside - x overlaps, y out of bounds on n side
+        self.assertFalse(virtual_screen.is_overlapping(
+            _mk_screen_area(0, 0, 5, 5),
+            _mk_screen_area(0, -2, 2, 2),
+        ))
+
     def test_screen_to_monitor__out_of_bounds_both(self) -> None:
         """Test the screen_to_monitor function"""
         block = virtual_screen.VirtualScreenBlock(

@@ -7,3 +7,5 @@ omit =
     petronia_ext_lib/events/logging.py
     petronia_ext_lib/events/timer.py
     petronia_ext_lib/events/tests/logging_test.py
+    petronia_ext_lib/events/extension_loader.py
+    petronia_ext_lib/events/tests/extension_loader_test.py
