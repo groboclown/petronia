@@ -9,6 +9,10 @@ from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget, Dec
 from petronia_ext_lib.extension_loader import send_register_listeners
 from .events.ext import hotkey as native_hotkey
 from .events.impl import hotkey_binding as ext_hotkey
+from ..user_messages import TRANSLATION_CATALOG
+
+# Rather than reimport...
+_ = i18n
 
 
 def register_native_handlers(
@@ -84,7 +88,8 @@ class HotkeyPressedTarget(EventObjectTarget[native_hotkey.HotkeyPressedEvent]):
 
 def send_set_hotkey_bindings(
         context: EventRegistryContext,
-        master_sequence: str,
+        sequence_type: str,
+        master_sequence: Sequence[str],
         bound_keys: Iterable[Sequence[str]],
         on_complete: Callable[[int, Sequence[UserMessage]], None],
 ) -> StdRet[None]:
@@ -120,7 +125,11 @@ def send_set_hotkey_bindings(
         return False
 
     def cancelled() -> None:
-        on_complete(REQUEST_TIMED_OUT, [])
+        on_complete(REQUEST_TIMED_OUT, [UserMessage(
+            TRANSLATION_CATALOG,
+            _('request to native extension to bind new keys timed out after {timeout} seconds'),
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        )])
 
     # Register the targets then send the event.
 
@@ -143,11 +152,11 @@ def send_set_hotkey_bindings(
         native_hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
         native_hotkey.SetHotkeyBindingsEvent(
             source_request,
-            master_sequence,
+            native_hotkey.MasterHotkeySequence(sequence_type, list(master_sequence)),
             [
                 native_hotkey.BoundHotkey(list(seq))
                 for seq in bound_keys
-            ]
+            ],
         ),
     )
 
@@ -174,13 +183,14 @@ def master_problems(
 
 
 def error_to_user_message(err: native_hotkey.Error) -> List[UserMessage]:
+    """Convert a native hotkey error structure into a user message."""
     return [
         UserMessage(
             msg.catalog,
             i18n(msg.message),
             **{
                 arg.name: arg.value.value
-                for arg in msg.arguments
+                for arg in (msg.arguments or EMPTY_LIST)
             },
         )
         for msg in err.messages

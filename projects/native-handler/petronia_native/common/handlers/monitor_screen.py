@@ -296,6 +296,7 @@ def create_screen_config_from_mapped_screen(
         if mon_id is None:
             while last_id[0] in seen_ids:
                 last_id[0] += 1
+            seen_ids.add(last_id[0])
             return last_id[0]
         seen_ids.add(mon_id)
         return mon_id

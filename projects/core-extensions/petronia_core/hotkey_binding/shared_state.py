@@ -1,6 +1,6 @@
 """Shared settings."""
 
-from typing import Dict, Sequence, List, Tuple, Optional, Any
+from typing import Dict, Sequence, List, Tuple, Iterable, Optional, Any
 from petronia_common.util import StdRet, RET_OK_NONE
 from .events.impl import hotkey_binding as hotkey_events
 from .events.ext import hotkey as native_events
@@ -45,6 +45,15 @@ def set_bound_key(
     _BOUND_KEYS[tuple(keys)] = (comment, event)
 
 
+def remove_bound_key(keys: Sequence[str]) -> bool:
+    """Remove a bound key.  Returns True if removed, False if not known."""
+    seq = tuple(keys)
+    if seq in _BOUND_KEYS:
+        del _BOUND_KEYS[seq]
+        return True
+    return False
+
+
 def set_extension_event(event: hotkey_events.Events) -> None:
     """Set a single extension event."""
     _EXTENSION_EVENTS[event.name] = event
@@ -78,8 +87,15 @@ def get_hotkey_state() -> hotkey_state.ConfigurationState:
                 ), co_evt[0],
             )
             for seq, co_evt in _BOUND_KEYS.items()
-        ]
+        ],
     ))
+
+
+def get_master_sequence() -> native_events.MasterHotkeySequence:
+    """Get the stored master sequence as a native structure."""
+    return native_events.MasterHotkeySequence(
+        _MASTER_SEQUENCE_TYPE[0], list(_MASTER_SEQUENCE),
+    )
 
 
 def get_bound_keys_state() -> hotkey_events.BoundKeysState:
@@ -97,8 +113,13 @@ def get_bound_keys_state() -> hotkey_events.BoundKeysState:
                 ), co_evt[0],
             )
             for seq, co_evt in _BOUND_KEYS.items()
-        ]
+        ],
     )
+
+
+def list_bound_keys() -> Iterable[Sequence[str]]:
+    """Return the list of all bound key sequences."""
+    return list(_BOUND_KEYS.keys())
 
 
 def set_hotkey_state(config: hotkey_state.ConfigurationState) -> None:
@@ -124,6 +145,6 @@ def get_native_binding_event(request_id: int) -> native_events.SetHotkeyBindings
         ),
         [
             native_events.BoundHotkey(list(keys))
-            for keys in _BOUND_KEYS.keys()
+            for keys in _BOUND_KEYS.keys()  # pylint:disable=consider-iterating-dictionary
         ],
     )

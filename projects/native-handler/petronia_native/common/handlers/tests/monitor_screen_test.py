@@ -1,6 +1,6 @@
 """Test the module"""
 
-from typing import Sequence, List, Tuple, cast
+from typing import Sequence, List, Tuple, Optional, cast
 import unittest
 import unittest.mock
 import json
@@ -95,9 +95,76 @@ class MonitorScreenTest(unittest.TestCase):
             event_obj.export_data(),
         )
 
+    def test_create_screen_config_from_mapped_screen__empty(self) -> None:
+        """Test the create_screen_config_from_mapped_screen function"""
+        empty_group = screen.ScreenMonitorMappingConfigGroup(None, [], [])
+        res = monitor_screen.create_screen_config_from_mapped_screen(empty_group)
+        self.assertEqual('screen-config', res.name)
+        self.assertEqual(0, len(res.monitor_defs))
+        self.assertEqual(0, len(res.screen.blocks))
+
+    def test_create_screen_config_from_mapped_screen__two(self) -> None:
+        """Test the create_screen_config_from_mapped_screen function"""
+        monitor_screens = screen.ScreenMonitorMappingConfigGroup(
+            'desc',
+            [
+                screen.SourceMonitor(0, 10, 20),
+                screen.SourceMonitor(1, 100, 90),
+            ],
+            [
+                screen.ScreenMonitorMapping(None, 0, 0, 10, 20, 0, 0, 0, 10, 20),
+                screen.ScreenMonitorMapping(1, 0, 0, 100, 90, 10, 10, 0, 100, 90),
+                screen.ScreenMonitorMapping(None, 80, 60, 40, 50, 0, 1, 2, 20, 30),
+            ],
+        )
+        res = monitor_screen.create_screen_config_from_mapped_screen(monitor_screens)
+        self.assertEqual('desc', res.name)
+        self.assertEqual(
+            ((0, 10, 20), (1, 100, 90)),
+            res.monitor_defs
+        )
+        self.assertEqual(
+            (
+                virtual_screen.VirtualScreenBlock(
+                    (
+                        0, cast(defs.MonitorUnit, 0), cast(defs.MonitorUnit, 0),
+                        cast(defs.MonitorUnit, 10), cast(defs.MonitorUnit, 20),
+                    ),
+                    (
+                        cast(defs.ScreenUnit, 0), cast(defs.ScreenUnit, 0),
+                        cast(defs.ScreenUnit, 10), cast(defs.ScreenUnit, 20),
+                    ),
+                    0,
+                ),
+                virtual_screen.VirtualScreenBlock(
+                    (
+                        1, cast(defs.MonitorUnit, 0), cast(defs.MonitorUnit, 0),
+                        cast(defs.MonitorUnit, 100), cast(defs.MonitorUnit, 90),
+                    ),
+                    (
+                        cast(defs.ScreenUnit, 10), cast(defs.ScreenUnit, 0),
+                        cast(defs.ScreenUnit, 100), cast(defs.ScreenUnit, 90),
+                    ),
+                    0,
+                ),
+                virtual_screen.VirtualScreenBlock(
+                    (
+                        2, cast(defs.MonitorUnit, 80), cast(defs.MonitorUnit, 60),
+                        cast(defs.MonitorUnit, 40), cast(defs.MonitorUnit, 50),
+                    ),
+                    (
+                        cast(defs.ScreenUnit, 1), cast(defs.ScreenUnit, 2),
+                        cast(defs.ScreenUnit, 20), cast(defs.ScreenUnit, 30),
+                    ),
+                    10,
+                ),
+            ),
+            res.screen.blocks,
+        )
+
 
 class AbstractScreenHandlerTest(unittest.TestCase):
-    """Test the AbstractScreenHandler class."""
+    """Test the AbstractScreenHandler and ScreenConfigChangedEventListener class."""
 
     def test_closed(self) -> None:
         """Test the functions when the instance is closed."""
@@ -445,12 +512,82 @@ class AbstractScreenHandlerTest(unittest.TestCase):
         calls = context.send_event.call_args_list
         self.assertEqual([], calls)
 
+    def test_on_configuration_update__not_changed__no_source(self) -> None:
+        """Test on_configuration_update when the virtual screen configuration isn't changed,
+        and there is no original source."""
+        vs_settings = unittest.mock.Mock(virtual_screen.VirtualScreenSettings())
+        vs_settings.update_configuration.return_value = False
+        vs_settings.copy.return_value = vs_settings
+        vs_settings.user_screen_configurations = []
+        vs_settings.active_screen.return_value = virtual_screen.VirtualScreen([])
+        context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
+        handler = MockScreenHandler(context, vs_settings)
+        res = handler.on_configuration_update(None, -1, [])
+        self.assertIsNone(res.error)
+        calls = context.send_event.call_args_list
+        self.assertEqual(1, len(calls))
+        args = calls[0].args
+        self.assertEqual(
+            args[0],
+            screen.ScreenSetupsState.UNIQUE_TARGET_FQN,
+        )
+        self.assertEqual(
+            args[1],
+            datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN,
+        )
+        event_obj = args[2]
+        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
+        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec
+        self.assertEqual(
+            {'mapped_screens_by_monitors': []},
+            json.loads(event_obj.json),
+        )
+
+    def test_listener_std(self) -> None:
+        """Test ScreenConfigChangedEventListener on_event when not called."""
+        context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
+        handler = MockScreenHandler(context)
+        listener = monitor_screen.ScreenConfigChangedEventListener(handler)
+        self.assertFalse(
+            listener.on_event('s1', 't1', screen.SetScreenConfigurationRequestEvent(1, [])),
+        )
+        context.assert_not_called()
+        calls = context.send_event.call_args_list
+        self.assertEqual(2, len(calls))
+
+    def test_listener_closed(self) -> None:
+        """Test ScreenConfigChangedEventListener on_close and use cases around it"""
+        context = unittest.mock.Mock(EventRegistryContext())
+        handler = MockScreenHandler(context)
+        listener = monitor_screen.ScreenConfigChangedEventListener(handler)
+        listener.on_close()
+        self.assertTrue(
+            listener.on_event('s1', 't1', screen.SetScreenConfigurationRequestEvent(1, [])),
+        )
+        context.assert_not_called()
+
+    def test_register_monitor_state_change_listener(self) -> None:
+        """Test register_monitor_state_change_listener"""
+        context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
+        context.register_event_parser.return_value = RET_OK_NONE
+        context.register_target.return_value = RET_OK_NONE
+        handler = MockScreenHandler(context)
+        res = monitor_screen.register_monitor_state_change_listener(context, handler)
+        self.assertIsNone(res.error)
+
 
 class MockScreenHandler(monitor_screen.AbstractScreenHandler):
     """Captures input to the handler."""
 
-    def __init__(self, context: EventRegistryContext) -> None:
+    def __init__(
+            self, context: EventRegistryContext,
+            vs_settings: Optional[virtual_screen.VirtualScreenSettings] = None,
+    ) -> None:
         monitor_screen.AbstractScreenHandler.__init__(self, context)
+        self._settings = vs_settings or self._settings
         self.args__on_screen_configuration_settings_changed: List[Tuple[
             EventRegistryContext, Sequence[virtual_screen.VirtualScreenConfig],
         ]] = []

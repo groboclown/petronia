@@ -293,10 +293,15 @@ def load_event_array_data_type(
     )
     raw_data_type = raw.get('value-type')
     if not isinstance(raw_data_type, dict):
-        return StdRet.pass_errmsg(
-            STDC, _('{name}: `value-type` must be a dictionary of a data type structure'),
-            name=src_name,
-        )
+        return StdRet.pass_error(join_errors(
+            UserMessage(
+                STDC, _('{name}: `value-type` must be a dictionary of a data type structure'),
+                name=src_name,
+            ),
+            *ret_description.error_messages(),
+            *ret_min_length.error_messages(),
+            *ret_max_length.error_messages(),
+        ))
     internal_type_res = _get_internal_type(
         load_event_data_type(src_name, raw_data_type, references),
         references,

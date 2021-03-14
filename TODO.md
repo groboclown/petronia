@@ -16,6 +16,7 @@ These are desired, tactical changes to bits of already written code.
 
 * finish shutdown extension design.  This needs to borrow heavily from the v3.0 notes.
 * implement the timer extension.
+* hotkey-binding needs de-register for extension events.
 
 
 ### native
@@ -67,6 +68,7 @@ This is the next thing that's being worked on.
 * binary event unit test classes should not exist.  Or should be made differently.
 * random number generator should have a seed based on extension information, so that regenerating the tests will have consistent test data.  Maybe a seed can be set in the yaml file?
 * after the change to allow cycles, the source generator is horribly slow.  Need to figure out where the slow-down is happening.  Probably in the cycle code ;)
+* some generators include `cast` import when it isn't used, which causes a pylint error.
 
 
 ### extension-loader

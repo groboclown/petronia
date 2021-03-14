@@ -14,7 +14,6 @@ from typing import (
     Dict,
     List,
     Any,
-    cast,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (

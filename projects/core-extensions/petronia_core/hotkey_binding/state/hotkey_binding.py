@@ -11,7 +11,6 @@ Data structures and marshalling for extension petronia_core.hotkey_binding versi
 from __future__ import annotations
 from typing import (
     Any,
-    cast,
     Dict,
     Optional,
     List,

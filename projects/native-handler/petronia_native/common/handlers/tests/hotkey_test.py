@@ -59,7 +59,9 @@ class HotkeyTest(unittest.TestCase):
         target = hotkey.HotkeyBindingsTarget(context, handler)
         target.on_close()
         self.assertTrue(
-            target.on_event('s', 't', hotkey_event.SetHotkeyBindingsEvent('m', []))
+            target.on_event('s', 't', hotkey_event.SetHotkeyBindingsEvent(
+                1, hotkey_event.MasterHotkeySequence('m', []), [],
+            ))
         )
         handler.set_hotkey_bindings.assert_not_called()
         context.send_event.assert_not_called()
@@ -77,7 +79,9 @@ class HotkeyTest(unittest.TestCase):
         context.send_event.return_value = RET_OK_NONE
         target = hotkey.HotkeyBindingsTarget(context, handler)
         self.assertFalse(
-            target.on_event('s', 't', hotkey_event.SetHotkeyBindingsEvent('m', []))
+            target.on_event('s', 't', hotkey_event.SetHotkeyBindingsEvent(
+                1, hotkey_event.MasterHotkeySequence('m', []), [],
+            ))
         )
         handler.set_hotkey_bindings.assert_called_once()
         context.send_event.assert_called_once()
@@ -94,7 +98,10 @@ class HotkeyTest(unittest.TestCase):
             event, hotkey_event.SetHotkeyBindingsFailedEvent,
         )
         self.assertIsNotNone(event.master_problem)
-        self.assertEqual('m', not_none(event.master_problem).master)
+        self.assertEqual(
+            {'sequence_type': 'm', 'sequence': []},
+            not_none(event.master_problem).master.export_data(),
+        )
 
     def test_handler_bindings__on_event__ok(self) -> None:
         """Test out HotkeyBindingsTarget.on_event when the target is closed."""
@@ -105,7 +112,9 @@ class HotkeyTest(unittest.TestCase):
         context.send_event.return_value = RET_OK_NONE
         target = hotkey.HotkeyBindingsTarget(context, handler)
         self.assertFalse(
-            target.on_event('s', 't', hotkey_event.SetHotkeyBindingsEvent('m', []))
+            target.on_event('s', 't', hotkey_event.SetHotkeyBindingsEvent(
+                1, hotkey_event.MasterHotkeySequence('m', []), [],
+            ))
         )
         handler.set_hotkey_bindings.assert_called_once()
         context.send_event.assert_called()
@@ -133,4 +142,7 @@ class HotkeyTest(unittest.TestCase):
         event = context.send_event.mock_calls[1].args[2]
         self.assertIsInstance(event, datastore.StoreDataEvent)
         assert isinstance(event, datastore.StoreDataEvent)  # nosec  # mypy required
-        self.assertEqual(json.loads(event.json), {'master': 'm', 'bound': []})
+        self.assertEqual(
+            json.loads(event.json),
+            {'master': {'sequence': [], 'sequence_type': 'm'}, 'bound': []},
+        )

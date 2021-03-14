@@ -100,7 +100,12 @@ class VirtualScreenBlock:  # pylint:disable=too-many-instance-attributes
         return None
 
     def __repr__(self) -> str:
-        return f'VirtualScreenBlock(m: {repr(self.monitor_id)}, s: {repr(self.screen)})'
+        return (
+            f'VirtualScreenBlock(mid: {repr(self.monitor_id)}, '
+            f'm: {repr(self.monitor_area)}, '
+            f's: {repr(self.screen)}, '
+            f'r: {self.monitor_rotation})'
+        )
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, VirtualScreenBlock):

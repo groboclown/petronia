@@ -28,7 +28,8 @@ class HotkeyHandler:
 
     def set_hotkey_bindings(
             self,
-            master_sequence: str,
+            master_sequence_type: str,
+            master_sequence: List[str],
             key_sequences: Sequence[Sequence[str]],
     ) -> BoundKeyProblems:
         """Takes the master sequence (which is a specially formatted string, left up to
@@ -85,7 +86,8 @@ class HotkeyBindingsTarget(runner.EventObjectTarget[hotkey.SetHotkeyBindingsEven
         if not self._context or not self._handler:
             return True
         res = self._handler.set_hotkey_bindings(
-            event.master, [b.keys for b in event.bound],
+            event.master.sequence_type, event.master.sequence,
+            [b.keys for b in event.bound],
         )
         bound_errors: List[hotkey.BoundHotkeyProblem] = []
         master_error: Optional[hotkey.MasterHotkeySequenceProblem] = None
@@ -131,7 +133,11 @@ class HotkeyBindingsTarget(runner.EventObjectTarget[hotkey.SetHotkeyBindingsEven
                 internal__send_bind_hotkey_success(self._context, source, event.request)
             )
             report_send_receive_problems(
-                internal__send_hotkey_state(self._context, event.master, event.bound)
+                internal__send_hotkey_state(
+                    self._context,
+                    event.master.sequence_type, event.master.sequence,
+                    event.bound,
+                )
             )
         return False
 
@@ -162,11 +168,17 @@ def internal__send_bind_hotkey_success(
 
 
 def internal__send_hotkey_state(
-        context: runner.EventRegistryContext, master: str, bound: List[hotkey.BoundHotkey],
+        context: runner.EventRegistryContext,
+        master_sequence_type: str,
+        master_sequence: List[str],
+        bound: List[hotkey.BoundHotkey],
 ) -> StdRet[None]:
     """Send the store hotkey state event."""
     return datastore.send_store_data(
         context,
         hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
-        hotkey.HotkeyBindingsState(master, bound),
+        hotkey.HotkeyBindingsState(
+            hotkey.MasterHotkeySequence(master_sequence_type, master_sequence),
+            bound,
+        ),
     )

@@ -108,7 +108,7 @@ class SendTest(unittest.TestCase):
         context = unittest.mock.Mock(EventRegistryContext())
         context.send_event.return_value = RET_OK_NONE
         send.send_log_message(
-            context, 's1', 'sc1',
+            context, 's1', 'debug',
             [UserMessage('c', i18n('m1'))],
         )
         calls = context.send_event.call_args_list
@@ -125,7 +125,7 @@ class SendTest(unittest.TestCase):
         assert isinstance(event_obj, logging.LogEvent)  # nosec  # mypy required
         self.assertEqual(
             {
-                'scope': 'sc1',
+                'scope': 'debug',
                 'messages': [{
                     'catalog': 'c',
                     'message': 'm1',

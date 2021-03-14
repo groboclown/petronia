@@ -11,7 +11,6 @@ Data structures and marshalling for extension petronia_core.file_logger version 
 from __future__ import annotations
 from typing import (
     Dict,
-    cast,
     List,
     Optional,
     Any,

@@ -23,7 +23,7 @@ class ExtensionLoaderTest(unittest.TestCase):
         for test_name, test_data, messages in BAD_DATA_TESTS:
             with self.subTest(name=test_name):
                 res = extension_loader.load_extension(test_data)
-                self.assertFalse(res.ok)
+                self.assertIsNotNone(res.error)
                 expected = [
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
                     for m, a in messages
@@ -354,16 +354,22 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            'no `{key}` found in definition',
-            dict(key='priority'),
-        ), (
-            'no `{key}` found in definition',
-            dict(key='send-access'),
-        ), (
-            'no `{key}` found in definition',
-            dict(key='receive-access'),
-        )],
+        [
+            (
+                'Problem(s) in event {name}',
+                dict(name='x'),
+            ),
+            (
+                'no `{key}` found in definition',
+                dict(key='priority'),
+            ), (
+                'no `{key}` found in definition',
+                dict(key='send-access'),
+            ), (
+                'no `{key}` found in definition',
+                dict(key='receive-access'),
+            ),
+        ],
     ),
     (
         'Event data - priority, send-access, and receive-access data types',
@@ -379,16 +385,22 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
                 },
             },
         },
-        [(
-            '`{key}` must be a string value',
-            dict(key='priority'),
-        ), (
-            '`{key}` must be a string value',
-            dict(key='send-access'),
-        ), (
-            '`{key}` must be a string value',
-            dict(key='receive-access'),
-        )],
+        [
+            (
+                'Problem(s) in event {name}',
+                dict(name='x')
+            ),
+            (
+                '`{key}` must be a string value',
+                dict(key='priority'),
+            ), (
+                '`{key}` must be a string value',
+                dict(key='send-access'),
+            ), (
+                '`{key}` must be a string value',
+                dict(key='receive-access'),
+            ),
+        ],
     ),
     (
         'Event data - bad receive-access',
@@ -443,6 +455,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('unknown reference `{reference}`', dict(reference='z')),
@@ -464,6 +477,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('{name}: problem(s) with event data type', dict(name='x -> a')),
@@ -489,6 +503,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('{name}: problem(s) in declaration', dict(name='x -> a')),
@@ -515,6 +530,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('unknown reference `{reference}`', dict(reference='z')),
@@ -536,6 +552,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a number', dict(key='max-length')),
@@ -558,6 +575,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a number', dict(key='max-value')),
@@ -580,6 +598,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a number', dict(key='max-value')),
@@ -602,6 +621,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description')),
@@ -623,6 +643,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description')),
@@ -644,6 +665,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             (
@@ -668,6 +690,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             (
@@ -692,6 +715,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description')),
@@ -713,6 +737,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             (
@@ -737,6 +762,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('{name}: problem(s) with event data type', dict(name='x -> a')),
@@ -759,6 +785,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description')),
@@ -780,6 +807,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             (
@@ -806,6 +834,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('{name}: problem(s) in declaration', dict(name='x -> a')),
@@ -828,6 +857,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description')),
@@ -849,6 +879,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             (
@@ -873,6 +904,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             (
@@ -899,6 +931,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('{name}: unknown "type" `{data_type}`', dict(name='x -> a -> x', data_type='foo')),
@@ -920,6 +953,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description'),),
@@ -1049,6 +1083,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
             },
         },
         [
+            ('Problem(s) in event {name}', dict(name='x')),
             ('{name}: problem(s) in declaration', dict(name='x')),
             ('{field}: issue with declared type', dict(field='a')),
             ('`{key}` must be a string value', dict(key='description')),

@@ -182,6 +182,8 @@ events:
           type: reference
           ref: event-parameter-description
 
+  # TODO allow removing event registration, for support of unloading extensions.
+
   hotkey-fired:
     description: A bound hotkey event fired.
     priority: user

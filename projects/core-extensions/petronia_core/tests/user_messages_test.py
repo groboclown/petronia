@@ -22,14 +22,14 @@ class NativeUserMessagesTest(unittest.TestCase):
     def test_report_send_receive_problems__no_error(self) -> None:
         """Test the report_send_receive_problems function"""
         sys.stderr = io.StringIO()
-        user_messages.report_send_receive_problems(StdRet.pass_ok('x'))
+        user_messages.report_send_receive_problems('x', StdRet.pass_ok('x'))
         self.assertEqual('', sys.stderr.getvalue())
 
     def test_report_send_receive_problems__error_msg(self) -> None:
         """Test the report_send_receive_problems function"""
         sys.stderr = io.StringIO()
-        user_messages.report_send_receive_problems(StdRet.pass_errmsg('c', i18n('m {x}'), x=1))
-        self.assertEqual('[native-handler ERROR] m 1\n', sys.stderr.getvalue())
+        user_messages.report_send_receive_problems('y', StdRet.pass_errmsg('c', i18n('m {x}'), x=1))
+        self.assertEqual('[y ERROR] m 1\n', sys.stderr.getvalue())
 
     def test_report_send_receive_problems__exception(self) -> None:
         """Test the report_send_receive_problems function"""
@@ -39,7 +39,8 @@ class NativeUserMessagesTest(unittest.TestCase):
             error = err
         sys.stderr = io.StringIO()
         user_messages.report_send_receive_problems(
+            'z',
             StdRet.pass_exception('c', i18n('m {x}'), error, x=1),
         )
-        self.assertTrue(sys.stderr.getvalue().startswith('[native-handler ERROR] m 1\n'))
+        self.assertTrue(sys.stderr.getvalue().startswith('[z ERROR] m 1\n'))
         self.assertTrue('ValueError' in sys.stderr.getvalue())

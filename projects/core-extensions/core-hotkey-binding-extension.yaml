@@ -19,6 +19,12 @@ depends:
   - name: petronia.core.api.datastore
     minimum: [1, 0, 0]
     below: [2, 0, 0]
+  - name: petronia.core.prototype.logging
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.hotkey
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
 
 runtime:
   launcher: core

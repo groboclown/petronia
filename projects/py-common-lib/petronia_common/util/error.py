@@ -234,13 +234,13 @@ class StdRet(Generic[T_co]):
     # Debugging code.  This can be removed when in production.
     def __del__(self) -> None:
         if not self.__checked_error:
+            print(self.__source)
             if self.__error:
-                print(self.__source)
                 raise ValueError(
-                    f'Non-error checked StdRet with error '
+                    f'StdRet not checked; error='
                     f'({[m.debug() for m in self.__error.messages()]})'
                 )
-            raise ValueError(f'Non-error checked StdRet with value {self.__value}')
+            raise ValueError(f'StdRet not checked; value {self.__value}')
 
 
 def error_message(

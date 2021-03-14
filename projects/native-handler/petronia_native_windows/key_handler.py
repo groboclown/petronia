@@ -60,9 +60,15 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
         return HotkeyConfig(False)
 
     def set_hotkey_bindings(
-            self, master_sequence: str, key_sequences: Sequence[Sequence[str]],
+            self,
+            master_sequence_type: str,
+            master_sequence: List[str],
+            key_sequences: Sequence[Sequence[str]],
     ) -> handlers.hotkey.BoundKeyProblems:
-        is_ok, ret, names, chains = parse_bindings(master_sequence, key_sequences)
+        is_ok, ret, names, chains = parse_bindings(
+            master_sequence_type,
+            master_sequence, key_sequences,
+        )
         if is_ok:
             with self.__lock:
                 self.__sequence_names = names
@@ -166,7 +172,9 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
 
 
 def parse_bindings(
-        master_sequence: str, key_sequences: Sequence[Sequence[str]],
+        master_sequence_type: str,
+        master_sequence_keys: List[str],
+        key_sequences: Sequence[Sequence[str]],
 ) -> Tuple[
     bool,
     handlers.hotkey.BoundKeyProblems,
@@ -181,12 +189,28 @@ def parse_bindings(
     by a plus.
     """
 
-    valid = True
     problems = handlers.hotkey.BoundKeyProblems()
+
+    # Valid sequence type keys are 'sequence' and 'meta'.
+    # This currently only parses "meta".
+    if master_sequence_type != 'meta':
+        problems.master_problem = StdRet.pass_errmsg(
+            user_messages.TRANSLATION_CATALOG,
+            _(
+                'This native handler currently only handles the "meta" key sequences; '
+                'requested {name}.'
+            ),
+            name=master_sequence_type,
+        )
+        return (
+            False, problems, {}, [],
+        )
+
+    valid = True
     sequence_names: Dict[str, Sequence[str]] = {}
     sequences: List[Tuple[Sequence[hotkey_chain.KeyCombo], str]] = []
 
-    master_keys_res = parse_primary_master_sequence(master_sequence)
+    master_keys_res = parse_primary_master_sequence(master_sequence_keys)
     if master_keys_res.has_error:
         problems.master_problem = master_keys_res.forward()
         valid = False
@@ -213,17 +237,17 @@ def parse_bindings(
 
 
 def parse_primary_master_sequence(
-        master_sequence: str,
+        master_sequence_keys: List[str],
 ) -> StdRet[Sequence[hotkey_chain.ModifierKeyCode]]:
     """Parse a primary chain master key as a sequence of meta-keys.
 
     This returns a list of the keys to press.  If a key has multiple choices
     (say, lshift or rshift), then that is one of the internal lists."""
-    master_key_names = master_sequence.split('+')
+
     errors: List[UserMessage] = []
     ret: List[hotkey_chain.ModifierKeyCode] = []
 
-    for name in master_key_names:
+    for name in master_sequence_keys:
         codes = keymap.get_vk_keys_for_alias(name, True)
         code_len = len(codes)
         if code_len <= 0:
