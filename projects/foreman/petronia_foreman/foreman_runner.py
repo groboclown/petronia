@@ -171,7 +171,7 @@ def load_boot_extensions(config: ForemanConfig) -> StdRet[Sequence[BootExtension
     """Load the boot extension metadata."""
     ret: List[StdRet[BootExtensionMetadata]] = []
     for filename in config.get_boot_config().boot_file_order:
-        fqn = get_boot_extension_file(filename)
+        fqn = get_boot_extension_file(filename, config.get_boot_config().boot_extension_dir)
         if fqn.has_error:
             ret.append(fqn.forward())
         else:

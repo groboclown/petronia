@@ -42,6 +42,26 @@ def main(vargs: Sequence[str]) -> int:
             platforms=repr(platform.SUPPORTED_PLATFORMS),
         ),
     )
+    parser.add_argument(
+        '--data-dir', action='append', default=[], dest='data_dirs',
+        help=translate(
+            CATALOG,
+            _(
+                'add an additional directory marked as storage for "data".  Multiple '
+                'of these can be given to add multiple data directories.'
+            ),
+        ),
+    )
+    parser.add_argument(
+        '--config-dir', action='append', default=[], dest='config_dirs',
+        help=translate(
+            CATALOG,
+            _(
+                'add an additional directory marked as storage for "configuration".  Multiple '
+                'of these can be given to add multiple configuration directories.'
+            ),
+        ),
+    )
     args = parser.parse_args(vargs[1:])
 
     platform_res = platform.initial_setup(args.platform)
@@ -50,6 +70,9 @@ def main(vargs: Sequence[str]) -> int:
         display_error(platform_res.valid_error)
         local_display(_("Run with `-h` argument for help using Petronia."))
         return 1
+
+    platform.data_paths.extend(args.data_dirs)
+    platform.configuration_paths.extend(args.config_dirs)
 
     foreman_config = read_configuration_file(args.config)
     if foreman_config.has_error:

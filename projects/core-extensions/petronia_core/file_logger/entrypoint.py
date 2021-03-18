@@ -14,9 +14,9 @@ def extension_entrypoint(
         config: Dict[str, Any],
         args: Sequence[str],
 ) -> StdRet[None]:
-    """Standardized entrypoint.  arg[0] must be the data directory."""
+    """Standardized entrypoint.  arg[1] must be the data directory."""
     shared_state.clear_data()
-    res1 = shared_state.load_configuration(args[0], config)
+    res1 = shared_state.load_configuration(args[1], config)
     context = SimpleEventRegistryContext(reader, writer, None)
     res2 = register_log_listener(context)
 

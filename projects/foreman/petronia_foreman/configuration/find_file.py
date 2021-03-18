@@ -57,13 +57,19 @@ def discover_config_file_in(search_path: Iterable[Optional[str]]) -> StdRet[str]
     )
 
 
-def get_boot_extension_file(filename: str) -> StdRet[str]:
+def get_boot_extension_file(
+        filename: str,
+        additional_boot_extension_dir: Optional[str] = None,
+) -> StdRet[str]:
     """Discover the location of the boot extension file."""
-    fqn = platform.find_data_file(filename, *BOOT_EXTENSION_SEARCH_DIRS)
+    extension_dirs = list(BOOT_EXTENSION_SEARCH_DIRS)
+    if additional_boot_extension_dir:
+        extension_dirs.append(additional_boot_extension_dir)
+    fqn = platform.find_data_file(filename, *extension_dirs)
     if fqn:
         return StdRet.pass_ok(fqn)
     return StdRet.pass_errmsg(
         CATALOG,
-        _('could not find boot extension file; searched in {path}'),
-        path=', '.join(platform.data_paths),
+        _('could not find boot extension file {name}; searched in {path}'),
+        path=', '.join(platform.data_paths), name=filename,
     )

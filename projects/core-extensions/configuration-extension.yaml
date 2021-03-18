@@ -61,7 +61,7 @@ events:
       Will be sent to the sender ID that sent the original request.
 
     priority: normal
-    send-access: implementations
+    send-access: public
     receive-access: public
     fields:
       request_id:

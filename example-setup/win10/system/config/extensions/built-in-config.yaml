@@ -11,3 +11,7 @@ Timer:
 Datastore:
   extension: petronia_core.datastore
   enabled: true
+
+Platform:
+  extension: petronia_native_windows
+  enabled: true

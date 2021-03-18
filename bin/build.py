@@ -197,9 +197,10 @@ def build_l10n_project_dir(_root_project_dir: str, project_dir: str) -> List[str
     """Compile the .pot files into .mo files."""
 
     source_dir = os.path.join(project_dir, 'translations')
-    compiled_dir = os.path.join(project_dir, 'compiled')
-    if os.path.isdir(compiled_dir):
-        shutil.rmtree(compiled_dir, ignore_errors=True)
+    root_compiled_dir = os.path.join(project_dir, 'compiled')
+    compiled_dir = os.path.join(root_compiled_dir, 'translations')
+    if os.path.isdir(root_compiled_dir):
+        shutil.rmtree(root_compiled_dir, ignore_errors=True)
     os.makedirs(compiled_dir, exist_ok=True)
 
     # project name -> list of (locale, po file)

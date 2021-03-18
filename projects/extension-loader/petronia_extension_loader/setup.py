@@ -1,6 +1,8 @@
 """Loads and processes the user's setup."""
 
 from typing import Sequence, List, Dict, Optional, Any
+import os
+import sys
 from petronia_common.util import load_structured_file, StdRet, UserMessage, join_errors, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .defs import TRANSLATION_CATALOG
@@ -62,14 +64,17 @@ def initialize(  # pylint:disable=keyword-arg-before-vararg
         _EXTENSION_DIRS.extend(find_extension_dirs(data_path))
 
     if user_config_path:
+        # messages.low_println(f'Scanning for user config files in {user_config_path}')
         for user_config_file in find_config_files(user_config_path):
+            # messages.low_println(f'Loading user config file {user_config_file}')
             config_res = load_config_file(user_config_file)
             if config_res.has_error:
                 errors.extend(config_res.error_messages())
             else:
                 user_config.extend(config_res.result)
 
-    res = parse_configuration(user_config)
+    # TODO: this is a hack...
+    res = parse_configuration(user_config, data_path)
     if res.has_error:
         errors.extend(res.error_messages())
 
@@ -101,11 +106,17 @@ def load_config_file(filename: str) -> StdRet[Sequence[Dict[str, Any]]]:
     )
 
 
-def parse_configuration(configs: Sequence[Dict[str, Any]]) -> StdRet[None]:
+def parse_configuration(
+        configs: Sequence[Dict[str, Any]], data_path: str,
+) -> StdRet[None]:
     """
     Parse the user configurations and load the data into this module's
     static structures.  This appends to, not replaces, the static structures.
     """
+    data_dirs: List[str] = []
+    if data_path:
+        data_dirs = data_path.split(os.pathsep)
+
     errors: List[UserMessage] = []
     for config in configs:
         for key, settings in config.items():
@@ -121,7 +132,7 @@ def parse_configuration(configs: Sequence[Dict[str, Any]]) -> StdRet[None]:
 
             # Extension Loader configuration options...
             if key == 'startup':
-                res = parse_startup_config(settings)
+                res = parse_startup_config(settings, data_dirs)
                 errors.extend(res.error_messages())
                 continue
 
@@ -133,7 +144,7 @@ def parse_configuration(configs: Sequence[Dict[str, Any]]) -> StdRet[None]:
     return RET_OK_NONE
 
 
-def parse_startup_config(config: Dict[str, Any]) -> StdRet[None]:
+def parse_startup_config(config: Dict[str, Any], data_dirs: Sequence[str]) -> StdRet[None]:
     """Parse the configuration entry for the startup settings."""
     errors: List[UserMessage] = []
     ext_val = config.get('extensions')
@@ -152,7 +163,8 @@ def parse_startup_config(config: Dict[str, Any]) -> StdRet[None]:
     ext_dirs = config.get('extension-dirs')
     if ext_dirs:
         if isinstance(ext_dirs, (tuple, list)) and not isinstance(ext_dirs, str):
-            _EXTENSION_DIRS.extend(ext_dirs)
+            for dir_name in ext_dirs:
+                _EXTENSION_DIRS.extend(get_extension_dirs_for_name(dir_name, data_dirs))
         else:
             errors.append(UserMessage(
                 TRANSLATION_CATALOG,
@@ -165,6 +177,20 @@ def parse_startup_config(config: Dict[str, Any]) -> StdRet[None]:
     if errors:
         return StdRet.pass_error(join_errors(*errors))
     return RET_OK_NONE
+
+
+def get_extension_dirs_for_name(name: str, data_dirs: Sequence[str]) -> Sequence[str]:
+    """Get the extension directories for the given name."""
+    if os.path.isdir(name):
+        return [name]
+    ret: List[str] = [name]
+    if '${DATA_DIR}' in name:
+        for data_dir in data_dirs:
+            ret.append(name.replace('${DATA_DIR}', data_dir))
+    if '${SYS_PATH}' in name:
+        for data_dir in sys.path:
+            ret.append(name.replace('${SYS_PATH}', data_dir))
+    return ret
 
 
 def for_unittest_backup() -> Dict[str, Any]:

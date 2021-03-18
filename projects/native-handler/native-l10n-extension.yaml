@@ -1,7 +1,7 @@
 ---
 schema-version: v1
 
-name: petronia.core.api.native.i10n
+name: petronia.core.api.native.l10n
 version: [1, 0, 0]
 type: api
 
