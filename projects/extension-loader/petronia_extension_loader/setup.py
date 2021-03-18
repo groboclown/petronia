@@ -73,8 +73,7 @@ def initialize(  # pylint:disable=keyword-arg-before-vararg
             else:
                 user_config.extend(config_res.result)
 
-    # TODO: this is a hack...
-    res = parse_configuration(user_config, data_path)
+    res = parse_configuration(user_config, data_path or '')
     if res.has_error:
         errors.extend(res.error_messages())
 

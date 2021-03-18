@@ -25,7 +25,7 @@ class EntrypointTest(unittest.TestCase):
         read = create_read_stream(b'')
         write = SimpleBinaryWriter()
         res = entrypoint.extension_entrypoint(
-            read, write, {'files': [{'filename': 1, 'message_format': 1}]}, [self.tempdir],
+            read, write, {'files': [{'filename': 1, 'message_format': 1}]}, ['x', self.tempdir],
         )
         self.assertEqual(
             ['Field filename must be of type str for structure LogfileSettings'],
@@ -45,7 +45,7 @@ class EntrypointTest(unittest.TestCase):
         res = entrypoint.extension_entrypoint(
             log_reader, log_writer, {'files': [
                 {'filename': 'f.log', 'message_format': '{source} {text}'},
-            ]}, [self.tempdir],
+            ]}, ['x', self.tempdir],
         )
         self.assertIsNone(res.error)
 
