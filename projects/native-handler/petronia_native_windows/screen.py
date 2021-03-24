@@ -3,32 +3,34 @@
 from typing import Sequence, Optional
 import threading
 from concurrent.futures.thread import ThreadPoolExecutor
-from petronia_common.util import StdRet, EMPTY_TUPLE, RET_OK_NONE
+from petronia_common.util import EMPTY_TUPLE
 from petronia_ext_lib.runner import EventRegistryContext
 from petronia_native.common import virtual_screen, user_messages, defs
 from petronia_native.common.handlers import monitor_screen
-from . import configuration, message_loop, hook_messages
-from .datastore.petronia_native_windows import (
-    VirtualScreens, ScreenMonitorMappingConfigGroup,
-    SourceMonitor, ScreenMonitorMapping,
-)
+from . import configuration, message_loop, hook_messages, windows_vs
 from .arch import native_funcs
 from .arch.native_funcs.monitor import WindowsMonitor, are_monitors_different
 
 
-class WindowsScreen(monitor_screen.AbstractScreenHandler):
+class WindowsScreen(monitor_screen.AbstractMonitorHandler[WindowsMonitor]):
     """Windows state for the monitors and screens, tying the message loop and events together.
 
     For Windows, the OS handles the screen layout (relative position between each other).
 
     """
-    __slots__ = ('__config', '__old_monitors', '__executor', '__lock')
+
+    __slots__ = ('__context', '__config', '__old_monitors', '__executor', '__lock')
 
     def __init__(
             self, context: EventRegistryContext, config: configuration.ConfigurationStore,
             executor: Optional[ThreadPoolExecutor] = None,
     ) -> None:
-        monitor_screen.AbstractScreenHandler.__init__(self, context)
+        windows_monitors = windows_vs.get_windows_monitors()
+        monitor_screen.AbstractMonitorHandler.__init__(
+            self, context, WindowsWindowScreenMapper(
+                windows_monitors, windows_vs.to_petronia_screen(windows_monitors),
+            ),
+        )
         self.__config = config
         self.__lock = threading.Lock()
         self.__executor = executor or ThreadPoolExecutor(1)
@@ -60,6 +62,11 @@ class WindowsScreen(monitor_screen.AbstractScreenHandler):
         """Callback for device_changed_message hook"""
         self.__executor.submit(self._maybe_monitors_changed)
 
+    def get_virtual_screen_for_monitors(
+            self, active: Sequence[WindowsMonitor],
+    ) -> virtual_screen.VirtualScreen:
+        return windows_vs.to_petronia_screen(active)
+
     def _maybe_monitors_changed(self) -> None:
         """Did the monitors change at all?  Should be run outside the message loop."""
         if native_funcs.WINDOWS_FUNCTIONS.monitor.find_monitors:
@@ -68,45 +75,31 @@ class WindowsScreen(monitor_screen.AbstractScreenHandler):
                 if are_monitors_different(self.__old_monitors, new_monitors):
                     self.__old_monitors = new_monitors
                     # Trigger the chain of events.
-                    user_messages.report_send_receive_problems(self.detected_monitor_changed([
-                        m.info for m in new_monitors
-                    ]))
+                    user_messages.report_send_receive_problems(
+                        self.detected_monitor_changed(new_monitors),
+                    )
 
-    def on_screen_configuration_settings_changed(
-            self, context: EventRegistryContext,
-            screen_configs: Sequence[virtual_screen.VirtualScreenConfig],
-    ) -> StdRet[None]:
-        config = self.__config.get_config()
-        if config:
-            config.virtual_screens = VirtualScreens([
-                ScreenMonitorMappingConfigGroup(
-                    scf.name,
-                    [
-                        SourceMonitor(
-                            smd[defs.MONITOR_POSITION_MONITOR_IDENTIFIER],
-                            smd[defs.MONITOR_POSITION_X],
-                            smd[defs.MONITOR_POSITION_Y],
-                        )
-                        for smd in scf.monitor_defs
-                    ],
-                    [
-                        ScreenMonitorMapping(
-                            sbk.monitor_id,
-                            sbk.monitor_l, sbk.monitor_t, sbk.monitor_w, sbk.monitor_h,
-                            sbk.monitor_rotation,
-                            sbk.screen_l, sbk.screen_t, sbk.screen_w, sbk.screen_h,
-                        )
-                        for sbk in scf.screen.blocks
-                    ],
-                )
-                for scf in screen_configs
-            ])
-            return self.__config.put_in_datastore(context)
-        return RET_OK_NONE
 
-    def callback_virtual_screen_update(
-            self, context: EventRegistryContext,
-            active_screen: virtual_screen.VirtualScreen,
-    ) -> StdRet[None]:
-        # This can be called from within a lock state.  So don't do anything with the lock state.
-        pass
+class WindowsWindowScreenMapper(monitor_screen.WindowScreenMapper[windows_vs.WindowsMonitor]):
+    """Windows specific version of the monitor.
+
+    This is intended to be a 1-for-1 mapping of the native monitor to the screen space.
+    """
+
+    def screen_to_window_pos(
+            self, screen_pos: defs.ScreenPosition,
+    ) -> Optional[defs.OsScreenPosition]:
+        # 1-for-1 mapping...
+        return (
+            screen_pos[defs.SCREEN_POSITION_X],
+            screen_pos[defs.SCREEN_AREA_Y],
+        )
+
+    def window_to_screen_pos(
+            self, window_pos: defs.OsScreenPosition,
+    ) -> Optional[defs.ScreenPosition]:
+        # 1-for-1 mapping...
+        return (
+            defs.ScreenUnit(window_pos[defs.OS_SCREEN_POSITION_X]),
+            defs.ScreenUnit(window_pos[defs.OS_SCREEN_POSITION_Y]),
+        )

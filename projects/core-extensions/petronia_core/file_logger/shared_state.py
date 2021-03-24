@@ -73,27 +73,22 @@ def clear_data() -> None:
     _LOGS.clear()
 
 
-def load_configuration(data_dir: str, config: Dict[str, Any]) -> StdRet[None]:
+def load_configuration(data_dirs: str, config: Dict[str, Any]) -> StdRet[None]:
     """Load the configuration data."""
+
     parsed_res = file_logger.ConfigurationState.parse_data(config)
     if parsed_res.has_error:
         return parsed_res.forward()
 
-    log_dir = os.path.join(data_dir, 'logs')
-    try:
-        os.makedirs(log_dir, exist_ok=True)
-    except OSError as err:  # pragma no cover
-        return StdRet.pass_exception(  # pragma no cover
-            TRANSLATION_CATALOG,
-            _('Failed to create log directory {log_dir}'),
-            err,
-            log_dir=log_dir,
-        )
-
     for setting in parsed_res.result.files:
         fqn = os.path.basename(setting.filename)
         if fqn != STDOUT_FILENAME:
-            fqn = os.path.join(log_dir, fqn)
+            # Only create the log directory if a log file is requested.
+            # This should only be called once, but for now this is fine.
+            log_dir_res = get_log_dir(data_dirs)
+            if log_dir_res.has_error:
+                return log_dir_res.forward()
+            fqn = os.path.join(log_dir_res.result, fqn)
         _LOGS.append(LogFile(
             fqn, setting.categories or STRING_EMPTY_TUPLE, setting.message_format,
         ))
@@ -145,3 +140,28 @@ def try_format(message: str, args: Dict[str, Any]) -> str:
     except KeyError:
         # key not found in the message.
         return message + ' (' + repr(args) + ')'
+
+
+def get_log_dir(data_dirs: str) -> StdRet[str]:
+    """Get the log directory."""
+    data_dir_list = data_dirs.split(os.pathsep)
+    if not data_dir_list:
+        return StdRet.pass_errmsg(
+            TRANSLATION_CATALOG,
+            _(f'Could not find a log directory from data path {data_dirs}'),
+            data_dirs=data_dirs,
+        )
+
+    # Find a "user" directory to stick the logs into.
+    # Otherwise, this can be non-deterministic.
+    log_dir = os.path.join(data_dir_list[0], 'logs')
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+    except OSError as err:  # pragma no cover
+        return StdRet.pass_exception(  # pragma no cover
+            TRANSLATION_CATALOG,
+            _('Failed to create log directory {log_dir}'),
+            err,
+            log_dir=log_dir,
+        )
+    return StdRet.pass_ok(log_dir)

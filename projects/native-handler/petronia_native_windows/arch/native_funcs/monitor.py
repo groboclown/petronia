@@ -6,6 +6,7 @@ Native Windows definitions that extend the platform API.
 from typing import Sequence, Optional, cast
 import math
 from petronia_native.common import defs
+from petronia_native.common.handlers import monitor_screen
 from petronia_native.common.events.impl.monitor import Monitor as MonitorStruct
 from .windows_common import (
     HMONITOR,
@@ -17,7 +18,7 @@ _MIN_MONITOR_INDEX = -999999
 _MAX_MONITOR_INDEX = 9999999
 
 
-class WindowsMonitor:  # pylint:disable=too-many-instance-attributes
+class WindowsMonitor(monitor_screen.NativeMonitor):  # pylint:disable=too-many-instance-attributes
     """Windows-specific information on a monitor.  It includes DPI and scaling
     information for more accurate placement."""
     __slots__ = (
@@ -109,6 +110,9 @@ class WindowsMonitor:  # pylint:disable=too-many-instance-attributes
     def virtual_desktop_area(self) -> defs.OsScreenRect:
         """The location of the monitor in Window's virtual desktop."""
         return self.__virtual_desktop_rect
+
+    def get_petronia_monitor(self) -> MonitorStruct:
+        return self.__info
 
     def is_in_virtual_desktop_area(self, pos_x: int, pos_y: int) -> bool:
         """Does this monitor's Windows' virtual screen area contain this pixel?"""

@@ -39,7 +39,7 @@ class ExtensionLoaderSetupTest(unittest.TestCase):
             None,  # launcher_id
         )
         self.assertIsNone(res.error)
-        self.assertEqual(None, setup.get_extension_config('x'))
+        self.assertEqual({}, setup.get_extension_config('x'))
         self.assertEqual((extension_dir,), setup.get_extension_dirs())
         self.assertEqual((), setup.get_boot_extensions())
         self.assertEqual('extension-loader', setup.get_extension_handler_id())
@@ -56,13 +56,25 @@ class ExtensionLoaderSetupTest(unittest.TestCase):
             json.dump({
                 'startup': {
                     'extensions': ['ext1'],
+                    'priority-extensions': ['ext2'],
                     'extension-dirs': [extension_dir],
                 },
-                'ext1': {},
+                'ext': {
+                    'extension': 'p.e.1',
+                    'enabled': True,
+                    'properties': {'y': 2},
+                },
+                'ext1': {
+                    'extension': 'ext1',
+                    'properties': {'x': 1},
+                },
             }, f)
         res = setup.initialize(config_dir, data_dir, None, None)
         self.assertIsNone(res.error)
-        self.assertEqual({}, setup.get_extension_config('ext1'))
+        self.assertEqual({'y': 2}, setup.get_extension_config('p.e.1'))
+        self.assertEqual({'x': 1}, setup.get_extension_config('ext1'))
+        self.assertEqual({}, setup.get_extension_config('ext2'))
         self.assertEqual((extension_dir,), setup.get_extension_dirs())
-        self.assertEqual(('ext1',), setup.get_boot_extensions())
+        self.assertEqual({'ext1', 'ext2', 'p.e.1'}, set(setup.get_boot_extensions()))
+        self.assertEqual('ext2', setup.get_boot_extensions()[0])
         self.assertEqual('extension-loader', setup.get_extension_handler_id())

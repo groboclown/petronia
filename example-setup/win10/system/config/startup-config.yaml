@@ -1,10 +1,6 @@
 ---
 
 startup:
-  extensions:
-    - petronia_core.datastore
-    - petronia_native_windows
-    - petronia_core.timer
   extension-dirs:
     - ${SYS_PATH}
     # - ${DATA_DIR}/core-extensions

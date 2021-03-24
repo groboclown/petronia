@@ -30,7 +30,7 @@ from ..launcher.loader import INTERNAL_EXTENSION_RUNTIME
 from ..user_message import display_error, low_println
 
 
-DEBUG = True
+DEBUG = False
 
 _STATE_STOPPED = 0
 _STATE_BOOTING = 1

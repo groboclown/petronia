@@ -15,3 +15,8 @@ Datastore:
 Platform:
   extension: petronia_native_windows
   enabled: true
+  properties:
+    hotkeys:
+      own_super_key: False
+    virtual_screens:
+      mapped_screens_by_monitors: []

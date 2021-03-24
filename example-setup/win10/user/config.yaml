@@ -1,6 +1,0 @@
----
-
-startup:
-  extensions:
-    - petronia_core.hotkey_binding
-    - petronia_core.file_logger

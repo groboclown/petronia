@@ -31,6 +31,9 @@ class BootExtensionQueueRequest(QueueRequest):
     def __init__(self, metadata: BootExtensionMetadata) -> None:
         self.metadata = metadata
 
+    def __repr__(self) -> str:
+        return f'BootExtensionMetadata({self.metadata.to_start_event().name})'
+
 
 class ExtensionQueueRequest(QueueRequest):
     """Standard extension request."""
@@ -39,6 +42,9 @@ class ExtensionQueueRequest(QueueRequest):
     def __init__(self, source: str, request: foreman.LauncherStartExtensionRequestEvent) -> None:
         self.source = source
         self.request = request
+
+    def __repr__(self) -> str:
+        return f'ExtensionQueueRequest({self.source}, {self.request.name})'
 
 
 class AddEventListenersQueueRequest(QueueRequest):
@@ -49,6 +55,9 @@ class AddEventListenersQueueRequest(QueueRequest):
         self.target = target
         self.request = request
 
+    def __repr__(self) -> str:
+        return f'AddEventListenersQueueRequest({self.target}, {self.request.events})'
+
 
 class RemoveEventListenersQueueRequest(QueueRequest):
     """Remove event listeners request."""
@@ -57,6 +66,9 @@ class RemoveEventListenersQueueRequest(QueueRequest):
     def __init__(self, target: str, request: foreman.ExtensionRemoveEventListenerEvent) -> None:
         self.target = target
         self.request = request
+
+    def __repr__(self) -> str:
+        return f'RemoveEventListenersQueueRequest({self.target}, {self.request.events})'
 
 
 SOFT_STOP_REQUEST = QueueRequest()

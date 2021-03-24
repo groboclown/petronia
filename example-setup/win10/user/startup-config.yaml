@@ -1,0 +1,10 @@
+---
+
+startup:
+
+  # These extensions should always be loaded first.
+  # Extensions are still loaded if they are marked in a config file as 'enabled: true',
+  # and if an extension here has a dependency that must be loaded first.
+  priority-extensions:
+    - petronia_core.datastore
+    - petronia_core.file_logger

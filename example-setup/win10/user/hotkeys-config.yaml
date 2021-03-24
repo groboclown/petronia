@@ -1,0 +1,173 @@
+---
+
+Hotkeys:
+  extension: petronia_core.hotkey_binding
+  enabled: true
+  properties:
+    bindings:
+      sequence_type: meta
+      master_sequence:
+        - super
+      bindings:
+        # ===================================================================
+        # System
+        - comment: Shutdown Petronia
+          keys:
+            - ctrl
+            - shift
+            - q
+          event:
+            target_id: petronia.core.api.shutdown:shutdown
+            parameters: []
+
+        - comment: Restart Petronia
+          keys:
+            - ctrl
+            - shift
+            - r
+          event:
+            target_id: petronia.core.api.shutdown:restart
+            parameters: []
+
+        # =====================================================================
+        # Portal Keys
+        - comment: Add a portal relative to the active portal
+          keys:
+            - ctrl
+            - plus
+          event:
+            target_id: petronia.core.api.portal:portal-add
+            parameters: []
+        - comment: Remove the active portal
+          keys:
+            - ctrl
+            - minus
+          event:
+            target_id: petronia.core.api.portal:portal-remove
+            parameters: []
+
+        # ---------------------------------------------------------------------
+        # Move portal focus
+        - comment: Move portal focus West (left)
+          keys:
+            - left
+          event:
+            target_id: petronia.core.api.portal:shift-focus
+            parameters:
+              - key: direction
+                value: west
+        - comment: Move portal focus East (right)
+          keys:
+            - right
+          event:
+            target_id: petronia.core.api.portal:shift-focus
+            parameters:
+              - key: direction
+                value: east
+        - comment: Move portal focus North (up)
+          keys:
+            - up
+          event:
+            target_id: petronia.core.api.portal:shift-focus
+            parameters:
+              - key: direction
+                value: north
+        - comment: Move portal focus South (down)
+          keys:
+            - down
+          event:
+            target_id: petronia.core.api.portal:shift-focus
+            parameters:
+              - key: direction
+                value: south
+
+        # ---------------------------------------------------------------------
+        # Set the window position in the portal
+        - comment: Set window position within its portal - resized, SW
+          keys:
+            - ctrl
+            - numpad1
+          event:
+            target_id: petronia.core.api.portal:set-window-position
+            parameters:
+              - key: position
+                value: r-sw
+
+#       - key: "ctrl+numpad2"
+#         action: set-window-position
+#         parameters:
+#           position: r-s
+#       - key: "ctrl+numpad3"
+#         action: set-window-position
+#         parameters:
+#           position: r-se
+#       - key: "ctrl+numpad4"
+#         action: set-window-position
+#         parameters:
+#           position: r-w
+#       - key: "ctrl+numpad5"
+#         action: set-window-position
+#         parameters:
+#           position: fill
+#       - key: "ctrl+numpad6"
+#         action: set-window-position
+#         parameters:
+#           position: r-e
+#       - key: "ctrl+numpad7"
+#         action: set-window-position
+#         parameters:
+#           position: r-nw
+#       - key: "ctrl+numpad8"
+#         action: set-window-position
+#         parameters:
+#           position: r-n
+#       - key: "ctrl+numpad9"
+#         action: set-window-position
+#         parameters:
+#           position: r-ne
+
+        # ---------------------------------------------------------------------
+        # Move window between portals
+        - comment: Move the active window to a different portal - north (arrows)
+          keys:
+            - shift
+            - up
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: direction
+                value: north
+        - comment: Move the active window to a different portal - north (numpad)
+          keys:
+            - shift
+            - numpad8
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: direction
+                value: north
+
+#       - key: "shift+down"
+#         action: move-window-to-portal
+#         parameters:
+#           direction: down
+#       - key: "shift+numpad2"
+#         action: move-window-to-portal
+#         parameters:
+#           direction: down
+#       - key: "shift+left"
+#         action: move-window-to-portal
+#         parameters:
+#           direction: left
+#       - key: "shift+numpad4"
+#         action: move-window-to-portal
+#         parameters:
+#           direction: left
+#       - key: "shift+right"
+#         action: move-window-to-portal
+#         parameters:
+#           direction: right
+#       - key: "shift+numpad6"
+#         action: move-window-to-portal
+#         parameters:
+#           direction: right

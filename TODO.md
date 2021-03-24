@@ -23,9 +23,7 @@ These are desired, tactical changes to bits of already written code.
 
 This is the next thing that's being worked on.
 
-1. implement event handling loop.
 1. implement window handling and event reporting for Windows.
-1. implement a simple test approach for running Petronia with the windows native extension, reporting all the store changes, and design initial setup, and maybe injecting window change requests.
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * for the ui extension, it must have absolute position for the outer window, but the inner components must be relative, because text display is dynamic (it looks up translations).  On that note, text must also be rotatable, and notes should be made that implementors *should* support BiDi.
@@ -69,6 +67,7 @@ This is the next thing that's being worked on.
 * random number generator should have a seed based on extension information, so that regenerating the tests will have consistent test data.  Maybe a seed can be set in the yaml file?
 * after the change to allow cycles, the source generator is horribly slow.  Need to figure out where the slow-down is happening.  Probably in the cycle code ;)
 * some generators include `cast` import when it isn't used, which causes a pylint error.
+* the generation of child object parsers needs an added check for is-dict.  If it's something like an array or number, then an exception is raised.
 
 
 ### extension-loader
@@ -121,6 +120,7 @@ These are ideas that need clarification and implementation.
 ### extension-loader
 
 * Should an explicit unload extension event be allowed?  If so, this will down-stream to foreman to add the corresponding event.
+* The "extension-dirs" should be better implemented.  It's kind of weird now.  It was originally designed with the idea of absolute paths, but relative paths would be better.  There's a sort-of okay work-around now by being able to use DATA_DIR and SYS_PATH values.
 
 
 ### foreman

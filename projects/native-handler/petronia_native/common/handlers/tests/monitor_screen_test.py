@@ -1,15 +1,15 @@
 """Test the module"""
 
-from typing import Sequence, List, Tuple, Optional, cast
+from typing import Sequence, List, Optional, cast
 import unittest
 import unittest.mock
 import json
-from petronia_common.util import RET_OK_NONE, possible_error, not_none, UserMessage, i18n, StdRet
+from petronia_common.util import RET_OK_NONE, possible_error, not_none, UserMessage, i18n
 from petronia_ext_lib.runner import EventRegistryContext
 from petronia_ext_lib.events import datastore as datastore_events
 from .. import monitor_screen
 from ...events.impl import monitor, screen
-from ... import defs, virtual_screen, user_messages
+from ... import defs, virtual_screen
 
 
 class MonitorScreenTest(unittest.TestCase):
@@ -163,17 +163,19 @@ class MonitorScreenTest(unittest.TestCase):
         )
 
 
-class AbstractScreenHandlerTest(unittest.TestCase):
+class AbstractMonitorHandlerTest(unittest.TestCase):
     """Test the AbstractScreenHandler and ScreenConfigChangedEventListener class."""
 
     def test_closed(self) -> None:
         """Test the functions when the instance is closed."""
         context = unittest.mock.Mock(EventRegistryContext())
-        handler = monitor_screen.AbstractScreenHandler(context)
+        handler = monitor_screen.AbstractMonitorHandler[MockNativeMonitor](
+            context, monitor_screen.WindowScreenMapper([], virtual_screen.VirtualScreen([])),
+        )
         handler.close()
         res = handler.detected_monitor_changed([])
         self.assertIsNone(res.error)
-        res = handler.on_configuration_update(None, -1, [])
+        res = handler.detected_screen_changed(virtual_screen.VirtualScreen([]))
         self.assertIsNone(res.error)
 
     def test_detected_monitor_changed(self) -> None:  # pylint:disable=too-many-statements
@@ -181,8 +183,11 @@ class AbstractScreenHandlerTest(unittest.TestCase):
         context = unittest.mock.Mock(EventRegistryContext())
         context.send_event.return_value = RET_OK_NONE
         handler = MockScreenHandler(context)
-        monitor_set_1 = [
-            monitor.Monitor(1, 'x', 2, 3, 4, 5, False),
+        handler.ret__get_virtual_screen_for_monitors = virtual_screen.VirtualScreen([
+            _create_virtual_screen_block(100, 200),
+        ])
+        monitor_set_1: List[MockNativeMonitor] = [
+            MockNativeMonitor(monitor.Monitor(1, 'x', 2, 3, 4, 5, False)),
         ]
         res = handler.detected_monitor_changed(monitor_set_1)
         self.assertIsNone(res.error)
@@ -214,7 +219,7 @@ class AbstractScreenHandlerTest(unittest.TestCase):
         self.assertEqual(
             json.dumps({'area': [
                 {
-                    'nw_x_pixel': 0, 'nw_y_pixel': 0, 'width': 2, 'height': 3,
+                    'nw_x_pixel': 0, 'nw_y_pixel': 0, 'width': 100, 'height': 200,
 
                     # This ratio isn't right; it need to take DPI into account.
                     'ratio_x': 1, 'ratio_y': 1,
@@ -225,8 +230,8 @@ class AbstractScreenHandlerTest(unittest.TestCase):
 
         # Perform the same update, and ensure that the screen handler correctly ignored the
         # update.
-        monitor_set_2 = [
-            monitor.Monitor(1, 'x', 2, 3, 4, 5, False),
+        monitor_set_2: List[MockNativeMonitor] = [
+            MockNativeMonitor(monitor.Monitor(1, 'x', 20, 3, 4, 5, False)),
         ]
         context.reset_mock()
         res = handler.detected_monitor_changed(monitor_set_2)
@@ -242,7 +247,7 @@ class AbstractScreenHandlerTest(unittest.TestCase):
         self.assertEqual(
             json.dumps({'monitors': [
                 {
-                    'identifier': 1, 'description': 'x', 'real_pixel_width': 2,
+                    'identifier': 1, 'description': 'x', 'real_pixel_width': 20,
                     'real_pixel_height': 3, 'dpi_x': 4, 'dpi_y': 5, 'supports_rotation': False,
                 },
             ]}),
@@ -251,11 +256,15 @@ class AbstractScreenHandlerTest(unittest.TestCase):
 
         # Perform a different monitor configuration update, and ensure that the screen handler
         # correctly identifies the update.
-        monitor_set_3 = [
-            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
-            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
+        monitor_set_3: List[MockNativeMonitor] = [
+            MockNativeMonitor(monitor.Monitor(7, 'x', 7, 12, 15, 99, False)),
+            MockNativeMonitor(monitor.Monitor(17, 'y', 9, 8, 7, 6, False)),
         ]
         context.reset_mock()
+        handler.ret__get_virtual_screen_for_monitors = virtual_screen.VirtualScreen([
+            _create_virtual_screen_block(7, 12),
+            _create_virtual_screen_block(9, 8),
+        ])
         res = handler.detected_monitor_changed(monitor_set_3)
         self.assertIsNone(res.error)
         context.send_event.assert_called()
@@ -288,327 +297,67 @@ class AbstractScreenHandlerTest(unittest.TestCase):
         self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
         assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
         self.assertEqual(
+            # This is based on the ret__get value set above.
             json.dumps({'area': [
                 {
                     'nw_x_pixel': 0, 'nw_y_pixel': 0, 'width': 7, 'height': 12,
                     'ratio_x': 1, 'ratio_y': 1,
                 },
                 {
-                    'nw_x_pixel': 7, 'nw_y_pixel': 0, 'width': 9, 'height': 8,
+                    'nw_x_pixel': 0, 'nw_y_pixel': 0, 'width': 9, 'height': 8,
                     'ratio_x': 1, 'ratio_y': 1,
                 },
             ]}),
             event_obj.json,
         )
 
-    def test_on_configuration_update(self) -> None:
-        """Test the on_configuration_update method."""
-        context = unittest.mock.Mock(EventRegistryContext())
-        context.send_event.return_value = RET_OK_NONE
-        handler = MockScreenHandler(context)
-        # Setup the initial monitors
-        monitor_set = [
-            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
-            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
-        ]
-        res = handler.detected_monitor_changed(monitor_set)
-        self.assertIsNone(res.error)
-        context.reset_mock()
 
-        res = handler.on_configuration_update(
-            's1', 12, [
-                virtual_screen.VirtualScreenConfig(
-                    'not-used',
-                    [(7, defs.MonitorUnit(7), defs.MonitorUnit(12))],
-                    virtual_screen.VirtualScreen([
-                        virtual_screen.VirtualScreenBlock(
-                            (
-                                7, defs.MonitorUnit(0), defs.MonitorUnit(0),
-                                defs.MonitorUnit(7), defs.MonitorUnit(12),
-                            ),
-                            (
-                                defs.ScreenUnit(0), defs.ScreenUnit(0),
-                                defs.ScreenUnit(7), defs.ScreenUnit(12),
-                            ),
-                            0,
-                        )
-                    ]),
-                ),
-                virtual_screen.VirtualScreenConfig(
-                    'used',
-                    [
-                        (7, defs.MonitorUnit(7), defs.MonitorUnit(12)),
-                        (17, defs.MonitorUnit(9), defs.MonitorUnit(8)),
-                    ],
-                    virtual_screen.VirtualScreen([
-                        virtual_screen.VirtualScreenBlock(
-                            (
-                                7, defs.MonitorUnit(1), defs.MonitorUnit(2),
-                                defs.MonitorUnit(5), defs.MonitorUnit(8),
-                            ),
-                            (
-                                defs.ScreenUnit(0), defs.ScreenUnit(0),
-                                defs.ScreenUnit(5), defs.ScreenUnit(8),
-                            ),
-                            0,
-                        ),
-                        virtual_screen.VirtualScreenBlock(
-                            (
-                                17, defs.MonitorUnit(0), defs.MonitorUnit(1),
-                                defs.MonitorUnit(8), defs.MonitorUnit(2),
-                            ),
-                            (
-                                defs.ScreenUnit(2), defs.ScreenUnit(8),
-                                defs.ScreenUnit(8), defs.ScreenUnit(2),
-                            ),
-                            0,
-                        ),
-                    ]),
-                )
-            ],
-        )
-        self.assertIsNone(res.error)
-        calls = context.send_event.call_args_list
-        self.assertEqual(3, len(calls))
-
-    def test_on_configuration_update__with_config_validation_error(self) -> None:
-        """Test the on_configuration_update method."""
-        context = unittest.mock.Mock(EventRegistryContext())
-        context.send_event.return_value = RET_OK_NONE
-        handler = MockScreenHandler(context)
-        # Setup the initial monitors
-        monitor_set = [
-            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
-            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
-        ]
-        res = handler.detected_monitor_changed(monitor_set)
-        self.assertIsNone(res.error)
-        context.reset_mock()
-
-        # Setup the configuration that overlaps.
-        res = handler.on_configuration_update(
-            's1', 12, [
-                virtual_screen.VirtualScreenConfig(
-                    'used',
-                    [
-                        (1, defs.MonitorUnit(10), defs.MonitorUnit(10)),
-                        (2, defs.MonitorUnit(20), defs.MonitorUnit(20)),
-                    ],
-                    virtual_screen.VirtualScreen([
-                        virtual_screen.VirtualScreenBlock(
-                            (
-                                1, defs.MonitorUnit(0), defs.MonitorUnit(0),
-                                defs.MonitorUnit(10), defs.MonitorUnit(10),
-                            ),
-                            (
-                                defs.ScreenUnit(0), defs.ScreenUnit(0),
-                                defs.ScreenUnit(10), defs.ScreenUnit(10),
-                            ),
-                            0,
-                        ),
-                        virtual_screen.VirtualScreenBlock(
-                            (
-                                2, defs.MonitorUnit(0), defs.MonitorUnit(0),
-                                defs.MonitorUnit(20), defs.MonitorUnit(20),
-                            ),
-                            (
-                                defs.ScreenUnit(5), defs.ScreenUnit(5),
-                                defs.ScreenUnit(20), defs.ScreenUnit(20),
-                            ),
-                            0,
-                        ),
-                    ]),
-                )
-            ],
-        )
-        self.assertEqual(
-            ['configuration used: screen blocks overlap'],
-            [m.debug() for m in res.error_messages()],
-        )
-        calls = context.send_event.call_args_list
-        self.assertEqual(1, len(calls))
-        args = calls[0].args
-        self.assertEqual(
-            args[0],
-            screen.SetScreenConfigurationRequestEvent.UNIQUE_TARGET_FQN,
-        )
-        self.assertEqual(
-            args[1],
-            's1',
-        )
-        event_obj = args[2]
-        self.assertIsInstance(event_obj, screen.SetScreenConfigurationFailureEvent)
-        assert isinstance(event_obj, screen.SetScreenConfigurationFailureEvent)  # nosec
-        self.assertEqual(
-            {'request_id': 12, 'error': {
-                'categories': ['invalid-user-action'],
-                'identifier': 'bad-config',
-                'source': 'native-screen',
-                'messages': [{
-                    'arguments': [{'name': 'name', 'value': {'$': 'used', '^': 'string'}}],
-                    'catalog': user_messages.TRANSLATION_CATALOG,
-                    'message': 'configuration {name}: screen blocks overlap',
-                }],
-            }},
-            event_obj.export_data(),
-        )
-
-    def test_on_configuration_update__with_config_validation_error__no_source(self) -> None:
-        """Test the on_configuration_update method."""
-        context = unittest.mock.Mock(EventRegistryContext())
-        context.send_event.return_value = RET_OK_NONE
-        handler = MockScreenHandler(context)
-        # Setup the initial monitors
-        monitor_set = [
-            monitor.Monitor(7, 'x', 7, 12, 15, 99, False),
-            monitor.Monitor(17, 'y', 9, 8, 7, 6, False),
-        ]
-        res = handler.detected_monitor_changed(monitor_set)
-        self.assertIsNone(res.error)
-        context.reset_mock()
-
-        # Setup the configuration that overlaps.
-        res = handler.on_configuration_update(
-            None, -1, [
-                virtual_screen.VirtualScreenConfig(
-                    'used',
-                    [
-                        (1, defs.MonitorUnit(10), defs.MonitorUnit(10)),
-                        (2, defs.MonitorUnit(20), defs.MonitorUnit(20)),
-                    ],
-                    virtual_screen.VirtualScreen([
-                        virtual_screen.VirtualScreenBlock(
-                            (
-                                1, defs.MonitorUnit(0), defs.MonitorUnit(0),
-                                defs.MonitorUnit(10), defs.MonitorUnit(10),
-                            ),
-                            (
-                                defs.ScreenUnit(0), defs.ScreenUnit(0),
-                                defs.ScreenUnit(10), defs.ScreenUnit(10),
-                            ),
-                            0,
-                        ),
-                        virtual_screen.VirtualScreenBlock(
-                            (
-                                2, defs.MonitorUnit(0), defs.MonitorUnit(0),
-                                defs.MonitorUnit(20), defs.MonitorUnit(20),
-                            ),
-                            (
-                                defs.ScreenUnit(5), defs.ScreenUnit(5),
-                                defs.ScreenUnit(20), defs.ScreenUnit(20),
-                            ),
-                            0,
-                        ),
-                    ]),
-                )
-            ],
-        )
-        self.assertEqual(
-            ['configuration used: screen blocks overlap'],
-            [m.debug() for m in res.error_messages()],
-        )
-
-        # No source, so nothing is sent.
-        calls = context.send_event.call_args_list
-        self.assertEqual([], calls)
-
-    def test_on_configuration_update__not_changed__no_source(self) -> None:
-        """Test on_configuration_update when the virtual screen configuration isn't changed,
-        and there is no original source."""
-        vs_settings = unittest.mock.Mock(virtual_screen.VirtualScreenSettings())
-        vs_settings.update_configuration.return_value = False
-        vs_settings.copy.return_value = vs_settings
-        vs_settings.user_screen_configurations = []
-        vs_settings.active_screen.return_value = virtual_screen.VirtualScreen([])
-        context = unittest.mock.Mock(EventRegistryContext())
-        context.send_event.return_value = RET_OK_NONE
-        handler = MockScreenHandler(context, vs_settings)
-        res = handler.on_configuration_update(None, -1, [])
-        self.assertIsNone(res.error)
-        calls = context.send_event.call_args_list
-        self.assertEqual(1, len(calls))
-        args = calls[0].args
-        self.assertEqual(
-            args[0],
-            screen.ScreenSetupsState.UNIQUE_TARGET_FQN,
-        )
-        self.assertEqual(
-            args[1],
-            datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN,
-        )
-        event_obj = args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec
-        self.assertEqual(
-            {'mapped_screens_by_monitors': []},
-            json.loads(event_obj.json),
-        )
-
-    def test_listener_std(self) -> None:
-        """Test ScreenConfigChangedEventListener on_event when not called."""
-        context = unittest.mock.Mock(EventRegistryContext())
-        context.send_event.return_value = RET_OK_NONE
-        handler = MockScreenHandler(context)
-        listener = monitor_screen.ScreenConfigChangedEventListener(handler)
-        self.assertFalse(
-            listener.on_event('s1', 't1', screen.SetScreenConfigurationRequestEvent(1, [])),
-        )
-        context.assert_not_called()
-        calls = context.send_event.call_args_list
-        self.assertEqual(2, len(calls))
-
-    def test_listener_closed(self) -> None:
-        """Test ScreenConfigChangedEventListener on_close and use cases around it"""
-        context = unittest.mock.Mock(EventRegistryContext())
-        handler = MockScreenHandler(context)
-        listener = monitor_screen.ScreenConfigChangedEventListener(handler)
-        listener.on_close()
-        self.assertTrue(
-            listener.on_event('s1', 't1', screen.SetScreenConfigurationRequestEvent(1, [])),
-        )
-        context.assert_not_called()
-
-    def test_register_monitor_state_change_listener(self) -> None:
-        """Test register_monitor_state_change_listener"""
-        context = unittest.mock.Mock(EventRegistryContext())
-        context.send_event.return_value = RET_OK_NONE
-        context.register_event_parser.return_value = RET_OK_NONE
-        context.register_target.return_value = RET_OK_NONE
-        handler = MockScreenHandler(context)
-        res = monitor_screen.register_monitor_state_change_listener(context, handler)
-        self.assertIsNone(res.error)
+def _create_virtual_screen_block(
+        mon_w: int, mon_h: int,
+        screen_id: int = 1,
+) -> virtual_screen.VirtualScreenBlock:
+    return virtual_screen.VirtualScreenBlock(
+        (
+            screen_id, defs.ZERO_MONITOR_UNIT, defs.ZERO_MONITOR_UNIT,
+            cast(defs.MonitorUnit, mon_w), cast(defs.MonitorUnit, mon_h),
+        ),
+        (
+            defs.ZERO_SCREEN_UNIT, defs.ZERO_SCREEN_UNIT,
+            cast(defs.ScreenUnit, mon_w), cast(defs.ScreenUnit, mon_h),
+        ),
+        0,
+    )
 
 
-class MockScreenHandler(monitor_screen.AbstractScreenHandler):
+class MockNativeMonitor(monitor_screen.NativeMonitor):
+    """Basic implementation."""
+
+    def __init__(self, mon: monitor.Monitor) -> None:
+        self.monitor = mon
+
+    def get_petronia_monitor(self) -> monitor.Monitor:
+        return self.monitor
+
+
+class MockScreenHandler(monitor_screen.AbstractMonitorHandler[MockNativeMonitor]):
     """Captures input to the handler."""
 
     def __init__(
             self, context: EventRegistryContext,
-            vs_settings: Optional[virtual_screen.VirtualScreenSettings] = None,
+            mapper: Optional[MockNativeMonitor] = None,
     ) -> None:
-        monitor_screen.AbstractScreenHandler.__init__(self, context)
-        self._settings = vs_settings or self._settings
-        self.args__on_screen_configuration_settings_changed: List[Tuple[
-            EventRegistryContext, Sequence[virtual_screen.VirtualScreenConfig],
-        ]] = []
-        self.ret__on_screen_configuration_settings_changed: StdRet[None] = RET_OK_NONE
-        self.args__callback_virtual_screen_update: List[Tuple[
-            EventRegistryContext, virtual_screen.VirtualScreen,
-        ]] = []
-        self.ret__callback_virtual_screen_update: StdRet[None] = RET_OK_NONE
-
-    def on_screen_configuration_settings_changed(
-            self, context: EventRegistryContext,
-            screen_configs: Sequence[virtual_screen.VirtualScreenConfig],
-    ) -> StdRet[None]:
-        self.args__on_screen_configuration_settings_changed.append(
-            (context, screen_configs)
+        monitor_screen.AbstractMonitorHandler.__init__(
+            self, context, monitor_screen.WindowScreenMapper(
+                [mapper or MockNativeMonitor(monitor.Monitor(
+                    0, 'x', 600, 400, 96, 96, False,
+                ))], virtual_screen.VirtualScreen([]),
+            ),
         )
-        return self.ret__on_screen_configuration_settings_changed
+        self.args__get_virtual_screen_for_monitors: List[Sequence[MockNativeMonitor]] = []
+        self.ret__get_virtual_screen_for_monitors = virtual_screen.VirtualScreen([])
 
-    def callback_virtual_screen_update(
-            self, context: EventRegistryContext,
-            active_screen: virtual_screen.VirtualScreen,
-    ) -> StdRet[None]:
-        self.args__callback_virtual_screen_update.append((context, active_screen))
-        return self.ret__callback_virtual_screen_update
+    def get_virtual_screen_for_monitors(
+            self, active: Sequence[MockNativeMonitor],
+    ) -> virtual_screen.VirtualScreen:
+        self.args__get_virtual_screen_for_monitors.append(active)
+        return self.ret__get_virtual_screen_for_monitors

@@ -3,10 +3,13 @@
 from typing import Sequence, List, Dict, Optional, Any
 import os
 import sys
-from petronia_common.util import load_structured_file, StdRet, UserMessage, join_errors, RET_OK_NONE
+from petronia_common.util import (
+    load_structured_file, join_errors, join_none_results, StdRet, UserMessage, RET_OK_NONE,
+)
 from petronia_common.util import i18n as _
 from .defs import TRANSLATION_CATALOG
 from .finder import find_config_files, find_extension_dirs
+# from . import messages
 
 
 _EXTENSION_DIRS: List[str] = []
@@ -25,7 +28,7 @@ def get_boot_extensions() -> Sequence[str]:
     return tuple(_BOOT_EXTENSIONS)
 
 
-def get_extension_config(name: str) -> Optional[Dict[str, Any]]:
+def get_extension_config(name: str) -> Dict[str, Any]:
     """Get the extension configuration, if it was declared during
     initialize.  The name must not include the version information.
 
@@ -33,7 +36,8 @@ def get_extension_config(name: str) -> Optional[Dict[str, Any]]:
 
     Note: the data returned is not read-only.  Be careful with this, please.
     """
-    return _EXTENSIONS_CONFIGS.get(name)
+    # Note: return new dict if not exist, rather than the read-only empty singleton.
+    return _EXTENSIONS_CONFIGS.get(name) or {}
 
 
 def get_extension_handler_id() -> str:
@@ -69,8 +73,12 @@ def initialize(  # pylint:disable=keyword-arg-before-vararg
             # messages.low_println(f'Loading user config file {user_config_file}')
             config_res = load_config_file(user_config_file)
             if config_res.has_error:
+                # messages.low_println(
+                #     f' - has error(s): {[s.debug() for s in config_res.error_messages()]}'
+                # )
                 errors.extend(config_res.error_messages())
             else:
+                # messages.low_println(f' - has configuration {config_res.result}')
                 user_config.extend(config_res.result)
 
     res = parse_configuration(user_config, data_path or '')
@@ -136,7 +144,8 @@ def parse_configuration(
                 continue
 
             # This is assumed to be an extension configuration.
-            _EXTENSIONS_CONFIGS[key] = settings
+            res = load_extension_settings(key, settings)
+            errors.extend(res.error_messages())
 
     if errors:
         return StdRet.pass_error(join_errors(*errors))
@@ -146,6 +155,22 @@ def parse_configuration(
 def parse_startup_config(config: Dict[str, Any], data_dirs: Sequence[str]) -> StdRet[None]:
     """Parse the configuration entry for the startup settings."""
     errors: List[UserMessage] = []
+
+    ext_val = config.get('priority-extensions')
+    if ext_val:
+        if isinstance(ext_val, (tuple, list)) and not isinstance(ext_val, str):
+            # These are always added first.
+            for ext in ext_val:
+                _BOOT_EXTENSIONS.insert(0, ext)
+        else:
+            errors.append(UserMessage(
+                TRANSLATION_CATALOG,
+                _(
+                    'Configuration value for startup -> extensions '
+                    'must be a list of extension names'
+                ),
+            ))
+
     ext_val = config.get('extensions')
     if ext_val:
         if isinstance(ext_val, (tuple, list)) and not isinstance(ext_val, str):
@@ -176,6 +201,37 @@ def parse_startup_config(config: Dict[str, Any], data_dirs: Sequence[str]) -> St
     if errors:
         return StdRet.pass_error(join_errors(*errors))
     return RET_OK_NONE
+
+
+def load_extension_settings(key: str, settings: Dict[str, Any]) -> StdRet[None]:
+    """Load a single extension setting key."""
+    errs: List[StdRet[None]] = []
+    ext_name: Optional[str] = None
+    is_boot = False
+    config: Dict[str, Any] = {}
+
+    if not isinstance(settings.get('extension'), str):
+        errs.append(StdRet.pass_errmsg(
+            TRANSLATION_CATALOG,
+            _('Configuration file has problem in section {key}: no "extension" value'),
+            key=key,
+        ))
+    else:
+        ext_name = str(settings['extension'])
+
+    if settings.get('enabled') is True:
+        is_boot = True
+
+    if isinstance(settings.get('properties'), dict):
+        config = settings['properties']
+
+    res = join_none_results(*errs)
+    if res.ok and ext_name:
+        _EXTENSIONS_CONFIGS[ext_name] = config
+        if is_boot:
+            _BOOT_EXTENSIONS.append(ext_name)
+
+    return res
 
 
 def get_extension_dirs_for_name(name: str, data_dirs: Sequence[str]) -> Sequence[str]:

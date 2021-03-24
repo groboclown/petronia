@@ -1,8 +1,8 @@
 """Maintains the state of the virtual screen, which divides the monitors into blocks of
 virtual space relative to each other."""
 
-from typing import List, Sequence, Tuple, Set, Optional, Any, cast
-from petronia_common.util import StdRet, UserMessage, RET_OK_NONE, join_errors
+from typing import List, Sequence, Tuple, Iterable, Set, Optional, Any, cast
+from petronia_common.util import StdRet, UserMessage, RET_OK_NONE, EMPTY_LIST, join_errors
 from petronia_common.util import i18n as _
 from . import defs
 from .user_messages import TRANSLATION_CATALOG
@@ -226,6 +226,39 @@ def is_overlapping(screen1: defs.ScreenArea, screen2: defs.ScreenArea) -> bool:
     )
 
 
+def are_monitors_same(
+        monitor_list_1: Sequence[monitor.Monitor],
+        monitor_list_2: Sequence[monitor.Monitor],
+) -> bool:
+    """Performs a diff on the two lists.  For a monitor to be the same, the identifier,
+    resolution, DPI, and rotation must be the same.  Order in the two lists doesn't matter."""
+    if len(monitor_list_1) != len(monitor_list_2):
+        # Simple early check.
+        return False
+
+    # Create two sets which contain the same ordered markers.  If they are the same, then
+    # the monitor lists are the same.
+    first = {
+        (
+            m.identifier,
+            m.real_pixel_width, m.real_pixel_height,
+            m.dpi_x, m.dpi_y,
+            m.supports_rotation,
+        )
+        for m in monitor_list_1
+    }
+    second = {
+        (
+            m.identifier,
+            m.real_pixel_width, m.real_pixel_height,
+            m.dpi_x, m.dpi_y,
+            m.supports_rotation,
+        )
+        for m in monitor_list_2
+    }
+    return first == second
+
+
 def match_monitor_def_to_active(
         monitor_def: defs.MonitorPosition,
         active_monitor: monitor.Monitor,
@@ -319,6 +352,20 @@ class VirtualScreenConfig:
         self.name = name
         self.is_default = False
 
+    def __repr__(self) -> str:
+        return f'VirtualScreenConfig({self.name}, {self.monitor_defs}, {self.screen})'
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, VirtualScreenConfig):
+            return False
+        return (
+            self.monitor_defs == other.monitor_defs
+            and self.screen == other.screen
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     def validate(self) -> StdRet[None]:
         """Is this definition valid?  The monitors must all have at least one screen block,
         and each screen block must be valid."""
@@ -398,89 +445,36 @@ class VirtualScreenConfig:
         return ret
 
 
-class VirtualScreenSettings:
-    """Maintains the state of the virtual screen, which divides the monitors into blocks of
-    virtual space relative to each other.
+class VirtualScreenConfigurationSet:
+    """Collection of screen configs to choose from."""
 
-    The primary screen always has the top-left corner coordinates of (0, 0).  Everything else
-    is relative to that."""
+    __slots__ = ('_config_list',)
 
-    __slots__ = ('_monitors', '_active_screen', '_configuration', '_active_config_index')
+    def __init__(self, config: Optional[Iterable[VirtualScreenConfig]] = None) -> None:
+        self._config_list = tuple(config or EMPTY_LIST)
 
-    def __init__(self) -> None:
-        self._monitors: Sequence[monitor.Monitor] = ()
-        self._active_screen = VirtualScreen([])
-        self._configuration: List[VirtualScreenConfig] = []
-        self._active_config_index = -1
+    def get_config_list(self) -> List[VirtualScreenConfig]:
+        """Get the configurations."""
+        return list(self._config_list)
 
-    def copy(self) -> 'VirtualScreenSettings':
-        """Make a copy of these settings."""
-        ret = VirtualScreenSettings()
-        ret._monitors = self._monitors  # pylint:disable=protected-access
-        ret._active_screen = self._active_screen  # pylint:disable=protected-access
-        ret._configuration = list(self._configuration)  # pylint:disable=protected-access
-        ret._active_config_index = self._active_config_index  # pylint:disable=protected-access
-        return ret
+    def set_config_list(self, configs: Iterable[VirtualScreenConfig]) -> None:
+        """Changes the internal list of configurations."""
+        self._config_list = tuple(configs)
 
-    def set_active_monitors(self, active: Sequence[monitor.Monitor]) -> bool:
-        """Sets the active monitor configuration.  Returns True if the active screen setup
-        changes.  This may create a new configuration if no match is found."""
-        old_config_index = self._active_config_index
+    def choose_best_config_index(
+            self, active: Sequence[monitor.Monitor],
+    ) -> Tuple[int, List[Tuple[monitor.Monitor, Optional[defs.MonitorPosition]]]]:
+        """Finds the best matching configuration from the internal list for the list of
+        monitors."""
 
         best_config_index = -1
         best_rank = -1.0
-        # best_arrangement = List[Tuple[monitor.Monitor, Optional[defs.MonitorPosition]]]
-        for index in range(len(self._configuration)):
-            rank, _arrangement = self._configuration[index].match(active)
+        best_arrangement: List[Tuple[monitor.Monitor, Optional[defs.MonitorPosition]]] = EMPTY_LIST
+        for index in range(len(self._config_list)):
+            rank, arrangement = self._config_list[index].match(active)
             if rank > best_rank:
                 best_config_index = index
                 best_rank = rank
-                # best_arrangement = _arrangement
+                best_arrangement = arrangement
 
-        if best_config_index < 0:
-            best_config_index = len(self._configuration)
-            self._configuration.append(VirtualScreenConfig.create_default(active))
-        self._active_config_index = best_config_index
-        self._active_screen = self._configuration[best_config_index].screen
-        self._monitors = tuple(active)
-
-        return old_config_index != self._active_config_index
-
-    def update_configuration(self, new_config: Sequence[VirtualScreenConfig]) -> bool:
-        """Update the existing configuration with the new one.  Returns True if this
-        triggers a change in the active screen.  This may create a new configuration
-        if no match against the currently active monitors is found.  This does not
-        validate the configurations; that must be done before calling this method."""
-        old_screen = self._active_screen
-
-        self._configuration = list(new_config)
-
-        # Ignore the return code, because this call is designed around
-        # a non-changing config, and so has optimizations.
-        self.set_active_monitors(self._monitors)
-
-        return old_screen != self._active_screen
-
-    @property
-    def active_screen(self) -> VirtualScreen:
-        """The active virtual screen."""
-        return self._active_screen
-
-    @property
-    def active_monitors(self) -> Sequence[monitor.Monitor]:
-        """The active monitors."""
-        return self._monitors
-
-    @property
-    def all_screen_configurations(self) -> Sequence[VirtualScreenConfig]:
-        """The current list of all screen configurations."""
-        return tuple(self._configuration)
-
-    @property
-    def user_screen_configurations(self) -> Sequence[VirtualScreenConfig]:
-        """The non-default screen configurations."""
-        ret: List[VirtualScreenConfig] = []
-        for config in self._configuration:
-            if not config.is_default:
-                ret.append(config)
-        return tuple(ret)
+        return best_config_index, best_arrangement

@@ -5,8 +5,8 @@ Logger:
   enabled: true
   properties:
     files:
-      - filename: petronia.log
-        # filename: "-"
+      - # filename: petronia.log
+        filename: "-"
         message_format: "{now} {src:16s}: {text}"
         categories:
           - "*user"

@@ -81,9 +81,13 @@ class CmdExtensionTest(unittest.TestCase):
                     'extensions': ['petronia_integration_tests.foreman_el.integration1'],
                     'extension-dirs': sys.path,
                 },
-                'petronia_integration_tests.foreman_el.integration1': {
-                    'started-file': self.start_file,
-                },
+                'ext1': {
+                    'extension': 'petronia_integration_tests.foreman_el.integration1',
+                    'enabled': True,
+                    'properties': {
+                        'started-file': self.start_file,
+                    },
+                }
             }, f)
 
         config.add_section('integration')

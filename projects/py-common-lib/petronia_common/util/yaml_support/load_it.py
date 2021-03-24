@@ -21,7 +21,8 @@ try:
         try:
             return StdRet.pass_ok(tuple(safe_load_all(data_str)))
         except YAMLError as err:
-            return StdRet.pass_errmsg(STDC, _('Invalid YAML format: {e}'), e=repr(err))
+            # Use str instead of repr, because it generates a cleaner result for end-users.
+            return StdRet.pass_errmsg(STDC, _('Invalid YAML format: {e}'), e=str(err))
 
     def dump_yaml_documents(documents: Sequence[Any]) -> StdRet[str]:
         """Store zero or more simple structures as a yaml-formatted string."""
