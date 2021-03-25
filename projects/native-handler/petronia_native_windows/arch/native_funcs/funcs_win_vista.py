@@ -21,7 +21,7 @@ from petronia_common.util import i18n as _
 from petronia_native.common import log, user_messages
 from .windows_common import (
     c_int,
-    LONG, DWORD, BYTE, CHAR, BOOL, UINT,
+    LONG, DWORD, BYTE, WCHAR, BOOL, UINT,
     POINT, RECT, WPARAM, LPARAM, HWND,
     windll, Structure,
     byref, create_unicode_buffer,
@@ -205,8 +205,8 @@ def shell__unregister_session_notification(receiving_window: HWND) -> StdRet[Non
 
 
 class LOGFONT(Structure):  # pylint:disable=too-many-instance-attributes
-    """The LOGFONT structure
-    see https://msdn.microsoft.com/en-us/library/windows/desktop/dd145037(v=vs.85).aspx"""
+    """The LOGFONTW structure
+    see https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-logfontw"""
     _fields_ = (
         ("lfHeight", LONG),
         ("lfWidth", LONG),
@@ -224,13 +224,13 @@ class LOGFONT(Structure):  # pylint:disable=too-many-instance-attributes
 
         # Even though we use the W version of the call, we
         # still are expected to use CHAR, not WCHAR here.
-        ("lfFaceName", CHAR * LF_FACESIZE),
+        ("lfFaceName", WCHAR * LF_FACESIZE),
     )
 
 
 class NONCLIENTMETRICS(Structure):
-    """The NONCLIENTMETRICS structure
-    see https://msdn.microsoft.com/en-us/library/windows/desktop/ff729175(v=vs.85).aspx"""
+    """The NONCLIENTMETRICSW structure
+    see https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-nonclientmetricsw"""
     _fields_ = (
         ("cbSize", UINT),
         ("iBorderWidth", c_int),
@@ -290,7 +290,10 @@ def shell__get_raw_window_metrics() -> StdRet[NONCLIENTMETRICS]:
     metrics.cbSize = c_sizeof(NONCLIENTMETRICS)  # pylint:disable=attribute-defined-outside-init
     res = SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, byref(metrics), 0)
     if res == 0:
-        return WindowsReturnError.stdret('user32.SystemParametersInfoW')
+        # return WindowsReturnError.stdret('user32.SystemParametersInfoW(get raw metrics)')
+        # FIXME
+        import ctypes
+        raise Exception(repr(res) + '-' + repr(ctypes.GetLastError()))
     return StdRet.pass_ok(metrics)
 
 
@@ -344,7 +347,7 @@ def inner__set_window_metrics(
     m.cbSize = c_sizeof(NONCLIENTMETRICS)
     # TODO change 0 to SPIF_SENDCHANGE
     res = SystemParametersInfoW(SPI_SETNONCLIENTMETRICS, m.cbSize, byref(m), 0)
-    return WindowsReturnError.checked_stdret('user32.SystemParametersInfoW', res)
+    return WindowsReturnError.checked_stdret('user32.SystemParametersInfoW(set metrics)', res)
 
 
 def _dict_to_font(f: FontMetrics, ret: Optional[LOGFONT] = None) -> LOGFONT:

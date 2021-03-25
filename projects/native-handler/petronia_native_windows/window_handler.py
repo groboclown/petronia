@@ -3,12 +3,12 @@
 from typing import Mapping, Dict, List, Optional, Any, Hashable
 import concurrent.futures
 from petronia_common.util import (
-    StdRet, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none,
+    StdRet, UserMessage, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none,
 )
 from petronia_native.common import user_messages
 from petronia_native.common.handlers import window
 from petronia_native.common.events.impl import window as window_events
-from .arch.native_funcs import HWND, RECT, WINDOWS_FUNCTIONS, WPARAM, LPARAM, DWORD
+from .arch.native_funcs import HWND, RECT, WINDOWS_FUNCTIONS, DWORD
 from . import hook_messages, message_loop, message_queue
 
 
@@ -105,6 +105,7 @@ WINDOW_META__WINDOW_CLASS_NAME = 'class'
 WINDOW_META__WINDOW_MODULE_FILENAME = 'module-filename'
 WINDOW_META__WINDOW_TITLE = 'title'
 WINDOW_META__OWNER = 'owner'
+WINDOW_META__ACCESS_PROBLEMS = 'access-problems'
 
 WINDOW_META_DESCRIPTIONS: Mapping[str, str] = {
     WINDOW_META__STYLE_BORDER: 'The window has a thin-line border.',
@@ -153,7 +154,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         self.__loop: Optional[message_loop.WindowsMessageLoop] = None
 
     def hash_native_id(self, native_id: HWND) -> Hashable:
-        return str(native_id.value)
+        return str(native_id)
 
     def close(self) -> None:
         window.AbstractWindowHandler.close(self)
@@ -163,6 +164,8 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def register_messages(self, loop: message_loop.WindowsMessageLoop) -> None:
         """Register this handler with the loop."""
+
+        self.__loop = loop
 
         # Queue allows for injecting messages into the message loop for interacting
         # with Windows API.  These should spend minimal time in the message loop.
@@ -195,6 +198,9 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             hook_messages.window_rude_activated_message(self.on_window_activated_message)
         )
         loop.add_message_handler(
+            hook_messages.redraw_message(self.on_window_update_message)
+        )
+        loop.add_message_handler(
             hook_messages.forced_exit_message(self.on_forced_exit_message)
         )
         loop.add_message_handler(
@@ -213,10 +219,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         if not self.__loop:
             return RET_OK_NONE
         return join_none_results(
-            self.__loop.send_custom_message_to_self(
-                CUSTOM_MESSAGE_ID__WINDOW_HANDLES,
-                WPARAM(0), LPARAM(0),
-            )
+            self.__queue.queue_message(_UPDATE_OS, 0),
         )
 
     def on_window_minimized_message(self, hwnd: HWND, size: RECT) -> None:
@@ -233,6 +236,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_window_created_message(self, hwnd: HWND) -> None:
         """Handle the window_created_message loop message"""
+        print(f'window created: {hwnd}')
         wnd = self.get_window_by_native(hwnd)
         if wnd:
             # log?  This window is already registered.
@@ -248,6 +252,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_window_destroyed_message(self, hwnd: HWND) -> None:
         """Handle the window_destroyed_message loop message"""
+        print(f'Window destroyed: {hwnd}')
         self.__executor.submit(self._in_exec_destroy_window_state, hwnd, 'closed')
 
         # If the SetWinEventHook was called, then it needs to be unhooked here if this
@@ -255,16 +260,29 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_shell_window_focused_message(self, hwnd: HWND) -> None:
         """Handle the shell_window_focused_message loop message"""
-        # FIXME the parent class needs better focus management.
-        # Specifically, marking the old window as not having focus.
+        print(f'window focused: {hwnd}')
+        self.__executor.submit(self._in_exec_focus_window, hwnd)
 
     def on_window_activated_message(self, hwnd: HWND) -> None:
         """Handle the window_activated_message and window_rude_activated_message loop message"""
-        # The title can change too?
-        # FIXME what needs to be updated on this window?
+        print(f'window activated: {hwnd}')
+        self.__executor.submit(self._in_exec_focus_window, hwnd)
+
+    def on_window_update_message(self, hwnd: HWND) -> None:
+        """Called when an event is generated that can cause non-size information about the window
+        to change, such as the title."""
+        print(f'window updated: {hwnd}')
+        # Inside the message loop here, so perform the investigations...
+        wnd = self.get_window_by_native(hwnd)
+        if wnd:
+            user_messages.report_send_receive_problems(
+                update_window_state(hwnd, wnd.state)
+            )
+            self.__executor.submit(self._in_exec_update_window_state, wnd)
 
     def on_forced_exit_message(self, hwnd: HWND) -> None:
         """Handle the forced_exit_message loop message"""
+        print(f'window forced exit: {hwnd}')
         self.__executor.submit(self._in_exec_destroy_window_state, hwnd, 'forced')
 
         # If the SetWinEventHook was called, then it needs to be unhooked here if this
@@ -272,10 +290,12 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_window_flash_message(self, hwnd: HWND) -> None:
         """Handle the window_flash_message loop message"""
+        print(f"window flashed: {hwnd}")
         self.__executor.submit(self._in_exec_window_flashed, hwnd)
 
     def on_window_replace_message(self, new_hwnd: HWND, old_hwnd: HWND) -> None:
         """Handle the window_replacing_message and window_replaced_message loop messages."""
+        print(f"window replace: new: {new_hwnd}, old: {old_hwnd}")
         old_window = self.get_window_by_native(old_hwnd)
         if old_window:
             new_window = WindowsNativeWindow(old_window.window_id, new_hwnd, old_window.state)
@@ -464,12 +484,14 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             )
         window_states_res = self._load_window_states()
         if window_states_res.has_error:
+            print(f"*** Encountered problem loading window states.")
             user_messages.report_send_receive_problems(window_states_res)
         else:
-            for window_state in window_states_res.result:
-                self.__executor.submit(self.update_window_state, window_state)
+            print(f"*** Reporting {len(window_states_res.result)} windows active.")
+            self.__executor.submit(self._in_exec_update_window_states, window_states_res.result)
 
     def _in_exec_update_global_settings(self, settings: Mapping[str, str]) -> None:
+        print(f"Sending update global settings: {settings}")
         user_messages.report_send_receive_problems(
             self.update_global_settings(settings)
         )
@@ -477,30 +499,42 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
     def _in_exec_update_window_states(self, window_states: List[WindowsNativeWindow]) -> None:
         for window_state in window_states:
             if self.get_window_by_id(window_state.window_id):
+                print(f"Sending update window event: {window_state.window_id}")
                 user_messages.report_send_receive_problems(
                     self.update_window_state(window_state)
                 )
             else:
+                print(f"Sending window created event: {window_state.window_id}")
                 user_messages.report_send_receive_problems(
                     self.window_created(window_state)
                 )
 
     def _in_exec_update_window_state(self, window_state: WindowsNativeWindow) -> None:
+        print(f"Sending update window state event: {window_state.window_id}")
         user_messages.report_send_receive_problems(
             self.update_window_state(window_state)
         )
 
     def _in_exec_create_window_state(self, window_state: WindowsNativeWindow) -> None:
+        print(f"Sending window created event: {window_state.window_id}")
         user_messages.report_send_receive_problems(
             self.window_created(window_state)
         )
 
     def _in_exec_destroy_window_state(self, hwnd: HWND, reason: str) -> None:
+        print(f"Sending window destroyed event: {hwnd} {reason}")
         user_messages.report_send_receive_problems(
             self.window_destroyed(hwnd, reason)
         )
 
+    def _in_exec_focus_window(self, hwnd: HWND) -> None:
+        print(f"Sending focus window event: {hwnd}")
+        user_messages.report_send_receive_problems(
+            self.window_focused(0, hwnd)
+        )
+
     def _in_exec_window_flashed(self, hwnd: HWND) -> None:
+        print(f"Sending window flashed event: {hwnd}")
         user_messages.report_send_receive_problems(
             self.window_flashing(hwnd)
         )
@@ -618,17 +652,22 @@ def _get_int(key: str, struct: Mapping[str, str], default: int) -> int:
 def update_window_state(  # pylint:disable=too-many-branches
         hwnd: HWND, state: window_events.WindowState,
 ) -> StdRet[None]:
-    """Load the window state data.  Should be called from the Windows message loop."""
-    res: List[StdRet[None]] = []
+    """Load the window state data.  Should be called from the Windows message loop.
+    The different API calls can generate errors which can be ignored.  These are not
+    included in the returned errors; returned errors from this are only for times where
+    an error happened that can't be recovered.
+    """
+    res: List[StdRet[Any]] = []
     meta: Dict[str, str] = {
         m.key: m.value
         for m in state.meta
     }
+    access_problems: List[UserMessage] = []
     if WINDOWS_FUNCTIONS.window.border_rectangle:
         rect_res = WINDOWS_FUNCTIONS.window.border_rectangle(  # pylint:disable=not-callable
             hwnd,
         )
-        res.append(rect_res.forward())
+        access_problems.extend(rect_res.error_messages())
         if rect_res.ok:
             state.location.x = rect_res.result.x
             state.location.y = rect_res.result.y
@@ -652,18 +691,16 @@ def update_window_state(  # pylint:disable=too-many-branches
         name_res = WINDOWS_FUNCTIONS.window.get_class_name(  # pylint:disable=not-callable
             hwnd,
         )
+        access_problems.extend(name_res.error_messages())
         if name_res.ok:
             meta[WINDOW_META__WINDOW_CLASS_NAME] = name_res.result
-        else:
-            res.append(name_res.forward())
     if WINDOWS_FUNCTIONS.window.get_module_filename:
         name_res = WINDOWS_FUNCTIONS.window.get_module_filename(  # pylint:disable=not-callable
             hwnd,
         )
+        access_problems.extend(name_res.error_messages())
         if name_res.ok:
             meta[WINDOW_META__WINDOW_MODULE_FILENAME] = name_res.result
-        else:
-            res.append(name_res.forward())
     if WINDOWS_FUNCTIONS.window.get_title:
         meta[WINDOW_META__WINDOW_TITLE] = WINDOWS_FUNCTIONS.window.get_title(  # pylint:disable=not-callable
             hwnd,
@@ -672,15 +709,16 @@ def update_window_state(  # pylint:disable=too-many-branches
         user_domain_res = WINDOWS_FUNCTIONS.process.get_username_domain_for_pid(  # pylint:disable=not-callable
             pid,
         )
+        access_problems.extend(user_domain_res.error_messages())
         if user_domain_res.ok:
             meta[WINDOW_META__OWNER] = f'{user_domain_res.result[0]}/{user_domain_res.result[1]}'
-        else:
-            res.append(user_domain_res.forward())  # pylint:disable=not-callable
     if WINDOWS_FUNCTIONS.process.get_executable_filename and pid != 0:
         exec_fn_res = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)  # pylint:disable=not-callable
+        access_problems.extend(exec_fn_res.error_messages())
         if exec_fn_res.ok and exec_fn_res.value:
             meta[WINDOW_META__PROGRAM] = not_none(exec_fn_res.value)
-        else:
-            res.append(exec_fn_res.forward())
+
+    if access_problems:
+        meta[WINDOW_META__ACCESS_PROBLEMS] = '; '.join([m.debug() for m in access_problems])
 
     return join_none_results(*res)

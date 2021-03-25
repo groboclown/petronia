@@ -80,10 +80,12 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
         """Send a message to the running message window's HWND."""
         message = UINT(get_message_id_from_custom_user_message(custom_message_id))
         if self._hwnd and WINDOWS_FUNCTIONS.window.send_message:
+            print(f'Sending custom message to self: {message}')
             res = WINDOWS_FUNCTIONS.window.send_message(self._hwnd, message, wparam, lparam)
             if res.has_error:
                 return res.forward()
             return RET_OK_NONE
+        print(f'Could not send message to self: no send message or no hwnd {self._hwnd}')
         return StdRet.pass_errmsg(
             user_messages.TRANSLATION_CATALOG,
             _('not running or not SendMessage implemented'),

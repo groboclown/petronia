@@ -1591,7 +1591,7 @@ def shell__system_parameters_info(  # pylint:disable=too-many-branches
             )
             if res == 0:
                 # "If the function fails, the return value is zero"
-                ret[parameter] = WindowsReturnError('user32.SystemParametersInfoW')
+                ret[parameter] = WindowsReturnError('user32.SystemParametersInfoW(sys params)')
                 continue
             if _SYSTEM_PARAMETER_MAPPING[parameter][2] == BOOL:
                 ret[parameter] = val == 0

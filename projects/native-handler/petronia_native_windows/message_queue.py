@@ -1,6 +1,6 @@
 """A custom queue-like structure for passing messages to the message loop."""
 
-from typing import List, Tuple, Dict, Callable, Optional, Any
+from typing import List, Tuple, Dict, Callable, Optional, Any, cast
 import time
 import threading
 from petronia_common.util import StdRet, RET_OK_NONE
@@ -74,8 +74,10 @@ class UserMessageQueue:
         """Send a message to the message loop.  If the loop has stopped, this won't be delivered."""
         message_entry: Tuple[float, Any] = (time.time(), message)
         handler_lparam = windows_common.LPARAM(handler_id)
+        print(f'** Queueing up windows message {handler_id}')
         with self.__lock:
             if handler_id not in self.__handlers:
+                print(f'No such handler {handler_id}')
                 return StdRet.pass_errmsg(
                     user_messages.TRANSLATION_CATALOG,
                     _('no such handler id {handler_id}'),
@@ -84,6 +86,7 @@ class UserMessageQueue:
             this_index = self.__next_index
             wparam = windows_common.WPARAM(self.__next_index)
             self.__next_index += 1
+            print(f'Queued message {handler_id} / {this_index}')
             self.__queued_messages[this_index] = message_entry
         return self.__loop.send_custom_message_to_self(self.__message_id, wparam, handler_lparam)
 
@@ -92,8 +95,10 @@ class UserMessageQueue:
     ) -> None:
         """Callback used as the parameter for the custom_user_message call."""
         handler: Optional[Callable[[Any], None]] = None
-        message_id = wparam.value
-        handle_id = lparam.value
+        message_id: int = cast(int, wparam)
+        handle_id: int = cast(int, lparam)
+
+        print(f'handling custom message {message_id} / {handle_id}')
 
         with self.__lock:
             message = self.__queued_messages.get(message_id)
@@ -105,6 +110,7 @@ class UserMessageQueue:
             # FIXME make this a real boy
             print(
                 f'custom message {self.__message_id} called with unknown queue entry {message_id}'
+                f'; queued messages: {self.__queued_messages}'
             )
             return
         if not handler:

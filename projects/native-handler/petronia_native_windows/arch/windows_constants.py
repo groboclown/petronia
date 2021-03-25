@@ -852,7 +852,9 @@ HSHELL_RUDEAPPACTIVATED = 0x8004  # -> A handle to the activated window; treat a
 HSHELL_FLASH = 0x8006  # -> A handle to the window that needs to be flashed.  One message per flash
 HSHELL_APPCOMMAND = 12  # -> The APPCOMMAND which has been unhandled by the application
 # or other hooks. See WM_APPCOMMAND and use the GET_APPCOMMAND_LPARAM macro to retrieve this
-# parameter.  We get shell message "0x35" and "0x36".  Don't know what these are.
+# parameter.
+# We get shell message "0x35" and "0x36" when "alt-tab" or other methods for bringing up the
+# on-screen window selector.  0x35 opens it, 0x36 closes it, it seems.
 HSHELL_UNKNOWN_35 = 0x35
 HSHELL_UNKNOWN_36 = 0x36
 

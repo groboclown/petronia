@@ -36,7 +36,11 @@ def extension_entrypoint(
             'invalid-configuration',
         )
 
-    loop_res.result.start()
+    res = loop_res.result.start()
+    if res.has_error:
+        print(f'Windows Native startup problem.')
+        return res
+
     try:
         context.process_reader()
     finally:

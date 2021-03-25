@@ -519,7 +519,7 @@ def shell__get_raw_window_metrics() -> StdRet[NONCLIENTMETRICS]:
         windows_constants.SPI_GETNONCLIENTMETRICS, metrics.cbSize, byref(metrics), 0,
     )
     if res == 0:
-        return WindowsReturnError.stdret('user32.SystemParametersInfoW')
+        return WindowsReturnError.stdret('user32.SystemParametersInfoW(get raw metrics)')
     return StdRet.pass_ok(metrics)
 
 
@@ -580,7 +580,7 @@ def inner__set_window_metrics(
         windows_constants.SPI_SETNONCLIENTMETRICS, m.cbSize, byref(m),
         windows_constants.SPIF_SENDCHANGE,
     )
-    return WindowsReturnError.checked_stdret('user32.SystemParametersInfoW', res)
+    return WindowsReturnError.checked_stdret('user32.SystemParametersInfoW(set metrics)', res)
 
 
 def _dict_to_font(f: FontMetrics, ret: Optional[LOGFONT] = None) -> LOGFONT:

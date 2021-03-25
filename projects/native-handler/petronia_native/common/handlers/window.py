@@ -424,6 +424,26 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
 
         return send_window_flashed_event(self.__context, wnd.window_id)
 
+    def window_focused(self, focus_group: int, native_id: T) -> StdRet[None]:
+        """Set the given window as focused for the given focus group.  This will make
+        the previously focused window not-focused, and update their states.  If the
+        window is already focused for the focus group, this is a no-op."""
+        newly_focused_hash = self.hash_native_id(native_id)
+        newly_focused = self.__active_windows_by_native_id.get(newly_focused_hash)
+        old_focused_id = self.__focused.get(focus_group)
+        if not newly_focused or old_focused_id == newly_focused.window_id or not self.__context:
+            # no such window, the now-focused window is already focused, or closed.
+            return RET_OK_NONE
+        self.__focused[focus_group] = newly_focused.window_id
+        return send_window_focused_event(
+            context=self.__context,
+            focus_group=focus_group,
+            new_focused_window_id=newly_focused.window_id,
+            new_focused_state=newly_focused.state,
+            old_focused_window_id=old_focused_id,
+            old_focused_state=self.__active_windows_by_id.get(old_focused_id),
+        )
+
     def handle_set_window_positions_event(
             self, event: window_events.SetWindowPositionsEvent,
     ) -> StdRet[None]:
