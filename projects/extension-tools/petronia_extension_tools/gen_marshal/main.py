@@ -10,6 +10,7 @@ from petronia_common.extension.config import ApiExtensionMetadata, ProtocolExten
 from petronia_common.util import i18n as _
 from .load_definition import ExtensionDataFile, load_extension_file
 from .create_api_marshaller import create_api_marshal_source
+from .performance_timer import PerfTimer
 from ..user_message import display_error, display
 
 
@@ -67,7 +68,9 @@ def main(cmd_args: Sequence[str]) -> int:
         if not os.path.isfile(ext_name):
             display(_("Error: file does not exist: {n}"), n=ext_name)
             continue
+        timer = PerfTimer()
         loaded = load_extension_file(ext_name)
+        timer.report(f'load_extension_file({ext_name})')
         if loaded.has_error:
             display(_('Error: extension file not valid: {n}'), n=ext_name)
             display_error(loaded.valid_error)
@@ -82,7 +85,9 @@ def main(cmd_args: Sequence[str]) -> int:
                     name=metadata.metadata.name,
                 )
                 continue
+        timer = PerfTimer()
         validation = metadata.metadata.validate_type()
+        timer.report(f'validate_type({metadata.metadata.name})')
         if validation:
             display(
                 _('Extension {name} metadata has validation problems'),
@@ -90,6 +95,7 @@ def main(cmd_args: Sequence[str]) -> int:
             )
             display_error(validation)
             continue
+        timer = PerfTimer()
         ret = create_api_marshal_source(
             output_dir, normalize_name(metadata.metadata.name),
             metadata,
@@ -98,6 +104,7 @@ def main(cmd_args: Sequence[str]) -> int:
             generate_internals,
             generate_state,
         )
+        timer.report(f'create_api_marshal_source({metadata.metadata.name})')
         if ret.has_error:
             display(
                 _('Encountered a problem while generating the source for {name}'),

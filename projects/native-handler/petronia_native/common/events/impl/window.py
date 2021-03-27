@@ -5,24 +5,24 @@ Data structures and marshalling for extension petronia.core.api.native.window ve
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
-    Dict,
-    cast,
     List,
-    SupportsInt,
     Optional,
+    Any,
+    SupportsInt,
+    cast,
+    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
     not_none,
     StdRet,
-    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.window'

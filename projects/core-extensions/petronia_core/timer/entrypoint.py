@@ -1,4 +1,4 @@
-"""Data Store Entrypoint."""
+"""Timer Entrypoint."""
 
 from typing import Sequence, Dict, Any
 from petronia_common.event_stream import BinaryReader, BinaryWriter
@@ -12,5 +12,6 @@ def extension_entrypoint(
         _args: Sequence[str],
 ) -> StdRet[None]:
     """Standardized entrypoint."""
+    # Timer doesn't read any data right now; it only publishes data.
     reader.read()
     return RET_OK_NONE

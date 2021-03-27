@@ -216,7 +216,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
     def initialize_system_state(self) -> StdRet[None]:
         """Setup the internal and datastore storage to reflect the current Windows OS state.
         This will trigger the loading inside the message loop."""
-        if not self.__loop:
+        if not self.__queue:
             return RET_OK_NONE
         return join_none_results(
             self.__queue.queue_message(_UPDATE_OS, 0),
@@ -484,7 +484,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             )
         window_states_res = self._load_window_states()
         if window_states_res.has_error:
-            print(f"*** Encountered problem loading window states.")
+            print("*** Encountered problem loading window states.")
             user_messages.report_send_receive_problems(window_states_res)
         else:
             print(f"*** Reporting {len(window_states_res.result)} windows active.")

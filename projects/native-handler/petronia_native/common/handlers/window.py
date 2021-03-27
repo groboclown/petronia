@@ -434,6 +434,9 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
         if not newly_focused or old_focused_id == newly_focused.window_id or not self.__context:
             # no such window, the now-focused window is already focused, or closed.
             return RET_OK_NONE
+        old_focused_state: Optional[window_events.WindowState] = None
+        if old_focused_id:
+            old_focused_state = self.__active_windows_by_id[old_focused_id].state
         self.__focused[focus_group] = newly_focused.window_id
         return send_window_focused_event(
             context=self.__context,
@@ -441,7 +444,7 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
             new_focused_window_id=newly_focused.window_id,
             new_focused_state=newly_focused.state,
             old_focused_window_id=old_focused_id,
-            old_focused_state=self.__active_windows_by_id.get(old_focused_id),
+            old_focused_state=old_focused_state,
         )
 
     def handle_set_window_positions_event(

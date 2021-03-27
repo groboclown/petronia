@@ -20,6 +20,7 @@ from petronia_common.extension.config import (
 )
 from .load_definition import ExtensionDataFile
 from .gen_test_data import create_field_data_sample
+from .performance_timer import PerfTimer
 
 
 # Import in the form of: from {0} import {1}
@@ -66,11 +67,13 @@ def create_structures(
             # or if it's a binary event.
             # Note that __repr__ requires the export, so skipping that may not be
             # correct.
+            timer = PerfTimer()
             ret_inner_structures = create_inner_structure(
                 event.name, '{0}:{1}'.format(data.metadata.name, event.name),
                 event.unique_target,
                 event.structure, seen_structures, imports,
             )
+            timer.report(f'create_inner_structure({event.name}')
             if ret_inner_structures.has_error:
                 return ret_inner_structures.forward()
             structures.extend(ret_inner_structures.result)
@@ -78,10 +81,12 @@ def create_structures(
         print(f"Creating state data for {data.metadata.name}")
         for state in data.state_data:
             print(f"Creating state data for {state.fqn}")
+            timer = PerfTimer()
             ret_inner_structures = create_inner_structure(
                 state.short_name + _STATE_NAME_SUFFIX, None, state.fqn,
                 state.data_type, seen_structures, imports,
             )
+            timer.report(f'create_inner_structure({state.short_name})')
             if ret_inner_structures.has_error:
                 return ret_inner_structures.forward()
             structures.extend(ret_inner_structures.result)
@@ -410,6 +415,7 @@ def get_field_struct(  # pylint: disable=R0912,R0913,R0915
             field['field_python_item_type'] = inner_type
             imports.append(('typing', 'cast', None,))
         else:
+            # Need to add support here for embedded ArrayEventDataType.
             raise Exception('Unsupported array field type: ' + repr(item_type))
     else:
         raise Exception('Unknown field type ' + repr(fdt))  # pragma no cover

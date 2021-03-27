@@ -38,7 +38,7 @@ def extension_entrypoint(
 
     res = loop_res.result.start()
     if res.has_error:
-        print(f'Windows Native startup problem.')
+        print('Windows Native startup problem.')
         return res
 
     try:

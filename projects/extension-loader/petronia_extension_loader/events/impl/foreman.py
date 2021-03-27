@@ -5,26 +5,26 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    SupportsInt,
-    Optional,
-    Any,
-    List,
     cast,
-    Dict,
-    SupportsFloat,
     Union,
+    List,
+    Dict,
+    Optional,
+    SupportsInt,
+    SupportsFloat,
+    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    STANDARD_PETRONIA_CATALOG,
     StdRet,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
 )
 
@@ -517,15 +517,15 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[datetime.datetime],
-            datetime.datetime,
-            List[float],
-            bool,
-            List[int],
+            int,
             List[bool],
             List[str],
+            List[int],
             str,
-            int,
+            List[float],
+            datetime.datetime,
+            bool,
+            List[datetime.datetime],
             float,
         ],
     ) -> None:
@@ -539,15 +539,15 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[datetime.datetime],
-            datetime.datetime,
-            List[float],
-            bool,
-            List[int],
+            int,
             List[bool],
             List[str],
+            List[int],
             str,
-            int,
+            List[float],
+            datetime.datetime,
+            bool,
+            List[datetime.datetime],
             float,
     ]:
         """The selector value."""

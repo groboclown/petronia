@@ -5,27 +5,27 @@ Data structures and marshalling for extension petronia.core.api.native.hotkey ve
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
-    Dict,
-    cast,
     List,
-    Union,
-    SupportsFloat,
-    SupportsInt,
     Optional,
+    Any,
+    SupportsInt,
+    cast,
+    Dict,
+    SupportsFloat,
+    Union,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
     not_none,
     StdRet,
-    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.hotkey'
@@ -370,16 +370,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[float],
+            List[int],
             float,
-            List[str],
-            List[datetime.datetime],
-            str,
+            List[float],
             bool,
             int,
-            List[bool],
-            List[int],
             datetime.datetime,
+            List[bool],
+            str,
+            List[datetime.datetime],
+            List[str],
         ],
     ) -> None:
         self.__name = name
@@ -392,16 +392,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[float],
+            List[int],
             float,
-            List[str],
-            List[datetime.datetime],
-            str,
+            List[float],
             bool,
             int,
-            List[bool],
-            List[int],
             datetime.datetime,
+            List[bool],
+            str,
+            List[datetime.datetime],
+            List[str],
     ]:
         """The selector value."""
         return self.__value

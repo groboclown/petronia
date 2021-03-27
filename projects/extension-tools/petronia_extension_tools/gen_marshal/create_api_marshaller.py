@@ -15,6 +15,7 @@ from .structure import (
     create_structures, create_import_struct,
 )
 from .template import load_template, templatize, clean_up_text
+from .performance_timer import PerfTimer
 
 
 EVENT_TEMPLATE_NAME = 'event_file.py.mustache'
@@ -36,19 +37,27 @@ def create_api_marshal_source(  # pylint: disable=too-many-arguments
     """Create the marshaller source file."""
     if language != 'python':
         raise ValueError('Only supports Python output at the moment.')
+    timer = PerfTimer()
     ret_data = create_structures(data, generate_api, generate_internals, generate_states)
+    timer.report(f'create_structures({event_module_name})')
     if ret_data.has_error:
         return ret_data.forward()
     structures, imports = ret_data.result
+    timer.start()
     res = mk_init(output_dir, event_module_name)
+    timer.report(f'mk_init({event_module_name})')
     if res.has_error:
         return res.forward()
+    timer.start()
     res = mk_event_marshal_src(output_dir, data.metadata, event_module_name, structures, imports)
+    timer.report(f'mk_event_marshal_src({event_module_name})')
     if res.has_error:
         return res.forward()
+    timer.start()
     res = mk_event_marshal_test_src(
         output_dir, data.metadata, event_module_name, structures, imports,
     )
+    timer.report(f'mk_event_marshal_test_src({event_module_name})')
     if res.has_error:
         return res.forward()
     return RET_OK_NONE

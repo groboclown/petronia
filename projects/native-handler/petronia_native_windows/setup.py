@@ -31,7 +31,7 @@ class WindowsRunner:
 
     def start(self) -> StdRet[None]:
         """Start the loop and run the callbacks."""
-        print(f"** WINDOWS STARTING MESSAGE LISTENER **")
+        print("** WINDOWS STARTING MESSAGE LISTENER **")
         self.__loop.start()
 
         # Wait for the loop to start.
@@ -45,7 +45,7 @@ class WindowsRunner:
                 timeout=60.0,
             )
 
-        print(f"** WINDOWS INITIALIZING STATE **")
+        print("** WINDOWS INITIALIZING STATE **")
         return join_none_results(*(
             c()
             for c in self.__post_start

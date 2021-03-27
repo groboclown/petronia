@@ -16,6 +16,12 @@ def register_bind_handlers(
         context: EventRegistryContext,
 ) -> StdRet[None]:
     """Register the handlers for the key binding requests."""
+
+    # Improvement:
+    # Until the native hotkey config is posted to the datastore, we can't assume that
+    # the extension is ready to handle requests.  We need a global registration handler;
+    # right now, that's done by the
+
     return join_none_results(
         send_register_listeners(
             context,

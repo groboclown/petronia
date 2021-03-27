@@ -13,6 +13,7 @@ from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import {{module_name}}
 {{#structures}}
 
+
 {{^is_binary}}
 class {{structure_class_name}}Test(unittest.TestCase):
     """
@@ -54,14 +55,11 @@ class {{structure_class_name}}Test(unittest.TestCase):
 {{#selector_types}}{{#is_struct_type}}
     (
         '{{field_name}}-all-fields-missing',
-        {'^': '{{field_name}}', '$': {}},
-        (
-            {{#field_names}}{{^is_optional}}(
-                'Required field {field_name} in {name}',
-                dict(field_name='{{field_name}}', name='{{structure_class_name}}'),
-            ),
-            {{/is_optional}}{{/field_names}}
-        ),
+        {'^': '{{field_name}}',},
+        ((
+            'Field {field_name} must be a mapping for structure {name}',
+            dict(field_name='{{field_name}}', name='{{structure_class_name}}'),
+        ),),
     ),
 {{/is_struct_type}}{{/selector_types}}
 {{/is_selector}}

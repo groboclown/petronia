@@ -5,27 +5,27 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
+    Optional,
+    Any,
+    SupportsInt,
     Union,
+    SupportsFloat,
     cast,
     List,
     Dict,
-    SupportsInt,
-    Optional,
-    SupportsFloat,
-    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
+    collect_errors_from,
     StdRet,
     STANDARD_PETRONIA_CATALOG,
-    collect_errors_from,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.protocol.logging'
@@ -43,15 +43,15 @@ class MessageArgumentValue:
         name: str,
         value: Union[
             int,
-            List[float],
-            List[int],
-            List[datetime.datetime],
+            List[str],
             List[bool],
-            bool,
-            str,
+            List[datetime.datetime],
             float,
             datetime.datetime,
-            List[str],
+            bool,
+            List[int],
+            List[float],
+            str,
         ],
     ) -> None:
         self.__name = name
@@ -65,15 +65,15 @@ class MessageArgumentValue:
     @property
     def value(self) -> Union[
             int,
-            List[float],
-            List[int],
-            List[datetime.datetime],
+            List[str],
             List[bool],
-            bool,
-            str,
+            List[datetime.datetime],
             float,
             datetime.datetime,
-            List[str],
+            bool,
+            List[int],
+            List[float],
+            str,
     ]:
         """The selector value."""
         return self.__value
@@ -595,7 +595,7 @@ class LogEvent:
                 name='LogEvent',
             )
         else:
-            if val not in ('info','verbose','warning','debug', ):
+            if val not in ('info','verbose','debug','warning', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

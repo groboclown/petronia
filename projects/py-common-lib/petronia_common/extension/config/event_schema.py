@@ -79,7 +79,9 @@ class InternalType(AbcConfigType):
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, InternalType):
             return False
-        if self.__data_type is None:
+        # Ref name should be set if this came from a reference, which allows for
+        # infinite recursion.  Instead, we'll check only the name if it's set.
+        if self.__ref_name or other.ref_name:
             return self.__ref_name == other.ref_name
         return self.__data_type == other.raw_type
 
@@ -132,8 +134,14 @@ class InternalType(AbcConfigType):
             )])
         # Prevent infinite recursion...
         for parent in parents:
-            if parent is self:
+            if parent is self or parent is self.__data_type:
                 return None
+        if len(parents) > 30:
+            return possible_error([UserMessage(
+                STANDARD_PETRONIA_CATALOG,
+                _('types nested too deep: {types}'),
+                types=[*(repr(p) for p in parents), repr(self)],
+            )])
         return self.__data_type.validate_type((*parents, self))
 
     def not_none(self) -> AbcEventDataType:
@@ -593,6 +601,14 @@ class ReferenceEventDataType(AbcEventDataType):
     def __repr__(self) -> str:
         return f'ReferenceEventDataType({repr(self.description)}, ref={repr(self.reference)})'
 
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, ReferenceEventDataType):
+            return False
+        return self.__ref == other.reference
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
     @property
     def reference(self) -> str:
         """The type this references."""
@@ -880,7 +896,7 @@ class StructureEventDataType(AbcEventDataType):
                         ))
                         break
 
-            error = field_type.validate(field_name)
+            error = field_type.validate(field_name, (*parents, self))
             if error:
                 messages.extend(error.messages())
         return possible_error(messages=messages)
@@ -934,6 +950,19 @@ class SelectorEventDataType(AbcEventDataType):
             f'SelectorEventDataType({repr(self.description)}, '
             f'type_mapping={repr(self.__type_mapping)})'
         )
+
+    def __hash__(self) -> int:
+        return hash(self.description) + hash(tuple(self.__type_mapping))
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, SelectorEventDataType):
+            return False
+        return (
+            self.__type_mapping == dict(other.selector_items())
+        )
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
     @property
     def selectors(self) -> Sequence[str]:

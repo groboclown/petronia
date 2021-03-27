@@ -12,6 +12,7 @@ from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import datastore
 
+
 class StoreDataEventTest(unittest.TestCase):
     """
     Tests for StoreDataEvent
@@ -67,18 +68,19 @@ STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'json': 'ӏΟԉџʏxʢǊãЈȚYňɐʉѼʪрʪʋԑØƒ"мβą˯ԑʣ',
+            'json': 'ЗȁΉБŘΖɵŘoȺъǜ«҆ĵӤвwɊIЁҏԮÖfЎǴ҈Ëϴ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': 'ǩк',
+            'json': 'ʃƿ',
 
         },
     ),
 ]
+
 
 class DeleteDataEventTest(unittest.TestCase):
     """
@@ -100,6 +102,7 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 
     ('basic-parse', {}),
 ]
+
 
 class SendStateEventTest(unittest.TestCase):
     """
@@ -156,18 +159,19 @@ SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'store_id': '?ʕtðʋëÈÇĳ(ǟŚҞϷЇөѻҌžҒsΉѾҢ´ɲΑА\x99ǽ',
+            'store_id': 'ūťíUԤҮ<ǓƯïҮԇȎӖήӣοǢϲϤҌӏӳʳÔƸ`ϦȅǙ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': 'ªЕѕˢκ',
+            'store_id': 'ʥƧˡēҪ',
 
         },
     ),
 ]
+
 
 class DataUpdateEventTest(unittest.TestCase):
     """
@@ -228,21 +232,22 @@ DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210309:035106.369830:+0000',
-            'json': 'Ȑ1żӔßƼ©ZǧǦÄĩϮÓѭЍĎʍҺůΑϳРǣйҚʹÕѮϋ',
+            'changed': '20210327:033629.164405:+0000',
+            'json': '\u03a2ϖŘҊȭAųϡØʡФǓЏЅίʕϴЍT&ωȷʽϨаϧҨȱӵ:',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210309:035106.411102:+0000',
+            'changed': '20210327:033629.182433:+0000',
 
-            'json': 'ͱͳ',
+            'json': '6ǽ',
 
         },
     ),
 ]
+
 
 class DataRemovedEventTest(unittest.TestCase):
     """

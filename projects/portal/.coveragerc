@@ -1,0 +1,6 @@
+[run]
+
+# There is a lot of stuff shoved into the shared module
+# to support many other projects.  So, it's ignored for coverage here.
+omit =
+    petronia_common/event_stream/tests/shared.py

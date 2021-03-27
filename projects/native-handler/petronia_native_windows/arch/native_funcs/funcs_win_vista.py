@@ -290,10 +290,9 @@ def shell__get_raw_window_metrics() -> StdRet[NONCLIENTMETRICS]:
     metrics.cbSize = c_sizeof(NONCLIENTMETRICS)  # pylint:disable=attribute-defined-outside-init
     res = SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, byref(metrics), 0)
     if res == 0:
-        # return WindowsReturnError.stdret('user32.SystemParametersInfoW(get raw metrics)')
-        # FIXME
-        import ctypes
-        raise Exception(repr(res) + '-' + repr(ctypes.GetLastError()))
+        # import ctypes
+        # raise Exception(repr(res) + '-' + repr(ctypes.GetLastError()))
+        return WindowsReturnError.stdret('user32.SystemParametersInfoW(get raw metrics)')
     return StdRet.pass_ok(metrics)
 
 

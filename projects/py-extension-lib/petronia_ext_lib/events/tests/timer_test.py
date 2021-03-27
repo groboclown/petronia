@@ -12,6 +12,7 @@ from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import timer
 
+
 class HeartbeatEventTest(unittest.TestCase):
     """
     Tests for HeartbeatEvent
@@ -67,14 +68,14 @@ HEARTBEAT_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'sent_on': '20210309:040249.204140:+0000',
+            'sent_on': '20210327:032434.562913:+0000',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'sent_on': '20210309:040249.235594:+0000',
+            'sent_on': '20210327:032434.594934:+0000',
 
         },
     ),

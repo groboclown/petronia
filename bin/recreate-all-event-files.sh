@@ -7,7 +7,7 @@ pd="${h}/../projects"
 
 
 # Foreman events
-echo foreman/petronia_foreman/events:
+echo foreman:
 "${h}/generate-events.sh" \
   --output "${pd}/foreman/petronia_foreman/events" \
   --implementation --api \
@@ -15,7 +15,7 @@ echo foreman/petronia_foreman/events:
 
 
 # Extension-loader events
-echo extension-loader/petronia_extension_loader/events:
+echo extension-loader:
 "${h}/generate-events.sh" \
   --output "${pd}/extension-loader/petronia_extension_loader/events/impl" \
   --implementation --api --state \
@@ -47,7 +47,7 @@ echo core-extensions:
   "${pd}/core-extensions/hotkey-binding-extension.yaml"
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/hotkey_binding/events/ext" \
-  --api \
+  --api --state \
   "${pd}/native-handler/native-hotkey-extension.yaml"
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/hotkey_binding/state" \
@@ -71,6 +71,7 @@ echo native-handler:
   --state \
   "${pd}/native-handler/windows-native-impl-extension.yaml"
 
+
 # Extension lib.
 echo py-extension-lib:
 "${h}/generate-events.sh" \
@@ -89,3 +90,27 @@ echo py-extension-lib:
   --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
   --api \
   "${pd}/extension-loader/extension-loader-extension.yaml"
+
+
+# Portal events
+echo portal:
+"${h}/generate-events.sh" \
+  --output "${pd}/portal/petronia_portal/events" \
+  --implementation --api --state \
+  "${pd}/portal/portal-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/portal/petronia_portal/events" \
+  --api --state \
+  "${pd}/native-handler/native-window-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/portal/petronia_portal/state" \
+  --state \
+  "${pd}/native-handler/native-screen-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/portal/petronia_portal/events" \
+  --api --state \
+  "${pd}/core-extensions/hotkey-binding-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/portal/petronia_portal/state" \
+  --state \
+  "${pd}/portal/portal-impl-extension.yaml"

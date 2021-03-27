@@ -15,15 +15,12 @@ These are desired, tactical changes to bits of already written code.
 ### core-extensions
 
 * finish shutdown extension design.  This needs to borrow heavily from the v3.0 notes.
-* implement the timer extension.
 * hotkey-binding needs de-register for extension events.
+* the timer extension needs to have a configuration protocol, and listen for changes to the configuration for the timer interval.
+* the timer extension needs to send timer events at an interval.
 
 
 ### native
-
-This is the next thing that's being worked on.
-
-1. implement window handling and event reporting for Windows.
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * for the ui extension, it must have absolute position for the outer window, but the inner components must be relative, because text display is dynamic (it looks up translations).  On that note, text must also be rotatable, and notes should be made that implementors *should* support BiDi.
@@ -37,7 +34,6 @@ This is the next thing that's being worked on.
   * needs to take priority on user configurations, and include default ones if no user configuration matches "enough".
   * add a limit to config matching; if a match is not above a certain value, then it isn't used.
 * Windows:
-  * change default monitor -> virtual screen map to instead use `windows_vs`.  This should be done by adding a default config on monitor updates before sending the monitor update request.
   * test out running the loop with monitor change detection, attach a second monitor, ensure the monitor detection happens, then move the relative positions between monitors, and ensure that the monitor change detection happens again.
 * Hotkey chain requires meta-characters that are still pressed after ok should then be passed again; the hotkey chain forgets meta-characters one the action is completed.  This shows itself as a bug where pressing a hotkey requires releasing then pressing the meta-keys again.
 
@@ -66,6 +62,7 @@ This is the next thing that's being worked on.
 * binary event unit test classes should not exist.  Or should be made differently.
 * random number generator should have a seed based on extension information, so that regenerating the tests will have consistent test data.  Maybe a seed can be set in the yaml file?
 * after the change to allow cycles, the source generator is horribly slow.  Need to figure out where the slow-down is happening.  Probably in the cycle code ;)
+    * Checking the runtime performance, it looks like the majority of the time comes from creating the structures.
 * some generators include `cast` import when it isn't used, which causes a pylint error.
 * the generation of child object parsers needs an added check for is-dict.  If it's something like an array or number, then an exception is raised.
 

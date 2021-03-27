@@ -120,7 +120,8 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
         with self.__lock:
             if is_modifier:
                 if is_key_up:
-                    self.__down_modifiers.remove(vk_code)
+                    if vk_code in self.__down_modifiers:
+                        self.__down_modifiers.remove(vk_code)
                 else:
                     self.__down_modifiers.add(vk_code)
 

@@ -5,7 +5,7 @@ Data structures and marshalling for extension {{extension_name}} version {{exten
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
@@ -195,12 +195,22 @@ class {{structure_class_name}}:
             ))
             {{/is_array_simple_type}}
             {{#is_struct_type}}
-            parsed_val = {{field_python_type}}.parse_data(val)
-            if parsed_val.has_error:
-                return parsed_val.forward()
+            if not isinstance(val, dict):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must be a mapping '
+                        'for structure {name}'
+                    ),
+                    field_name='{{field_name}}',
+                    name='{{structure_class_name}}',
+                )
+            parsed_val_{{field_python_type}} = {{field_python_type}}.parse_data(val)
+            if parsed_val_{{field_python_type}}.has_error:
+                return parsed_val_{{field_python_type}}.forward()
             return StdRet.pass_ok({{structure_class_name}}(
                 selector_name,
-                parsed_val.result,
+                parsed_val_{{field_python_type}}.result,
             ))
             {{/is_struct_type}}
             {{#is_array_struct_type}}

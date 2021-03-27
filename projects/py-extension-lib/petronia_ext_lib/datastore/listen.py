@@ -1,7 +1,7 @@
 """Listens to datastore update/delete events."""
 
 from typing import Callable, Generic, Optional
-from petronia_common.util import StdRet, join_results, T, tznow, RET_OK_NONE
+from petronia_common.util import StdRet, T, RET_OK_NONE, tznow, join_none_results
 from ..events import datastore
 from ..runner.registry import (
     EventObjectParser, EventRegistryContext, EventObjectTarget,
@@ -11,8 +11,7 @@ from ..standard.embedded_json_data import embedded_json_data
 
 def register_datastore_update_parsers(context: EventRegistryContext) -> StdRet[None]:
     """Register the datastore event parsers, for the listening end."""
-    return join_results(
-        lambda x: None,
+    return join_none_results(
         context.register_event_parser(
             datastore.DataUpdateEvent.FULL_EVENT_NAME,
             datastore.DataUpdateEvent.parse_data,
@@ -87,8 +86,7 @@ def register_datastore_target_listener(
     # Ignore errors from this registration step, because we don't care if it's already
     # been registered.
     register_datastore_update_parsers(context)
-    return join_results(
-        lambda x: None,
+    return join_none_results(
         context.register_target(
             datastore.DataRemovedEvent.FULL_EVENT_NAME,
             source_id, StoreDeleteEventListener(cache),

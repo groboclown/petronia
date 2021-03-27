@@ -12,6 +12,7 @@ from typing import Sequence, Tuple, Dict, Any
 from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import ui
 
+
 class RegisterImageDetailsEventTest(unittest.TestCase):
     """
     Tests for RegisterImageDetailsEvent
@@ -71,21 +72,22 @@ REGISTER_IMAGE_DETAILS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'locale': 'ІąЭӅ',
-            'format': 'ӤƔЉԩʼ\u0380ѓҗѽz˱Ļѯјȉ3ʏдћŢǪ͵Ǔ7Ԅȋ˂Ӯȕâ',
+            'locale': 'ӫВΧN©Ž˾ŝʒ',
+            'format': 'ƎæЫАɢтɔĽԋКTϭǦɄ\x8fÁȱɦǿӖ¨мԝʀͽåьԨϾΧ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'locale': 'Ɛ',
+            'locale': 'Қ',
 
-            'format': 'ȝ',
+            'format': 'Ⱥ',
 
         },
     ),
 ]
+
 
 class UiPanelClickedEventTest(unittest.TestCase):
     """
@@ -146,18 +148,18 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 8169017,
+            'identifier': 5975060,
             'mouse_buttons': [
-                3660461504220348046,
-                -1158302147379922736,
-                -1842220351355844075,
-                -1476231485407829188,
-                8567970357046981628,
-                -6658247164923184127,
-                7109310148680576664,
-                6430984091574674059,
-                2837901638984408733,
-                -8103093797135407023,
+                2188340195176927075,
+                -2987242197046859262,
+                -2341221531466089779,
+                -4651548588366536749,
+                -9047878720215317667,
+                3247734402985891126,
+                -2548150515082965978,
+                -2169089226941742447,
+                -7087728979327711090,
+                -3871032516791661765,
             ],
         },
     ),
@@ -165,15 +167,16 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 6558793,
+            'identifier': 6949533,
 
             'mouse_buttons': [
-                1293558003487294325,
+                1961809239639406887,
             ],
 
         },
     ),
 ]
+
 
 class UiTextFieldUpdateEventTest(unittest.TestCase):
     """
@@ -234,15 +237,15 @@ UI_TEXT_FIELD_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 5504415,
-            'text': 'Ô_ĭŴҕƾĠŧďɺǬɸѵŤŖʓͼòͻƳɋƢțȲˮyaҔӨh',
+            'identifier': 3044177,
+            'text': 'ǿΉˌФ»ϭƺ+Ѹ/ӺӹĻѤҍςʤғӡ\xadȠғĶҬÛƅŎȵŞʕ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 3913791,
+            'identifier': 4465998,
 
             'text': '',
 

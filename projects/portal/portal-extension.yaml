@@ -1,0 +1,476 @@
+---
+
+name: petronia.core.api.portal
+type: api
+version: [1, 0, 0]
+about: Standardized tile-like window arrangement and functionality.
+description: >
+  A standard API for arranging windows on the virtual screen in a tile-like way.
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_portal
+  minimum: [1, 0, 0]
+
+
+state-data:
+  workspace-configuration:
+    description: >
+      Collection of layouts, mapping to different virtual screen arrangements.
+      The best fitting layout for the active virtual screen will be used.
+    fields:
+      workspaces:
+        type: array
+        min-length: 1
+        max-length: 1000
+        value-type:
+          type: reference
+          ref: workspace-setup
+
+  active-layout:
+    description: >
+      The currently active layout.  As the split and join events are called, and windows
+      are moved between portals, this will be updated to reflect the current arrangement.
+      The layout is matched up with the active virtual screen.
+    fields:
+      workspace:
+        type: reference
+        ref: workspace-setup
+
+  focus:
+    description: >
+      The currently focused portal and window.
+    fields:
+      portal_name:
+        description: The focused portal name.
+        type: string
+        min-length: 1
+        max-length: 100
+      window_id:
+        description: The focused window, or not set if no window is active.
+        optional: true
+        type: reference
+        ref: event-target-id
+
+
+events:
+  "set-layout":
+    description: >
+      Set the current layout.  Changes the entire setup.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: layout
+    fields:
+      workspace:
+        type: reference
+        ref: workspace-setup
+
+  "split-portal":
+    description: >
+      Splits the active portal into two portals.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-portal
+    fields:
+      add_before:
+        description: >
+          Set to "true" to add the new portal logically before the currently active portal.
+          The windows will remain in the portal "after" the new one.
+        type: bool
+      focus_new:
+        descirption: >
+          Put the focus on the newly created portal.
+        type: bool
+      new_direction:
+        description: >
+          If "true", then the new portal will change the direction from the previous one
+          (if it was splitting vertically, then the split will happen horizontally).
+        type: bool
+
+  "join-portals":
+    description: >
+      Joins the active portal with its neighbor.  The currently focused window will remain
+      in-focus.  The order of the joined windows is left up to the implementation.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-portal
+    fields:
+      join_before:
+        description: >
+          Set to "true" to join the active portal with the portal that is logically "before".
+        type: bool
+
+  "fit-window":
+    description: >
+      Change the active window positioning within the portal.  If there are multiple windows within
+      the portal, only the active is changed.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-window
+    fields:
+      position:
+        type: reference
+        ref: window-portal-fit
+
+  "fit-portal-windows":
+    description: >
+      Change the focused portal's contained window positioning.  This changes only the default
+      setting; windows that have an explicit position set will not be affected.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-portal
+    fields:
+      position:
+        type: reference
+        ref: window-portal-fit
+
+  "manage-window":
+    description: >
+      Take control of the active window, putting it in the focused portal.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-window
+    fields: {}
+
+  "unmanage-window":
+    description: >
+      Release Petronia control of the active window, allowing it to be a "floating" window.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-window
+    fields: {}
+
+  "adjust-portal-size":
+    description: >
+      Changes the size of the portal.  If the size change direction is not in the split direction
+      (e.g. the portals are split vertically, but a request to change the horizontal size), then
+      the owning split's size is changed.  The change is relative to the current size.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-portal
+    fields:
+      amount:
+        description: >
+          Amount to change.  This should be in virtual screen pixels.
+        type: int
+      direction:
+        description: >
+          Direction to make the adjustment.
+        type: enum
+        values:
+          - vertical
+          - horizontal
+
+  "mark-portal":
+    description: >
+      Mark the active portal with an identifier.  This can be used for quick window moves or
+      focus later.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-portal
+    fields:
+      name:
+        descirption: >
+          The name of the portal.  This can be used in place of a direction for the move
+          event.  This cannot be one of the reserved direction names.
+        type: string
+        min-length: 1
+        max-length: 100
+
+  "move-window-to-portal":
+    description: >
+      Move the active window to another portal.  This can be either relative or by name.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-window
+    fields:
+      target:
+        description: >
+          The target portal to move the active window into.  This can either be one of the
+          reserved direction names, or a marked portal name.
+
+          Reserved direction names are "previous", "next", "up", "down", "left", "right",
+          "north", "south", "east", "west".
+        type: string
+        min-length: 1
+        max-length: 100
+      move_focus:
+        description: >
+          If "true", then the focused portal moves with the active window.  If "false", then the
+          focused portal remains focused, and the active window becomes the next one in the
+          current portal.
+        type: bool
+      wrap:
+        description: The kind of wrapping allowed.
+        type: enum
+        values:
+          - wrap-screen
+          - wrap-block
+          - none
+
+  "focus-portal":
+    description: >
+      Moves the currently focused portal to another portal.  The target portal can either be
+      one of the reserved direction names, or a marked portal name.  The currently "top"
+      window in the focused portal will become the new active window.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-portal
+    fields:
+      target:
+        description: >
+          The target portal to move the active window into.  This can either be one of the
+          reserved direction names, or a marked portal name.
+
+          Reserved direction names are "previous", "next", "up", "down", "left", "right",
+          "north", "south", "east", "west".
+        type: string
+        min-length: 1
+        max-length: 100
+      wrap:
+        description: The kind of wrapping allowed.
+        type: enum
+        values:
+          - wrap-screen
+          - wrap-block
+          - none
+
+  "rotate-active-window":
+    description: >
+      For the active portal, rotate which window is "on top".  If the portal has zero or one
+      window, then this event does nothing.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: active-portal
+    fields:
+      direction:
+        description: >
+          Direction to rotate.
+        type: enum
+        values:
+          - forward
+          - backward
+
+
+references:
+  # ------------------------------
+  # Standard Types ...
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+
+  # ------------------------------
+  # Custom Types ...
+
+  window-size-fit:
+    description: >
+      How to change the size of the window within the portal.
+      "shrink" means that, if the window is larger than the portal, shrink it to be at
+      most the size of the portal, but leave it alone if it is smaller than the portal.
+      "stretch" means that, if the window is smaller than the portal, expand it to be the
+      same size as the portal, but if it's larger, leave it alone.
+      "fit" means change the size of the window to match the portal.
+      "none" means no change.
+    type: enum
+    values:
+      - shrink
+      - stretch
+      - fit
+      - none
+
+  window-portal-fit:
+    description: >
+      How to size the window within the portal.  The window can be stretched to fit each edge,
+      or resized to be at most the edge length, and aligned at different places along the edges.
+    type: structure
+    fields:
+      justify_horizontal:
+        description: >
+          How to choose the base position for placing the window, along the horizontal axis.
+        type: enum
+        values:
+          - left
+          - center
+          - right
+      justify_vertical:
+        description: >
+          How to choose the base position for placing the window, along the vertical axis.
+        type: enum
+        values:
+          - top
+          - center
+          - bottom
+      fit_horizontal:
+        description: >
+          How to fit the window within the horizontal spacing of the portal.
+        type: reference
+        ref: window-size-fit
+      fit_vertical:
+        description: >
+          How to fit the window within the vertical spacing of the portal.
+        type: reference
+        ref: window-size-fit
+
+  portal:
+    description: >
+      A "leaf" within the layout arrangement.
+    type: structure
+    fields:
+      window_ids:
+        description: List of window target IDs assigned to this portal.
+        type: array
+        value-type:
+          type: reference
+          ref: event-target-id
+      size:
+        description: >
+          Relative size for this portal.  If all the portal sizes within the parent split add up
+          to 5, and this one is 2, then this portal takes up 2/5 of the owned split size.
+          A value of 0 means it takes up the space from its relative start to the end of the
+          owning split, and the next portal starts at the same starting position.
+        type: int
+      preferred_location:
+        description: >
+          The preferred placing for contained windows.  Windows, by default, are stretched to
+          fill the portal.  However, if a contained window is set to not stretch, then this
+          value defines its relative placement within the portal.
+        type: reference
+        ref: window-portal-fit
+      padding_top:
+        description: >
+          Extra virtual screen pixel space to add at the top of the portal.
+          Padding is extra space between the edge of the portal and the contained windows.
+        type: int
+        min-value: 0
+        max-value: 10000
+      padding_bottom:
+        description: >
+          Extra virtual screen pixel space to add at the bottom of the portal.
+          Padding is extra space between the edge of the portal and the contained windows.
+        type: int
+        min-value: 0
+        max-value: 10000
+      padding_left:
+        description: >
+          Extra virtual screen pixel space to add at the left of the portal.
+          Padding is extra space between the edge of the portal and the contained windows.
+        type: int
+        min-value: 0
+        max-value: 10000
+      padding_right:
+        description: >
+          Extra virtual screen pixel space to add at the right of the portal.
+          Padding is extra space between the edge of the portal and the contained windows.
+        type: int
+        min-value: 0
+        max-value: 10000
+      portal_aliases:
+        description: List of aliases for this portal; used for "target".
+        type: array
+        min-length: 1
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 1
+          max-length: 100
+
+  layout-split:
+    description: >
+      A divider for the layout.  A split contains 1 or more other splits or portals.  Each layered
+      split alternates the split direction.
+    type: structure
+    fields:
+      size:
+        description: >
+          Relative size for this split.  If all the portal and split sizes within the parent split
+          add up to 5, and this one is 2, then this portal takes up 2/5 of the owned split size.
+        type: int
+      direction:
+        description: >
+          The direction of the split.  Each split should have the opposite direction of its parent.
+        type: enum
+        values:
+          - horizontal
+          - vertical
+      contents:
+        description: >
+          The contents of the split.
+        type: array
+        value-type:
+          type: reference
+          ref: split-content
+
+  split-content:
+    description: >
+      The contents of a cell within a layout split.
+    type: selector
+    type-mapping:
+      split:
+        type: reference
+        ref: layout-split
+      portal:
+        type: reference
+        ref: portal
+
+  screen-block:
+    description:
+      A virtual screen area to match.
+    type: structure
+    fields:
+      x:
+        description: upper-left X position for the block, in virtual screen space.
+        type: int
+      y:
+        description: upper-left Y position for the block, in virtual screen space.
+        type: int
+      width:
+        description: width of the block, in virtual screen space.
+        type: int
+      height:
+        description: width of the block, in virtual screen space.
+        type: int
+
+  screen-matcher:
+    description: >
+      A rough description of the virtual screen space, and the associated layout.
+    type: structure
+    fields:
+      block:
+        type: reference
+        ref: screen-block
+      layout:
+        type: reference
+        ref: layout-split
+
+  workspace-setup:
+    description: >
+      A layout with an optional screen size it associates with.  The workspace that does not
+      have a screen matcher is considered the "default" workspace.
+
+    # This is a structure, because currently we can't generate arrays of arrays.
+    type: structure
+    fields:
+      screens:
+        type: array
+        min-length: 1
+        max-length: 1000
+        value-type:
+          type: reference
+          ref: screen-matcher
