@@ -68,14 +68,14 @@ HEARTBEAT_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'sent_on': '20210327:032434.562913:+0000',
+            'sent_on': '20210327:034705.405106:+0000',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'sent_on': '20210327:032434.594934:+0000',
+            'sent_on': '20210327:034705.446790:+0000',
 
         },
     ),

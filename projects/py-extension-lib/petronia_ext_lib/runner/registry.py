@@ -2,7 +2,7 @@
 An extension event listener registry.  This is a higher-level
 system than the raw event stream.
 """
-
+from abc import ABC
 from typing import Dict, Callable, Generic, Protocol, Optional, Union, Any
 from petronia_common.event_stream import RawBinaryReader
 from petronia_common.util import StdRet, T
@@ -36,6 +36,7 @@ class EventObjectParser(Generic[T]):
 
 class EventObjectTarget(Generic[T]):
     """Handles the event object."""
+    __slots__ = ()
 
     def on_close(self) -> None:
         """Called when the extension is terminated.  Does nothing by default."""
@@ -49,6 +50,7 @@ class EventObjectTarget(Generic[T]):
 
 class EventBinaryTarget:
     """Handles the event object."""
+    __slots__ = ()
 
     def on_close(self) -> None:
         """Called when the extension is terminated.  Does nothing by default."""
@@ -109,3 +111,33 @@ class EventRegistryContext:
     ) -> StdRet[None]:
         """Send the binary event safely."""
         raise NotImplementedError  # pragma no cover
+
+
+class ContextEventObjectTarget(EventObjectTarget[T], ABC):
+    """Handles the event object while being context aware."""
+    __slots__ = ('__context',)
+
+    def __init__(self, context: EventRegistryContext) -> None:
+        self.__context: Optional[EventRegistryContext] = context
+
+    def on_close(self) -> None:
+        self.__context = None
+
+    def on_event(self, source: str, target: str, event: T) -> bool:
+        context = self.__context
+        if not context:
+            # Closed, so do not handle this event anymore.
+            return True
+        return self.on_context_event(context, source, target, event)
+
+    def on_context_event(
+            self, context: EventRegistryContext,
+            source: str, target: str, event: T,
+    ) -> bool:
+        """Called when the event is received and the target is not closed."""
+        raise NotImplementedError
+
+    @property
+    def get_context(self) -> Optional[EventRegistryContext]:
+        """Get the context; None if closed."""
+        return self.__context

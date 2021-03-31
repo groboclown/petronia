@@ -3,7 +3,8 @@
 from . import model, navigation
 
 from .model import (
-    Tile, Portal, TileContainer,
+    Tile, Portal, TileContainer, TileIterator,
+    KnownWindow, ScreenBlockSplit, SimpleSplit, RootContainer,
 )
 
 from .navigation import (

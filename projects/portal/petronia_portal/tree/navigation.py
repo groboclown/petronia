@@ -69,7 +69,7 @@ def contained_portals(parent: model.Tile) -> List[model.Portal]:
     return ret
 
 
-def portals_in_block(root: model.TileContainer, active: TilePath) -> List[model.Portal]:
+def portals_in_block(root: model.TileIterator, active: TilePath) -> List[model.Portal]:
     """Return all the portals within the screen block of the active path."""
     # Look up the active path until we get to a block split.
     # Don't need to look at index 0, because that should be a portal.
@@ -115,7 +115,9 @@ def last_portal(root: model.Tile) -> TilePath:
     return path
 
 
-def get_parent_split(root: model.TileContainer, path: TilePath, path_index: int) -> Optional[model.TileContainer]:
+def get_parent_split(
+        root: model.TileIterator, path: TilePath, path_index: int,
+) -> Optional[model.TileIterator]:
     """Find the parent split of the path at the given index."""
     parent_index = path_index + 1
     if parent_index >= len(path):
@@ -127,7 +129,7 @@ def get_parent_split(root: model.TileContainer, path: TilePath, path_index: int)
     return None
 
 
-def navigate_previous(root: model.TileContainer, active: TilePath, wrap: str) -> TilePath:
+def navigate_previous(root: model.TileIterator, active: TilePath, wrap: str) -> TilePath:
     """Navigate from the active portal to the previous portal.  The active path must have the
     root as its parent."""
     if not active:
@@ -164,7 +166,7 @@ def navigate_previous(root: model.TileContainer, active: TilePath, wrap: str) ->
     return last_portal(root)
 
 
-def navigate_next(root: model.TileContainer, active: TilePath, wrap: str) -> TilePath:
+def navigate_next(root: model.TileIterator, active: TilePath, wrap: str) -> TilePath:
     """Navigate from the active portal to the given direction.  The active path must have the
     root as its parent."""
     if not active:
@@ -203,7 +205,7 @@ def navigate_next(root: model.TileContainer, active: TilePath, wrap: str) -> Til
     return first_portal(root)
 
 
-def navigate_up(root: model.TileContainer, active: TilePath, wrap: str) -> Optional[model.Portal]:
+def navigate_up(root: model.TileIterator, active: TilePath, wrap: str) -> Optional[model.Portal]:
     """Navigate from the active portal to the given direction.  The active path must have the
     root as its parent."""
     if not active:
@@ -239,7 +241,7 @@ def navigate_up(root: model.TileContainer, active: TilePath, wrap: str) -> Optio
     return None
 
 
-def navigate_down(root: model.TileContainer, active: TilePath, wrap: str) -> Optional[model.Portal]:
+def navigate_down(root: model.TileIterator, active: TilePath, wrap: str) -> Optional[model.Portal]:
     """Navigate from the active portal to the given direction.  The active path must have the
     root as its parent."""
     if len(active) == 0:
@@ -271,7 +273,7 @@ def navigate_down(root: model.TileContainer, active: TilePath, wrap: str) -> Opt
     return best_match
 
 
-def navigate_left(root: model.TileContainer, active: TilePath, wrap: str) -> Optional[model.Portal]:
+def navigate_left(root: model.TileIterator, active: TilePath, wrap: str) -> Optional[model.Portal]:
     """Navigate from the active portal to the given direction.  The active path must have the
     root as its parent."""
     if not active:
@@ -304,7 +306,7 @@ def navigate_left(root: model.TileContainer, active: TilePath, wrap: str) -> Opt
     return best_match
 
 
-def navigate_right(root: model.TileContainer, active: TilePath, wrap: str) -> Optional[model.Portal]:
+def navigate_right(root: model.TileIterator, active: TilePath, wrap: str) -> Optional[model.Portal]:
     """Navigate from the active portal to the given direction.  The active path must have the
     root as its parent."""
     if not active:

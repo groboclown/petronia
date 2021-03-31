@@ -10,14 +10,14 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Optional,
     Any,
-    SupportsInt,
+    List,
     Union,
+    Optional,
+    Dict,
     SupportsFloat,
     cast,
-    List,
-    Dict,
+    SupportsInt,
 )
 import datetime
 from petronia_common.util import i18n as _
@@ -42,16 +42,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            int,
-            List[str],
-            List[bool],
-            List[datetime.datetime],
+            bool,
             float,
             datetime.datetime,
-            bool,
+            List[str],
+            List[datetime.datetime],
             List[int],
-            List[float],
             str,
+            List[bool],
+            List[float],
+            int,
         ],
     ) -> None:
         self.__name = name
@@ -64,16 +64,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            int,
-            List[str],
-            List[bool],
-            List[datetime.datetime],
+            bool,
             float,
             datetime.datetime,
-            bool,
+            List[str],
+            List[datetime.datetime],
             List[int],
-            List[float],
             str,
+            List[bool],
+            List[float],
+            int,
     ]:
         """The selector value."""
         return self.__value
@@ -595,7 +595,7 @@ class LogEvent:
                 name='LogEvent',
             )
         else:
-            if val not in ('info','verbose','debug','warning', ):
+            if val not in ('info','warning','verbose','debug', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

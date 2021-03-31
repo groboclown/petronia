@@ -10,26 +10,246 @@ Data structures and marshalling for extension petronia.core.api.native.screen ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    List,
+    SupportsInt,
     Dict,
     Optional,
-    SupportsFloat,
-    cast,
-    SupportsInt,
     Any,
-    Union,
+    List,
 )
-import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
     not_none,
     StdRet,
-    collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.screen'
 EXTENSION_VERSION = (1, 0, 0)
+
+
+class VirtualScreenBlock:
+    """
+    A single block of virtual screen space, usually maps to a single monitor.
+    """
+    __slots__ = ('nw_x_pixel', 'nw_y_pixel', 'width', 'height', 'ratio_x', 'ratio_y',)
+
+    def __init__(
+        self,
+        nw_x_pixel: int,
+        nw_y_pixel: int,
+        width: int,
+        height: int,
+        ratio_x: int,
+        ratio_y: int,
+    ) -> None:
+        self.nw_x_pixel = nw_x_pixel
+        self.nw_y_pixel = nw_y_pixel
+        self.width = width
+        self.height = height
+        self.ratio_x = ratio_x
+        self.ratio_y = ratio_y
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'nw_x_pixel': self.nw_x_pixel,
+            'nw_y_pixel': self.nw_y_pixel,
+            'width': self.width,
+            'height': self.height,
+            'ratio_x': self.ratio_x,
+            'ratio_y': self.ratio_y,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['VirtualScreenBlock']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('nw_x_pixel')
+        f_nw_x_pixel: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='nw_x_pixel',
+                name='VirtualScreenBlock',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='nw_x_pixel',
+                    type='int',
+                    name='VirtualScreenBlock',
+                )
+            f_nw_x_pixel = int(val)
+        val = data.get('nw_y_pixel')
+        f_nw_y_pixel: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='nw_y_pixel',
+                name='VirtualScreenBlock',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='nw_y_pixel',
+                    type='int',
+                    name='VirtualScreenBlock',
+                )
+            f_nw_y_pixel = int(val)
+        val = data.get('width')
+        f_width: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='width',
+                name='VirtualScreenBlock',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='width',
+                    type='int',
+                    name='VirtualScreenBlock',
+                )
+            f_width = int(val)
+        val = data.get('height')
+        f_height: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='height',
+                name='VirtualScreenBlock',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='height',
+                    type='int',
+                    name='VirtualScreenBlock',
+                )
+            f_height = int(val)
+        val = data.get('ratio_x')
+        f_ratio_x: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='ratio_x',
+                name='VirtualScreenBlock',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='ratio_x',
+                    type='int',
+                    name='VirtualScreenBlock',
+                )
+            f_ratio_x = int(val)
+        val = data.get('ratio_y')
+        f_ratio_y: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='ratio_y',
+                name='VirtualScreenBlock',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='ratio_y',
+                    type='int',
+                    name='VirtualScreenBlock',
+                )
+            f_ratio_y = int(val)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(VirtualScreenBlock(
+            nw_x_pixel=not_none(f_nw_x_pixel),
+            nw_y_pixel=not_none(f_nw_y_pixel),
+            width=not_none(f_width),
+            height=not_none(f_height),
+            ratio_x=not_none(f_ratio_x),
+            ratio_y=not_none(f_ratio_y),
+        ))
+
+    def __repr__(self) -> str:
+        return "VirtualScreenBlock(" + repr(self.export_data()) + ")"
+
+
+class VirtualScreenState:
+    """
+    Layout of the monitors mapped into a virtual space. Index 0 is considered the
+    primary screen, and must have a virtual North-West corner pixel set to (0, 0).
+    Note that there isn't necessarily a 1-to-1 screen area to monitor here. Each
+    screen area is a rectangle.
+    """
+    __slots__ = ('area',)
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.screen:virtual-screen'
+    UNIQUE_TARGET_REL = 'petronia.core.api.native.screen:virtual-screen'
+
+    def __init__(
+        self,
+        area: List[VirtualScreenBlock],
+    ) -> None:
+        self.area = area
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'area': [v.export_data() for v in self.area],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['VirtualScreenState']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('area')
+        f_area: List[VirtualScreenBlock]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='area',
+                name='VirtualScreenState',
+            )
+        else:
+            f_area = []
+            for item in val:
+                parsed_area = VirtualScreenBlock.parse_data(item)
+                if parsed_area.has_error:
+                    return parsed_area.forward()
+                f_area.append(parsed_area.result)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(VirtualScreenState(
+            area=not_none(f_area),
+        ))
+
+    def __repr__(self) -> str:
+        return "VirtualScreenState(" + repr(self.export_data()) + ")"
 
 
 class SourceMonitor:
@@ -471,1106 +691,6 @@ class ScreenMonitorMappingConfigGroup:
 
     def __repr__(self) -> str:
         return "ScreenMonitorMappingConfigGroup(" + repr(self.export_data()) + ")"
-
-
-class SetScreenConfigurationRequestEvent:
-    """
-    Request to set the screen configuration. It will only be set if the
-    configuration is valid. If the request is valid, then the screen configuration
-    datastore is updated and a success message is sent. Additionally, the active
-    virtual-screen datastore value may be updated if this caused a change.
-    """
-    __slots__ = ('request_id', 'mapped_screens_by_monitors',)
-    FULL_EVENT_NAME = 'petronia.core.api.native.screen:set-screen-configuration:request'
-    SHORT_EVENT_NAME = 'set-screen-configuration:request'
-
-    UNIQUE_TARGET_FQN = 'petronia.core.api.native.screen:configuration'
-    UNIQUE_TARGET_REL = 'configuration'
-
-    def __init__(
-        self,
-        request_id: int,
-        mapped_screens_by_monitors: List[ScreenMonitorMappingConfigGroup],
-    ) -> None:
-        self.request_id = request_id
-        self.mapped_screens_by_monitors = mapped_screens_by_monitors
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return SetScreenConfigurationRequestEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'request_id': self.request_id,
-            'mapped_screens_by_monitors': [v.export_data() for v in self.mapped_screens_by_monitors],
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['SetScreenConfigurationRequestEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('request_id')
-        f_request_id: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='request_id',
-                name='SetScreenConfigurationRequestEvent',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='request_id',
-                    type='int',
-                    name='SetScreenConfigurationRequestEvent',
-                )
-            f_request_id = int(val)
-        val = data.get('mapped_screens_by_monitors')
-        f_mapped_screens_by_monitors: List[ScreenMonitorMappingConfigGroup]
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='mapped_screens_by_monitors',
-                name='SetScreenConfigurationRequestEvent',
-            )
-        else:
-            f_mapped_screens_by_monitors = []
-            for item in val:
-                parsed_mapped_screens_by_monitors = ScreenMonitorMappingConfigGroup.parse_data(item)
-                if parsed_mapped_screens_by_monitors.has_error:
-                    return parsed_mapped_screens_by_monitors.forward()
-                f_mapped_screens_by_monitors.append(parsed_mapped_screens_by_monitors.result)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(SetScreenConfigurationRequestEvent(
-            request_id=not_none(f_request_id),
-            mapped_screens_by_monitors=not_none(f_mapped_screens_by_monitors),
-        ))
-
-    def __repr__(self) -> str:
-        return "SetScreenConfigurationRequestEvent(" + repr(self.export_data()) + ")"
-
-
-class SetScreenConfigurationSuccessEvent:
-    """
-    The screen configuration request was successful. The request_id will be set to
-    the original configuration set request, and the event's target_id is set to the
-    original source_id.
-    """
-    __slots__ = ('request_id',)
-    FULL_EVENT_NAME = 'petronia.core.api.native.screen:set-screen-configuration:success'
-    SHORT_EVENT_NAME = 'set-screen-configuration:success'
-
-    def __init__(
-        self,
-        request_id: int,
-    ) -> None:
-        self.request_id = request_id
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return SetScreenConfigurationSuccessEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'request_id': self.request_id,
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['SetScreenConfigurationSuccessEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('request_id')
-        f_request_id: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='request_id',
-                name='SetScreenConfigurationSuccessEvent',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='request_id',
-                    type='int',
-                    name='SetScreenConfigurationSuccessEvent',
-                )
-            f_request_id = int(val)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(SetScreenConfigurationSuccessEvent(
-            request_id=not_none(f_request_id),
-        ))
-
-    def __repr__(self) -> str:
-        return "SetScreenConfigurationSuccessEvent(" + repr(self.export_data()) + ")"
-
-
-class MessageArgumentValue:
-    """
-    A replacement value for a named argument in the message.
-    """
-    __slots__ = ('__name', '__value')
-
-    def __init__(
-        self,
-        name: str,
-        value: Union[
-            datetime.datetime,
-            List[datetime.datetime],
-            bool,
-            List[float],
-            List[str],
-            List[bool],
-            List[int],
-            float,
-            str,
-            int,
-        ],
-    ) -> None:
-        self.__name = name
-        self.__value = value
-
-    @property
-    def name(self) -> str:
-        """Name of the selector type."""
-        return self.__name
-
-    @property
-    def value(self) -> Union[
-            datetime.datetime,
-            List[datetime.datetime],
-            bool,
-            List[float],
-            List[str],
-            List[bool],
-            List[int],
-            float,
-            str,
-            int,
-    ]:
-        """The selector value."""
-        return self.__value
-
-    def __repr__(self) -> str:
-        return 'MessageArgumentValue(type: {0}, value: {1})'.format(
-            self.__name, repr(self.__value),
-        )
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0912
-        """Create the event data structure, ready for marshalling."""
-        if self.__name == 'string':
-            return {
-                '^': self.__name,
-                '$':
-                    cast(str, self.__value),
-            }
-        if self.__name == 'int':
-            return {
-                '^': self.__name,
-                '$':
-                    cast(int, self.__value),
-            }
-        if self.__name == 'float':
-            return {
-                '^': self.__name,
-                '$':
-                    cast(float, self.__value),
-            }
-        if self.__name == 'bool':
-            return {
-                '^': self.__name,
-                '$':
-                    cast(bool, self.__value),
-            }
-        if self.__name == 'datetime':
-            return {
-                '^': self.__name,
-                '$':
-                    cast(datetime.datetime, self.__value).strftime('%Y%m%d:%H%M%S.%f:%z'),
-            }
-        if self.__name == 'string_list':
-            return {
-                '^': self.__name,
-                '$':
-                    list(cast(List[str], self.__value)),
-            }
-        if self.__name == 'int_list':
-            return {
-                '^': self.__name,
-                '$':
-                    list(cast(List[int], self.__value)),
-            }
-        if self.__name == 'float_list':
-            return {
-                '^': self.__name,
-                '$':
-                    list(cast(List[float], self.__value)),
-            }
-        if self.__name == 'bool_list':
-            return {
-                '^': self.__name,
-                '$':
-                    list(cast(List[bool], self.__value)),
-            }
-        if self.__name == 'datetime_list':
-            return {
-                '^': self.__name,
-                '$':
-                    [dtv.strftime('%Y%m%d:%H%M%S.%f:%z') for dtv in cast(List[datetime.datetime], self.__value)],
-            }
-        raise RuntimeError('invalid inner type: ' + repr(self.__name))  # pragma no cover
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgumentValue']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        selector_name = data.get('^')
-        val = data.get('$')
-        if not isinstance(selector_name, str):
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('selector value must have ^ and $ keys'),
-            )
-        if selector_name == 'string':
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='string',
-                    type='str',
-                    name='MessageArgumentValue',
-                )
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                val,
-            ))
-        if selector_name == 'int':
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='int',
-                    type='int',
-                    name='MessageArgumentValue',
-                )
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                int(val),
-            ))
-        if selector_name == 'float':
-            if not isinstance(val, SupportsFloat):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='float',
-                    type='float',
-                    name='MessageArgumentValue',
-                )
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                float(val),
-            ))
-        if selector_name == 'bool':
-            if not isinstance(val, bool):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='bool',
-                    type='bool',
-                    name='MessageArgumentValue',
-                )
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                val,
-            ))
-        if selector_name == 'datetime':
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Value must be of type datetime for selector {name}'),
-                    field_name='datetime',
-                    name='MessageArgumentValue',
-                )
-            try:
-                dt_val = datetime.datetime.strptime(val, '%Y%m%d:%H%M%S.%f:%z')
-                return StdRet.pass_ok(MessageArgumentValue(
-                    selector_name,
-                    dt_val,
-                ))
-            except ValueError:
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Invalid date-time format: {value}'),
-                    value=val,
-                )
-        if selector_name == 'string_list':
-            if not isinstance(val, list):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for selector {name}'),
-                    field_name='string_list',
-                    type='List[str]',
-                    name='MessageArgumentValue',
-                )
-            ret_val_str: List[str] = []
-            for item in val:
-                if not isinstance(item, str):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='string_list',
-                        type='str',
-                        name='MessageArgumentValue',
-                    )
-                ret_val_str.append(item)
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                ret_val_str,
-            ))
-        if selector_name == 'int_list':
-            if not isinstance(val, list):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for selector {name}'),
-                    field_name='int_list',
-                    type='List[int]',
-                    name='MessageArgumentValue',
-                )
-            ret_val_int: List[int] = []
-            for item in val:
-                if not isinstance(item, int):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='int_list',
-                        type='int',
-                        name='MessageArgumentValue',
-                    )
-                ret_val_int.append(item)
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                ret_val_int,
-            ))
-        if selector_name == 'float_list':
-            if not isinstance(val, list):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for selector {name}'),
-                    field_name='float_list',
-                    type='List[float]',
-                    name='MessageArgumentValue',
-                )
-            ret_val_float: List[float] = []
-            for item in val:
-                if not isinstance(item, float):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='float_list',
-                        type='float',
-                        name='MessageArgumentValue',
-                    )
-                ret_val_float.append(item)
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                ret_val_float,
-            ))
-        if selector_name == 'bool_list':
-            if not isinstance(val, list):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for selector {name}'),
-                    field_name='bool_list',
-                    type='List[bool]',
-                    name='MessageArgumentValue',
-                )
-            ret_val_bool: List[bool] = []
-            for item in val:
-                if not isinstance(item, bool):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='bool_list',
-                        type='bool',
-                        name='MessageArgumentValue',
-                    )
-                ret_val_bool.append(item)
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                ret_val_bool,
-            ))
-        if selector_name == 'datetime_list':
-            if not isinstance(val, list):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for selector {name}'),
-                    field_name='datetime_list',
-                    type='List[datetime.datetime]',
-                    name='MessageArgumentValue',
-                )
-            ret_val_datetime_datetime: List[datetime.datetime] = []
-            for item in val:
-                if not isinstance(item, str):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='datetime_list',
-                        type='datetime.datetime',
-                        name='MessageArgumentValue',
-                    )
-                try:
-                    ret_val_datetime_datetime.append(datetime.datetime.strptime(item, '%Y%m%d:%H%M%S.%f:%z'))
-                except ValueError:
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _('Invalid date-time format: {value}'),
-                        value=val,
-                    )
-            return StdRet.pass_ok(MessageArgumentValue(
-                selector_name,
-                ret_val_datetime_datetime,
-            ))
-        return StdRet.pass_errmsg(
-            STANDARD_PETRONIA_CATALOG,
-            _('Invalid selector name {name} for {nc}'),
-            name=selector_name,
-            nc='MessageArgumentValue',
-        )
-
-
-class MessageArgument:
-    """
-    An argument to be inserted into the localizable message.
-    """
-    __slots__ = ('name', 'value',)
-
-    def __init__(
-        self,
-        name: str,
-        value: MessageArgumentValue,
-    ) -> None:
-        self.name = name
-        self.value = value
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'name': self.name,
-            'value': self.value.export_data(),
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgument']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('name')
-        f_name: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='name',
-                name='MessageArgument',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='name',
-                    type='str',
-                    name='MessageArgument',
-                )
-            f_name = val
-        val = data.get('value')
-        f_value: MessageArgumentValue
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='value',
-                name='MessageArgument',
-            )
-        else:
-            parsed_value = MessageArgumentValue.parse_data(val)
-            if parsed_value.has_error:
-                return parsed_value.forward()
-            if parsed_value.value is None:
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _(
-                        'Field {field_name} must not be null'
-                    ),
-                    field_name='value',
-                )
-            f_value = parsed_value.result
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(MessageArgument(
-            name=not_none(f_name),
-            value=not_none(f_value),
-        ))
-
-    def __repr__(self) -> str:
-        return "MessageArgument(" + repr(self.export_data()) + ")"
-
-
-class LocalizableMessage:
-    """
-    A localizable message for user display.
-    """
-    __slots__ = ('catalog', 'message', 'arguments',)
-
-    def __init__(
-        self,
-        catalog: str,
-        message: str,
-        arguments: Optional[List[MessageArgument]],
-    ) -> None:
-        self.catalog = catalog
-        self.message = message
-        self.arguments = arguments
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'catalog': self.catalog,
-            'message': self.message,
-            'arguments': None if self.arguments is None else [v.export_data() for v in self.arguments],
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LocalizableMessage']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('catalog')
-        f_catalog: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='catalog',
-                name='LocalizableMessage',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='catalog',
-                    type='str',
-                    name='LocalizableMessage',
-                )
-            f_catalog = val
-        val = data.get('message')
-        f_message: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='message',
-                name='LocalizableMessage',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='message',
-                    type='str',
-                    name='LocalizableMessage',
-                )
-            f_message = val
-        val = data.get('arguments')
-        f_arguments: Optional[List[MessageArgument]] = None
-        if val is not None:
-            f_arguments = []
-            for item in val:
-                parsed_arguments = MessageArgument.parse_data(item)
-                if parsed_arguments.has_error:
-                    return parsed_arguments.forward()
-                f_arguments.append(parsed_arguments.result)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(LocalizableMessage(
-            catalog=not_none(f_catalog),
-            message=not_none(f_message),
-            arguments=f_arguments,
-        ))
-
-    def __repr__(self) -> str:
-        return "LocalizableMessage(" + repr(self.export_data()) + ")"
-
-
-class Error:
-    """
-    A description of a failure.
-    """
-    __slots__ = ('identifier', 'categories', 'source', 'messages',)
-
-    def __init__(
-        self,
-        identifier: str,
-        categories: List[str],
-        source: Optional[str],
-        messages: List[LocalizableMessage],
-    ) -> None:
-        self.identifier = identifier
-        self.categories = categories
-        self.source = source
-        self.messages = messages
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'identifier': self.identifier,
-            'categories': list(self.categories),
-            'source': self.source,
-            'messages': [v.export_data() for v in self.messages],
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Error']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('identifier')
-        f_identifier: str
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='identifier',
-                name='Error',
-            )
-        else:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='identifier',
-                    type='str',
-                    name='Error',
-                )
-            f_identifier = val
-        val = data.get('categories')
-        f_categories: List[str]
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='categories',
-                name='Error',
-            )
-        else:
-            if not isinstance(val, list):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='categories',
-                    type='List[str]',
-                    name='Error',
-                )
-            f_categories = []
-            for item in val:
-                if not isinstance(item, str):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='categories',
-                        type='str',
-                        name='Error',
-                    )
-                f_categories.append(item)
-        val = data.get('source')
-        f_source: Optional[str] = None
-        if val is not None:
-            if not isinstance(val, str):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='source',
-                    type='str',
-                    name='Error',
-                )
-            f_source = val
-        val = data.get('messages')
-        f_messages: List[LocalizableMessage]
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='messages',
-                name='Error',
-            )
-        else:
-            f_messages = []
-            for item in val:
-                parsed_messages = LocalizableMessage.parse_data(item)
-                if parsed_messages.has_error:
-                    return parsed_messages.forward()
-                f_messages.append(parsed_messages.result)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(Error(
-            identifier=not_none(f_identifier),
-            categories=not_none(f_categories),
-            source=f_source,
-            messages=not_none(f_messages),
-        ))
-
-    def __repr__(self) -> str:
-        return "Error(" + repr(self.export_data()) + ")"
-
-
-class SetScreenConfigurationFailureEvent:
-    """
-    The screen configuration request failed due to a problem with the request. The
-    request_id will be set to the original configuration set request, and the
-    event's target_id is set to the original source_id.
-    """
-    __slots__ = ('request_id', 'error',)
-    FULL_EVENT_NAME = 'petronia.core.api.native.screen:set-screen-configuration:failure'
-    SHORT_EVENT_NAME = 'set-screen-configuration:failure'
-
-    def __init__(
-        self,
-        request_id: int,
-        error: Error,
-    ) -> None:
-        self.request_id = request_id
-        self.error = error
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return SetScreenConfigurationFailureEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'request_id': self.request_id,
-            'error': self.error.export_data(),
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['SetScreenConfigurationFailureEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('request_id')
-        f_request_id: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='request_id',
-                name='SetScreenConfigurationFailureEvent',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='request_id',
-                    type='int',
-                    name='SetScreenConfigurationFailureEvent',
-                )
-            f_request_id = int(val)
-        val = data.get('error')
-        f_error: Error
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='error',
-                name='SetScreenConfigurationFailureEvent',
-            )
-        else:
-            parsed_error = Error.parse_data(val)
-            if parsed_error.has_error:
-                return parsed_error.forward()
-            if parsed_error.value is None:
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _(
-                        'Field {field_name} must not be null'
-                    ),
-                    field_name='error',
-                )
-            f_error = parsed_error.result
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(SetScreenConfigurationFailureEvent(
-            request_id=not_none(f_request_id),
-            error=not_none(f_error),
-        ))
-
-    def __repr__(self) -> str:
-        return "SetScreenConfigurationFailureEvent(" + repr(self.export_data()) + ")"
-
-
-class VirtualScreenBlock:
-    """
-    A single block of virtual screen space, usually maps to a single monitor.
-    """
-    __slots__ = ('nw_x_pixel', 'nw_y_pixel', 'width', 'height', 'ratio_x', 'ratio_y',)
-
-    def __init__(
-        self,
-        nw_x_pixel: int,
-        nw_y_pixel: int,
-        width: int,
-        height: int,
-        ratio_x: int,
-        ratio_y: int,
-    ) -> None:
-        self.nw_x_pixel = nw_x_pixel
-        self.nw_y_pixel = nw_y_pixel
-        self.width = width
-        self.height = height
-        self.ratio_x = ratio_x
-        self.ratio_y = ratio_y
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'nw_x_pixel': self.nw_x_pixel,
-            'nw_y_pixel': self.nw_y_pixel,
-            'width': self.width,
-            'height': self.height,
-            'ratio_x': self.ratio_x,
-            'ratio_y': self.ratio_y,
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['VirtualScreenBlock']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('nw_x_pixel')
-        f_nw_x_pixel: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='nw_x_pixel',
-                name='VirtualScreenBlock',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='nw_x_pixel',
-                    type='int',
-                    name='VirtualScreenBlock',
-                )
-            f_nw_x_pixel = int(val)
-        val = data.get('nw_y_pixel')
-        f_nw_y_pixel: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='nw_y_pixel',
-                name='VirtualScreenBlock',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='nw_y_pixel',
-                    type='int',
-                    name='VirtualScreenBlock',
-                )
-            f_nw_y_pixel = int(val)
-        val = data.get('width')
-        f_width: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='width',
-                name='VirtualScreenBlock',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='width',
-                    type='int',
-                    name='VirtualScreenBlock',
-                )
-            f_width = int(val)
-        val = data.get('height')
-        f_height: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='height',
-                name='VirtualScreenBlock',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='height',
-                    type='int',
-                    name='VirtualScreenBlock',
-                )
-            f_height = int(val)
-        val = data.get('ratio_x')
-        f_ratio_x: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='ratio_x',
-                name='VirtualScreenBlock',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='ratio_x',
-                    type='int',
-                    name='VirtualScreenBlock',
-                )
-            f_ratio_x = int(val)
-        val = data.get('ratio_y')
-        f_ratio_y: int
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='ratio_y',
-                name='VirtualScreenBlock',
-            )
-        else:
-            if not isinstance(val, SupportsInt):
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='ratio_y',
-                    type='int',
-                    name='VirtualScreenBlock',
-                )
-            f_ratio_y = int(val)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(VirtualScreenBlock(
-            nw_x_pixel=not_none(f_nw_x_pixel),
-            nw_y_pixel=not_none(f_nw_y_pixel),
-            width=not_none(f_width),
-            height=not_none(f_height),
-            ratio_x=not_none(f_ratio_x),
-            ratio_y=not_none(f_ratio_y),
-        ))
-
-    def __repr__(self) -> str:
-        return "VirtualScreenBlock(" + repr(self.export_data()) + ")"
-
-
-class VirtualScreenState:
-    """
-    Layout of the monitors mapped into a virtual space. Index 0 is considered the
-    primary screen, and must have a virtual North-West corner pixel set to (0, 0).
-    Note that there isn't necessarily a 1-to-1 screen area to monitor here. Each
-    screen area is a rectangle.
-    """
-    __slots__ = ('area',)
-
-    UNIQUE_TARGET_FQN = 'petronia.core.api.native.screen:virtual-screen'
-    UNIQUE_TARGET_REL = 'petronia.core.api.native.screen:virtual-screen'
-
-    def __init__(
-        self,
-        area: List[VirtualScreenBlock],
-    ) -> None:
-        self.area = area
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'area': [v.export_data() for v in self.area],
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['VirtualScreenState']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('area')
-        f_area: List[VirtualScreenBlock]
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='area',
-                name='VirtualScreenState',
-            )
-        else:
-            f_area = []
-            for item in val:
-                parsed_area = VirtualScreenBlock.parse_data(item)
-                if parsed_area.has_error:
-                    return parsed_area.forward()
-                f_area.append(parsed_area.result)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(VirtualScreenState(
-            area=not_none(f_area),
-        ))
-
-    def __repr__(self) -> str:
-        return "VirtualScreenState(" + repr(self.export_data()) + ")"
 
 
 class ScreenSetupsState:

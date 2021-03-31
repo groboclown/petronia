@@ -52,7 +52,7 @@ state-data:
         value-type:
           type: reference
           ref: workspace-setup
-      default-window-behavior:
+      default_window_behavior:
         description: >
           List of window portal behavior.
         type: array

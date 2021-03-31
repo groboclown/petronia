@@ -10,19 +10,20 @@ Data structures and marshalling for extension petronia_portal version 1.0.0.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    List,
     cast,
     Any,
-    SupportsInt,
+    Optional,
     Union,
+    List,
+    Dict,
+    SupportsInt,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    collect_errors_from,
     not_none,
     STANDARD_PETRONIA_CATALOG,
     StdRet,
-    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia_portal'
@@ -196,7 +197,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('center','left','right', ):
+            if val not in ('center','right','left', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -215,7 +216,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('center','top','bottom', ):
+            if val not in ('center','bottom','top', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -234,7 +235,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('none','stretch','fit','shrink', ):
+            if val not in ('stretch','fit','none','shrink', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -253,7 +254,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('none','stretch','fit','shrink', ):
+            if val not in ('stretch','fit','none','shrink', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -817,11 +818,204 @@ class WorkspaceSetup:
         return "WorkspaceSetup(" + repr(self.export_data()) + ")"
 
 
+class WindowMatchItem:
+    """
+    A single meta-data matcher for a window.
+    """
+    __slots__ = ('key', 'match_type', 'value',)
+
+    def __init__(
+        self,
+        key: str,
+        match_type: str,
+        value: str,
+    ) -> None:
+        self.key = key
+        self.match_type = match_type
+        self.value = value
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'key': self.key,
+            'match_type': self.match_type,
+            'value': self.value,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['WindowMatchItem']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('key')
+        f_key: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='key',
+                name='WindowMatchItem',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='key',
+                    type='str',
+                    name='WindowMatchItem',
+                )
+            f_key = val
+        val = data.get('match_type')
+        f_match_type: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='match_type',
+                name='WindowMatchItem',
+            )
+        else:
+            if val not in ('glob','not-exists','exact','regex','exists', ):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='match_type',
+                    type='str',
+                    name='WindowMatchItem',
+                )
+            f_match_type = val
+        val = data.get('value')
+        f_value: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='value',
+                name='WindowMatchItem',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='value',
+                    type='str',
+                    name='WindowMatchItem',
+                )
+            f_value = val
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(WindowMatchItem(
+            key=not_none(f_key),
+            match_type=not_none(f_match_type),
+            value=not_none(f_value),
+        ))
+
+    def __repr__(self) -> str:
+        return "WindowMatchItem(" + repr(self.export_data()) + ")"
+
+
+class WindowMatch:
+    """
+    Matches a window description to a default assigned portal and fit.
+    """
+    __slots__ = ('match', 'managed', 'fit', 'initial_portal',)
+
+    def __init__(
+        self,
+        match: List[WindowMatchItem],
+        managed: Optional[bool],
+        fit: Optional[WindowPortalFit],
+        initial_portal: Optional[str],
+    ) -> None:
+        self.match = match
+        self.managed = managed
+        self.fit = fit
+        self.initial_portal = initial_portal
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'match': [v.export_data() for v in self.match],
+            'managed': self.managed,
+            'fit': None if self.fit is None else self.fit.export_data(),
+            'initial_portal': self.initial_portal,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['WindowMatch']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('match')
+        f_match: List[WindowMatchItem]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='match',
+                name='WindowMatch',
+            )
+        else:
+            f_match = []
+            for item in val:
+                parsed_match = WindowMatchItem.parse_data(item)
+                if parsed_match.has_error:
+                    return parsed_match.forward()
+                f_match.append(parsed_match.result)
+        val = data.get('managed')
+        f_managed: Optional[bool] = None
+        if val is not None:
+            if not isinstance(val, bool):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='managed',
+                    type='bool',
+                    name='WindowMatch',
+                )
+            f_managed = val
+        val = data.get('fit')
+        f_fit: Optional[WindowPortalFit] = None
+        if val is not None:
+            parsed_fit = WindowPortalFit.parse_data(val)
+            if parsed_fit.has_error:
+                return parsed_fit.forward()
+            # Value, not result, because it could be optional...
+            f_fit = parsed_fit.value
+        val = data.get('initial_portal')
+        f_initial_portal: Optional[str] = None
+        if val is not None:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='initial_portal',
+                    type='str',
+                    name='WindowMatch',
+                )
+            f_initial_portal = val
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(WindowMatch(
+            match=not_none(f_match),
+            managed=f_managed,
+            fit=f_fit,
+            initial_portal=f_initial_portal,
+        ))
+
+    def __repr__(self) -> str:
+        return "WindowMatch(" + repr(self.export_data()) + ")"
+
+
 class ConfigurationState:
     """
     Configuration for the portals.
     """
-    __slots__ = ('workspaces',)
+    __slots__ = ('workspaces', 'default_window_behavior',)
 
     UNIQUE_TARGET_FQN = 'petronia_portal:configuration'
     UNIQUE_TARGET_REL = 'petronia_portal:configuration'
@@ -829,13 +1023,16 @@ class ConfigurationState:
     def __init__(
         self,
         workspaces: List[WorkspaceSetup],
+        default_window_behavior: List[WindowMatch],
     ) -> None:
         self.workspaces = workspaces
+        self.default_window_behavior = default_window_behavior
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'workspaces': [v.export_data() for v in self.workspaces],
+            'default_window_behavior': [v.export_data() for v in self.default_window_behavior],
         }
         return _strip_none(ret)
 
@@ -860,10 +1057,27 @@ class ConfigurationState:
                 if parsed_workspaces.has_error:
                     return parsed_workspaces.forward()
                 f_workspaces.append(parsed_workspaces.result)
+        val = data.get('default_window_behavior')
+        f_default_window_behavior: List[WindowMatch]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='default_window_behavior',
+                name='ConfigurationState',
+            )
+        else:
+            f_default_window_behavior = []
+            for item in val:
+                parsed_default_window_behavior = WindowMatch.parse_data(item)
+                if parsed_default_window_behavior.has_error:
+                    return parsed_default_window_behavior.forward()
+                f_default_window_behavior.append(parsed_default_window_behavior.result)
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(ConfigurationState(
             workspaces=not_none(f_workspaces),
+            default_window_behavior=not_none(f_default_window_behavior),
         ))
 
     def __repr__(self) -> str:

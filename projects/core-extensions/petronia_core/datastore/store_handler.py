@@ -1,8 +1,9 @@
 """Handle event requests."""
 
-from petronia_common.util import StdRet, join_errors, RET_OK_NONE
+from petronia_common.util import StdRet, join_none_results
 from petronia_ext_lib.logging import send_system_error
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
+from petronia_ext_lib.extension_loader import send_register_listeners
 from petronia_ext_lib.standard.embedded_json_data import embedded_json_data
 from petronia_ext_lib.standard.error import INTERNAL_ERROR_CATEGORY
 from . import shared_state
@@ -11,18 +12,24 @@ from .events.impl import datastore
 
 def register_store_data_listener(context: EventRegistryContext) -> StdRet[None]:
     """Register the store data listener."""
-    res1 = context.register_event_parser(
-        datastore.StoreDataEvent.FULL_EVENT_NAME,
-        datastore.StoreDataEvent.parse_data,
+    return join_none_results(
+        send_register_listeners(
+            context,
+            datastore.EXTENSION_NAME,
+            (
+                (datastore.StoreDataEvent.FULL_EVENT_NAME, None),
+            ),
+        ),
+        context.register_event_parser(
+            datastore.StoreDataEvent.FULL_EVENT_NAME,
+            datastore.StoreDataEvent.parse_data,
+        ),
+        context.register_target(
+            datastore.StoreDataEvent.FULL_EVENT_NAME,
+            None,
+            StoreDataHandler(context),
+        ),
     )
-    res2 = context.register_target(
-        datastore.StoreDataEvent.FULL_EVENT_NAME,
-        None,
-        StoreDataHandler(context),
-    )
-    if res1.has_error or res2.has_error:
-        return StdRet.pass_error(join_errors(*res1.error_messages(), *res2.error_messages()))
-    return RET_OK_NONE
 
 
 class StoreDataHandler(EventObjectTarget[datastore.StoreDataEvent]):

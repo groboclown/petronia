@@ -1,7 +1,7 @@
 """The split / portal tree model.  This is business logic built on top of the data model
 defined in the extension definition."""
-
-from typing import Sequence, List, Tuple, Optional
+from abc import ABC
+from typing import Sequence, List, Tuple, Dict, Callable, Optional
 import math
 from petronia_common.util import EMPTY_TUPLE
 from ..state import petronia_portal as portal_state
@@ -13,7 +13,7 @@ class KnownWindow:
     assigned position within the portal"""
     __slots__ = (
         '_target_id', '_fit', 'pos_x', 'pos_y', 'pos_w', 'pos_h',
-        '_original_state', 'managed'
+        '_original_state', 'managed', 'owning_portal_id',
     )
 
     def __init__(
@@ -25,6 +25,7 @@ class KnownWindow:
         self._target_id = target_id
         self._fit = fit
         self._original_state = window_state
+        self.owning_portal_id = -1
         self.managed = managed
         self.pos_x = window_state.location.x
         self.pos_y = window_state.location.y
@@ -122,6 +123,10 @@ class Tile:
         self.__pos_h = new_height
         return EMPTY_TUPLE
 
+    def get_contained_windows(self) -> Dict[str, KnownWindow]:
+        """Return all windows contained in this tile."""
+        raise NotImplementedError
+
 
 class Portal(Tile):
     """Leaf node in the tree.  Contains windows.  Not thread safe."""
@@ -218,6 +223,12 @@ class Portal(Tile):
 
         return self._update_window_position(windows)
 
+    def get_contained_windows(self) -> Dict[str, KnownWindow]:
+        return {
+            w.target_id: w
+            for w in self._window_order
+        }
+
     def _update_window_position(self, windows: Sequence[KnownWindow]) -> Sequence[KnownWindow]:
         """Update each window in the arguments, and return those whose position has changed."""
         changed: List[KnownWindow] = []
@@ -236,12 +247,20 @@ class Portal(Tile):
         return changed
 
 
-class TileContainer(Tile):
+class TileIterator(Tile, ABC):
+    """A tile that contains other tiles that can be fetched."""
+
+    def get_children(self) -> Sequence[Tile]:
+        """Get all the children contained."""
+        raise NotImplementedError
+
+
+class TileContainer(TileIterator):
     """A layout that has multiple containers or portals within it."""
     __slots__ = ('_children', '_is_block')
 
     def __init__(self, is_block: bool) -> None:
-        Tile.__init__(self)
+        TileIterator.__init__(self)
         self._is_block = is_block
         self._children: List[Tile] = []
 
@@ -253,6 +272,12 @@ class TileContainer(Tile):
     def get_children(self) -> Sequence[Tile]:
         """Get all the children of this split."""
         return tuple(self._children)
+
+    def get_contained_windows(self) -> Dict[str, KnownWindow]:
+        ret: Dict[str, KnownWindow] = {}
+        for chd in self._children:
+            ret.update(chd.get_contained_windows())
+        return ret
 
     def add_child(self, child: Tile, front: bool, equally_sized: bool) -> Sequence[KnownWindow]:
         """Add a new child into this split, optionally at the start.
@@ -288,7 +313,66 @@ class ScreenBlockSplit(TileContainer):
             self, new_x: int, new_y: int, new_width: int, new_height: int,
     ) -> Sequence[KnownWindow]:
         # The screen block can't be resized.
-        return ()
+        raise ValueError('Cannot change the screen block size.')
+
+
+class RootContainer(TileIterator):
+    """The root of the container tree."""
+
+    __slots__ = ('_blocks',)
+
+    def __init__(self) -> None:
+        TileIterator.__init__(self)
+        self._blocks: Sequence[ScreenBlockSplit] = ()
+
+    def on_screen_change(
+            self,
+            blocks: Sequence[Tuple[
+                int, int, int, int,
+                Callable[
+                    [ScreenBlockSplit, Dict[str, KnownWindow]],
+                    Sequence[KnownWindow],
+                ],
+            ]],
+    ) -> Sequence[KnownWindow]:
+        """
+        Called when the native UI reports the screen having been changed.
+        All the portals are recreated when this returns.
+
+        The callback is responsible for creating splits and portals within the new
+        screen block for the given screen block size.  It returns the list of windows
+        whose size has changed.  It also should remove windows that it
+        assigned to portals.
+
+        Generally, the last block passed in should be the default block, so that all remaining
+        windows are added to it.
+
+        Returns all windows whose positions are changed.
+        """
+        old_windows = self.get_contained_windows()
+
+        children: List[ScreenBlockSplit] = []
+        changed_windows: List[KnownWindow] = []
+        for block_x, block_y, block_w, block_h, callback in blocks:
+            block = ScreenBlockSplit(block_x, block_y, block_w, block_h)
+            children.append(block)
+            changed_windows.extend(callback(block, old_windows))
+
+        # If there are windows unassigned, then this is a programmer error.
+        assert not old_windows, 'Did not clear out old windows.'
+
+        self._blocks = tuple(blocks)
+
+        return changed_windows
+
+    def get_children(self) -> Sequence[Tile]:
+        return self._blocks
+
+    def get_contained_windows(self) -> Dict[str, KnownWindow]:
+        ret: Dict[str, KnownWindow] = {}
+        for chd in self.get_children():
+            ret.update(chd.get_contained_windows())
+        return ret
 
 
 class SimpleSplit(TileContainer):
