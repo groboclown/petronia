@@ -16,12 +16,13 @@ class PostHandlerTest(unittest.TestCase):
     def test_register_post_data_listener__errors(self) -> None:
         """Test register_delete_data_listener when it encounters errors."""
         context = unittest.mock.Mock(EventRegistryContext())
-        context.register_event_parser.return_value = StdRet.pass_errmsg('c1', i18n('m1'))
-        context.register_target.return_value = StdRet.pass_errmsg('c2', i18n('m2'))
+        context.send_event.return_value = StdRet.pass_errmsg('c1', i18n('m1'))
+        context.register_event_parser.return_value = StdRet.pass_errmsg('c2', i18n('m2'))
+        context.register_target.return_value = StdRet.pass_errmsg('c3', i18n('m3'))
         res = post_handler.register_post_data_listener(context)
         self.assertIsNotNone(res.error)
         self.assertEqual(
-            ['m1', 'm2'],
+            ['m1', 'm2', 'm3'],
             [m.debug() for m in res.error_messages()],
         )
 

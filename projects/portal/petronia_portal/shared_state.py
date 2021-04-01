@@ -12,34 +12,6 @@ def clear_data(config: Optional[state.petronia_portal.ConfigurationState] = None
     _CONFIG[0] = config or state.petronia_portal.ConfigurationState([], [])
 
 
-def create_default_root() -> tree.RootContainer:
-    """Create the default top-level split."""
-
-    def child_callback(
-            block: tree.ScreenBlockSplit, windows: Dict[str, tree.KnownWindow],
-    ) -> Sequence[tree.KnownWindow]:
-        portal = tree.Portal(tuple(windows.values()), state.petronia_portal.Portal(
-            1, state.petronia_portal.WindowPortalFit('left', 'top', 'fit', 'fit'),
-            0, 0, 0, 0, [],
-        ))
-        windows.clear()
-
-        split = tree.SimpleSplit(True)
-        split.add_child(portal, True, True)
-
-        block.add_child(split, True, True)
-
-        return portal.update_position(0, 0, 0, 0)
-
-    root_split = tree.RootContainer()
-    root_split.on_screen_change(
-        (
-            (0, 0, 0, 0, child_callback),
-        ),
-    )
-    return root_split
-
-
 def layout_root() -> tree.RootContainer:
     """Get the root of the active layout."""
     return _ROOT_LAYOUT[0]

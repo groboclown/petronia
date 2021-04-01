@@ -23,11 +23,11 @@ def path_to_portal_alias(parent: model.TileContainer, portal_alias: str) -> Tile
 
     Currently, this is slow and painful."""
     children = parent.get_children()
-    for index in range(len(children)):
+    for index in range(len(children)):  # pylint:disable=consider-using-enumerate
         child = children[index]
         if isinstance(child, model.Portal) and child.has_portal_alias(portal_alias):
             return [(index, child)]
-        elif isinstance(child, model.TileContainer):
+        if isinstance(child, model.TileContainer):
             child_path = path_to_portal_alias(child, portal_alias)
             if child_path:
                 child_path.append((index, child))
@@ -44,11 +44,11 @@ def path_to_portal_id(parent: model.TileContainer, portal_id: int) -> TilePath:
 
     Currently, this is slow and painful."""
     children = parent.get_children()
-    for index in range(len(children)):
+    for index in range(len(children)):  # pylint:disable=consider-using-enumerate
         child = children[index]
         if isinstance(child, model.Portal) and child.portal_id == portal_id:
             return [(index, child)]
-        elif isinstance(child, model.TileContainer):
+        if isinstance(child, model.TileContainer):
             child_path = path_to_portal_id(child, portal_id)
             if child_path:
                 child_path.append((index, child))
@@ -88,7 +88,7 @@ def first_portal(root: model.Tile) -> TilePath:
     # Note that the root is never inserted into the path.
     parent = root
     while isinstance(parent, model.TileContainer):
-        assert isinstance(parent, model.TileContainer)  # nosec  # mypy and others kind of want this.
+        assert isinstance(parent, model.TileContainer)  # nosec  # mypy and others kind of want this
         children = parent.get_children()
         if len(children) <= 0:
             # invalid setup.
@@ -104,7 +104,7 @@ def last_portal(root: model.Tile) -> TilePath:
     # Note that the root is never inserted into the path.
     parent = root
     while isinstance(parent, model.TileContainer):
-        assert isinstance(parent, model.TileContainer)  # nosec  # mypy and others kind of want this.
+        assert isinstance(parent, model.TileContainer)  # nosec  # mypy and others kind of want this
         children = parent.get_children()
         if len(children) <= 0:
             # invalid setup.

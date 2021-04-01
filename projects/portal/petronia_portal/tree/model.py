@@ -1,7 +1,7 @@
 """The split / portal tree model.  This is business logic built on top of the data model
 defined in the extension definition."""
 from abc import ABC
-from typing import Sequence, List, Tuple, Dict, Callable, Optional
+from typing import Sequence, List, Tuple, Iterable, Dict, Callable, Optional
 import math
 from petronia_common.util import EMPTY_TUPLE
 from ..state import petronia_portal as portal_state
@@ -13,7 +13,7 @@ class KnownWindow:
     assigned position within the portal"""
     __slots__ = (
         '_target_id', '_fit', 'pos_x', 'pos_y', 'pos_w', 'pos_h',
-        '_original_state', 'managed', 'owning_portal_id',
+        '_managed_state', 'managed', 'owning_portal_id', '_unmanaged_state',
     )
 
     def __init__(
@@ -24,7 +24,8 @@ class KnownWindow:
     ) -> None:
         self._target_id = target_id
         self._fit = fit
-        self._original_state = window_state
+        self._managed_state = window_state
+        self._unmanaged_state = window_state
         self.owning_portal_id = -1
         self.managed = managed
         self.pos_x = window_state.location.x
@@ -38,13 +39,21 @@ class KnownWindow:
         return self._target_id
 
     @property
-    def native_state(self) -> window_event.WindowState:
+    def unmanaged_native_state(self) -> window_event.WindowState:
+        """Get the state of the window as reported by the native extension, before its managed."""
+        return self._unmanaged_state
+
+    @property
+    def managed_native_state(self) -> window_event.WindowState:
         """Get the state of the window as reported by the native extension."""
-        return self._original_state
+        return self._managed_state
 
     def update_native_state(self, new_state: window_event.WindowState) -> None:
         """Update the window's state when the native extension reports an update."""
-        self._original_state = new_state
+        if self.managed:
+            self._managed_state = new_state
+        else:
+            self._unmanaged_state = new_state
 
     def update_position(
             self, nw_x: int, nw_y: int, width: int, height: int,
@@ -58,11 +67,11 @@ class KnownWindow:
         fit = self._fit or default_fit
 
         new_x, new_width = adjust_position(
-            self.native_state.location.width,
+            self.unmanaged_native_state.location.width,
             nw_x, width, fit.justify_horizontal, fit.fit_horizontal,
         )
         new_y, new_height = adjust_position(
-            self.native_state.location.height,
+            self.unmanaged_native_state.location.height,
             nw_y, height, fit.justify_vertical, fit.fit_vertical,
         )
 
@@ -134,7 +143,7 @@ class Portal(Tile):
         '_window_order',
         '_position',
         '_state',
-        '__index'
+        '__index',
     )
     _PORTAL_COUNT = 0
 
@@ -148,6 +157,7 @@ class Portal(Tile):
 
     @property
     def portal_id(self) -> int:
+        """Get this portal ID"""
         return self.__index
 
     @property
@@ -196,21 +206,22 @@ class Portal(Tile):
             self._window_order.insert(0, last)
         return tuple(self._window_order)
 
-    def remove_window(self, window_id: str) -> bool:
+    def remove_window(self, window_id: str) -> Optional[KnownWindow]:
         """Remove the window with the given target id.  Returns True if the window was in
         the portal, and False if not."""
         new_order: List[KnownWindow] = []
-        found = False
+        found: Optional[KnownWindow] = None
         for window in self._window_order:
             if window.target_id == window_id:
-                found = True
+                found = window
+                window.owning_portal_id = -1
             else:
                 new_order.append(window)
         self._window_order = new_order
         return found
 
     def add_windows(
-            self, windows: Sequence[KnownWindow], first: bool,
+            self, windows: Iterable[KnownWindow], first: bool,
     ) -> Sequence[KnownWindow]:
         """Add the given windows into this portal.  If `first` is True, then this is added
         at the start of the list, otherwise it is added to the end of the list.
@@ -221,6 +232,9 @@ class Portal(Tile):
         else:
             self._window_order.extend(windows)
 
+        for window in windows:
+            window.owning_portal_id = self.portal_id
+
         return self._update_window_position(windows)
 
     def get_contained_windows(self) -> Dict[str, KnownWindow]:
@@ -229,7 +243,7 @@ class Portal(Tile):
             for w in self._window_order
         }
 
-    def _update_window_position(self, windows: Sequence[KnownWindow]) -> Sequence[KnownWindow]:
+    def _update_window_position(self, windows: Iterable[KnownWindow]) -> Sequence[KnownWindow]:
         """Update each window in the arguments, and return those whose position has changed."""
         changed: List[KnownWindow] = []
 
@@ -279,7 +293,7 @@ class TileContainer(TileIterator):
             ret.update(chd.get_contained_windows())
         return ret
 
-    def add_child(self, child: Tile, front: bool, equally_sized: bool) -> Sequence[KnownWindow]:
+    def add_child(self, child: Tile, front: bool, _equally_sized: bool) -> Sequence[KnownWindow]:
         """Add a new child into this split, optionally at the start.
         If equally_sized is True, then the child's relative size is ignored and instead it is set
         to 1/(total child count) relative size.
@@ -361,7 +375,7 @@ class RootContainer(TileIterator):
         # If there are windows unassigned, then this is a programmer error.
         assert not old_windows, 'Did not clear out old windows.'
 
-        self._blocks = tuple(blocks)
+        self._blocks = tuple(children)
 
         return changed_windows
 
@@ -413,7 +427,7 @@ class SimpleSplit(TileContainer):
 
         return TileContainer.add_child(self, child, front, equally_sized)
 
-    def update_position(
+    def update_position(  # pylint:disable=too-many-locals
             self, new_x: int, new_y: int, new_width: int, new_height: int,
     ) -> Sequence[KnownWindow]:
         Tile.update_position(self, new_x, new_y, new_width, new_height)
@@ -430,7 +444,7 @@ class SimpleSplit(TileContainer):
         total_space = new_height
 
         if self.horizontal:
-            setter = get_vert_size
+            setter = set_horiz_size
             total_space = new_width
 
         rel_portion = total_space / rel_sum
@@ -474,6 +488,7 @@ def adjust_position(
         portal_pos: int, portal_length: int,
         justify: str, fit: str,
 ) -> Tuple[int, int]:
+    """Adjust the position and length based on the justification and fit."""
     # shrink, stretch, (fit), none
     justify_type = JUSTIFY__MAP.get(justify.strip().lower(), JUSTIFY__DEFAULT)
     fit_type = fit.strip().lower()
