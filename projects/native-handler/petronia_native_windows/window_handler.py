@@ -506,8 +506,9 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             else:
                 print(f"Sending window created event: {window_state.window_id}")
                 user_messages.report_send_receive_problems(
-                    self.window_created(window_state)
+                    self.window_created(window_state, True)
                 )
+        self.send_active_ids()
 
     def _in_exec_update_window_state(self, window_state: WindowsNativeWindow) -> None:
         print(f"Sending update window state event: {window_state.window_id}")
@@ -518,7 +519,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
     def _in_exec_create_window_state(self, window_state: WindowsNativeWindow) -> None:
         print(f"Sending window created event: {window_state.window_id}")
         user_messages.report_send_receive_problems(
-            self.window_created(window_state)
+            self.window_created(window_state, False)
         )
 
     def _in_exec_destroy_window_state(self, hwnd: HWND, reason: str) -> None:
@@ -720,5 +721,13 @@ def update_window_state(  # pylint:disable=too-many-branches
 
     if access_problems:
         meta[WINDOW_META__ACCESS_PROBLEMS] = '; '.join([m.debug() for m in access_problems])
+    state.meta = [
+        window_events.NativeMetaValue(
+            key,
+            WINDOW_META_DESCRIPTIONS.get(key, key),
+            val,
+        )
+        for key, val in meta.items()
+    ]
 
     return join_none_results(*res)

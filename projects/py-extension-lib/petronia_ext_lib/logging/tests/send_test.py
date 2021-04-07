@@ -24,7 +24,7 @@ class SendTest(unittest.TestCase):
     def test_send_system_error__no_messages(self) -> None:
         """Test the function."""
         writer = SimpleBinaryWriter()
-        context = EventRegistryContextImpl(create_read_stream(b''), writer)
+        context = EventRegistryContextImpl('x', create_read_stream(b''), writer)
         res = send.send_system_error(
             context, 'my-event:source', SimplePetroniaReturnError(),
             'msg-ident', [FILE_ERROR_CATEGORY],
@@ -42,7 +42,7 @@ class SendTest(unittest.TestCase):
     def test_send_system_error(self) -> None:
         """Test the function."""
         writer = SimpleBinaryWriter()
-        context = EventRegistryContextImpl(create_read_stream(b''), writer)
+        context = EventRegistryContextImpl('x', create_read_stream(b''), writer)
         send.send_system_error(
             context, 'my-event:source',
             SimplePetroniaReturnError(UserMessage('c1', i18n('m1'))),

@@ -21,7 +21,7 @@ class SendTest(unittest.TestCase):
     def test_send_store_data(self) -> None:
         """Test the function."""
         writer = SimpleBinaryWriter()
-        context = EventRegistryContextImpl(create_read_stream(b''), writer)
+        context = EventRegistryContextImpl('x', create_read_stream(b''), writer)
         store_data = timer.HeartbeatEvent(tznow())
         send.send_store_data(context, 'my-event:data', store_data)
         reader = create_read_stream(writer.getvalue())

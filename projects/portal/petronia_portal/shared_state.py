@@ -1,6 +1,6 @@
 """Shared state for the portals."""
 
-from typing import List, Sequence, Dict, Optional
+from typing import List, Optional
 from . import tree, state
 
 
@@ -8,11 +8,11 @@ def clear_data(config: Optional[state.petronia_portal.ConfigurationState] = None
     """Initialize the shared state."""
     _ACTIVE_WINDOW_ID[0] = ''
     _FOCUSED_PORTAL_ID[0] = -1
-    _ROOT_LAYOUT[0] = create_default_root()
+    _ROOT_LAYOUT[0] = tree.OptimizedTileTree()
     _CONFIG[0] = config or state.petronia_portal.ConfigurationState([], [])
 
 
-def layout_root() -> tree.RootContainer:
+def layout_root() -> tree.OptimizedTileTree:
     """Get the root of the active layout."""
     return _ROOT_LAYOUT[0]
 
@@ -44,5 +44,5 @@ def set_focused_portal_id(portal_id: int) -> None:
 
 _ACTIVE_WINDOW_ID = ['']
 _FOCUSED_PORTAL_ID = [-1]
-_ROOT_LAYOUT: List[tree.RootContainer] = [create_default_root()]
+_ROOT_LAYOUT: List[tree.OptimizedTileTree] = [tree.OptimizedTileTree()]
 _CONFIG = [state.petronia_portal.ConfigurationState([], [])]

@@ -92,6 +92,7 @@ class ExtensionLoaderTarget(BaseEventForwarderTarget):
         if event_id == foreman.ExtensionAddEventListenerEvent.FULL_EVENT_NAME:
             eal_event = foreman.ExtensionAddEventListenerEvent.parse_data(event_data)
             if eal_event.ok:
+                print(f"=========== adding listener {target_id} / {eal_event.result.events}")
                 self._context.add_event_listener(target_id, eal_event.result)
             return False
 

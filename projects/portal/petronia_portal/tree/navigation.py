@@ -16,7 +16,7 @@ TilePathElement = Tuple[int, model.Tile]
 TilePath = List[TilePathElement]
 
 
-def path_to_portal_alias(parent: model.TileContainer, portal_alias: str) -> TilePath:
+def get_path_for_portal_alias(parent: model.TileIterator, portal_alias: str) -> TilePath:
     """Find the child index within the splits to the portal with the given alias.  The parent
     argument is not added to the path.  The returned path is only valid until the layout changes.
     A zero-length return value means that the portal was not found.
@@ -28,7 +28,7 @@ def path_to_portal_alias(parent: model.TileContainer, portal_alias: str) -> Tile
         if isinstance(child, model.Portal) and child.has_portal_alias(portal_alias):
             return [(index, child)]
         if isinstance(child, model.TileContainer):
-            child_path = path_to_portal_alias(child, portal_alias)
+            child_path = get_path_for_portal_alias(child, portal_alias)
             if child_path:
                 child_path.append((index, child))
                 return child_path
@@ -37,7 +37,7 @@ def path_to_portal_alias(parent: model.TileContainer, portal_alias: str) -> Tile
     return []
 
 
-def path_to_portal_id(parent: model.TileContainer, portal_id: int) -> TilePath:
+def get_path_for_portal_id(parent: model.TileIterator, portal_id: int) -> TilePath:
     """Find the child index within the splits to the portal with the given alias.  The parent
     argument is not added to the path.  The returned path is only valid until the layout changes.
     A zero-length return value means that the portal was not found.
@@ -49,7 +49,7 @@ def path_to_portal_id(parent: model.TileContainer, portal_id: int) -> TilePath:
         if isinstance(child, model.Portal) and child.portal_id == portal_id:
             return [(index, child)]
         if isinstance(child, model.TileContainer):
-            child_path = path_to_portal_id(child, portal_id)
+            child_path = get_path_for_portal_id(child, portal_id)
             if child_path:
                 child_path.append((index, child))
                 return child_path
@@ -237,7 +237,7 @@ def navigate_up(root: model.TileIterator, active: TilePath, wrap: str) -> Option
     if best_match:
         return best_match
 
-    # TODO wrap-around
+    # TODO wrap-around if in screen wrap mode
     return None
 
 
@@ -269,7 +269,7 @@ def navigate_down(root: model.TileIterator, active: TilePath, wrap: str) -> Opti
             best_match = portal
             best_y = portal.pos_y
 
-    # TODO wrap around
+    # TODO wrap-around if in screen wrap mode
     return best_match
 
 
@@ -302,7 +302,7 @@ def navigate_left(root: model.TileIterator, active: TilePath, wrap: str) -> Opti
             best_match = portal
             best_x = portal_max_x
 
-    # TODO wrap around
+    # TODO wrap-around if in screen wrap mode
     return best_match
 
 
@@ -335,5 +335,5 @@ def navigate_right(root: model.TileIterator, active: TilePath, wrap: str) -> Opt
             best_match = portal
             best_x = portal.pos_x
 
-    # TODO wrap around
+    # TODO wrap-around if in screen wrap mode
     return best_match

@@ -17,12 +17,13 @@ from ..defs import TRANSLATION_CATALOG
 
 
 def extension_runner(
+        extension_name: str,
         reader: BinaryReader, writer: BinaryWriter,
         user_state: T,
         *factories: Callable[[T, EventRegistryContext], StdRet[None]],
 ) -> StdRet[None]:
     """Main entry point for extensions."""
-    context = EventRegistryContextImpl(reader, writer)
+    context = EventRegistryContextImpl(extension_name, reader, writer)
     for factory in factories:
         res = factory(user_state, context)
         if res.has_error:
@@ -35,10 +36,10 @@ class EventRegistryContextImpl(EventRegistryContext):
     """Implementation of the context used by the runner thread."""
     __slots__ = ('_writer', '_forwarder', '_obj_parsers',)
 
-    def __init__(self, reader: BinaryReader, writer: BinaryWriter) -> None:
+    def __init__(self, name: str, reader: BinaryReader, writer: BinaryWriter) -> None:
         self._writer = ThreadSafeEventWriter(writer)
         stream_forwarder = ThreadedStreamForwarder()
-        self._forwarder = EventForwarder(reader, stream_forwarder)
+        self._forwarder = EventForwarder(name, reader, stream_forwarder)
         self._obj_parsers: Dict[str, EventObjectParser[Any]] = {}
 
     def run(self) -> None:

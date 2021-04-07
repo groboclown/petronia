@@ -3,7 +3,7 @@
 from petronia_ext_lib.runner import (
     EventObjectTarget, EventRegistryContext, EventObjectParser,
 )
-from petronia_common.util import StdRet, RET_OK_NONE
+from petronia_common.util import StdRet, join_none_results
 from .send import EXTENSION_LOADER_FOREMAN_SOURCE
 from ..events.impl import foreman
 from ..shared_state import ExtLoaderSharedState
@@ -14,33 +14,26 @@ def register_load_complete_handlers(
         registry: EventRegistryContext,
 ) -> StdRet[None]:
     """Create the event target for loading extension requests."""
-    res = registry.register_event(
-        foreman.LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME,
-        EventObjectParser(foreman.LauncherStartExtensionSuccessEvent.parse_data),
+    return join_none_results(
+        registry.register_event(
+            foreman.LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME,
+            EventObjectParser(foreman.LauncherStartExtensionSuccessEvent.parse_data),
+        ),
+        registry.register_target(
+            foreman.LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME,
+            EXTENSION_LOADER_FOREMAN_SOURCE,
+            LoadSuccessHandler(shared_state, registry),
+        ),
+        registry.register_event(
+            foreman.LauncherStartExtensionFailedEvent.FULL_EVENT_NAME,
+            EventObjectParser(foreman.LauncherStartExtensionFailedEvent.parse_data),
+        ),
+        registry.register_target(
+            foreman.LauncherStartExtensionFailedEvent.FULL_EVENT_NAME,
+            EXTENSION_LOADER_FOREMAN_SOURCE,
+            LoadFailedHandler(),
+        ),
     )
-    if res.has_error:
-        return res
-    res = registry.register_target(
-        foreman.LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME,
-        EXTENSION_LOADER_FOREMAN_SOURCE,
-        LoadSuccessHandler(shared_state, registry),
-    )
-    if res.has_error:
-        return res.forward()
-    res = registry.register_event(
-        foreman.LauncherStartExtensionFailedEvent.FULL_EVENT_NAME,
-        EventObjectParser(foreman.LauncherStartExtensionFailedEvent.parse_data),
-    )
-    if res.has_error:
-        return res
-    res = registry.register_target(
-        foreman.LauncherStartExtensionFailedEvent.FULL_EVENT_NAME,
-        EXTENSION_LOADER_FOREMAN_SOURCE,
-        LoadFailedHandler(),
-    )
-    if res.has_error:
-        return res.forward()
-    return RET_OK_NONE
 
 
 class LoadSuccessHandler(EventObjectTarget[foreman.LauncherStartExtensionSuccessEvent]):

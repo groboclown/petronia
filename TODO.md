@@ -67,6 +67,10 @@ These are desired, tactical changes to bits of already written code.
 * the generation of child object parsers needs an added check for is-dict.  If it's something like an array or number, then an exception is raised.
 
 
+### portal
+
+* minimum portal size is hard-coded to 10, 10
+
 ### extension-loader
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.

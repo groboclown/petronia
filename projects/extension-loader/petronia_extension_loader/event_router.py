@@ -7,6 +7,7 @@ from .setup import get_extension_handler_id
 from .shared_state import ExtLoaderSharedState
 from .handlers.outside_handler import register_load_extension_handler
 from .handlers.foreman_complete_handler import register_load_complete_handlers
+from .handlers.request_listener_change_handler import register_listener_change_handlers
 from .initial_extensions import boot_extensions
 from .handlers.send import send_add_event_listener_event
 from .events.impl import foreman, extension_loader
@@ -20,6 +21,7 @@ def create_startup_handlers() -> List[
         add_event_listeners,
         register_load_extension_handler,
         register_load_complete_handlers,
+        register_listener_change_handlers,
         boot_extensions,
     ]
 

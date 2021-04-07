@@ -1,0 +1,78 @@
+---
+
+TileLayout:
+  extension: petronia_portal
+  enabled: true
+  properties:
+    default_window_behavior:
+      - match:
+          - key: executable
+            match_type: glob
+            value: "*firefox*"
+        managed: true
+        fit:
+          justify_horizontal: left
+          justify_vertical: top
+          fit_horizontal: fit
+          fit_vertical: fit
+        initial_portal: default
+
+    workspaces:
+      # Layout 1: 1 screen.
+      - name: 1 screen
+        screens:
+          - block:
+              x: 0
+              y: 0
+              width: 1024
+              height: 768
+            layout:
+              size: 1
+              direction: horizontal
+              contents:
+              - ^: portal
+                $:
+                  portal_aliases: ['default']
+                  size: 2
+                  preferred_location:
+                    justify_horizontal: left
+                    justify_vertical: top
+                    fit_horizontal: shrink
+                    fit_vertical: shrink
+                  padding_top: 0
+                  padding_bottom: 0
+                  padding_left: 0
+                  padding_right: 0
+              - ^: split
+                $:
+                  size: 1
+                  direction: vertical
+                  contents:
+                    - ^: portal
+                      $:
+                        portal_aliases: ['default']
+                        size: 3
+                        preferred_location:
+                          justify_horizontal: right
+                          justify_vertical: top
+                          fit_horizontal: fit
+                          fit_vertical: fit
+                        padding_top: 0
+                        padding_bottom: 0
+                        padding_left: 0
+                        padding_right: 0
+                    - ^: portal
+                      $:
+                        portal_aliases: ['default']
+                        size: 2
+                        preferred_location:
+                          justify_horizontal: right
+                          justify_vertical: bottom
+                          fit_horizontal: shrink
+                          fit_vertical: shrink
+                        padding_top: 0
+                        padding_bottom: 0
+                        padding_left: 0
+                        padding_right: 0
+
+      # Layout 2: 2 screens, 1024x768 and 768x1024

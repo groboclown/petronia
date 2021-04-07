@@ -1,6 +1,6 @@
 """The layout tree definition."""
 
-from . import model, navigation
+from . import model, navigation, logic
 
 from .model import (
     Tile, Portal, TileContainer, TileIterator,
@@ -9,8 +9,8 @@ from .model import (
 
 from .navigation import (
     TilePath, TilePathElement,
-    path_to_portal_alias,
-    path_to_portal_id,
+    get_path_for_portal_alias,
+    get_path_for_portal_id,
     navigate_down,
     navigate_left,
     navigate_next,
@@ -18,3 +18,5 @@ from .navigation import (
     navigate_up,
     navigate_previous,
 )
+
+from .logic import OptimizedTileTree

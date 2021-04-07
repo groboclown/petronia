@@ -38,6 +38,7 @@ class EventForwarderTest(unittest.TestCase):
             inp_stream, 'e1', 's1', 't1', 2, b'12',
         )
         efp = AccessibleEventForwarder(
+            'x',
             create_read_stream(inp_stream.getvalue()),
             thread_stream.ThreadedStreamForwarder(),
         )
@@ -64,6 +65,7 @@ class EventForwarderTest(unittest.TestCase):
         """Test how the code handles pending targets during EOF."""
 
         efp = AccessibleEventForwarder(
+            'x',
             create_read_stream(b''),
             thread_stream.ThreadedStreamForwarder(),
         )
@@ -79,7 +81,7 @@ class EventForwarderTest(unittest.TestCase):
         target_1 = MockTarget(self)
 
         # Generate an incomplete packet to trigger an error.
-        efp = AccessibleEventForwarder(create_read_stream(
+        efp = AccessibleEventForwarder('x', create_read_stream(
             PACKET_MARKER +
             b'e' + as_bin_str('event-1') +
             b's' + as_bin_str('source-1')
@@ -113,7 +115,7 @@ class EventForwarderTest(unittest.TestCase):
         target_1.on_error_returns.append(True)
 
         # Generate an incomplete packet to trigger an error.
-        efp = AccessibleEventForwarder(create_read_stream(
+        efp = AccessibleEventForwarder('x', create_read_stream(
             PACKET_MARKER +
             b'e' + as_bin_str('event-1') +
             b's' + as_bin_str('source-1') +
@@ -161,6 +163,7 @@ class EventForwarderTest(unittest.TestCase):
             inp_stream, 'e2', 's2', 't2', 2, b'21',
         )
         efp = AccessibleEventForwarder(
+            'x',
             create_read_stream(inp_stream.getvalue()),
             thread_stream.ThreadedStreamForwarder(),
             filter_callback,
@@ -208,6 +211,7 @@ class EventForwarderTest(unittest.TestCase):
             inp_stream, 'e2', 's2', 't2', {'x': 'y'},
         )
         efp = AccessibleEventForwarder(
+            'x',
             create_read_stream(inp_stream.getvalue()),
             thread_stream.ThreadedStreamForwarder(),
         )
@@ -247,6 +251,7 @@ class EventForwarderTest(unittest.TestCase):
             inp_stream, 'e2', 's2', 't2', 2, b'21',
         )
         efp = AccessibleEventForwarder(
+            'x',
             create_read_stream(inp_stream.getvalue()),
             thread_stream.ThreadedStreamForwarder(),
         )
@@ -282,6 +287,7 @@ class EventForwarderTest(unittest.TestCase):
             inp_stream, 'e3', 's3', 't3', {'1': '2'},
         )
         efp = AccessibleEventForwarder(
+            'x',
             create_read_stream(inp_stream.getvalue()),
             thread_stream.ThreadedStreamForwarder(),
         )
@@ -320,6 +326,7 @@ class EventForwarderTest(unittest.TestCase):
             inp_stream, 'e3', 's3', 't3', {'x': 'y'},
         )
         efp = AccessibleEventForwarder(
+            'x',
             create_read_stream(inp_stream.getvalue()),
             thread_stream.ThreadedStreamForwarder(ThreadPoolExecutor(12)),
         )

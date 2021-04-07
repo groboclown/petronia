@@ -4,6 +4,7 @@ for large number of targets at the expense of more memory.  It also handles bina
 from typing import Tuple, List, Dict, Callable, Union, Optional, Generic
 import threading
 import time
+import traceback
 from petronia_common.event_stream import (
     BinaryReader, BinaryWriter, read_event_stream, write_object_event_to_stream,
     write_binary_event_to_stream, RawEvent, is_raw_event_object, raw_event_id,
@@ -134,21 +135,24 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
         source_id = raw_event_source_id(event)
         target_id = raw_event_target_id(event)
 
-        with self._lock:
-            if is_raw_event_object(event):
-                parser = self._object_targets.get(event_id)
-                if not parser:
-                    return False
-                res = parser.handle_event(source_id, target_id, event)
-                if res.has_error:
-                    self._on_error(res.valid_error)
-            else:
-                listener = self._binary_targets.get(event_id)
-                if listener:
-                    listener[1].on_event(
-                        source_id, target_id, raw_event_binary_size(event),
-                        as_raw_event_binary_data_reader(event),
-                    )
+        try:
+            with self._lock:
+                if is_raw_event_object(event):
+                    parser = self._object_targets.get(event_id)
+                    if not parser:
+                        return False
+                    res = parser.handle_event(source_id, target_id, event)
+                    if res.has_error:
+                        self._on_error(res.valid_error)
+                else:
+                    listener = self._binary_targets.get(event_id)
+                    if listener:
+                        listener[1].on_event(
+                            source_id, target_id, raw_event_binary_size(event),
+                            as_raw_event_binary_data_reader(event),
+                        )
+        except BaseException as err:  # pylint:disable=broad-except
+            traceback.print_exception(type(err), err, err.__traceback__)
 
         self._handle_timeouts()
 
@@ -190,8 +194,9 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
             del self._binary_targets[key]
 
 
-def noop_on_error(_error: PetroniaReturnError) -> bool:
+def noop_on_error(error: PetroniaReturnError) -> bool:
     """A no-op on-error callback."""
+    print(f"ERROR: {[m.debug() for m in error.messages()]}")
     return False
 
 

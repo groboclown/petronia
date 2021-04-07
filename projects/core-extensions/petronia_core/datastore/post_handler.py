@@ -1,10 +1,11 @@
 """Handle event requests."""
 
 from petronia_common.util import StdRet, join_none_results
-from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
+from petronia_ext_lib.runner import EventRegistryContext, ContextEventObjectTarget
 from petronia_ext_lib.extension_loader import send_register_listeners
 from . import shared_state
 from .events.impl import datastore
+from ..user_messages import report_send_receive_problems
 
 
 def register_post_data_listener(context: EventRegistryContext) -> StdRet[None]:
@@ -29,27 +30,28 @@ def register_post_data_listener(context: EventRegistryContext) -> StdRet[None]:
     )
 
 
-class SendStateHandler(EventObjectTarget[datastore.SendStateEvent]):
+class SendStateHandler(ContextEventObjectTarget[datastore.SendStateEvent]):
     """Handles the store data requests."""
-    __slots__ = ('__context',)
 
-    def __init__(self, context: EventRegistryContext) -> None:
-        self.__context = context
-
-    def on_event(self, source: str, target: str, event: datastore.SendStateEvent) -> bool:
+    def on_context_event(
+            self, context: EventRegistryContext, source: str, target: str,
+            event: datastore.SendStateEvent,
+    ) -> bool:
         res = shared_state.get_data(event.store_id)
         if not res:
             # does not exist, so send removed event.
-            self.__context.send_event(
+            print(f"[DATASTORE] sending delete update for {event.store_id}")
+            report_send_receive_problems('datastore', self.__context.send_event(
                 datastore.DeleteDataEvent.UNIQUE_TARGET_FQN,
-                source,
+                event.store_id,
                 datastore.DataRemovedEvent(),
-            )
+            ))
             return False
+        print(f"[DATASTORE] sending data update for {event.store_id}")
         data, updated = res
-        self.__context.send_event(
+        report_send_receive_problems('datastore', self.__context.send_event(
             datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
             event.store_id,
             datastore.DataUpdateEvent(updated, data),
-        )
+        ))
         return False

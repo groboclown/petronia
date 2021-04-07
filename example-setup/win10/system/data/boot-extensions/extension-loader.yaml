@@ -14,6 +14,7 @@ runtime:
 produces:
   - "petronia.core.api.foreman:launcher-start-extension:request"
   - "petronia.core.api.foreman:extension-add-event-listener"
+  - "petronia.core.api.extension_loader:system-started"
 
 consumes:
   - event-id: "petronia.core.api.foreman:launcher-start-extension:success"

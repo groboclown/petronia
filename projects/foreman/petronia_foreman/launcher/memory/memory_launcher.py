@@ -105,7 +105,9 @@ class MemoryLauncherCategory(AbcLauncherCategory):
         if module_res.has_error:
             return module_res.forward()
         entrypoint_name = get_entrypoint_name(self.config)
-        cmd_args = create_cmd(self._args, '.', -1, handler_id, {})
+        cmd_args = create_cmd(self._args, '.', -1, handler_id, {
+            'EXTENSION_NAME': start_event.name,
+        })
 
         # Ignore the permissions.  It's running in Foreman space, which means we can't limit
         # what it can do.

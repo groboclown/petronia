@@ -114,6 +114,8 @@ def connect_launcher(  # pylint:disable=too-many-arguments
             if isinstance(res, StdRet) and res.has_error:
                 display_error(res.valid_error, True)
         except BaseException as err:  # pylint:disable=broad-except
+            import traceback
+            traceback.print_exception(type(err), err, err.__traceback__)
             error_callback(module.__name__, entrypoint_name, err)
         else:
             completed_callback(module.__name__, entrypoint_name)

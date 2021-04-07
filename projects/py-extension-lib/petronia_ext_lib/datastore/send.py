@@ -38,3 +38,12 @@ def send_delete_data(context: EventRegistryContext, data_id: str) -> StdRet[None
         datastore.DeleteDataEvent.UNIQUE_TARGET_FQN,
         datastore.DeleteDataEvent(),
     )
+
+
+def send_request_data_state(context: EventRegistryContext, source_id: str, data_id: str) -> StdRet[None]:
+    """Request the extension to send out the current state of the given data ID."""
+    return context.send_event(
+        source_id,
+        datastore.SendStateEvent.UNIQUE_TARGET_FQN,
+        datastore.SendStateEvent(data_id),
+    )

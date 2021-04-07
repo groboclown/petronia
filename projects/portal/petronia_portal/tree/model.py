@@ -50,6 +50,7 @@ class KnownWindow:
 
     def update_native_state(self, new_state: window_event.WindowState) -> None:
         """Update the window's state when the native extension reports an update."""
+        # Note: this does NOT update the position or size variables!
         if self.managed:
             self._managed_state = new_state
         else:
@@ -132,6 +133,10 @@ class Tile:
         self.__pos_h = new_height
         return EMPTY_TUPLE
 
+    def get_minimum_size(self) -> Tuple[int, int]:
+        """Get the minimum size for this tile."""
+        raise NotImplementedError
+
     def get_contained_windows(self) -> Dict[str, KnownWindow]:
         """Return all windows contained in this tile."""
         raise NotImplementedError
@@ -144,6 +149,7 @@ class Portal(Tile):
         '_position',
         '_state',
         '__index',
+        'minimum_size',
     )
     _PORTAL_COUNT = 0
 
@@ -153,6 +159,10 @@ class Portal(Tile):
         self._state = state
         self.rel_size = state.size
         self.__index = Portal._PORTAL_COUNT
+        self.minimum_size = (
+            state.padding_left + state.padding_right + 10,
+            state.padding_top + state.padding_bottom + 10,
+        )
         Portal._PORTAL_COUNT += 1
 
     @property
@@ -170,6 +180,10 @@ class Portal(Tile):
         """Get the primary name for the portal.  This should be static and not
         change due to outside events.."""
         return self._state.portal_aliases[0]
+
+    def get_minimum_size(self) -> Tuple[int, int]:
+        """Get the minimum size for this portal."""
+        return self.minimum_size
 
     def has_window_id(self, window_id: str) -> bool:
         """Does this portal have the window with the given target_id?"""
@@ -269,7 +283,7 @@ class TileIterator(Tile, ABC):
         raise NotImplementedError
 
 
-class TileContainer(TileIterator):
+class TileContainer(TileIterator, ABC):
     """A layout that has multiple containers or portals within it."""
     __slots__ = ('_children', '_is_block')
 
@@ -311,6 +325,17 @@ class TileContainer(TileIterator):
             return self.update_position(self.pos_x, self.pos_y, self.width, self.height)
         return EMPTY_TUPLE
 
+    def change_child_size(
+            self, child_index: int, delta_x: int, delta_y: int,
+    ) -> Tuple[Sequence[KnownWindow], int, int]:
+        """Adjust the size of the child at the given index by the delta_x, delta_y amounts.
+        If, due to sizing restrictions, the child cannot grow by the full delta amount, then
+        the remaining amount is returned.  This returns:
+
+        (windows whose size has changed, remaining delta x, remaining delta y)
+        """
+        raise NotImplementedError
+
 
 class ScreenBlockSplit(TileContainer):
     """A tile container that covers a screen block."""
@@ -329,55 +354,39 @@ class ScreenBlockSplit(TileContainer):
         # The screen block can't be resized.
         raise ValueError('Cannot change the screen block size.')
 
+    def add_child(self, child: Tile, front: bool, equally_sized: bool) -> Sequence[KnownWindow]:
+        if len(self.get_children()) != 0:
+            raise ValueError('a screen block can contain at most 1 child.')
+        self._children.append(child)
+        return child.update_position(self.pos_x, self.pos_y, self.width, self.height)
+
+    def get_minimum_size(self) -> Tuple[int, int]:
+        # Screen blocks cannot change size.
+        return self.width, self.height
+
+    def change_child_size(
+            self, child_index: int, delta_x: int, delta_y: int,
+    ) -> Tuple[Sequence[KnownWindow], int, int]:
+        # Pass this down to the contained child.  However, screen blocks themselves
+        # don't allow additional x/y adjustments for themselves, so this always returns
+        # additional 0 delta.
+        children = self.get_children()
+        if children:
+            child = children[0]
+            if isinstance(child, TileContainer):
+                res = child.change_child_size(0, delta_x, delta_y)
+                return res[0], 0, 0
+        return EMPTY_TUPLE, 0, 0
+
 
 class RootContainer(TileIterator):
     """The root of the container tree."""
 
     __slots__ = ('_blocks',)
 
-    def __init__(self) -> None:
+    def __init__(self, blocks: Iterable[ScreenBlockSplit]) -> None:
         TileIterator.__init__(self)
-        self._blocks: Sequence[ScreenBlockSplit] = ()
-
-    def on_screen_change(
-            self,
-            blocks: Sequence[Tuple[
-                int, int, int, int,
-                Callable[
-                    [ScreenBlockSplit, Dict[str, KnownWindow]],
-                    Sequence[KnownWindow],
-                ],
-            ]],
-    ) -> Sequence[KnownWindow]:
-        """
-        Called when the native UI reports the screen having been changed.
-        All the portals are recreated when this returns.
-
-        The callback is responsible for creating splits and portals within the new
-        screen block for the given screen block size.  It returns the list of windows
-        whose size has changed.  It also should remove windows that it
-        assigned to portals.
-
-        Generally, the last block passed in should be the default block, so that all remaining
-        windows are added to it.
-
-        Returns all windows whose positions are changed.
-        """
-        old_windows = self.get_contained_windows()
-
-        children: List[ScreenBlockSplit] = []
-        changed_windows: List[KnownWindow] = []
-        for block_x, block_y, block_w, block_h, callback in blocks:
-            block = ScreenBlockSplit(block_x, block_y, block_w, block_h)
-            children.append(block)
-            changed_windows.extend(callback(block, old_windows))
-
-        # If there are windows unassigned, then this is a programmer error.
-        assert not old_windows, 'Did not clear out old windows.'
-
-        self._blocks = tuple(children)
-
-        return changed_windows
+        self._blocks = tuple(blocks)
 
     def get_children(self) -> Sequence[Tile]:
         return self._blocks
@@ -387,6 +396,10 @@ class RootContainer(TileIterator):
         for chd in self.get_children():
             ret.update(chd.get_contained_windows())
         return ret
+
+    def get_minimum_size(self) -> Tuple[int, int]:
+        # Kind of meaningless here.
+        return 0, 0
 
 
 class SimpleSplit(TileContainer):
@@ -427,6 +440,195 @@ class SimpleSplit(TileContainer):
 
         return TileContainer.add_child(self, child, front, equally_sized)
 
+    def get_minimum_size(self) -> Tuple[int, int]:
+        sum_x = 0
+        sum_y = 0
+        for child in self.get_children():
+            min_x, min_y = child.get_minimum_size()
+            sum_x += min_x
+            sum_y += min_y
+        return sum_x, sum_y
+
+    def change_child_size(  # pylint:disable=too-many-locals,too-many-branches,too-many-statements
+            self, child_index: int, delta_x: int, delta_y: int,
+    ) -> Tuple[Sequence[KnownWindow], int, int]:
+        # Keep this split's size the same, but adjust the children's size.
+        children = self.get_children()
+        child_count = len(children)
+        if child_count <= 1 or child_index < 0 or child_index >= child_count:
+            # Can't adjust at this point.
+            return EMPTY_TUPLE, delta_x, delta_y
+
+        # This is a zero-sum game.  The adjustment goes into the child, then split the difference
+        # (applied negatively) to the children, with the remainder going to the next child or
+        # previous child (if no next child).  Children have a minimum size; if that's exceeded,
+        # remainder is passed in the return.
+
+        # If the child is asked to be shrunk, then this will always return a 0 on that
+        # axis, even if the child can't shrink below the threshold (because the other children
+        # should be able to grow to recover the lost space).
+
+        adjusted_windows: List[KnownWindow] = []
+
+        get_primary: Callable[[int, int], int]
+        get_secondary: Callable[[int, int], int]
+        get_x: Callable[[int, int], int]
+        get_y: Callable[[int, int], int]
+
+        if self.horizontal:
+            primary_delta_dir = delta_x
+            primary_self_length = self.width
+            get_primary = get_first
+            secondary_delta_dir = delta_y
+            secondary_self_length = self.height
+            get_secondary = get_second
+            get_x = get_first
+            get_y = get_second
+        else:
+            primary_delta_dir = delta_y
+            primary_self_length = self.height
+            get_primary = get_second
+            secondary_delta_dir = delta_x
+            secondary_self_length = self.width
+            get_secondary = get_first
+            get_x = get_second
+            get_y = get_first
+
+        adjusted_child = children[child_index]
+
+        # Note: Adjust secondary delta on ALL children.
+        adjusted_secondary_length = secondary_self_length + secondary_delta_dir
+        if secondary_delta_dir < 0:
+            # Shrink; ensure the children can be shrunk that far...
+            for child in children:
+                adjusted_secondary_length = max(
+                    adjusted_secondary_length,
+                    get_secondary(*child.get_minimum_size()),
+                )
+
+        if primary_delta_dir < 0:
+            # shrink the child and grow all the other children.
+            min_primary = get_primary(*adjusted_child.get_minimum_size())
+            child_primary_length = get_primary(adjusted_child.width, adjusted_child.height)
+            adjusted_primary_length = max(min_primary, child_primary_length + primary_delta_dir)
+            adjusted_primary_delta = adjusted_primary_length - child_primary_length
+            # Children count is at least 2
+            assert child_count > 1  # nosec
+            per_child_adjustment = adjusted_primary_delta // (child_count - 1)
+            # For rounding errors...
+            final_child_adj = primary_delta_dir - (per_child_adjustment * (child_count - 2))
+            next_primary_pos = get_primary(self.pos_x, self.pos_y)
+            secondary_pos = get_secondary(self.pos_x, self.pos_y)
+            for i in range(child_count):
+                child = children[i]
+                if i == child_index:
+                    child_len = adjusted_primary_length
+                else:
+                    if i == 0:
+                        child_len = get_primary(child.width, child.height) - final_child_adj
+                    else:
+                        child_len = (
+                                get_primary(child.width, child.height) - per_child_adjustment
+                        )
+                child.rel_size = child_len
+                next_primary_pos += child_len
+                adjusted_windows.extend(child.update_position(
+                    get_x(next_primary_pos, secondary_pos),
+                    get_y(next_primary_pos, secondary_pos),
+                    get_x(child_len, adjusted_secondary_length),
+                    get_y(child_len, adjusted_secondary_length),
+                ))
+            return (
+                adjusted_windows,
+                get_x(adjusted_primary_delta - primary_delta_dir, adjusted_secondary_length),
+                get_y(adjusted_primary_delta - primary_delta_dir, adjusted_secondary_length),
+            )
+
+        if primary_delta_dir > 0:
+            # grow the child and shrink all the other children.
+            # Get the expected new size of the primary child, and scan through the other children
+            # to see if they end up shrinking too far.
+            child_primary_length = get_primary(adjusted_child.width, adjusted_child.height)
+            adjusted_child_primary_len = min(
+                primary_self_length, child_primary_length + primary_delta_dir,
+            )
+            min_children_len = [
+                get_primary(*ch.get_minimum_size())
+                for ch in children
+            ]
+            children_len: List[int] = [
+                get_primary(ch.width, ch.height)
+                for ch in children
+            ]
+            remaining_adjustment = child_primary_length - adjusted_child_primary_len
+            changed = True
+            while changed and remaining_adjustment > 0:
+                can_adjust_count = 0
+                for i in range(child_count):
+                    if i != child_index and children_len[i] > min_children_len[i]:
+                        can_adjust_count += 1
+                if can_adjust_count <= 0:
+                    break
+                adjustment = remaining_adjustment // can_adjust_count
+                for i in range(child_count):
+                    if remaining_adjustment <= 0:
+                        break
+                    if i != child_index and children_len[i] > min_children_len[i]:
+                        changed = True
+                        if adjustment <= 0:
+                            # Remainder handling.
+                            remaining_adjustment -= 1
+                            children_len[i] -= 1
+                        else:
+                            children_len[i] -= adjustment
+                            remaining_adjustment -= adjustment
+
+            if remaining_adjustment > 0:
+                adjusted_child_primary_len = min(
+                    child_primary_length, adjusted_child_primary_len - remaining_adjustment,
+                )
+                remaining_adjustment = adjusted_child_primary_len - child_primary_length
+            children_len[child_index] = adjusted_child_primary_len
+            next_primary_pos = get_primary(self.pos_x, self.pos_y)
+            secondary_pos = get_secondary(self.pos_x, self.pos_y)
+            for i in range(child_count):
+                child = children[i]
+                adjusted_windows.extend(child.update_position(
+                    get_x(next_primary_pos, secondary_pos),
+                    get_y(next_primary_pos, secondary_pos),
+                    get_x(children_len[i], adjusted_secondary_length),
+                    get_y(children_len[i], adjusted_secondary_length),
+                ))
+                next_primary_pos += children_len[i]
+            return (
+                adjusted_windows,
+                get_x(remaining_adjustment, adjusted_secondary_length),
+                get_y(remaining_adjustment, adjusted_secondary_length),
+            )
+
+        if adjusted_secondary_length != secondary_self_length:
+            # else no primary adjustment made this this one;
+            # pass the delta secondary to ALL the children.
+
+            for child in children:
+                adjusted_windows.extend(child.update_position(
+                    child.pos_x, child.pos_y,
+                    get_x(child.width, adjusted_secondary_length),
+                    get_y(child.height, adjusted_secondary_length),
+                ))
+            adjusted_second_delta = (
+                    (secondary_self_length - secondary_delta_dir) - adjusted_secondary_length
+            )
+
+            return (
+                adjusted_windows,
+                get_x(primary_delta_dir, adjusted_second_delta),
+                get_y(primary_delta_dir, adjusted_second_delta),
+            )
+
+        # Else no adjustments necessary.  Should already be handled above, though.
+        return EMPTY_TUPLE, 0, 0  # pragma no cover
+
     def update_position(  # pylint:disable=too-many-locals
             self, new_x: int, new_y: int, new_width: int, new_height: int,
     ) -> Sequence[KnownWindow]:
@@ -447,7 +649,7 @@ class SimpleSplit(TileContainer):
             setter = set_horiz_size
             total_space = new_width
 
-        rel_portion = total_space / rel_sum
+        rel_portion = max(total_space, 1) / max(rel_sum, 1)
 
         next_pos = 0
         child_count = len(self._children)
@@ -488,7 +690,8 @@ def adjust_position(
         portal_pos: int, portal_length: int,
         justify: str, fit: str,
 ) -> Tuple[int, int]:
-    """Adjust the position and length based on the justification and fit."""
+    """Adjust the position and length based on the justification and fit.
+    Returns pos, length."""
     # shrink, stretch, (fit), none
     justify_type = JUSTIFY__MAP.get(justify.strip().lower(), JUSTIFY__DEFAULT)
     fit_type = fit.strip().lower()
@@ -544,3 +747,13 @@ def set_vert_size(tile: Tile, pos: int, length: int) -> Sequence[KnownWindow]:
     return tile.update_position(
         tile.pos_x, pos, tile.width, length,
     )
+
+
+def get_first(first: int, _second: int) -> int:
+    """Return the first value."""
+    return first
+
+
+def get_second(_first: int, second: int) -> int:
+    """Return the second value."""
+    return second

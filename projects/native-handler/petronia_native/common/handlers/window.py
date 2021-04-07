@@ -9,6 +9,9 @@ from petronia_native.common import defs, user_messages
 from ..events.impl import window as window_events
 
 
+BASE_WINDOW_TARGET_ID = f'{window_events.EXTENSION_NAME}:wid:'
+
+
 def store_active_windows_state(
         context: EventRegistryContext,
         window_ids: Iterable[str],
@@ -247,6 +250,7 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
     def register_listeners(self, context: EventRegistryContext) -> StdRet[None]:
         """Register this handler to listen for events with the context.  The global settings
         will need to be updated outside of this call."""
+        self.__context = context
         return join_none_results(
             context.register_event_parser(
                 window_events.SetWindowPositionsEvent.FULL_EVENT_NAME,
@@ -378,16 +382,18 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
         """Create the next window_id; used for creating a new ActiveWindow instance."""
         index = self.__next_id
         self.__next_id += 1
-        return f'{window_events.EXTENSION_NAME}:wid-{index}'
+        return BASE_WINDOW_TARGET_ID + str(index)
 
     def window_created(
-            self, window: NativeWindow,
+            self, window: NativeWindow, delay_send_active_ids: bool,
     ) -> StdRet[None]:
         """Record a window as being created."""
         if not self.__context:
+            print(f"- not sending window created event; closed")
             return RET_OK_NONE
 
         if window.window_id in self.__active_windows_by_id:
+            print(f"- not sending window created event; already registered")
             return StdRet.pass_errmsg(
                 user_messages.TRANSLATION_CATALOG,
                 _('window id {wid} already registered'),
@@ -396,10 +402,20 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
 
         self.__active_windows_by_id[window.window_id] = window
         self.__active_windows_by_native_id[window.hashable_native_id] = window
-        return join_none_results(
-            send_window_created_event(self.__context, window.window_id, window.state),
-            store_active_windows_state(self.__context, self.__active_windows_by_id.keys()),
-        )
+        print(f"- sending events")
+        res1 = send_window_created_event(self.__context, window.window_id, window.state)
+        if not delay_send_active_ids:
+            return join_none_results(
+                res1,
+                store_active_windows_state(self.__context, self.__active_windows_by_id.keys()),
+            )
+        return res1
+
+    def send_active_ids(self) -> StdRet[None]:
+        """Send the active IDs event."""
+        if self.__context:
+            return store_active_windows_state(self.__context, self.__active_windows_by_id.keys())
+        return RET_OK_NONE
 
     def window_destroyed(self, native_id: T, reason: str) -> StdRet[None]:
         """Record that a window was destroyed."""

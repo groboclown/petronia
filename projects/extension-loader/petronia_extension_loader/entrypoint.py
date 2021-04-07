@@ -27,6 +27,7 @@ def extension_entrypoint(
 
         state = ExtLoaderSharedState()
         res = extension_runner(
+            args[0],
             inp, outp, state,  *create_startup_handlers(),
         )
         low_println("Extension-loader completed running.")

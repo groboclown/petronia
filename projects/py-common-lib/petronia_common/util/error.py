@@ -188,9 +188,8 @@ class StdRet(Generic[T_co]):
         new value.  This can ONLY be used if the value is known to be None."""
         assert self.__value is None
 
-        # This counts as checking for an error, because the responsibility
-        # now rests with the receiver.
-        self.__checked_error = True
+        # This does not count as checking for an error, because the returned
+        # value is "self", which must still be checked.
 
         return cast(StdRet[V], self)
 

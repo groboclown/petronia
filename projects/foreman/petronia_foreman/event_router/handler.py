@@ -47,7 +47,7 @@ class EventHandlerSet:
             (None, target_id),
             (event_id, target_id),
         }
-        # print(f"Handler: can consume {event_id} / {target_id} in {self.__consumes}")
+        # print(f"Handler: can consume {to_check} in {self.__consumes}")
         return not self.__consumes.isdisjoint(to_check)
 
     def contains_handler_id(self, handler_id: str) -> bool:

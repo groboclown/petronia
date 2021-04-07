@@ -333,6 +333,7 @@ class EventRegistryContextImplTest(unittest.TestCase):
         """Test out registering an event object, registering an object handler, then receiving
         the event."""
         impl = main.EventRegistryContextImpl(
+            'x',
             _events_as_reader(
                 # Send two of these objects, but with the target returning True
                 # first, only the first one is consumed.
@@ -365,7 +366,7 @@ class EventRegistryContextImplTest(unittest.TestCase):
 
     def test_register_target__no_parser(self) -> None:
         """Test register_target when there is no parser for the given event ID."""
-        impl = main.EventRegistryContextImpl(create_read_stream(b''), SimpleBinaryWriter())
+        impl = main.EventRegistryContextImpl('x', create_read_stream(b''), SimpleBinaryWriter())
         res = impl.register_target('not-registered', 't1', MockEventObjectTarget())
         self.assertTrue(res.has_error)
         self.assertEqual(
@@ -376,7 +377,7 @@ class EventRegistryContextImplTest(unittest.TestCase):
     def test_send_event(self) -> None:
         """Test sending an object event."""
         writer = SimpleBinaryWriter()
-        impl = main.EventRegistryContextImpl(create_read_stream(b''), writer)
+        impl = main.EventRegistryContextImpl('x', create_read_stream(b''), writer)
         res = impl.send_event('s-1', 't-1', TestEvent())
         self.assertIsNone(res.error)
         expected = SimpleBinaryWriter()
@@ -389,7 +390,7 @@ class EventRegistryContextImplTest(unittest.TestCase):
     def test_send_binary_event(self) -> None:
         """Test sending an object event."""
         writer = SimpleBinaryWriter()
-        impl = main.EventRegistryContextImpl(create_read_stream(b''), writer)
+        impl = main.EventRegistryContextImpl('x', create_read_stream(b''), writer)
         res = impl.send_binary_event('s-1', 't-1', 'e-1', b'1234')
         self.assertIsNone(res.error)
         expected = SimpleBinaryWriter()
@@ -416,6 +417,7 @@ class ExtensionRunnerTest(unittest.TestCase):
             raise NotImplementedError  # pragma no cover
 
         res = main.extension_runner(
+            'x',
             create_read_stream(b''),
             SimpleBinaryWriter(),
             's',
@@ -452,6 +454,7 @@ class ExtensionRunnerTest(unittest.TestCase):
 
         shared_state = [0]
         res = main.extension_runner(
+            'x',
             _events_as_reader(
                 # Send two of these objects, but with the target returning True
                 # first, only the first one is consumed.

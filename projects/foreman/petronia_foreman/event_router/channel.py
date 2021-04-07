@@ -77,6 +77,7 @@ class EventChannel(EventForwarderTarget):
     ) -> None:
         self.__name = name
         self.__forwarder = EventForwarder(
+            name,
             reader, ThreadedStreamForwarder(), self._local_filter,
         )
         self.__writer = writer
@@ -131,7 +132,7 @@ class EventChannel(EventForwarderTarget):
         is returned."""
         if not self.__alive:
             return _create_route_closed_error(self.__name)
-        # print(f"[{self}] registering handler can produce {produces}")
+        print(f"[{self}] registering handler can produce {produces}")
         return self.__handlers.add_handler(handler_id, produces, consumes, source_id_prefixes)
 
     def remove_handler(self, handler_id: str) -> StdRet[None]:
@@ -148,6 +149,7 @@ class EventChannel(EventForwarderTarget):
         """Registers the event / target listener with the handler."""
         if not self.__alive:
             return _create_route_closed_error(self.__name)
+        print(f"[channel {self.__name}] adding listener {event_id} / {target_id}")
         return self.__handlers.add_listener(handler_id, event_id, target_id)
 
     def remove_handler_listener(
@@ -197,11 +199,13 @@ class EventChannel(EventForwarderTarget):
         if DEBUG:  # pragma no cover
             low_println(  # pragma no cover
                 f'[Ch {self.__name}] received event {event_id} '
-                f'from {event_source_id} to {event_target_id}: {event}'
+                f'from {event_source_id} to {event_target_id}'
+                # f': {event}'
             )
         allow_event = self.can_produce(event_id, event_source_id)
         removed_handlers: List[InternalEventHandler] = []
         for handler in self.__internal_handlers:
+            # print(f' - sending to {handler}')
             res = handler(event_id, event_source_id, event_target_id, event)
             if res.remove_filter():
                 removed_handlers.append(handler)
@@ -209,6 +213,7 @@ class EventChannel(EventForwarderTarget):
                 allow_event = False
         for handler in removed_handlers:
             self.__internal_handlers.remove(handler)
+        # print(f' - allowed to send? {allow_event}')
         return not allow_event
 
     # ------------------------------------------------------------------------------
@@ -222,7 +227,9 @@ class EventChannel(EventForwarderTarget):
         if not self.__alive:
             # print(f"channel {self.__name} can't consume; not alive")
             return False
-        return self.__handlers.can_consume(event_id, target_id)
+        ret = self.__handlers.can_consume(event_id, target_id)
+        print(f"[channel {self.__name}] consume {event_id} for {target_id}?  {ret}")
+        return ret
 
     def on_error(self, error: PetroniaReturnError) -> bool:
         # The other channel encountered a read error, and is telling this channel
@@ -244,6 +251,7 @@ class EventChannel(EventForwarderTarget):
         # can_consume has already been called and returned True.
         if not self.__alive:
             return True
+        print(f'[channel {self.__name}] consuming {event_id}')
         ret = write_object_event_to_stream(
             self.__writer,
             event_id,

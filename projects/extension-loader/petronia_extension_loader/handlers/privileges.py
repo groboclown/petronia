@@ -1,10 +1,11 @@
 """Checks access rights for requests from extensions to perform certain behaviors."""
 
-from typing import Iterable, Set, List, Union
+from typing import Iterable, Set, List, Tuple, Union, Optional
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_common.extension.config import (
     AbcExtensionMetadata, ApiExtensionMetadata, ImplExtensionMetadata,
     ExtensionDependency, EventType, ProtocolExtensionMetadata,
+    StandAloneExtensionMetadata,
 )
 from ..defs import ExtensionInfo
 from ..search import find_best_extension
@@ -56,19 +57,25 @@ def add_event_send_access(
         # One of the only thing that declares events...
         for event in metadata.events:
             if can_send_event(event, is_implementation):
-                can_send_events.add(event.name)
+                can_send_events.add(_get_event_name(extension.name, event))
     if isinstance(metadata, ProtocolExtensionMetadata):
         # All of the protocol events can be sent.
         for event in metadata.events:
-            can_send_events.add(event.name)
+            can_send_events.add(_get_event_name(extension.name, event))
 
     if isinstance(metadata, ImplExtensionMetadata):
+        # All implementations can send this event.
+        can_send_events.add('petronia.core.api.extension_loader:register-extension-listeners')
         for implements in _get_implemented_apis(metadata, loaded):
             # Only add API send access if the owner is an implementation,
             # not for the dependency's implementation.
             add_event_send_access(
                 can_send_events, implements, is_implementation, searched_extensions, loaded,
             )
+
+    if isinstance(metadata, StandAloneExtensionMetadata):
+        # All stand-alone extensions can send this event.
+        can_send_events.add('petronia.core.api.extension_loader:register-extension-listeners')
 
     # All the extensions have send public access.
     for dep in metadata.depends_on:
@@ -91,6 +98,67 @@ def can_send_event(event: EventType, is_implementation: bool) -> bool:
     return event.send_access in ("target", "public",)
 
 
+def get_valid_listen_event_pairs(
+        events: List[Tuple[Optional[str], Optional[str]]],
+        extension: ExtensionInfo,
+        is_implementation: bool,
+        searched_extensions: Set[str],
+        loaded: Iterable[ExtensionInfo],
+) -> Set[Tuple[Optional[str], Optional[str]]]:
+    """Get all event id / target id pairs from the events list that are
+    applicable to this extension."""
+    ret: Set[Tuple[Optional[str], Optional[str]]] = set()
+    if extension.name in searched_extensions:
+        return ret
+    searched_extensions.add(extension.name)
+
+    metadata = extension.metadata
+    if isinstance(metadata, ApiExtensionMetadata):
+        # One of the only thing that declares events...
+        for event in metadata.events:
+            for event_id, target_id in events:
+                if event_id == _get_event_name(extension.name, event):
+                    if can_listen_event(event, target_id, is_implementation):
+                        ret.add((event_id, target_id))
+    if isinstance(metadata, ProtocolExtensionMetadata):
+        # All of the protocol events can be listened.
+        for event in metadata.events:
+            for event_id, target_id in events:
+                if event_id == _get_event_name(extension.name, event):
+                    ret.add((event_id, target_id))
+
+    if isinstance(metadata, ImplExtensionMetadata):
+        # All implementations can send this event.
+        for implements in _get_implemented_apis(metadata, loaded):
+            # Only add API send access if the owner is an implementation,
+            # not for the dependency's implementation.
+            ret.update(get_valid_listen_event_pairs(
+                events, implements, is_implementation, searched_extensions, loaded,
+            ))
+
+    # All the extensions have send public access.
+    for dep in metadata.depends_on:
+        ext = find_best_extension(dep.name, dep.minimum_version, dep.below_version, loaded)
+        if not ext:
+            # Shouldn't happen due to preconditions.
+            continue
+        ret.update(get_valid_listen_event_pairs(
+            events, ext, False, searched_extensions, loaded,
+        ))
+
+    return ret
+
+
+def can_listen_event(event: EventType, target_id: Optional[str], is_implementation: bool) -> bool:
+    """Can this event be listened to?  Events that can only be received by the target
+    of the event must have a non-None target."""
+    if event.receive_access == 'target':
+        return target_id is not None
+    if is_implementation:
+        return event.receive_access in ("implementations", "public",)
+    return event.receive_access == "public"
+
+
 def _get_implemented_apis(
         metadata: ImplExtensionMetadata,
         loaded: Iterable[ExtensionInfo],
@@ -106,3 +174,7 @@ def _get_implemented_apis(
         if isinstance(ext_metadata, ApiExtensionMetadata):
             ret.append(ext)
     return ret
+
+
+def _get_event_name(extension_name: str, event: EventType) -> str:
+    return extension_name + ':' + event.name
