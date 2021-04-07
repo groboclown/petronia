@@ -6,3 +6,6 @@
 omit =
     petronia_core/datastore/events/impl/datastore.py
     petronia_core/timer/events/impl/timer.py
+    petronia_core/hotkey_binding/events/ext/hotkey.py
+    petronia_core/hotkey_binding/events/ext/tests/hotkey_test.py
+    petronia_core/hotkey_binding/events/impl/hotkey_binding.py

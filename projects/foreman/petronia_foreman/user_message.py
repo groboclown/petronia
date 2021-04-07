@@ -19,6 +19,8 @@ from .constants import TRANSLATION_CATALOG
 
 CATALOG = TRANSLATION_CATALOG
 
+DEBUG = True
+
 _TRANSLATIONS: Dict[str, gettext.NullTranslations] = {}
 _LOCK = threading.RLock()
 
@@ -28,6 +30,19 @@ def low_println(text: str) -> None:
     with _LOCK:
         sys.stdout.write(text + '\n')
         sys.stdout.flush()
+
+
+def display_exception(text: str, exception: BaseException, debug: bool = False) -> None:
+    """Display an exception."""
+    with _LOCK:
+        low_println(text)
+        if debug or DEBUG:
+            traceback.print_exception(
+                type(exception),
+                exception,
+                exception.__traceback__,
+                file=sys.stdout,
+            )
 
 
 def display(catalog: str, message: I18n, **kwargs: UserMessageData) -> None:
@@ -50,7 +65,7 @@ def display_error(err: PetroniaReturnError, debug: bool = False) -> None:
     with _LOCK:
         for message in err.messages():
             display_message(message)
-        if debug and isinstance(err, ExceptionPetroniaReturnError):
+        if (debug or DEBUG) and isinstance(err, ExceptionPetroniaReturnError):
             exception = err.exception()
             traceback.print_exception(
                 type(exception),

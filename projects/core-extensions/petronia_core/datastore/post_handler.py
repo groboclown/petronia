@@ -41,7 +41,7 @@ class SendStateHandler(ContextEventObjectTarget[datastore.SendStateEvent]):
         if not res:
             # does not exist, so send removed event.
             print(f"[DATASTORE] sending delete update for {event.store_id}")
-            report_send_receive_problems('datastore', self.__context.send_event(
+            report_send_receive_problems('datastore', context.send_event(
                 datastore.DeleteDataEvent.UNIQUE_TARGET_FQN,
                 event.store_id,
                 datastore.DataRemovedEvent(),
@@ -49,7 +49,7 @@ class SendStateHandler(ContextEventObjectTarget[datastore.SendStateEvent]):
             return False
         print(f"[DATASTORE] sending data update for {event.store_id}")
         data, updated = res
-        report_send_receive_problems('datastore', self.__context.send_event(
+        report_send_receive_problems('datastore', context.send_event(
             datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
             event.store_id,
             datastore.DataUpdateEvent(updated, data),

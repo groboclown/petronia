@@ -98,7 +98,7 @@ def can_send_event(event: EventType, is_implementation: bool) -> bool:
     return event.send_access in ("target", "public",)
 
 
-def get_valid_listen_event_pairs(
+def get_valid_listen_event_pairs(  # pylint:disable=too-many-branches
         events: List[Tuple[Optional[str], Optional[str]]],
         extension: ExtensionInfo,
         is_implementation: bool,

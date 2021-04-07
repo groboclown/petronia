@@ -75,7 +75,7 @@ def get_screen_workspace(blocks: Sequence[screen_state.VirtualScreenBlock]) -> S
 
     best_match = 0.1
     # Default layout.
-    ret = [
+    ret: Sequence[Tuple[screen_state.VirtualScreenBlock, portal_state.LayoutSplit]] = [
         (
             block,
             portal_state.LayoutSplit(1, 'horizontal', [portal_state.SplitContent(
@@ -229,6 +229,8 @@ def is_window_match(window: tree.KnownWindow, matcher: portal_state.WindowMatch)
                 return False
 
         elif match.match_type == 'regex':
+            if not val:
+                return False
             try:
                 regex = re.compile(match.value)
                 if regex.match(val) is None:

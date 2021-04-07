@@ -389,11 +389,11 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
     ) -> StdRet[None]:
         """Record a window as being created."""
         if not self.__context:
-            print(f"- not sending window created event; closed")
+            # print("- not sending window created event; closed")
             return RET_OK_NONE
 
         if window.window_id in self.__active_windows_by_id:
-            print(f"- not sending window created event; already registered")
+            # print("- not sending window created event; already registered")
             return StdRet.pass_errmsg(
                 user_messages.TRANSLATION_CATALOG,
                 _('window id {wid} already registered'),
@@ -402,7 +402,7 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
 
         self.__active_windows_by_id[window.window_id] = window
         self.__active_windows_by_native_id[window.hashable_native_id] = window
-        print(f"- sending events")
+        # print("- sending events")
         res1 = send_window_created_event(self.__context, window.window_id, window.state)
         if not delay_send_active_ids:
             return join_none_results(

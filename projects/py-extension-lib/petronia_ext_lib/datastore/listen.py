@@ -15,6 +15,7 @@ from ..defs import TRANSLATION_CATALOG
 def register_listening_to_datastore(
         context: EventRegistryContext, extension_name: str, source_id: Optional[str],
 ) -> StdRet[None]:
+    """Register an extension to listen to datastore update/delete events."""
     return send_register_listeners(
         context,
         extension_name,

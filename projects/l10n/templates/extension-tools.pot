@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia extension-tools VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-01-21 11:40-0600\n"
+"POT-Creation-Date: 2021-04-07 09:20-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,58 +18,48 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:82
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:112
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:128
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:160
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:91
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:121
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:137
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/create_api_marshaller.py:169
 msgid "Failed to write to {name}: {err}"
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/load_definition.py:46
-msgid "Invalid extension metadata file type: {name}"
-msgstr ""
-
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/load_definition.py:60
-msgid ""
-"Extension metadata file ({name}) must contain a dictionary or a list of "
-"dictionaries, found {data}"
-msgstr ""
-
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/load_definition.py:73
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/load_definition.py:51
 msgid ""
 "Extension metadata file ({name}) must contain a dictionary or a list of "
 "dictionaries"
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:52
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:53
 msgid "Error: at least one of --api, --internal, or --state must be given."
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:57
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:58
 msgid "Error: output directory ({d}) does not exist."
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:68
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:69
 msgid "Error: file does not exist: {n}"
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:72
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:75
 msgid "Error: extension file not valid: {n}"
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:81
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:84
 msgid "Skipping {name}: only generating events for API extensions."
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:88
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:93
 msgid "Extension {name} metadata has validation problems"
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:103
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:110
 msgid "Encountered a problem while generating the source for {name}"
 msgstr ""
 
-#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:107
+#: projects/extension-tools/petronia_extension_tools/gen_marshal/main.py:114
 msgid "Generated {name}"
 msgstr ""
 

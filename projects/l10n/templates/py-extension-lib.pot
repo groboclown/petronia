@@ -1,0 +1,198 @@
+# Translations template for Petronia py-extension-lib.
+# Copyright (C) 2021 Petronia
+# This file is distributed under the same license as the Petronia
+# py-extension-lib project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Petronia py-extension-lib VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-04-07 09:24-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: projects/py-extension-lib/petronia_ext_lib/datastore/listen.py:107
+msgid "Embedded json data for DataUpdateEvent is not a json dictionary"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:72
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:174
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:240
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:265
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:84
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:539
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:558
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:621
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:640
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:713
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:732
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:776
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:839
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:858
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:926
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:945
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:1085
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:1146
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:414
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:433
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:496
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:515
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:593
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:612
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:672
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:691
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:735
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:799
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:866
+#: projects/py-extension-lib/petronia_ext_lib/events/timer.py:69
+msgid "Required field {field_name} in {name}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:80
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:182
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:273
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:92
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:104
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:129
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:289
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:302
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:315
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:328
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:547
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:629
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:648
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:721
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:740
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:765
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:847
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:934
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:953
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:1016
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:1028
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:164
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:177
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:190
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:203
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:422
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:504
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:523
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:601
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:680
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:699
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:724
+msgid "Field {field_name} must be of type {type} for structure {name}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:248
+#: projects/py-extension-lib/petronia_ext_lib/events/timer.py:77
+msgid "Field {field_name} must be of type datetime for structure {name}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/datastore.py:257
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:354
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:492
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:229
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:367
+#: projects/py-extension-lib/petronia_ext_lib/events/timer.py:86
+msgid "Invalid date-time format: {value}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:114
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:139
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:371
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:398
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:425
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:452
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:479
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:750
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:963
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:246
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:273
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:300
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:327
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:354
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:709
+msgid "Field {field_name} must contain items of type {type} for structure {name}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:283
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:158
+msgid "selector value must have ^ and $ keys"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:341
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:216
+msgid "Value must be of type datetime for selector {name}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:361
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:388
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:415
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:442
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:469
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:236
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:263
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:290
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:317
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:344
+msgid "Field {field_name} must be of type {type} for selector {name}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:501
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:376
+msgid "Invalid selector name {name} for {nc}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:569
+#: projects/py-extension-lib/petronia_ext_lib/events/extension_loader.py:869
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:444
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:810
+#: projects/py-extension-lib/petronia_ext_lib/events/logging.py:877
+msgid "Field {field_name} must not be null"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/lookup.py:66
+#: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:54
+msgid "parser for event {event_id} already registered"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/lookup.py:81
+#: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:73
+msgid "event ID {event_id} does not have a registered parser"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/lookup.py:97
+msgid "a target handler for binary event {event_id} is already registered"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/main.py:63
+msgid "No registered parser for {event_id}"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:71
+msgid "simple implementation only supports None target id"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:77
+msgid "a target handler for event {event_id} is already registered"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:81
+msgid "only targets that don't time out are supported."
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:101
+msgid "binary targets not supported"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/standard/embedded_json_data.py:31
+msgid "invalid embedded JSON data"
+msgstr ""
+

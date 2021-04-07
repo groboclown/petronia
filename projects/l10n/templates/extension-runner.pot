@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia extension-runner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-01-21 11:39-0600\n"
+"POT-Creation-Date: 2021-04-07 09:20-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,43 +18,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:77
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:97
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:305
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:338
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:358
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:422
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:442
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:504
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:524
-msgid "Required field {field_name} in {name}"
+#: projects/extension-runner/petronia_extension_runner/entrypoint.py:40
+msgid "Python extension {name} execution encountered an unhandled error"
 msgstr ""
 
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:85
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:105
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:132
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:224
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:237
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:250
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:313
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:326
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:346
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:430
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:512
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:532
-msgid "Field {field_name} must be of type {type} for structure {name}"
+#: projects/extension-runner/petronia_extension_runner/importer.py:30
+msgid "No such entrypoint {entrypoint} in module {module}"
 msgstr ""
 
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:116
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:543
-msgid "Field {field_name} must contain items of type {type} for structure {name}"
+#: projects/extension-runner/petronia_extension_runner/importer.py:38
+msgid "Entrypoint {entrypoint} in module {module} is not a function"
 msgstr ""
 
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:218
-msgid "selector value must have ^ and $ keys"
-msgstr ""
-
-#: projects/extension-runner/petronia_extension_runner/cmd_events/extension_commands.py:261
-msgid "Invalid selector name {name} for {nc}"
+#: projects/extension-runner/petronia_extension_runner/importer.py:56
+msgid "extension-runner could not load Python module {name} from path {path}"
 msgstr ""
 

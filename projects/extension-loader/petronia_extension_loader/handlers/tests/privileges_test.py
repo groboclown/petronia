@@ -46,7 +46,11 @@ class PrivilegesTest(unittest.TestCase):
         ))
         res: Set[str] = set()
         privileges.add_event_send_access(res, standalone, False, set(), [])
-        self.assertEqual(set(), res)
+        self.assertEqual(
+            # stand-alone extensions can request to register listeners.
+            {'petronia.core.api.extension_loader:register-extension-listeners'},
+            res,
+        )
 
     def test_add_event_send_access__api_impl(self) -> None:
         """Test add_event_send_access for an implementation of an api"""
@@ -73,18 +77,18 @@ class PrivilegesTest(unittest.TestCase):
         res: Set[str] = set()
         privileges.add_event_send_access(res, api, True, set(), [])
         self.assertEqual({
-            'ev_impl_impl',
-            'ev_impl_internal',
-            'ev_impl_pub',
-            'ev_impl_target',
-            'ev_pub_impl',
-            'ev_pub_internal',
-            'ev_pub_pub',
-            'ev_pub_target',
-            'ev_target_impl',
-            'ev_target_internal',
-            'ev_target_pub',
-            'ev_target_target',
+            'n.api:ev_impl_impl',
+            'n.api:ev_impl_internal',
+            'n.api:ev_impl_pub',
+            'n.api:ev_impl_target',
+            'n.api:ev_pub_impl',
+            'n.api:ev_pub_internal',
+            'n.api:ev_pub_pub',
+            'n.api:ev_pub_target',
+            'n.api:ev_target_impl',
+            'n.api:ev_target_internal',
+            'n.api:ev_target_pub',
+            'n.api:ev_target_target',
         }, res)
 
     def test_add_event_send_access__api_depend(self) -> None:
@@ -112,14 +116,14 @@ class PrivilegesTest(unittest.TestCase):
         res: Set[str] = set()
         privileges.add_event_send_access(res, api, False, set(), [])
         self.assertEqual({
-            'ev_pub_impl',
-            'ev_pub_internal',
-            'ev_pub_pub',
-            'ev_pub_target',
-            'ev_target_impl',
-            'ev_target_internal',
-            'ev_target_pub',
-            'ev_target_target',
+            'n.api:ev_pub_impl',
+            'n.api:ev_pub_internal',
+            'n.api:ev_pub_pub',
+            'n.api:ev_pub_target',
+            'n.api:ev_target_impl',
+            'n.api:ev_target_internal',
+            'n.api:ev_target_pub',
+            'n.api:ev_target_target',
         }, res)
 
     def test_add_event_send_access__protocol(self) -> None:
@@ -132,7 +136,7 @@ class PrivilegesTest(unittest.TestCase):
         )
         res: Set[str] = set()
         privileges.add_event_send_access(res, protocol, True, set(), [])
-        self.assertEqual({'ev1', 'ev2'}, res)
+        self.assertEqual({'n.protocol:ev1', 'n.protocol:ev2'}, res)
 
     def test_add_event_send_access__impl(self) -> None:
         """Test add_event_send_access for an implementation that also has a dependency"""
@@ -175,4 +179,11 @@ class PrivilegesTest(unittest.TestCase):
         privileges.add_event_send_access(res, impl2, True, set(), [
             protocol, api1, api2, impl1, impl2,
         ])
-        self.assertEqual({'ev1', 'ev2', 'ev4', 'ev5', 'ev6'}, res)
+        self.assertEqual(
+            {
+                'n.protocol:ev1', 'n.protocol:ev2', 'n.api1:ev4', 'n.api2:ev5', 'n.api2:ev6',
+                # As an implementation, it can register listeners.
+                'petronia.core.api.extension_loader:register-extension-listeners',
+            },
+            res,
+        )

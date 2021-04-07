@@ -13,7 +13,7 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from .importer import load_module_from_path
 from ...constants import TRANSLATION_CATALOG
 from ...configuration import RuntimeConfig
-from ...user_message import display_error
+from ...user_message import display_error, display_exception
 
 ENTRYPOINT_OPTION = 'entrypoint'
 DEFAULT_ENTRYPOINT = 'extension_entrypoint'
@@ -114,8 +114,8 @@ def connect_launcher(  # pylint:disable=too-many-arguments
             if isinstance(res, StdRet) and res.has_error:
                 display_error(res.valid_error, True)
         except BaseException as err:  # pylint:disable=broad-except
-            import traceback
-            traceback.print_exception(type(err), err, err.__traceback__)
+            # Should this be moved into the callback?
+            display_exception(f'[FOREMAN] extension {module.__name__} failed on startup', err)
             error_callback(module.__name__, entrypoint_name, err)
         else:
             completed_callback(module.__name__, entrypoint_name)

@@ -29,6 +29,7 @@ class PostHandlerTest(unittest.TestCase):
     def test_post_event__does_not_exist(self) -> None:
         """Test receiving an event when the data doesn't exist."""
         context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
         shared_state.clear_data()
         handler = post_handler.SendStateHandler(context)
         handler.on_event(
@@ -40,7 +41,7 @@ class PostHandlerTest(unittest.TestCase):
         self.assertEqual(3, len(vargs))
         self.assertEqual({}, kwargs)
         self.assertEqual(datastore.DeleteDataEvent.UNIQUE_TARGET_FQN, vargs[0])
-        self.assertEqual('sx', vargs[1])
+        self.assertEqual('s:1', vargs[1])
         self.assertIsInstance(vargs[2], datastore.DataRemovedEvent)
         self.assertEqual(set(), set(shared_state.stored_data_ids()))
 

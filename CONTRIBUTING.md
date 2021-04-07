@@ -44,7 +44,7 @@ python3 bin/build.py
 
 The Travis build will run on both Windows and Linux, so this will need to pass on both.
 
-If your changes include updates to localization strings, the translation files will also need updates.
+If your changes include updates to localization strings, the translation files will also need updates.  This can be done by running the script [extract-message-catalog.sh](bin/extract-message-catalog.sh).
 
 You can run a sub-set of the projects by passing the project name (not directory) as an argument to the `build.py` script.
 

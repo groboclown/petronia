@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia native-handler VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-01-21 11:42-0600\n"
-"PO-Revision-Date: 2021-01-21 11:42-0600\n"
+"POT-Creation-Date: 2021-04-07 09:22-0500\n"
+"PO-Revision-Date: 2021-04-07 09:22-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -18,4 +18,497 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:69
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:88
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:156
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:239
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:258
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:280
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:339
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:742
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:761
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:824
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:843
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:916
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:935
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:979
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1035
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1057
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1117
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1139
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1210
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1293
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1356
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1378
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:84
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:103
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:122
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:560
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:579
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:642
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:661
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:737
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:756
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:808
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:876
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:953
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1009
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1028
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1098
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1151
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1170
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1227
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1280
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:84
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:103
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:122
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:560
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:579
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:642
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:661
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:737
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:756
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:808
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:876
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:953
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1009
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1028
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1098
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1151
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1170
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1227
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1280
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:77
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:96
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:115
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:134
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:153
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:172
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:191
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:255
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:70
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:89
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:108
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:204
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:223
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:242
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:261
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:280
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:299
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:318
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:337
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:356
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:437
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:453
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:521
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:540
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:600
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1003
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1022
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1085
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1104
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1177
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1196
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1240
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1305
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1324
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1396
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1415
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1434
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1453
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1472
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1491
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1555
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1614
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:71
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:90
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:154
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:173
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:250
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:269
+#: projects/native-handler/petronia_native/common/events/impl/window.py:72
+#: projects/native-handler/petronia_native/common/events/impl/window.py:91
+#: projects/native-handler/petronia_native/common/events/impl/window.py:110
+#: projects/native-handler/petronia_native/common/events/impl/window.py:129
+#: projects/native-handler/petronia_native/common/events/impl/window.py:191
+#: projects/native-handler/petronia_native/common/events/impl/window.py:222
+#: projects/native-handler/petronia_native/common/events/impl/window.py:292
+#: projects/native-handler/petronia_native/common/events/impl/window.py:311
+#: projects/native-handler/petronia_native/common/events/impl/window.py:342
+#: projects/native-handler/petronia_native/common/events/impl/window.py:364
+#: projects/native-handler/petronia_native/common/events/impl/window.py:383
+#: projects/native-handler/petronia_native/common/events/impl/window.py:451
+#: projects/native-handler/petronia_native/common/events/impl/window.py:518
+#: projects/native-handler/petronia_native/common/events/impl/window.py:582
+#: projects/native-handler/petronia_native/common/events/impl/window.py:676
+#: projects/native-handler/petronia_native/common/events/impl/window.py:749
+#: projects/native-handler/petronia_native/common/events/impl/window.py:938
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1001
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1051
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1109
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1165
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1236
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1297
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:61
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:120
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:139
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:158
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:254
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:273
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:292
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:311
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:330
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:349
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:368
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:387
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:406
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:487
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:503
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:558
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:614
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:636
+msgid "Required field {field_name} in {name}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:77
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:96
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:164
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:247
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:347
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:492
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:505
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:518
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:531
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:750
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:832
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:851
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:924
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:943
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:968
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1218
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:92
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:111
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:130
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:310
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:323
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:336
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:349
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:568
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:650
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:669
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:745
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:764
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:789
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:961
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1017
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1036
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1159
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1178
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1288
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:92
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:111
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:130
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:310
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:323
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:336
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:349
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:568
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:650
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:669
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:745
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:764
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:789
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:961
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1017
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1036
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1159
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1178
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1288
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:85
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:104
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:123
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:142
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:161
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:180
+#: projects/native-handler/petronia_native/common/events/impl/monitor.py:199
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:78
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:97
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:116
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:193
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:212
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:231
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:250
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:269
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:288
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:307
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:326
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:345
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:364
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:426
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:529
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:608
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:753
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:766
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:779
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:792
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1011
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1093
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1112
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1185
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1204
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1229
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1313
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1404
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1423
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1442
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1461
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1480
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1499
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:79
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:98
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:162
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:181
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:258
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:277
+#: projects/native-handler/petronia_native/common/events/impl/window.py:80
+#: projects/native-handler/petronia_native/common/events/impl/window.py:99
+#: projects/native-handler/petronia_native/common/events/impl/window.py:118
+#: projects/native-handler/petronia_native/common/events/impl/window.py:137
+#: projects/native-handler/petronia_native/common/events/impl/window.py:199
+#: projects/native-handler/petronia_native/common/events/impl/window.py:211
+#: projects/native-handler/petronia_native/common/events/impl/window.py:230
+#: projects/native-handler/petronia_native/common/events/impl/window.py:300
+#: projects/native-handler/petronia_native/common/events/impl/window.py:319
+#: projects/native-handler/petronia_native/common/events/impl/window.py:331
+#: projects/native-handler/petronia_native/common/events/impl/window.py:372
+#: projects/native-handler/petronia_native/common/events/impl/window.py:526
+#: projects/native-handler/petronia_native/common/events/impl/window.py:590
+#: projects/native-handler/petronia_native/common/events/impl/window.py:684
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1059
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1173
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:69
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:128
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:147
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:166
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:243
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:262
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:281
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:300
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:319
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:338
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:357
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:376
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:395
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:414
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:476
+msgid "Field {field_name} must be of type {type} for structure {name}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:106
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:174
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:574
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:601
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:628
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:655
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:682
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:953
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:392
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:419
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:446
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:473
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:500
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:774
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1046
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:392
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:419
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:446
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:473
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:500
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:774
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:1046
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:835
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:862
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:889
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:916
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:943
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1214
+#: projects/native-handler/petronia_native/common/events/impl/ui.py:191
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1183
+msgid "Field {field_name} must contain items of type {type} for structure {name}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:269
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:772
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1046
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1068
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1128
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1150
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1304
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1367
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:590
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:819
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:887
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:590
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:819
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:887
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1033
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:1335
+#: projects/native-handler/petronia_native/common/events/impl/window.py:353
+#: projects/native-handler/petronia_native/common/events/impl/window.py:462
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1247
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:625
+#: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:647
+msgid "Field {field_name} must not be null"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:486
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:304
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:304
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:747
+msgid "selector value must have ^ and $ keys"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:544
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:362
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:362
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:805
+msgid "Value must be of type datetime for selector {name}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:557
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:695
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:375
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:513
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:375
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:513
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:818
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:956
+msgid "Invalid date-time format: {value}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:564
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:591
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:618
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:645
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:672
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:382
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:409
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:436
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:463
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:490
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:382
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:409
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:436
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:463
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:490
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:825
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:852
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:879
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:906
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:933
+msgid "Field {field_name} must be of type {type} for selector {name}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/events/impl/hotkey.py:704
+#: projects/native-handler/petronia_native/common/events/impl/i10n.py:522
+#: projects/native-handler/petronia_native/common/events/impl/l10n.py:522
+#: projects/native-handler/petronia_native/common/events/impl/screen.py:965
+msgid "Invalid selector name {name} for {nc}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/handlers/window.py:177
+msgid "request to {request} failed because window {wid} is not active"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/handlers/window.py:366
+msgid "no active window with id {wid}"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/handlers/window.py:399
+msgid "window id {wid} already registered"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/hotkey_chain.py:137
+#: projects/native-handler/petronia_native/common/hotkey_chain.py:181
+msgid "modifiers list cannot be empty"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/hotkey_chain.py:142
+msgid "key sequence cannot be empty"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/hotkey_chain.py:186
+msgid "modal key list cannot be empty"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/virtual_screen.py:376
+msgid "configuration {name}: screen blocks overlap"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/virtual_screen.py:387
+msgid "configuration {name} screen block ({x}, {y}): invalid size parameters"
+msgstr ""
+
+#: projects/native-handler/petronia_native/common/virtual_screen.py:396
+msgid "configuration {name}: no screen block for defined monitor {ident}"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/arch/native_funcs/funcs_win_vista.py:627
+msgid "could not find start button"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/arch/native_funcs/funcs_win_vista.py:713
+msgid "not supported"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/arch/native_funcs/funcs_win_xp.py:694
+msgid "not implemented"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/arch/native_funcs/windows_common/win_error.py:57
+msgid "{called}: caused unknown error {errno} (caused by {newerr})"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/arch/native_funcs/windows_common/win_error.py:65
+msgid "{called}: caused {err} ({errno})"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/key_handler.py:200
+msgid ""
+"This native handler currently only handles the \"meta\" key sequences; "
+"requested {name}."
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/key_handler.py:257
+msgid "unknown modifier key: {name}"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/key_handler.py:288
+msgid "unknown key name: {name}"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/key_handler.py:294
+msgid "key {name} references multiple keys; it cannot be used for a sequence"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/message_loop.py:91
+msgid "not running or not SendMessage implemented"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/message_queue.py:60
+msgid "handler id {handler_id} already registered"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/message_queue.py:83
+msgid "no such handler id {handler_id}"
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/setup.py:44
+msgid "Native windows message handler did not start after {timeout} seconds."
+msgstr ""
+
+#: projects/native-handler/petronia_native_windows/setup.py:123
+msgid "native implementation does not support setting a screen configuration"
+msgstr ""
 

@@ -24,6 +24,7 @@ class ForemanUserMessageTest(unittest.TestCase):
         self._orig_env = os.environ.copy()
         self._orig_stdout = sys.stdout
         self._orig_data_paths = list(platform.data_paths)
+        self._orig_debug = user_message.DEBUG
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tempdir, ignore_errors=True)
@@ -32,6 +33,7 @@ class ForemanUserMessageTest(unittest.TestCase):
         sys.stdout = self._orig_stdout
         platform.data_paths.clear()
         platform.data_paths.extend(self._orig_data_paths)
+        user_message.DEBUG = self._orig_debug
 
     def test_load_translation__not_found(self) -> None:
         """Test loading translations when they are found."""
@@ -157,6 +159,7 @@ class ForemanUserMessageTest(unittest.TestCase):
 
     def test_display_error__not_debug(self) -> None:
         """Test local_display."""
+        user_message.DEBUG = False
         sys.stdout = io.StringIO()
         exp = OSError('err')
         err = ExceptionPetroniaReturnError(

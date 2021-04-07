@@ -30,6 +30,7 @@ class StoreHandlerTest(unittest.TestCase):
     def test_post_event__does_not_exist(self) -> None:
         """Test receiving an event when the data doesn't exist."""
         context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
         shared_state.clear_data()
         handler = store_handler.StoreDataHandler(context)
         handler.on_event(
@@ -56,6 +57,7 @@ class StoreHandlerTest(unittest.TestCase):
     def test_post_event__bad_data(self) -> None:
         """Test receiving an event when the data doesn't exist."""
         context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
         shared_state.clear_data()
         handler = store_handler.StoreDataHandler(context)
         handler.on_event(

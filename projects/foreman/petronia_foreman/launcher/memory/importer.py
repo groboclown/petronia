@@ -12,7 +12,7 @@ import importlib
 from petronia_common.util import StdRet, UserMessage, RET_OK_NONE
 from petronia_common.util import i18n as _
 from ...constants import TRANSLATION_CATALOG
-from ...user_message import display_message
+from ...user_message import display_message, display_exception
 
 
 def load_module_from_path(fullname: str, path: List[str]) -> StdRet[types.ModuleType]:
@@ -26,8 +26,7 @@ def load_module_from_path(fullname: str, path: List[str]) -> StdRet[types.Module
         ret = importlib.import_module(fullname)
         return StdRet.pass_ok(ret)
     except Exception as err:  # pylint:disable=broad-except
-        import traceback
-        traceback.print_exception(type(err), err, err.__traceback__)
+        display_exception(f'[FOREMAN] module {fullname} failed on import', err)
         return StdRet.pass_exception(
             TRANSLATION_CATALOG,
             _('memory-importer for {name} path {path}'),

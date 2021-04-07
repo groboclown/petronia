@@ -57,7 +57,12 @@ references:
           under the data directory.
       message_format:
         type: string
-        description: Python format-like string for outputting the message.
+        description: >
+          Python format-like string for outputting the message.
+          Replacement values are: "text" (the formatted message text), "now" (the current time),
+          and "source" (the log message event source id).  For example, the
+          message_format value "[{source} {now}] {text}" would create logging messages like
+          "[petronia.core.api.timer:heartbeat 2021-Jan-01 13:03:12] Sent heartbeat"
       categories:
         description: >
           A collection of general error categories to capture.  If this is empty or

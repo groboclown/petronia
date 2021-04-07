@@ -23,7 +23,7 @@ class RegistrationTest(unittest.TestCase):
         self.assertEqual(1, len(calls))
         self.assertEqual(
             calls[0].args[0],
-            'my-ext',
+            'my-ext:registration',
         )
         self.assertEqual(
             calls[0].args[1],

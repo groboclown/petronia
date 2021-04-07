@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia extension-loader VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-01-21 11:39-0600\n"
+"POT-Creation-Date: 2021-04-07 09:19-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,147 +18,199 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:75
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:95
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:161
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:228
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:293
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:319
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:82
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:317
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:350
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:370
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:434
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:454
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:516
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:536
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:677
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:736
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:838
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:72
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:174
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:240
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:265
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:84
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:539
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:558
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:621
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:640
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:713
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:732
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:776
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:839
 #: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:858
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:892
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:912
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:932
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:966
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1042
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:65
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:85
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:171
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:191
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:211
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:274
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:294
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:474
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:507
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:527
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:591
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:611
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:686
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:706
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:740
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:760
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:854
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:919
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:939
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1066
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1086
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1150
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1170
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:926
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:945
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1085
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1146
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1247
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1266
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1298
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1317
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1336
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1368
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1442
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:67
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:99
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:169
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:188
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:285
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:304
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:336
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:368
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:387
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:421
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:486
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:889
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:908
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:971
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:990
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1063
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1082
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1126
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1190
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1209
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1337
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1396
 msgid "Required field {field_name} in {name}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:83
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:103
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:169
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:236
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:327
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:90
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:103
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:130
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:236
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:249
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:262
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:325
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:338
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:358
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:442
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:524
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:544
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:609
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:622
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:846
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:866
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:900
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:920
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:940
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:974
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:73
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:93
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:179
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:199
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:282
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:302
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:393
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:406
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:419
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:482
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:495
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:515
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:599
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:694
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:714
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:748
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:768
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:795
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:862
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:927
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:994
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1007
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1074
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1158
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:80
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:182
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:273
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:92
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:104
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:129
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:289
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:302
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:315
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:328
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:547
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:629
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:648
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:721
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:740
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:765
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:847
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:934
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:953
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1016
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1028
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1255
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1274
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1306
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1325
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1344
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1376
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:75
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:107
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:177
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:196
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:293
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:312
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:344
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:376
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:410
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:494
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:639
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:652
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:665
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:678
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:897
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:979
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:998
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1071
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1090
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1115
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1198
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1270
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1282
 msgid "Field {field_name} must be of type {type} for structure {name}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:301
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:248
 msgid "Field {field_name} must be of type datetime for structure {name}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:311
+#: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:257
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:354
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:492
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:704
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:842
 msgid "Invalid date-time format: {value}"
 msgstr ""
 
 #: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:114
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:141
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:555
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:877
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:951
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:985
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:104
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:725
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:779
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:139
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:371
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:398
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:425
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:452
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:479
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:750
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:963
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1284
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1354
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:1386
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:85
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:117
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:206
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:322
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:354
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:721
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:748
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:775
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:802
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:829
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1100
 msgid "Field {field_name} must contain items of type {type} for structure {name}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:230
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:387
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:283
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:633
 msgid "selector value must have ^ and $ keys"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:273
-#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:430
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:341
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:691
+msgid "Value must be of type datetime for selector {name}"
+msgstr ""
+
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:361
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:388
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:415
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:442
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:469
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:711
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:738
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:765
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:792
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:819
+msgid "Field {field_name} must be of type {type} for selector {name}"
+msgstr ""
+
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:501
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:851
 msgid "Invalid selector name {name} for {nc}"
 msgstr ""
 
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:569
+#: projects/extension-loader/petronia_extension_loader/events/impl/extension_loader.py:869
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:398
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:919
+#: projects/extension-loader/petronia_extension_loader/events/impl/foreman.py:1220
+msgid "Field {field_name} must not be null"
+msgstr ""
+
 #: projects/extension-loader/petronia_extension_loader/finder/extension.py:62
+msgid "Errors found in extension defined in {filename}"
+msgstr ""
+
+#: projects/extension-loader/petronia_extension_loader/finder/extension.py:75
 msgid "Errors found in the yaml extension definition file ({filename})"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/finder/extension.py:92
-msgid "Extension file ({filename}) invalid; it must be a single yaml document"
+#: projects/extension-loader/petronia_extension_loader/finder/extension.py:89
+msgid ""
+"zip extension found ({name}) but zip extension loading is not supported "
+"yet"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/finder/extension.py:101
-msgid "Failed to read contents of {filename}"
+#: projects/extension-loader/petronia_extension_loader/finder/extension.py:107
+msgid "Extension file ({filename}) invalid; it must be a single yaml document"
 msgstr ""
 
 #: projects/extension-loader/petronia_extension_loader/handlers/boot_extension_handler.py:28
@@ -167,68 +219,71 @@ msgid ""
 "already sent."
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/handlers/load_chain_handler.py:69
-msgid "Can only start a non-API extension; requested to start {name}"
+#: projects/extension-loader/petronia_extension_loader/handlers/extension_loader.py:59
+msgid "no extension installed matches {name} [>={min_version}, <{max_version}]"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/handlers/load_chain_handler.py:77
-msgid ""
-"Extension {name} is not pending.  Skipping extension load chain for this "
-"request."
+#: projects/extension-loader/petronia_extension_loader/handlers/send.py:100
+msgid "cannot send start request for non-implementable extension {name}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/initial_extensions.py:54
+#: projects/extension-loader/petronia_extension_loader/initial_extensions.py:73
 msgid "Extension listed in boot list, but is not installed: {req}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/order.py:156
+#: projects/extension-loader/petronia_extension_loader/order.py:145
+msgid ""
+"extension {name} depends on not-found extension {dep} [>={min_version}, "
+"<{max_version}]"
+msgstr ""
+
+#: projects/extension-loader/petronia_extension_loader/order.py:180
 msgid ""
 "No implementation declared for API extension {name}, and default "
 "extension {default} not installed"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/order.py:169
+#: projects/extension-loader/petronia_extension_loader/order.py:193
 msgid "No implementation declared for API extension {name}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/order.py:231
-#: projects/extension-loader/petronia_extension_loader/order.py:250
+#: projects/extension-loader/petronia_extension_loader/order.py:261
+#: projects/extension-loader/petronia_extension_loader/order.py:280
 msgid ""
 "Extension {name} is not in loading state, so it should not be marked as "
 "loaded"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/setup.py:78
+#: projects/extension-loader/petronia_extension_loader/setup.py:91
 msgid "No extension directory found."
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/setup.py:95
-msgid "Invalid JSON formatted"
+#: projects/extension-loader/petronia_extension_loader/setup.py:111
+msgid "Configuration file ({file}) must be a proper json or yaml document."
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/setup.py:106
-msgid "Failed to read file {filename}"
-msgstr ""
-
-#: projects/extension-loader/petronia_extension_loader/setup.py:116
-msgid ""
-"Configuration file ({file}) must be a proper yaml document or list of "
-"yaml documents."
-msgstr ""
-
-#: projects/extension-loader/petronia_extension_loader/setup.py:137
+#: projects/extension-loader/petronia_extension_loader/setup.py:135
 msgid "Configurations include section {key}, but it must be a key-value entry"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/setup.py:166
+#: projects/extension-loader/petronia_extension_loader/setup.py:168
+#: projects/extension-loader/petronia_extension_loader/setup.py:181
 msgid ""
 "Configuration value for startup -> extensions must be a list of extension"
 " names"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/setup.py:179
+#: projects/extension-loader/petronia_extension_loader/setup.py:195
 msgid ""
 "Configuration value for startup -> extension-dirs must be a list of "
 "directories to search for extensions"
+msgstr ""
+
+#: projects/extension-loader/petronia_extension_loader/setup.py:216
+msgid "Configuration file has problem in section {key}: no \"extension\" value"
+msgstr ""
+
+#: projects/extension-loader/petronia_extension_loader/shared_state.py:63
+msgid "extension not in loading state: {name}"
 msgstr ""
 

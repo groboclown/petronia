@@ -148,7 +148,7 @@ def get_log_dir(data_dirs: str) -> StdRet[str]:
     if not data_dir_list:
         return StdRet.pass_errmsg(
             TRANSLATION_CATALOG,
-            _(f'Could not find a log directory from data path {data_dirs}'),
+            _('Could not find a log directory from data path {data_dirs}'),
             data_dirs=data_dirs,
         )
 

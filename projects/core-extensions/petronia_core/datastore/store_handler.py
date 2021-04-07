@@ -44,7 +44,7 @@ class StoreDataHandler(ContextEventObjectTarget[datastore.StoreDataEvent]):
         valid_data = embedded_json_data(data)
         if valid_data.has_error:
             report_send_receive_problems('datastore', send_system_error(
-                self.__context,
+                context,
                 datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
                 valid_data.valid_error,
                 'invalid-json-data',
@@ -53,7 +53,7 @@ class StoreDataHandler(ContextEventObjectTarget[datastore.StoreDataEvent]):
             return False
         _updated, new_date = shared_state.store_data(source, data)
         print(f"[DATASTORE] stored data for {source}")
-        report_send_receive_problems('datastore', self.__context.send_event(
+        report_send_receive_problems('datastore', context.send_event(
             datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
             source,
             datastore.DataUpdateEvent(new_date, data),
