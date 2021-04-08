@@ -174,7 +174,7 @@ class EventForwarder:
 
     def _error_listener(self, error: PetroniaReturnError) -> bool:
         assert self.__alive
-        print(f"[{self}] encountered error {error}")
+        # print(f"[{self}] encountered error {error}")
         to_remove: List[EventForwarderTarget] = []
         for target in self.__targets:
             if target.on_error(error):
@@ -188,22 +188,22 @@ class EventForwarder:
         target_id = raw_event_target_id(event)
         to_remove: List[EventForwarderTarget] = []
         to_call: List[EventForwarderTarget] = []
-        print(f"[{self}] event listener start {event_id}")
+        # print(f"[{self}] event listener start {event_id}")
 
         if self.__filter and self.__filter(event_id, source_id, target_id, event):
-            print(f"[{self}] filtered event {event_id} with {self.__filter}")
+            # print(f"[{self}] filtered event {event_id} with {self.__filter}")
             return self._manage_targets([])
 
         for target in self.__targets:
             if target.can_consume(event_id, source_id, target_id):
-                print(f"[{self}] found target to consume {event_id}")
+                # print(f"[{self}] found target to consume {event_id}")
                 to_call.append(target)
             # else:
             #     print(f"[{self}] target {target} not consuming")
         if to_call:
-            print(f"[{self}] starting send event")
+            # print(f"[{self}] starting send event")
             to_remove = self._send_event(event, to_call)
-            print(f"[{self}] ending send event")
+            # print(f"[{self}] ending send event")
         else:
             # No targets for this event.  So the event reader needs to
             # be drained.
@@ -212,7 +212,7 @@ class EventForwarder:
             EventForwarder._drain_event(event)
         # return self._manage_targets(to_remove)
         ret = self._manage_targets(to_remove)
-        print(f"[{self}] event listener end {event_id}: {ret}")
+        # print(f"[{self}] event listener end {event_id}: {ret}")
         return ret
 
     def _send_event(

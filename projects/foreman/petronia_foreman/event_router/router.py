@@ -5,7 +5,7 @@ The approach here is that there is a many-to-one relationship between
 handlers and event pipes.
 """
 
-from typing import Dict, Iterable, Tuple, Callable, Optional, Union, Any
+from typing import Dict, Iterable, Tuple, List, Callable, Optional, Union, Any
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -23,7 +23,48 @@ from petronia_common.event_stream import (
 from .channel import EventChannel, InternalEventHandler
 from .handler import EventTargetHandle
 from .reservations import ChannelReservations, ChannelReservationCallback
-from ..user_message import CATALOG
+from ..user_message import CATALOG, trace_channel
+
+
+class AbstractChannelEventRunner:
+    """Abstract handler for running a channel's stream processing in the background."""
+    __slots__ = ()
+
+    def submit_processing(self, channel: EventChannel) -> None:
+        """Run the channel's process_stream in the background."""
+        raise NotImplementedError
+
+    def close(self, timeout_seconds: float) -> None:
+        """Stop all running stream readers, if possible."""
+        raise NotImplementedError
+
+
+class ThreadedChannelEventRunner(AbstractChannelEventRunner):
+    """Runs threaded channel event runners in the background."""
+    __slots__ = ('__pool', '__count')
+
+    def __init__(self) -> None:
+        self.__count = 0
+        self.__pool: List[Tuple[threading.Thread, EventChannel]] = []
+
+    def submit_processing(self, channel: EventChannel) -> None:
+        next_id = self.__count
+        self.__count += 1
+        thread = threading.Thread(
+            name=f'channel-runner-{next_id}',
+            target=channel.process_stream,
+            daemon=True,
+        )
+        self.__pool.append((thread, channel))
+        thread.start()
+
+    def close(self, timeout_seconds: float) -> None:
+        for thread, channel in self.__pool:
+            if thread.is_alive():
+                channel.close_access()
+                thread.join(timeout_seconds)
+        # Note: threads are not removed from the pool in case the join
+        # timed out.
 
 
 class EventRouter:
@@ -39,18 +80,20 @@ class EventRouter:
     In this model, a channel represents a launcher process unit, and a handler represents a
     loaded extension within the channel.  A loaded extension can register multiple event listeners.
     """
-    __slots__ = ('__channels', '__executor', '__lock', '__target', '__reservations',)
+    __slots__ = (
+        '__channels', '__executor', '__lock', '__target', '__reservations',
+        '__channel_runner',
+    )
 
     def __init__(
             self,
             lock: threading.Semaphore,
             target: Optional[EventForwarderTarget] = None,
             executor: Optional[ThreadPoolExecutor] = None,
+            channel_runner: Optional[AbstractChannelEventRunner] = None
     ) -> None:
-        if executor is None:
-            self.__executor = ThreadPoolExecutor()
-        else:
-            self.__executor = executor
+        self.__executor = executor or ThreadPoolExecutor()
+        self.__channel_runner = channel_runner or ThreadedChannelEventRunner()
         self.__channels: Dict[str, EventChannel] = {}
         self.__reservations = ChannelReservations()
         self.__lock = lock
@@ -115,11 +158,11 @@ class EventRouter:
         if self.__target:
             channel.add_event_consumer(self.__target)
         if target:
-            # print(f"Adding registered target to channel {name}")
+            trace_channel(name, 'reserved target listening on channel')
             channel.add_event_consumer(target)
 
         def on_close() -> None:
-            # print(f"Closing channel {name} due to EOF")
+            trace_channel(name, 'EOF read from stream; closing channel')
             self.__executor.submit(self.close_channel, name)
 
         channel.add_event_consumer(OnCloseTarget(on_close))
@@ -136,6 +179,7 @@ class EventRouter:
             # Process the stream in the background.
             # Note that this is done still within the lock,
             # to prevent weird issues with close_channel.
+            trace_channel(name, 'reading events in background thread')
             self.__executor.submit(channel.process_stream)
 
         return RET_OK_NONE
@@ -207,8 +251,11 @@ class EventRouter:
         with self.__lock:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
+                    trace_channel(channel.name, f'adding handler listener for {event_id} / {target_id} +++++++++++++++++++++++++++++++++')
                     ret = channel.add_handler_listener(handler_id, event_id, target_id)
                     return ret.ok
+        trace_channel(handler_id, f'could not find a channel with this handler id; did not register listener for {event_id} / {target_id} +++++++++++++++++++++')
+        print(f'Known channel handler ids: {[ch.name for ch in self.__channels.values()]}')
         return False
 
     def remove_handler_listener(

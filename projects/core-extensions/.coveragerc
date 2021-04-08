@@ -9,3 +9,4 @@ omit =
     petronia_core/hotkey_binding/events/ext/hotkey.py
     petronia_core/hotkey_binding/events/ext/tests/hotkey_test.py
     petronia_core/hotkey_binding/events/impl/hotkey_binding.py
+    petronia_core/hotkey_binding/state/hotkey_binding.py

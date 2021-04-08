@@ -20,6 +20,8 @@ from .constants import TRANSLATION_CATALOG
 CATALOG = TRANSLATION_CATALOG
 
 DEBUG = True
+TRACE_EVENT = True
+TRACE_CHANNEL = True
 
 _TRANSLATIONS: Dict[str, gettext.NullTranslations] = {}
 _LOCK = threading.RLock()
@@ -32,8 +34,31 @@ def low_println(text: str) -> None:
         sys.stdout.flush()
 
 
+def trace_event(
+        channel_name: str, source_id: str, target_id: str, event_id: str,
+        message_text: str,
+) -> None:
+    """Trace an event passing through the system."""
+    if TRACE_EVENT:
+        low_println(
+            f'[FOREMAN EVENT {channel_name}] {event_id}: <{source_id}> to <{target_id}>: '
+            f'{message_text}'
+        )
+
+
+def trace_channel(
+        source_id: str, message_text: str,
+) -> None:
+    """Trace an event channel action."""
+    if TRACE_CHANNEL:
+        low_println(
+            f'[FOREMAN CHANNEL] <{source_id}>: {message_text}'
+        )
+
+
 def display_exception(text: str, exception: BaseException, debug: bool = False) -> None:
-    """Display an exception."""
+    """Display an exception.  The text is not localized, because this is considered a
+    developer message."""
     with _LOCK:
         low_println(text)
         if debug or DEBUG:

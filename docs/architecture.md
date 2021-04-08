@@ -209,5 +209,5 @@ For Linux, there are two separate standards at the moment - Wayland and X11.  Th
 
 * v1 - Early prototype
 * v2 - Attempt at more structure, while understanding the needs of the system.
-* v3 - Switch to an event bus style, with well-defined event schema.
-* v3.1 - Enforced forking model with event registration security.
+* v3.0 aleph - Switch to an event bus style, with well-defined event schema.
+* v3.0 beth - Enforced forking model with event registration security.

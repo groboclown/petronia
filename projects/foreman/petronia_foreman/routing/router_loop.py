@@ -11,6 +11,7 @@ from petronia_ext_lib.standard.error import (
     ACCESS_RESTRICTION_ERROR_CATEGORY, CONFIGURATION_ERROR_CATEGORY,
 )
 from .event_handlers import TargetHandlerRuntimeContext
+from .handler_id import create_handler_id
 from .. import event_util
 from ..configuration import BootExtensionMetadata
 from ..event_router import EventRouter
@@ -139,7 +140,8 @@ class RouterLoopLogic:
 
     def _handle_boot_extension(self, metadata: BootExtensionMetadata) -> None:
         event = metadata.to_start_event()
-        handler_id = get_handler_id(event.name)
+        handler_id = create_handler_id(event.name)
+        print(f'********** BOOT EXTENSION METADATA {event.name} - handler {handler_id}')
         if self._start_extension(None, handler_id, event):
             self._add_listeners(handler_id, metadata.consumes)
 
@@ -147,7 +149,7 @@ class RouterLoopLogic:
             self,
             source: str, request: foreman.LauncherStartExtensionRequestEvent,
     ) -> None:
-        handler_id = get_handler_id(request.name)
+        handler_id = create_handler_id(request.name)
         if self._start_extension(source, handler_id, request):
             res = self.__router.inject_event(to_raw_event_object(
                 foreman.LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME,
@@ -163,7 +165,9 @@ class RouterLoopLogic:
     def _handle_add_listeners(
             self, target: str, request: foreman.ExtensionAddEventListenerEvent,
     ) -> None:
-        self._add_listeners(target, [
+        handler_id = create_handler_id(target)
+        print(f'********** ADD LISTENERS: target {target} ; handler {handler_id}')
+        self._add_listeners(handler_id, [
             (event.event_id, event.target_id)
             for event in request.events
         ])
@@ -255,7 +259,9 @@ class RouterLoopLogic:
         """Add listeners to the event handler."""
         ret = True
         for event_id, target_id in events:
-            ret = ret and self.__router.add_handler_listener(handler_id, event_id, target_id)
+            # Need to call this for all events.
+            added = self.__router.add_handler_listener(handler_id, event_id, target_id)
+            ret = ret and added
         return ret
 
     def _remove_listeners(
@@ -266,11 +272,6 @@ class RouterLoopLogic:
         for event_id, target_id in events:
             ret = ret and self.__router.remove_handler_listener(handler_id, event_id, target_id)
         return ret
-
-
-def get_handler_id(extension_name: str) -> str:
-    """Generate a handler ID for the extension."""
-    return f'{foreman.EXTENSION_NAME}:{extension_name}'
 
 
 class QueuedContext(TargetHandlerRuntimeContext):
@@ -296,6 +297,7 @@ class QueuedContext(TargetHandlerRuntimeContext):
     def add_event_listener(
             self, target_id: str, event: foreman.ExtensionAddEventListenerEvent,
     ) -> None:
+        print(f"**** ADD LISTENERS FOR {target_id}")
         self.__queue.put(AddEventListenersQueueRequest(target_id, event))
 
     def remove_event_listener(

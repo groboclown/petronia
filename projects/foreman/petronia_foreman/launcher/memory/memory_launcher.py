@@ -23,6 +23,7 @@ from ...configuration import RuntimeConfig
 from ...events import foreman
 from ...process_mgmt.util import create_cmd
 from ...constants import TRANSLATION_CATALOG
+from ...user_message import trace_channel
 
 
 WAIT_FOR_EXTENSION_LOAD_TIMEOUT_OPTION = 'extension-load-timeout'
@@ -79,7 +80,7 @@ class MemoryLauncherCategory(AbcLauncherCategory):
     def start_extension(  # pylint:disable=too-many-return-statements
             self, handler_id: str, start_event: foreman.LauncherStartExtensionRequestEvent,
     ) -> StdRet[None]:
-        print("[DEBUG MemoryLauncher] Starting launcher " + handler_id)
+        trace_channel(handler_id, f"Starting launcher for extension {start_event.name}")
         if not self._alive:
             return launcher_stopped()
         if not self._context:
@@ -232,7 +233,7 @@ class LauncherData(LaunchedInstance):
         self.from_launcher = from_launcher
 
     def _local_stop(self, timeout: float) -> StdRet[None]:
-        print(f"==== Stopping {self.launcher_id} ====")
+        trace_channel(self.launcher_id, "==== Stopping ====")
         self.thread.abort_start()
         self.to_launcher.close()
         self.from_launcher.close()

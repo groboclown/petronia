@@ -7,6 +7,7 @@ from typing import Optional, Dict, Any
 from petronia_common.event_stream import BaseEventForwarderTarget
 from petronia_common.util import PetroniaReturnError
 from ..events import foreman
+from ..user_message import trace_channel
 
 CONSUMED_EXTENSION_LOADER_EVENT_IDS = (
     foreman.LauncherStartExtensionRequestEvent.FULL_EVENT_NAME,
@@ -92,7 +93,14 @@ class ExtensionLoaderTarget(BaseEventForwarderTarget):
         if event_id == foreman.ExtensionAddEventListenerEvent.FULL_EVENT_NAME:
             eal_event = foreman.ExtensionAddEventListenerEvent.parse_data(event_data)
             if eal_event.ok:
-                print(f"=========== adding listener {target_id} / {eal_event.result.events}")
+                # NOTE: there's a severe bug here.
+                # The "target_id" comes from the extension loader, and that is the extension
+                # name.  However, this needs to be the handler id, which is stored differently
+                # internally.  This calls into EventRouter.add_handler_listener()
+                trace_channel(
+                    'foreman-ext-loader',
+                    f'++++++ adding listener on {target_id} / {eal_event.result.events} ++++++',
+                )
                 self._context.add_event_listener(target_id, eal_event.result)
             return False
 

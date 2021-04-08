@@ -54,6 +54,10 @@ class EventHandlerSet:
         """Does this handler set contain the given handler?"""
         return handler_id in self.__handler_consumes
 
+    def get_handler_ids(self) -> Iterable[str]:
+        """Get the list of registered handler ids"""
+        return tuple(self.__handler_consumes)
+
     def add_handler(
             self,
             handler_id: str,
@@ -78,6 +82,10 @@ class EventHandlerSet:
         self.__sources.update(source_id_prefixes)
         self.__consumes.update(initial_consumes)
         return RET_OK_NONE
+
+    def consume_info(self) -> str:
+        """Internal structure information about what this can consume.  Used for debugging."""
+        return repr(self.__consumes)
 
     def add_listener(
             self, handler_id: str, event_id: Optional[str], target_id: Optional[str],

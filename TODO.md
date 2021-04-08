@@ -85,6 +85,7 @@ These are desired, tactical changes to bits of already written code.
 
 ### foreman
 
+* There's a bug where, in Foreman, the handler-id generation code is being called on something that's already a handler-id.  This looks like the boot-loader passing the extension loader's handler instead of extension name.  It looks like the `router_loop.py` class `AddEventListenersQueueRequest` is being called with the handle_id instead of extension name.  This is currently being prevented in the handler id creation function, but that's a stop-gap measure.
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * add extension name requirements around the in-memory loader, so that it denies loading an extension if it does not match the glob pattern.
 * code coverage improvements

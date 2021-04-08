@@ -23,12 +23,10 @@ from petronia_common.event_stream import (
 )
 from petronia_common.event_stream.thread_stream import ThreadedStreamForwarder
 from .handler import EventHandlerSet, EventTargetHandle
-from ..user_message import CATALOG, low_println
+from ..user_message import CATALOG, trace_event, trace_channel
 
 
 EventRouteDestinationCallback = Callable[[RawEvent], Coroutine[Any, Any, StdRet[None]]]
-
-DEBUG = True
 
 
 class EventFilterResult(Enum):
@@ -100,6 +98,10 @@ class EventChannel(EventForwarderTarget):
         """The event channel name."""
         return self.__name
 
+    def get_handler_ids(self) -> Iterable[str]:
+        """Get all known handler IDs"""
+        return self.__handlers.get_handler_ids()
+
     def is_alive(self) -> bool:
         """Is this channel still receiving events and sending them?
         The channel can only be closed, which makes this return False."""
@@ -120,6 +122,7 @@ class EventChannel(EventForwarderTarget):
         """Add the given target as a consumer for this channel's sent events
         (the events read in from the reader for the channel).  These are
         removed by their call-backs returning the correct value."""
+        trace_channel(self.name, f'added listener {target}')
         self.__forwarder.add_target(target)
 
     def add_handler(
@@ -132,13 +135,18 @@ class EventChannel(EventForwarderTarget):
         is returned."""
         if not self.__alive:
             return _create_route_closed_error(self.__name)
-        print(f"[{self}] registering handler can produce {produces}")
+        trace_channel(
+            self.name,
+            f'added handler {handler_id}: can produce {produces}; can consume {consumes}; '
+            f'allows producing prefixes {source_id_prefixes}',
+        )
         return self.__handlers.add_handler(handler_id, produces, consumes, source_id_prefixes)
 
     def remove_handler(self, handler_id: str) -> StdRet[None]:
         """Attempts to remove the handler from the internal
         store.  If the handler is not registered, an error is returned.
         This can be safely called after the channel is closed."""
+        trace_channel(self.name, f'removing handler {handler_id}')
         return self.__handlers.remove_handler(handler_id)
 
     def add_handler_listener(
@@ -149,7 +157,10 @@ class EventChannel(EventForwarderTarget):
         """Registers the event / target listener with the handler."""
         if not self.__alive:
             return _create_route_closed_error(self.__name)
-        print(f"[channel {self.__name}] adding listener {event_id} / {target_id}")
+        trace_channel(
+            self.name,
+            f'{handler_id}: added listener for event [{event_id}] produced by <{target_id}>',
+        )
         return self.__handlers.add_listener(handler_id, event_id, target_id)
 
     def remove_handler_listener(
@@ -160,6 +171,10 @@ class EventChannel(EventForwarderTarget):
         """Removes the event / target listener from the handler."""
         if not self.__alive:
             return _create_route_closed_error(self.__name)
+        trace_channel(
+            self.name,
+            f'{handler_id}: removed listener for event [{event_id}] produced by <{target_id}>',
+        )
         return self.__handlers.remove_listener(handler_id, event_id, target_id)
 
     def add_internal_event_handler(self, handler: InternalEventHandler) -> StdRet[None]:
@@ -185,9 +200,8 @@ class EventChannel(EventForwarderTarget):
         if not self.__alive:
             # print(f"[{self}] cannot produce {event_id} @{source_id}; not alive")
             return False
-        # return self.__handlers.can_produce(event_id, source_id)
         ret = self.__handlers.can_produce(event_id, source_id)
-        # print(f"[{self}] is {event_id} registered as able to produce? {ret}")
+        trace_event(self.name, source_id, '<N/A>', event_id, f'can channel produce? {ret}')
         return ret
 
     def _local_filter(
@@ -196,16 +210,18 @@ class EventChannel(EventForwarderTarget):
         # All event handlers are called, even if a filter does not allow the event
         # to be passed on.  Returns True if filtered, and False if allowed to be
         # produced by the channel.
-        if DEBUG:  # pragma no cover
-            low_println(  # pragma no cover
-                f'[Ch {self.__name}] received event {event_id} '
-                f'from {event_source_id} to {event_target_id}'
-                # f': {event}'
-            )
+        trace_event(
+            self.name, event_source_id, event_target_id, event_id,
+            'channel generated event; passing to listeners',
+        )
         allow_event = self.can_produce(event_id, event_source_id)
         removed_handlers: List[InternalEventHandler] = []
         for handler in self.__internal_handlers:
-            # print(f' - sending to {handler}')
+            # Don't trace events going to internal handlers.
+            # trace_event(
+            #     self.name, event_source_id, event_target_id, event_id,
+            #     f'sending event to internal handler {handler}',
+            # )
             res = handler(event_id, event_source_id, event_target_id, event)
             if res.remove_filter():
                 removed_handlers.append(handler)
@@ -228,7 +244,8 @@ class EventChannel(EventForwarderTarget):
             # print(f"channel {self.__name} can't consume; not alive")
             return False
         ret = self.__handlers.can_consume(event_id, target_id)
-        print(f"[channel {self.__name}] consume {event_id} for {target_id}?  {ret}")
+        if not ret:
+            trace_event(self.name, source_id, target_id, event_id, f'cannot consume: {self.__handlers.consume_info()}')
         return ret
 
     def on_error(self, error: PetroniaReturnError) -> bool:
@@ -237,12 +254,16 @@ class EventChannel(EventForwarderTarget):
         if not self.__alive:
             return True
         # Do nothing...
+        trace_channel(
+            self.name,
+            f'Ignored stream read errors: {[m.debug() for m in error.messages()]}',
+        )
         return False
 
     def on_eof(self) -> None:
         # The other channel encountered an EOF, and is telling this channel
         # about it.  This channel doesn't care about that message.
-        # print(f"Channel {self.__name} ignoring EOF")
+        # trace_channel(self.name, 'Encountered EOF on other channel')
         pass
 
     def consume_object(
@@ -251,7 +272,7 @@ class EventChannel(EventForwarderTarget):
         # can_consume has already been called and returned True.
         if not self.__alive:
             return True
-        print(f'[channel {self.__name}] consuming {event_id}')
+        trace_event(self.name, source_id, target_id, event_id, 'passing event into channel')
         ret = write_object_event_to_stream(
             self.__writer,
             event_id,
@@ -273,6 +294,7 @@ class EventChannel(EventForwarderTarget):
         # can_consume has already been called and returned True.
         if not self.__alive:
             return True
+        trace_event(self.name, source_id, target_id, event_id, 'passing binary event into channel')
         ret = write_binary_event_to_stream(
             self.__writer,
             event_id,

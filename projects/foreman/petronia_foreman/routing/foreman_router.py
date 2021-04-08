@@ -451,8 +451,3 @@ NEXT_THREAD_ID = [0]
 def _next_thread_id() -> str:
     NEXT_THREAD_ID[0] += 1
     return 'foreman-router-' + str(NEXT_THREAD_ID[0])
-
-
-def create_handler_id(category_name: str, extension_name: str) -> str:
-    """Create a unique handler ID for the extension."""
-    return category_name + ':' + extension_name
