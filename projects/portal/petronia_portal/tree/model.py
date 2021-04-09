@@ -354,7 +354,7 @@ class ScreenBlockSplit(TileContainer):
         # The screen block can't be resized.
         raise ValueError('Cannot change the screen block size.')
 
-    def add_child(self, child: Tile, front: bool, equally_sized: bool) -> Sequence[KnownWindow]:
+    def add_child(self, child: Tile, front: bool, _equally_sized: bool) -> Sequence[KnownWindow]:
         if len(self.get_children()) != 0:
             raise ValueError('a screen block can contain at most 1 child.')
         self._children.append(child)

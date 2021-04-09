@@ -202,6 +202,9 @@ class LauncherRuntimeContextTest(unittest.TestCase):
         self.assertIs(res, returns)
         router.add_handler.assert_called_with('ch1', 'h1', [], [], [])
 
+        # clear the error...
+        self.assertIsNotNone(res.error)
+
     def test_remove_handler(self) -> None:
         """Test the remove_handler method."""
         lock = threading.Semaphore()
@@ -226,16 +229,6 @@ class LauncherRuntimeContextTest(unittest.TestCase):
         lrc = foreman_router.LauncherRuntimeContext(router, self.executor)
         lrc.add_internal_event_handler('ch1', handler)
         router.add_internal_event_handler.assert_called_with('ch1', handler)
-
-
-class ForemanRouterFunctionsTest(unittest.TestCase):
-    """Test the functions in the module."""
-    def test_create_handler_id(self) -> None:
-        """Test create_handler_id"""
-        self.assertEqual(
-            'abc:1234',
-            foreman_router.create_handler_id('abc', '1234'),
-        )
 
 
 def _create_fails_init(options: RuntimeConfig) -> AbcLauncherCategory:

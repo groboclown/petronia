@@ -9,7 +9,9 @@ def permutations(max_val: int) -> Iterator[Sequence[int]]:
     """
     Generate permutations of 0 to (max_val - 1)
     """
-    assert max_val > 0
+    # developer assertion.
+    assert max_val > 0  # nosec
+
     available: List[List[int]] = []
     current: List[int] = []
     # Initialize the data

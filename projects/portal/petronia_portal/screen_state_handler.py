@@ -193,7 +193,9 @@ def get_workspace_match(
     return best_rank, best_match
 
 
-def is_window_match(window: tree.KnownWindow, matcher: portal_state.WindowMatch) -> bool:
+def is_window_match(  # pylint:disable=too-many-return-statements,too-many-branches
+        window: tree.KnownWindow, matcher: portal_state.WindowMatch,
+) -> bool:
     """Is the window matched by the matcher?"""
 
     # The window must already be managed, and the matcher must be for managed windows.

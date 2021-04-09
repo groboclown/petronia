@@ -2,7 +2,10 @@
 
 from typing import Set
 import unittest
-from petronia_common.extension.config import ExtensionDependency, StandAloneExtensionMetadata
+from petronia_common.extension.config import (
+    ExtensionDependency, StandAloneExtensionMetadata,
+    EventType,
+)
 from petronia_common.extension.config.event_schema import (
     PUBLIC_ACCESS, IMPLEMENTATIONS_ACCESS, TARGET_ACCESS, INTERNAL_ACCESS,
 )
@@ -186,4 +189,118 @@ class PrivilegesTest(unittest.TestCase):
                 'petronia.core.api.extension_loader:register-extension-listeners',
             },
             res,
+        )
+
+    def test_can_listen_event(self) -> None:
+        """Test can_listen_event"""
+
+        # Target receive level
+        self.assertFalse(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'target', None, None),
+            None, False,
+        ))
+        self.assertTrue(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'target', None, None),
+            'target-id', False,
+        ))
+
+        # Implementation level
+        self.assertFalse(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'internal', None, None),
+            None, True,
+        ))
+        self.assertTrue(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'public', None, None),
+            None, True,
+        ))
+        self.assertTrue(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'implementations', None, None),
+            None, True,
+        ))
+
+        # Usage level
+        self.assertFalse(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'internal', None, None),
+            None, False,
+        ))
+        self.assertTrue(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'public', None, None),
+            None, False,
+        ))
+        self.assertFalse(privileges.can_listen_event(
+            EventType('x', 'io', 'public', 'implementations', None, None),
+            None, False,
+        ))
+
+    def test_get_valid_listen_event_pairs(self) -> None:
+        """Test the get_valid_listen_event_pairs function."""
+        protocol = mk_protocol_ext(
+            'n.protocol', events=[
+                ('ev1', PUBLIC_ACCESS, PUBLIC_ACCESS),
+                ('ev2', PUBLIC_ACCESS, PUBLIC_ACCESS),
+            ],
+        )
+        api1 = mk_api_ext(
+            'n.api1', ('n.impl', 1, 0, 0, -1, 0, 0), events=[
+                ('ev3', IMPLEMENTATIONS_ACCESS, PUBLIC_ACCESS),
+                ('ev4', PUBLIC_ACCESS, IMPLEMENTATIONS_ACCESS),
+            ],
+        )
+        api2 = mk_api_ext(
+            'n.api2', ('n.impl', 1, 0, 0, -1, 0, 0), events=[
+                ('ev5', IMPLEMENTATIONS_ACCESS, PUBLIC_ACCESS),
+                ('ev6', PUBLIC_ACCESS, TARGET_ACCESS),
+            ],
+        )
+        impl1 = mk_impl_ext(
+            'n.impl1',
+            depends=[],
+            impl=[('n.api1', 0, 9, 0, 1, 9, 9)],
+        )
+        impl2 = mk_impl_ext(
+            'n.impl2',
+            depends=[
+                ('n.protocol', 0, 1, 0, 2, 0, 0),
+                ('n.impl1', 0, 1, 0, 2, 0, 0),
+
+                # A dependency that isn't registered.  The code silently
+                # ignores this problem.
+                ('n.does-not-exist', 0, 1, 0, 2, 0, 0),
+            ],
+            impl=[('n.api2', 0, 9, 0, 1, 9, 9)],
+        )
+        pairs = privileges.get_valid_listen_event_pairs(
+            [
+                (None, None),
+                ('n.protocol:ev1', None),
+                ('n.protocol:ev1', 't1'),
+                ('n.protocol:ev2', None),
+                ('n.protocol:ev2', 't1'),
+                ('n.api1:ev3', None),
+                ('n.api1:ev3', 't1'),
+                ('n.api1:ev4', None),
+                ('n.api1:ev4', 't1'),
+                ('n.api2:ev5', None),
+                ('n.api2:ev5', 't1'),
+                ('n.api2:ev6', None),
+                ('n.api2:ev6', 't1'),
+            ], impl2, True, set(), [
+                protocol, api1, api2, impl1, impl2,
+            ],
+        )
+        self.assertEqual(
+            {
+                ('n.protocol:ev1', None),
+                ('n.protocol:ev1', 't1'),
+                ('n.protocol:ev2', None),
+                ('n.protocol:ev2', 't1'),
+                ('n.api1:ev3', None),
+                ('n.api1:ev3', 't1'),
+                # ev4 requires implementation, but it's used as a dependency.
+                ('n.api2:ev5', None),
+                ('n.api2:ev5', 't1'),
+                # ev6 requires target access, so it doesn't allow "none" target.
+                ('n.api2:ev6', 't1'),
+            },
+            pairs,
         )

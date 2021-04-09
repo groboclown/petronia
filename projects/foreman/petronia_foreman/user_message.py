@@ -21,6 +21,7 @@ CATALOG = TRANSLATION_CATALOG
 
 DEBUG = True
 TRACE_EVENT = True
+TRACE_EVENT_CHOICE = False
 TRACE_CHANNEL = True
 
 _TRANSLATIONS: Dict[str, gettext.NullTranslations] = {}
@@ -43,6 +44,18 @@ def trace_event(
         low_println(
             f'[FOREMAN EVENT {channel_name}] {event_id}: <{source_id}> to <{target_id}>: '
             f'{message_text}'
+        )
+
+
+def trace_event_choice(
+        channel_name: str, source_id: str, target_id: str, event_id: str,
+        message_text: str,
+) -> None:
+    """Trace a decision on an event passing through the system."""
+    if TRACE_EVENT_CHOICE:
+        low_println(
+            f'[FOREMAN EVENT {channel_name}] {event_id}: <{source_id}> to <{target_id}>: '
+            f'(decision) {message_text}'
         )
 
 

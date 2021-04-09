@@ -7,6 +7,7 @@ import io
 from petronia_common.event_stream import RawBinaryReader, RawEvent, to_raw_event_object
 from petronia_common.event_stream.tests.shared import SimpleBinaryWriter
 from petronia_common.util import PetroniaReturnError
+from petronia_common.util.error import SimplePetroniaReturnError
 from .. import channel
 
 
@@ -39,7 +40,7 @@ class EventChannelTest(unittest.TestCase):
         self.assertEqual('n1', ec1.name)
         self.assertTrue(ec1.is_alive())
         self.assertFalse(ec1.contains_handler_id('foo'))
-        self.assertFalse(ec1.on_error(PetroniaReturnError()))
+        self.assertFalse(ec1.on_error(SimplePetroniaReturnError()))
 
     def test_not_alive_actions(self) -> None:
         """Test that actions that require the channel to be alive work as expected."""

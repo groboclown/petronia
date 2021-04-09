@@ -42,7 +42,7 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
                 (
                     datastore_event.DataUpdateEvent.FULL_EVENT_NAME,
                     None,
-                )
+                ),
             ),
         ),
 
@@ -163,7 +163,6 @@ class DataStoreUpdate(ContextEventObjectTarget[datastore_event.DataUpdateEvent])
                 # If there are any window IDs here that are not known, then a create was
                 # missed, and the get-data for its state should be sent.
                 print(f'[PORTAL] received active window IDs: {active_res.result.active_ids}')
-                pass
         elif target.startswith(BASE_WINDOW_TARGET_ID):
             window_res = get_event_data_value(event, DataStoreUpdate.WINDOW_STATE_PARSER)
             if window_res.has_error:
@@ -172,7 +171,6 @@ class DataStoreUpdate(ContextEventObjectTarget[datastore_event.DataUpdateEvent])
             else:
                 # If the window ID is not known, then create the window.  Otherwise, ignore it.
                 print(f'[PORTAL] received window state ID: {target}')
-                pass
 
         return False
 

@@ -29,7 +29,7 @@ class PortalUserMessagesTest(unittest.TestCase):
         """Test the report_send_receive_problems function"""
         sys.stderr = io.StringIO()
         user_messages.report_send_receive_problems(StdRet.pass_errmsg('c', i18n('m {x}'), x=1))
-        self.assertEqual('[native-handler ERROR] m 1\n', sys.stderr.getvalue())
+        self.assertEqual('[portal ERROR] m 1\n', sys.stderr.getvalue())
 
     def test_report_send_receive_problems__exception(self) -> None:
         """Test the report_send_receive_problems function"""
@@ -41,5 +41,5 @@ class PortalUserMessagesTest(unittest.TestCase):
         user_messages.report_send_receive_problems(
             StdRet.pass_exception('c', i18n('m {x}'), error, x=1),
         )
-        self.assertTrue(sys.stderr.getvalue().startswith('[native-handler ERROR] m 1\n'))
+        self.assertTrue(sys.stderr.getvalue().startswith('[portal ERROR] m 1\n'))
         self.assertTrue('ValueError' in sys.stderr.getvalue())

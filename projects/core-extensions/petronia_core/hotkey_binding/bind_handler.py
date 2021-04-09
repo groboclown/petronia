@@ -2,7 +2,7 @@
 
 from typing import List, Sequence, Callable
 from petronia_common.util import StdRet, join_none_results, join_errors, UserMessage
-from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
+from petronia_ext_lib.runner import EventRegistryContext, ContextEventObjectTarget
 from petronia_ext_lib.logging import send_system_error
 from petronia_ext_lib.standard import error
 from petronia_ext_lib.extension_loader import send_register_listeners
@@ -113,23 +113,14 @@ def send_hotkey_fired_event(
     )
 
 
-class ContextAware:
-    """Has a context value."""
-    __slots__ = ('context',)
-
-    def __init__(self, context: EventRegistryContext) -> None:
-        self.context = context
-
-
 class ExtensionEventRegisterEventTarget(
-    ContextAware,
-    EventObjectTarget[hotkey_events.ExtensionEventRegisterEvent]
+    ContextEventObjectTarget[hotkey_events.ExtensionEventRegisterEvent]
 ):
     """Handle ExtensionEventRegisterEvent events."""
-    __slots__ = ()
 
-    def on_event(
-            self, source: str, target: str, event: hotkey_events.ExtensionEventRegisterEvent,
+    def on_context_event(
+            self, context: EventRegistryContext, source: str, target: str,
+            event: hotkey_events.ExtensionEventRegisterEvent,
     ) -> bool:
         shared_state.set_extension_event(hotkey_events.Events(
             event.name,
@@ -141,14 +132,13 @@ class ExtensionEventRegisterEventTarget(
         ))
         report_send_receive_problems(
             'hotkey-binding',
-            store_handler.send_extension_events_state(self.context)
+            store_handler.send_extension_events_state(context)
         )
         return False
 
 
 class SetMasterSequenceRequestEventTarget(
-    ContextAware,
-    EventObjectTarget[hotkey_events.SetMasterSequenceRequestEvent]
+    ContextEventObjectTarget[hotkey_events.SetMasterSequenceRequestEvent]
 ):
     """Handle SetMasterSequenceRequestEvent events.
 
@@ -156,36 +146,36 @@ class SetMasterSequenceRequestEventTarget(
     update the local state."""
     __slots__ = ()
 
-    def on_event(
-            self, source: str, target: str, event: hotkey_events.SetMasterSequenceRequestEvent,
+    def on_context_event(
+            self, context: EventRegistryContext, source: str, target: str,
+            event: hotkey_events.SetMasterSequenceRequestEvent,
     ) -> bool:
 
         def on_complete(status: int, errors: Sequence[UserMessage]) -> None:
             if status == native_handler.REQUEST_SUCCEEDED:
                 shared_state.set_master_sequence(event.sequence_type, event.keys)
                 report_send_receive_problems(
-                    'hotkey-binding', store_handler.send_bound_keys_state(self.context),
+                    'hotkey-binding', store_handler.send_bound_keys_state(context),
                 )
                 report_send_receive_problems(
-                    'hotkey-binding', store_handler.send_configuration_state(self.context),
+                    'hotkey-binding', store_handler.send_configuration_state(context),
                 )
             else:
                 report_send_receive_problems('hotkey-binding', send_system_error(
-                    self.context, hotkey_state.EXTENSION_NAME,
+                    context, hotkey_state.EXTENSION_NAME,
                     join_errors(*errors), 'hotkey-bind-timeout',
                     [error.INTERNAL_ERROR_CATEGORY],
                 ))
 
         report_send_receive_problems('hotkey-binding', native_handler.send_set_hotkey_bindings(
-            self.context, event.sequence_type, event.keys, shared_state.list_bound_keys(),
+            context, event.sequence_type, event.keys, shared_state.list_bound_keys(),
             on_complete,
         ))
         return False
 
 
 class BoundKeyRegisterEventTarget(
-    ContextAware,
-    EventObjectTarget[hotkey_events.BoundKeyRegisterEvent]
+    ContextEventObjectTarget[hotkey_events.BoundKeyRegisterEvent]
 ):
     """Handle BoundKeyRegisterEvent events
 
@@ -193,22 +183,24 @@ class BoundKeyRegisterEventTarget(
     update the local state."""
     __slots__ = ()
 
-    def on_event(
-            self, source: str, target: str, event: hotkey_events.BoundKeyRegisterEvent,
+    def on_context_event(
+            self, context: EventRegistryContext, source: str, target: str,
+            event: hotkey_events.BoundKeyRegisterEvent,
     ) -> bool:
 
         def on_complete(status: int, errors: Sequence[UserMessage]) -> None:
             if status == native_handler.REQUEST_SUCCEEDED:
                 shared_state.set_bound_key(event.keys, event.comment, event.event)
                 report_send_receive_problems(
-                    'hotkey-binding', store_handler.send_bound_keys_state(self.context),
+                    'hotkey-binding', store_handler.send_bound_keys_state(context),
                 )
                 report_send_receive_problems(
-                    'hotkey-binding', store_handler.send_configuration_state(self.context),
+                    'hotkey-binding', store_handler.send_configuration_state(context),
                 )
             else:
+                # This may not be a timeout, but could be a valid error.
                 report_send_receive_problems('hotkey-binding', send_system_error(
-                    self.context, hotkey_state.EXTENSION_NAME,
+                    context, hotkey_state.EXTENSION_NAME,
                     join_errors(*errors), 'hotkey-bind-timeout',
                     [error.INTERNAL_ERROR_CATEGORY],
                 ))
@@ -218,15 +210,14 @@ class BoundKeyRegisterEventTarget(
         new_bound_keys.add(tuple(event.keys))
 
         report_send_receive_problems('hotkey-binding', native_handler.send_set_hotkey_bindings(
-            self.context, master.sequence_type, master.sequence, new_bound_keys,
+            context, master.sequence_type, master.sequence, new_bound_keys,
             on_complete,
         ))
         return False
 
 
 class BoundKeyRemoveEventTarget(
-    ContextAware,
-    EventObjectTarget[hotkey_events.BoundKeyRemoveEvent],
+    ContextEventObjectTarget[hotkey_events.BoundKeyRemoveEvent],
 ):
     """Handle BoundKeyRemoveEvent events
 
@@ -235,7 +226,10 @@ class BoundKeyRemoveEventTarget(
 
     __slots__ = ()
 
-    def on_event(self, source: str, target: str, event: hotkey_events.BoundKeyRemoveEvent) -> bool:
+    def on_context_event(
+            self, context: EventRegistryContext, source: str, target: str,
+            event: hotkey_events.BoundKeyRemoveEvent,
+    ) -> bool:
         if shared_state.get_bound_event(event.keys) is None:
             # No such registered key.  No need to go through all the event processing.
             return False
@@ -245,14 +239,14 @@ class BoundKeyRemoveEventTarget(
                 # Double check, in case another of these events came in before this completed.
                 if shared_state.remove_bound_key(event.keys):
                     report_send_receive_problems(
-                        'hotkey-binding', store_handler.send_bound_keys_state(self.context),
+                        'hotkey-binding', store_handler.send_bound_keys_state(context),
                     )
                     report_send_receive_problems(
-                        'hotkey-binding', store_handler.send_configuration_state(self.context),
+                        'hotkey-binding', store_handler.send_configuration_state(context),
                     )
             else:
                 report_send_receive_problems('hotkey-binding', send_system_error(
-                    self.context, hotkey_state.EXTENSION_NAME,
+                    context, hotkey_state.EXTENSION_NAME,
                     join_errors(*errors), 'hotkey-bind-timeout',
                     [error.INTERNAL_ERROR_CATEGORY],
                 ))
@@ -262,7 +256,7 @@ class BoundKeyRemoveEventTarget(
         new_bound_keys.remove(tuple(event.keys))
 
         report_send_receive_problems('hotkey-binding', native_handler.send_set_hotkey_bindings(
-            self.context, master.sequence_type, master.sequence, new_bound_keys,
+            context, master.sequence_type, master.sequence, new_bound_keys,
             on_complete,
         ))
         return False

@@ -90,7 +90,7 @@ class EventRouter:
             lock: threading.Semaphore,
             target: Optional[EventForwarderTarget] = None,
             executor: Optional[ThreadPoolExecutor] = None,
-            channel_runner: Optional[AbstractChannelEventRunner] = None
+            channel_runner: Optional[AbstractChannelEventRunner] = None,
     ) -> None:
         self.__executor = executor or ThreadPoolExecutor()
         self.__channel_runner = channel_runner or ThreadedChannelEventRunner()
@@ -251,11 +251,19 @@ class EventRouter:
         with self.__lock:
             for channel in self.__channels.values():
                 if channel.contains_handler_id(handler_id):
-                    trace_channel(channel.name, f'adding handler listener for {event_id} / {target_id} +++++++++++++++++++++++++++++++++')
+                    trace_channel(
+                        channel.name, f'adding handler listener for {event_id} / {target_id}',
+                    )
                     ret = channel.add_handler_listener(handler_id, event_id, target_id)
+                    # Note: any error is lost.
                     return ret.ok
-        trace_channel(handler_id, f'could not find a channel with this handler id; did not register listener for {event_id} / {target_id} +++++++++++++++++++++')
-        print(f'Known channel handler ids: {[ch.name for ch in self.__channels.values()]}')
+        trace_channel(
+            handler_id,
+            f'could not find a channel with this handler id; did not register listener for '
+            f'{event_id} / {target_id}',
+        )
+        # print(f'Known channel handler ids: {[ch.name for ch in self.__channels.values()]}')
+        # Callers should report this as an error.
         return False
 
     def remove_handler_listener(

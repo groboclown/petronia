@@ -1,6 +1,6 @@
 """Test utilities for creating extension data structures."""
-from typing import Sequence, Tuple, List
 
+from typing import Sequence, Tuple, List
 from petronia_common.extension.config import (
     ExtensionDependency,
     StandAloneExtensionMetadata,

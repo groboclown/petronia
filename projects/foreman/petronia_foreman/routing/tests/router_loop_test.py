@@ -21,13 +21,6 @@ class RouterLoopLogicTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.executor.shutdown(wait=True)
 
-    def test_get_handler_id(self) -> None:
-        """Test the create_handler_id function."""
-        self.assertEqual(
-            foreman.EXTENSION_NAME + ':ext1',
-            router_loop.get_handler_id('ext1'),
-        )
-
     def test_get_categories(self) -> None:
         """Test get_categories"""
         router = EventRouter(threading.Semaphore(), None, self.executor)

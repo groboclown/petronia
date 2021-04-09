@@ -23,7 +23,7 @@ from petronia_common.event_stream import (
 )
 from petronia_common.event_stream.thread_stream import ThreadedStreamForwarder
 from .handler import EventHandlerSet, EventTargetHandle
-from ..user_message import CATALOG, trace_event, trace_channel
+from ..user_message import CATALOG, trace_event, trace_event_choice, trace_channel
 
 
 EventRouteDestinationCallback = Callable[[RawEvent], Coroutine[Any, Any, StdRet[None]]]
@@ -201,7 +201,9 @@ class EventChannel(EventForwarderTarget):
             # print(f"[{self}] cannot produce {event_id} @{source_id}; not alive")
             return False
         ret = self.__handlers.can_produce(event_id, source_id)
-        trace_event(self.name, source_id, '<N/A>', event_id, f'can channel produce? {ret}')
+        trace_event_choice(
+            self.name, source_id, 'N/A', event_id, f'can channel produce? {ret}',
+        )
         return ret
 
     def _local_filter(
@@ -245,7 +247,10 @@ class EventChannel(EventForwarderTarget):
             return False
         ret = self.__handlers.can_consume(event_id, target_id)
         if not ret:
-            trace_event(self.name, source_id, target_id, event_id, f'cannot consume: {self.__handlers.consume_info()}')
+            trace_event_choice(
+                self.name, source_id, target_id, event_id,
+                f'cannot consume: {self.__handlers.consume_info()}',
+            )
         return ret
 
     def on_error(self, error: PetroniaReturnError) -> bool:
