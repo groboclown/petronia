@@ -102,6 +102,10 @@ class EventRegistryContext:
         window."""
         raise NotImplementedError  # pragma no cover
 
+    def register_eof_target(self, callback: Callable[[], None]) -> StdRet[None]:
+        """Register a new target that is called on EOF."""
+        raise NotImplementedError  # pragma no cover
+
     def send_event(self, source_id: str, target_id: str, event: EventObject) -> StdRet[None]:
         """Send the event object safely."""
         raise NotImplementedError  # pragma no cover

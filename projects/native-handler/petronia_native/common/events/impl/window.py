@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia.core.api.native.window ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    SupportsInt,
-    List,
     Optional,
-    Any,
+    List,
     cast,
+    SupportsInt,
+    Any,
+    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     not_none,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
     StdRet,
 )
 
@@ -954,6 +954,66 @@ class SetWindowSettingsEvent:
 
     def __repr__(self) -> str:
         return "SetWindowSettingsEvent(" + repr(self.export_data()) + ")"
+
+
+class SetFocusedWindowEvent:
+    """
+    Request that the target window ID be given the focus.
+    """
+    __slots__ = ('focus',)
+    FULL_EVENT_NAME = 'petronia.core.api.native.window:set-focused-window'
+    SHORT_EVENT_NAME = 'set-focused-window'
+
+    def __init__(
+        self,
+        focus: int,
+    ) -> None:
+        self.focus = focus
+
+    @property
+    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
+        """Get the full event name that this object encapsulates."""
+        return SetFocusedWindowEvent.FULL_EVENT_NAME
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'focus': self.focus,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['SetFocusedWindowEvent']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('focus')
+        f_focus: int
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='focus',
+                name='SetFocusedWindowEvent',
+            )
+        else:
+            if not isinstance(val, SupportsInt):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='focus',
+                    type='int',
+                    name='SetFocusedWindowEvent',
+                )
+            f_focus = int(val)
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(SetFocusedWindowEvent(
+            focus=not_none(f_focus),
+        ))
+
+    def __repr__(self) -> str:
+        return "SetFocusedWindowEvent(" + repr(self.export_data()) + ")"
 
 
 class SetGlobalSettingsEvent:

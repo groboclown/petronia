@@ -1,6 +1,6 @@
 """Handles native virtual screen change updates."""
 
-from typing import Tuple, Sequence, List, Iterable, Optional
+from typing import Tuple, Sequence, List, Iterable, Callable, Optional
 import fnmatch
 import re
 from petronia_common.util import StdRet, join_none_results
@@ -11,7 +11,7 @@ from petronia_ext_lib.datastore import (
     CachedInstance,
 )
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectParser
-from . import shared_state, tree, permutations
+from . import shared_state, tree, permutations, native_window_handler, user_messages
 from .state import screen as screen_state
 from .state import petronia_portal as portal_state
 
@@ -20,7 +20,7 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
     """Setup the handler."""
     screen_data_store: CachedInstance[screen_state.VirtualScreenState] = CachedInstance(
         EventObjectParser(screen_state.VirtualScreenState.parse_data),
-        on_virtual_screen_changed,
+        create_on_virtual_screen_changed(context),
     )
 
     return join_none_results(
@@ -41,15 +41,24 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
     )
 
 
-def on_virtual_screen_changed(v_screen: Optional[screen_state.VirtualScreenState]) -> None:
-    """Callback for when the virtual screen data changes."""
-    if not v_screen:
-        return
+def create_on_virtual_screen_changed(
+        context: EventRegistryContext,
+) -> Callable[[Optional[screen_state.VirtualScreenState]], None]:
+    def on_virtual_screen_changed(
+            v_screen: Optional[screen_state.VirtualScreenState],
+    ) -> None:
+        """Callback for when the virtual screen data changes."""
+        if not v_screen:
+            return
 
-    shared_state.layout_root().change_screen_layout(
-        get_screen_workspace(v_screen.area),
-        get_assigned_windows,
-    )
+        changed_windows = shared_state.layout_root().change_screen_layout(
+            get_screen_workspace(v_screen.area),
+            get_assigned_windows,
+        )
+        user_messages.report_send_receive_problems(
+            native_window_handler.send_move_windows_event(context, changed_windows)
+        )
+    return on_virtual_screen_changed
 
 
 def get_assigned_windows(

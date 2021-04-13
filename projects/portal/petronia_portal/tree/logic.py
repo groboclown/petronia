@@ -25,6 +25,10 @@ class OptimizedTileTree:
         """Get the window with the given ID, if it exists."""
         return self.__windows_by_id.get(window_id)
 
+    def get_known_windows(self) -> Iterable[model.KnownWindow]:
+        """Get all known windows, both managed and unmanaged."""
+        return tuple(self.__windows_by_id.values())
+
     def get_portal_by_id(self, portal_id: int) -> Optional[model.Portal]:
         """Get the portal with the given ID, if it exists."""
         return self.__portals_by_id.get(portal_id)
@@ -67,17 +71,20 @@ class OptimizedTileTree:
 
     def move_window_to_portal_id(
             self, window_id: str, target_portal_id: int, make_first: bool,
+            manage: bool,
     ) -> Sequence[model.KnownWindow]:
         """Move the window to the target portal.  If the window is associated with a different
         portal, then it is first removed from that portal.  If the window was not registered
-        to the tree, then nothing happens.
+        to the tree, then it is re-added into the tree only if manage is True.
 
         Returns windows that have changed size and/or position.
         """
         window = self.get_window_by_id(window_id)
         target_portal = self.get_portal_by_id(target_portal_id)
-        if not window or not target_portal or not window.managed:
+        if not window or not target_portal or (not manage and not window.managed):
             return EMPTY_TUPLE
+
+        window.managed = True
 
         source_portal = self.get_portal_by_id(window.owning_portal_id)
         if source_portal:
@@ -88,7 +95,8 @@ class OptimizedTileTree:
         return target_portal.add_windows((window,), make_first)
 
     def remove_window(self, window_id: str, destroyed: bool) -> Sequence[model.KnownWindow]:
-        """Remove the window from the tree because it was destroyed.  If it is marked as destroyed,
+        """Remove the window from the tree because it was destroyed or unmanaged.
+        If it is marked as destroyed,
         it will not be in the list of returned windows, otherwise the window will be restored
         to its pre-managed size and returned in the list.
 
@@ -309,6 +317,8 @@ class OptimizedTileTree:
 
         Returns windows that have changed size and/or position.
         """
+        print(f"[PORTAL NOT IMPLEMENTED] split {active_portal_id} in half")
+        return []
 
     def join_portals(
             self,
@@ -319,6 +329,14 @@ class OptimizedTileTree:
 
         Returns windows that have changed size and/or position.
         """
+        print(f"[PORTAL NOT IMPLEMENTED] join {active_portal_id}")
+        return []
+
+    def refit_window_in_portal(
+            self, window_id: str, fit: portal_state.WindowPortalFit,
+    ) -> Sequence[model.KnownWindow]:
+        """Change the fit attribute of the window ID."""
+        raise NotImplementedError
 
 
 class BlockHandler:
@@ -332,3 +350,5 @@ class BlockHandler:
             self, block: model.ScreenBlockSplit, remaining_windows: Dict[str, model.KnownWindow],
     ) -> Sequence[model.KnownWindow]:
         """Screen change callback."""
+        print(f"[PORTAL NOT IMPLEMENTED] generate portals and splits in a block.")
+        return []

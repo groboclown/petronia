@@ -27,8 +27,9 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
 
     Writing is performed within the same lock.  All event handling is performed
     within the lock, so the lock must be a re-entrant lock to do anything useful."""
+
     __slots__ = (
-        '_object_targets', '_binary_targets',
+        '_object_targets', '_binary_targets', '_eof_targets',
         '__reader', '__writer', '_on_error', '_lock',
     )
 
@@ -43,6 +44,7 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
         self._on_error: Callable[[PetroniaReturnError], bool] = on_error or noop_on_error
         self._object_targets: Dict[str, ParserHandler] = {}
         self._binary_targets: Dict[str, Tuple[float, EventBinaryTarget]] = {}
+        self._eof_targets: List[Callable[[], None]] = []
 
     def stop_reader(self) -> None:
         """Stop the reader.  This will only perform a stop when the next read begins.
@@ -107,6 +109,10 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
             )
         return RET_OK_NONE
 
+    def register_eof_target(self, callback: Callable[[], None]) -> StdRet[None]:
+        self._eof_targets.append(callback)
+        return RET_OK_NONE
+
     def send_event(self, source_id: str, target_id: str, event: EventObject) -> StdRet[None]:
         with self._lock:
             return write_object_event_to_stream(
@@ -164,8 +170,10 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
         with self._lock:
             for parser in self._object_targets.values():
                 parser.on_eof()
-            for _expires, target in self._binary_targets.values():
-                target.on_close()
+            for _expires, bin_target in self._binary_targets.values():
+                bin_target.on_close()
+            for eof_target in self._eof_targets:
+                eof_target()
 
     def _error_listener(self, error: PetroniaReturnError) -> bool:
         """Error listener."""

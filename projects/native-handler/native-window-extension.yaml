@@ -227,6 +227,19 @@ events:
           type: reference
           ref: native-meta-value
 
+  set-focused-window:
+    description: >
+      Request that the target window ID be given the focus.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    fields:
+      focus:
+        description: Which user input group has focus on this window.  -1 means remove focus.
+        type: int
+        min-value: -1
+        max-value: 10000
+
   set-global-settings:
     description: >
       Requests that a subset of global settings be changed.  Errors are not reported

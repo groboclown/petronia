@@ -10,20 +10,20 @@ Data structures and marshalling for extension petronia_portal version 1.0.0.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    cast,
-    Any,
-    Optional,
-    Union,
-    List,
     Dict,
+    List,
+    Optional,
     SupportsInt,
+    cast,
+    Union,
+    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    StdRet,
     collect_errors_from,
     not_none,
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
 )
 
 EXTENSION_NAME = 'petronia_portal'
@@ -216,7 +216,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('center','bottom','top', ):
+            if val not in ('center','top','bottom', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -235,7 +235,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('stretch','fit','none','shrink', ):
+            if val not in ('shrink','fit','none','stretch', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -254,7 +254,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('stretch','fit','none','shrink', ):
+            if val not in ('shrink','fit','none','stretch', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -493,8 +493,8 @@ class SplitContent:
         self,
         name: str,
         value: Union[
-            Portal,
             LayoutSplit,
+            Portal,
         ],
     ) -> None:
         self.__name = name
@@ -507,8 +507,8 @@ class SplitContent:
 
     @property
     def value(self) -> Union[
-            Portal,
             LayoutSplit,
+            Portal,
     ]:
         """The selector value."""
         return self.__value
@@ -877,7 +877,7 @@ class WindowMatchItem:
                 name='WindowMatchItem',
             )
         else:
-            if val not in ('glob','not-exists','exact','regex','exists', ):
+            if val not in ('regex','exact','not-exists','exists','glob', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

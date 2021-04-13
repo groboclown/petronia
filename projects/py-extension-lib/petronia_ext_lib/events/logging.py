@@ -11,12 +11,12 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 from __future__ import annotations
 from typing import (
     Any,
-    List,
-    Union,
     Optional,
     Dict,
-    SupportsFloat,
+    Union,
     cast,
+    List,
+    SupportsFloat,
     SupportsInt,
 )
 import datetime
@@ -24,8 +24,8 @@ from petronia_common.util import i18n as _
 from petronia_common.util import (
     collect_errors_from,
     StdRet,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.protocol.logging'
@@ -42,16 +42,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            bool,
-            float,
-            datetime.datetime,
-            List[str],
-            List[datetime.datetime],
-            List[int],
             str,
-            List[bool],
-            List[float],
+            List[str],
+            List[int],
+            datetime.datetime,
+            float,
+            List[datetime.datetime],
             int,
+            List[float],
+            bool,
+            List[bool],
         ],
     ) -> None:
         self.__name = name
@@ -64,16 +64,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            bool,
-            float,
-            datetime.datetime,
-            List[str],
-            List[datetime.datetime],
-            List[int],
             str,
-            List[bool],
-            List[float],
+            List[str],
+            List[int],
+            datetime.datetime,
+            float,
+            List[datetime.datetime],
             int,
+            List[float],
+            bool,
+            List[bool],
     ]:
         """The selector value."""
         return self.__value
@@ -595,7 +595,7 @@ class LogEvent:
                 name='LogEvent',
             )
         else:
-            if val not in ('info','warning','verbose','debug', ):
+            if val not in ('info','debug','verbose','warning', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

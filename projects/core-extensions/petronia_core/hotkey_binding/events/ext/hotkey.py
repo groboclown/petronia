@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.native.hotkey ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    Optional,
-    cast,
-    SupportsInt,
-    List,
     SupportsFloat,
     Union,
+    List,
+    cast,
+    Optional,
+    Dict,
     Any,
+    SupportsInt,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     collect_errors_from,
     not_none,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.hotkey'
@@ -370,16 +370,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
+            List[int],
             List[bool],
             List[float],
+            bool,
+            List[str],
+            str,
+            datetime.datetime,
+            List[datetime.datetime],
             float,
             int,
-            List[int],
-            datetime.datetime,
-            List[str],
-            bool,
-            List[datetime.datetime],
         ],
     ) -> None:
         self.__name = name
@@ -392,16 +392,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
+            List[int],
             List[bool],
             List[float],
+            bool,
+            List[str],
+            str,
+            datetime.datetime,
+            List[datetime.datetime],
             float,
             int,
-            List[int],
-            datetime.datetime,
-            List[str],
-            bool,
-            List[datetime.datetime],
     ]:
         """The selector value."""
         return self.__value

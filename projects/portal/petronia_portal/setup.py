@@ -4,7 +4,9 @@ from typing import Optional
 from petronia_common.util import StdRet, join_none_results
 from petronia_ext_lib.datastore import register_datastore_update_parsers
 from petronia_ext_lib.runner import EventRegistryContext
-from . import shared_state, native_window_handler, screen_state_handler
+from . import (
+    shared_state, native_window_handler, screen_state_handler, portal_handler, hotkey_handler,
+)
 from .state import petronia_portal as portal_state
 
 
@@ -18,4 +20,6 @@ def setup_context(
 
         native_window_handler.setup(context),
         screen_state_handler.setup(context),
+        portal_handler.setup(context),
+        hotkey_handler.setup(context),
     )

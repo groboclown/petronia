@@ -10,17 +10,17 @@ Data structures and marshalling for extension petronia.core.api.timer version 1.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
+    Dict,
+    Any,
     List,
     SupportsFloat,
-    Any,
-    Dict,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
-    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    STANDARD_PETRONIA_CATALOG,
+    not_none,
     StdRet,
 )
 

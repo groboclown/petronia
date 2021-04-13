@@ -34,6 +34,7 @@ def extension_runner(
 
 class EventRegistryContextImpl(EventRegistryContext):
     """Implementation of the context used by the runner thread."""
+
     __slots__ = ('_writer', '_forwarder', '_obj_parsers',)
 
     def __init__(self, name: str, reader: BinaryReader, writer: BinaryWriter) -> None:
@@ -77,6 +78,9 @@ class EventRegistryContextImpl(EventRegistryContext):
             event_id, source_id, target_id, timeout, target,
         ))
         return RET_OK_NONE
+
+    def register_eof_target(self, callback: Callable[[], None]) -> StdRet[None]:
+        raise NotImplementedError
 
     def send_event(self, source_id: str, target_id: str, event: EventObject) -> StdRet[None]:
         return self._writer.write_object_event(

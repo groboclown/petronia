@@ -5,6 +5,7 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, join_errors, join_none_results, RET_OK_NONE
 from petronia_ext_lib.events import datastore
 from petronia_ext_lib.datastore import register_datastore_update_parsers
+from petronia_ext_lib.extension_loader import send_register_listeners
 from petronia_ext_lib.logging import send_user_error
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
 from petronia_ext_lib.runner.lookup import LookupEventRegistryContext
@@ -31,17 +32,18 @@ def extension_entrypoint(
     # starting.
     config_res = shared_state.load_configuration(config)
 
-    res2 = bind_handler.register_bind_handlers(context)
-    res3 = native_handler.register_native_handlers(
-        context, bind_handler.create_on_hotkey_pressed_callback(context),
+    res = join_none_results(
+        bind_handler.register_bind_handlers(context),
+        native_handler.register_native_handlers(
+            context, bind_handler.create_on_hotkey_pressed_callback(context),
+        ),
+        push_config_to_native(context),
     )
-    res4 = push_config_to_native(context)
 
-    if res2.has_error or res3.has_error or res4.has_error:
+    if res.has_error:
         return StdRet.pass_error(join_errors(
             # Report the configuration problems...
-            *config_res.error_messages(), *res2.error_messages(), *res3.error_messages(),
-            *res4.error_messages(),
+            *config_res.error_messages(), *res.error_messages(),
         ))
 
     if config_res.has_error:
@@ -66,6 +68,12 @@ def push_config_to_native(
     This waits until the native hotkey is live."""
     return join_none_results(
         register_datastore_update_parsers(context),
+        send_register_listeners(context, hotkey_state.EXTENSION_NAME, (
+            (
+                datastore.DataUpdateEvent.FULL_EVENT_NAME,
+                native_hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
+            ),
+        )),
         context.register_target(
             datastore.DataUpdateEvent.FULL_EVENT_NAME,
             native_hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
@@ -85,6 +93,13 @@ class PostBindingsWhenLive(EventObjectTarget[datastore.DataUpdateEvent]):
     def on_event(self, source: str, target: str, event: datastore.DataUpdateEvent) -> bool:
         # This event means the native hotkey listener is live, so it is able to receive
         # the configuration state.
+        print("*************************")
+        print("*************************")
+        print("*************************")
+        print("*************************")
+        print("*************************")
+        print("*************************")
+        print("************ HOTKEY BIND SEND CONFIG")
         master_sequence = shared_state.get_master_sequence()
         report_send_receive_problems(
             'hotkey-binding',

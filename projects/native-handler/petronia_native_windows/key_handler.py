@@ -132,6 +132,7 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
 
             if state == hotkey_chain.IGNORED:
                 # Not in a hot key chain.
+                print(f'[KEY] ignoring {vk_code}')
                 return cancel_propagation_on_ignore, EMPTY_TUPLE
 
             if state == hotkey_chain.ACTION_CANCELLED:
@@ -144,16 +145,19 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
                     res = self.__active_keys
                 self.__active_keys.clear()
                 self.__super_in_active = False
+                print(f'[KEY] cancelled with {vk_code}; regenerating {res}')
                 return cancel_propagation_on_ignore, res
 
             if state == hotkey_chain.ACTION_PENDING:
                 # This key is part of a chain.
+                print(f'[KEY] part of chain ({vk_code})')
                 self.__super_in_active = self.__super_in_active or is_super
                 self.__active_keys.append((vk_code, is_key_up))
                 return True, EMPTY_TUPLE
 
             # Final state: ACTION_COMPLETE
             # Clear out our key chain state
+            print(f'[KEY] chain complete with {vk_code} - {next_parts}')
             self.__super_in_active = False
             self.__active_keys.clear()
 

@@ -1,7 +1,7 @@
 """A simple implementation of an event runner.  Single threaded with only object events handled,
 and one listener per event ID."""
 
-from typing import Dict, Callable, Optional, Union
+from typing import Dict, List, Callable, Optional, Union
 from petronia_common.event_stream import (
     BinaryWriter, BinaryReader, RawEvent,
     read_event_stream,
@@ -20,7 +20,7 @@ from ..defs import TRANSLATION_CATALOG
 class SimpleEventRegistryContext(EventRegistryContext):
     """Single-threaded, object-only event registry.  The target registration is
     simplified where the target id is ignored."""
-    __slots__ = ('__handlers', '__writer', '__reader', '__on_error')
+    __slots__ = ('__handlers', '__eof', '__writer', '__reader', '__on_error')
 
     def __init__(
             self, reader: BinaryReader, writer: BinaryWriter,
@@ -30,6 +30,7 @@ class SimpleEventRegistryContext(EventRegistryContext):
         self.__writer = writer
         self.__reader = StoppableBinaryReader(reader)
         self.__on_error = on_error
+        self.__eof: List[Callable[[], None]] = []
 
     def stop_reader(self) -> None:
         """Stop the reader.  This will only perform a stop when the next read begins.
@@ -86,6 +87,10 @@ class SimpleEventRegistryContext(EventRegistryContext):
         if res:
             return StdRet.pass_error(res)
         not_none(handler).target = target
+        return RET_OK_NONE
+
+    def register_eof_target(self, callback: Callable[[], None]) -> StdRet[None]:
+        self.__eof.append(callback)
         return RET_OK_NONE
 
     def register_binary_target(  # pylint:disable=too-many-arguments
@@ -149,6 +154,8 @@ class SimpleEventRegistryContext(EventRegistryContext):
         for handler in self.__handlers.values():
             if handler.target:
                 handler.target.on_close()
+        for target in self.__eof:
+            target()
 
     def _error_listener(self, error: PetroniaReturnError) -> bool:
         """Error listener."""

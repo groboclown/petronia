@@ -10,17 +10,17 @@ Data structures and marshalling for extension petronia.core.api.hotkey_binding v
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
+    Any,
+    cast,
+    Dict,
     Optional,
     List,
-    Any,
-    Dict,
-    cast,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
+    StdRet,
     collect_errors_from,
 )
 

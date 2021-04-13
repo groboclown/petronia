@@ -1,11 +1,11 @@
 """Handle message loop and Petronia event interactions."""
 
-from typing import Mapping, Dict, List, Optional, Any, Hashable
+from typing import Mapping, Dict, List, Set, Optional, Any, Hashable
 import concurrent.futures
 from petronia_common.util import (
     StdRet, UserMessage, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none,
 )
-from petronia_native.common import user_messages
+from petronia_native.common import user_messages, defs
 from petronia_native.common.handlers import window
 from petronia_native.common.events.impl import window as window_events
 from .arch.native_funcs import HWND, RECT, WINDOWS_FUNCTIONS, DWORD
@@ -14,7 +14,7 @@ from . import hook_messages, message_loop, message_queue
 
 class WindowsNativeWindow(window.ActiveWindow[HWND]):
     """An active window with Windows data."""
-    __slots__ = ()
+    __slots__ = ('__request', '__notice', '__size_state')
 
     def __init__(
             self,
@@ -23,6 +23,71 @@ class WindowsNativeWindow(window.ActiveWindow[HWND]):
             state: window_events.WindowState,
     ) -> None:
         window.ActiveWindow.__init__(self, window_id, hwnd, str(hwnd), state)
+        self.__request = state.location
+        self.__notice = state.location
+
+        # Should include minimized, restored, or maximized.
+        self.__size_state: Set[str] = set()
+
+    def on_request_move(self, new_position: window_events.ScreenDimension) -> None:
+        """Called when an event is received to move the window."""
+        self.__request = window_events.ScreenDimension(
+            x=new_position.x, y=new_position.y,
+            width=new_position.width, height=new_position.height,
+        )
+
+    def on_os_restored(self) -> None:
+        """When the OS announces the window was restored."""
+        self.__size_state.remove('minimized')
+        self.__size_state.remove('maximized')
+        self.__size_state.add('restored')
+
+    def on_os_minimized(self) -> None:
+        """When the OS announces the window was minimized."""
+        self.__size_state.add('minimized')
+        self.__size_state.remove('maximized')
+        self.__size_state.remove('restored')
+
+    def on_os_maximized(self) -> None:
+        """When the OS announces the window was maximized."""
+        self.__size_state.remove('minimized')
+        self.__size_state.add('maximized')
+        self.__size_state.remove('restored')
+
+    def on_os_moved_notice(self, new_position: window_events.ScreenDimension) -> None:
+        """Called when Windows announces the window moved."""
+        if (
+                new_position.x != self.__request.x
+                or new_position.y != self.__request.y
+                or new_position.width != self.__request.width
+                or new_position.height != self.__request.height
+        ):
+            # The move notice did not match the request to move event, so record this.
+            self.__notice = window_events.ScreenDimension(
+                x=new_position.x, y=new_position.y,
+                width=new_position.width, height=new_position.height,
+            )
+
+    def move_back(self) -> StdRet[None]:
+        """Move the window back to its previous location."""
+        # TODO if the window was minimized or maximized, restore to that state.
+        # This will be put into the flags, which would be like:
+        # "show-window", "hide-window",
+        if (
+                WINDOWS_FUNCTIONS.window.set_position
+                and (
+                    self.__notice.x != self.__request.x
+                    or self.__notice.y != self.__request.y
+                    or self.__notice.width != self.__request.width
+                    or self.__notice.height != self.__request.height
+                )
+        ):
+            return WINDOWS_FUNCTIONS.window.set_position(
+                self.native_id, 0, defs.OsScreenRect.from_size(
+                    self.__notice.x, self.__notice.y, self.__notice.width, self.__notice.height,
+                ), ["no-zorder", "async-window-pos", "no-activate"],
+            )
+        return RET_OK_NONE
 
 
 _CLOSE_WINDOW = 0
@@ -222,6 +287,12 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             self.__queue.queue_message(_UPDATE_OS, 0),
         )
 
+    def on_context_shutdown(self) -> None:
+        user_messages.report_send_receive_problems(join_none_results(*[
+            wp.move_back()
+            for wp in self.get_active_windows()
+        ]))
+
     def on_window_minimized_message(self, hwnd: HWND, size: RECT) -> None:
         """Handle the window_minimized_message loop message"""
         wnd = self.get_window_by_native(hwnd)
@@ -269,7 +340,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         self.__executor.submit(self._in_exec_focus_window, hwnd)
 
     def on_window_update_message(self, hwnd: HWND) -> None:
-        """Called when an event is generated that can cause non-size information about the window
+        """Called by an event that caused a non-size information about the window
         to change, such as the title."""
         print(f'window updated: {hwnd}')
         # Inside the message loop here, so perform the investigations...
@@ -304,6 +375,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
     def on_set_window_position_request(  # pylint:disable=arguments-differ
             self, wnd: WindowsNativeWindow, new_location: window_events.ScreenDimension,
     ) -> StdRet[None]:
+        wnd.on_request_move(new_location)
         if self.__queue:
             return self.__queue.queue_message(
                 _SET_POSITION, (wnd, new_location),
@@ -382,6 +454,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         # aid.
         if WINDOWS_FUNCTIONS.window.minimize:
             assert isinstance(arg, WindowsNativeWindow)  # nosec
+            arg.on_os_minimized()
             user_messages.report_send_receive_problems(
                 WINDOWS_FUNCTIONS.window.minimize(arg.native_id)  # pylint:disable=not-callable
             )
@@ -393,6 +466,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         # aid.
         if WINDOWS_FUNCTIONS.window.maximize:
             assert isinstance(arg, WindowsNativeWindow)  # nosec
+            arg.on_os_maximized()
             user_messages.report_send_receive_problems(
                 WINDOWS_FUNCTIONS.window.maximize(arg.native_id)  # pylint:disable=not-callable
             )
@@ -404,6 +478,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         # aid.
         if WINDOWS_FUNCTIONS.window.restore:
             assert isinstance(arg, WindowsNativeWindow)  # nosec
+            arg.on_os_restored()
             user_messages.report_send_receive_problems(
                 WINDOWS_FUNCTIONS.window.restore(arg.native_id)  # pylint:disable=not-callable
             )
@@ -425,6 +500,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
                 True,
             )
             if success:
+                wnd.on_request_move(new_location)
                 # TODO change the position state in the datastore.
                 # I don't think this will trigger another Windows message that would then
                 # perform this operation.

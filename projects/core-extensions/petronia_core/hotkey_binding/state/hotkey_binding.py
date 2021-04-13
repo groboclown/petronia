@@ -11,17 +11,17 @@ Data structures and marshalling for extension petronia_core.hotkey_binding versi
 from __future__ import annotations
 from typing import (
     List,
-    Dict,
     Optional,
-    Any,
     cast,
+    Any,
+    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
+    StdRet,
     collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia_core.hotkey_binding'
@@ -325,7 +325,7 @@ class BoundKeys:
                 name='BoundKeys',
             )
         else:
-            if val not in ('sequence','meta', ):
+            if val not in ('meta','sequence', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

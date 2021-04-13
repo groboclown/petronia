@@ -84,7 +84,7 @@ events:
         type: bool
       focus_new:
         descirption: >
-          Put the focus on the newly created portal.
+          If "true", then put the focus on the newly created portal.
         type: bool
       new_direction:
         description: >

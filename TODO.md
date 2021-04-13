@@ -17,7 +17,6 @@ These are desired, tactical changes to bits of already written code.
 * finish shutdown extension design.  This needs to borrow heavily from the v3.0 notes.
 * hotkey-binding needs de-register for extension events.
 * the timer extension needs to have a configuration protocol, and listen for changes to the configuration for the timer interval.
-* the timer extension needs to send timer events at an interval.
 
 
 ### native
@@ -133,9 +132,13 @@ These are ideas that need clarification and implementation.
 
 ### portals
 
-* migrate the older portals extension into this framework.
-* it needs some improvements, add in portal component id, along with adding portals to the lifecycle.  Even though the portal creation call doesn't make much sense by itself (nothing outside the plugin can explicitly request a creation), the portal component ID and destruction do matter.
-* portals use the theme for drawing borders.
+* it needs some improvements:
+  * add in portal component id, along with adding portals to the lifecycle.
+  * add create / delete portal events.
+* add in virtual desktops.
+* `portal_handler` needs to send portal state updates when the portals change shape or are otherwise altered.
+* The configuration needs to be used for matching the window to a user setup.
+* The configuration needs to be used for creating the user-defined layout.
 
 
 ### theme

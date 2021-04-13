@@ -36,15 +36,23 @@ Hotkeys:
             - ctrl
             - plus
           event:
-            target_id: petronia.core.api.portal:portal-add
-            parameters: []
+            target_id: petronia.core.api.portal:split-portal
+            parameters:
+              - key: add_before
+                value: "false"
+              - key: focus_new
+                value: "true"
+              - key: new_direction
+                value: "true"
         - comment: Remove the active portal
           keys:
             - ctrl
             - minus
           event:
-            target_id: petronia.core.api.portal:portal-remove
-            parameters: []
+            target_id: petronia.core.api.portal:join-portals
+            parameters:
+              - key: join_before
+                value: "true"
 
         # ---------------------------------------------------------------------
         # Move portal focus
@@ -52,33 +60,35 @@ Hotkeys:
           keys:
             - left
           event:
-            target_id: petronia.core.api.portal:shift-focus
+            target_id: petronia.core.api.portal:focus-portal
             parameters:
-              - key: direction
+              - key: target
                 value: west
+              - key: wrap
+                value: wrap-screen
         - comment: Move portal focus East (right)
           keys:
             - right
           event:
-            target_id: petronia.core.api.portal:shift-focus
+            target_id: petronia.core.api.portal:focus-portal
             parameters:
-              - key: direction
+              - key: target
                 value: east
         - comment: Move portal focus North (up)
           keys:
             - up
           event:
-            target_id: petronia.core.api.portal:shift-focus
+            target_id: petronia.core.api.portal:focus-portal
             parameters:
-              - key: direction
+              - key: target
                 value: north
         - comment: Move portal focus South (down)
           keys:
             - down
           event:
-            target_id: petronia.core.api.portal:shift-focus
+            target_id: petronia.core.api.portal:focus-portal
             parameters:
-              - key: direction
+              - key: target
                 value: south
 
         # ---------------------------------------------------------------------
@@ -88,10 +98,16 @@ Hotkeys:
             - ctrl
             - numpad1
           event:
-            target_id: petronia.core.api.portal:set-window-position
+            target_id: petronia.core.api.portal:fit-window
             parameters:
-              - key: position
-                value: r-sw
+              - key: justify_horizontal
+                value: right
+              - key: justify_vertical
+                value: bottom
+              - key: fit_horizontal
+                value: shrink
+              - key: fit_vertical
+                value: shrink
 
 #       - key: "ctrl+numpad2"
 #         action: set-window-position
@@ -135,8 +151,10 @@ Hotkeys:
           event:
             target_id: petronia.core.api.portal:move-window-to-portal
             parameters:
-              - key: direction
+              - key: target
                 value: north
+              - key: move_focus
+                value: "true"
         - comment: Move the active window to a different portal - north (numpad)
           keys:
             - shift
@@ -144,8 +162,10 @@ Hotkeys:
           event:
             target_id: petronia.core.api.portal:move-window-to-portal
             parameters:
-              - key: direction
+              - key: target
                 value: north
+              - key: move_focus
+                value: "true"
 
 #       - key: "shift+down"
 #         action: move-window-to-portal

@@ -252,6 +252,8 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
         will need to be updated outside of this call."""
         self.__context = context
         return join_none_results(
+            context.register_eof_target(self.on_context_shutdown),
+
             context.register_event_parser(
                 window_events.SetWindowPositionsEvent.FULL_EVENT_NAME,
                 window_events.SetWindowSettingsEvent.parse_data,
@@ -330,6 +332,9 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
     def is_closed(self) -> bool:
         """Has this been closed?"""
         return self.__context is None
+
+    def on_context_shutdown(self) -> None:
+        """Perform shutdown actions when the context is closing."""
 
     def get_window_by_id(self, window_id: str) -> Optional[NativeWindow]:
         """Get the window with the id"""

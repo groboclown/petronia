@@ -1,7 +1,7 @@
 """Hotkey listener handlers."""
 
 from typing import Sequence, List, Dict, Optional
-from petronia_common.util import StdRet, RET_OK_NONE, not_none
+from petronia_common.util import StdRet, RET_OK_NONE, join_none_results, not_none
 from petronia_ext_lib import runner
 from petronia_ext_lib import datastore
 from petronia_ext_lib.standard.error import create_error_data, INVALID_USER_ACTION_ERROR_CATEGORY
@@ -55,16 +55,19 @@ def register_hotkey_listeners(
         handler: HotkeyHandler,
 ) -> StdRet[None]:
     """Register the event listeners and parsers into the context."""
-    res = context.register_event_parser(
-        hotkey.SetHotkeyBindingsEvent.FULL_EVENT_NAME,
-        hotkey.SetHotkeyBindingsEvent.parse_data,
-    )
-    if res.has_error:
-        return res
-    return context.register_target(
-        hotkey.SetHotkeyBindingsEvent.FULL_EVENT_NAME,
-        hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
-        HotkeyBindingsTarget(context, handler),
+    return join_none_results(
+        context.register_event_parser(
+            hotkey.SetHotkeyBindingsEvent.FULL_EVENT_NAME,
+            hotkey.SetHotkeyBindingsEvent.parse_data,
+        ),
+        context.register_target(
+            hotkey.SetHotkeyBindingsEvent.FULL_EVENT_NAME,
+            hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
+            HotkeyBindingsTarget(context, handler),
+        ),
+        internal__send_hotkey_state(
+            context, 'meta', [], [],
+        ),
     )
 
 

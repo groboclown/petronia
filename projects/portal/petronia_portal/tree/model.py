@@ -196,6 +196,20 @@ class Portal(Tile):
         """Is this portal known by the given alias?"""
         return alias in self._state.portal_aliases
 
+    def add_alias(self, new_alias: str) -> bool:
+        """Add a new alias to this portal."""
+        if new_alias in self._state.portal_aliases:
+            return False
+        self._state.portal_aliases.append(new_alias)
+        return True
+
+    def remove_alias(self, old_alias: str) -> bool:
+        """Remove the alias from this portal."""
+        if old_alias in self._state.portal_aliases:
+            self._state.portal_aliases.remove(old_alias)
+            return True
+        return False
+
     def update_position(
             self, new_x: int, new_y: int, new_width: int, new_height: int,
     ) -> Sequence[KnownWindow]:
