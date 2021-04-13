@@ -20,9 +20,9 @@ from .constants import TRANSLATION_CATALOG
 CATALOG = TRANSLATION_CATALOG
 
 DEBUG = True
-TRACE_EVENT = True
+TRACE_EVENT = False
 TRACE_EVENT_CHOICE = False
-TRACE_CHANNEL = True
+TRACE_CHANNEL = False
 
 _TRANSLATIONS: Dict[str, gettext.NullTranslations] = {}
 _LOCK = threading.RLock()

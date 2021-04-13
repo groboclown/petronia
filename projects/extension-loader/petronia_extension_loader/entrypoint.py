@@ -18,7 +18,7 @@ def extension_entrypoint(
     """Standardized entrypoint for event stream handling.
     Can be used for the in-memory launcher."""
     boot_extension_handler.clear_boot_time_extensions()
-    low_println(f"Starting up extension-loader with arguments {args}")
+    # low_println(f"Starting up extension-loader with arguments {args}")
     try:
         init_res = initialize(*args)
         if init_res.has_error:

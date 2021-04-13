@@ -184,7 +184,7 @@ class LookupTest(unittest.TestCase):
 
         # Input stream is empty, but we'll also stop the reading before we do any reading.
         context.stop_reader()
-        context.process_reader()
+        context.process_reader('x')
 
         target1.on_close.assert_called()
         target2.on_close.assert_called()

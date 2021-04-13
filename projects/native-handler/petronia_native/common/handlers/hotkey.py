@@ -65,8 +65,11 @@ def register_hotkey_listeners(
             hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
             HotkeyBindingsTarget(context, handler),
         ),
-        internal__send_hotkey_state(
-            context, 'meta', [], [],
+        datastore.on_init.send_initial_state(
+            context,
+            hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
+            hotkey.HotkeyBindingsState(hotkey.MasterHotkeySequence('meta', []), []),
+            lambda: None, report_send_receive_problems,
         ),
     )
 

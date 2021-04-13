@@ -6,9 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
 from typing import Dict, List, Tuple, Iterable, Callable, Optional, Any
 from petronia_common.event_stream import (
-    EventForwarderTarget, BinaryWriter, BinaryReader,
+    EventForwarderTarget, BinaryWriter, BinaryReader, RawBinaryReader,
 )
-from petronia_common.util import StdRet, collect_errors_from, RET_OK_NONE
+from petronia_common.util import StdRet, collect_errors_from, RET_OK_NONE, PetroniaReturnError
 from petronia_common.util import i18n as _
 from .event_handlers import ExtensionLoaderTarget, InternalTarget
 from .router_loop import (
@@ -16,6 +16,7 @@ from .router_loop import (
     BootExtensionQueueRequest,
     SOFT_STOP_REQUEST, SOFT_STOP_LOOP_ACTION, HARD_STOP_LOOP_ACTION, RESTART_LOOP_ACTION,
 )
+from .global_event_intercept import GlobalEventIntercept
 from ..configuration import RuntimeConfig, BootExtensionMetadata
 from ..constants import (
     EXTENSION_LOADER_CHANNEL_PATTERN, INTERNAL_CHANNEL_PATTERN, TRANSLATION_CATALOG,
@@ -299,7 +300,13 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
         """Create the router specifically for foreman interaction.
         """
 
-        router = EventRouter(sem, executor=executor)
+        global_intercept = GlobalEventIntercept()
+        router = EventRouter(
+            lock=sem,
+            target=global_intercept,
+            executor=executor,
+        )
+        global_intercept.set_router(router)
 
         launcher_context = LauncherRuntimeContext(router, executor)
 
@@ -337,7 +344,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             ExtensionLoaderCallback(ExtensionLoaderTarget(context)),
         )
 
-        return RouterLoopLogic(categories, router)
+        return RouterLoopLogic(categories, router, global_intercept)
 
     def _ensure_running(self) -> None:
         """MUST be called from within a lock."""

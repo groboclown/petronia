@@ -93,6 +93,7 @@ These are desired, tactical changes to bits of already written code.
 * `cmd_launcher_test` doesn't work well with Windows on Travis builds.  This could be a timing issue.
 * foreman currently has a build dependency on `py-extension-lib` in order to share some very targeted behavior.  Should this be moved over to `py-common-lib`?  Currently, `py-common-lib` includes the arg-handler logic that is only used by extensions, so either move that arg handler over to extension lib, or move the foreman dependent stuff into py-common-lib.
 * should there be an implementation file for foreman?  It should never be started by the extension loader, but it may need it for completing its graph.
+* improve `global_event_intercept` to timeout extension loading if they took too long to start.
 
 
 ### py-extension-lib

@@ -20,6 +20,17 @@ from ..launcher import AbcLauncherCategory
 from ..user_message import display_error, display_message, CATALOG
 
 
+class ExtensionLaunchWatcher:
+    """Watches extension launches."""
+    __slots__ = ()
+
+    def extension_launching(
+            self, source_id: str, handler_id: str,
+    ) -> None:
+        """Called when an extension is just about to be launched."""
+        raise NotImplementedError
+
+
 class QueueRequest:
     """Basic queue request."""
     __slots__ = ()
@@ -86,15 +97,17 @@ NONE_LOOP_ACTION: LoopAction = 'none'
 class RouterLoopLogic:
     """The inner logic that runs in a thread.  It manages the execution in a single thread,
     based on a queue to inject requests."""
-    __slots__ = ('__categories', '__router')
+    __slots__ = ('__categories', '__router', '__launch_watcher')
 
     def __init__(
             self,
             categories: Dict[str, AbcLauncherCategory],
             router: EventRouter,
+            launch_watcher: Optional[ExtensionLaunchWatcher] = None,
     ) -> None:
         self.__categories = dict(categories)
         self.__router = router
+        self.__launch_watcher = launch_watcher
 
     def get_categories(self) -> Iterable[AbcLauncherCategory]:
         """Get the known category list."""
@@ -141,7 +154,7 @@ class RouterLoopLogic:
     def _handle_boot_extension(self, metadata: BootExtensionMetadata) -> None:
         event = metadata.to_start_event()
         handler_id = create_handler_id(event.name)
-        print(f'********** BOOT EXTENSION METADATA {event.name} - handler {handler_id}')
+        # print(f'********** BOOT EXTENSION METADATA {event.name} - handler {handler_id}')
         if self._start_extension(None, handler_id, event):
             self._add_listeners(handler_id, metadata.consumes)
 
@@ -150,23 +163,14 @@ class RouterLoopLogic:
             source: str, request: foreman.LauncherStartExtensionRequestEvent,
     ) -> None:
         handler_id = create_handler_id(request.name)
-        if self._start_extension(source, handler_id, request):
-            res = self.__router.inject_event(to_raw_event_object(
-                foreman.LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME,
-                handler_id,
-                source,
-                foreman.LauncherStartExtensionSuccessEvent(
-                    request.name,
-                ).export_data(),
-            ))
-            if res.has_error:
-                display_error(res.valid_error)
+        self._start_extension(source, handler_id, request)
+        # The launch watcher should send any events when it's fully loaded.
 
     def _handle_add_listeners(
             self, target: str, request: foreman.ExtensionAddEventListenerEvent,
     ) -> None:
         handler_id = create_handler_id(target)
-        print(f'********** ADD LISTENERS: target {target} ; handler {handler_id}')
+        # print(f'********** ADD LISTENERS: target {target} ; handler {handler_id}')
         self._add_listeners(handler_id, [
             (event.event_id, event.target_id)
             for event in request.events
@@ -227,6 +231,8 @@ class RouterLoopLogic:
                 display_message(error_msg)
                 display_message(corrective_msg)
             return False
+        if self.__launch_watcher:
+            self.__launch_watcher.extension_launching(source, handler_id)
         res = launcher.start_extension(handler_id, request)
         if res.has_error:
             if source:
@@ -297,7 +303,7 @@ class QueuedContext(TargetHandlerRuntimeContext):
     def add_event_listener(
             self, target_id: str, event: foreman.ExtensionAddEventListenerEvent,
     ) -> None:
-        print(f"**** ADD LISTENERS FOR {target_id}")
+        # print(f"**** ADD LISTENERS FOR {target_id}")
         self.__queue.put(AddEventListenersQueueRequest(target_id, event))
 
     def remove_event_listener(

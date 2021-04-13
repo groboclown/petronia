@@ -30,6 +30,11 @@ def send_initial_state(
     # Errors here are ignored, so fake out the res to not falsely report ignored...
     res_ignored = listen.register_datastore_update_parsers(context)
     res_ignored.error_messages()
+    res_ignored = context.register_event_parser(
+        timer_event.HeartbeatEvent.FULL_EVENT_NAME,
+        timer_event.HeartbeatEvent.parse_data,
+    )
+    res_ignored.error_messages()
 
     found_value = ValueHolder(False)
     transmit = TransmitUntilTarget(
@@ -83,6 +88,11 @@ def wait_for_state(
 
     # Errors here are ignored, so fake out the res to not falsely report ignored...
     res_ignored = listen.register_datastore_update_parsers(context)
+    res_ignored.error_messages()
+    res_ignored = context.register_event_parser(
+        timer_event.HeartbeatEvent.FULL_EVENT_NAME,
+        timer_event.HeartbeatEvent.parse_data,
+    )
     res_ignored.error_messages()
 
     def on_failure(result: StdRet[None]) -> None:
@@ -151,17 +161,17 @@ class ReceiveUpdateTarget(EventObjectTarget[datastore_event.DataUpdateEvent]):
 
     def __init__(
             self, target_id: str, found_holder: ValueHolder[bool],
-            on_sent: Callable[[StdRet[T]], None],
+            on_receive: Callable[[StdRet[T]], None],
             parser: Callable[[Dict[str, Any]], StdRet[T]],
     ) -> None:
         self.target_id = target_id
         self.found_holder = found_holder
-        self.on_sent = on_sent
+        self.on_receive = on_receive
         self.parser = EventObjectParser(parser)
 
     def on_event(self, source: str, target: str, event: datastore_event.DataUpdateEvent) -> bool:
         if target == self.target_id:
             self.found_holder.value = True
-            self.on_sent(listen.get_event_data_value(event, self.parser))
+            self.on_receive(listen.get_event_data_value(event, self.parser))
             return True
         return self.found_holder.value

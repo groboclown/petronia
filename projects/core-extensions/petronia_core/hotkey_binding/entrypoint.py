@@ -57,7 +57,7 @@ def extension_entrypoint(
             )
         )
 
-    context.process_reader()
+    context.process_reader(hotkey_state.EXTENSION_NAME)
     return RET_OK_NONE
 
 

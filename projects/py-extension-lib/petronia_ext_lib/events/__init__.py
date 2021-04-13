@@ -1,8 +1,8 @@
 # GENERATED CODE DO NOT MODIFY
-# Created on 2021-04-13T00:21:53.750056+00:00
+# Created on 2021-04-13T20:16:39.905353+00:00
 
 """
 Event marshallers for the dependent extension APIs.
 """
 
-from . import extension_loader
+from . import foreman_announcement

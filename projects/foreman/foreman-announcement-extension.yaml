@@ -1,0 +1,37 @@
+---
+schema-version: v1
+
+name: petronia.core.api.foreman_announcement
+version: [1, 0, 0]
+type: protocol
+
+about: Defines the extension load complete announcement.
+description: >
+  Describes the event sent by an extension when it completes loading.  All non-boot extensions
+  must send this event in order to tell Foreman that the extension has completed initial
+  startup.
+
+  Because this is part of every extension, it is allowed to be sent by every extension, without
+  needing to be defined in the list of dependencies.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+
+events:
+
+  # -------------------------------------------------------------------------
+
+  extension-startup-complete:
+    description: >
+      Report by a loaded extension when it has completed all of its startup phase.  Usually,
+      this is just before the extension begins the read-events loop.
+
+      The source ID of the event must be the loaded extension name, followed by a colon (':'),
+      and some other text afterwards.
+    priority: io
+    send-access: public
+    receive-access: target
+    unique-target: launcher
+    fields: {}

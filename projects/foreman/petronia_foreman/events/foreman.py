@@ -11,21 +11,21 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 from __future__ import annotations
 from typing import (
     Optional,
-    SupportsFloat,
-    cast,
+    Union,
     SupportsInt,
+    cast,
+    Dict,
+    SupportsFloat,
     Any,
     List,
-    Dict,
-    Union,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
     StdRet,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
@@ -517,16 +517,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            int,
-            List[bool],
-            datetime.datetime,
-            List[float],
-            bool,
             List[int],
             str,
+            List[str],
             List[datetime.datetime],
             float,
-            List[str],
+            datetime.datetime,
+            bool,
+            List[float],
+            List[bool],
+            int,
         ],
     ) -> None:
         self.__name = name
@@ -539,16 +539,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            int,
-            List[bool],
-            datetime.datetime,
-            List[float],
-            bool,
             List[int],
             str,
+            List[str],
             List[datetime.datetime],
             float,
-            List[str],
+            datetime.datetime,
+            bool,
+            List[float],
+            List[bool],
+            int,
     ]:
         """The selector value."""
         return self.__value

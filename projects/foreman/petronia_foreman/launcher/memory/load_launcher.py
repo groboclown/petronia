@@ -13,7 +13,7 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from .importer import load_module_from_path
 from ...constants import TRANSLATION_CATALOG
 from ...configuration import RuntimeConfig
-from ...user_message import display_error, display_exception
+from ...user_message import display_error, display_exception, local_display
 
 ENTRYPOINT_OPTION = 'entrypoint'
 DEFAULT_ENTRYPOINT = 'extension_entrypoint'
@@ -112,6 +112,10 @@ def connect_launcher(  # pylint:disable=too-many-arguments
         try:
             res = entrypoint(reader, writer, config, arguments)
             if isinstance(res, StdRet) and res.has_error:
+                local_display(
+                    _('Extension in Python module {name} failed to load:'),
+                    name=module.__name__,
+                )
                 display_error(res.valid_error, True)
         except BaseException as err:  # pylint:disable=broad-except
             # Should this be moved into the callback?

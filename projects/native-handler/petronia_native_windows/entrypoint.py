@@ -9,6 +9,7 @@ from .datastore.petronia_native_windows import (
     ConfigurationState, Hotkeys, VirtualScreens, EXTENSION_NAME,
 )
 from . import setup
+from .datastore import petronia_native_windows as native_windows_state
 
 
 def extension_entrypoint(
@@ -18,17 +19,23 @@ def extension_entrypoint(
         _args: Sequence[str],
 ) -> StdRet[None]:
     """Standardized entrypoint."""
+    print("---- WINDOWS 1")
     context = LookupEventRegistryContext(reader, writer, None, None)
+    print("---- WINDOWS 2")
     config_res = parse_config(config)
+    print("---- WINDOWS 3")
     loop_res = setup.setup_context(context, config_res.value)
 
     # Bad configuration isn't a failure state.
 
+    print("---- WINDOWS 4")
     if loop_res.has_error:
         # ... but report the bad configuration if setup fails.
+        print("---- WINDOWS 5")
         return StdRet.pass_error(join_errors(
             *config_res.error_messages(), *loop_res.error_messages(),
         ))
+    print("---- WINDOWS 6")
     if config_res.has_error:
         print(f"Windows Native configuration problem; config = {config}")
         logging.send_user_error(
@@ -36,13 +43,15 @@ def extension_entrypoint(
             'invalid-configuration',
         )
 
+    print("---- WINDOWS 7")
     res = loop_res.result.start()
     if res.has_error:
         print('Windows Native startup problem.')
         return res
 
+    print("---- WINDOWS 8")
     try:
-        context.process_reader()
+        context.process_reader(native_windows_state.EXTENSION_NAME)
     finally:
         loop_res.result.dispose(-1)
     return RET_OK_NONE

@@ -16,6 +16,7 @@ from petronia_common.util import i18n as _
 from . import registry, EventBinaryTarget, EventObjectTarget, EventObjectParser
 from .registry import EventObject
 from .simple import StoppableBinaryReader
+from ..extension_loader.annouce_start import send_announce_started
 from ..defs import TRANSLATION_CATALOG
 
 
@@ -51,14 +52,19 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
         If a read is in progress, this will not interrupt it."""
         self.__reader.alive = False
 
-    def process_reader(self) -> None:
+    def process_reader(self, extension_name: Optional[str]) -> StdRet[None]:
         """Read all events until the reader completes, or a stop message is encountered."""
+        if extension_name:
+            res = send_announce_started(self, extension_name)
+            if res.has_error:
+                return res
         read_event_stream(
             self.__reader,
             self._event_listener,
             self._eof_listener,
             self._error_listener,
         )
+        return RET_OK_NONE
 
     def register_event(self, event_id: str, parser: EventObjectParser[T]) -> StdRet[None]:
         with self._lock:

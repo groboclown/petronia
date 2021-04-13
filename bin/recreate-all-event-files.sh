@@ -11,7 +11,8 @@ echo foreman:
 "${h}/generate-events.sh" \
   --output "${pd}/foreman/petronia_foreman/events" \
   --implementation --api \
-  "${pd}/foreman/foreman-extension.yaml"
+  "${pd}/foreman/foreman-extension.yaml" \
+  "${pd}/foreman/foreman-announcement-extension.yaml"
 
 
 # Extension-loader events
@@ -34,6 +35,10 @@ echo core-extensions:
   --implementation --api --state \
   "${pd}/core-extensions/datastore-extension.yaml"
 "${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/datastore/state" \
+  --state \
+  "${pd}/core-extensions/core-datastore-extension.yaml"
+"${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/file_logger/state" \
   --state \
   "${pd}/core-extensions/core-file-logger-extension.yaml"
@@ -41,6 +46,10 @@ echo core-extensions:
   --output "${pd}/core-extensions/petronia_core/timer/events/impl" \
   --implementation --api --state \
   "${pd}/core-extensions/timer-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/timer/state" \
+  --state \
+  "${pd}/core-extensions/core-timer-extension.yaml"
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/hotkey_binding/events/impl" \
   --implementation --api --state \
@@ -77,19 +86,11 @@ echo py-extension-lib:
 "${h}/generate-events.sh" \
   --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
   --api \
-  "${pd}/core-extensions/datastore-extension.yaml"
-"${h}/generate-events.sh" \
-  --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
-  --api \
-  "${pd}/core-extensions/logging-extension.yaml"
-"${h}/generate-events.sh" \
-  --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
-  --api \
-  "${pd}/core-extensions/timer-extension.yaml"
-"${h}/generate-events.sh" \
-  --output "${pd}/py-extension-lib/petronia_ext_lib/events" \
-  --api \
-  "${pd}/extension-loader/extension-loader-extension.yaml"
+  "${pd}/core-extensions/datastore-extension.yaml" \
+  "${pd}/core-extensions/logging-extension.yaml" \
+  "${pd}/core-extensions/timer-extension.yaml" \
+  "${pd}/extension-loader/extension-loader-extension.yaml" \
+  "${pd}/foreman/foreman-announcement-extension.yaml"
 
 
 # Portal events

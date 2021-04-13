@@ -2,10 +2,11 @@
 
 from typing import Sequence, Dict, Any
 from petronia_common.event_stream import BinaryReader, BinaryWriter
-from petronia_common.util import StdRet, join_errors, RET_OK_NONE
+from petronia_common.util import StdRet, join_errors
 from petronia_ext_lib.runner.simple import SimpleEventRegistryContext
 from . import shared_state
 from .log_handler import register_log_listener
+from .state import file_logger as file_logger_state
 
 
 def extension_entrypoint(
@@ -25,5 +26,4 @@ def extension_entrypoint(
             *res1.error_messages(), *res2.error_messages(),
         ))
 
-    context.process_reader()
-    return RET_OK_NONE
+    return context.process_reader(file_logger_state.EXTENSION_NAME)

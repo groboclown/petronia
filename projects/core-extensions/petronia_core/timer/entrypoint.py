@@ -7,6 +7,7 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, RET_OK_NONE, tznow
 from petronia_ext_lib.runner import LookupEventRegistryContext, EventRegistryContext
 from .events.impl import timer as timer_event
+from .state import timer as timer_state
 from ..user_messages import report_send_receive_problems
 
 
@@ -27,7 +28,7 @@ def extension_entrypoint(
     # Needs to add in state change listeners.
 
     tick_thread.start()
-    context.process_reader()
+    context.process_reader(timer_state.EXTENSION_NAME)
 
     return RET_OK_NONE
 

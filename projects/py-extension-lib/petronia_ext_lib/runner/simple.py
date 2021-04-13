@@ -14,6 +14,7 @@ from petronia_common.util import i18n as _
 from .registry import (
     EventRegistryContext, EventObjectParser, EventObjectTarget, EventBinaryTarget, EventObject,
 )
+from ..extension_loader.annouce_start import send_announce_started
 from ..defs import TRANSLATION_CATALOG
 
 
@@ -39,14 +40,22 @@ class SimpleEventRegistryContext(EventRegistryContext):
         during a read operation."""
         self.__reader.alive = False
 
-    def process_reader(self) -> None:
-        """Read all events until the reader completes, or a stop message is encountered."""
+    def process_reader(self, extension_name: Optional[str]) -> StdRet[None]:
+        """Read all events until the reader completes, or a stop message is encountered.
+        This will also send the started announcement if the extension name argument is
+        non-None.
+        """
+        if extension_name:
+            res = send_announce_started(self, extension_name)
+            if res.has_error:
+                return res
         read_event_stream(
             self.__reader,
             self._event_listener,
             self._eof_listener,
             self._error_listener,
         )
+        return RET_OK_NONE
 
     def register_event(self, event_id: str, parser: EventObjectParser) -> StdRet[None]:
         if event_id in self.__handlers:

@@ -34,7 +34,7 @@ def extension_entrypoint(
             'invalid-configuration',
         )
     print("[PORTAL] running **")
-    context.process_reader()
+    context.process_reader(portal_state.EXTENSION_NAME)
     return RET_OK_NONE
 
 
