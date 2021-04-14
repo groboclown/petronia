@@ -6,6 +6,7 @@ from petronia_ext_lib.extension_loader import send_register_listeners
 from petronia_ext_lib.runner import EventRegistryContext, ContextEventObjectTarget
 from . import shared_state, native_window_handler, tree
 from .events import portal as portal_event
+from .state import petronia_portal as portal_state
 from .user_messages import report_send_receive_problems
 
 
@@ -285,7 +286,7 @@ def handle_fit_window(
     if window_id:
         res = shared_state.layout_root().refit_window_in_portal(
             window_id,
-            portal_event.WindowPortalFit(
+            portal_state.WindowPortalFit(
                 justify_horizontal=justify_horizontal,
                 justify_vertical=justify_vertical,
                 fit_horizontal=fit_horizontal,
@@ -324,7 +325,7 @@ def handle_fit_portal_windows(
             resized_windows.extend(
                 shared_state.layout_root().refit_window_in_portal(
                     wid,
-                    portal_event.WindowPortalFit(
+                    portal_state.WindowPortalFit(
                         justify_horizontal=justify_horizontal,
                         justify_vertical=justify_vertical,
                         fit_horizontal=fit_horizontal,
@@ -459,7 +460,7 @@ def handle_move_window_to_portal(
         if move_focus:
             shared_state.set_active_portal_id(target_portal_id)
             res_focus = native_window_handler.send_set_window_focused_event(context, window_id)
-        elif active_portal.window_order:
+        elif active_portal and active_portal.window_order:
             res_focus = native_window_handler.send_set_window_focused_event(
                 context, active_portal.window_order[0],
             )

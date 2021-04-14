@@ -71,12 +71,15 @@ class TimerTick:
 
     def _run(self) -> None:
         while self.alive:
+            # print(f'sleeping for {get_interval_seconds()} seconds')
             time.sleep(get_interval_seconds())
-            report_send_receive_problems(
-                'timer',
-                self.context.send_event(
-                    timer_event.HeartbeatEvent.UNIQUE_TARGET_FQN,
-                    timer_event.HeartbeatEvent.UNIQUE_TARGET_FQN,
-                    timer_event.HeartbeatEvent(tznow()),
-                ),
-            )
+            if self.alive:
+                # print('sending event')
+                report_send_receive_problems(
+                    'timer',
+                    self.context.send_event(
+                        timer_event.HeartbeatEvent.UNIQUE_TARGET_FQN,
+                        timer_event.HeartbeatEvent.UNIQUE_TARGET_FQN,
+                        timer_event.HeartbeatEvent(tznow()),
+                    ),
+                )

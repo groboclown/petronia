@@ -50,8 +50,11 @@ class PrivilegesTest(unittest.TestCase):
         res: Set[str] = set()
         privileges.add_event_send_access(res, standalone, False, set(), [])
         self.assertEqual(
-            # stand-alone extensions can request to register listeners.
-            {'petronia.core.api.extension_loader:register-extension-listeners'},
+            # As a stand-alone extension, it can register listeners and announce it is loaded.
+            {
+                'petronia.core.api.extension_loader:register-extension-listeners',
+                'petronia.core.api.foreman_announcement:extension-startup-complete'
+            },
             res,
         )
 
@@ -185,8 +188,9 @@ class PrivilegesTest(unittest.TestCase):
         self.assertEqual(
             {
                 'n.protocol:ev1', 'n.protocol:ev2', 'n.api1:ev4', 'n.api2:ev5', 'n.api2:ev6',
-                # As an implementation, it can register listeners.
+                # As an implementation, it can register listeners and announce it is loaded.
                 'petronia.core.api.extension_loader:register-extension-listeners',
+                'petronia.core.api.foreman_announcement:extension-startup-complete',
             },
             res,
         )

@@ -5,7 +5,7 @@ Tests for the datastore module.
 Extension petronia_core.datastore, Version 1.0.0
 """
 
-# pylint: disable=too-many-lines,line-too-long
+# pylint: disable=too-many-lines,line-too-long,unused-import
 
 import unittest
 from typing import Sequence, Tuple, Dict, Any

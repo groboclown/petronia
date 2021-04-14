@@ -1,11 +1,12 @@
 """Handle message loop and Petronia event interactions."""
 
 from typing import Mapping, Dict, List, Set, Optional, Any, Hashable
+from ctypes import cast as c_cast
 import concurrent.futures
 from petronia_common.util import (
     StdRet, UserMessage, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none,
 )
-from petronia_native.common import user_messages, defs
+from petronia_native.common import user_messages, defs, log
 from petronia_native.common.handlers import window
 from petronia_native.common.events.impl import window as window_events
 from .arch.native_funcs import HWND, RECT, WINDOWS_FUNCTIONS, DWORD
@@ -83,7 +84,7 @@ class WindowsNativeWindow(window.ActiveWindow[HWND]):
                 )
         ):
             return WINDOWS_FUNCTIONS.window.set_position(
-                self.native_id, 0, defs.OsScreenRect.from_size(
+                self.native_id, c_cast(0, HWND), defs.OsScreenRect.from_size(
                     self.__notice.x, self.__notice.y, self.__notice.width, self.__notice.height,
                 ), ["no-zorder", "async-window-pos", "no-activate"],
             )
@@ -307,7 +308,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_window_created_message(self, hwnd: HWND) -> None:
         """Handle the window_created_message loop message"""
-        print(f'window created: {hwnd}')
+        log.debug('window created: {hwnd}', hwnd=hwnd)
         wnd = self.get_window_by_native(hwnd)
         if wnd:
             # log?  This window is already registered.
@@ -323,7 +324,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_window_destroyed_message(self, hwnd: HWND) -> None:
         """Handle the window_destroyed_message loop message"""
-        print(f'Window destroyed: {hwnd}')
+        log.debug('Window destroyed: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_destroy_window_state, hwnd, 'closed')
 
         # If the SetWinEventHook was called, then it needs to be unhooked here if this
@@ -331,18 +332,18 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_shell_window_focused_message(self, hwnd: HWND) -> None:
         """Handle the shell_window_focused_message loop message"""
-        print(f'window focused: {hwnd}')
+        log.debug('window focused: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_focus_window, hwnd)
 
     def on_window_activated_message(self, hwnd: HWND) -> None:
         """Handle the window_activated_message and window_rude_activated_message loop message"""
-        print(f'window activated: {hwnd}')
+        log.debug('window activated: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_focus_window, hwnd)
 
     def on_window_update_message(self, hwnd: HWND) -> None:
         """Called by an event that caused a non-size information about the window
         to change, such as the title."""
-        print(f'window updated: {hwnd}')
+        log.debug('window updated: {hwnd}', hwnd=hwnd)
         # Inside the message loop here, so perform the investigations...
         wnd = self.get_window_by_native(hwnd)
         if wnd:
@@ -353,7 +354,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_forced_exit_message(self, hwnd: HWND) -> None:
         """Handle the forced_exit_message loop message"""
-        print(f'window forced exit: {hwnd}')
+        log.debug('window forced exit: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_destroy_window_state, hwnd, 'forced')
 
         # If the SetWinEventHook was called, then it needs to be unhooked here if this
@@ -361,12 +362,15 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
 
     def on_window_flash_message(self, hwnd: HWND) -> None:
         """Handle the window_flash_message loop message"""
-        print(f"window flashed: {hwnd}")
+        log.debug("window flashed: {hwnd}", hwnd=hwnd)
         self.__executor.submit(self._in_exec_window_flashed, hwnd)
 
     def on_window_replace_message(self, new_hwnd: HWND, old_hwnd: HWND) -> None:
         """Handle the window_replacing_message and window_replaced_message loop messages."""
-        print(f"window replace: new: {new_hwnd}, old: {old_hwnd}")
+        log.debug(
+            "window replace: new: {new_hwnd}, old: {old_hwnd}",
+            new_hwnd=new_hwnd, old_hwnd=old_hwnd,
+        )
         old_window = self.get_window_by_native(old_hwnd)
         if old_window:
             new_window = WindowsNativeWindow(old_window.window_id, new_hwnd, old_window.state)
@@ -560,14 +564,14 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             )
         window_states_res = self._load_window_states()
         if window_states_res.has_error:
-            print("*** Encountered problem loading window states.")
+            log.debug("Encountered problem loading window states.")
             user_messages.report_send_receive_problems(window_states_res)
         else:
             print(f"*** Reporting {len(window_states_res.result)} windows active.")
             self.__executor.submit(self._in_exec_update_window_states, window_states_res.result)
 
     def _in_exec_update_global_settings(self, settings: Mapping[str, str]) -> None:
-        print(f"Sending update global settings: {settings}")
+        log.debug("Sending update global settings: {settings}", settings=settings)
         user_messages.report_send_receive_problems(
             self.update_global_settings(settings)
         )
@@ -575,43 +579,58 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
     def _in_exec_update_window_states(self, window_states: List[WindowsNativeWindow]) -> None:
         for window_state in window_states:
             if self.get_window_by_id(window_state.window_id):
-                print(f"Sending update window event: {window_state.window_id}")
+                log.debug(
+                    "Sending update window event: {window_id}",
+                    window_id=window_state.window_id,
+                )
                 user_messages.report_send_receive_problems(
                     self.update_window_state(window_state)
                 )
             else:
-                print(f"Sending window created event: {window_state.window_id}")
+                log.debug(
+                    "Sending window created event: {window_id}",
+                    window_id=window_state.window_id,
+                )
                 user_messages.report_send_receive_problems(
                     self.window_created(window_state, True)
                 )
         self.send_active_ids()
 
     def _in_exec_update_window_state(self, window_state: WindowsNativeWindow) -> None:
-        print(f"Sending update window state event: {window_state.window_id}")
+        log.debug(
+            "Sending update window state event: {window_id}",
+            window_id=window_state.window_id,
+        )
         user_messages.report_send_receive_problems(
             self.update_window_state(window_state)
         )
 
     def _in_exec_create_window_state(self, window_state: WindowsNativeWindow) -> None:
-        print(f"Sending window created event: {window_state.window_id}")
+        log.debug(
+            "Sending window created event: {window_id}",
+            window_id=window_state.window_id,
+        )
         user_messages.report_send_receive_problems(
             self.window_created(window_state, False)
         )
 
     def _in_exec_destroy_window_state(self, hwnd: HWND, reason: str) -> None:
-        print(f"Sending window destroyed event: {hwnd} {reason}")
+        log.debug(
+            "Sending window destroyed event: {hwnd} {reason}",
+            hwnd=hwnd, reason=reason,
+        )
         user_messages.report_send_receive_problems(
             self.window_destroyed(hwnd, reason)
         )
 
     def _in_exec_focus_window(self, hwnd: HWND) -> None:
-        print(f"Sending focus window event: {hwnd}")
+        log.debug("Sending focus window event: {hwnd}", hwnd=hwnd)
         user_messages.report_send_receive_problems(
             self.window_focused(0, hwnd)
         )
 
     def _in_exec_window_flashed(self, hwnd: HWND) -> None:
-        print(f"Sending window flashed event: {hwnd}")
+        log.debug("Sending window flashed event: {hwnd}", hwnd=hwnd)
         user_messages.report_send_receive_problems(
             self.window_flashing(hwnd)
         )

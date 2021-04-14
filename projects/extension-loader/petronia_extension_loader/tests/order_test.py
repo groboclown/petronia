@@ -58,8 +58,9 @@ class GeneralOrderTest(unittest.TestCase):
             api2.name: api2,
             proto1.name: proto1,
         }
-        order_res = order.get_load_order([impl1, impl2], world.values())
+        order_res = order.get_load_order([impl1, impl2], world.values(), [], [])
         self.assertIsNone(order_res.error)
+        self.assertEqual(5, len(order_res.result))
         loaded = {
             ext.ext.name: ext
             for ext in order_res.result
@@ -99,8 +100,18 @@ class GeneralOrderTest(unittest.TestCase):
         self.assertFalse(loaded['impl1'].can_run([]))
         self.assertFalse(loaded['impl1'].can_run([world['proto1']]))
         self.assertTrue(loaded['impl1'].can_run(world.values()))
-        self.assertTrue(loaded['impl1'].can_run([
+        self.assertFalse(loaded['impl1'].can_run([
+            # The implementation for api2 must be loaded before this can run.
             world['proto1'], world['api1'], world['api2'],
+        ]))
+        self.assertTrue(loaded['impl1'].can_run([
+            world['proto1'], world['api1'], world['api2'], world['impl2'],
+        ]))
+        self.assertTrue(loaded['impl1'].can_run([
+            # protocol, the parent dependency, must be loaded for api1 and api2 to load,
+            # however impl2 only has a dependency on api2 and api1, so it isn't 100% required
+            # for this check to pass.
+            world['api1'], world['api2'], world['impl2'],
         ]))
 
         self.assertEqual(
@@ -121,7 +132,7 @@ class GeneralOrderTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            {'api1', 'api2'},
+            {'api1', 'api2', 'impl2'},
             {info.name for info in loaded['impl1'].depends_on},
         )
         self.assertEqual(
@@ -138,7 +149,7 @@ class GeneralOrderTest(unittest.TestCase):
             {info.name for info in loaded['impl2'].depends_on},
         )
         self.assertEqual(
-            [],
+            ['impl1'],
             [info.name for info in loaded['impl2'].required_by],
         )
         self.assertEqual(
@@ -180,8 +191,9 @@ class GeneralOrderTest(unittest.TestCase):
         }
 
         # Check Api -> default impl added.
-        order_res = order.get_load_order([api1], world.values())
+        order_res = order.get_load_order([api1], world.values(), [], [])
         self.assertIsNone(order_res.error)
+        self.assertEqual(5, len(order_res.result))
         loaded = {
             ext.ext.name: ext
             for ext in order_res.result
@@ -194,7 +206,7 @@ class GeneralOrderTest(unittest.TestCase):
     def test_get_load_order__missing(self) -> None:
         """Test get_load_order with a missing dependency."""
         ext = mk_impl_ext('e1', impl=[('a', 1, 0, 0, -1, 0, 0)])
-        res = order.get_load_order([ext], [ext])
+        res = order.get_load_order([ext], [ext], [], [])
         self.assertIsNotNone(res.error)
         self.assertEqual(
             ['extension e1 depends on not-found extension a [>=(1, 0, 0), <None]'],
@@ -207,7 +219,7 @@ class GeneralOrderTest(unittest.TestCase):
             'api1',
             ('impl1', 1, 0, 0, 2, 0, 0),
         )
-        res = order.get_load_order([ext], [ext])
+        res = order.get_load_order([ext], [ext], [], [])
         self.assertIsNotNone(res.error)
         self.assertEqual(
             [
@@ -223,11 +235,54 @@ class GeneralOrderTest(unittest.TestCase):
             'api1', (1, 0, 0), '', '', [], [], [], [], None,
         ))
 
-        res = order.get_load_order([ext], [ext])
+        res = order.get_load_order([ext], [ext], [], [])
         self.assertIsNotNone(res.error)
         self.assertEqual(
             ['No implementation declared for API extension api1'],
             [m.debug() for m in res.error_messages()],
+        )
+
+    def test_get_load_order__api_dependency(self) -> None:
+        """Test get_load_order, loading the default impl for an API."""
+        impl1 = mk_impl_ext(
+            'impl1',
+            impl=[('api1', 1, 0, 0, -1, 0, 0)],
+            depends=[('api2', 1, 0, 0, -1, 0, 0)],
+        )
+        impl2 = mk_impl_ext(
+            'impl2',
+            impl=[('api2', 1, 0, 0, -1, 0, 0)],
+        )
+        api1 = mk_api_ext(
+            'api1',
+            ('impl1', 1, 0, 0, 2, 0, 0),
+            depends=[('proto1', 1, 0, 0, -1, 0, 0)],
+        )
+        api2 = mk_api_ext(
+            'api2',
+            ('impl2', 1, 0, 0, 2, 0, 0),
+            depends=[('proto1', 1, 0, 0, -1, 0, 0)],
+        )
+        proto1 = mk_protocol_ext('proto1')
+        world = {
+            impl1.name: impl1,
+            impl2.name: impl2,
+            api1.name: api1,
+            api2.name: api2,
+            proto1.name: proto1,
+        }
+
+        # Check Api -> default impl added.
+        order_res = order.get_load_order([impl1], world.values(), [], [])
+        self.assertIsNone(order_res.error)
+        self.assertEqual(5, len(order_res.result))
+        to_load = {
+            ext.ext.name
+            for ext in order_res.result
+        }
+        self.assertEqual(
+            {'api2', 'api1', 'impl1', 'proto1', 'impl2'},
+            to_load,
         )
 
 

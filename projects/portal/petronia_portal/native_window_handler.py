@@ -159,7 +159,7 @@ class WindowFocusedHandler(ContextEventObjectTarget[window_event.WindowFocusedEv
         if event.keyboard_focus >= 0:
             shared_state.set_focused_window_id(target)
             nkw = shared_state.layout_root().get_window_by_id(target)
-            if nkw.owning_portal_id >= 0:
+            if nkw and nkw.owning_portal_id >= 0:
                 # TODO set the active portal state
                 shared_state.set_active_portal_id(nkw.owning_portal_id)
         return False

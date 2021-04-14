@@ -25,7 +25,8 @@ echo extension-loader:
 "${h}/generate-events.sh" \
   --output "${pd}/extension-loader/petronia_extension_loader/events/ext" \
   --api \
-  "${pd}/core-extensions/datastore-extension.yaml"
+  "${pd}/core-extensions/datastore-extension.yaml" \
+  "${pd}/foreman/foreman-announcement-extension.yaml"
 
 
 # Core extension implementations

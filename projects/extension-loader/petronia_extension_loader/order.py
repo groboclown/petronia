@@ -18,7 +18,7 @@ from petronia_common.extension.config import (
     ApiExtensionMetadata, ImplExtensionMetadata, ProtocolExtensionMetadata,
 )
 from petronia_common.extension.config.extension_schema import ExtensionDependency
-from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, not_none
+from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, not_none, EMPTY_TUPLE
 from petronia_common.util import i18n as _
 from .search import find_best_extension, find_dependencies
 from .defs import ExtensionInfo, TRANSLATION_CATALOG
@@ -73,12 +73,12 @@ class ExtensionDependencyOrder:
                     stack.append(req_order)
         return required_by.values()
 
-    def can_run(self, loaded_extensions: Iterable[ExtensionInfo]) -> bool:
-        """Can this dependency run yet?  Only runnable if the depends are all loaded."""
+    def still_waiting_on(self, loaded_extensions: Iterable[ExtensionInfo]) -> Set[str]:
+        """Return all extension names that are still waiting to be loaded before this can load."""
 
         # Early out check.
         if self.is_root():
-            return True
+            return EMPTY_TUPLE
         remaining = {
             ext.name
             for ext in self.depends_on
@@ -89,15 +89,21 @@ class ExtensionDependencyOrder:
                 remaining.remove(ext.name)
                 # Early out check.
                 if not remaining:
-                    return True
+                    return EMPTY_TUPLE
 
         # At this point, because of the early-out check + initial root check,
         # this can only mean there are more remaining items.
-        return False
+        return remaining
+
+    def can_run(self, loaded_extensions: Iterable[ExtensionInfo]) -> bool:
+        """Can this dependency run yet?  Only runnable if the depends are all loaded."""
+        return len(self.still_waiting_on(loaded_extensions)) <= 0
 
 
 def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too-many-branches
         extensions: Iterable[ExtensionInfo], installed: Iterable[ExtensionInfo],
+        loading: Iterable[ExtensionDependencyOrder],
+        loaded: Iterable[ExtensionInfo],
 ) -> StdRet[Sequence[ExtensionDependencyOrder]]:
     """This gathers all the dependent extensions needed to be loaded.  If an implementation
     must be added because the API is requested to be loaded but the implementation of that
@@ -106,23 +112,45 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
     The order is intended to be in a format that allows for parallel loading of the
     extensions.
 
-    This ignores cycles in the dependency ordering.
+    This ignores cycles in the dependency ordering.  The returned "sequence" is also not intended
+    to be ordered (e.g. topological ordering), because of the parallel loading capabilities.
 
-    Note: THIS DOES NOT ENSURE THAT ONE AND ONLY ONE API IMPLEMENTATION IS LOADED.
+    The "loaded" list must be all extensions already loaded.  This is used to ensure that, if
+    an API is marked as a dependency, then an implementation is not returned if it is already
+    loaded.
     """
 
-    # This ends up performing a topological sort, so that API and implementations can be handled
-    # nicely.
+    # This ends up performing a topological sort, so that API and implementations can be handled.
 
     errors: List[UserMessage] = []
+
+    # Convert the loaded dependencies to a dependency order.  Used solely to conserve
+    # space a bit.
+    loaded_deps: Dict[str, ExtensionDependencyOrder] = {
+        dep.ext.name: dep
+        for dep in loading
+    }
+    loaded_deps.update({
+        # Loaded dependencies are already loaded, so their list of dependencies is empty.
+        dep.name: ExtensionDependencyOrder(dep, [], [])
+        for dep in loaded
+    })
 
     visited: Dict[str, bool] = {}
     order: Dict[str, ExtensionDependencyOrder] = {}
     # APIs requested to be loaded...
     apis: Dict[str, ApiExtensionMetadata] = {}
     # The API -> implementation name for explicitly discovered ones.
-    implementations: Dict[str, str] = {}
+    implementations: Dict[str, ExtensionInfo] = {}
     visit_list: List[ExtensionInfo] = list(extensions)
+
+    # Initialize the implementations list with the loaded versions.
+    for loaded_ext in loaded:
+        mtd = loaded_ext.metadata
+        if isinstance(mtd, ImplExtensionMetadata):
+            for impl_dependency in mtd.implements:
+                # This ignores already loaded API duplicates.
+                implementations[impl_dependency.name] = loaded_ext
 
     # First pass: discover all extensions that need to be loaded.
 
@@ -136,7 +164,19 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
             apis[ext.name] = mtd
         elif mtd.extension_type == 'impl' and isinstance(mtd, ImplExtensionMetadata):
             for impl_dependency in mtd.implements:
-                implementations[impl_dependency.name] = ext.name
+                if impl_dependency.name in implementations:
+                    # Multiple implementations of an API.
+                    return StdRet.pass_errmsg(
+                        TRANSLATION_CATALOG,
+                        _(
+                            'Attempted to load multiple implementations of API {name}: '
+                            '{e1} (already loaded), {e2} (requested to load)'
+                        ),
+                        name=impl_dependency.name,
+                        e1=implementations[impl_dependency.name].name,
+                        e2=mtd.name,
+                    )
+                implementations[impl_dependency.name] = ext
 
         found_dependencies, not_found_dependencies = find_dependencies(ext, installed)
         for dep in not_found_dependencies:
@@ -157,7 +197,6 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
                 visit_list.append(dep_info)
 
         # Put this in the return list.
-        # reverse_order.append(ext)
         order[ext.name] = ExtensionDependencyOrder(ext, [], [])
 
         if not visit_list:
@@ -165,7 +204,7 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
             # that need loading.
             for api_name, api in apis.items():
                 if api_name not in implementations:
-                    # We have a listed API, but no implementation found yet.
+                    # We have a listed API, but no implementation loaded or found yet.
                     impl_dep = api.default_implementation
                     if impl_dep:
                         best = find_best_extension(
@@ -199,20 +238,50 @@ def get_load_order(  # pylint:disable=too-many-locals,too-many-nested-blocks,too
     if errors:
         return StdRet.pass_error(join_errors(*errors))
 
-    # reverse_order.reverse()
-    # return StdRet.pass_ok(reverse_order)
+    return configure_dependencies(order, loaded_deps, implementations)
 
-    # Second pass: populate the dependencies and requirements.
+
+def configure_dependencies(
+        order: Dict[str, ExtensionDependencyOrder],
+        loaded: Dict[str, ExtensionDependencyOrder],
+        implementations: Dict[str, ExtensionInfo],
+) -> StdRet[List[ExtensionDependencyOrder]]:
+    """Clean up the returned order to have all of the extensions that should be loaded,
+    and no duplicates.  Also, populate the dependency list.  Also, check if
+    there are multiple implementations of APIs."""
+
+    # The loaded version of the order values has priority.
+    all_exts = dict(order)
+    all_exts.update(loaded)
+
+    seen_ext: Set[str] = set(loaded.keys())
     ret: List[ExtensionDependencyOrder] = []
     for ext_order in order.values():
         for ext_dep in ext_order.get_ext_dependencies():
-            dep_order = order[ext_dep.name]
+            dep_order = all_exts[ext_dep.name]
             ext_order.depends_on.append(dep_order.ext)
             dep_order.required_by.append(ext_order.ext)
-            if dep_order not in ret:
+            if dep_order.ext.name not in seen_ext:
                 ret.append(dep_order)
+                seen_ext.add(dep_order.ext.name)
+            if (
+                ext_dep.name in implementations
+                and implementations[ext_dep.name].name != ext_order.ext.name
+            ):
+                # this dependency is an API; use the to-load implementation as
+                # the dependency instead.
+                dep_order = all_exts[implementations[ext_dep.name].name]
 
-        ret.append(ext_order)
+                # Cut-n-paste code alert...
+                ext_order.depends_on.append(dep_order.ext)
+                dep_order.required_by.append(ext_order.ext)
+                if dep_order.ext.name not in seen_ext:
+                    ret.append(dep_order)
+                    seen_ext.add(dep_order.ext.name)
+
+        if ext_order.ext.name not in seen_ext:
+            ret.append(ext_order)
+            seen_ext.add(ext_order.ext.name)
     return StdRet.pass_ok(ret)
 
 
@@ -246,6 +315,7 @@ class LoadList:
         order = self.__pending[name]
         del self.__pending[name]
         self.__loading[name] = order
+        # print(f'--- Loading extension {order.ext.name}')
 
     def mark_loaded(self, name: str) -> StdRet[None]:
         """
@@ -263,6 +333,7 @@ class LoadList:
             )
         del self.__loading[name]
         self.__loaded[name] = ext.ext
+        # print(f'--- Loaded extension {ext.ext.name}')
         return RET_OK_NONE
 
     def mark_failed(self, name: str) -> StdRet[Iterable[ExtensionInfo]]:
@@ -293,6 +364,7 @@ class LoadList:
         ret: List[ExtensionInfo] = []
         for order in self.__pending.values():
             if order.can_run(self.__loaded.values()):
+                # print(f' - - Ready to load: {order.ext.name}')
                 ret.append(order.ext)
         return ret
 
@@ -324,6 +396,10 @@ class LoadList:
             return ret.ext
         return None
 
+    def get_pending_loading_extensions(self) -> Iterable[ExtensionDependencyOrder]:
+        """Return all extensions known by this loader."""
+        return [*self.__pending.values(), *self.__loading.values()]
+
     def add_one_pending(
             self, order: ExtensionDependencyOrder,
     ) -> bool:
@@ -338,8 +414,10 @@ class LoadList:
         ):
             return False
         if isinstance(order.ext.metadata, (ApiExtensionMetadata, ProtocolExtensionMetadata)):
+            # print(f'--- Loaded extension {order.ext.name}')
             self.__loaded[order.ext.name] = order.ext
         else:
+            # print(f'--- Added pending extension {order.ext.name}')
             self.__pending[order.ext.name] = order
         return True
 
@@ -349,7 +427,9 @@ def add_pending_extensions(
         extensions: Iterable[ExtensionInfo], installed: Iterable[ExtensionInfo],
 ) -> StdRet[None]:
     """Uses the get_load_order to find the complete list of extensions to load."""
-    load_order_list = get_load_order(extensions, installed)
+    load_order_list = get_load_order(
+        extensions, installed, loader.get_pending_loading_extensions(), loader.get_loaded(),
+    )
     if load_order_list.has_error:
         return load_order_list.forward()
     for load_order in load_order_list.result:

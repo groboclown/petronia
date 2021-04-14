@@ -56,6 +56,7 @@ class ExtLoaderSharedState:
             extension_name: str, registry: EventRegistryContext,
     ) -> StdRet[None]:
         """Called when an extension has completed loading."""
+        # print(f'--- Extension Loaded handler: {extension_name}')
         ext = self.__load.get_loading_extension(extension_name)
         if not ext:
             return StdRet.pass_errmsg(
@@ -73,6 +74,12 @@ class ExtLoaderSharedState:
             boot_extension_handler.on_extension_load_complete(
                 registry, extension_name,
             ).error_messages()
+        )
+        errors.extend(
+            self.__load.mark_loaded(extension_name).error_messages()
+        )
+        errors.extend(
+            self.start_ready_extensions(registry).error_messages()
         )
         if errors:
             return StdRet.pass_error(join_errors(*errors))

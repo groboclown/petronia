@@ -45,7 +45,7 @@ class WindowsRunner:
                 timeout=60.0,
             )
 
-        print("** WINDOWS INITIALIZING STATE **")
+        # print("** WINDOWS INITIALIZING STATE **")
         return join_none_results(*(
             c()
             for c in self.__post_start

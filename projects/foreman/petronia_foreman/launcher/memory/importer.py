@@ -36,20 +36,22 @@ def load_module_from_path(fullname: str, path: List[str]) -> StdRet[types.Module
         )
 
 
+# To prevent duplicate messages, these are maintained.  Hopefully,
+# this isn't too big a list, or our memory will be overwhelmed.
+_REPORTED_NOT_EXISTING_PATHS: List[str] = []
+
+
 def add_item_to_path(item: str) -> StdRet[None]:
     """Add a local path"""
     abs_path = os.path.abspath(item)
     if not os.path.exists(abs_path):
-        # return StdRet.pass_errmsg(
-        #     TRANSLATION_CATALOG,
-        #     _('Requested to load a module with non-existent search path {value}'),
-        #     value=abs_path,
-        # )
-        display_message(UserMessage(
-            TRANSLATION_CATALOG,
-            _('Requested to load a module with non-existent search path {value}'),
-            value=abs_path,
-        ))
+        if abs_path not in _REPORTED_NOT_EXISTING_PATHS:
+            _REPORTED_NOT_EXISTING_PATHS.append(abs_path)
+            display_message(UserMessage(
+                TRANSLATION_CATALOG,
+                _('Requested to load a module with non-existent search path {value}'),
+                value=abs_path,
+            ))
     elif abs_path not in sys.path:
         sys.path.append(abs_path)
     return RET_OK_NONE

@@ -9,6 +9,15 @@ from petronia_common.extension.config import (
 )
 from ..defs import ExtensionInfo
 from ..search import find_best_extension
+from ..events.impl import extension_loader as extension_loader_event
+from ..events.ext import foreman_announcement as foreman_event
+
+
+# Events that all code-able extensions can generate.
+IMPLICIT_ALLOWED_EVENTS = (
+    extension_loader_event.RegisterExtensionListenersEvent.FULL_EVENT_NAME,
+    foreman_event.ExtensionStartupCompleteEvent.FULL_EVENT_NAME,
+)
 
 
 def get_source_id_prefix_access(
@@ -64,8 +73,8 @@ def add_event_send_access(
             can_send_events.add(_get_event_name(extension.name, event))
 
     if isinstance(metadata, ImplExtensionMetadata):
-        # All implementations can send this event.
-        can_send_events.add('petronia.core.api.extension_loader:register-extension-listeners')
+        # All implementations can send these events.
+        can_send_events.update(IMPLICIT_ALLOWED_EVENTS)
         for implements in _get_implemented_apis(metadata, loaded):
             # Only add API send access if the owner is an implementation,
             # not for the dependency's implementation.
@@ -74,8 +83,8 @@ def add_event_send_access(
             )
 
     if isinstance(metadata, StandAloneExtensionMetadata):
-        # All stand-alone extensions can send this event.
-        can_send_events.add('petronia.core.api.extension_loader:register-extension-listeners')
+        # All stand-alone extensions can send these events.
+        can_send_events.update(IMPLICIT_ALLOWED_EVENTS)
 
     # All the extensions have send public access.
     for dep in metadata.depends_on:

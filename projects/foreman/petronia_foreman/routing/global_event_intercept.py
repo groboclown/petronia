@@ -58,15 +58,15 @@ class GlobalEventIntercept(EventForwarderTarget, ExtensionLaunchWatcher):
                     # The extension reported itself as started, so send an event
                     # back to the extension loader to report that it has started
                     # successfully.
-                    print(f"********* Telling {extension_loader_id} that extension {extension_name} loaded")
+                    # print(f"Telling {extension_loader_id} that extension {extension_name} loaded")
                     self.__router.inject_event(to_raw_event_object(
                         foreman.LauncherStartExtensionSuccessEvent.FULL_EVENT_NAME,
                         handler_id,
                         extension_loader_id,
                         foreman.LauncherStartExtensionSuccessEvent(extension_name).export_data(),
                     ))
-                else:
-                    print(f"********* {extension_name} said it loaded, but it is not known")
+                # else:
+                #     print(f"{extension_name} said it loaded, but it is not known")
                 return False
         return False
 

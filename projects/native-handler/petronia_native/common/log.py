@@ -10,8 +10,8 @@ import threading
 _LOCK = threading.RLock()
 
 
-LOG_TRACE = True
-LOG_DEBUG = True
+LOG_TRACE = False
+LOG_DEBUG = False
 LOG_INFO = True
 
 
