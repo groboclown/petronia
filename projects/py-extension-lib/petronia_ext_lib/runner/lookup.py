@@ -92,6 +92,7 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
                     _('event ID {event_id} does not have a registered parser'),
                     event_id=event_id,
                 )
+            # print(f'[lookup] registering {event_id} / {target_id}')
             parser_handler.add_handler(
                 target_id, target, -1 if timeout <= 0 else time.time() + timeout,
             )
@@ -155,6 +156,7 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
                 if is_raw_event_object(event):
                     parser = self._object_targets.get(event_id)
                     if not parser:
+                        # print(f'[lookup] no parser for {event_id}')
                         return False
                     res = parser.handle_event(source_id, target_id, event)
                     if res.has_error:
@@ -246,6 +248,7 @@ class ParserHandler(Generic[T]):
         """Handle this event object."""
         match1 = self._handlers.get(None, EMPTY_DICT)
         match2 = self._handlers.get(target_id, EMPTY_DICT)
+        # print(f'[lookup] handling {raw_event_id(event)} to {target_id} with {(match1, match2)}')
         if not match1 and not match2:
             return RET_OK_NONE
         event_data_res = self.parser.parse(as_raw_event_object_data(event))
@@ -255,6 +258,7 @@ class ParserHandler(Generic[T]):
         for matches in (match1, match2):
             remove: List[int] = []
             for index, target_tuple in matches.items():
+                # print(f'[lookup] handler for {raw_event_id(event)} / {source_id} / {target_id}')
                 if target_tuple[1].on_event(source_id, target_id, event_data_res.result):
                     remove.append(index)
             for index in remove:

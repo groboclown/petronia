@@ -7,14 +7,17 @@ Hotkeys:
     bindings:
       sequence_type: meta
       master_sequence:
-        - super
+        - lsuper
       bindings:
+        # TODO: Key binding needs to allow for multiple char sequences (e.g.
+        # "ctrl" for "lctrl" and "rctrl".
+        
         # ===================================================================
         # System
         - comment: Shutdown Petronia
           keys:
-            - ctrl
-            - shift
+            - lctrl
+            - lshift
             - q
           event:
             target_id: petronia.core.api.shutdown:shutdown
@@ -22,8 +25,8 @@ Hotkeys:
 
         - comment: Restart Petronia
           keys:
-            - ctrl
-            - shift
+            - lctrl
+            - lshift
             - r
           event:
             target_id: petronia.core.api.shutdown:restart
@@ -33,7 +36,7 @@ Hotkeys:
         # Portal Keys
         - comment: Add a portal relative to the active portal
           keys:
-            - ctrl
+            - lctrl
             - plus
           event:
             target_id: petronia.core.api.portal:split-portal
@@ -46,7 +49,7 @@ Hotkeys:
                 value: "true"
         - comment: Remove the active portal
           keys:
-            - ctrl
+            - lctrl
             - minus
           event:
             target_id: petronia.core.api.portal:join-portals
@@ -95,7 +98,7 @@ Hotkeys:
         # Set the window position in the portal
         - comment: Set window position within its portal - resized, SW
           keys:
-            - ctrl
+            - lctrl
             - numpad1
           event:
             target_id: petronia.core.api.portal:fit-window
@@ -146,7 +149,7 @@ Hotkeys:
         # Move window between portals
         - comment: Move the active window to a different portal - north (arrows)
           keys:
-            - shift
+            - lshift
             - up
           event:
             target_id: petronia.core.api.portal:move-window-to-portal
@@ -157,7 +160,7 @@ Hotkeys:
                 value: "true"
         - comment: Move the active window to a different portal - north (numpad)
           keys:
-            - shift
+            - lshift
             - numpad8
           event:
             target_id: petronia.core.api.portal:move-window-to-portal
@@ -191,3 +194,22 @@ Hotkeys:
 #         action: move-window-to-portal
 #         parameters:
 #           direction: right
+
+        # ---------------------------------------------------------------------
+        # Rotate between windows in the active portal
+        - comment: Rotate forward to the next window in the active portal.
+          keys:
+            - pgup
+          event:
+            target_id: petronia.core.api.portal:rotate-active-window
+            parameters:
+              - key: direction
+                value: forward
+        - comment: Rotate forward to the next window in the active portal.
+          keys:
+            - pgdn
+          event:
+            target_id: petronia.core.api.portal:rotate-active-window
+            parameters:
+              - key: direction
+                value: backward

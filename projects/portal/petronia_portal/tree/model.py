@@ -33,6 +33,14 @@ class KnownWindow:
         self.pos_w = window_state.location.width
         self.pos_h = window_state.location.height
 
+    def __repr__(self) -> str:
+        # Slow, but, meh.
+        name = self._target_id
+        for mkv in self._managed_state.meta:
+            if mkv.key == 'executable':
+                name += ' / ' + mkv.value
+        return name
+
     @property
     def target_id(self) -> str:
         """The window's target_id"""
@@ -167,6 +175,9 @@ class Portal(Tile):
             state.padding_top + state.padding_bottom + 10,
         )
         Portal._PORTAL_COUNT += 1
+
+    def __repr__(self) -> str:
+        return f'Portal({self.__index})'
 
     @property
     def portal_id(self) -> int:
@@ -365,6 +376,9 @@ class ScreenBlockSplit(TileContainer):
             self, screen_x, screen_y, screen_w, screen_h,
         )
 
+    def __repr__(self) -> str:
+        return 'screen'
+
     def update_position(
             self, new_x: int, new_y: int, new_width: int, new_height: int,
     ) -> Sequence[KnownWindow]:
@@ -405,6 +419,9 @@ class RootContainer(TileIterator):
         TileIterator.__init__(self)
         self._blocks = tuple(blocks)
 
+    def __repr__(self) -> str:
+        return 'root'
+
     def get_children(self) -> Sequence[Tile]:
         return self._blocks
 
@@ -427,6 +444,9 @@ class SimpleSplit(TileContainer):
         TileContainer.__init__(self, False)
         self._children: List[Tile] = []
         self._is_horiz = horizontal
+
+    def __repr__(self) -> str:
+        return f"split({self._is_horiz and 'horiz' or 'vert'})"
 
     @property
     def horizontal(self) -> bool:
@@ -453,7 +473,8 @@ class SimpleSplit(TileContainer):
             total_length = self.width if self.horizontal else self.height
             sum_existing = sum([t.rel_size for t in self._children])
             count_existing = len(self._children)
-            child.rel_size = (total_length * (count_existing + 1)) - sum_existing
+            if child.rel_size > 0:
+                child.rel_size = max(1, (total_length * (count_existing + 1)) - sum_existing)
 
         return TileContainer.add_child(self, child, front, equally_sized)
 
@@ -547,8 +568,9 @@ class SimpleSplit(TileContainer):
                         child_len = (
                                 get_primary(child.width, child.height) - per_child_adjustment
                         )
-                child.rel_size = child_len
-                next_primary_pos += child_len
+                if child.rel_size > 0:
+                    child.rel_size = child_len
+                    next_primary_pos += child_len
                 adjusted_windows.extend(child.update_position(
                     get_x(next_primary_pos, secondary_pos),
                     get_y(next_primary_pos, secondary_pos),
@@ -661,10 +683,14 @@ class SimpleSplit(TileContainer):
         setter = set_vert_size
         start_pos = new_y
         total_space = new_height
+        other_pos = new_x
+        other_len = new_width
 
         if self.horizontal:
             setter = set_horiz_size
             total_space = new_width
+            other_pos = new_y
+            other_len = new_height
 
         rel_portion = max(total_space, 1) / max(rel_sum, 1)
 
@@ -674,18 +700,26 @@ class SimpleSplit(TileContainer):
         changed_windows: List[KnownWindow] = []
         for child_index in range(child_count):
             child = self._children[child_index]
+            print(f'{repr(self)} - child was {repr(child)} ({child.pos_x}, {child.pos_y}) x ({child.width}, {child.height})')
             if child.rel_size <= 0 or child_index == last_child_index:
                 # rel_size <= 0: the child takes up the rest of the space, but overlaps the next
                 #   child.
                 # last child: The last child takes up the rest of the space; this prevents rounding
                 #                 # errors for creeping in and skipping valuable pixels.
                 taken_space = total_space - next_pos
-                changed_windows.extend(setter(child, next_pos + start_pos, total_space - next_pos))
+                changed_windows.extend(setter(
+                    child, next_pos + start_pos, taken_space,
+                    other_pos, other_len,
+                ))
             else:
                 taken_space = math.floor(child.rel_size * rel_portion)
-                changed_windows.extend(setter(child, next_pos + start_pos, taken_space))
+                changed_windows.extend(setter(
+                    child, next_pos + start_pos, taken_space,
+                    other_pos, other_len,
+                ))
                 next_pos += taken_space
             child.rel_size = taken_space
+            print(f'{repr(self)} - child now {repr(child)} ({child.pos_x}, {child.pos_y}) x ({child.width}, {child.height})')
         return changed_windows
 
 
@@ -752,17 +786,23 @@ def get_vert_size(tile: Tile) -> Tuple[int, int]:
     return tile.pos_y, tile.height
 
 
-def set_horiz_size(tile: Tile, pos: int, length: int) -> Sequence[KnownWindow]:
+def set_vert_size(
+        tile: Tile, pos: int, length: int,
+        other_pos: int, other_length: int,
+) -> Sequence[KnownWindow]:
     """Set the size of the tile along the horizontal axis."""
     return tile.update_position(
-        pos, tile.pos_y, length, tile.height,
+        pos, other_pos, length, other_length,
     )
 
 
-def set_vert_size(tile: Tile, pos: int, length: int) -> Sequence[KnownWindow]:
+def set_horiz_size(
+        tile: Tile, pos: int, length: int,
+        other_pos: int, other_length: int,
+) -> Sequence[KnownWindow]:
     """Set the size of the tile along the vertical axis."""
     return tile.update_position(
-        tile.pos_x, pos, tile.width, length,
+        other_pos, pos, other_length, length,
     )
 
 

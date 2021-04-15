@@ -81,6 +81,11 @@ class RegisterExtensionListenersHandler(
             )
             if res.has_error:
                 display_messages('send event failed', *res.error_messages())
+        else:
+            display_messages(
+                f'Failed to register listeners for extension {ext_name}; was an '
+                f'API used for registeration instead of the implementation?'
+            )
 
         return False
 

@@ -24,6 +24,9 @@ depends:
   - name: petronia.core.api.datastore
     minimum: [1, 0, 0]
     below: [2, 0, 0]
+  - name: petronia.core.api.timer
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
   - name: petronia.core.protocol.logging
     minimum: [1, 0, 0]
     below: [2, 0, 0]

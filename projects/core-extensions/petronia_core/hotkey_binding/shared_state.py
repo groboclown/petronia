@@ -70,7 +70,9 @@ def get_bound_event(
     """Get the event bound to the hotkey sequence, if any."""
     res = _BOUND_KEYS.get(tuple(keys))
     if res:
+        # print(f'[HOTKEY] found mapped keys {keys} to {res[1].target_id}')
         return res[1]
+    # print(f'[HOTKEY] no mapping for {keys} ; bound keys are {_BOUND_KEYS.keys()}')
     return None
 
 

@@ -82,6 +82,8 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
                 # Not clearing out active modifiers, though.
                 # Should these be passed in?
 
+                print('[KEY] updated key bindings')
+
         return ret
 
     def on_session_changed_message(self, action: WPARAM, _session_id: LPARAM) -> None:
@@ -132,7 +134,7 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
 
             if state == hotkey_chain.IGNORED:
                 # Not in a hot key chain.
-                print(f'[KEY] ignoring {vk_code}')
+                # print(f'[KEY] ignoring {vk_code}')
                 return cancel_propagation_on_ignore, EMPTY_TUPLE
 
             if state == hotkey_chain.ACTION_CANCELLED:
@@ -145,12 +147,12 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
                     res = self.__active_keys
                 self.__active_keys.clear()
                 self.__super_in_active = False
-                print(f'[KEY] cancelled with {vk_code}; regenerating {res}')
+                # print(f'[KEY] cancelled with {vk_code}; regenerating {res}')
                 return cancel_propagation_on_ignore, res
 
             if state == hotkey_chain.ACTION_PENDING:
                 # This key is part of a chain.
-                print(f'[KEY] part of chain ({vk_code})')
+                # print(f'[KEY] part of chain ({vk_code})')
                 self.__super_in_active = self.__super_in_active or is_super
                 self.__active_keys.append((vk_code, is_key_up))
                 return True, EMPTY_TUPLE
@@ -171,9 +173,13 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
         sequence_name = tuple(next_parts)[0]
         sequence = self.__sequence_names.get(sequence_name)
         if sequence:
+            print(f'[KEY] sending chain {sequence_name} / {sequence}')
             user_messages.report_send_receive_problems(
                 handlers.hotkey.send_hotkey_pressed(self.__context, sequence)
             )
+        else:
+            print(f'[KEY] unknown chain {sequence_name} / {sequence}')
+            print(f'[KEY] known chain names: {self.__sequence_names.keys()}')
 
 
 def parse_bindings(

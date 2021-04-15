@@ -15,7 +15,7 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
     return join_none_results(
         send_register_listeners(
             context,
-            portal_event.EXTENSION_NAME,
+            portal_state.EXTENSION_NAME,
             (
                 (
                     portal_event.SetLayoutEvent.FULL_EVENT_NAME,

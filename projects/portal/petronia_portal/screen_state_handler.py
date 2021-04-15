@@ -1,43 +1,24 @@
 """Handles native virtual screen change updates."""
 
 from typing import Sequence, Iterable, Callable, Optional
-from petronia_common.util import StdRet, join_none_results
+from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_ext_lib.datastore import (
-    register_listening_to_datastore,
-    send_request_data_state,
-    CachedInstance,
-    on_init,
+    InitCachedInstance,
 )
-from petronia_ext_lib.runner import EventRegistryContext, EventObjectParser
-from . import shared_state, tree, native_window_handler, user_messages, config_matcher
+from petronia_ext_lib.runner import EventRegistryContext
+from . import shared_state, tree, native_window_handler, user_messages, config_matcher, data_store_reader
 from .state import screen as screen_state
 from .state import petronia_portal as portal_state
 
 
 def setup(context: EventRegistryContext) -> StdRet[None]:
     """Setup the handler."""
-    screen_data_store: CachedInstance[screen_state.VirtualScreenState] = CachedInstance(
-        EventObjectParser(screen_state.VirtualScreenState.parse_data),
+    data_store_reader.get_cache_store().add_instance_cache(InitCachedInstance(
+        screen_state.VirtualScreenState.UNIQUE_TARGET_FQN,
+        screen_state.VirtualScreenState.parse_data,
         create_on_virtual_screen_changed(context),
-    )
-
-    return join_none_results(
-        register_listening_to_datastore(
-            context,
-            portal_state.EXTENSION_NAME,
-            screen_state.VirtualScreenState.UNIQUE_TARGET_FQN,
-        ),
-        on_init.initialize_cached_state(
-            context, portal_state.EXTENSION_NAME + ':get-screen-state',
-            screen_state.VirtualScreenState.UNIQUE_TARGET_FQN, screen_data_store,
-        ),
-
-        # Ensure the data is sent
-        send_request_data_state(
-            context, portal_state.EXTENSION_NAME + ':registration',
-            screen_state.VirtualScreenState.UNIQUE_TARGET_FQN,
-        ),
-    )
+    ))
+    return RET_OK_NONE
 
 
 def create_on_virtual_screen_changed(

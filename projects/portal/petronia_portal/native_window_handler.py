@@ -3,12 +3,13 @@
 from typing import Sequence, List, Tuple, Union, Optional
 from petronia_common.util import StdRet, join_none_results, RET_OK_NONE
 from petronia_ext_lib.extension_loader import send_register_listeners
+from petronia_ext_lib.datastore import InitCachedInstance, CollectionCache
 from petronia_ext_lib.runner import (
-    EventRegistryContext, ContextEventObjectTarget, EventObjectParser,
+    EventRegistryContext, ContextEventObjectTarget,
 )
-from petronia_ext_lib.datastore import get_event_data_value, send_request_data_state
+from petronia_ext_lib.datastore import send_request_data_state
 from petronia_ext_lib.events import datastore as datastore_event
-from . import tree, shared_state, config_matcher
+from . import tree, shared_state, config_matcher, data_store_reader
 from .state import petronia_portal as portal_state
 from .events import window as window_event
 from .user_messages import report_send_receive_problems
@@ -19,6 +20,28 @@ BASE_WINDOW_TARGET_ID = f'{window_event.EXTENSION_NAME}:wid:'
 
 def setup(context: EventRegistryContext) -> StdRet[None]:
     """Setup the handler."""
+
+    def active_id_handler(data: Optional[window_event.ActiveWindowsState]) -> None:
+        on_active_window_ids_data_event_handler(context, data)
+
+    def window_state_handler(
+            target_id: str, data: Optional[window_event.WindowDetailsState],
+    ) -> StdRet[None]:
+        if data:
+            return on_window_state_change(context, target_id, data.state)
+        return RET_OK_NONE
+
+    data_store_reader.get_cache_store().add_instance_cache(InitCachedInstance(
+        window_event.ActiveWindowsState.UNIQUE_TARGET_FQN,
+        window_event.ActiveWindowsState.parse_data,
+        active_id_handler,
+    ))
+    data_store_reader.get_cache_store().add_collection_cache(CollectionCache(
+        BASE_WINDOW_TARGET_ID,
+        window_event.WindowDetailsState.parse_data,
+        window_state_handler,
+    ))
+
     return join_none_results(
         send_register_listeners(
             context,
@@ -86,19 +109,6 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
             window_event.WindowFocusedEvent.UNIQUE_TARGET_FQN,
             WindowFocusedHandler(context),
         ),
-
-        # Initial startup issue:
-        # Need to register for when the windows are created, in case the initial
-        # window creation event is missed.
-        context.register_target(
-            datastore_event.DataUpdateEvent.FULL_EVENT_NAME,
-            None, DataStoreUpdate(context),
-        ),
-        # Ensure the data is sent
-        send_request_data_state(
-            context, portal_state.EXTENSION_NAME + ':registration',
-            window_event.ActiveWindowsState.UNIQUE_TARGET_FQN,
-        ),
     )
 
 
@@ -152,49 +162,21 @@ class WindowFocusedHandler(ContextEventObjectTarget[window_event.WindowFocusedEv
         return False
 
 
-class DataStoreUpdate(ContextEventObjectTarget[datastore_event.DataUpdateEvent]):
-    """Handles datastore update events."""
-    ACTIVE_WINDOW_PARSER = EventObjectParser(window_event.ActiveWindowsState.parse_data)
-    WINDOW_STATE_PARSER = EventObjectParser(window_event.WindowDetailsState.parse_data)
-
-    def on_context_event(
-            self, context: EventRegistryContext, source: str, target: str,
-            event: datastore_event.DataUpdateEvent,
-    ) -> bool:
-        if target == window_event.ActiveWindowsState.UNIQUE_TARGET_FQN:
-            active_res = get_event_data_value(event, DataStoreUpdate.ACTIVE_WINDOW_PARSER)
-            if active_res.has_error:
-                # Logging?
-                print(f'[PORTAL] Format error for event data: {event.json}')
-                report_send_receive_problems(active_res)
-            else:
-                report_send_receive_problems(on_active_window_ids_changed(
-                    context, active_res.result,
-                ))
-        elif target.startswith(BASE_WINDOW_TARGET_ID):
-            window_res = get_event_data_value(event, DataStoreUpdate.WINDOW_STATE_PARSER)
-            if window_res.has_error:
-                # Logging?
-                print(f'[PORTAL] Format error for event {target}: {event.json}')
-                report_send_receive_problems(window_res)
-            else:
-                on_window_state_change(context, target, window_res.result.state)
-
-        # Though this one is stored in the state, the focus event is tracked instead.
-        # window_events.FocusedWindowsState.UNIQUE_TARGET_FQN
-        # For the initialization problem (at startup, which window has focus?), that's tracked by
-        # the window state collection above.
-
-        return False
+def on_active_window_ids_data_event_handler(
+        context: EventRegistryContext,
+        active_ids: Optional[window_event.ActiveWindowsState],
+) -> None:
+    """Data handler for window events, as called by the datastore callbacks."""
+    if active_ids:
+        res = on_active_window_ids_changed(context, active_ids)
+        report_send_receive_problems(res)
 
 
 def on_active_window_ids_changed(
         context: EventRegistryContext,
-        active_ids: Optional[window_event.ActiveWindowsState],
+        active_ids: window_event.ActiveWindowsState,
 ) -> StdRet[None]:
     """Handler for when the active window IDs data changes."""
-    if not active_ids:
-        return RET_OK_NONE
     print(f"[PORTAL] active window IDs updated")
     ret: List[StdRet[None]] = []
     # If an active ID is not in the list of known windows, send out a request to get the
@@ -299,7 +281,9 @@ def send_move_windows_event(
         )
         for known in changed_windows
     ]
-    print(f'[PORTAL] moving windows: {[w.export_data() for w in window_positions]}')
+    print(f'[PORTAL] moving windows:')
+    for known in changed_windows:
+        print(f'  - {repr(known)} - ({known.pos_x} {known.pos_y}) x ({known.pos_w}, {known.pos_h})')
     return context.send_event(
         portal_state.EXTENSION_NAME + ':move-windows',
         window_event.SetWindowPositionsEvent.UNIQUE_TARGET_FQN,
@@ -342,8 +326,10 @@ def get_window_setup(window: window_event.WindowState) -> Tuple[
                         portal_id = matching_portal.portal_id
                 fit = matcher.fit or fit
                 if matcher.managed is not None:
+                    # Managed state is a trait of the window, regardless of the
+                    # initialization state of the layout.
                     managed = matcher.managed
                 # Keep looking.  Should have a closest match, maybe?
-        if portal_id == -1:
+        if portal_id == -1 and root.is_initialized():
             portal_id = root.get_default_portal().portal_id
     return fit, portal_id, managed

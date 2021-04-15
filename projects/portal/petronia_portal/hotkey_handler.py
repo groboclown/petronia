@@ -45,11 +45,15 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
             hotkey_event.HotkeyFiredEvent.parse_data,
         ),
+        # context.register_target(
+        #     hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
+        #     None, GenericHotkeyHandler(context),
+        # ),
 
 
         # split-portal
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.SplitPortalEvent.FULL_EVENT_NAME,
@@ -80,14 +84,14 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.FocusPortalEvent.UNIQUE_TARGET_FQN,
+            portal_event.FocusPortalEvent.FULL_EVENT_NAME,
             SplitPortalHotkeyHandler(context),
         ),
 
 
         # join-portals
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.JoinPortalsEvent.FULL_EVENT_NAME,
@@ -105,13 +109,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.JoinPortalsEvent.UNIQUE_TARGET_FQN,
+            portal_event.JoinPortalsEvent.FULL_EVENT_NAME,
             JoinPortalsHotkeyHandler(context),
         ),
 
         # fit-window
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.FitWindowEvent.FULL_EVENT_NAME,
@@ -143,13 +147,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.FitWindowEvent.UNIQUE_TARGET_FQN,
+            portal_event.FitWindowEvent.FULL_EVENT_NAME,
             FitWindowHotkeyHandler(context),
         ),
 
         # fit-portal-windows
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.FitPortalWindowsEvent.FULL_EVENT_NAME,
@@ -181,13 +185,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.FitPortalWindowsEvent.UNIQUE_TARGET_FQN,
+            portal_event.FitPortalWindowsEvent.FULL_EVENT_NAME,
             FitPortalWindowsHotkeyHandler(context),
         ),
 
         # manage-window
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.ManageWindowEvent.FULL_EVENT_NAME,
@@ -198,13 +202,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.ManageWindowEvent.UNIQUE_TARGET_FQN,
+            portal_event.ManageWindowEvent.FULL_EVENT_NAME,
             ManageWindowHotkeyHandler(context),
         ),
 
         # unmanage-window
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.UnmanageWindowEvent.FULL_EVENT_NAME,
@@ -215,13 +219,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.UnmanageWindowEvent.UNIQUE_TARGET_FQN,
+            portal_event.UnmanageWindowEvent.FULL_EVENT_NAME,
             UnmanageWindowHotkeyHandler(context),
         ),
 
         # adjust-portal-size
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.AdjustPortalSizeEvent.FULL_EVENT_NAME,
@@ -242,13 +246,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.AdjustPortalSizeEvent.UNIQUE_TARGET_FQN,
+            portal_event.AdjustPortalSizeEvent.FULL_EVENT_NAME,
             AdjustPortalSizeHotkeyHandler(context),
         ),
 
         # mark-portal
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.MarkPortalEvent.FULL_EVENT_NAME,
@@ -264,13 +268,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.AdjustPortalSizeEvent.UNIQUE_TARGET_FQN,
+            portal_event.MarkPortalEvent.FULL_EVENT_NAME,
             MarkPortalHotkeyHandler(context),
         ),
 
         # move-window-to-portal
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.MoveWindowToPortalEvent.FULL_EVENT_NAME,
@@ -297,13 +301,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.AdjustPortalSizeEvent.UNIQUE_TARGET_FQN,
+            portal_event.MoveWindowToPortalEvent.FULL_EVENT_NAME,
             MoveWindowToPortalHotkeyHandler(context),
         ),
 
         # focus-portal
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.FocusPortalEvent.FULL_EVENT_NAME,
@@ -328,13 +332,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.FocusPortalEvent.UNIQUE_TARGET_FQN,
+            portal_event.FocusPortalEvent.FULL_EVENT_NAME,
             FocusPortalHotkeyHandler(context),
         ),
 
         # rotate-active-window
         context.send_event(
-            portal_event.EXTENSION_NAME + ':registration',
+            portal_state.EXTENSION_NAME + ':registration',
             hotkey_event.ExtensionEventRegisterEvent.UNIQUE_TARGET_FQN,
             hotkey_event.ExtensionEventRegisterEvent(
                 portal_event.RotateActiveWindowEvent.FULL_EVENT_NAME,
@@ -351,10 +355,21 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.FocusPortalEvent.UNIQUE_TARGET_FQN,
+            portal_event.RotateActiveWindowEvent.FULL_EVENT_NAME,
             RotateActiveWindowHotkeyHandler(context),
         ),
     )
+
+
+class GenericHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
+    """Generic hotkey handler."""
+
+    def on_context_event(
+            self, context: EventRegistryContext, source: str, target: str,
+            event: hotkey_event.HotkeyFiredEvent,
+    ) -> bool:
+        print(f"Received hotkey {target}")
+        return False
 
 
 class SplitPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
@@ -363,6 +378,7 @@ class SplitPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFired
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] split portal")
         report_send_receive_problems(portal_handler.handle_split_portal(
             context,
             get_bool(event, SPLIT_PORTAL__ADD_BEFORE, False),
@@ -378,6 +394,7 @@ class JoinPortalsHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFired
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] join portal")
         report_send_receive_problems(portal_handler.handle_join_portals(
             context,
             get_bool(event, JOIN_PORTALS__JOIN_BEFORE, False),
@@ -391,6 +408,7 @@ class FitWindowHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEv
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] fit window")
         report_send_receive_problems(portal_handler.handle_fit_window(
             context,
             justify_horizontal=get_str(event, FIT__JUSTIFY_HORIZONTAL, 'left'),
@@ -407,6 +425,7 @@ class FitPortalWindowsHotkeyHandler(ContextEventObjectTarget[hotkey_event.Hotkey
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] fit portal")
         report_send_receive_problems(portal_handler.handle_fit_portal_windows(
             context,
             justify_horizontal=get_str(event, FIT__JUSTIFY_HORIZONTAL, 'left'),
@@ -418,11 +437,12 @@ class FitPortalWindowsHotkeyHandler(ContextEventObjectTarget[hotkey_event.Hotkey
 
 
 class ManageWindowHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
-    """Fit portal hotkey"""
+    """Manage window hotkey"""
     def on_context_event(
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] manage window")
         report_send_receive_problems(portal_handler.handle_manage_window(
             context,
         ))
@@ -430,11 +450,12 @@ class ManageWindowHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFire
 
 
 class UnmanageWindowHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
-    """Fit portal hotkey"""
+    """Unmanage window hotkey"""
     def on_context_event(
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] unmanage window")
         report_send_receive_problems(portal_handler.handle_unmanage_window(
             context,
         ))
@@ -442,11 +463,12 @@ class UnmanageWindowHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFi
 
 
 class AdjustPortalSizeHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
-    """Fit portal hotkey"""
+    """Adjust portal size hotkey"""
     def on_context_event(
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] adjust size portal")
         report_send_receive_problems(portal_handler.handle_adjust_portal_size(
             context,
             get_str(event, ADJUST_PORTAL_SIZE__DIRECTION, 'horizontal'),
@@ -456,11 +478,12 @@ class AdjustPortalSizeHotkeyHandler(ContextEventObjectTarget[hotkey_event.Hotkey
 
 
 class MarkPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
-    """Fit portal hotkey"""
+    """Mark portal hotkey"""
     def on_context_event(
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] mark portal")
         report_send_receive_problems(portal_handler.handle_mark_portal(
             context,
             get_str(event, MARK_PORTAL__NAME, ''),
@@ -469,11 +492,12 @@ class MarkPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredE
 
 
 class MoveWindowToPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
-    """Fit portal hotkey"""
+    """Move window to another portal hotkey"""
     def on_context_event(
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] move window")
         report_send_receive_problems(portal_handler.handle_move_window_to_portal(
             context,
             get_str(event, MOVE_WINDOW__TARGET, ''),
@@ -483,11 +507,12 @@ class MoveWindowToPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.Hotk
 
 
 class FocusPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
-    """Fit portal hotkey"""
+    """Focus another portal hotkey"""
     def on_context_event(
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] focus portal")
         report_send_receive_problems(portal_handler.handle_focus_portal(
             context,
             get_str(event, FOCUS_PORTAL__TARGET, ''),
@@ -497,11 +522,12 @@ class FocusPortalHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFired
 
 
 class RotateActiveWindowHotkeyHandler(ContextEventObjectTarget[hotkey_event.HotkeyFiredEvent]):
-    """Fit portal hotkey"""
+    """Rotate window in active portal hotkey"""
     def on_context_event(
             self, context: EventRegistryContext,
             source: str, target: str, event: hotkey_event.HotkeyFiredEvent,
     ) -> bool:
+        print("[PORTAL HOTKEY] rotating window")
         report_send_receive_problems(portal_handler.handle_rotate_active_window(
             context,
             get_str(event, ROTATE_WINDOW__DIRECTION, ''),

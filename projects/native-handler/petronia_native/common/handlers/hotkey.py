@@ -143,6 +143,13 @@ class HotkeyBindingsTarget(runner.EventObjectTarget[hotkey.SetHotkeyBindingsEven
         # Note: sending messages has the errors reported simply.
         if bound_errors or master_error:
             # State did not change.
+            if master_error:
+                print(f'[Native ERROR] bad master binding setup: {master_error.export_data()}')
+            if bound_errors:
+                print(
+                    f'[Native ERROR] bad key binding setup: '
+                    f'{[b.export_data() for b in bound_errors]}'
+                )
             report_send_receive_problems(
                 internal__send_bind_hotkey_failed(
                     self._context, source, event.request,

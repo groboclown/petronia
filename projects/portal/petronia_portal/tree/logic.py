@@ -10,13 +10,18 @@ from ..events import window as window_event
 
 class OptimizedTileTree:
     """The whole tile tree, with optimizations for performance.  This is not thread safe."""
-    __slots__ = ('__root', '__portals_by_id', '__windows_by_id')
+    __slots__ = ('__root', '__portals_by_id', '__windows_by_id', '__screen_uninitialized')
 
     def __init__(self) -> None:
+        self.__screen_uninitialized = True
         initial_portal = OptimizedTileTree.create_default_portal()
         self.__root = OptimizedTileTree.create_default_root(initial_portal)
         self.__portals_by_id = {initial_portal.portal_id: initial_portal}
         self.__windows_by_id: Dict[str, model.KnownWindow] = {}
+
+    def is_initialized(self) -> bool:
+        """Is the tree initialized with a screen?"""
+        return not self.__screen_uninitialized
 
     def get_window_by_id(self, window_id: str) -> Optional[model.KnownWindow]:
         """Get the window with the given ID, if it exists."""
@@ -28,10 +33,14 @@ class OptimizedTileTree:
 
     def get_portal_by_id(self, portal_id: int) -> Optional[model.Portal]:
         """Get the portal with the given ID, if it exists."""
+        if self.__screen_uninitialized:
+            return None
         return self.__portals_by_id.get(portal_id)
 
     def get_portal_by_alias(self, portal_alias: str) -> Optional[model.Portal]:
         """Get the portal with the given alias, if it exists."""
+        if self.__screen_uninitialized:
+            return None
         for portal in self.__portals_by_id.values():
             if portal.has_portal_alias(portal_alias):
                 return portal
@@ -151,6 +160,8 @@ class OptimizedTileTree:
         if len(screens) <= 0:
             # Do not change.  This is a terrible scenario, and probably means a bug.
             return []
+        self.__screen_uninitialized = False
+        print("[PORTAL] screen layout changing")
         self.__portals_by_id.clear()
         blocks: List[model.ScreenBlockSplit] = []
 
@@ -210,6 +221,23 @@ class OptimizedTileTree:
 
         # Ensure the developer logic is valid.
         assert len(self.__portals_by_id) > 0  # nosec
+
+        print('[PORTAL] Updated layout tree:')
+        stack: List[Tuple[str, model.Tile]] = [(' *', self.__root)]
+        while stack:
+            next_indent, next_tile = stack.pop(0)
+            size_text = (
+                f'({next_tile.pos_x}, {next_tile.pos_y}) x '
+                f'({next_tile.width}, {next_tile.height})'
+            )
+            if isinstance(next_tile, model.TileIterator):
+                print(f'{next_indent} > {repr(next_tile)} {size_text}')
+                for child in next_tile.get_children():
+                    stack.append((next_indent + '*', child))
+            else:
+                print(f'{next_indent} = {size_text}')
+                for wnd in next_tile.get_contained_windows():
+                    print(f'{next_indent} . {repr(wnd)}')
 
         return changed_windows
 
@@ -363,18 +391,3 @@ class OptimizedTileTree:
     ) -> Sequence[model.KnownWindow]:
         """Change the fit attribute of the window ID."""
         raise NotImplementedError
-
-
-class BlockHandler:
-    """Handles generating the portals and splits within a screen block."""
-    __slots__ = ('block_config',)
-
-    def __init__(self, block_config: portal_state.LayoutSplit) -> None:
-        self.block_config = block_config
-
-    def callback(
-            self, block: model.ScreenBlockSplit, remaining_windows: Dict[str, model.KnownWindow],
-    ) -> Sequence[model.KnownWindow]:
-        """Screen change callback."""
-        print(f"[PORTAL NOT IMPLEMENTED] generate portals and splits in a block.")
-        return []

@@ -83,6 +83,7 @@ class HotkeyPressedTarget(EventObjectTarget[native_hotkey.HotkeyPressedEvent]):
     def on_event(
             self, _source: str, _target: str, event: native_hotkey.HotkeyPressedEvent,
     ) -> bool:
+        print(f'[HOTKEY] pressed {event.hotkey}')
         self._callback(event.hotkey.keys)
         return False
 
