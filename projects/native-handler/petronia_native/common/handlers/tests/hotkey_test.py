@@ -33,20 +33,26 @@ class HotkeyTest(unittest.TestCase):
     def test_register_hotkey_listeners__bad_parser(self) -> None:
         """Test register_hotkey_listeners, with a failed parser registration."""
         context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
+        context.register_target.return_value = RET_OK_NONE
         handler = unittest.mock.Mock(hotkey.HotkeyHandler())
         bad_res: StdRet[None] = StdRet.pass_errmsg('c', i18n('m'))
         context.register_event_parser.return_value = bad_res
-        res = hotkey.register_hotkey_listeners(context, handler)
-        self.assertIs(bad_res, res)
+        res = hotkey.register_hotkey_listeners(context, 'x', handler)
+        self.assertEqual(
+            ['m'],
+            [m.debug() for m in res.error_messages()],
+        )
         context.register_event_parser.assert_called_once()
 
     def test_register_hotkey_listeners__ok(self) -> None:
         """Test register_hotkey_listeners, with a failed parser registration."""
         context = unittest.mock.Mock(EventRegistryContext())
+        context.send_event.return_value = RET_OK_NONE
         handler = unittest.mock.Mock(hotkey.HotkeyHandler())
         context.register_event_parser.return_value = RET_OK_NONE
         context.register_target.return_value = RET_OK_NONE
-        res = hotkey.register_hotkey_listeners(context, handler)
+        res = hotkey.register_hotkey_listeners(context, 'x', handler)
         self.assertIs(RET_OK_NONE, res)
         context.register_event_parser.assert_called_once()
         context.register_target.assert_called_once()

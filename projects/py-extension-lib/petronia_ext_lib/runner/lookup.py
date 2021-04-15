@@ -69,6 +69,9 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
     def register_event(self, event_id: str, parser: EventObjectParser[T]) -> StdRet[None]:
         with self._lock:
             if event_id in self._object_targets:
+                if parser == self._object_targets[event_id].parser:
+                    # Allow duplicate registration
+                    return RET_OK_NONE
                 return StdRet.pass_errmsg(
                     TRANSLATION_CATALOG,
                     _('parser for event {event_id} already registered'),

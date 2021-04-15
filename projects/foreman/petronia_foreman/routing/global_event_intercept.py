@@ -32,9 +32,10 @@ class GlobalEventIntercept(EventForwarderTarget, ExtensionLaunchWatcher):
         """Set the event router."""
         self.__router = router
 
-    def extension_launching(self, source_id: str, handler_id: str) -> None:
+    def extension_launching(self, source_id: Optional[str], handler_id: str) -> None:
         """Mark an extension as launching"""
-        self.__pending_extensions[handler_id] = source_id
+        if source_id:
+            self.__pending_extensions[handler_id] = source_id
 
     def can_consume(self, event_id: str, source_id: str, target_id: str) -> bool:
         return self.__router is not None and event_id in ALLOWED_EVENT_IDS

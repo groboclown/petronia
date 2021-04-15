@@ -9,6 +9,7 @@ from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget, Dec
 from petronia_ext_lib.extension_loader import send_register_listeners
 from .events.ext import hotkey as native_hotkey
 from .events.impl import hotkey_binding as ext_hotkey
+from .state import hotkey_binding as hotkey_state
 from ..user_messages import TRANSLATION_CATALOG
 
 # Rather than reimport...
@@ -40,7 +41,7 @@ def register_native_handlers(
         ),
         send_register_listeners(
             context,
-            ext_hotkey.EXTENSION_NAME,
+            hotkey_state.EXTENSION_NAME,
             (
                 (
                     native_hotkey.HotkeyPressedEvent.FULL_EVENT_NAME,

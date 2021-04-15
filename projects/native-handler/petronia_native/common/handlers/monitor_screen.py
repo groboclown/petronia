@@ -3,11 +3,11 @@
 from typing import Sequence, List, Set, Generic, TypeVar, Optional, cast
 import threading
 from petronia_common.util import (
-    StdRet, PetroniaReturnError, RET_OK_TRUE, RET_OK_FALSE,
-    not_none, join_results,
+    StdRet, PetroniaReturnError, RET_OK_TRUE, RET_OK_FALSE, RET_OK_NONE,
+    not_none, join_results, join_none_results,
 )
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
-from petronia_ext_lib import datastore
+from petronia_ext_lib import datastore, extension_loader
 from petronia_ext_lib.standard.error import create_error_data, INVALID_USER_ACTION_ERROR_CATEGORY
 from .. import defs
 from .. import virtual_screen
@@ -224,6 +224,15 @@ class AbstractMonitorHandler(Generic[NativeMonitorType]):
         """Finds the correct virtual screen for the monitor setup."""
         raise NotImplementedError
 
+    def send_screen_setup(self) -> StdRet[None]:
+        """Send the data store events to update the monitor and screen states."""
+        if not self._context:
+            return RET_OK_NONE
+        return join_none_results(
+            store_monitor_state(self._context, self._mapper.monitors),
+            store_virtual_screen_state(self._context, self._mapper.screen),
+        )
+
     def detected_monitor_changed(self, active: Sequence[NativeMonitorType]) -> StdRet[bool]:
         """Called by the native implementation when a change to the monitors happened.
         This triggers many other actions to happen.  Returns True if the monitors are
@@ -257,23 +266,32 @@ class AbstractMonitorHandler(Generic[NativeMonitorType]):
 
 def register_set_screen_configuration_listener(
         context: EventRegistryContext,
+        extension_name: str,
         handler: EventObjectTarget[screen.SetScreenConfigurationRequestEvent],
 ) -> StdRet[None]:
     """Register the screen event listeners.  If the implementation does not directly send
     monitor change requests to the handler (by calling `detected_monitor_changed`), then
     a separate monitor datastore change event listener must be registered, by calling
     `register_monitor_state_change_listener`."""
-    res = context.register_event_parser(
-        screen.SetScreenConfigurationRequestEvent.FULL_EVENT_NAME,
-        screen.SetScreenConfigurationRequestEvent.parse_data,
-    )
-    if res.has_error:
-        return res
-
-    return context.register_target(
-        screen.SetScreenConfigurationRequestEvent.FULL_EVENT_NAME,
-        screen.SetScreenConfigurationRequestEvent.UNIQUE_TARGET_FQN,
-        handler,
+    return join_none_results(
+        extension_loader.send_register_listeners(
+            context, extension_name,
+            (
+                (
+                    screen.SetScreenConfigurationRequestEvent.FULL_EVENT_NAME,
+                    screen.SetScreenConfigurationRequestEvent.UNIQUE_TARGET_FQN,
+                ),
+            ),
+        ),
+        context.register_event_parser(
+            screen.SetScreenConfigurationRequestEvent.FULL_EVENT_NAME,
+            screen.SetScreenConfigurationRequestEvent.parse_data,
+        ),
+        context.register_target(
+            screen.SetScreenConfigurationRequestEvent.FULL_EVENT_NAME,
+            screen.SetScreenConfigurationRequestEvent.UNIQUE_TARGET_FQN,
+            handler,
+        ),
     )
 
 

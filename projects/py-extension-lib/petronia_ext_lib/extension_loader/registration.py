@@ -16,6 +16,7 @@ def send_register_listeners(
 
     The listeners are pairs of (event_id, target_id).
     """
+    print(f'=== [{listening_extension_name} - registering for {listeners}')
     return context.send_event(
         listening_extension_name + ':registration',
         extension_loader.RegisterExtensionListenersEvent.UNIQUE_TARGET_FQN,

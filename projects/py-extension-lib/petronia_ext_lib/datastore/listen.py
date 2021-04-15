@@ -117,13 +117,9 @@ def register_datastore_target_listener(
     and updates the cache accordingly.
 
     This requires the context to be able to listen to events sent to an event id + target."""
-    # Ignore errors from this registration step, because we don't care if it's already
-    # been registered.
-    res = register_datastore_update_parsers(context)
-    # Fake out the object to make it think it was checked.  This is bad form.
-    res.error_messages()
 
     return join_none_results(
+        register_datastore_update_parsers(context),
         context.register_target(
             datastore.DataRemovedEvent.FULL_EVENT_NAME,
             source_id, StoreDeleteEventListener(cache),

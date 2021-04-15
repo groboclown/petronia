@@ -63,6 +63,7 @@ class KnownWindow:
         """Update the current position, and return True if changed."""
         if not self.managed:
             # Petronia does not manage this window within a portal.
+            print(f'Skipping update window {self._target_id} position; it\'s not managed')
             return False
 
         fit = self._fit or default_fit
@@ -82,11 +83,13 @@ class KnownWindow:
             new_width == self.pos_w and
             new_height == self.pos_h
         ):
+            print(f'Skipping update window {self._target_id} position; it hasn\'t changed')
             return False
         self.pos_x = new_x
         self.pos_y = new_y
         self.pos_w = new_width
         self.pos_h = new_height
+        print(f'Update window {self._target_id} position')
         return True
 
 

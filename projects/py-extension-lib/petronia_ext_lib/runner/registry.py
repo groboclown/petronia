@@ -33,6 +33,14 @@ class EventObjectParser(Generic[T]):
         """Parse the event object."""
         return self._parser(event)
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, EventObjectParser):
+            return self._parser == other._parser
+        return False
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+
 
 class EventObjectTarget(Generic[T]):
     """Handles the event object."""

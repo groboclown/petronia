@@ -18,7 +18,7 @@ from petronia_common.extension.config import (
     ApiExtensionMetadata, ImplExtensionMetadata, ProtocolExtensionMetadata,
 )
 from petronia_common.extension.config.extension_schema import ExtensionDependency
-from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, not_none, EMPTY_TUPLE
+from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, not_none
 from petronia_common.util import i18n as _
 from .search import find_best_extension, find_dependencies
 from .defs import ExtensionInfo, TRANSLATION_CATALOG
@@ -78,7 +78,7 @@ class ExtensionDependencyOrder:
 
         # Early out check.
         if self.is_root():
-            return EMPTY_TUPLE
+            return set()
         remaining = {
             ext.name
             for ext in self.depends_on
@@ -89,7 +89,7 @@ class ExtensionDependencyOrder:
                 remaining.remove(ext.name)
                 # Early out check.
                 if not remaining:
-                    return EMPTY_TUPLE
+                    return set()
 
         # At this point, because of the early-out check + initial root check,
         # this can only mean there are more remaining items.

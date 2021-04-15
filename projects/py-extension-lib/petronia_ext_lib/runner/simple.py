@@ -59,6 +59,9 @@ class SimpleEventRegistryContext(EventRegistryContext):
 
     def register_event(self, event_id: str, parser: EventObjectParser) -> StdRet[None]:
         if event_id in self.__handlers:
+            if parser == self.__handlers[event_id]:
+                # Allow duplicate registration
+                return RET_OK_NONE
             return StdRet.pass_errmsg(
                 TRANSLATION_CATALOG,
                 _('parser for event {event_id} already registered'),

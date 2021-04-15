@@ -1,6 +1,8 @@
 """Shared state for the portals."""
 
-from typing import List, Optional
+from typing import List, Optional, Type
+from types import TracebackType
+import threading
 from . import tree, state
 
 
@@ -12,9 +14,29 @@ def clear_data(config: Optional[state.petronia_portal.ConfigurationState] = None
     _CONFIG[0] = config or state.petronia_portal.ConfigurationState([], [])
 
 
-def layout_root() -> tree.OptimizedTileTree:
-    """Get the root of the active layout."""
-    return _ROOT_LAYOUT[0]
+class LayoutWithBlock:
+    """With response for the layout."""
+
+    def __enter__(self) -> tree.OptimizedTileTree:
+        _LAYOUT_LOCK.acquire()
+        return _ROOT_LAYOUT[0]
+
+    def __exit__(
+            self,
+            exc_type: Type[BaseException],
+            exc_val: BaseException,
+            exc_tb: TracebackType,
+    ) -> None:
+        _LAYOUT_LOCK.release()
+
+
+def layout_root() -> LayoutWithBlock:
+    """Enter a block with synchronized access to the root."""
+    return LayoutWithBlock()
+
+# def layout_root() -> tree.OptimizedTileTree:
+#     """Get the root of the active layout."""
+#     return _ROOT_LAYOUT[0]
 
 
 def configuration() -> state.petronia_portal.ConfigurationState:
@@ -46,3 +68,4 @@ _FOCUSED_WINDOW_ID = ['']
 _ACTIVE_PORTAL_ID = [-1]
 _ROOT_LAYOUT: List[tree.OptimizedTileTree] = [tree.OptimizedTileTree()]
 _CONFIG = [state.petronia_portal.ConfigurationState([], [])]
+_LAYOUT_LOCK = threading.RLock()

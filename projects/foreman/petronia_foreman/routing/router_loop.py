@@ -25,7 +25,7 @@ class ExtensionLaunchWatcher:
     __slots__ = ()
 
     def extension_launching(
-            self, source_id: str, handler_id: str,
+            self, source_id: Optional[str], handler_id: str,
     ) -> None:
         """Called when an extension is just about to be launched."""
         raise NotImplementedError

@@ -83,15 +83,16 @@ class EventChannel(EventForwarderTarget):
         self.__on_error = on_error
         self.__internal_handlers: List[InternalEventHandler] = []
         self.__alive = True
+        trace_channel(name, 'channel created')
 
     def __repr__(self) -> str:
         return f"EventChannel({self.__name})"
 
     def process_stream(self) -> None:
         """Run the stream processing."""
-        # print(f"Channel {self.__name} processing source stream")
+        trace_channel(self.name, 'Processing source stream')
         self.__forwarder.handle_source()
-        # print(f"Channel {self.__name} finished processing source stream")
+        trace_channel(self.name, 'Finished processing source stream')
 
     @property
     def name(self) -> str:
@@ -112,7 +113,7 @@ class EventChannel(EventForwarderTarget):
         allowing new handlers, producing events, and consuming events.
         This function may be safely called multiple times."""
         self.__alive = False
-        # print(f"closing access to channel {self.__name}")
+        trace_channel(self.name, 'Closing access to channel')
 
     def contains_handler_id(self, handler_id: str) -> bool:
         """Does this channel contain this handler?"""
@@ -140,14 +141,24 @@ class EventChannel(EventForwarderTarget):
             f'added handler {handler_id}: can produce {produces}; can consume {consumes}; '
             f'allows producing prefixes {source_id_prefixes}',
         )
-        return self.__handlers.add_handler(handler_id, produces, consumes, source_id_prefixes)
+        res = self.__handlers.add_handler(handler_id, produces, consumes, source_id_prefixes)
+        trace_channel(
+            self.name,
+            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+        )
+        return res
 
     def remove_handler(self, handler_id: str) -> StdRet[None]:
         """Attempts to remove the handler from the internal
         store.  If the handler is not registered, an error is returned.
         This can be safely called after the channel is closed."""
         trace_channel(self.name, f'removing handler {handler_id}')
-        return self.__handlers.remove_handler(handler_id)
+        res = self.__handlers.remove_handler(handler_id)
+        trace_channel(
+            self.name,
+            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+        )
+        return res
 
     def add_handler_listener(
             self,
@@ -161,7 +172,12 @@ class EventChannel(EventForwarderTarget):
             self.name,
             f'{handler_id}: added listener for event [{event_id}] produced by <{target_id}>',
         )
-        return self.__handlers.add_listener(handler_id, event_id, target_id)
+        res = self.__handlers.add_listener(handler_id, event_id, target_id)
+        trace_channel(
+            self.name,
+            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+        )
+        return res
 
     def remove_handler_listener(
             self,
@@ -175,7 +191,12 @@ class EventChannel(EventForwarderTarget):
             self.name,
             f'{handler_id}: removed listener for event [{event_id}] produced by <{target_id}>',
         )
-        return self.__handlers.remove_listener(handler_id, event_id, target_id)
+        res = self.__handlers.remove_listener(handler_id, event_id, target_id)
+        trace_channel(
+            self.name,
+            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+        )
+        return res
 
     def add_internal_event_handler(self, handler: InternalEventHandler) -> StdRet[None]:
         """Add an internal event handler.  This can intercept events intended only for
@@ -243,8 +264,9 @@ class EventChannel(EventForwarderTarget):
         """Can this channel consume this event?  That is, can an
         event ID be written to this channel?"""
         if not self.__alive:
-            # print(f"channel {self.__name} can't consume; not alive")
+            trace_channel(self.name, 'Cannot consume events; not alive')
             return False
+        # trace_channel(self.name, f'pre-consume state: {self.__handlers.consume_info()}')
         ret = self.__handlers.can_consume(event_id, target_id)
         if not ret:
             trace_event_choice(

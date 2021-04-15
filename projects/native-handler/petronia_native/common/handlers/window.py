@@ -3,7 +3,7 @@
 from typing import Iterable, Sequence, List, Mapping, Dict, Optional, Generic, TypeVar, Hashable
 from petronia_common.util import StdRet, join_none_results, RET_OK_NONE, T
 from petronia_common.util import i18n as _
-from petronia_ext_lib import datastore, logging
+from petronia_ext_lib import datastore, logging, extension_loader
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
 from petronia_native.common import defs, user_messages
 from ..events.impl import window as window_events
@@ -137,10 +137,10 @@ def send_window_focused_event(
     res: List[StdRet[None]] = []
     if old_focused_window_id and old_focused_state:
         old_focused_state.focus = -1
-        res.append(datastore.send_store_data(context, old_focused_window_id, old_focused_state))
+        res.append(store_window_details(context, old_focused_window_id, old_focused_state))
     if new_focused_window_id and new_focused_state:
         new_focused_state.focus = focus_group
-        res.append(datastore.send_store_data(context, new_focused_window_id, new_focused_state))
+        res.append(store_window_details(context, new_focused_window_id, new_focused_state))
         res.append(context.send_event(
             new_focused_window_id,
             window_events.WindowFocusedEvent.UNIQUE_TARGET_FQN,
@@ -247,16 +247,55 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
         self.__global_meta_desc = dict(global_meta_desc)
         self.__window_meta_desc = dict(window_meta_desc)
 
-    def register_listeners(self, context: EventRegistryContext) -> StdRet[None]:
+    def register_listeners(
+            self,
+            context: EventRegistryContext,
+            extension_name: str,
+    ) -> StdRet[None]:
         """Register this handler to listen for events with the context.  The global settings
         will need to be updated outside of this call."""
         self.__context = context
         return join_none_results(
             context.register_eof_target(self.on_context_shutdown),
 
+            extension_loader.send_register_listeners(
+                context,
+                extension_name,
+                (
+                    (
+                        window_events.SetWindowPositionsEvent.FULL_EVENT_NAME,
+                        window_events.SetWindowPositionsEvent.UNIQUE_TARGET_FQN,
+                    ),
+                    (
+                        window_events.CloseWindowRequestEvent.FULL_EVENT_NAME,
+                        None,
+                    ),
+                    (
+                        window_events.MinimizeWindowRequestEvent.FULL_EVENT_NAME,
+                        None,
+                    ),
+                    (
+                        window_events.MaximizeWindowRequestEvent.FULL_EVENT_NAME,
+                        None,
+                    ),
+                    (
+                        window_events.RestoreWindowRequestEvent.FULL_EVENT_NAME,
+                        None,
+                    ),
+                    (
+                        window_events.SetWindowSettingsEvent.FULL_EVENT_NAME,
+                        None,
+                    ),
+                    (
+                        window_events.SetGlobalSettingsEvent.FULL_EVENT_NAME,
+                        window_events.SetGlobalSettingsEvent.UNIQUE_TARGET_FQN,
+                    ),
+                ),
+            ),
+
             context.register_event_parser(
                 window_events.SetWindowPositionsEvent.FULL_EVENT_NAME,
-                window_events.SetWindowSettingsEvent.parse_data,
+                window_events.SetWindowPositionsEvent.parse_data,
             ),
             context.register_target(
                 window_events.SetWindowPositionsEvent.FULL_EVENT_NAME,

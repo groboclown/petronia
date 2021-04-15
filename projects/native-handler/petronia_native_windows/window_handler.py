@@ -316,7 +316,8 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         wnd = self._mk_window_state(hwnd)
         # This is inside the message loop, so we can investigate the data.
         user_messages.report_send_receive_problems(update_window_state(hwnd, wnd.state))
-        self.__executor.submit(self._in_exec_create_window_state, wnd)
+        if is_manageable(wnd):
+            self.__executor.submit(self._in_exec_create_window_state, wnd)
 
         # If we want to keep track of the window position and other aspects to the changes
         # in this newly created window, then this should call SetWinEventHook to attach
@@ -498,6 +499,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             assert isinstance(wnd, WindowsNativeWindow)  # nosec
             assert isinstance(new_location, window_events.ScreenDimension)  # nosec
 
+            print(f'[Native] Handling request to move/resize window {wnd.window_id}')
             success = WINDOWS_FUNCTIONS.window.move_resize(  # pylint:disable=not-callable
                 wnd.native_id,
                 new_location.x, new_location.y, new_location.width, new_location.height,
@@ -701,11 +703,15 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
                 wnd = active_windows.get(handle)
                 if not wnd:
                     wnd = self._mk_window_state(handle)
-                    active_windows[handle] = wnd
                 if focused_hwnd == handle:
                     wnd.state.focus = 0
                     wnd.state.active = True
                 res.append(update_window_state(wnd.native_id, wnd.state))
+                if is_manageable(wnd):
+                    active_windows[handle] = wnd
+                elif handle in active_windows:
+                    del active_windows[handle]
+
         return join_results(
             lambda x: list(active_windows.values()),
             *res
@@ -826,3 +832,35 @@ def update_window_state(  # pylint:disable=too-many-branches
     ]
 
     return join_none_results(*res)
+
+
+def is_manageable(wnd: WindowsNativeWindow) -> bool:
+    """Is this window something that can be managed by Petronia?"""
+    # Old code:
+    #   - skip if the username/domain is not the current user's username/domain, and if
+    #     the class name is not PuTTY.
+    #   - skip if the class name is the same as the class name prefix for windows that this
+    #     plugin creates, or if the class name is None.
+    #   - skip if the window is not visible.
+
+    class_name: Optional[str] = None
+    exec_name: Optional[str] = None
+    for meta_value in wnd.state.meta:
+        if meta_value.key == WINDOW_META__WINDOW_CLASS_NAME:
+            class_name = meta_value.value
+        if meta_value.key == WINDOW_META__PROGRAM:
+            exec_name = meta_value.value
+    if not class_name:
+        # Don't manage these.
+        # print(f'[Native] skip manage {wnd.native_id} / {exec_name} - no class name')
+        return False
+
+    if WINDOWS_FUNCTIONS.window.is_visible:
+        if not WINDOWS_FUNCTIONS.window.is_visible(wnd.native_id):
+            # Don't manage this.
+            # print(f'[Native] skip manage {wnd.native_id} / {exec_name} - not visible')
+            return False
+
+    # It can be managed
+    print(f'[Native] manage {wnd.window_id} / {exec_name}')
+    return True

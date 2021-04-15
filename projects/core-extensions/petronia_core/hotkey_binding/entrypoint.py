@@ -1,10 +1,10 @@
 """Hotkey Binding Entrypoint."""
 
-from typing import Sequence, Dict, Any
+from typing import Sequence, Dict, Callable, Any
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, join_errors, join_none_results, RET_OK_NONE
 from petronia_ext_lib.events import datastore
-from petronia_ext_lib.datastore import register_datastore_update_parsers
+from petronia_ext_lib.datastore import register_datastore_update_parsers, on_init
 from petronia_ext_lib.extension_loader import send_register_listeners
 from petronia_ext_lib.logging import send_user_error
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
@@ -74,25 +74,28 @@ def push_config_to_native(
                 native_hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
             ),
         )),
-        context.register_target(
-            datastore.DataUpdateEvent.FULL_EVENT_NAME,
-            native_hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
-            PostBindingsWhenLive(context),
+        # on_init.wait_for_state(
+        #     context,
+        #     hotkey_state.EXTENSION_NAME + ":initialize",
+        #     native_hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
+        #     native_hotkey.HotkeyBindingsState.parse_data,
+        #     create_bindings_initialize_callback(context),
+        # ),
+        native_handler.send_set_hotkey_bindings(
+            context,
+            shared_state.get_master_sequence().sequence_type,
+            shared_state.get_master_sequence().sequence,
+            shared_state.list_bound_keys(),
+            lambda x, y: None,
         ),
     )
 
 
-class PostBindingsWhenLive(EventObjectTarget[datastore.DataUpdateEvent]):
-    """Post the updated status when the native hotkey is live."""
-
-    __slots__ = ('_context',)
-
-    def __init__(self, context: EventRegistryContext) -> None:
-        self._context = context
-
-    def on_event(self, source: str, target: str, event: datastore.DataUpdateEvent) -> bool:
-        # This event means the native hotkey listener is live, so it is able to receive
-        # the configuration state.
+def create_bindings_initialize_callback(
+        context: EventRegistryContext,
+) -> Callable[[StdRet[native_hotkey.HotkeyBindingsState]], None]:
+    """Create the callback when the hotkey binding is active."""
+    def callback(value: StdRet[native_hotkey.HotkeyBindingsState]) -> None:
         print("*************************")
         print("*************************")
         print("*************************")
@@ -104,12 +107,10 @@ class PostBindingsWhenLive(EventObjectTarget[datastore.DataUpdateEvent]):
         report_send_receive_problems(
             'hotkey-binding',
             native_handler.send_set_hotkey_bindings(
-                self._context,
+                context,
                 master_sequence.sequence_type, master_sequence.sequence,
                 shared_state.list_bound_keys(),
                 lambda x, y: None,
             )
         )
-
-        # This only needs to listen once.  Quit as a listener as soon as it finishes.
-        return True
+    return callback

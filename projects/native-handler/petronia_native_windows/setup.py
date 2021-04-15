@@ -7,7 +7,7 @@ from petronia_common.util import i18n as _
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
 from petronia_native.common import handlers, user_messages
 from petronia_native.common.events.impl import screen as screen_event
-from .datastore.petronia_native_windows import ConfigurationState
+from .datastore.petronia_native_windows import ConfigurationState, EXTENSION_NAME
 from . import message_loop
 from . import configuration
 from . import key_handler
@@ -68,20 +68,24 @@ def setup_context(
     config_handler = configuration.ConfigurationStore(config)
 
     hotkey_handler = key_handler.WindowsKeyHandler(context, config_handler)
-    res = handlers.hotkey.register_hotkey_listeners(context, hotkey_handler)
+    res = handlers.hotkey.register_hotkey_listeners(context, EXTENSION_NAME, hotkey_handler)
     if res.has_error:
         return res.forward()
 
     res = handlers.monitor_screen.register_set_screen_configuration_listener(
-        context, ScreenConfigChangeEventListener(context),
+        context, EXTENSION_NAME, ScreenConfigChangeEventListener(context),
     )
     if res.has_error:
         return res.forward()
 
     screen_handler = screen.WindowsScreen(context, config_handler)
+    # Trigger screen update
+    res = screen_handler.send_screen_setup()
+    if res.has_error:
+        return res.forward()
 
     win_handler = window_handler.WindowsNativeHandler()
-    win_handler.register_listeners(context)
+    win_handler.register_listeners(context, EXTENSION_NAME)
 
     loop = message_loop.WindowsMessageLoop()
     hotkey_handler.register_with_loop(loop)

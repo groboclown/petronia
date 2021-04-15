@@ -13,7 +13,7 @@ from .configuration import (
 )
 from .routing import ForemanRouter
 from .os_hooks import OsHooks
-from .user_message import local_display, display_error, CATALOG
+from .user_message import local_display, display_error, set_logger_fd, CATALOG
 
 
 class ForemanRunner:
@@ -61,12 +61,14 @@ class ForemanRunner:
                 self.__root_logger_fd = os.open(
                     log_file, flags=os.O_WRONLY | os.O_APPEND | os.O_CREAT, mode=0o644,
                 )
+                set_logger_fd(self.__root_logger_fd)
             except OSError as err:
                 _display_error(
                     err, self.debug,
                     _('Failed to open root log file {filename}'),
                     filename=log_file,
                 )
+                set_logger_fd(0)
                 return 1
         if self._config.get_boot_config().is_signals_enabled():
             self.__os_hooks.register_root_fd(self.__root_logger_fd)
@@ -151,6 +153,7 @@ class ForemanRunner:
                     filename=self._config.get_boot_config().root_log_file,
                 )
             self.__root_logger_fd = None
+            set_logger_fd(0)
 
     def _get_launcher_categories(self) -> StdRet[List[RuntimeConfig]]:
         ret: List[RuntimeConfig] = []

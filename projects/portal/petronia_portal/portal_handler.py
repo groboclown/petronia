@@ -232,10 +232,11 @@ def handle_split_portal(
 ) -> StdRet[None]:
     """Handle a request to split the active portal."""
     active_portal_id = shared_state.get_active_portal_id()
-    res = shared_state.layout_root().split_portal(
-        active_portal_id,
-        add_before, new_direction,
-    )
+    with shared_state.layout_root() as root:
+        res = root.split_portal(
+            active_portal_id,
+            add_before, new_direction,
+        )
     # TODO need to also capture the new active portal ID, so that focus_new can be
     #   correctly used.
     return native_window_handler.send_move_windows_event(context, res)
@@ -254,9 +255,10 @@ class JoinPortalsEventHandler(ContextEventObjectTarget[portal_event.JoinPortalsE
 def handle_join_portals(context: EventRegistryContext, join_before: bool) -> StdRet[None]:
     """Handle a request to join the active portal with an adjacent one."""
     active_portal_id = shared_state.get_active_portal_id()
-    res = shared_state.layout_root().join_portals(
-        active_portal_id, join_before,
-    )
+    with shared_state.layout_root() as root:
+        res = root.join_portals(
+            active_portal_id, join_before,
+        )
     return native_window_handler.send_move_windows_event(context, res)
 
 
@@ -284,15 +286,16 @@ def handle_fit_window(
     """Handle the fit window request."""
     window_id = shared_state.get_focused_window_id()
     if window_id:
-        res = shared_state.layout_root().refit_window_in_portal(
-            window_id,
-            portal_state.WindowPortalFit(
-                justify_horizontal=justify_horizontal,
-                justify_vertical=justify_vertical,
-                fit_horizontal=fit_horizontal,
-                fit_vertical=fit_vertical,
-            ),
-        )
+        with shared_state.layout_root() as root:
+            res = root.refit_window_in_portal(
+                window_id,
+                portal_state.WindowPortalFit(
+                    justify_horizontal=justify_horizontal,
+                    justify_vertical=justify_vertical,
+                    fit_horizontal=fit_horizontal,
+                    fit_vertical=fit_vertical,
+                ),
+            )
         return native_window_handler.send_move_windows_event(context, res)
     return RET_OK_NONE
 
@@ -318,22 +321,23 @@ def handle_fit_portal_windows(
 ) -> StdRet[None]:
     """Handle the fit window request."""
     active_portal_id = shared_state.get_active_portal_id()
-    active_portal = shared_state.layout_root().get_portal_by_id(active_portal_id)
-    if active_portal:
-        resized_windows: List[tree.KnownWindow] = []
-        for wid in active_portal.get_contained_windows():
-            resized_windows.extend(
-                shared_state.layout_root().refit_window_in_portal(
-                    wid,
-                    portal_state.WindowPortalFit(
-                        justify_horizontal=justify_horizontal,
-                        justify_vertical=justify_vertical,
-                        fit_horizontal=fit_horizontal,
-                        fit_vertical=fit_vertical,
-                    ),
+    with shared_state.layout_root() as root:
+        active_portal = root.get_portal_by_id(active_portal_id)
+        if active_portal:
+            resized_windows: List[tree.KnownWindow] = []
+            for wid in active_portal.get_contained_windows():
+                resized_windows.extend(
+                    root.refit_window_in_portal(
+                        wid,
+                        portal_state.WindowPortalFit(
+                            justify_horizontal=justify_horizontal,
+                            justify_vertical=justify_vertical,
+                            fit_horizontal=fit_horizontal,
+                            fit_vertical=fit_vertical,
+                        ),
+                    )
                 )
-            )
-        return native_window_handler.send_move_windows_event(context, resized_windows)
+            return native_window_handler.send_move_windows_event(context, resized_windows)
     return RET_OK_NONE
 
 
@@ -351,9 +355,10 @@ def handle_manage_window(context: EventRegistryContext) -> StdRet[None]:
     """Handle the request to manage the focused window."""
     window_id = shared_state.get_focused_window_id()
     active_portal_id = shared_state.get_active_portal_id()
-    res = shared_state.layout_root().move_window_to_portal_id(
-        window_id, active_portal_id, True, True,
-    )
+    with shared_state.layout_root() as root:
+        res = root.move_window_to_portal_id(
+            window_id, active_portal_id, True, True,
+        )
     return native_window_handler.send_move_windows_event(context, res)
 
 
@@ -370,7 +375,8 @@ class UnmanageWindowEventHandler(ContextEventObjectTarget[portal_event.UnmanageW
 def handle_unmanage_window(context: EventRegistryContext) -> StdRet[None]:
     """Handle the request to unmanage the focused window."""
     window_id = shared_state.get_focused_window_id()
-    res = shared_state.layout_root().remove_window(window_id, False)
+    with shared_state.layout_root() as root:
+        res = root.remove_window(window_id, False)
     return native_window_handler.send_move_windows_event(context, res)
 
 
@@ -401,7 +407,8 @@ def handle_adjust_portal_size(
         # Send a user error?
         return RET_OK_NONE
     active_portal_id = shared_state.get_active_portal_id()
-    res = shared_state.layout_root().change_portal_size(active_portal_id, delta_x, delta_y)
+    with shared_state.layout_root() as root:
+        res = root.change_portal_size(active_portal_id, delta_x, delta_y)
     # FIXME re-send portal states
     return native_window_handler.send_move_windows_event(context, res)
 
@@ -419,8 +426,9 @@ class MarkPortalEventHandler(ContextEventObjectTarget[portal_event.MarkPortalEve
 def handle_mark_portal(_context: EventRegistryContext, name: str) -> StdRet[None]:
     """Handle the assign a portal a mark."""
     active_portal_id = shared_state.get_active_portal_id()
-    active_portal = shared_state.layout_root().get_portal_by_id(active_portal_id)
-    old_alias_portal = shared_state.layout_root().get_portal_by_alias(name)
+    with shared_state.layout_root() as root:
+        active_portal = root.get_portal_by_id(active_portal_id)
+        old_alias_portal = root.get_portal_by_alias(name)
     if old_alias_portal:
         # TODO send portal state update
         old_alias_portal.remove_alias(name)
@@ -450,26 +458,27 @@ def handle_move_window_to_portal(
     """Handle the request to move the window to another portal"""
     window_id = shared_state.get_focused_window_id()
     active_portal_id = shared_state.get_active_portal_id()
-    active_portal = shared_state.layout_root().get_portal_by_id(active_portal_id)
-    target_portal_id = shared_state.layout_root().get_target_portal(active_portal_id, target)
-    if target_portal_id >= 0:
-        res = shared_state.layout_root().move_window_to_portal_id(
-            window_id, target_portal_id, True, False,
-        )
-        res_focus: StdRet[None]
-        if move_focus:
-            shared_state.set_active_portal_id(target_portal_id)
-            res_focus = native_window_handler.send_set_window_focused_event(context, window_id)
-        elif active_portal and active_portal.window_order:
-            res_focus = native_window_handler.send_set_window_focused_event(
-                context, active_portal.window_order[0],
+    with shared_state.layout_root() as root:
+        active_portal = root.get_portal_by_id(active_portal_id)
+        target_portal_id = root.get_target_portal(active_portal_id, target)
+        if target_portal_id >= 0:
+            res = root.move_window_to_portal_id(
+                window_id, target_portal_id, True, False,
             )
-        else:
-            res_focus = RET_OK_NONE
-        return join_none_results(
-            res_focus,
-            native_window_handler.send_move_windows_event(context, res)
-        )
+            res_focus: StdRet[None]
+            if move_focus:
+                shared_state.set_active_portal_id(target_portal_id)
+                res_focus = native_window_handler.send_set_window_focused_event(context, window_id)
+            elif active_portal and active_portal.window_order:
+                res_focus = native_window_handler.send_set_window_focused_event(
+                    context, active_portal.window_order[0],
+                )
+            else:
+                res_focus = RET_OK_NONE
+            return join_none_results(
+                res_focus,
+                native_window_handler.send_move_windows_event(context, res)
+            )
     return RET_OK_NONE
 
 
@@ -487,15 +496,16 @@ def handle_focus_portal(context: EventRegistryContext, target: str, _wrap: str) 
     """Handle a request to move the focused portal."""
     active_portal_id = shared_state.get_active_portal_id()
     # TODO include wrap mode in search
-    target_portal_id = shared_state.layout_root().get_target_portal(active_portal_id, target)
-    if target_portal_id >= 0:
-        shared_state.set_active_portal_id(target_portal_id)
-        # TODO update portal state
-        target_portal = shared_state.layout_root().get_portal_by_id(target_portal_id)
-        if target_portal and target_portal.window_order:
-            return native_window_handler.send_set_window_focused_event(
-                context, target_portal.window_order[0],
-            )
+    with shared_state.layout_root() as root:
+        target_portal_id = root.get_target_portal(active_portal_id, target)
+        if target_portal_id >= 0:
+            shared_state.set_active_portal_id(target_portal_id)
+            # TODO update portal state
+            target_portal = root.get_portal_by_id(target_portal_id)
+            if target_portal and target_portal.window_order:
+                return native_window_handler.send_set_window_focused_event(
+                    context, target_portal.window_order[0],
+                )
     return RET_OK_NONE
 
 
@@ -512,7 +522,8 @@ class RotateActiveWindowEventHandler(ContextEventObjectTarget[portal_event.Rotat
 def handle_rotate_active_window(context: EventRegistryContext, direction: str) -> StdRet[None]:
     """Handle rotating the focused windows within the active portal."""
     active_portal_id = shared_state.get_active_portal_id()
-    active_portal = shared_state.layout_root().get_portal_by_id(active_portal_id)
+    with shared_state.layout_root() as root:
+        active_portal = root.get_portal_by_id(active_portal_id)
     res: Sequence[tree.KnownWindow] = []
     if active_portal:
         if direction.lower() in ('forward', 'forwards'):

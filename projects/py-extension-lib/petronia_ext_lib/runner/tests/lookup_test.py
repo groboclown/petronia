@@ -23,9 +23,18 @@ class LookupTest(unittest.TestCase):
             logging.SystemErrorEvent.parse_data,
         )
         self.assertIsNone(res.error)
+
+        # Exact same item should not generate an error...
         res = context.register_event(
             logging.SystemErrorEvent.FULL_EVENT_NAME,
             EventObjectParser(logging.SystemErrorEvent.parse_data),
+        )
+        self.assertIsNone(res.error)
+
+        # A different parser should generate an error
+        res = context.register_event(
+            logging.SystemErrorEvent.FULL_EVENT_NAME,
+            EventObjectParser(logging.LogEvent.parse_data),
         )
         self.assertEqual(
             [f'parser for event {logging.SystemErrorEvent.FULL_EVENT_NAME} already registered'],

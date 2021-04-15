@@ -13,10 +13,7 @@ class OptimizedTileTree:
     __slots__ = ('__root', '__portals_by_id', '__windows_by_id')
 
     def __init__(self) -> None:
-        initial_portal = model.Portal(EMPTY_TUPLE, portal_state.Portal(
-                1, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
-                0, 0, 0, 0, [],
-            ))
+        initial_portal = OptimizedTileTree.create_default_portal()
         self.__root = OptimizedTileTree.create_default_root(initial_portal)
         self.__portals_by_id = {initial_portal.portal_id: initial_portal}
         self.__windows_by_id: Dict[str, model.KnownWindow] = {}
@@ -43,6 +40,8 @@ class OptimizedTileTree:
     def get_default_portal(self) -> model.Portal:
         """Find the default portal.  Portals named 'default' are used first, then the portal with
         the lowest ID."""
+        # Developer check; this should always be true.
+        assert len(self.__portals_by_id) > 0  # nosec
         lowest_id: Optional[model.Portal] = None
         for portal in self.__portals_by_id.values():
             if portal.has_portal_alias('default'):
@@ -81,7 +80,12 @@ class OptimizedTileTree:
         """
         window = self.get_window_by_id(window_id)
         target_portal = self.get_portal_by_id(target_portal_id)
-        if not window or not target_portal or (not manage and not window.managed):
+        if (
+                not window
+                or not target_portal
+                or (not manage and not window.managed)
+                or window.owning_portal_id == target_portal_id
+        ):
             return EMPTY_TUPLE
 
         window.managed = True
@@ -144,6 +148,9 @@ class OptimizedTileTree:
 
         Returns windows that have changed size and/or position.
         """
+        if len(screens) <= 0:
+            # Do not change.  This is a terrible scenario, and probably means a bug.
+            return []
         self.__portals_by_id.clear()
         blocks: List[model.ScreenBlockSplit] = []
 
@@ -165,6 +172,7 @@ class OptimizedTileTree:
                 for content in layout_split.contents
             ]
             block_split.add_child(primary_split, False, False)
+            found_splits: List[model.SimpleSplit] = [primary_split]
 
             while stack:
                 next_tuple = stack.pop(0)
@@ -184,6 +192,16 @@ class OptimizedTileTree:
                     parent_container.add_child(child_split, False, False)
                     for content in content_def.contents:
                         stack.append((child_split, content))
+                    found_splits.append(child_split)
+
+            # Ensure all simple splits have at least one child.
+            for child_split in found_splits:
+                if len(child_split.get_children()) <= 0:
+                    # Incorrectly defined child.  Need to add a portal.
+                    print('[PORTAL] bad config; missing portal on a split.')
+                    portal = OptimizedTileTree.create_default_portal()
+                    self.__portals_by_id[portal.portal_id] = portal
+                    child_split.add_child(portal, False, False)
 
         self.__root = model.RootContainer(blocks)
 
@@ -246,6 +264,14 @@ class OptimizedTileTree:
 
         # Nothing found, so use the source.
         return source_portal_id
+
+    @staticmethod
+    def create_default_portal() -> model.Portal:
+        """Create a default portal object."""
+        return model.Portal(EMPTY_TUPLE, portal_state.Portal(
+                1, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
+                0, 0, 0, 0, [],
+            ))
 
     @staticmethod
     def create_default_root(initial_portal: model.Portal) -> model.RootContainer:

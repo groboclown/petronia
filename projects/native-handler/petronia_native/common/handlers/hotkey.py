@@ -2,8 +2,7 @@
 
 from typing import Sequence, List, Dict, Optional
 from petronia_common.util import StdRet, RET_OK_NONE, join_none_results, not_none
-from petronia_ext_lib import runner
-from petronia_ext_lib import datastore
+from petronia_ext_lib import runner, datastore, extension_loader
 from petronia_ext_lib.standard.error import create_error_data, INVALID_USER_ACTION_ERROR_CATEGORY
 from ..events.impl import hotkey
 from ..user_messages import report_send_receive_problems
@@ -52,10 +51,20 @@ def send_hotkey_pressed(
 
 def register_hotkey_listeners(
         context: runner.EventRegistryContext,
+        extension_name: str,
         handler: HotkeyHandler,
 ) -> StdRet[None]:
     """Register the event listeners and parsers into the context."""
     return join_none_results(
+        extension_loader.send_register_listeners(
+            context, extension_name,
+            (
+                (
+                    hotkey.SetHotkeyBindingsEvent.FULL_EVENT_NAME,
+                    hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
+                ),
+            ),
+        ),
         context.register_event_parser(
             hotkey.SetHotkeyBindingsEvent.FULL_EVENT_NAME,
             hotkey.SetHotkeyBindingsEvent.parse_data,
@@ -65,12 +74,17 @@ def register_hotkey_listeners(
             hotkey.SetHotkeyBindingsEvent.UNIQUE_TARGET_FQN,
             HotkeyBindingsTarget(context, handler),
         ),
-        datastore.on_init.send_initial_state(
+        datastore.send_store_data(
             context,
             hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
             hotkey.HotkeyBindingsState(hotkey.MasterHotkeySequence('meta', []), []),
-            lambda: None, report_send_receive_problems,
         ),
+        # datastore.on_init.send_initial_state(
+        #     context,
+        #     hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
+        #     hotkey.HotkeyBindingsState(hotkey.MasterHotkeySequence('meta', []), []),
+        #     lambda: None, report_send_receive_problems,
+        # ),
     )
 
 
@@ -89,6 +103,7 @@ class HotkeyBindingsTarget(runner.EventObjectTarget[hotkey.SetHotkeyBindingsEven
     def on_event(
             self, source: str, target: str, event: hotkey.SetHotkeyBindingsEvent,
     ) -> bool:
+        print(f'Native - received change hotkeys event')
         if not self._context or not self._handler:
             return True
         res = self._handler.set_hotkey_bindings(

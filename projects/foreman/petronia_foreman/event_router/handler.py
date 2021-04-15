@@ -115,6 +115,7 @@ class EventHandlerSet:
         event_handle = (event_id, target_id)
         try:
             self.__handler_consumes[handler_id].remove(event_handle)
+            self.__consumes.remove(event_handle)
         except ValueError:
             return StdRet.pass_errmsg(
                 CATALOG,

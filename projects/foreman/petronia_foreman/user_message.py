@@ -20,12 +20,29 @@ from .constants import TRANSLATION_CATALOG
 CATALOG = TRANSLATION_CATALOG
 
 DEBUG = True
-TRACE_EVENT = False
+TRACE_EVENT = True
 TRACE_EVENT_CHOICE = False
-TRACE_CHANNEL = False
+TRACE_CHANNEL = True
 
 _TRANSLATIONS: Dict[str, gettext.NullTranslations] = {}
+_LOGGER_FD = [0]
 _LOCK = threading.RLock()
+
+
+def set_logger_fd(f_d: int) -> None:
+    """Set the logger file descriptor."""
+    with _LOCK:
+        _LOGGER_FD[0] = f_d
+
+
+def log_message(text: str) -> None:
+    """Attempt to write the message to the log file."""
+    with _LOCK:
+        if _LOGGER_FD[0] != 0:
+            try:
+                os.write(_LOGGER_FD[0], (text + '\n').encode('utf-8', errors='replace'))
+            except OSError:
+                pass
 
 
 def low_println(text: str) -> None:
@@ -41,7 +58,7 @@ def trace_event(
 ) -> None:
     """Trace an event passing through the system."""
     if TRACE_EVENT:
-        low_println(
+        log_message(
             f'[FOREMAN EVENT {channel_name}] {event_id}: <{source_id}> to <{target_id}>: '
             f'{message_text}'
         )
@@ -53,7 +70,7 @@ def trace_event_choice(
 ) -> None:
     """Trace a decision on an event passing through the system."""
     if TRACE_EVENT_CHOICE:
-        low_println(
+        log_message(
             f'[FOREMAN EVENT {channel_name}] {event_id}: <{source_id}> to <{target_id}>: '
             f'(decision) {message_text}'
         )
@@ -64,7 +81,7 @@ def trace_channel(
 ) -> None:
     """Trace an event channel action."""
     if TRACE_CHANNEL:
-        low_println(
+        log_message(
             f'[FOREMAN CHANNEL] <{source_id}>: {message_text}'
         )
 

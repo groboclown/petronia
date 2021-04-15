@@ -48,7 +48,7 @@ class ReadWriteStream:
 
             ret = self._buf[:max_read_size]
             self._buf = self._buf[max_read_size:]
-        # print(f'[stream {self.__name}] read <{ret}>')
+        # print(f'[stream {self.__name}] read <{len(ret)}>')
         return ret
 
     def write(self, data: bytes) -> None:
@@ -59,4 +59,4 @@ class ReadWriteStream:
                 raise OSError(f'stream {self.__name} is closed')
             self._buf.extend(data)
             self._cond.notify_all()
-        # print(f'[stream {self.__name}] wrote <{data}')
+        # print(f'[stream {self.__name}] wrote <{len(data)}>')
