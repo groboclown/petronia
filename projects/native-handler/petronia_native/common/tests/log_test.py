@@ -50,7 +50,8 @@ class LogTest(unittest.TestCase):
 
     def test_debug(self) -> None:
         """Test the info function."""
-        log.LOG_INFO = True
+        log.LOG_INFO = False
+        log.LOG_DEBUG = True
         sys.stdout = self._io()
         log.debug('dbg {msg} {n}', msg='aaa', n=1234)
         self.assertEqual(

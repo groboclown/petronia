@@ -510,7 +510,6 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
                 # TODO change the position state in the datastore.
                 # I don't think this will trigger another Windows message that would then
                 # perform this operation.
-                pass
 
     @staticmethod
     def _queue_set_window_style(arg: Any) -> None:

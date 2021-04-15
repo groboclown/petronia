@@ -12,7 +12,7 @@ import subprocess
 
 # Bump back up after initial good build.
 # MINIMUM_COVERAGE_PERCENT = 99
-MINIMUM_COVERAGE_PERCENT = 90
+MINIMUM_COVERAGE_PERCENT = 75
 
 SPECIAL_EXTENDED_PATHS = {
     'py-common-lib': [],

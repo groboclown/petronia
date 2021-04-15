@@ -103,7 +103,7 @@ class HotkeyBindingsTarget(runner.EventObjectTarget[hotkey.SetHotkeyBindingsEven
     def on_event(
             self, source: str, target: str, event: hotkey.SetHotkeyBindingsEvent,
     ) -> bool:
-        print(f'Native - received change hotkeys event')
+        print('Native - received change hotkeys event')
         if not self._context or not self._handler:
             return True
         res = self._handler.set_hotkey_bindings(
