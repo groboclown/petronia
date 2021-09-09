@@ -25,6 +25,7 @@ runtime:
       - get-windows
       - move-window
       - close-window
+      - shell-notify
 
 implements:
   - name: petronia.core.api.native.hotkey
@@ -45,6 +46,9 @@ implements:
   - name: petronia.core.api.native.window
     minimum: [1, 0, 0]
     below: [2, 0, 0]
+  - name: petronia.core.api.native.notification
+    minimum: [1, 0, 0]
+    below: [2, 0 ,0]
 
 depends:
   - name: petronia.core.api.datastore

@@ -5,7 +5,7 @@ Tests for the foreman_announcement module.
 Extension petronia.core.api.foreman_announcement, Version 1.0.0
 """
 
-# pylint: disable=too-many-lines,line-too-long
+# pylint: disable=too-many-lines,line-too-long,unused-import
 
 import unittest
 from typing import Sequence, Tuple, Dict, Any

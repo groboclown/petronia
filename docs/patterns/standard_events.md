@@ -8,6 +8,10 @@ Petronia comes with many standard event types that can be used in many flexible 
 
 ## Lifecycle Events
 
+WARNING: THIS IS OUT OF DATE.
+
+This section refers to Petronia 2 APIs and usages.  It is here for development reference at the moment, and should not be used.
+
 ### Item Creation and Removal
 
 The basic Petronia pattern doesn't have concepts of "objects", but that's a nice metaphor to use here.  Petronia calls these things "components", which it classifies as things that participate in the event system and where multiple of them can live.

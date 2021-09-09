@@ -5,7 +5,7 @@ Tests for the timer module.
 Extension petronia.core.api.timer, Version 1.0.0
 """
 
-# pylint: disable=too-many-lines,line-too-long
+# pylint: disable=too-many-lines,line-too-long,unused-import
 
 import unittest
 from typing import Sequence, Tuple, Dict, Any
@@ -68,14 +68,14 @@ HEARTBEAT_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'sent_on': '20210413:002110.379841:+0000',
+            'sent_on': '20210909:201625.185296:+0000',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'sent_on': '20210413:002110.421474:+0000',
+            'sent_on': '20210909:201625.204741:+0000',
 
         },
     ),

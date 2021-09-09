@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia extension-loader VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-04-07 09:19-0500\n"
-"PO-Revision-Date: 2021-04-07 09:19-0500\n"
+"POT-Creation-Date: 2021-09-09 18:05-0500\n"
+"PO-Revision-Date: 2021-09-09 18:05-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:72
 #: projects/extension-loader/petronia_extension_loader/events/ext/datastore.py:174
@@ -232,24 +232,30 @@ msgstr ""
 msgid "Extension listed in boot list, but is not installed: {req}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/order.py:145
+#: projects/extension-loader/petronia_extension_loader/order.py:171
+msgid ""
+"Attempted to load multiple implementations of API {name}: {e1} (already "
+"loaded), {e2} (requested to load)"
+msgstr ""
+
+#: projects/extension-loader/petronia_extension_loader/order.py:185
 msgid ""
 "extension {name} depends on not-found extension {dep} [>={min_version}, "
 "<{max_version}]"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/order.py:180
+#: projects/extension-loader/petronia_extension_loader/order.py:219
 msgid ""
 "No implementation declared for API extension {name}, and default "
 "extension {default} not installed"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/order.py:193
+#: projects/extension-loader/petronia_extension_loader/order.py:232
 msgid "No implementation declared for API extension {name}"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/order.py:261
-#: projects/extension-loader/petronia_extension_loader/order.py:280
+#: projects/extension-loader/petronia_extension_loader/order.py:331
+#: projects/extension-loader/petronia_extension_loader/order.py:351
 msgid ""
 "Extension {name} is not in loading state, so it should not be marked as "
 "loaded"
@@ -284,7 +290,7 @@ msgstr ""
 msgid "Configuration file has problem in section {key}: no \"extension\" value"
 msgstr ""
 
-#: projects/extension-loader/petronia_extension_loader/shared_state.py:63
+#: projects/extension-loader/petronia_extension_loader/shared_state.py:64
 msgid "extension not in loading state: {name}"
 msgstr ""
 

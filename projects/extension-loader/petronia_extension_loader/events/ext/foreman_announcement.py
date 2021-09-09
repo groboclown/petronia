@@ -16,9 +16,9 @@ from typing import (
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    collect_errors_from,
     not_none,
     StdRet,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
 )
 

@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia.core.api.native.window ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
+    SupportsInt,
+    Dict,
+    cast,
     Optional,
     List,
-    cast,
-    SupportsInt,
     Any,
-    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
     STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    not_none,
     StdRet,
 )
 

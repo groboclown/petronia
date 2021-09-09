@@ -124,6 +124,12 @@ class EventRegistryContext:
         """Send the binary event safely."""
         raise NotImplementedError  # pragma no cover
 
+    def send_binary_event_stream(
+            self, source_id: str, target_id: str, event_id: str, data_size: int, data: RawBinaryReader,
+    ) -> StdRet[None]:
+        """Send the binary event safely."""
+        raise NotImplementedError  # pragma no cover
+
 
 class ContextEventObjectTarget(EventObjectTarget[T], ABC):
     """Handles the event object while being context aware."""

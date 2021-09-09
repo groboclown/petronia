@@ -75,7 +75,8 @@ echo native-handler:
   "${pd}/native-handler/native-monitor-extension.yaml" \
   "${pd}/native-handler/native-screen-extension.yaml" \
   "${pd}/native-handler/native-ui-extension.yaml" \
-  "${pd}/native-handler/native-window-extension.yaml"
+  "${pd}/native-handler/native-window-extension.yaml" \
+  "${pd}/native-handler/native-notification-extension.yaml"
 "${h}/generate-events.sh" \
   --output "${pd}/native-handler/petronia_native_windows/datastore" \
   --state \
@@ -99,7 +100,8 @@ echo portal:
 "${h}/generate-events.sh" \
   --output "${pd}/portal/petronia_portal/events" \
   --implementation --api --state \
-  "${pd}/portal/portal-extension.yaml"
+  "${pd}/portal/portal-extension.yaml" \
+  "${pd}/portal/window-positioner-extension.yaml"
 "${h}/generate-events.sh" \
   --output "${pd}/portal/petronia_portal/events" \
   --api --state \

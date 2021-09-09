@@ -59,6 +59,8 @@ def main(cmd_args: Sequence[str]) -> int:
         return 1
     extension_files: Sequence[str] = args.extensions
 
+    exit_code = 0
+
     ext_metadata: List[ExtensionDataFile] = []
     for ext_name in extension_files:
         if os.path.basename(ext_name) == '__main__.py':
@@ -74,6 +76,7 @@ def main(cmd_args: Sequence[str]) -> int:
         if loaded.has_error:
             display(_('Error: extension file not valid: {n}'), n=ext_name)
             display_error(loaded.valid_error)
+            exit_code = 1
         else:
             ext_metadata.extend(loaded.result)
 
@@ -94,6 +97,7 @@ def main(cmd_args: Sequence[str]) -> int:
                 name=metadata.metadata.name,
             )
             display_error(validation)
+            exit_code = 1
             continue
         timer = PerfTimer()
         ret = create_api_marshal_source(
@@ -110,9 +114,10 @@ def main(cmd_args: Sequence[str]) -> int:
                 _('Encountered a problem while generating the source for {name}'),
                 name=metadata.metadata.name,
             )
+            exit_code = 1
             display_error(ret.valid_error)
         display(_('Generated {name}'), name=metadata.metadata.name)
-    return 0
+    return exit_code
 
 
 def normalize_name(name: str) -> str:

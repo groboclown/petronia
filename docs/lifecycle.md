@@ -12,11 +12,11 @@ Petronia uses a combination of *configuration*, *launchers*, and *events* to sta
 
 ## Initial Startup
 
-Starting up Petronia means launching the Foreman process.  Foreman has three responsibilities: loading the initial launchers as defined by the configuration, passing events between launchers, and stopping everything at shutdown.
+Starting up Petronia means launching the Foreman process.  Foreman has three responsibilities: loading launcher processes as defined by the startup configuration and as requested by the extension loader, passing events between launchers, and stopping (or restarting) everything at shutdown.
 
 The Foreman configuration should be a system-defined configuration that is dependent only upon the user's platform, and shouldn't be user edited.  The configuration includes things like location of translation files, the configuration for runtime categories used for running extensions, and the list of extensions that should start at boot time.
 
-The two main launchers that Petronia defines are the native and extension loader.  Foreman communicates to these through the event mechanism, just like all other launchers.
+The main launcher that Petronia defines is the extension loader.  Foreman communicates to these through the event mechanism, just like all other launchers.
 
 When the extension loader launcher runs, it starts a new process that handles loading extensions.  The launcher registers a specifically named channel that indicates that it is the only extension loader; anything else that later tries to register itself with that name will fail, and if the channel with that name ever ends while Foreman is in the "running" state, then Foreman enters a restart period.  The foreman process adds a special listener hook to the extension loader event stream, so that the extension loader private events are only processed when the extension loader generates them.
 

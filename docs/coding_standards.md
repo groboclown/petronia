@@ -17,6 +17,8 @@
 
 ### Threading Model
 
+(This isn't true anymore; current asyncio has hard limitations on Windows which causes this not to work.  Threading is, unfortuantely, the only way to go if you really, really need parallel execution.)
+
 All Python sourced parts of Petronia must use the `asyncio` libraries without threading.  Threading introduces all kinds of potential bug states that are hard to track, and also unnecessary wait states for lock acquisition.  The asynchronous libraries allow for running the code in separate context states, without worrying about threading.
 
 This introduces some changes to old styles of code, though.  For example, the standard polling thread mechanism:

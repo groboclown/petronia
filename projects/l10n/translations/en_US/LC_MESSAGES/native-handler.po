@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia native-handler VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-04-07 09:22-0500\n"
-"PO-Revision-Date: 2021-04-07 09:22-0500\n"
+"POT-Creation-Date: 2021-09-09 18:07-0500\n"
+"PO-Revision-Date: 2021-09-09 18:07-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:69
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:88
@@ -41,25 +41,6 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1293
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1356
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1378
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:84
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:103
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:122
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:560
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:579
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:642
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:661
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:737
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:756
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:808
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:876
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:953
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1009
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1028
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1098
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1151
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1170
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1227
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1280
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:84
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:103
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:122
@@ -144,12 +125,13 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/window.py:676
 #: projects/native-handler/petronia_native/common/events/impl/window.py:749
 #: projects/native-handler/petronia_native/common/events/impl/window.py:938
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1001
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1051
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1109
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1165
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1236
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1297
+#: projects/native-handler/petronia_native/common/events/impl/window.py:995
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1061
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1111
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1169
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1225
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1296
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1357
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:61
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:120
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:139
@@ -187,25 +169,6 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:943
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:968
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1218
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:92
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:111
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:130
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:310
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:323
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:336
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:349
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:568
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:650
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:669
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:745
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:764
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:789
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:961
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1017
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1036
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1159
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1178
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1288
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:92
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:111
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:130
@@ -285,8 +248,9 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/window.py:526
 #: projects/native-handler/petronia_native/common/events/impl/window.py:590
 #: projects/native-handler/petronia_native/common/events/impl/window.py:684
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1059
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1173
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1003
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1119
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1233
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:69
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:128
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:147
@@ -313,13 +277,6 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:655
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:682
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:953
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:392
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:419
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:446
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:473
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:500
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:774
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:1046
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:392
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:419
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:446
@@ -334,7 +291,7 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/screen.py:943
 #: projects/native-handler/petronia_native/common/events/impl/screen.py:1214
 #: projects/native-handler/petronia_native/common/events/impl/ui.py:191
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1183
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1243
 msgid "Field {field_name} must contain items of type {type} for structure {name}"
 msgstr ""
 
@@ -346,9 +303,6 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1150
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1304
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:1367
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:590
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:819
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:887
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:590
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:819
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:887
@@ -356,21 +310,19 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/screen.py:1335
 #: projects/native-handler/petronia_native/common/events/impl/window.py:353
 #: projects/native-handler/petronia_native/common/events/impl/window.py:462
-#: projects/native-handler/petronia_native/common/events/impl/window.py:1247
+#: projects/native-handler/petronia_native/common/events/impl/window.py:1307
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:625
 #: projects/native-handler/petronia_native_windows/datastore/petronia_native_windows.py:647
 msgid "Field {field_name} must not be null"
 msgstr ""
 
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:486
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:304
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:304
 #: projects/native-handler/petronia_native/common/events/impl/screen.py:747
 msgid "selector value must have ^ and $ keys"
 msgstr ""
 
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:544
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:362
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:362
 #: projects/native-handler/petronia_native/common/events/impl/screen.py:805
 msgid "Value must be of type datetime for selector {name}"
@@ -378,8 +330,6 @@ msgstr ""
 
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:557
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:695
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:375
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:513
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:375
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:513
 #: projects/native-handler/petronia_native/common/events/impl/screen.py:818
@@ -392,11 +342,6 @@ msgstr ""
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:618
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:645
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:672
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:382
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:409
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:436
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:463
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:490
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:382
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:409
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:436
@@ -411,7 +356,6 @@ msgid "Field {field_name} must be of type {type} for selector {name}"
 msgstr ""
 
 #: projects/native-handler/petronia_native/common/events/impl/hotkey.py:704
-#: projects/native-handler/petronia_native/common/events/impl/i10n.py:522
 #: projects/native-handler/petronia_native/common/events/impl/l10n.py:522
 #: projects/native-handler/petronia_native/common/events/impl/screen.py:965
 msgid "Invalid selector name {name} for {nc}"
@@ -421,11 +365,11 @@ msgstr ""
 msgid "request to {request} failed because window {wid} is not active"
 msgstr ""
 
-#: projects/native-handler/petronia_native/common/handlers/window.py:366
+#: projects/native-handler/petronia_native/common/handlers/window.py:410
 msgid "no active window with id {wid}"
 msgstr ""
 
-#: projects/native-handler/petronia_native/common/handlers/window.py:399
+#: projects/native-handler/petronia_native/common/handlers/window.py:443
 msgid "window id {wid} already registered"
 msgstr ""
 
@@ -474,21 +418,21 @@ msgstr ""
 msgid "{called}: caused {err} ({errno})"
 msgstr ""
 
-#: projects/native-handler/petronia_native_windows/key_handler.py:200
+#: projects/native-handler/petronia_native_windows/key_handler.py:210
 msgid ""
 "This native handler currently only handles the \"meta\" key sequences; "
 "requested {name}."
 msgstr ""
 
-#: projects/native-handler/petronia_native_windows/key_handler.py:257
+#: projects/native-handler/petronia_native_windows/key_handler.py:267
 msgid "unknown modifier key: {name}"
 msgstr ""
 
-#: projects/native-handler/petronia_native_windows/key_handler.py:288
+#: projects/native-handler/petronia_native_windows/key_handler.py:298
 msgid "unknown key name: {name}"
 msgstr ""
 
-#: projects/native-handler/petronia_native_windows/key_handler.py:294
+#: projects/native-handler/petronia_native_windows/key_handler.py:304
 msgid "key {name} references multiple keys; it cannot be used for a sequence"
 msgstr ""
 
@@ -508,7 +452,7 @@ msgstr ""
 msgid "Native windows message handler did not start after {timeout} seconds."
 msgstr ""
 
-#: projects/native-handler/petronia_native_windows/setup.py:123
+#: projects/native-handler/petronia_native_windows/setup.py:127
 msgid "native implementation does not support setting a screen configuration"
 msgstr ""
 

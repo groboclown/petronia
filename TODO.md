@@ -70,6 +70,7 @@ These are desired, tactical changes to bits of already written code.
 
 * minimum portal size is hard-coded to 10, 10
 
+
 ### extension-loader
 
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
@@ -101,14 +102,16 @@ These are desired, tactical changes to bits of already written code.
 * data event listener needs to include a carefully designed listener.  If it's really nice, it can take the event object class and extrapolate all data from that.
 
 
+
 ## High Level Ideas
 
 These are ideas that need clarification and implementation.
 
+
 ### General
 
 * Extension and launcher error reporting is now ad-hoc, and just sent to the stdout.
-  * Where possible, this should be redone as logging events.  This should be moved into the py-extension-lib project.  If sending events fails, then the logging should be a consistent output that doesn't spam the user.
+  * Where possible, this should be re-done as logging events.  This should be moved into the py-extension-lib project.  If sending events fails, then the logging should be a consistent output that doesn't spam the user.
 * Allow for an additional data field type for events - zlib compressed object data.
   * The maximum size for the underlying data should remain the same.
 
@@ -133,10 +136,15 @@ These are ideas that need clarification and implementation.
 
 ### portals
 
-* it needs some improvements:
+* General improvements:
   * add in portal component id, along with adding portals to the lifecycle.
   * add create / delete portal events.
-* add in virtual desktops.
+* Add in virtual desktops.
+  * This needs some careful thought.  Most likely, virtual desktops are another extension on top of the portals that manage swapping portal layouts + associated displayed windows, but the portal extension must be able to support it.
+    1. Definition of portal layouts independent of the screen mappings.  This will also allow the user to switch between layouts without the need for a virtual desktop.
+    1. Some way to define window association with layouts.  This may be an extra parameter that's associated with windows ("desktop-id", perhaps), and swapping layouts can optionally also change the active parameter.  Window children will need to support inheriting the parameter.
+
+    These two items will give basically all of virtual desktop support except for UI displays.
 * `portal_handler` needs to send portal state updates when the portals change shape or are otherwise altered.
 * The configuration needs to be used for matching the window to a user setup.
 * The configuration needs to be used for creating the user-defined layout.
@@ -146,6 +154,7 @@ These are ideas that need clarification and implementation.
 
 * an API extension for the theme, which sits on top of the native-handler to make common UI element creation and manipulation easy.
 * allows for appearance choices to be made once for all extensions that want to create UI elements.
+* active changing of the theme appearance settings should trigger a change in all the theme controlled UI elements.
 
 
 ### hotkey-bindings

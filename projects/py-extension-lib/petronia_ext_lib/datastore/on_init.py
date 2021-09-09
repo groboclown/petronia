@@ -80,7 +80,8 @@ class CollectionCache(Generic[T]):
         """Called when the matching target ID is reported as deleted."""
         if target_id in self.__store:
             del self.__store[target_id]
-            self.__callback(target_id, None)
+            if self.__callback:
+                self.__callback(target_id, None)
         return RET_OK_NONE
 
     def update(self, target_id: str, event: datastore_event.DataUpdateEvent) -> StdRet[None]:
@@ -89,11 +90,13 @@ class CollectionCache(Generic[T]):
         parsed = listen.get_event_data_value(event, self.__parser)
         if parsed.has_error:
             return parsed.forward()
-        if parsed.value is None:
+        if parsed.value is None and target_id in self.__store:
             del self.__store[target_id]
-        self.__store[target_id] = parsed.value
-
-        return self.__callback(target_id, parsed.value)
+        if parsed.value is not None:
+            self.__store[target_id] = parsed.value
+        if self.__callback:
+            return self.__callback(target_id, parsed.value)
+        return RET_OK_NONE
 
 
 class CacheStore:
@@ -174,6 +177,7 @@ class CacheStore:
             if cache.data_id in self.__caches:
                 return True
             self.__caches[cache.data_id] = cache
+        return False
 
     def get_value(self, data_id: str, convert: Callable[[Any], T]) -> Optional[T]:
         """Get the cache's data.  It can be None if the data is deleted or not initialized or

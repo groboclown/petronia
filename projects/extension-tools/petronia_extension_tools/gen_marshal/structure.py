@@ -129,6 +129,14 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
                 )
         seen_structures[structure] = [struct_name]
 
+    unique_ids: List[Dict[str, str]] = []
+    if unique_target:
+        unique_ids.append({
+            'upper': 'TARGET',
+            'rel_id': repr(unique_target),
+            'fqn_id': repr(unique_target_fqn),
+        })
+
     ret: List[Dict[str, Any]] = []
     ret_struct: Dict[str, Any]
     if structure is None:
@@ -142,7 +150,7 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             'is_object': False,
             'field_names': [],
             'is_event': is_event,
-            'unique_ids': [],
+            'unique_ids': unique_ids,
             'fq_event_name': repr(fq_event_name),
             'short_event_name': repr(name),
             'has_non_optional_fields': False,
@@ -160,6 +168,7 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
             'is_object': False,
             'has_non_optional_fields': True,
             'selector_types': [],
+            'unique_ids': unique_ids,
             'unique_selector_type_names': [],
             'has_fields': True,
             'raw_name': name,
@@ -192,13 +201,6 @@ def create_inner_structure(  # pylint: disable=too-many-locals,too-many-argument
     else:
         field_names: List[Dict[str, Any]] = []
         non_optional_field_names: List[str] = []
-        unique_ids: List[Dict[str, str]] = []
-        if unique_target:
-            unique_ids.append({
-                'upper': 'TARGET',
-                'rel_id': repr(unique_target),
-                'fqn_id': repr(unique_target_fqn),
-            })
         ret_struct = {
             'structure_class_name': struct_name,
             'structure_const_name': camel_case_as_screaming_snake(struct_name),

@@ -11,17 +11,17 @@ Data structures and marshalling for extension petronia_core.hotkey_binding versi
 from __future__ import annotations
 from typing import (
     List,
-    Optional,
     cast,
     Any,
+    Optional,
     Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     StdRet,
-    collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia_core.hotkey_binding'

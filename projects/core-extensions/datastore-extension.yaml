@@ -9,7 +9,7 @@ description: >
   an extension that reports on the user's screen dimensions would do so by adding a
   data store.
 
-  The data stored are limited to 60,000 characters of JSON-encoded structured data.  If
+  The text data stored are limited to 60,000 characters of JSON-encoded structured data.  If
   many extensions listen for the same block of data, then that amplifies the amount of
   data spread through the extensions.  Where possible, attempt to keep the stored data small.
 
@@ -28,7 +28,7 @@ default:
   minimum: [1, 0, 0]
 
 events:
-  "store-data":
+  "store-data:request":
     description: >
       A request to store data.  This is either a fresh add or update of the data.
       The event's source ID is used as the name of the stored data, which has the
@@ -37,7 +37,7 @@ events:
     priority: io
     send-access: public
     receive-access: implementations
-    unique-target: store
+    unique-target: store-json
     fields:
       json:
         description: >
@@ -46,7 +46,7 @@ events:
         type: reference
         ref: embedded-json-data
 
-  "delete-data":
+  "delete-data:request":
     description: >
       Deletes the store of data whose ID matches the source ID of the event.
     priority: io
@@ -55,12 +55,12 @@ events:
     unique-target: store
     fields: {}
 
-  "send-state":
+  "send-state:request":
     description: >
       Tells the API to send out a message with the current state of the requested
       target ID data.  Usually only called when an extension first starts and has started
       listening to the data change messages.  If the target ID's data is not currently
-      stored, then a delete message is sent.  The sent message is either a `data-update`
+      stored, then a delete message is sent.  The sent message is either a `data-updated`
       event or a `data-removed` event.
     priority: normal
     send-access: public
@@ -73,7 +73,19 @@ events:
         type: reference
         ref: event-target-id
 
-  "data-update":
+  "store-binary:request":
+    description: >
+      A request to store binary data.  This is either a fresh add or update of the data.
+      The event's source ID is used as the name of the stored data, which has the
+      implication that it must be associated with the source extension or implemented
+      API.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: store-bin
+    is-binary: true
+
+  "data-updated":
     description: >
       Notification for data that is new or changed.  The target ID is always the data store
       ID.  The `changed` field must be unique per original `store-data` request; if the store
@@ -92,6 +104,16 @@ events:
           formatted JSON data to be stored.
         type: reference
         ref: embedded-json-data
+
+  "binary-updated":
+    description: >
+      Notification for binary data that is new or changed.  The target ID is always the data store
+      ID.  The `changed` field must be unique per original `store-binary` request.  Because this only
+      returns binary data, there is no indication on when this data was last changed.
+    priority: high
+    send-access: implementations
+    receive-access: public
+    is-binary: true
 
   "data-removed":
     description: >

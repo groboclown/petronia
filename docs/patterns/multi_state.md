@@ -1,5 +1,9 @@
 # Multiple State Service
 
+WARNING THIS IS OUT OF DATE.
+
+This document refers to old Petronia 2 API and related concepts.  It remains here only as a placeholder for what documentation should be. 
+
 A common pattern in services is a *toggled state*, where, with one event, the service enters a state, and with another event, switches over to a second, and so on.
 
 ## Approach

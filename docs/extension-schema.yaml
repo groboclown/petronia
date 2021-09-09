@@ -72,7 +72,7 @@ oneOf:
                   - priority
                   - send-access
                   - receive-access
-                  - binary
+                  - is-binary
                 properties:
                   priority:
                     oneOf:
@@ -99,7 +99,10 @@ oneOf:
                           Only the extension target of the event can receive it.
                   description:
                     "$ref": "#/definitions/description"
-                  binary:
+                  unique-target:
+                    description: The only target ID allowed to receive the event.
+                    type: string
+                  is-binary:
                     const: true
               - description: An object event data layout description.
                 type: object
@@ -127,9 +130,14 @@ oneOf:
                       - const: internal
                   description:
                     "$ref": "#/definitions/description"
+                  unique-target:
+                    description: The only target ID allowed to receive the event.
+                    type: string
                   fields:
                     "$ref": "#/definitions/fields"
-
+                  # optional, but must be false if set
+                  is-binary:
+                    const: false
 
   - type: object
     required:
@@ -224,7 +232,7 @@ definitions:
         "$ref": "#/definitions/version"
   version:
     description: An extension point version number.
-    type: list
+    type: array
     items:
       - type: integer
         description: major version
@@ -284,7 +292,7 @@ definitions:
         type: object
         patternProperties:
           "^[A-Z][a-zA-Z0-9._:-]+$":
-            type: list
+            type: array
             items:
               description: Resource description.  Dependent upon the action.
               type: string

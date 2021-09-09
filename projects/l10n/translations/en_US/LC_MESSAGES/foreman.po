@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia foreman VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-04-07 09:21-0500\n"
-"PO-Revision-Date: 2021-04-07 09:21-0500\n"
+"POT-Creation-Date: 2021-09-09 18:06-0500\n"
+"PO-Revision-Date: 2021-09-09 18:06-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: projects/foreman/petronia_foreman/configuration/find_file.py:55
 msgid "Could not find configuration file \"petronia.ini\" in any of {searched}"
@@ -98,21 +98,21 @@ msgstr ""
 msgid "`runner` not specified for launcher {name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/channel.py:295
+#: projects/foreman/petronia_foreman/event_router/channel.py:344
 msgid "route {name} is closed"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/handler.py:71
+#: projects/foreman/petronia_foreman/event_router/handler.py:75
 msgid "event handler {handler_id} already registered"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/handler.py:89
-#: projects/foreman/petronia_foreman/event_router/handler.py:104
-#: projects/foreman/petronia_foreman/event_router/handler.py:125
+#: projects/foreman/petronia_foreman/event_router/handler.py:97
+#: projects/foreman/petronia_foreman/event_router/handler.py:112
+#: projects/foreman/petronia_foreman/event_router/handler.py:134
 msgid "event handler {handler_id} not registered"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/handler.py:113
+#: projects/foreman/petronia_foreman/event_router/handler.py:122
 msgid ""
 "handler {handler_id} is not registered to listen to {event_id} / "
 "{target_id}"
@@ -126,19 +126,19 @@ msgstr ""
 msgid "channel name already reserved ({channel})"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:176
+#: projects/foreman/petronia_foreman/event_router/router.py:220
 msgid "handler {handler_id} already registered in channel {name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:184
+#: projects/foreman/petronia_foreman/event_router/router.py:228
 msgid "channel {name} not registered"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:236
+#: projects/foreman/petronia_foreman/event_router/router.py:291
 msgid "no such channel {name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:286
+#: projects/foreman/petronia_foreman/event_router/router.py:341
 msgid "channel not registered ({channel})"
 msgstr ""
 
@@ -246,19 +246,19 @@ msgstr ""
 msgid "Petronia shutting down."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/foreman_runner.py:67
+#: projects/foreman/petronia_foreman/foreman_runner.py:68
 msgid "Failed to open root log file {filename}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/foreman_runner.py:116
+#: projects/foreman/petronia_foreman/foreman_runner.py:118
 msgid "Starting the restart process."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/foreman_runner.py:136
+#: projects/foreman/petronia_foreman/foreman_runner.py:138
 msgid "Starting the shut down process."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/foreman_runner.py:150
+#: projects/foreman/petronia_foreman/foreman_runner.py:152
 msgid "Failed to close root log file {filename}"
 msgstr ""
 
@@ -278,7 +278,7 @@ msgstr ""
 msgid "memory-importer for {name} path {path}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/launcher/memory/importer.py:50
+#: projects/foreman/petronia_foreman/launcher/memory/importer.py:52
 msgid "Requested to load a module with non-existent search path {value}"
 msgstr ""
 
@@ -290,25 +290,29 @@ msgstr ""
 msgid "Entrypoint {entrypoint} in module {module} is not a function"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:67
+#: projects/foreman/petronia_foreman/launcher/memory/load_launcher.py:116
+msgid "Extension in Python module {name} failed to load:"
+msgstr ""
+
+#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:68
 msgid "Invalid option {option}; must be a number, found {value}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:100
+#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:101
 msgid "extension {name}-{version} configuration data"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:199
+#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:200
 msgid ""
 "Encountered error running extension in module {mod_name}, function "
 "{func_name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:210
+#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:211
 msgid "Completed running extension in module {mod_name}, function {func_name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:244
+#: projects/foreman/petronia_foreman/launcher/memory/memory_launcher.py:245
 msgid "Could not stop launcher {launcher} after {timeout} seconds"
 msgstr ""
 
@@ -383,31 +387,31 @@ msgstr ""
 msgid "Not running under Windows."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/foreman_router.py:361
+#: projects/foreman/petronia_foreman/routing/foreman_router.py:368
 msgid "extension loader channel {channel} already registered."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/foreman_router.py:432
+#: projects/foreman/petronia_foreman/routing/foreman_router.py:439
 msgid "failed creating launcher {name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/router_loop.py:134
+#: projects/foreman/petronia_foreman/routing/router_loop.py:148
 msgid "unknown router queue request: {request}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/router_loop.py:190
+#: projects/foreman/petronia_foreman/routing/router_loop.py:198
 msgid ""
 "Runtime {runtime} defined in extension {name}-{version} but not defined "
 "in petronia.ini"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/router_loop.py:200
+#: projects/foreman/petronia_foreman/routing/router_loop.py:208
 msgid ""
 "Do not load the extension, or add the correct runtime configuration in "
 "your petronia.ini file."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/router_loop.py:247
+#: projects/foreman/petronia_foreman/routing/router_loop.py:257
 msgid "Started extension {name}-{version}"
 msgstr ""
 

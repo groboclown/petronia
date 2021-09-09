@@ -19,6 +19,9 @@ implements:
   - name: petronia.core.api.portal
     minimum: [1, 0, 0]
     below: [2, 0, 0]
+  - name: petronia.core.api.window-pos
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
 
 depends:
   - name: petronia.core.api.datastore

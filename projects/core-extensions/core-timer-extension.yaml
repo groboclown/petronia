@@ -20,6 +20,17 @@ runtime:
   launcher: core
   # No permissions necessary
 
+state-data:
+  configuration:
+    description: >
+      Configuration for the timer.
+    fields:
+      seconds:
+        description: Interval between each heartbeat for the timer, in seconds.
+        type: float
+        min-value: 0.0001
+        max-value: 10.0
+
 licenses:
   - MIT
 authors:

@@ -1,11 +1,9 @@
 # Architecture
 
-(This needs to be updated again now that the forked model is better defined.)
-
 ## Goals
 
-* Loose coupling between components to an extreme.  Rather than owning other objects, objects contain references to them.  Communication between components happens in the event bus.
-* Separation between system state and components.  Things that other components may need to query (e.g. screen size, keyboard layout) are stored in a centralized state store that is event aware.
+* Loose coupling between components to an extreme.  Rather than owning other objects, objects contain references to them.  Communication between components happens in the event bus.  On top of this, the bus events are well-defined structured data packets.
+* Separation between system state and components.  Things that other components may need to query (e.g. screen size, keyboard layout) are stored in a centralized state store that is event aware.  Components do not have direct access to system state.
 * Safe coding practices.  Type safety to prevent incorrect usage as early as possible.  Defensively write the code.  Even though formal types may not be always the right way to go in Python, inspection is necessary.  If this becomes a performance issue, it should be a configuration option set at start time.
 * Memory reduction.  The code will naturally want to use a lot of memory due to object proliferation.  Upfront work to make easy reduction in memory leak mistakes and simple memory reduction should be done.  Performance intensive tasks will naturally lend towards performance over memory, but these should be inspected carefully.
 
@@ -16,7 +14,7 @@
 * Slotted data objects over dictionaries.  Slots are faster to create and access and use less memory, and have better type safety.
 * Convention over subclass.  Rather than enforcing type hierarchies, we'll enforce method existence.  With MyPy, this means Prototype declarations.
 * Enforce read-only attributes through `@property` methods.  This may be a bit of a performance hit, so switching this will be on an individual basis.  Critical system parts will need to enforce read-only everywhere.  *May switch to using more Named Tuples*.
-* API vs implementation.  The API for Petronia is the event bus, the event IDs and singleton IDs, and the structured event data.  Everything else is implementation and should be registered separately from the API.  Extensions should have an API and implementation portion as well.  Users, if they really want, can swap out all the implementations, starting with extensions, all the way up to the core system setup at bootstrap time.
+* API vs implementation.  At it's core, Petronia is a simple method for managing the execution and communication of different programs between each other through the event bus.  As a window manager, all the functionality is in extensions.  Any extension that can send data 
 * All non-local memory must be accessed in a thread-safe manner.  For this reason, global memory must be restricted to just a few places.  This applies to singleton objects as well.
 * Internationalization is a must.  Petronia uses the built-in `gettext` module for the application.  Extensions should expect the localization files to be added by the platform, and should produce files that can be integrated into the localization paths.
 * `asyncio` over threading.  Threading is only used when Python makes it really difficult to use asyncio.  Unfortunately, this means forking behavior if threading is ever used, because of the underlying "async" vs non-async calls.
@@ -46,7 +44,7 @@ To help limit this, keyboard capture is also only run by the os handler process,
 
 Cannot allow for arbitrary screen overly.  Instead, these need to be well contained and defined.
 
-Abuse vector is masking a part of the screen to make the user think they're interacting with something they aren't.
+An example of an abuse vector includes masking a part of the screen to make the user think they're interacting with something they aren't.
 
 ### Extensions
 

@@ -20,6 +20,17 @@ runtime:
   launcher: core
   # No permissions necessary.
 
+state-data:
+  configuration:
+    description: >
+      Configuration for the data store.
+    fields:
+      cachedir:
+        description: Directory for storing the cache of temporary files.
+        type: string
+        min-length: 1
+        max-length: 10000
+
 licenses:
   - MIT
 authors:

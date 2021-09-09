@@ -101,6 +101,17 @@ class EventRegistryContextImpl(EventRegistryContext):
             bytes(data),
         )
 
+    def send_binary_event_stream(
+            self, source_id: str, target_id: str, event_id: str, data_size: int, data: RawBinaryReader,
+    ) -> StdRet[None]:
+        return self._writer.write_binary_event(
+            event_id,
+            source_id,
+            target_id,
+            data_size,
+            data,
+        )
+
 
 class AbstractEventForwarderTarget(EventForwarderTarget, ABC):
     """Common implementation for targets.  This is a single-threaded version."""

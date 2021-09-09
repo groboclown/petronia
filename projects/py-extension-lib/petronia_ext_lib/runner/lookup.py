@@ -9,7 +9,7 @@ from petronia_common.event_stream import (
     BinaryReader, BinaryWriter, read_event_stream, write_object_event_to_stream,
     write_binary_event_to_stream, RawEvent, is_raw_event_object, raw_event_id,
     as_raw_event_object_data, raw_event_target_id, raw_event_source_id,
-    raw_event_binary_size, as_raw_event_binary_data_reader,
+    raw_event_binary_size, as_raw_event_binary_data_reader, RawBinaryReader,
 )
 from petronia_common.util import StdRet, PetroniaReturnError, T, RET_OK_NONE, EMPTY_DICT
 from petronia_common.util import i18n as _
@@ -137,6 +137,16 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
             return write_binary_event_to_stream(
                 self.__writer, event_id, source_id, target_id,
                 len(data), bytes(data),
+            )
+
+    def send_binary_event_stream(
+            self, source_id: str, target_id: str, event_id: str, data_size: int, data: RawBinaryReader,
+    ) -> StdRet[None]:
+        """Send the binary event safely."""
+        with self._lock:
+            return write_binary_event_to_stream(
+                self.__writer, event_id, source_id, target_id,
+                data_size, data,
             )
 
     def _event_listener(self, event: RawEvent) -> bool:

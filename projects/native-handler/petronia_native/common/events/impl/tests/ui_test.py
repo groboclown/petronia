@@ -5,7 +5,7 @@ Tests for the ui module.
 Extension petronia.core.api.native.ui, Version 1.0.0
 """
 
-# pylint: disable=too-many-lines,line-too-long
+# pylint: disable=too-many-lines,line-too-long,unused-import
 
 import unittest
 from typing import Sequence, Tuple, Dict, Any
@@ -72,17 +72,17 @@ REGISTER_IMAGE_DETAILS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'locale': 'ȚƲO˲\x89Ǚl',
-            'format': 'ʭžˆ',
+            'locale': "ƿϻЋǊΑΫ'",
+            'format': 'ˈƆɶϖƟǵԟЉТуҴЪϒɮəӖtԬҊàΞʿɅӡsҶˍŢЅư',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'locale': 'œ',
+            'locale': 'ς',
 
-            'format': 'Ӑ',
+            'format': 'ƹ',
 
         },
     ),
@@ -148,18 +148,18 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 8119210,
+            'identifier': 4604707,
             'mouse_buttons': [
-                3105457020821056831,
-                7698082625109617961,
-                797204881364487417,
-                -7260821346475533010,
-                -76339371190828108,
-                -8417048627419193408,
-                -8803860802475133557,
-                4491707690713385091,
-                -7845754213303520972,
-                -2115803640952681816,
+                -3510100277984130713,
+                3201196553908846410,
+                3858448524564585199,
+                4264118274008271439,
+                2413655247192363584,
+                4081458060648260034,
+                2736599249471595688,
+                -1905321239525358701,
+                -4637810086307445741,
+                8540434286244931351,
             ],
         },
     ),
@@ -167,10 +167,10 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 9671262,
+            'identifier': 7631486,
 
             'mouse_buttons': [
-                5325737153467811546,
+                308289572086173691,
             ],
 
         },
@@ -237,15 +237,15 @@ UI_TEXT_FIELD_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 9517885,
-            'text': 'iʛ[˾ƢԀ˥ҝĚ©űȳԇ¨ηʥҸ½ ɥÒӁt\x9aȿ˥δá˾Ԗ',
+            'identifier': -472878,
+            'text': 'zoјѾȆͿǷêȼƶͱɇʥ¶ЌĚŗȂț˞ƤҎɗϟ˝ѧɴчŝ>',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 5265335,
+            'identifier': 6138189,
 
             'text': '',
 
