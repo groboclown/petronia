@@ -10,16 +10,16 @@ Data structures and marshalling for extension petronia.core.api.foreman_announce
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    List,
-    Dict,
     Any,
+    Dict,
+    List,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     not_none,
     collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman_announcement'

@@ -12,3 +12,4 @@ from .registry import (
 from .chain import DecisionHandlerProxy
 from .lookup import LookupEventRegistryContext
 from .simple import SimpleEventRegistryContext
+from .single_threaded import SingleThreadedEventRegistryContext

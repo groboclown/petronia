@@ -71,5 +71,5 @@ class LogHandlerTest(unittest.TestCase):
 
     def _get_messages(self) -> List[str]:
         self.assertTrue(os.path.isfile(self.logfile))
-        with open(self.logfile) as f:
+        with open(self.logfile, 'r', encoding='utf-8') as f:
             return [line.strip() for line in f.readlines()]

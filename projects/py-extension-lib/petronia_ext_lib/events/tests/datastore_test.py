@@ -5,7 +5,7 @@ Tests for the datastore module.
 Extension petronia.core.api.datastore, Version 1.0.0
 """
 
-# pylint: disable=too-many-lines,line-too-long
+# pylint: disable=too-many-lines,line-too-long,unused-import
 
 import unittest
 from typing import Sequence, Tuple, Dict, Any
@@ -13,16 +13,16 @@ from petronia_common.util import UserMessage, i18n, STANDARD_PETRONIA_CATALOG
 from .. import datastore
 
 
-class StoreDataEventTest(unittest.TestCase):
+class StoreDataRequestEventTest(unittest.TestCase):
     """
-    Tests for StoreDataEvent
+    Tests for StoreDataRequestEvent
     """
     def test_parse_bad_data(self) -> None:
         """Data driven tests with validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in STORE_DATA_EVENT_BAD_PARSE_DATA_TESTS:
+        for test_name, test_data, messages in STORE_DATA_REQUEST_EVENT_BAD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = datastore.StoreDataEvent.parse_data(test_data)
+                res = datastore.StoreDataRequestEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
@@ -36,14 +36,14 @@ class StoreDataEventTest(unittest.TestCase):
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in STORE_DATA_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = datastore.StoreDataEvent.parse_data(test_data)
+                res = datastore.StoreDataRequestEvent.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-STORE_DATA_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+STORE_DATA_REQUEST_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
 ] = [
 
@@ -53,7 +53,7 @@ STORE_DATA_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='json', name='StoreDataEvent'),
+                dict(field_name='json', name='StoreDataRequestEvent'),
             ),
 
         ),
@@ -62,41 +62,41 @@ STORE_DATA_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-STORE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+STORE_DATA_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
     (
         'all-fields-present',
         {
-            'json': 'ƉȞʓʜйϟʏȥ@Ńɍ¡ϢЯĎȽȺΥҹϲȏӪŜøėȔčҌǝɡ',
+            'json': "ΓòӯЂөɢŢӼ'±ϓ*˃ǯ΄ƜɮͳàϵƲЄ\u0383\x86ŵːȭȖɐƽ",
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': 'ъĨ',
+            'json': '\xa0ŉ',
 
         },
     ),
 ]
 
 
-class DeleteDataEventTest(unittest.TestCase):
+class DeleteDataRequestEventTest(unittest.TestCase):
     """
-    Tests for DeleteDataEvent
+    Tests for DeleteDataRequestEvent
     """
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in DELETE_DATA_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = datastore.DeleteDataEvent.parse_data(test_data)
+                res = datastore.DeleteDataRequestEvent.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+DELETE_DATA_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
 
@@ -104,16 +104,16 @@ DELETE_DATA_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-class SendStateEventTest(unittest.TestCase):
+class SendStateRequestEventTest(unittest.TestCase):
     """
-    Tests for SendStateEvent
+    Tests for SendStateRequestEvent
     """
     def test_parse_bad_data(self) -> None:
         """Data driven tests with validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in SEND_STATE_EVENT_BAD_PARSE_DATA_TESTS:
+        for test_name, test_data, messages in SEND_STATE_REQUEST_EVENT_BAD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = datastore.SendStateEvent.parse_data(test_data)
+                res = datastore.SendStateRequestEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
@@ -127,14 +127,14 @@ class SendStateEventTest(unittest.TestCase):
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in SEND_STATE_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = datastore.SendStateEvent.parse_data(test_data)
+                res = datastore.SendStateRequestEvent.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-SEND_STATE_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+SEND_STATE_REQUEST_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
 ] = [
 
@@ -144,7 +144,7 @@ SEND_STATE_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='store_id', name='SendStateEvent'),
+                dict(field_name='store_id', name='SendStateRequestEvent'),
             ),
 
         ),
@@ -153,36 +153,36 @@ SEND_STATE_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-SEND_STATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+SEND_STATE_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
     (
         'all-fields-present',
         {
-            'store_id': 'ʥǃƿȅԫжԇȨƯūĂxα1љǞťǃɃƈƨƈEϨѾʜĞ£ʎĚ',
+            'store_id': 'υĎϹҪÛȱåĝÂġɍË˹юˁdŨ˜ѭԀɇȷǦ ɠ\x94ϊɠȞЈ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': 'ě˄˩τӹ',
+            'store_id': 'ʆëЮeλ',
 
         },
     ),
 ]
 
 
-class DataUpdateEventTest(unittest.TestCase):
+class DataUpdatedEventTest(unittest.TestCase):
     """
-    Tests for DataUpdateEvent
+    Tests for DataUpdatedEvent
     """
     def test_parse_bad_data(self) -> None:
         """Data driven tests with validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data, messages in DATA_UPDATE_EVENT_BAD_PARSE_DATA_TESTS:
+        for test_name, test_data, messages in DATA_UPDATED_EVENT_BAD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = datastore.DataUpdateEvent.parse_data(test_data)
+                res = datastore.DataUpdatedEvent.parse_data(test_data)
                 self.assertIsNone(res.value)
                 expected = {
                     UserMessage(STANDARD_PETRONIA_CATALOG, i18n(m), **a)
@@ -196,14 +196,14 @@ class DataUpdateEventTest(unittest.TestCase):
     def test_parse_good_exported_data(self) -> None:
         """Data driven tests with no validation problems."""
         self.maxDiff = None  # pylint: disable=C0103
-        for test_name, test_data in DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS:
+        for test_name, test_data in DATA_UPDATED_EVENT_GOOD_PARSE_DATA_TESTS:
             with self.subTest(name=test_name):
-                res = datastore.DataUpdateEvent.parse_data(test_data)
+                res = datastore.DataUpdatedEvent.parse_data(test_data)
                 self.assertIsNone(res.error)
                 self.assertEqual(test_data, res.result.export_data())
 
 
-DATA_UPDATE_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
+DATA_UPDATED_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, Any]]]],
 ] = [
 
@@ -213,11 +213,11 @@ DATA_UPDATE_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
         (
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='changed', name='DataUpdateEvent'),
+                dict(field_name='changed', name='DataUpdatedEvent'),
             ),
             (
                 'Required field {field_name} in {name}',
-                dict(field_name='json', name='DataUpdateEvent'),
+                dict(field_name='json', name='DataUpdatedEvent'),
             ),
 
         ),
@@ -226,23 +226,23 @@ DATA_UPDATE_EVENT_BAD_PARSE_DATA_TESTS: Sequence[
 ]
 
 
-DATA_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
+DATA_UPDATED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     Tuple[str, Dict[str, Any]],
 ] = [
     (
         'all-fields-present',
         {
-            'changed': '20210413:002012.627320:+0000',
-            'json': 'ҔuÐȹƍиǡϾˬ˒\x90fÿȰŁɏЉүĐ˘ôΑƥǉ΅ʊĆқеΓ',
+            'changed': '20210910:185518.085914:+0000',
+            'json': 'ӀԓɯþϹğʌƣӾΠŻíǉ҇ъǡЭϏhӼ\x90ԥȏѭûҒƙĨʷͲ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210413:002012.645287:+0000',
+            'changed': '20210910:185518.110189:+0000',
 
-            'json': '×г',
+            'json': 'ɆΓ',
 
         },
     ),

@@ -1,4 +1,5 @@
 ---
+schema-version: v1
 
 name: petronia.core.api.extension_loader
 type: api

@@ -69,7 +69,7 @@ if sys.platform == 'win32':
                 # Yes, this is using Popen.  Arguments are somewhat loaded in from
                 # the user, but these are explicit split arguments without shell access.
                 # This helps restrict the security issues present with this.
-                proc = subprocess.Popen(  # nosec
+                proc = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
                     split_cmd,
                     close_fds=False,  # Important to inherit just the explicitly shared handles.
                     stdin=msvcrt.open_osfhandle(child_h_tx_read, 0),

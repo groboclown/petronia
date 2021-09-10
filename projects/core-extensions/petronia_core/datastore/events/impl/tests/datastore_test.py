@@ -68,14 +68,14 @@ STORE_DATA_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'json': '\u0378ʙǑЯŝΐШѲȊȪǃԋŬхŠʡ:˪ȘŏēɣǅΟяȲ%ȍΣӖ',
+            'json': 'ǿɝжИ\u0380шΚΞɳѥɇ\x9cŃǷѫɤɔ\u038bțʈɪϡđşǩȲЭĊǷǔ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': '҆Ʈ',
+            'json': 'Ϳͻ',
 
         },
     ),
@@ -159,20 +159,18 @@ SEND_STATE_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'store_id': 'ˤŨƐУǣtԉƈ=ҳɹĘ',
+            'store_id': 'ɡƝΖĈûʔlƜӶ\x80ȻɖǝǑҚӋԡШʮЬԒƽĮРӰΉїӤƫҠ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': '?дĬÔ,',
+            'store_id': '\x91æϞǉʎ',
 
         },
     ),
 ]
-
-
 
 
 class DataUpdatedEventTest(unittest.TestCase):
@@ -234,23 +232,21 @@ DATA_UPDATED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20210909:223503.857371:+0000',
-            'json': 'ZҏĀѳfěĹΕ\x89щϭȮҟ»ӎ\x95ÀƂóжxɉWɯξҁ\x81ɾԮļ',
+            'changed': '20210910:164446.045652:+0000',
+            'json': 'ρƫ\x98˭Ӯĝǫ\x84ʲǎʡВΌϯɉˏ½ГȆԧǑΧːʯȓʮǌԕ$ǻ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20210909:223503.876652:+0000',
+            'changed': '20210910:164446.070398:+0000',
 
-            'json': 'Ԉ\x9e',
+            'json': 'wí',
 
         },
     ),
 ]
-
-
 
 
 class DataRemovedEventTest(unittest.TestCase):

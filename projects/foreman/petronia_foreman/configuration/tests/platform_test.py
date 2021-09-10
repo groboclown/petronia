@@ -31,7 +31,7 @@ class PlatformConfigTest(unittest.TestCase):
 
     def test_find_data_dir__found_file(self) -> None:
         """Find the data directory when it exists as a file."""
-        with open(os.path.join(self.tempdir, 'file.txt'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'file.txt'), 'w', encoding='utf-8') as f:
             f.write('x')
         platform.data_paths = [self.tempdir]
         self.assertIsNone(platform.find_data_dir('file.txt'))

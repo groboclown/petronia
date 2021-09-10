@@ -63,7 +63,7 @@ class ImporterTest(unittest.TestCase):
 
     def test_load_module_from_path__new_path(self) -> None:
         """Test load_module_from_path with a new file not in the current sys path."""
-        with open(os.path.join(self.tempdir, 'test-module-1.py'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'test-module-1.py'), 'w', encoding='utf-8') as f:
             f.write(TEST_MODULE_TEXT)
         res = importer.load_module_from_path('test-module-1', [self.tempdir])
         self.assertIsNone(res.error)
@@ -105,7 +105,7 @@ class ImporterTest(unittest.TestCase):
 
     def test_get_entrypoint_function__entrypoint_name_error(self) -> None:
         """Test get_entrypoint_function with a missing entrypoint error."""
-        with open(os.path.join(self.tempdir, 'test-module-2.py'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'test-module-2.py'), 'w', encoding='utf-8') as f:
             f.write(TEST_MODULE_TEXT)
         res = importer.get_entrypoint_function(
             'test-module-2', 'entrypoint', [self.tempdir],
@@ -118,7 +118,7 @@ class ImporterTest(unittest.TestCase):
 
     def test_get_entrypoint_function__entrypoint_callable_error(self) -> None:
         """Test get_entrypoint_function with an entrypoint not being callable error."""
-        with open(os.path.join(self.tempdir, 'test-module-3.py'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'test-module-3.py'), 'w', encoding='utf-8') as f:
             f.write(TEST_MODULE_TEXT)
         res = importer.get_entrypoint_function(
             'test-module-3', 'MY_MODULE_CONST', [self.tempdir],
@@ -131,7 +131,7 @@ class ImporterTest(unittest.TestCase):
 
     def test_get_entrypoint_function__ok(self) -> None:
         """Test get_entrypoint_function with an entrypoint not being callable error."""
-        with open(os.path.join(self.tempdir, 'test-module-4.py'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'test-module-4.py'), 'w', encoding='utf-8') as f:
             f.write(TEST_MODULE_TEXT)
         res = importer.get_entrypoint_function(
             'test-module-4', 'entrypoint_function', [self.tempdir],

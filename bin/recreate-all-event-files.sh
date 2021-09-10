@@ -39,22 +39,36 @@ echo core-extensions:
   --output "${pd}/core-extensions/petronia_core/datastore/state" \
   --state \
   "${pd}/core-extensions/core-datastore-extension.yaml"
+
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/binarystore/events/impl" \
+  --implementation --api --state \
+  "${pd}/core-extensions/binarystore-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/core-extensions/petronia_core/binarystore/state" \
+  --state \
+  "${pd}/core-extensions/core-binarystore-extension.yaml"
+
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/file_logger/state" \
   --state \
   "${pd}/core-extensions/core-file-logger-extension.yaml"
+
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/timer/events/impl" \
   --implementation --api --state \
   "${pd}/core-extensions/timer-extension.yaml"
+
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/timer/state" \
   --state \
   "${pd}/core-extensions/core-timer-extension.yaml"
+
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/hotkey_binding/events/impl" \
   --implementation --api --state \
   "${pd}/core-extensions/hotkey-binding-extension.yaml"
+
 "${h}/generate-events.sh" \
   --output "${pd}/core-extensions/petronia_core/hotkey_binding/events/ext" \
   --api --state \

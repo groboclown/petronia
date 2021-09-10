@@ -37,7 +37,7 @@ class CmdExtensionTest(unittest.TestCase):
         self.foreman_config = ForemanConfig()
         with open(os.path.join(
                 self.tempdir, 'data', 'boot-extensions', 'extension-loader.json',
-        ), 'w') as f:
+        ), 'w', encoding='utf-8') as f:
             json.dump({
                 'name': 'petronia_extension_loader',
                 'version': [1, 0, 0],
@@ -75,7 +75,7 @@ class CmdExtensionTest(unittest.TestCase):
 
         self.start_file = os.path.join(self.tempdir, 'extension-started.txt')
 
-        with open(os.path.join(self.tempdir, 'configs', 'config.json'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'configs', 'config.json'), 'w', encoding='utf-8') as f:
             json.dump({
                 'startup': {
                     'extensions': ['petronia_integration_tests.foreman_el.integration1'],

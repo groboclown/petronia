@@ -20,6 +20,7 @@ from .defs import (
     MarshalledEventObject,
     to_raw_event_object,
     to_raw_event_binary,
+    convert_reader_to_raw,
 )
 from .reader import (
     BinaryReader, read_event_stream,

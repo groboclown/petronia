@@ -73,7 +73,7 @@ def mk_event_marshal_src(
         return ret_template.forward()
     event_src = os.path.join(output_dir, event_module_name + SRC_EXTENSION)
     try:
-        with open(event_src, 'w') as f:
+        with open(event_src, 'w', encoding='utf-8') as f:
             f.write(clean_up_text(templatize(
                 ret_template.result,
                 {
@@ -108,7 +108,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
     _INIT_CONTENTS[init_src].add(event_module_name)
     # Append the "import" statement.
     try:
-        with open(init_src, 'w') as f:
+        with open(init_src, 'w', encoding='utf-8') as f:
             f.write(clean_up_text(templatize(
                 ret_template.result,
                 {
@@ -127,7 +127,7 @@ def mk_init(output_dir: str, event_module_name: str) -> StdRet[None]:
         if not os.path.isdir(test_dir):
             os.mkdir(test_dir)
         # Even if the file exists, overwrite it.
-        with open(test_init_src, 'w') as f:
+        with open(test_init_src, 'w', encoding='utf-8') as f:
             f.write(clean_up_text(templatize(
                 ret_template.result,
                 {'now': tznow().isoformat()},
@@ -150,7 +150,7 @@ def mk_event_marshal_test_src(
         return ret_template.forward()
     test_file_src = os.path.join(output_dir, TEST_DIR_NAME, event_module_name + TEST_SRC_EXTENSION)
     try:
-        with open(test_file_src, 'w') as f:
+        with open(test_file_src, 'w', encoding='utf-8') as f:
             f.write(clean_up_text(templatize(
                 ret_template.result,
                 {

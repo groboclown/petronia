@@ -25,7 +25,7 @@ class FindFileTest(unittest.TestCase):
     def test_get_config_file__with_file_arg(self) -> None:
         """Test get_config_file with a config argument."""
         f_name = os.path.join(self.tempdir, 'test.txt')
-        with open(f_name, 'w') as f:
+        with open(f_name, 'w', encoding='utf-8') as f:
             f.write('[foo]')
         res = find_file.get_config_file(f_name)
         self.assertTrue(res.ok)
@@ -43,7 +43,7 @@ class FindFileTest(unittest.TestCase):
         for expected_name in find_file.DEFAULT_PETRONIA_CONFIG_FILE_NAMES:
             self.assertFalse(os.path.isfile(os.path.join(self.tempdir, expected_name)))
         f_name = os.path.join(self.tempdir, find_file.DEFAULT_PETRONIA_CONFIG_FILE_NAMES[0])
-        with open(f_name, 'w') as f:
+        with open(f_name, 'w', encoding='utf-8') as f:
             f.write('[foo]')
 
         res = find_file.get_config_file(self.tempdir)
@@ -55,7 +55,7 @@ class FindFileTest(unittest.TestCase):
         for expected_name in find_file.DEFAULT_PETRONIA_CONFIG_FILE_NAMES:
             self.assertFalse(os.path.isfile(os.path.join(self.tempdir, expected_name)))
         f_name = os.path.join(self.tempdir, find_file.DEFAULT_PETRONIA_CONFIG_FILE_NAMES[0])
-        with open(f_name, 'w') as f:
+        with open(f_name, 'w', encoding='utf-8') as f:
             f.write('[foo]')
         platform.configuration_paths = [self.tempdir]
         res = find_file.get_config_file(None)
@@ -81,7 +81,7 @@ class FindFileTest(unittest.TestCase):
         """Test get_boot_extension_file when the file exists in the boot-extensions dir."""
         os.makedirs(os.path.join(self.tempdir, 'boot-extensions'), exist_ok=True)
         fqn = os.path.abspath(os.path.join(self.tempdir, 'boot-extensions', 'exists.txt'))
-        with open(fqn, 'w') as f:
+        with open(fqn, 'w', encoding='utf-8') as f:
             f.write('x')
         res = find_file.get_boot_extension_file('exists.txt')
         self.assertIsNone(res.error)

@@ -10,17 +10,17 @@ Data structures and marshalling for extension petronia.core.api.datastore versio
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
     Dict,
+    Any,
     List,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
     not_none,
+    StdRet,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.datastore'
@@ -195,18 +195,6 @@ class SendStateRequestEvent:
         return "SendStateRequestEvent(" + repr(self.export_data()) + ")"
 
 
-class StoreBinaryRequestEvent:
-    """
-    Binary event
-    """
-    __slots__ = ()
-    FULL_EVENT_NAME = 'petronia.core.api.datastore:store-binary:request'
-    SHORT_EVENT_NAME = 'store-binary:request'
-
-    UNIQUE_TARGET_FQN = 'petronia.core.api.datastore:store-bin'
-    UNIQUE_TARGET_REL = 'store-bin'
-
-
 class DataUpdatedEvent:
     """
     Notification for data that is new or changed. The target ID is always the data
@@ -297,15 +285,6 @@ class DataUpdatedEvent:
 
     def __repr__(self) -> str:
         return "DataUpdatedEvent(" + repr(self.export_data()) + ")"
-
-
-class BinaryUpdatedEvent:
-    """
-    Binary event
-    """
-    __slots__ = ()
-    FULL_EVENT_NAME = 'petronia.core.api.datastore:binary-updated'
-    SHORT_EVENT_NAME = 'binary-updated'
 
 
 class DataRemovedEvent:

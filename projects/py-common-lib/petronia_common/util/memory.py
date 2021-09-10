@@ -10,8 +10,8 @@ from typing import TypeVar, Tuple, Generic, Optional, Dict, Mapping, Any
 
 # singleton empty collections.  DO NOT MODIFY THEM.
 # Note that the typing is ignored, so that they can take the place of anything.
-EMPTY_DICT = dict()  # type: ignore
-EMPTY_LIST = list()  # type: ignore
+EMPTY_DICT = {}  # type: ignore
+EMPTY_LIST = []  # type: ignore
 EMPTY_TUPLE = tuple()  # type: ignore
 
 EMPTY_MAPPING: Mapping[Any, Any] = EMPTY_DICT  # type: ignore

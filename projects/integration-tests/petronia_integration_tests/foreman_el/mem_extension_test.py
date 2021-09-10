@@ -40,7 +40,7 @@ class MemoryExtensionTest(unittest.TestCase):
         self.foreman_config = ForemanConfig()
         with open(os.path.join(
                 self.tempdir, 'data', 'boot-extensions', 'extension-loader.json',
-        ), 'w') as f:
+        ), 'w', encoding='utf-8') as f:
             json.dump({
                 'name': 'petronia_extension_loader',
                 'version': [1, 0, 0],
@@ -76,7 +76,7 @@ class MemoryExtensionTest(unittest.TestCase):
         config.set('extension-loader', 'arg.3', '${TEMP_DIR}')
         config.set('extension-loader', 'arg.4', 'extension-loader')  # launcher_id
 
-        with open(os.path.join(self.tempdir, 'configs', 'config.json'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'configs', 'config.json'), 'w', encoding='utf-8') as f:
             json.dump({
                 'startup': {
                     'extensions': ['petronia_integration_tests.foreman_el.integration1'],

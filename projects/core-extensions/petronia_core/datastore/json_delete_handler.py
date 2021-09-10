@@ -9,7 +9,7 @@ from .state import datastore as datastore_state
 from ..user_messages import report_send_receive_problems
 
 
-def register_delete_data_listener(context: EventRegistryContext) -> StdRet[None]:
+def register_json_delete_data_listener(context: EventRegistryContext) -> StdRet[None]:
     """Register the store data listener."""
     return join_none_results(
         send_register_listeners(
@@ -38,7 +38,7 @@ class DeleteDataHandler(ContextEventObjectTarget[datastore_event.DeleteDataReque
             self, context: EventRegistryContext, source: str, target: str,
             event: datastore_event.DeleteDataRequestEvent,
     ) -> bool:
-        if shared_state.delete_data(source):
+        if shared_state.delete_json_data(source):
             # Deleted.
             print(f"[DATASTORE] deleted data for {source}")
             report_send_receive_problems('datastore', context.send_event(

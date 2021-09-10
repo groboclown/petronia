@@ -6,9 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 from queue import Queue, Empty
 from typing import Dict, List, Tuple, Iterable, Callable, Optional, Any
 from petronia_common.event_stream import (
-    EventForwarderTarget, BinaryWriter, BinaryReader, RawBinaryReader,
+    EventForwarderTarget, BinaryWriter, BinaryReader,
 )
-from petronia_common.util import StdRet, collect_errors_from, RET_OK_NONE, PetroniaReturnError
+from petronia_common.util import StdRet, collect_errors_from, RET_OK_NONE
 from petronia_common.util import i18n as _
 from .event_handlers import ExtensionLoaderTarget, InternalTarget
 from .router_loop import (
@@ -50,7 +50,7 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
     the main thread.
     """
     __slots__ = (
-        '__category_states', '__executor', '__state', '__queue', '__lock',
+        '__category_states', '__state', '__queue', '__lock',
         '__state_condition', '__thread', '__full_stop', 'stop_timeout',
     )
 
@@ -62,7 +62,6 @@ class ForemanRouter:  # pylint: disable=too-many-instance-attributes
             config.runtime_name: LauncherCategoryState(config)
             for config in categories
         }
-        self.__executor: Optional[ThreadPoolExecutor] = None
         self.__state = 0
         self.__lock = threading.RLock()
         self.__queue = Queue()  # type: Queue[QueueRequest]

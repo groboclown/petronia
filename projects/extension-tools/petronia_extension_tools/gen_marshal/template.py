@@ -36,7 +36,7 @@ def load_template(name: str) -> StdRet[str]:
     """Load in all the template definitions from the files."""
     template_file = os.path.abspath(os.path.join(os.path.dirname(__file__), name))
     try:
-        with open(template_file, 'r') as f:
+        with open(template_file, 'r', encoding='utf-8') as f:
             return StdRet.pass_ok(f.read())
     except OSError as err:
         return StdRet.pass_errmsg(

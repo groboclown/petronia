@@ -64,10 +64,10 @@ class CmdLauncherCategoryTest(unittest.TestCase):  # pylint:disable=too-many-ins
         data_dir_1 = os.path.join(data_dir, '1')
         os.makedirs(data_dir_1)
         config_file_1 = os.path.join(config_dir, 'x.txt')
-        with open(config_file_1, 'w') as f:
+        with open(config_file_1, 'w', encoding='utf-8') as f:
             f.write('x')
         data_file_1 = os.path.join(data_dir, 'x.txt')
-        with open(data_file_1, 'w') as f:
+        with open(data_file_1, 'w', encoding='utf-8') as f:
             f.write('x')
 
         res = cmd_launcher.safe_location_convert([])

@@ -23,8 +23,8 @@ def send_store_data(
 
     return context.send_event(
         data_id,
-        datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
-        datastore.StoreDataEvent(
+        datastore.StoreDataRequestEvent.UNIQUE_TARGET_FQN,
+        datastore.StoreDataRequestEvent(
             json.dumps(data.export_data()),
         ),
     )
@@ -35,8 +35,8 @@ def send_delete_data(context: EventRegistryContext, data_id: str) -> StdRet[None
 
     return context.send_event(
         data_id,
-        datastore.DeleteDataEvent.UNIQUE_TARGET_FQN,
-        datastore.DeleteDataEvent(),
+        datastore.DeleteDataRequestEvent.UNIQUE_TARGET_FQN,
+        datastore.DeleteDataRequestEvent(),
     )
 
 
@@ -46,6 +46,6 @@ def send_request_data_state(
     """Request the extension to send out the current state of the given data ID."""
     return context.send_event(
         source_id,
-        datastore.SendStateEvent.UNIQUE_TARGET_FQN,
-        datastore.SendStateEvent(data_id),
+        datastore.SendStateRequestEvent.UNIQUE_TARGET_FQN,
+        datastore.SendStateRequestEvent(data_id),
     )

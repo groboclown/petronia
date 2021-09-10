@@ -1,0 +1,45 @@
+---
+schema-version: v1
+
+
+name: petronia_core.binarystore
+type: impl
+version: [1, 0, 0]
+about: Simple file-based but non-persistent store implementation.
+description: >
+  Non-persistent data store.
+
+implements:
+  - name: petronia.core.api.binarystore
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+depends:
+  - name: petronia.core.protocol.logging
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+
+runtime:
+  launcher: core
+  # No permissions necessary.
+
+state-data:
+  configuration:
+    description: >
+      Configuration for the data store.
+    fields:
+      cachedir:
+        description: Directory for storing the cache of temporary files.
+        type: string
+        min-length: 1
+        max-length: 10000
+        optional: true
+      request_timeout_seconds:
+        description: Number of seconds before a store request times out.
+        type: float
+        min-value: 0.0
+        optional: true
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project

@@ -51,7 +51,7 @@ class EntrypointTest(unittest.TestCase):
 
         log_file = os.path.join(self.tempdir, 'logs', 'f.log')
         self.assertTrue(os.path.isfile(log_file))
-        with open(log_file, 'r') as f:
+        with open(log_file, 'r', encoding='utf-8') as f:
             log_contents = f.read()
         self.assertEqual(
             's1 m1\n',

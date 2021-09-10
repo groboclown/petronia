@@ -38,6 +38,11 @@ class SimpleTest(unittest.TestCase):
             logging.SystemErrorEvent.FULL_EVENT_NAME,
             EventObjectParser(logging.SystemErrorEvent.parse_data),
         )
+        self.assertIsNone(res.error)
+        res = context.register_event(
+            logging.SystemErrorEvent.FULL_EVENT_NAME,
+            EventObjectParser(logging.LogEvent.parse_data),
+        )
         self.assertEqual(
             [f'parser for event {logging.SystemErrorEvent.FULL_EVENT_NAME} already registered'],
             [m.debug() for m in res.error_messages()],

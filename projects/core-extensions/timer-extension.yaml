@@ -1,4 +1,5 @@
 ---
+schema-version: v1
 
 name: petronia.core.api.timer
 type: api
@@ -12,9 +13,11 @@ licenses:
   - MIT
 authors:
   - Petronia Project
+depends: []
 default:
   name: petronia_core.timer
   minimum: [1, 0, 0]
+
 
 state-data:
   heartbeat-interval:

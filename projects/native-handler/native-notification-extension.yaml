@@ -62,12 +62,16 @@ events:
         ref: localizable-message
       icon_id:
         description: >
-          Identifier for the icon to associate with the message.
+          Identifier for the icon to associate with the message.  The ID here is the data store
+          binary data entry.  The ID must include the mime type at the end, in the form
+          `:image/format`
         type: reference
         ref: event-target-id
       sound_id:
         description: >
-          Identifier for the audio to play with the message.
+          Identifier for the audio to play with the message.  The ID here is the data store
+          binary data entry, with the mime type at the end of the ID, in the form
+          `:audio/format`
         type: reference
         ref: event-target-id
 

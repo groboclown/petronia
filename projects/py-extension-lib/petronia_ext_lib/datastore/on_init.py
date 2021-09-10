@@ -42,7 +42,7 @@ class InitCachedInstance(listen.CachedInstance[T]):
         self.__initialized = True
         listen.CachedInstance.on_delete(self)
 
-    def update(self, event: datastore_event.DataUpdateEvent) -> StdRet[None]:
+    def update(self, event: datastore_event.DataUpdatedEvent) -> StdRet[None]:
         self.__initialized = True
         return listen.CachedInstance.update(self, event)
 
@@ -84,7 +84,7 @@ class CollectionCache(Generic[T]):
                 self.__callback(target_id, None)
         return RET_OK_NONE
 
-    def update(self, target_id: str, event: datastore_event.DataUpdateEvent) -> StdRet[None]:
+    def update(self, target_id: str, event: datastore_event.DataUpdatedEvent) -> StdRet[None]:
         """Called when the data for the target is reported as added or updated."""
 
         parsed = listen.get_event_data_value(event, self.__parser)
@@ -121,8 +121,8 @@ class CacheStore:
         """Register this store with the datastore and heartbeat listeners."""
         return join_none_results(
             context.register_event_parser(
-                datastore_event.DataUpdateEvent.FULL_EVENT_NAME,
-                datastore_event.DataUpdateEvent.parse_data,
+                datastore_event.DataUpdatedEvent.FULL_EVENT_NAME,
+                datastore_event.DataUpdatedEvent.parse_data,
             ),
             context.register_event_parser(
                 datastore_event.DataRemovedEvent.FULL_EVENT_NAME,
@@ -133,7 +133,7 @@ class CacheStore:
                 timer_event.HeartbeatEvent.parse_data,
             ),
             context.register_target(
-                datastore_event.DataUpdateEvent.FULL_EVENT_NAME,
+                datastore_event.DataUpdatedEvent.FULL_EVENT_NAME,
                 None,
                 CacheStoreUpdateTarget(self),
             ),
@@ -150,7 +150,7 @@ class CacheStore:
 
             send_register_listeners(context, self.__extension_name, (
                 (
-                    datastore_event.DataUpdateEvent.FULL_EVENT_NAME,
+                    datastore_event.DataUpdatedEvent.FULL_EVENT_NAME,
                     None,
                 ),
                 (
@@ -209,7 +209,7 @@ class CacheStore:
         if res.has_error:
             self.__error_result_handler(res.forward())
 
-    def on_update(self, target_id: str, item: datastore_event.DataUpdateEvent) -> None:
+    def on_update(self, target_id: str, item: datastore_event.DataUpdatedEvent) -> None:
         """Sends an update to the data item for the target id."""
         with self.__lock:
             cache = self.__caches.get(target_id)
@@ -258,7 +258,7 @@ class TransmitUninitializedTarget(ContextEventObjectTarget[timer_event.Heartbeat
         return True
 
 
-class CacheStoreUpdateTarget(EventObjectTarget[datastore_event.DataUpdateEvent]):
+class CacheStoreUpdateTarget(EventObjectTarget[datastore_event.DataUpdatedEvent]):
     """Handle datastore update announcements to the cache store."""
 
     __slots__ = ('__cache_store',)
@@ -269,7 +269,7 @@ class CacheStoreUpdateTarget(EventObjectTarget[datastore_event.DataUpdateEvent])
     def on_close(self) -> None:
         self.__cache_store = None
 
-    def on_event(self, source: str, target: str, event: datastore_event.DataUpdateEvent) -> bool:
+    def on_event(self, source: str, target: str, event: datastore_event.DataUpdatedEvent) -> bool:
         if self.__cache_store:
             self.__cache_store.on_update(target, event)
             return False

@@ -49,7 +49,7 @@ class EntrypointTest(unittest.TestCase):  # pylint:disable=too-many-instance-att
     def test_entrypoint__bad_init(self) -> None:
         """Run the entrypoint with a bad initialization."""
         config_file = os.path.join(self.tempdir, 'config-file.txt')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write('x')
         reader = create_read_stream(b'')
         writer = SimpleBinaryWriter()
@@ -73,7 +73,7 @@ class EntrypointTest(unittest.TestCase):  # pylint:disable=too-many-instance-att
     def test_entrypoint__bad_extension(self) -> None:
         """Run the entrypoint with a bad initialization."""
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write('{}')
         reader = create_read_stream(b'')
         writer = SimpleBinaryWriter()
@@ -101,7 +101,7 @@ class EntrypointTest(unittest.TestCase):  # pylint:disable=too-many-instance-att
         """Run the entrypoint."""
         config = {'a': 'x', 'b': 'y'}
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f)
         reader = create_read_stream(b'')
         writer = SimpleBinaryWriter()
@@ -127,7 +127,7 @@ class EntrypointTest(unittest.TestCase):  # pylint:disable=too-many-instance-att
         """Run the entrypoint."""
         config = {'a': 'x', 'b': 'y'}
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f)
         reader = create_read_stream(b'')
         writer = SimpleBinaryWriter()

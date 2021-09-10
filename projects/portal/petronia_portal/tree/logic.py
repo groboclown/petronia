@@ -178,15 +178,15 @@ class OptimizedTileTree:
             )
             blocks.append(block_split)
             primary_split = model.SimpleSplit(layout_split.direction == 'horizontal')
-            stack: List[Tuple[model.TileContainer, portal_state.SplitContent]] = [
+            screen_stack: List[Tuple[model.TileContainer, portal_state.SplitContent]] = [
                 (primary_split, content)
                 for content in layout_split.contents
             ]
             block_split.add_child(primary_split, False, False)
             found_splits: List[model.SimpleSplit] = [primary_split]
 
-            while stack:
-                next_tuple = stack.pop(0)
+            while screen_stack:
+                next_tuple = screen_stack.pop(0)
                 assert next_tuple is not None  # nosec  # ensured because of while stack.
                 parent_container, content_def = next_tuple
                 if isinstance(content_def, portal_state.Portal):
@@ -202,7 +202,7 @@ class OptimizedTileTree:
                     child_split.rel_size = content_def.size
                     parent_container.add_child(child_split, False, False)
                     for content in content_def.contents:
-                        stack.append((child_split, content))
+                        screen_stack.append((child_split, content))
                     found_splits.append(child_split)
 
             # Ensure all simple splits have at least one child.
@@ -223,9 +223,9 @@ class OptimizedTileTree:
         assert len(self.__portals_by_id) > 0  # nosec
 
         print('[PORTAL] Updated layout tree:')
-        stack: List[Tuple[str, model.Tile]] = [(' *', self.__root)]
-        while stack:
-            next_indent, next_tile = stack.pop(0)
+        tile_stack: List[Tuple[str, model.Tile]] = [(' *', self.__root)]
+        while tile_stack:
+            next_indent, next_tile = tile_stack.pop(0)
             size_text = (
                 f'({next_tile.pos_x}, {next_tile.pos_y}) x '
                 f'({next_tile.width}, {next_tile.height})'
@@ -233,7 +233,7 @@ class OptimizedTileTree:
             if isinstance(next_tile, model.TileIterator):
                 print(f'{next_indent} > {repr(next_tile)} {size_text}')
                 for child in next_tile.get_children():
-                    stack.append((next_indent + '*', child))
+                    tile_stack.append((next_indent + '*', child))
             else:
                 print(f'{next_indent} = {size_text}')
                 for wnd in next_tile.get_contained_windows():
@@ -364,8 +364,8 @@ class OptimizedTileTree:
     def split_portal(
             self,
             active_portal_id: int,
-            add_before: bool,
-            new_direction: bool,
+            _add_before: bool,
+            _new_direction: bool,
     ) -> Sequence[model.KnownWindow]:
         """Split the active portal into two portals.
 
@@ -377,7 +377,7 @@ class OptimizedTileTree:
     def join_portals(
             self,
             active_portal_id: int,
-            join_before: bool,
+            _join_before: bool,
     ) -> Sequence[model.KnownWindow]:
         """Join the active portal with an adjacent one.
 

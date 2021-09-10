@@ -29,7 +29,7 @@ class LoadLauncherTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tempdir = tempfile.mkdtemp()
         self.mod_script = os.path.join(self.tempdir, 'test_mod.py')
-        with open(self.mod_script, 'w') as f:
+        with open(self.mod_script, 'w', encoding='utf-8') as f:
             f.write(TEST_MODULE_TEXT)
 
     def tearDown(self) -> None:

@@ -152,7 +152,7 @@ def load_translation(
         return
     domain_list_file = os.path.join(data_dir, 'catalog.list')
     if os.path.isfile(domain_list_file):
-        with open(domain_list_file, 'r') as f_obj:
+        with open(domain_list_file, 'r', encoding='utf-8') as f_obj:
             for line in f_obj.readlines():
                 catalog = line.strip()
                 try:

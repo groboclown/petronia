@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia_core.file_logger version 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    List,
     Optional,
-    cast,
     Dict,
+    cast,
     Any,
+    List,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     StdRet,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia_core.file_logger'

@@ -32,9 +32,9 @@ class SendTest(unittest.TestCase):
 
         event = collector.next_as_raw_event(self)
         self.assertTrue(is_raw_event_object(event))
-        self.assertEqual(datastore.StoreDataEvent.FULL_EVENT_NAME, raw_event_id(event))
+        self.assertEqual(datastore.StoreDataRequestEvent.FULL_EVENT_NAME, raw_event_id(event))
         self.assertEqual('my-event:data', raw_event_source_id(event))
-        res1 = datastore.StoreDataEvent.parse_data(as_raw_event_object_data(event))
+        res1 = datastore.StoreDataRequestEvent.parse_data(as_raw_event_object_data(event))
         self.assertIsNone(res1.error)
         res2 = timer.HeartbeatEvent.parse_data(json.loads(res1.result.json))
         self.assertIsNone(res2.error)

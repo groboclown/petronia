@@ -7,7 +7,7 @@ import json
 from petronia_common.util import StdRet, RET_OK_NONE, not_none, i18n
 from petronia_ext_lib.runner import EventRegistryContext
 from petronia_ext_lib.events import logging
-from .. import store_handler, shared_state
+from .. import json_store_handler, shared_state
 from ..events.impl import datastore
 
 
@@ -20,7 +20,7 @@ class StoreHandlerTest(unittest.TestCase):
         context.send_event.return_value = StdRet.pass_errmsg('c1', i18n('m1'))
         context.register_event_parser.return_value = StdRet.pass_errmsg('c2', i18n('m2'))
         context.register_target.return_value = StdRet.pass_errmsg('c3', i18n('m3'))
-        res = store_handler.register_store_data_listener(context)
+        res = json_store_handler.register_json_store_data_listener(context)
         self.assertIsNotNone(res.error)
         self.assertEqual(
             ['m1', 'm2', 'm3'],
@@ -32,26 +32,26 @@ class StoreHandlerTest(unittest.TestCase):
         context = unittest.mock.Mock(EventRegistryContext())
         context.send_event.return_value = RET_OK_NONE
         shared_state.clear_data()
-        handler = store_handler.StoreDataHandler(context)
+        handler = json_store_handler.StoreDataHandler(context)
         handler.on_event(
-            's:1', 't', datastore.StoreDataEvent(json.dumps({'a': 1})),
+            's:1', 't', datastore.StoreDataRequestEvent(json.dumps({'a': 1})),
         )
         # No such data, so a data removed is sent.
         context.send_event.assert_called_once()
         vargs, kwargs = cast(Tuple[Any, Any], not_none(context.send_event.call_args))
         self.assertEqual(3, len(vargs))
         self.assertEqual({}, kwargs)
-        self.assertEqual(datastore.DeleteDataEvent.UNIQUE_TARGET_FQN, vargs[0])
+        self.assertEqual(datastore.DeleteDataRequestEvent.UNIQUE_TARGET_FQN, vargs[0])
         self.assertEqual('s:1', vargs[1])
-        self.assertIsInstance(vargs[2], datastore.DataUpdateEvent)
+        self.assertIsInstance(vargs[2], datastore.DataUpdatedEvent)
         self.assertEqual({'s:1'}, set(shared_state.stored_data_ids()))
         self.assertEqual(
-            not_none(shared_state.get_data('s:1'))[0],
-            cast(datastore.DataUpdateEvent, vargs[2]).json,
+            not_none(shared_state.get_json_data('s:1'))[0],
+            cast(datastore.DataUpdatedEvent, vargs[2]).json,
         )
         self.assertEqual(
-            not_none(shared_state.get_data('s:1'))[1],
-            cast(datastore.DataUpdateEvent, vargs[2]).changed,
+            not_none(shared_state.get_json_data('s:1'))[1],
+            cast(datastore.DataUpdatedEvent, vargs[2]).changed,
         )
 
     def test_post_event__bad_data(self) -> None:
@@ -59,16 +59,16 @@ class StoreHandlerTest(unittest.TestCase):
         context = unittest.mock.Mock(EventRegistryContext())
         context.send_event.return_value = RET_OK_NONE
         shared_state.clear_data()
-        handler = store_handler.StoreDataHandler(context)
+        handler = json_store_handler.StoreDataHandler(context)
         handler.on_event(
-            's:1', 't', datastore.StoreDataEvent('['),
+            's:1', 't', datastore.StoreDataRequestEvent('['),
         )
         # No such data, so a data removed is sent.
         context.send_event.assert_called_once()
         vargs, kwargs = cast(Tuple[Any, Any], not_none(context.send_event.call_args))
         self.assertEqual(3, len(vargs))
         self.assertEqual({}, kwargs)
-        self.assertEqual(datastore.StoreDataEvent.UNIQUE_TARGET_FQN, vargs[0])
+        self.assertEqual(datastore.StoreDataRequestEvent.UNIQUE_TARGET_FQN, vargs[0])
         self.assertEqual(logging.SystemErrorEvent.UNIQUE_TARGET_FQN, vargs[1])
         self.assertIsInstance(vargs[2], logging.SystemErrorEvent)
         self.assertEqual(set(), set(shared_state.stored_data_ids()))
@@ -80,21 +80,21 @@ class StoreHandlerTest(unittest.TestCase):
             'send_event.return_value': RET_OK_NONE,
         })
         shared_state.clear_data()
-        shared_state.store_data('s:1', json.dumps({'x': 'y'}))
-        shared_state.store_data('s:2', 'my-data-2')
-        handler = store_handler.StoreDataHandler(context)
+        shared_state.store_json_data('s:1', json.dumps({'x': 'y'}))
+        shared_state.store_json_data('s:2', 'my-data-2')
+        handler = json_store_handler.StoreDataHandler(context)
         handler.on_event(
-            's:1', 't', datastore.StoreDataEvent(json.dumps({'a': 1})),
+            's:1', 't', datastore.StoreDataRequestEvent(json.dumps({'a': 1})),
         )
         context.send_event.assert_called_once()
         vargs, kwargs = cast(Tuple[Sequence[Any], Any], not_none(context.send_event.call_args))
         self.assertEqual(3, len(vargs))
         self.assertEqual({}, kwargs)
-        self.assertEqual(datastore.StoreDataEvent.UNIQUE_TARGET_FQN, vargs[0])
+        self.assertEqual(datastore.SendStateRequestEvent.UNIQUE_TARGET_FQN, vargs[0])
         self.assertEqual('s:1', vargs[1])
-        self.assertIsInstance(vargs[2], datastore.DataUpdateEvent)
+        self.assertIsInstance(vargs[2], datastore.DataUpdatedEvent)
         self.assertEqual(
-            not_none(shared_state.get_data('s:1'))[0],
-            cast(datastore.DataUpdateEvent, vargs[2]).json,
+            not_none(shared_state.get_json_data('s:1'))[0],
+            cast(datastore.DataUpdatedEvent, vargs[2]).json,
         )
         self.assertEqual({'s:1', 's:2'}, set(shared_state.stored_data_ids()))

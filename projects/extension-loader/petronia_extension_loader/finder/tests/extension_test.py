@@ -46,7 +46,7 @@ class ExtensionTest(unittest.TestCase):
 
     def test_find_installed_extensions__dirs_no_extensions(self) -> None:
         """Test find_installed_extensions"""
-        with open(os.path.join(self.tempdir, 'some-file'), 'w') as f:
+        with open(os.path.join(self.tempdir, 'some-file'), 'w', encoding='utf-8') as f:
             f.write('x')
         dr2 = os.path.join(self.tempdir, 'exists-dir')
         os.makedirs(dr2)
@@ -58,7 +58,7 @@ class ExtensionTest(unittest.TestCase):
     def test_find_installed_extensions__zip(self) -> None:
         """Test find_installed_extensions"""
         zip_filename = os.path.join(self.tempdir, 'the-file-name-20.30.99.zip')
-        with open(zip_filename, 'w') as f:
+        with open(zip_filename, 'w', encoding='utf-8') as f:
             f.write('x')
         extensions, errors = extension.find_installed_extensions([self.tempdir])
         self.assertEqual([], extensions)
@@ -94,16 +94,16 @@ class ExtensionTest(unittest.TestCase):
             'events': [],
         }
 
-        with open(valid_flat_filename_1, 'w') as f:
+        with open(valid_flat_filename_1, 'w', encoding='utf-8') as f:
             json.dump(valid_config, f)
         valid_config['name'] = 'my.other'
-        with open(valid_flat_filename_2, 'w') as f:
+        with open(valid_flat_filename_2, 'w', encoding='utf-8') as f:
             json.dump([valid_config], f)
-        with open(invalid_flat_filename_1, 'w') as f:
+        with open(invalid_flat_filename_1, 'w', encoding='utf-8') as f:
             f.write('[')
-        with open(invalid_flat_filename_2, 'w') as f:
+        with open(invalid_flat_filename_2, 'w', encoding='utf-8') as f:
             f.write('[]')
-        with open(invalid_flat_filename_3, 'w') as f:
+        with open(invalid_flat_filename_3, 'w', encoding='utf-8') as f:
             f.write('{"name":"x"}')
 
         extensions, errors = extension.find_installed_extensions([self.tempdir])

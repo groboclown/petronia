@@ -140,7 +140,8 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
             )
 
     def send_binary_event_stream(
-            self, source_id: str, target_id: str, event_id: str, data_size: int, data: RawBinaryReader,
+            self, source_id: str, target_id: str, event_id: str, data_size: int,
+            data: RawBinaryReader,
     ) -> StdRet[None]:
         """Send the binary event safely."""
         with self._lock:

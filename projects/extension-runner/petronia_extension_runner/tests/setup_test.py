@@ -55,7 +55,7 @@ class SetupTest(unittest.TestCase):
         new_temp_dir = os.path.join(self.tempdir, 'abc')
         os.makedirs(new_temp_dir, exist_ok=True)
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'i': ['j', 'k'],
             }, f)
@@ -82,7 +82,7 @@ class SetupTest(unittest.TestCase):
     def test_initialize__alternate_config_1(self) -> None:
         """Test an alternate, valid configuration setup"""
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             json.dump([{
                 'i': ['j', 'k'],
             }], f)
@@ -95,7 +95,7 @@ class SetupTest(unittest.TestCase):
     def test_initialize__alternate_config_2(self) -> None:
         """Test an alternate, valid configuration setup"""
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             json.dump([
                 {'i': ['j', 'k']},
                 {'w': 'z'},
@@ -109,7 +109,7 @@ class SetupTest(unittest.TestCase):
     def test_initialize__alternate_config_3(self) -> None:
         """Test an alternate, valid configuration setup"""
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             json.dump([], f)
         res = setup.initialize(config_file=config_file)
         self.assertIsNone(res.error)
@@ -120,7 +120,7 @@ class SetupTest(unittest.TestCase):
     def test_initialize__bad_config_1(self) -> None:
         """Test an alternate, valid configuration setup"""
         config_file = os.path.join(self.tempdir, 'config-file.txt')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write('x')
         res = setup.initialize(config_file=config_file)
         self.assertIsNotNone(res.error)

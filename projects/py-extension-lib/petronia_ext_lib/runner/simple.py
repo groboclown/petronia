@@ -59,7 +59,7 @@ class SimpleEventRegistryContext(EventRegistryContext):
 
     def register_event(self, event_id: str, parser: EventObjectParser) -> StdRet[None]:
         if event_id in self.__handlers:
-            if parser == self.__handlers[event_id]:
+            if parser == self.__handlers[event_id].parser:
                 # Allow duplicate registration
                 return RET_OK_NONE
             return StdRet.pass_errmsg(
@@ -133,7 +133,8 @@ class SimpleEventRegistryContext(EventRegistryContext):
         )
 
     def send_binary_event_stream(
-            self, source_id: str, target_id: str, event_id: str, data_size: int, data: RawBinaryReader,
+            self, source_id: str, target_id: str, event_id: str, data_size: int,
+            data: RawBinaryReader,
     ) -> StdRet[None]:
         return write_binary_event_to_stream(
             self.__writer, event_id, source_id, target_id, data_size, data,

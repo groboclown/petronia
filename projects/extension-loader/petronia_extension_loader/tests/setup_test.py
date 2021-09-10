@@ -52,7 +52,7 @@ class ExtensionLoaderSetupTest(unittest.TestCase):
         os.makedirs(data_dir)
         config_dir = os.path.join(self.tempdir, 'configs')
         os.makedirs(config_dir)
-        with open(os.path.join(config_dir, 'config.json'), 'w') as f:
+        with open(os.path.join(config_dir, 'config.json'), 'w', encoding='utf-8') as f:
             json.dump({
                 'startup': {
                     'extensions': ['ext1'],

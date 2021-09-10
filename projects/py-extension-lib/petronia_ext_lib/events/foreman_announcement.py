@@ -16,10 +16,10 @@ from typing import (
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     not_none,
-    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
     StdRet,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman_announcement'

@@ -11,16 +11,16 @@ Data structures and marshalling for extension petronia.core.api.hotkey_binding v
 from __future__ import annotations
 from typing import (
     cast,
-    Dict,
-    Optional,
-    List,
     Any,
+    Optional,
+    Dict,
+    List,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     not_none,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
     collect_errors_from,
 )
 

@@ -1,4 +1,5 @@
 ---
+schema-version: v1
 
 name: petronia_core.timer
 type: impl

@@ -23,13 +23,13 @@ SPECIAL_EXTENDED_PATHS = {
 
 OS_PREFIX = (
     '.win-' if sys.platform == 'win32' else
-    '.linux-' if sys.platform == 'linux' else
+    '.linux-' if sys.platform in ('linux', 'linux2') else
     '.osx-'
 )
 
 IGNORED_OS_NAMES = (
     ('_x11', '_osx') if sys.platform == 'win32' else
-    ('_windows', '_osx') if sys.platform == 'linux' else
+    ('_windows', '_osx') if sys.platform in ('linux', 'linux2') else
     ('_windows', '_x11')
 )
 

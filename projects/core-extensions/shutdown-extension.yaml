@@ -1,4 +1,5 @@
 ---
+schema-version: v1
 
 name: petronia.core.api.shutdown
 type: api
@@ -13,6 +14,7 @@ licenses:
   - MIT
 authors:
   - Petronia Project
+depends: []
 default:
   name: petronia_extension.core.impl.shutdown
   minimum: [1, 0, 0]

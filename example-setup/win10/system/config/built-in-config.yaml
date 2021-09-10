@@ -6,7 +6,7 @@ Timer:
   extension: petronia_core.timer
   enabled: true
   properties:
-    interval_seconds: 1.2
+    seconds: 1.2
 
 Datastore:
   extension: petronia_core.datastore

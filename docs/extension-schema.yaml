@@ -21,7 +21,7 @@ oneOf:
       type:
         description: Defines the rules and restrictions around the classification of the extension points.
         const: api
-     schema-version:
+      schema-version:
         "$ref": "#/definitions/schema-version"
       name:
         "$ref": "#/definitions/name"
@@ -121,13 +121,137 @@ oneOf:
                   send-access:
                     oneOf:
                       - const: public
+                        description: >
+                          Any extension can send the event.
                       - const: implementations
+                        description: >
+                          Only implementations of the API can send the event.
                       - const: internal
+                        description: >
+                          Only an internal Petronia piece can send the event.
                   receive-access:
                     oneOf:
                       - const: public
+                        description: >
+                          Any extension can receive the event, even if it is not the
+                          direct target of the event.
                       - const: implementations
+                        description: >
+                          Only implementations of the API can receive the event.
+                      - const: target
+                        description: >
+                          Only the extension target of the event can receive it.
                       - const: internal
+                        description: >
+                          Only an internal Petronia piece can receive the event; extensions can
+                          never receive it.
+                  description:
+                    "$ref": "#/definitions/description"
+                  unique-target:
+                    description: The only target ID allowed to receive the event.
+                    type: string
+                  fields:
+                    "$ref": "#/definitions/fields"
+                  # optional, but must be false if set
+                  is-binary:
+                    const: false
+
+  - type: object
+    required:
+      - schema-version
+      - type
+      - name
+      - version
+      - about
+      - description
+      - licenses
+      - authors
+    properties:
+      type:
+        description: Defines the rules and restrictions around the classification of the extension points.
+        const: protocol
+      schema-version:
+        "$ref": "#/definitions/schema-version"
+      name:
+        "$ref": "#/definitions/name"
+      version:
+        "$ref": "#/definitions/version"
+      about:
+        "$ref": "#/definitions/about"
+      description:
+        "$ref": "#/definitions/description"
+      licenses:
+        "$ref": "#/definitions/licenses"
+      authors:
+        "$ref": "#/definitions/authors"
+      references:
+        description: Reference data types, which can be used by the events.
+        type: object
+        patternProperties:
+          ".*":
+            "$ref": "#/definitions/reference-type"
+      events:
+        description: collection of supported events.
+        type: object
+        patternProperties:
+          "^[a-z0-9]+([._-][a-z0-9]+)*$":
+            oneOf:
+              - description: A binary event
+                type: object
+                required:
+                  - priority
+                  - send-access
+                  - receive-access
+                  - is-binary
+                properties:
+                  priority:
+                    oneOf:
+                      - const: high
+                      - const: user
+                      - const: normal
+                      - const: io
+                  send-access:
+                    oneOf:
+                      # Protocols can only have public send access.
+                      - const: public
+                  receive-access:
+                    oneOf:
+                      # Protocols can only have public or target receive access.
+                      - const: public
+                        description: >
+                          Any extension can receive the event, even if it is not the
+                          direct target of the event.
+                      - const: target
+                        description: >
+                          Only the extension target of the event can receive it.
+                  description:
+                    "$ref": "#/definitions/description"
+                  unique-target:
+                    description: The only target ID allowed to receive the event.
+                    type: string
+                  is-binary:
+                    const: true
+              - description: An object event data layout description.
+                type: object
+                required:
+                  - priority
+                  - send-access
+                  - receive-access
+                  - fields
+                properties:
+                  priority:
+                    oneOf:
+                      - const: high
+                      - const: user
+                      - const: normal
+                      - const: io
+                  send-access:
+                    oneOf:
+                      - const: public
+                  receive-access:
+                    oneOf:
+                      - const: public
+                      - const: target
                   description:
                     "$ref": "#/definitions/description"
                   unique-target:
@@ -156,7 +280,7 @@ oneOf:
       type:
         description: Provides an implementation to an API.
         const: impl
-     schema-version:
+      schema-version:
         "$ref": "#/definitions/schema-version"
       name:
         "$ref": "#/definitions/name"

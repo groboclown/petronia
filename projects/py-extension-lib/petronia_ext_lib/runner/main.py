@@ -102,7 +102,8 @@ class EventRegistryContextImpl(EventRegistryContext):
         )
 
     def send_binary_event_stream(
-            self, source_id: str, target_id: str, event_id: str, data_size: int, data: RawBinaryReader,
+            self, source_id: str, target_id: str, event_id: str, data_size: int,
+            data: RawBinaryReader,
     ) -> StdRet[None]:
         return self._writer.write_binary_event(
             event_id,

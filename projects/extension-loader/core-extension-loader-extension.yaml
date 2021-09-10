@@ -1,4 +1,5 @@
 ---
+schema-version: v1
 
 name: petronia_extension_loader
 type: impl

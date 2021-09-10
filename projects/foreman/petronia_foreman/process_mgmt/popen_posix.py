@@ -44,7 +44,7 @@ try:
             # Yes, this is using Popen.  Arguments are somewhat loaded in from
             # the user, but these are explicit split arguments without shell access.
             # This helps restrict the security issues present with this.
-            process = subprocess.Popen(  # pylint: disable=no-member  # nosec
+            process = subprocess.Popen(  # pylint: disable=no-member,consider-using-with  # nosec
                 args=cmd,
                 env=env,
                 stdin=tx_read,

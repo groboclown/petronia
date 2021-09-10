@@ -21,7 +21,7 @@ def register_listening_to_datastore(
         extension_name,
         (
             (
-                datastore.DataUpdateEvent.FULL_EVENT_NAME,
+                datastore.DataUpdatedEvent.FULL_EVENT_NAME,
                 source_id,
             ),
             (
@@ -36,8 +36,8 @@ def register_datastore_update_parsers(context: EventRegistryContext) -> StdRet[N
     """Register the datastore event parsers, for the listening end."""
     return join_none_results(
         context.register_event_parser(
-            datastore.DataUpdateEvent.FULL_EVENT_NAME,
-            datastore.DataUpdateEvent.parse_data,
+            datastore.DataUpdatedEvent.FULL_EVENT_NAME,
+            datastore.DataUpdatedEvent.parse_data,
         ),
         context.register_event_parser(
             datastore.DataRemovedEvent.FULL_EVENT_NAME,
@@ -69,7 +69,7 @@ class CachedInstance(Generic[T]):
             if self.callback:
                 self.callback(None)
 
-    def update(self, event: datastore.DataUpdateEvent) -> StdRet[None]:
+    def update(self, event: datastore.DataUpdatedEvent) -> StdRet[None]:
         """Handle an update data event."""
         if event.changed == self.changed:
             # If the event change date is the exact same as the one in this cache,
@@ -89,7 +89,7 @@ class CachedInstance(Generic[T]):
 
 
 def get_event_data_value(
-        event: datastore.DataUpdateEvent,
+        event: datastore.DataUpdatedEvent,
         parser: EventObjectParser[T],
 ) -> StdRet[T]:
     """Convert the data stored in the event's json value using the parser."""
@@ -125,7 +125,7 @@ def register_datastore_target_listener(
             source_id, StoreDeleteEventListener(cache),
         ),
         context.register_target(
-            datastore.DataUpdateEvent.FULL_EVENT_NAME,
+            datastore.DataUpdatedEvent.FULL_EVENT_NAME,
             source_id, StoreUpdateEventListener(cache),
         ),
     )
@@ -144,14 +144,14 @@ class StoreDeleteEventListener(EventObjectTarget[datastore.DataRemovedEvent], Ge
         return False
 
 
-class StoreUpdateEventListener(EventObjectTarget[datastore.DataUpdateEvent], Generic[T]):
+class StoreUpdateEventListener(EventObjectTarget[datastore.DataUpdatedEvent], Generic[T]):
     """Listens to the delete event."""
     __slots__ = ('__cache',)
 
     def __init__(self, cache: CachedInstance[T]):
         self.__cache = cache
 
-    def on_event(self, source: str, target: str, event: datastore.DataUpdateEvent) -> bool:
+    def on_event(self, source: str, target: str, event: datastore.DataUpdatedEvent) -> bool:
         # Note: throws away the error.
         self.__cache.update(event)
         return False

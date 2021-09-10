@@ -112,7 +112,7 @@ class CmdLauncherCategory(AbcLauncherCategory):
             start_event: foreman.LauncherStartExtensionRequestEvent, temp_dir: str,
     ) -> Dict[str, str]:
         config_file = os.path.join(temp_dir, 'config.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write(start_event.configuration or '{}')
         return {
             'EXTENSION_NAME': start_event.name,

@@ -25,7 +25,7 @@ def load_structured_file(filename: str) -> StdRet[StructuredFileData]:
     data: Any
     if f_lc.endswith('.json'):
         try:
-            with open(filename, 'r') as r_f:
+            with open(filename, 'r', encoding='utf-8') as r_f:
                 data = json.load(r_f)
         except (OSError, json.JSONDecodeError) as err:
             return StdRet.pass_exception(
@@ -36,7 +36,7 @@ def load_structured_file(filename: str) -> StdRet[StructuredFileData]:
             )
     elif f_lc.endswith('.yaml') or f_lc.endswith('.yml'):
         try:
-            with open(filename, 'r') as r_f:
+            with open(filename, 'r', encoding='utf-8') as r_f:
                 res_data = load_yaml_documents(r_f.read())
         except OSError as err:
             return StdRet.pass_exception(

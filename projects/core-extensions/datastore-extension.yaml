@@ -1,17 +1,19 @@
 ---
+schema-version: v1
 
 name: petronia.core.api.datastore
 type: api
 version: [1, 0, 0]
-about: Stores data and sends signals on data state changes.
+about: Stores JSON data and sends signals on data state changes.
 description: >
-  A storage mechanism for shared data published and consumed by extensions.  For example,
+  A storage mechanism for shared JSON data published and consumed by extensions.  For example,
   an extension that reports on the user's screen dimensions would do so by adding a
   data store.
 
-  The text data stored are limited to 60,000 characters of JSON-encoded structured data.  If
+  The data stored are limited to 60,000 characters of JSON-encoded structured data.  If
   many extensions listen for the same block of data, then that amplifies the amount of
   data spread through the extensions.  Where possible, attempt to keep the stored data small.
+  Binary data storage and retrieval should use the "binarystore" extension.
 
   The extension intentionally does not provide a mechanism for listing all stored
   keys.  In general, extensions should provide well defined IDs, and any dynamic IDs
@@ -26,6 +28,8 @@ authors:
 default:
   name: petronia_core.datastore
   minimum: [1, 0, 0]
+depends: []
+
 
 events:
   "store-data:request":
@@ -73,18 +77,6 @@ events:
         type: reference
         ref: event-target-id
 
-  "store-binary:request":
-    description: >
-      A request to store binary data.  This is either a fresh add or update of the data.
-      The event's source ID is used as the name of the stored data, which has the
-      implication that it must be associated with the source extension or implemented
-      API.
-    priority: io
-    send-access: public
-    receive-access: implementations
-    unique-target: store-bin
-    is-binary: true
-
   "data-updated":
     description: >
       Notification for data that is new or changed.  The target ID is always the data store
@@ -104,16 +96,6 @@ events:
           formatted JSON data to be stored.
         type: reference
         ref: embedded-json-data
-
-  "binary-updated":
-    description: >
-      Notification for binary data that is new or changed.  The target ID is always the data store
-      ID.  The `changed` field must be unique per original `store-binary` request.  Because this only
-      returns binary data, there is no indication on when this data was last changed.
-    priority: high
-    send-access: implementations
-    receive-access: public
-    is-binary: true
 
   "data-removed":
     description: >

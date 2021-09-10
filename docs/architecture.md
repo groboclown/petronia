@@ -94,7 +94,7 @@ Extensions can be stored in a distributable zip file.  The file name is in the f
 
 Note that core modules (those distributed with Petronia) have an implicit version number that matches the version of Petronia.
 
-The extension zip file must contain a `manifest.json` file that defines information about the extension (see [extension-schema.yaml](extension-schema.yaml) for details).
+The extension zip file must contain a `manifest.json` file that defines information about the extension (see [extension-schema.yaml](extension-schema.yaml) for details).  **TODO this isn't 100% right anymore**
 
 ### Events
 

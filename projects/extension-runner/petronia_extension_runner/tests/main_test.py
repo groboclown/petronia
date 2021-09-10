@@ -65,7 +65,7 @@ class ExtensionRunnerMainTest(unittest.TestCase):  # pylint:disable=too-many-ins
         """Test the main function with a normal runtime."""
         config = {'a': 'x', 'b': 'y'}
         config_file = os.path.join(self.tempdir, 'config-file.json')
-        with open(config_file, 'w') as f_txt:
+        with open(config_file, 'w', encoding='utf-8') as f_txt:
             json.dump(config, f_txt)
 
         input_file = os.path.join(self.tempdir, 'stdin.txt')

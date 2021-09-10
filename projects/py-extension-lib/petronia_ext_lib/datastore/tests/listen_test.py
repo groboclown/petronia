@@ -40,7 +40,7 @@ class CachedInstanceTest(unittest.TestCase):
         data1_raw = json.dumps(data1.export_data())
 
         # Ensure the time for sending != time on the cache.
-        update1 = datastore.DataUpdateEvent(
+        update1 = datastore.DataUpdatedEvent(
             tznow() - datetime.timedelta(days=-5), data1_raw,
         )
         res = cached.update(update1)
@@ -59,7 +59,7 @@ class CachedInstanceTest(unittest.TestCase):
         # Try sending an updated event.
         data2 = timer.HeartbeatEvent(tznow() - datetime.timedelta(hours=-2))
         data2_raw = json.dumps(data2.export_data())
-        update2 = datastore.DataUpdateEvent(
+        update2 = datastore.DataUpdatedEvent(
             tznow() - datetime.timedelta(days=-2), data2_raw,
         )
         res = cached.update(update2)
@@ -94,7 +94,7 @@ class CachedInstanceTest(unittest.TestCase):
         data1_raw = json.dumps(data1.export_data())
 
         # Ensure the time for sending != time on the cache.
-        update1 = datastore.DataUpdateEvent(
+        update1 = datastore.DataUpdatedEvent(
             tznow() - datetime.timedelta(days=-5), data1_raw,
         )
         res = cached.update(update1)
@@ -113,7 +113,7 @@ class CachedInstanceTest(unittest.TestCase):
         # Try sending an updated event.
         data2 = timer.HeartbeatEvent(tznow() - datetime.timedelta(hours=-2))
         data2_raw = json.dumps(data2.export_data())
-        update2 = datastore.DataUpdateEvent(
+        update2 = datastore.DataUpdatedEvent(
             tznow() - datetime.timedelta(days=-2), data2_raw,
         )
         res = cached.update(update2)

@@ -1,4 +1,5 @@
 ---
+schema-version: v1
 
 name: petronia_native_windows
 type: impl

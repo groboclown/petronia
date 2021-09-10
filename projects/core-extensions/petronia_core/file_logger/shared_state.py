@@ -61,7 +61,7 @@ class LogFile:
         else:
             # Opening the file on each write is excessive on I/O time, but it
             # prevents the file from keeping a persistent lock on some OSes.
-            with open(self.filename, 'w+') as f:
+            with open(self.filename, 'w+', encoding='utf-8') as f:
                 f.write(message)
 
 

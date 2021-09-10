@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.native.hotkey ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Optional,
-    Any,
-    cast,
-    List,
-    Dict,
-    Union,
-    SupportsFloat,
     SupportsInt,
+    Any,
+    SupportsFloat,
+    cast,
+    Optional,
+    List,
+    Union,
+    Dict,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     StdRet,
     collect_errors_from,
-    not_none,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.hotkey'
@@ -71,7 +71,7 @@ class MasterHotkeySequence:
                 name='MasterHotkeySequence',
             )
         else:
-            if val not in ('meta','sequence', ):
+            if val not in ('sequence','meta', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -370,16 +370,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            bool,
-            str,
-            int,
-            float,
-            List[datetime.datetime],
-            List[str],
-            List[int],
-            List[float],
-            datetime.datetime,
             List[bool],
+            List[int],
+            int,
+            str,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[float],
+            bool,
+            float,
+            List[str],
         ],
     ) -> None:
         self.__name = name
@@ -392,16 +392,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            bool,
-            str,
-            int,
-            float,
-            List[datetime.datetime],
-            List[str],
-            List[int],
-            List[float],
-            datetime.datetime,
             List[bool],
+            List[int],
+            int,
+            str,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[float],
+            bool,
+            float,
+            List[str],
     ]:
         """The selector value."""
         return self.__value

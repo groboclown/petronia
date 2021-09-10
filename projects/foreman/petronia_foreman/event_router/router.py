@@ -5,7 +5,7 @@ The approach here is that there is a many-to-one relationship between
 handlers and event pipes.
 """
 
-from typing import Dict, Iterable, Tuple, List, Callable, Optional, Union, Any
+from typing import Dict, Iterable, Tuple, Callable, Optional, Union, Any
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -26,47 +26,6 @@ from .reservations import ChannelReservations, ChannelReservationCallback
 from ..user_message import CATALOG, trace_channel
 
 
-class AbstractChannelEventRunner:
-    """Abstract handler for running a channel's stream processing in the background."""
-    __slots__ = ()
-
-    def submit_processing(self, channel: EventChannel) -> None:
-        """Run the channel's process_stream in the background."""
-        raise NotImplementedError
-
-    def close(self, timeout_seconds: float) -> None:
-        """Stop all running stream readers, if possible."""
-        raise NotImplementedError
-
-
-class ThreadedChannelEventRunner(AbstractChannelEventRunner):
-    """Runs threaded channel event runners in the background."""
-    __slots__ = ('__pool', '__count')
-
-    def __init__(self) -> None:
-        self.__count = 0
-        self.__pool: List[Tuple[threading.Thread, EventChannel]] = []
-
-    def submit_processing(self, channel: EventChannel) -> None:
-        next_id = self.__count
-        self.__count += 1
-        thread = threading.Thread(
-            name=f'channel-runner-{next_id}',
-            target=channel.process_stream,
-            daemon=True,
-        )
-        self.__pool.append((thread, channel))
-        thread.start()
-
-    def close(self, timeout_seconds: float) -> None:
-        for thread, channel in self.__pool:
-            if thread.is_alive():
-                channel.close_access()
-                thread.join(timeout_seconds)
-        # Note: threads are not removed from the pool in case the join
-        # timed out.
-
-
 class EventRouter:
     """Routes events between destinations based on their registered
     event handlers.  Access to the router is intended to be run from
@@ -82,7 +41,6 @@ class EventRouter:
     """
     __slots__ = (
         '__channels', '__executor', '__lock', '__target', '__reservations',
-        '__channel_runner',
     )
 
     def __init__(
@@ -90,10 +48,8 @@ class EventRouter:
             lock: threading.Semaphore,
             target: Optional[EventForwarderTarget] = None,
             executor: Optional[ThreadPoolExecutor] = None,
-            channel_runner: Optional[AbstractChannelEventRunner] = None,
     ) -> None:
         self.__executor = executor or ThreadPoolExecutor()
-        self.__channel_runner = channel_runner or ThreadedChannelEventRunner()
         self.__channels: Dict[str, EventChannel] = {}
         self.__reservations = ChannelReservations()
         self.__lock = lock

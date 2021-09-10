@@ -10,24 +10,24 @@ Data structures and marshalling for extension petronia.core.api.datastore versio
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
+    Any,
     Dict,
     List,
-    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     not_none,
-    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
     StdRet,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.datastore'
 EXTENSION_VERSION = (1, 0, 0)
 
 
-class StoreDataEvent:
+class StoreDataRequestEvent:
     """
     A request to store data. This is either a fresh add or update of the data. The
     event's source ID is used as the name of the stored data, which has the
@@ -35,11 +35,11 @@ class StoreDataEvent:
     API.
     """
     __slots__ = ('json',)
-    FULL_EVENT_NAME = 'petronia.core.api.datastore:store-data'
-    SHORT_EVENT_NAME = 'store-data'
+    FULL_EVENT_NAME = 'petronia.core.api.datastore:store-data:request'
+    SHORT_EVENT_NAME = 'store-data:request'
 
-    UNIQUE_TARGET_FQN = 'petronia.core.api.datastore:store'
-    UNIQUE_TARGET_REL = 'store'
+    UNIQUE_TARGET_FQN = 'petronia.core.api.datastore:store-json'
+    UNIQUE_TARGET_REL = 'store-json'
 
     def __init__(
         self,
@@ -50,7 +50,7 @@ class StoreDataEvent:
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return StoreDataEvent.FULL_EVENT_NAME
+        return StoreDataRequestEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
@@ -60,7 +60,7 @@ class StoreDataEvent:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['StoreDataEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['StoreDataRequestEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -71,7 +71,7 @@ class StoreDataEvent:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='json',
-                name='StoreDataEvent',
+                name='StoreDataRequestEvent',
             )
         else:
             if not isinstance(val, str):
@@ -80,26 +80,26 @@ class StoreDataEvent:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='json',
                     type='str',
-                    name='StoreDataEvent',
+                    name='StoreDataRequestEvent',
                 )
             f_json = val
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(StoreDataEvent(
+        return StdRet.pass_ok(StoreDataRequestEvent(
             json=not_none(f_json),
         ))
 
     def __repr__(self) -> str:
-        return "StoreDataEvent(" + repr(self.export_data()) + ")"
+        return "StoreDataRequestEvent(" + repr(self.export_data()) + ")"
 
 
-class DeleteDataEvent:
+class DeleteDataRequestEvent:
     """
     Deletes the store of data whose ID matches the source ID of the event.
     """
     __slots__ = ()
-    FULL_EVENT_NAME = 'petronia.core.api.datastore:delete-data'
-    SHORT_EVENT_NAME = 'delete-data'
+    FULL_EVENT_NAME = 'petronia.core.api.datastore:delete-data:request'
+    SHORT_EVENT_NAME = 'delete-data:request'
 
     UNIQUE_TARGET_FQN = 'petronia.core.api.datastore:store'
     UNIQUE_TARGET_REL = 'store'
@@ -112,33 +112,33 @@ class DeleteDataEvent:
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return DeleteDataEvent.FULL_EVENT_NAME
+        return DeleteDataRequestEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         return {}
 
     @staticmethod
-    def parse_data(_data: Dict[str, Any]) -> StdRet['DeleteDataEvent']:
+    def parse_data(_data: Dict[str, Any]) -> StdRet['DeleteDataRequestEvent']:
         """Parse the marshalled data into this structured form.  There are no fields, so this is
         essentially a no-op."""
-        return StdRet.pass_ok(DeleteDataEvent())
+        return StdRet.pass_ok(DeleteDataRequestEvent())
 
     def __repr__(self) -> str:
-        return "DeleteDataEvent(" + repr(self.export_data()) + ")"
+        return "DeleteDataRequestEvent(" + repr(self.export_data()) + ")"
 
 
-class SendStateEvent:
+class SendStateRequestEvent:
     """
     Tells the API to send out a message with the current state of the requested
     target ID data. Usually only called when an extension first starts and has
     started listening to the data change messages. If the target ID's data is not
     currently stored, then a delete message is sent. The sent message is either a
-    `data-update` event or a `data-removed` event.
+    `data-updated` event or a `data-removed` event.
     """
     __slots__ = ('store_id',)
-    FULL_EVENT_NAME = 'petronia.core.api.datastore:send-state'
-    SHORT_EVENT_NAME = 'send-state'
+    FULL_EVENT_NAME = 'petronia.core.api.datastore:send-state:request'
+    SHORT_EVENT_NAME = 'send-state:request'
 
     UNIQUE_TARGET_FQN = 'petronia.core.api.datastore:store'
     UNIQUE_TARGET_REL = 'store'
@@ -152,7 +152,7 @@ class SendStateEvent:
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return SendStateEvent.FULL_EVENT_NAME
+        return SendStateRequestEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
@@ -162,7 +162,7 @@ class SendStateEvent:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['SendStateEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['SendStateRequestEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -173,7 +173,7 @@ class SendStateEvent:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='store_id',
-                name='SendStateEvent',
+                name='SendStateRequestEvent',
             )
         else:
             if not isinstance(val, str):
@@ -182,20 +182,20 @@ class SendStateEvent:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='store_id',
                     type='str',
-                    name='SendStateEvent',
+                    name='SendStateRequestEvent',
                 )
             f_store_id = val
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(SendStateEvent(
+        return StdRet.pass_ok(SendStateRequestEvent(
             store_id=not_none(f_store_id),
         ))
 
     def __repr__(self) -> str:
-        return "SendStateEvent(" + repr(self.export_data()) + ")"
+        return "SendStateRequestEvent(" + repr(self.export_data()) + ")"
 
 
-class DataUpdateEvent:
+class DataUpdatedEvent:
     """
     Notification for data that is new or changed. The target ID is always the data
     store ID. The `changed` field must be unique per original `store-data` request;
@@ -203,8 +203,8 @@ class DataUpdateEvent:
     the changed field is still updated.
     """
     __slots__ = ('changed', 'json',)
-    FULL_EVENT_NAME = 'petronia.core.api.datastore:data-update'
-    SHORT_EVENT_NAME = 'data-update'
+    FULL_EVENT_NAME = 'petronia.core.api.datastore:data-updated'
+    SHORT_EVENT_NAME = 'data-updated'
 
     def __init__(
         self,
@@ -217,7 +217,7 @@ class DataUpdateEvent:
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return DataUpdateEvent.FULL_EVENT_NAME
+        return DataUpdatedEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
@@ -228,7 +228,7 @@ class DataUpdateEvent:
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['DataUpdateEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['DataUpdatedEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
@@ -239,7 +239,7 @@ class DataUpdateEvent:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='changed',
-                name='DataUpdateEvent',
+                name='DataUpdatedEvent',
             )
         else:
             if not isinstance(val, str):
@@ -247,7 +247,7 @@ class DataUpdateEvent:
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type datetime for structure {name}'),
                     field_name='changed',
-                    name='DataUpdateEvent',
+                    name='DataUpdatedEvent',
                 )
             try:
                 f_changed = datetime.datetime.strptime(val, '%Y%m%d:%H%M%S.%f:%z')
@@ -264,7 +264,7 @@ class DataUpdateEvent:
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
                 field_name='json',
-                name='DataUpdateEvent',
+                name='DataUpdatedEvent',
             )
         else:
             if not isinstance(val, str):
@@ -273,18 +273,18 @@ class DataUpdateEvent:
                     _('Field {field_name} must be of type {type} for structure {name}'),
                     field_name='json',
                     type='str',
-                    name='DataUpdateEvent',
+                    name='DataUpdatedEvent',
                 )
             f_json = val
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(DataUpdateEvent(
+        return StdRet.pass_ok(DataUpdatedEvent(
             changed=not_none(f_changed),
             json=not_none(f_json),
         ))
 
     def __repr__(self) -> str:
-        return "DataUpdateEvent(" + repr(self.export_data()) + ")"
+        return "DataUpdatedEvent(" + repr(self.export_data()) + ")"
 
 
 class DataRemovedEvent:

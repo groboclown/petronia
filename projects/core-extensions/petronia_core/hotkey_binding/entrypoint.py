@@ -1,13 +1,14 @@
 """Hotkey Binding Entrypoint."""
 
 from typing import Sequence, Dict, Callable, Any
+
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, join_errors, join_none_results, RET_OK_NONE
+from petronia_ext_lib.datastore import register_datastore_update_parsers
 from petronia_ext_lib.events import datastore
-from petronia_ext_lib.datastore import register_datastore_update_parsers, on_init
 from petronia_ext_lib.extension_loader import send_register_listeners
 from petronia_ext_lib.logging import send_user_error
-from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
+from petronia_ext_lib.runner import EventRegistryContext
 from petronia_ext_lib.runner.lookup import LookupEventRegistryContext
 from . import shared_state, bind_handler, native_handler
 from .events.ext import hotkey as native_hotkey
@@ -70,7 +71,7 @@ def push_config_to_native(
         register_datastore_update_parsers(context),
         send_register_listeners(context, hotkey_state.EXTENSION_NAME, (
             (
-                datastore.DataUpdateEvent.FULL_EVENT_NAME,
+                datastore.DataUpdatedEvent.FULL_EVENT_NAME,
                 native_hotkey.HotkeyBindingsState.UNIQUE_TARGET_FQN,
             ),
         )),
@@ -95,7 +96,7 @@ def create_bindings_initialize_callback(
         context: EventRegistryContext,
 ) -> Callable[[StdRet[native_hotkey.HotkeyBindingsState]], None]:
     """Create the callback when the hotkey binding is active."""
-    def callback(value: StdRet[native_hotkey.HotkeyBindingsState]) -> None:
+    def callback(_value: StdRet[native_hotkey.HotkeyBindingsState]) -> None:
         print("*************************")
         print("*************************")
         print("*************************")

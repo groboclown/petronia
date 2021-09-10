@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    SupportsFloat,
     cast,
-    Dict,
+    Optional,
     Union,
     List,
-    SupportsInt,
     Any,
-    Optional,
+    Dict,
+    SupportsInt,
+    SupportsFloat,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     not_none,
-    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
     StdRet,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.protocol.logging'
@@ -42,16 +42,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[str],
+            str,
             datetime.datetime,
             List[int],
+            List[bool],
+            List[datetime.datetime],
             float,
             int,
-            str,
-            List[bool],
             bool,
             List[float],
-            List[datetime.datetime],
+            List[str],
         ],
     ) -> None:
         self.__name = name
@@ -64,16 +64,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[str],
+            str,
             datetime.datetime,
             List[int],
+            List[bool],
+            List[datetime.datetime],
             float,
             int,
-            str,
-            List[bool],
             bool,
             List[float],
-            List[datetime.datetime],
+            List[str],
     ]:
         """The selector value."""
         return self.__value
@@ -595,7 +595,7 @@ class LogEvent:
                 name='LogEvent',
             )
         else:
-            if val not in ('debug','verbose','info','warning', ):
+            if val not in ('warning','debug','verbose','info', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

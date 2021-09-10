@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    cast,
-    Union,
-    SupportsInt,
     Optional,
-    Dict,
-    Any,
+    Union,
     List,
     SupportsFloat,
+    cast,
+    SupportsInt,
+    Any,
+    Dict,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     not_none,
     collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
@@ -517,16 +517,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[datetime.datetime],
-            bool,
             str,
-            List[str],
-            List[bool],
-            List[int],
-            datetime.datetime,
-            List[float],
             int,
             float,
+            List[float],
+            bool,
+            List[str],
+            List[int],
+            List[bool],
+            datetime.datetime,
+            List[datetime.datetime],
         ],
     ) -> None:
         self.__name = name
@@ -539,16 +539,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[datetime.datetime],
-            bool,
             str,
-            List[str],
-            List[bool],
-            List[int],
-            datetime.datetime,
-            List[float],
             int,
             float,
+            List[float],
+            bool,
+            List[str],
+            List[int],
+            List[bool],
+            datetime.datetime,
+            List[datetime.datetime],
     ]:
         """The selector value."""
         return self.__value

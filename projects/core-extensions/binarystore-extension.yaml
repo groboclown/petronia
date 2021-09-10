@@ -1,0 +1,294 @@
+---
+schema-version: v1
+
+name: petronia.core.api.binarystore
+type: api
+version: [1, 0, 0]
+about: Stores binary data and sends signals on data state changes.
+description: >
+  A storage mechanism for shared binary data published and consumed by extensions.
+  Commonly, this is image and audio data.  This extension is similar to the "datastore"
+  extension.
+
+  The data here can be possibly very large.  As such, This does not allow for "updates" to the
+  values.  Values are either added, removed, or retrieved.  If an ID is removed, it cannot be
+  reused.  This allows for extensions to not need to worry about caches becoming invalid.
+
+  As an extension user, only listen for explicit data values by ID.  This will keep the I/O
+  of the system smaller, so that large amount of data isn't needlessly transferred between
+  extensions.  The usual path for using the extension is:
+
+  1. Owner of the binary data publishes it to the binary store.  This can happen at startup or
+    some other time.
+  2. At some point, the owner of the binary data sends an event to another extension with the
+    binary data ID as part of the passed-in fields.
+  3. If that ID is already known by the receiver of the ID, then the cached value is used and no
+    request to the binarystore extension is made.  Otherwise, continue.
+  4. The receiver of the ID adds a listener for that ID on the data value send from the
+    binarystore extension.
+  5. The receiver of the ID sends a request to binarystore to send the data.
+  6. The receiver saves the resulting value to a temporary file.
+
+  The extension intentionally does not provide a mechanism for listing all stored
+  keys.  In general, extensions should provide well defined IDs, and any dynamic IDs
+  should be accessible through references within the well defined IDs.
+
+  This is also not a database; there are no query-like parameters.
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+default:
+  name: petronia_core.binarystore
+  minimum: [1, 0, 0]
+depends: []
+
+
+events:
+  "store-data:request":
+    description: >
+      A request to store data.  The event's source ID is used as the name of the stored
+      data, which has the implication that it must be associated with the source extension
+      or implemented API.  This request includes meta-data about the binary data.  The
+      extension may refuse the request.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: store-bin
+    fields:
+      mime_type:
+        description: >
+          The mime-type of the stored data.
+        type: string
+        min-length: 3
+        max-length: 100
+
+  "store-data:allowed":
+    description: >
+      Response from the extension to the "store-data:request" event when the binary data will
+      be allowed.  When the sender of "store-data:request" receives this event, the follow up
+      "store-data:data" response is sent.  The target ID for
+      this event is the ID passed as the source ID of the initial "store-data:request".
+    priority: io
+    send-access: implementations
+    receive-access: public
+    fields: {}
+
+  "store-data:refused":
+    description: >
+      Response from the extension to the "store-data:request" event when the binary data storage
+      is not allowed.
+    priority: io
+    send-access: implementations
+    receive-access: public
+    fields:
+      reason:
+        description: >
+          Reason for the refused data storage.  This may be things like unsupported mime type
+          or duplicate ID.
+        type: reference
+        ref: localizable-message
+
+  "store-data:data":
+    description: >
+      The binary data stored with the allowed request.
+      The event's source ID is used as the name of the stored data, which has the
+      implication that it must be associated with the source extension or implemented
+      API.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: store-bin
+    is-binary: true
+
+  "delete-data:request":
+    description: >
+      Deletes the store of data whose ID matches the source ID of the event.
+    priority: io
+    send-access: public
+    receive-access: implementations
+    unique-target: store
+    fields: {}
+
+  "describe-data:request":
+    description: >
+      Tells the API to send out a message with the description of the data for the store_id.
+      In all cases, a "data-description" response is sent, even if the ID was never stored.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    unique-target: store
+    fields:
+      store_id:
+        description: >
+          The ID for the requested data.
+        type: reference
+        ref: event-target-id
+
+  "data-description":
+    description: >
+      Notification for data stored.  The target ID is always the data store ID.
+      This event is safe to listen to on a broad, continuous way.  The event is sent
+      either when a request for the description is sent through a "describe-data:request"
+      event, or when data is added or removed.
+    priority: high
+    send-access: implementations
+    receive-access: public
+    fields:
+      state:
+        description: The state of this data.
+        type: enum
+        values:
+          - active
+          - deleted
+          - unset
+      mime_type:
+        description: >
+          The mime-type for the data.  Only has a value if the state is "active".
+        optional: true
+        type: string
+        min-length: 3
+        max-length: 100
+      sha256:
+        description: >
+          sha256 checksum of the data.  Can be used for verifying the validity of the
+          fetched data.  Only has a value if the state is "active".
+        optional: true
+        type: string
+        min-length: 64
+        max-length: 64
+      size:
+        description: >
+          size, in bytes, of the data value.  Only has a value if the state is "active".
+        optional: true
+        type: int
+        min-value: 0
+
+  "send-data:request":
+    description: >
+      Tells the API to send out a message with the current state of the requested
+      target ID data.  Usually only called when an extension first starts and has started
+      listening to the data change messages.  If the store_id's data is not "active",
+      then no event is sent.
+    priority: normal
+    send-access: public
+    receive-access: implementations
+    unique-target: store
+    fields:
+      store_id:
+        description: >
+          The ID for the requested data.
+        type: reference
+        ref: event-target-id
+
+  "binary-data":
+    description: >
+      Sent only when the data contents are explicitly requested via a "send-data:request"
+      event.  The target ID is the data ID of the data.
+    priority: io
+    send-access: implementations
+    receive-access: public
+    is-binary: true
+
+
+references:
+  # ------------------------------
+  # Standard Types ...
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+  localizable-message:
+    description: A localizable message for user display.
+    type: structure
+    fields:
+      catalog:
+        description: >
+          The name of the translation file, or "domain", that contains
+          the translations.
+        type: string
+        min-length: 2
+        max-length: 300
+      message:
+        description: >
+          The message ID to look up in the catalog.  If the message
+          has no translation, this is directly displayed to the user.
+        type: string
+        min-length: 1
+        max-length: 10000
+      arguments:
+        description: >
+          List of arguments to be inserted into the translated message.
+          Each argument should have a distinct name from all the other
+          arguments in this message; the name is how the message references
+          the arguments.
+        type: array
+        min-length: 0
+        max-length: 100
+        optional: true
+        value-type:
+          type: reference
+          ref: message-argument
+  message-argument:
+    description: An argument to be inserted into the localizable message.
+    type: structure
+    fields:
+      name:
+        description: Name of the arugment, referenced by the message.
+        type: string
+        min-length: 1
+        max-length: 50
+      value:
+        description: Value of the argument.  It must be a simple type.
+        type: reference
+        ref: message-argument-value
+  message-argument-value:
+    description: A replacement value for a named argument in the message.
+    type: selector
+    type-mapping:
+      string:
+        type: string
+        min-length: 0
+        max-length: 10000
+      int:
+        type: int
+      float:
+        type: float
+      bool:
+        type: bool
+      datetime:
+        type: datetime
+      string_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: string
+          min-length: 0
+          max-length: 10000
+      int_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: int
+      float_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: float
+      bool_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: bool
+      datetime_list:
+        type: array
+        min-length: 0
+        max-length: 100
+        value-type:
+          type: datetime

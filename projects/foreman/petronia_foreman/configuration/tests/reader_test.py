@@ -33,7 +33,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_reader__bad_file(self) -> None:
         """Test with a bad config file."""
         config_file = os.path.join(self.tempdir, 'conf.ini')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write('[bad] config\nfile\nvalue = # bad')
         res = reader.read_configuration_file(config_file)
         self.assertTrue(res.has_error)
@@ -46,7 +46,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_reader__validation_error(self) -> None:
         """Test with a bad config file."""
         config_file = os.path.join(self.tempdir, 'conf.ini')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write('[bad-loader]\n')
         res = reader.read_configuration_file(config_file)
         self.assertTrue(res.has_error)
@@ -59,7 +59,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_reader__no_boot_order(self) -> None:
         """Test with a config file that does not define a boot order."""
         config_file = os.path.join(self.tempdir, 'conf.ini')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write('[loader]\nrunner=x')
         res = reader.read_configuration_file(config_file)
         self.assertTrue(res.has_error)
@@ -74,7 +74,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_reader__valid(self) -> None:
         """Test with a config file that does not define a boot order."""
         config_file = os.path.join(self.tempdir, 'conf.ini')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             f.write('[foreman]\nboot-file-order=a.yaml\n[loader]\nrunner=x')
         res = reader.read_configuration_file(config_file)
         self.assertIsNone(res.error)
@@ -92,7 +92,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_read_boot_extension_file__unexpected_format(self) -> None:
         """Test read_boot_extension_file but reading fails."""
         ext_file = os.path.join(self.tempdir, 'invalid-format.json')
-        with open(ext_file, 'w') as f:
+        with open(ext_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'name': [1],
                 'runtime': {'launcher': 1, 'permissions': []},
@@ -108,7 +108,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_read_boot_extension_file__bad_doc_count(self) -> None:
         """Test read_boot_extension_file but reading fails."""
         ext_file = os.path.join(self.tempdir, 'invalid-format.json')
-        with open(ext_file, 'w') as f:
+        with open(ext_file, 'w', encoding='utf-8') as f:
             json.dump([1, 2], f)
         ext_res = reader.read_boot_extension_file(ext_file)
         self.assertIsNotNone(ext_res.error)
@@ -117,7 +117,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_read_boot_extension_file__unexpected_consumes_list__item_type(self) -> None:
         """Test read_boot_extension_file but reading fails."""
         ext_file = os.path.join(self.tempdir, 'invalid-format.json')
-        with open(ext_file, 'w') as f:
+        with open(ext_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'name': 'n1',
                 'version': [1, 2, 3],
@@ -134,7 +134,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_read_boot_extension_file__unexpected_consumes_list__bad_event_id(self) -> None:
         """Test read_boot_extension_file but reading fails."""
         ext_file = os.path.join(self.tempdir, 'invalid-format.json')
-        with open(ext_file, 'w') as f:
+        with open(ext_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'name': 'n1',
                 'version': [1, 2, 3],
@@ -151,7 +151,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_read_boot_extension_file__unexpected_consumes_list__bad_target_id(self) -> None:
         """Test read_boot_extension_file but reading fails."""
         ext_file = os.path.join(self.tempdir, 'invalid-format.json')
-        with open(ext_file, 'w') as f:
+        with open(ext_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'name': 'n1',
                 'version': [1, 2, 3],
@@ -168,7 +168,7 @@ class ReaderFuncsTest(unittest.TestCase):
     def test_read_boot_extension_file__valid(self) -> None:
         """Test read_boot_extension_file with valid input."""
         ext_file = os.path.join(self.tempdir, 'invalid-format.json')
-        with open(ext_file, 'w') as f:
+        with open(ext_file, 'w', encoding='utf-8') as f:
             json.dump([{
                 'name': 'n1',
                 'version': [1, 2, 3],

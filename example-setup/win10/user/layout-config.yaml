@@ -30,6 +30,7 @@ TileLayout:
               size: 1
               direction: horizontal
               contents:
+              # TODO allow for an alternate syntax.
               - ^: portal
                 $:
                   portal_aliases: ['default']
