@@ -19,6 +19,7 @@ class BinaryReader(Protocol):
 
 
 def convert_reader_to_raw(reader: BinaryReader) -> RawBinaryReader:
+    """Convert a BinaryReader to a RawBinaryReader."""
     def bin_reader(max_read_count: int = -1) -> bytes:
         return reader.read(max_read_count)
     return bin_reader

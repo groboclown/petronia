@@ -20,7 +20,7 @@ implements:
   - name: petronia.core.api.portal
     minimum: [1, 0, 0]
     below: [2, 0, 0]
-  - name: petronia.core.api.window-pos
+  - name: petronia.core.api.window_pos
     minimum: [1, 0, 0]
     below: [2, 0, 0]
 

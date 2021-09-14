@@ -33,8 +33,6 @@ class OptimizedTileTree:
 
     def get_portal_by_id(self, portal_id: int) -> Optional[model.Portal]:
         """Get the portal with the given ID, if it exists."""
-        if self.__screen_uninitialized:
-            return None
         return self.__portals_by_id.get(portal_id)
 
     def get_portal_by_alias(self, portal_alias: str) -> Optional[model.Portal]:
@@ -68,8 +66,7 @@ class OptimizedTileTree:
             target_id: str, fit: Optional[portal_state.WindowPortalFit],
             window_state: window_event.WindowState,
     ) -> Optional[model.KnownWindow]:
-        """Add the window to the tile tree registration.  If it should be managed, then
-        a follow-up call should be made to `move_window`."""
+        """Add the window to the tile tree registration."""
         if self.get_window_by_id(target_id) is not None:
             # It was already registered.
             return None
@@ -83,7 +80,8 @@ class OptimizedTileTree:
     ) -> Sequence[model.KnownWindow]:
         """Move the window to the target portal.  If the window is associated with a different
         portal, then it is first removed from that portal.  If the window was not registered
-        to the tree, then it is re-added into the tree only if manage is True.
+        to the tree, then it is re-added into the tree only if manage is True.  If the screen is
+        not initialized yet, then it will be registered.
 
         Returns windows that have changed size and/or position.
         """
@@ -189,19 +187,20 @@ class OptimizedTileTree:
                 next_tuple = screen_stack.pop(0)
                 assert next_tuple is not None  # nosec  # ensured because of while stack.
                 parent_container, content_def = next_tuple
-                if isinstance(content_def, portal_state.Portal):
-                    contained_windows = tuple(get_assigned_windows(content_def, remaining_windows))
+                content_value = content_def.value
+                if isinstance(content_value, portal_state.Portal):
+                    contained_windows = tuple(get_assigned_windows(content_value, remaining_windows))
                     changed_windows.extend(contained_windows)
                     for cws in contained_windows:
                         remaining_windows.remove(cws)
-                    portal = model.Portal(contained_windows, content_def)
+                    portal = model.Portal(contained_windows, content_value)
                     self.__portals_by_id[portal.portal_id] = portal
                     parent_container.add_child(portal, False, False)
-                elif isinstance(content_def, portal_state.LayoutSplit):
-                    child_split = model.SimpleSplit(content_def.direction == 'horizontal')
-                    child_split.rel_size = content_def.size
+                elif isinstance(content_value, portal_state.LayoutSplit):
+                    child_split = model.SimpleSplit(content_value.direction == 'horizontal')
+                    child_split.rel_size = content_value.size
                     parent_container.add_child(child_split, False, False)
-                    for content in content_def.contents:
+                    for content in content_value.contents:
                         screen_stack.append((child_split, content))
                     found_splits.append(child_split)
 

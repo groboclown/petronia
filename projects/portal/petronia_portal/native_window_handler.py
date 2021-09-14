@@ -64,7 +64,7 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
                     window_event.WindowFocusedEvent.UNIQUE_TARGET_FQN,
                 ),
                 (
-                    datastore_event.DataUpdateEvent.FULL_EVENT_NAME,
+                    datastore_event.DataUpdatedEvent.FULL_EVENT_NAME,
                     None,
                 ),
             ),
@@ -247,7 +247,9 @@ def update_window_state(
                 fit,
                 state,
             )
-            print(f'[PORTAL] created window for {window_id}; moving into portal {assigned_portal_id}')
+            print(
+                f'[PORTAL] created window for {window_id}; moving into portal {assigned_portal_id}'
+            )
             res = send_move_windows_event(
                 context,
                 root.move_window_to_portal_id(

@@ -10,7 +10,7 @@ from .privileges import add_event_send_access, get_source_id_prefix_access
 from ..defs import ExtensionInfo, TRANSLATION_CATALOG
 from ..setup import get_extension_config
 from ..events.impl import extension_loader, foreman
-from ..events.ext.datastore import StoreDataEvent
+from ..events.ext.datastore import StoreDataRequestEvent
 
 
 EXTENSION_LOADER_FOREMAN_SOURCE = extension_loader.EXTENSION_NAME + ':for-foreman'
@@ -70,8 +70,8 @@ def send_loaded_extension_state(
     """Send the data store event for the loaded extensions."""
     return context.send_event(
         extension_loader.ActiveExtensionsState.UNIQUE_TARGET_FQN,
-        StoreDataEvent.UNIQUE_TARGET_FQN,
-        StoreDataEvent(
+        StoreDataRequestEvent.UNIQUE_TARGET_FQN,
+        StoreDataRequestEvent(
             json.dumps(extension_loader.ActiveExtensionsState([
                 extension_loader.ExtensionInfo(
                     info.name,

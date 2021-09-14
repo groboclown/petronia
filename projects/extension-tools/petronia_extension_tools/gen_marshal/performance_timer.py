@@ -14,8 +14,9 @@ class PerfTimer:
         """Restart the timer."""
         self.__start = time.time()
 
-    def report(self, source: str) -> None:
+    def report(self, source: str) -> float:
         """Report the time usage.  Also, restarts the timer."""
-        now = time.time()
-        print(f"[performance] {source} {now - self.__start}")
+        delta = time.time() - self.__start
+        print(f"[performance] {source} {delta}")
         self.start()
+        return delta

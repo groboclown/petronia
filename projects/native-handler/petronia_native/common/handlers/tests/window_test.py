@@ -25,13 +25,13 @@ class WindowHandlerTest(unittest.TestCase):
             args[0],
         )
         self.assertEqual(
-            datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
+            datastore.StoreDataRequestEvent.UNIQUE_TARGET_FQN,
             args[1],
         )
         event_obj = args[2]
-        self.assertIsInstance(event_obj, datastore.StoreDataEvent)
+        self.assertIsInstance(event_obj, datastore.StoreDataRequestEvent)
         # mypy required
-        assert isinstance(event_obj, datastore.StoreDataEvent)  # nosec
+        assert isinstance(event_obj, datastore.StoreDataRequestEvent)  # nosec
         self.assertEqual(
             json.dumps({
                 'active_ids': [{'window_id': 'w1'}, {'window_id': 'w2'}],

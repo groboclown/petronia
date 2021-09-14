@@ -41,10 +41,12 @@ class MonitorScreenTest(unittest.TestCase):
         context.send_event.assert_called_once()
         args = context.send_event.call_args.args
         self.assertEqual(args[0], monitor.ActiveMonitorsState.UNIQUE_TARGET_FQN)
-        self.assertEqual(args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        self.assertEqual(args[1], datastore_events.StoreDataRequestEvent.UNIQUE_TARGET_FQN)
         event_obj = args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event_obj, datastore_events.StoreDataRequestEvent)
+        assert isinstance(  # nosec  # mypy required
+            event_obj, datastore_events.StoreDataRequestEvent,
+        )
         self.assertEqual(json.dumps({'monitors': []}), event_obj.json)
 
     def test_store_virtual_screen_state(self) -> None:
@@ -58,10 +60,12 @@ class MonitorScreenTest(unittest.TestCase):
         context.send_event.assert_called_once()
         args = context.send_event.call_args.args
         self.assertEqual(args[0], screen.VirtualScreenState.UNIQUE_TARGET_FQN)
-        self.assertEqual(args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        self.assertEqual(args[1], datastore_events.StoreDataRequestEvent.UNIQUE_TARGET_FQN)
         event_obj = args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event_obj, datastore_events.StoreDataRequestEvent)
+        assert isinstance(  # nosec  # mypy required
+            event_obj, datastore_events.StoreDataRequestEvent,
+        )
         self.assertEqual(json.dumps({'area': []}), event_obj.json)
 
     def test_send_screen_configuration_bad(self) -> None:
@@ -196,10 +200,12 @@ class AbstractMonitorHandlerTest(unittest.TestCase):
 
         call1_args = context.send_event.call_args_list[0].args
         self.assertEqual(call1_args[0], monitor.ActiveMonitorsState.UNIQUE_TARGET_FQN)
-        self.assertEqual(call1_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        self.assertEqual(call1_args[1], datastore_events.StoreDataRequestEvent.UNIQUE_TARGET_FQN)
         event_obj = call1_args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event_obj, datastore_events.StoreDataRequestEvent)
+        assert isinstance(  # nosec  # mypy required
+            event_obj, datastore_events.StoreDataRequestEvent,
+        )
         self.assertEqual(
             json.dumps({'monitors': [
                 {
@@ -212,10 +218,12 @@ class AbstractMonitorHandlerTest(unittest.TestCase):
 
         call2_args = context.send_event.call_args_list[1].args
         self.assertEqual(call2_args[0], screen.VirtualScreenState.UNIQUE_TARGET_FQN)
-        self.assertEqual(call2_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        self.assertEqual(call2_args[1], datastore_events.StoreDataRequestEvent.UNIQUE_TARGET_FQN)
         event_obj = call2_args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event_obj, datastore_events.StoreDataRequestEvent)
+        assert isinstance(  # nosec  # mypy required
+            event_obj, datastore_events.StoreDataRequestEvent,
+        )
         self.assertEqual(
             json.dumps({'area': [
                 {
@@ -240,10 +248,12 @@ class AbstractMonitorHandlerTest(unittest.TestCase):
         self.assertEqual(1, len(context.send_event.call_args_list))
         call1_args = context.send_event.call_args_list[0].args
         self.assertEqual(call1_args[0], monitor.ActiveMonitorsState.UNIQUE_TARGET_FQN)
-        self.assertEqual(call1_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        self.assertEqual(call1_args[1], datastore_events.StoreDataRequestEvent.UNIQUE_TARGET_FQN)
         event_obj = call1_args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event_obj, datastore_events.StoreDataRequestEvent)
+        assert isinstance(  # nosec  # mypy required
+            event_obj, datastore_events.StoreDataRequestEvent,
+        )
         self.assertEqual(
             json.dumps({'monitors': [
                 {
@@ -272,10 +282,12 @@ class AbstractMonitorHandlerTest(unittest.TestCase):
 
         call1_args = context.send_event.call_args_list[0].args
         self.assertEqual(call1_args[0], monitor.ActiveMonitorsState.UNIQUE_TARGET_FQN)
-        self.assertEqual(call1_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        self.assertEqual(call1_args[1], datastore_events.StoreDataRequestEvent.UNIQUE_TARGET_FQN)
         event_obj = call1_args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event_obj, datastore_events.StoreDataRequestEvent)
+        assert isinstance(  # nosec  # mypy required
+            event_obj, datastore_events.StoreDataRequestEvent,
+        )
         self.assertEqual(
             json.dumps({'monitors': [
                 {
@@ -292,10 +304,12 @@ class AbstractMonitorHandlerTest(unittest.TestCase):
 
         call2_args = context.send_event.call_args_list[1].args
         self.assertEqual(call2_args[0], screen.VirtualScreenState.UNIQUE_TARGET_FQN)
-        self.assertEqual(call2_args[1], datastore_events.StoreDataEvent.UNIQUE_TARGET_FQN)
+        self.assertEqual(call2_args[1], datastore_events.StoreDataRequestEvent.UNIQUE_TARGET_FQN)
         event_obj = call2_args[2]
-        self.assertIsInstance(event_obj, datastore_events.StoreDataEvent)
-        assert isinstance(event_obj, datastore_events.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event_obj, datastore_events.StoreDataRequestEvent)
+        assert isinstance(  # nosec  # mypy required
+            event_obj, datastore_events.StoreDataRequestEvent,
+        )
         self.assertEqual(
             # This is based on the ret__get value set above.
             json.dumps({'area': [

@@ -1,7 +1,7 @@
 ---
 schema-version: v1
 
-name: petronia.core.api.window-pos
+name: petronia.core.api.window_pos
 type: api
 version: [1, 0, 0]
 about: Extensions that handle the positioning of the windows.

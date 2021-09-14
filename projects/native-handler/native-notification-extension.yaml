@@ -183,7 +183,7 @@ references:
   notification-icon:
     description: >
       A single notification icon.
-    type: object
+    type: structure
     fields:
       icon_id:
         description: >

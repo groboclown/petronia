@@ -9,6 +9,7 @@ import os
 import sys
 import shutil
 import subprocess
+import coverage
 
 # Bump back up after initial good build.
 # MINIMUM_COVERAGE_PERCENT = 99
@@ -161,6 +162,9 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
     else:
         print("Unit tests PASS")
 
+    # This encounters the error:
+    # AttributeError: 'Coverage' object has no attribute 'get_json_data'
+    # So programmatic access is used instead.
     report_code = run_python_cmd(
         project_dir,
         [],
@@ -168,6 +172,7 @@ def build_std_project_dir(root_project_dir: str, project_dir: str) -> List[str]:
         ['report', '-m', '--fail-under', str(MINIMUM_COVERAGE_PERCENT)],
         True,
     )
+
     if report_code != 0:
         print(f"Code coverage FAILED: exit code {report_code}")
         failed.append('insufficient code coverage from unit tests')

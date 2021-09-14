@@ -141,13 +141,13 @@ class HotkeyTest(unittest.TestCase):
         self.assertEqual(
             (
                 hotkey_event.HotkeyBindingsState.UNIQUE_TARGET_FQN,
-                datastore.StoreDataEvent.UNIQUE_TARGET_FQN,
+                datastore.StoreDataRequestEvent.UNIQUE_TARGET_FQN,
             ),
             context.send_event.mock_calls[1].args[0:2],
         )
         event = context.send_event.mock_calls[1].args[2]
-        self.assertIsInstance(event, datastore.StoreDataEvent)
-        assert isinstance(event, datastore.StoreDataEvent)  # nosec  # mypy required
+        self.assertIsInstance(event, datastore.StoreDataRequestEvent)
+        assert isinstance(event, datastore.StoreDataRequestEvent)  # nosec  # mypy required
         self.assertEqual(
             json.loads(event.json),
             {'master': {'sequence': [], 'sequence_type': 'm'}, 'bound': []},
