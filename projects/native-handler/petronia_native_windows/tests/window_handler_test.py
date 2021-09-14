@@ -1,6 +1,8 @@
 """Test the module."""
 
 import unittest
+
+from petronia_common.util import not_none
 from .. import window_handler
 from ..arch.native_funcs import HWND, WINDOWS_FUNCTIONS
 
@@ -27,4 +29,4 @@ class AccessibleWindowHandler(window_handler.WindowsNativeHandler):
 
     def internal__mk_window_state(self, hwnd: HWND) -> window_handler.WindowsNativeWindow:
         """return _mk_window_state"""
-        return self._mk_window_state(hwnd)
+        return not_none(self._mk_window_state(hwnd))

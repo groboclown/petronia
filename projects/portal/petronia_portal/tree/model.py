@@ -8,6 +8,11 @@ from ..state import petronia_portal as portal_state
 from ..events import window as window_event
 
 
+DIRECITON_HORIZONTAL = 'horizontal'
+DIRECTION_VERTICAL = 'vertical'
+WINDOW_KEY_EXECUTABLE = 'executable'
+
+
 class KnownWindow:
     """A window stored in the layout.  Windows have a defined target_id, a possible
     assigned position within the portal"""
@@ -37,7 +42,7 @@ class KnownWindow:
         # Slow, but, meh.
         name = self._target_id
         for mkv in self._managed_state.meta:
-            if mkv.key == 'executable':
+            if mkv.key == WINDOW_KEY_EXECUTABLE:
                 name += ' / ' + mkv.value
         return name
 
@@ -97,7 +102,9 @@ class KnownWindow:
         self.pos_y = new_y
         self.pos_w = new_width
         self.pos_h = new_height
-        print(f'Update window {self._target_id} position')
+        print(
+            f'Updated window {self._target_id} position to '
+            f'({self.pos_x}, {self.pos_y}) x ({self.pos_w}, {self.pos_h})')
         return True
 
 
@@ -296,7 +303,7 @@ class Portal(Tile):
 
         for window in windows:
             if window.update_position(
-                    window_x, window_y, window_h, window_w, self._state.preferred_location,
+                    window_x, window_y, window_w, window_h, self._state.preferred_location,
             ):
                 changed.append(window)
 
@@ -364,6 +371,13 @@ class TileContainer(TileIterator, ABC):
         """
         raise NotImplementedError
 
+    def predict_children_sizes(self, children: Sequence[portal_state.SplitContent]) -> None:
+        """Examine the list of children and determine the sizes before they are added.
+        This is a way to match the understanding of children added one-at-a-time versus the
+        relative sizes, which may be different before they are all added.  This must not be
+        recursive."""
+        raise NotImplementedError
+
 
 class ScreenBlockSplit(TileContainer):
     """A tile container that covers a screen block."""
@@ -408,6 +422,11 @@ class ScreenBlockSplit(TileContainer):
                 res = child.change_child_size(0, delta_x, delta_y)
                 return res[0], 0, 0
         return EMPTY_TUPLE, 0, 0
+
+    def predict_children_sizes(self, children: Sequence[portal_state.SplitContent]) -> None:
+        # There should be at most one child.  However, the validation for 1 child is
+        # done elsewhere.  So this performs no real logic.
+        pass
 
 
 class RootContainer(TileIterator):
@@ -457,6 +476,16 @@ class SimpleSplit(TileContainer):
     def vertical(self) -> bool:
         """Is this split where children are aligned vertically to each other?"""
         return not self._is_horiz
+
+    @property
+    def split_direction_size(self) -> int:
+        """The size of the container, in the direction of the split.  Vertical means that the
+        children are stacked top-to-bottom, horizontal means that the children are stacked
+        side-by-side."""
+        return (
+            self.width if self._is_horiz else
+            self.height
+        )
 
     def add_child(self, child: Tile, front: bool, equally_sized: bool) -> Sequence[KnownWindow]:
         """Add a new child into this split, optionally at the start.
@@ -700,7 +729,10 @@ class SimpleSplit(TileContainer):
         changed_windows: List[KnownWindow] = []
         for child_index in range(child_count):
             child = self._children[child_index]
-            print(f'{repr(self)} - child was {repr(child)} ({child.pos_x}, {child.pos_y}) x ({child.width}, {child.height})')
+            print(
+                f'{repr(self)} - child was {repr(child)} '
+                f'({child.pos_x}, {child.pos_y}) x ({child.width}, {child.height})'
+            )
             if child.rel_size <= 0 or child_index == last_child_index:
                 # rel_size <= 0: the child takes up the rest of the space, but overlaps the next
                 #   child.
@@ -719,8 +751,26 @@ class SimpleSplit(TileContainer):
                 ))
                 next_pos += taken_space
             child.rel_size = taken_space
-            print(f'{repr(self)} - child now {repr(child)} ({child.pos_x}, {child.pos_y}) x ({child.width}, {child.height})')
+            print(
+                f'{repr(self)} - child now {repr(child)} '
+                f'({child.pos_x}, {child.pos_y}) x ({child.width}, {child.height})'
+            )
         return changed_windows
+
+    def predict_children_sizes(self, children: Sequence[portal_state.SplitContent]) -> None:
+        total_size = sum([c.value.size for c in children])
+        parent_size = self.split_direction_size
+
+        # Rounding accommodation...
+        last_index = len(children) - 1
+        current_index = 0
+        remaining_size = parent_size
+        for content in children:
+            if current_index == last_index:
+                content.value.size = remaining_size
+            else:
+                content.value.size = (content.value.size * parent_size) / total_size
+            remaining_size -= content.value.size
 
 
 JUSTIFY__FRONT = 0
@@ -790,9 +840,9 @@ def set_vert_size(
         tile: Tile, pos: int, length: int,
         other_pos: int, other_length: int,
 ) -> Sequence[KnownWindow]:
-    """Set the size of the tile along the horizontal axis."""
+    """Set the size of the tile along the vertical axis."""
     return tile.update_position(
-        pos, other_pos, length, other_length,
+        other_pos, pos, other_length, length,
     )
 
 
@@ -802,7 +852,7 @@ def set_horiz_size(
 ) -> Sequence[KnownWindow]:
     """Set the size of the tile along the vertical axis."""
     return tile.update_position(
-        other_pos, pos, other_length, length,
+        pos, other_pos, length, other_length,
     )
 
 

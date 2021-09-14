@@ -86,7 +86,7 @@ class UserMessageQueue:
             this_index = self.__next_index
             wparam = windows_common.WPARAM(self.__next_index)
             self.__next_index += 1
-            # print(f'Queued message {handler_id} / {this_index}')
+            print(f'Queued message {handler_id} / {this_index}')
             self.__queued_messages[this_index] = message_entry
         return self.__loop.send_custom_message_to_self(self.__message_id, wparam, handler_lparam)
 
@@ -98,7 +98,7 @@ class UserMessageQueue:
         message_id: int = cast(int, wparam)
         handle_id: int = cast(int, lparam)
 
-        # print(f'handling custom message {message_id} / {handle_id}')
+        print(f'handling custom message {message_id} / {handle_id}')
 
         with self.__lock:
             message = self.__queued_messages.get(message_id)
@@ -108,14 +108,14 @@ class UserMessageQueue:
 
         if not message:
             # FIXME make this a real boy
-            # print(
-            #     f'custom message {self.__message_id} called with unknown queue entry {message_id}'
-            #     f'; queued messages: {self.__queued_messages}'
-            # )
+            print(
+                f'custom message {self.__message_id} called with unknown queue entry {message_id}'
+                f'; queued messages: {self.__queued_messages}'
+            )
             return
         if not handler:
             # FIXME make this a real boy
-            # print(f'custom message handler {handle_id} not registered')
+            print(f'custom message handler {handle_id} not registered')
             return
 
         handler(message[1])

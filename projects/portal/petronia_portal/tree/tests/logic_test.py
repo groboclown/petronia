@@ -27,7 +27,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         tree = logic.OptimizedTileTree()
         window1 = window_event.WindowState(
             True, 0, None,
-            window_event.ScreenDimension(10, 10, 20, 20),
+            window_event.ScreenDimension(10, 11, 5, 6),
             False, [],
         )
         known1 = tree.register_window('w1', None, window1)
@@ -36,9 +36,9 @@ class OptimizedTileTreeTest(unittest.TestCase):
             known1.target_id, tree.get_default_portal().portal_id, True, True,
         )
         self.assertTrue(known1.managed)
-        screen_block = screen_state.VirtualScreenBlock(0, 0, 20, 20, 1, 1)
+        screen_block = screen_state.VirtualScreenBlock(0, 0, 21, 22, 1, 1)
         main_portal = portal_state.Portal(
-            1, portal_state.WindowPortalFit('left', 'top', 'none', 'none'),
+            1, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
             0, 0, 0, 0, ['a1'],
         )
         top_layout = portal_state.LayoutSplit(1, 'horizontal', [
@@ -61,7 +61,90 @@ class OptimizedTileTreeTest(unittest.TestCase):
             [(main_portal, [known1])],
             called_windows
         )
+        # was: (10, 11) x (5, 6)
+        # should now match screen size.
+        self.assertEqual(known1.pos_x, 0)
+        self.assertEqual(known1.pos_y, 0)
+        self.assertEqual(known1.pos_w, 21)
+        self.assertEqual(known1.pos_h, 22)
 
+    def test_split_layout(self) -> None:
+        """Test two portals in the layout."""
+        tree = logic.OptimizedTileTree()
+        window1 = window_event.WindowState(
+            True, 0, None,
+            window_event.ScreenDimension(10, 11, 5, 6),
+            False, [],
+        )
+        known1 = tree.register_window('w1', None, window1)
+        self.assertIsNotNone(known1)
+        tree.move_window_to_portal_id(
+            known1.target_id, tree.get_default_portal().portal_id, True, True,
+        )
+        self.assertTrue(known1.managed)
+        # Use an even divisor...
+        screen_block = screen_state.VirtualScreenBlock(0, 0, 21, 24, 1, 1)
+        portal1 = portal_state.Portal(
+            2, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
+            0, 0, 0, 0, ['default'],
+        )
+        portal2 = portal_state.Portal(
+            1, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
+            0, 0, 0, 0, ['b'],
+        )
+        top_layout = portal_state.LayoutSplit(1, 'horizontal', [
+            portal_state.SplitContent('x', portal_state.LayoutSplit(
+                1, 'horizontal', [
+                    portal_state.SplitContent('default', portal1),
+                    portal_state.SplitContent('b', portal2),
+                ],
+            ))
+        ])
 
+        called_windows: List[Tuple[portal_state.Portal, Sequence[model.KnownWindow]]] = []
 
+        def portal_window_callback(
+                portal: portal_state.Portal, windows: Sequence[model.KnownWindow],
+        ) -> Iterable[model.KnownWindow]:
+            called_windows.append((portal, windows))
+            return []
 
+        changed_windows = tree.change_screen_layout(
+            [(screen_block, top_layout)], portal_window_callback,
+        )
+        self.assertEqual(changed_windows, [known1])
+        self.assertEqual(
+            [(portal1, [known1]), (portal2, [known1])],
+            called_windows
+        )
+
+        # Ensure the portals are correctly sized.
+        port_mod_1 = tree.get_portal_by_alias('default')
+        port_mod_2 = tree.get_portal_by_alias('b')
+        self.assertEqual(port_mod_1.pos_x, 0)
+        self.assertEqual(port_mod_1.pos_y, 0)
+        self.assertEqual(port_mod_1.width, 15)
+        self.assertEqual(port_mod_1.height, 24)
+        self.assertEqual(port_mod_2.pos_x, 15)
+        self.assertEqual(port_mod_2.pos_y, 0)
+        self.assertEqual(port_mod_2.width, 6)  # 15 + 6 = 21
+        self.assertEqual(port_mod_2.height, 24)
+
+        # Ensure the window is correctly positioned
+        # was: (10, 11) x (5, 6)
+        # should now match portal 1.
+        self.assertEqual(known1.pos_x, 0)
+        self.assertEqual(known1.pos_y, 0)
+        self.assertEqual(known1.pos_w, 15)
+        self.assertEqual(known1.pos_h, 24)
+
+        # Now move the window to the second portal to ensure the positioning.
+
+        tree.move_window_to_portal_id(
+            'w1', tree.get_portal_by_alias('b').portal_id, True, True,
+        )
+
+        self.assertEqual(known1.pos_x, 15)
+        self.assertEqual(known1.pos_y, 0)
+        self.assertEqual(known1.pos_w, 6)
+        self.assertEqual(known1.pos_h, 24)

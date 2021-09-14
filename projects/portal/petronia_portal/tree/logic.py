@@ -175,12 +175,8 @@ class OptimizedTileTree:
                 screen_block.width, screen_block.height,
             )
             blocks.append(block_split)
-            primary_split = model.SimpleSplit(layout_split.direction == 'horizontal')
-            screen_stack: List[Tuple[model.TileContainer, portal_state.SplitContent]] = [
-                (primary_split, content)
-                for content in layout_split.contents
-            ]
-            block_split.add_child(primary_split, False, False)
+            screen_stack: List[Tuple[model.TileContainer, portal_state.SplitContent]] = []
+            primary_split = _add_children_to_stack(screen_stack, block_split, layout_split)
             found_splits: List[model.SimpleSplit] = [primary_split]
 
             while screen_stack:
@@ -189,7 +185,9 @@ class OptimizedTileTree:
                 parent_container, content_def = next_tuple
                 content_value = content_def.value
                 if isinstance(content_value, portal_state.Portal):
-                    contained_windows = tuple(get_assigned_windows(content_value, remaining_windows))
+                    contained_windows = tuple(get_assigned_windows(
+                        content_value, remaining_windows,
+                    ))
                     changed_windows.extend(contained_windows)
                     for cws in contained_windows:
                         remaining_windows.remove(cws)
@@ -197,11 +195,9 @@ class OptimizedTileTree:
                     self.__portals_by_id[portal.portal_id] = portal
                     parent_container.add_child(portal, False, False)
                 elif isinstance(content_value, portal_state.LayoutSplit):
-                    child_split = model.SimpleSplit(content_value.direction == 'horizontal')
-                    child_split.rel_size = content_value.size
-                    parent_container.add_child(child_split, False, False)
-                    for content in content_value.contents:
-                        screen_stack.append((child_split, content))
+                    child_split = _add_children_to_stack(
+                        screen_stack, parent_container, content_value,
+                    )
                     found_splits.append(child_split)
 
             # Ensure all simple splits have at least one child.
@@ -390,3 +386,25 @@ class OptimizedTileTree:
     ) -> Sequence[model.KnownWindow]:
         """Change the fit attribute of the window ID."""
         raise NotImplementedError
+
+
+def _add_children_to_stack(
+        stack: List[Tuple[model.TileContainer, portal_state.SplitContent]],
+        parent: model.TileContainer,
+        current: portal_state.LayoutSplit,
+) -> model.SimpleSplit:
+    """Handle the adding the current node to its parent, and adding the children of
+    the current node into the stack.  This includes updating the relative size of the
+    layouts to work right when added into the current node."""
+    current_split = model.SimpleSplit(current.direction == model.DIRECITON_HORIZONTAL)
+    current_split.rel_size = current.size
+    parent.add_child(current_split, False, False)
+
+    # At this point, the current_split size is set.  This allows changing the
+    # relative size of the children to now be a pixel-perfect size.
+    current_split.predict_children_sizes(current.contents)
+
+    for content in current.contents:
+        stack.append((current_split, content))
+
+    return current_split

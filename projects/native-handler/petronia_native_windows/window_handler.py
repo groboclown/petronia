@@ -9,7 +9,7 @@ from petronia_common.util import (
 from petronia_native.common import user_messages, defs, log
 from petronia_native.common.handlers import window
 from petronia_native.common.events.impl import window as window_events
-from .arch.native_funcs import HWND, RECT, WINDOWS_FUNCTIONS, DWORD
+from .arch.native_funcs import HWND, RECT, WINDOWS_FUNCTIONS, DWORD, LONG
 from . import hook_messages, message_loop, message_queue
 
 
@@ -151,6 +151,9 @@ WINDOW_META__STYLE_SIZE_BORDER = 'has-size-border'
 WINDOW_META__STYLE_SYSMENU = 'has-sysmenu'
 WINDOW_META__STYLE_VSCROLL = 'has-vscroll'
 WINDOW_META__STYLE_FORCE_TASKBAR = 'force-on-taskbar'
+WINDOW_META__STYLE_TOOL_WINDOW = 'is-tool-window'
+WINDOW_META__STYLE_POPUP = 'is-popup'
+WINDOW_META__STYLE_VISIBLE = 'is-visible'
 
 WINDOW_META_STYLES: Mapping[str, str] = {
     # See windows_constants WS_STYLE_BIT_MAP and WS_EX_STYLE_BIT_MAP
@@ -163,6 +166,9 @@ WINDOW_META_STYLES: Mapping[str, str] = {
     WINDOW_META__STYLE_SYSMENU: 'sysmenu-button',
     WINDOW_META__STYLE_VSCROLL: 'vscroll',
     WINDOW_META__STYLE_FORCE_TASKBAR: 'app-window',
+    WINDOW_META__STYLE_TOOL_WINDOW: 'tool-window',
+    WINDOW_META__STYLE_POPUP: 'popup',
+    WINDOW_META__STYLE_VISIBLE: 'visible',
 }
 
 WINDOW_META__PROGRAM = 'executable'
@@ -195,6 +201,9 @@ WINDOW_META_DESCRIPTIONS: Mapping[str, str] = {
     WINDOW_META__STYLE_VSCROLL: 'The window has a vertical scroll bar.',
     WINDOW_META__STYLE_FORCE_TASKBAR:
         'When the window is visible, it is always shown in the taskbar.',
+    WINDOW_META__STYLE_TOOL_WINDOW: 'The window is a toolbar.',
+    WINDOW_META__STYLE_POPUP: 'The window is a popup.',
+    WINDOW_META__STYLE_VISIBLE: 'The window allows for display to the end user.',
     WINDOW_META__PROGRAM: 'Program that launched the window.',
     WINDOW_META__PID: 'Process ID for the owning program.',
     WINDOW_META__WINDOW_CLASS_NAME: 'Underlying class name for the window.',
@@ -299,10 +308,10 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         wnd = self.get_window_by_native(hwnd)
         if wnd:
             wnd.state.minimized = True
-            wnd.state.location.x = size.left.value
-            wnd.state.location.y = size.top.value
-            wnd.state.location.width = size.right.value - size.left.value
-            wnd.state.location.height = size.bottom.value - size.top.value
+            wnd.state.location.x = _clong_to_int(size.left)
+            wnd.state.location.y = _clong_to_int(size.top)
+            wnd.state.location.width = _clong_to_int(size.right) - _clong_to_int(size.left)
+            wnd.state.location.height = _clong_to_int(size.bottom) - _clong_to_int(size.top)
             self.__executor.submit(self._in_exec_update_window_state, wnd)
         # else log?
 
@@ -314,14 +323,14 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             # log?  This window is already registered.
             return
         wnd = self._mk_window_state(hwnd)
-        # This is inside the message loop, so we can investigate the data.
-        user_messages.report_send_receive_problems(update_window_state(hwnd, wnd.state))
-        if is_manageable(wnd):
+        if wnd:
+            # This is inside the message loop, so we can investigate the data.
+            user_messages.report_send_receive_problems(update_window_state(hwnd, wnd.state))
             self.__executor.submit(self._in_exec_create_window_state, wnd)
 
-        # If we want to keep track of the window position and other aspects to the changes
-        # in this newly created window, then this should call SetWinEventHook to attach
-        # this message loop to the PID of the window's process.
+            # If we want to keep track of the window position and other aspects to the changes
+            # in this newly created window, then this should call SetWinEventHook to attach
+            # this message loop to the PID of the window's process.
 
     def on_window_destroyed_message(self, hwnd: HWND) -> None:
         """Handle the window_destroyed_message loop message"""
@@ -702,11 +711,11 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
                 wnd = active_windows.get(handle)
                 if not wnd:
                     wnd = self._mk_window_state(handle)
-                if focused_hwnd == handle:
-                    wnd.state.focus = 0
-                    wnd.state.active = True
-                res.append(update_window_state(wnd.native_id, wnd.state))
-                if is_manageable(wnd):
+                if wnd:
+                    if focused_hwnd == handle:
+                        wnd.state.focus = 0
+                        wnd.state.active = True
+                    res.append(update_window_state(wnd.native_id, wnd.state))
                     active_windows[handle] = wnd
                 elif handle in active_windows:
                     del active_windows[handle]
@@ -716,16 +725,22 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             *res
         )
 
-    def _mk_window_state(self, hwnd: HWND) -> WindowsNativeWindow:
-        return WindowsNativeWindow(
+    def _mk_window_state(self, hwnd: HWND) -> Optional[WindowsNativeWindow]:
+        ret = WindowsNativeWindow(
             self.create_next_window_id(),
             hwnd,
-            window_events.WindowState(
+            window.create_window_state(
                 False, -1, None,
-                window_events.ScreenDimension(0, 0, 0, 0),
-                False, [],
+                defs.ScreenRect.from_border(0, 0, 0, 0),
+                False, {}, WINDOW_META_DESCRIPTIONS,
             ),
         )
+        # Note: call is_manageable before loading up all the metadata.  This
+        # saves some time.
+
+        if is_manageable(ret):
+            return ret
+        return None
 
 
 def _parse_bool(val: str) -> Optional[bool]:
@@ -795,13 +810,18 @@ def update_window_state(  # pylint:disable=too-many-branches
         access_problems.extend(name_res.error_messages())
         if name_res.ok:
             meta[WINDOW_META__WINDOW_CLASS_NAME] = name_res.result
-    if WINDOWS_FUNCTIONS.window.get_module_filename:
-        name_res = WINDOWS_FUNCTIONS.window.get_module_filename(  # pylint:disable=not-callable
-            hwnd,
-        )
-        access_problems.extend(name_res.error_messages())
-        if name_res.ok:
-            meta[WINDOW_META__WINDOW_MODULE_FILENAME] = name_res.result
+
+    # Module filename is almost never what we want, if asking for it even works.
+    # The only real information this tells us is if this call works; in many cases it can report
+    # an access problem.
+    # if WINDOWS_FUNCTIONS.window.get_module_filename:
+    #     name_res = WINDOWS_FUNCTIONS.window.get_module_filename(  # pylint:disable=not-callable
+    #         hwnd,
+    #     )
+    #     access_problems.extend(name_res.error_messages())
+    #     if name_res.ok:
+    #         meta[WINDOW_META__WINDOW_MODULE_FILENAME] = name_res.result
+
     if WINDOWS_FUNCTIONS.window.get_title:
         meta[WINDOW_META__WINDOW_TITLE] = WINDOWS_FUNCTIONS.window.get_title(  # pylint:disable=not-callable
             hwnd,
@@ -835,31 +855,103 @@ def update_window_state(  # pylint:disable=too-many-branches
 
 def is_manageable(wnd: WindowsNativeWindow) -> bool:
     """Is this window something that can be managed by Petronia?"""
-    # Old code:
+    # Old code did this:
     #   - skip if the username/domain is not the current user's username/domain, and if
     #     the class name is not PuTTY.
     #   - skip if the class name is the same as the class name prefix for windows that this
     #     plugin creates, or if the class name is None.
     #   - skip if the window is not visible.
+    # When this is called, wnd most probably doesn't have any of the metadata loaded.  Rather
+    # than require a load before this is called, this will perform some basic inspection
+    # to prevent excessive time spent loading and parsing the window data.
+    # These checks should be done in order of expensiveness (least to most).
+
+    hwnd = wnd.native_id
 
     class_name: Optional[str] = None
-    exec_name: Optional[str] = None
+    # exec_name: Optional[str] = None
+    visible: Optional[str] = None
+    popup: Optional[str] = None
+    tool: Optional[str] = None
+    title: Optional[str] = None
     for meta_value in wnd.state.meta:
         if meta_value.key == WINDOW_META__WINDOW_CLASS_NAME:
             class_name = meta_value.value
-        if meta_value.key == WINDOW_META__PROGRAM:
-            exec_name = meta_value.value
-    if not class_name:
-        # Don't manage these.
-        # print(f'[Native] skip manage {wnd.native_id} / {exec_name} - no class name')
+        # if meta_value.key == WINDOW_META__PROGRAM:
+        #     exec_name = meta_value.value
+        if meta_value.key == WINDOW_META__STYLE_VISIBLE:
+            visible = meta_value.value
+        if meta_value.key == WINDOW_META__STYLE_POPUP:
+            popup = meta_value.value
+        if meta_value.key == WINDOW_META__STYLE_TOOL_WINDOW:
+            tool = meta_value.value
+        if meta_value.key == WINDOW_META__WINDOW_TITLE:
+            title = meta_value.value
+
+    if (
+            (visible is None or popup is None or tool is None)
+            and WINDOWS_FUNCTIONS.window.get_style
+    ):
+        style = WINDOWS_FUNCTIONS.window.get_style(  # pylint:disable=not-callable
+            hwnd,
+        )
+        if style.get(WINDOW_META_STYLES[WINDOW_META__STYLE_VISIBLE], False):
+            visible = 'true'
+        if style.get(WINDOW_META_STYLES[WINDOW_META__STYLE_POPUP], False):
+            popup = 'true'
+        if style.get(WINDOW_META_STYLES[WINDOW_META__STYLE_TOOL_WINDOW], False):
+            tool = 'true'
+
+    if visible != 'true':
+        # Don't manage this.
+        # print(f'[Native] skip manage {wnd.native_id} / {class_name} - not visible')
+        return False
+    if tool == 'true':
+        # Don't manage this.
+        # print(f'[Native] skip manage {wnd.native_id} / {class_name} - is a tool window')
+        # update_window_state(hwnd, wnd.state)
+        # meta_list = sorted([m for m in wnd.state.meta], key=lambda m: m.key)
+        # for meta in meta_list:
+        #     print(f'  - {meta.key}: [{meta.value}]')
+        return False
+    if popup == 'true':
+        # Don't manage this.
+        # print(f'[Native] skip manage {wnd.native_id} / {class_name} - is a popup')
+        # update_window_state(hwnd, wnd.state)
+        # meta_list = sorted([m for m in wnd.state.meta], key=lambda m: m.key)
+        # for meta in meta_list:
+        #     print(f'  - {meta.key}: [{meta.value}]')
         return False
 
-    if WINDOWS_FUNCTIONS.window.is_visible:
-        if not WINDOWS_FUNCTIONS.window.is_visible(wnd.native_id):
-            # Don't manage this.
-            # print(f'[Native] skip manage {wnd.native_id} / {exec_name} - not visible')
-            return False
+    if title is None and WINDOWS_FUNCTIONS.window.get_title:
+        title = WINDOWS_FUNCTIONS.window.get_title(  # pylint:disable=not-callable
+            hwnd,
+        )
+    if title == '':
+        # Don't manage this.
+        print(f'[Native] skip manage {wnd.native_id} / {class_name} - no title')
+        update_window_state(hwnd, wnd.state)
+        return False
+
+    # if not class_name and WINDOWS_FUNCTIONS.window.get_class_name:
+    #    name_res = WINDOWS_FUNCTIONS.window.get_class_name(  # pylint:disable=not-callable
+    #         wnd.native_id,
+    #     )
+    #     if name_res.ok:
+    #         class_name = name_res.result
+    # if not class_name:
+    #     # Don't manage these.
+    #     # print(f'[Native] skip manage {wnd.native_id} / {exec_name} - no class name')
+    #     return False
 
     # It can be managed
-    print(f'[Native] manage {wnd.window_id} / {exec_name}')
+    print(f'[Native] manage {wnd.window_id} / {class_name}')
     return True
+
+
+def _clong_to_int(val: LONG) -> int:
+    """pylint and other tools think that LONG needs to be de-referenced with a .value,
+    but that isn't always the case."""
+    if hasattr(val, 'value'):
+        return val.value
+    return int(val)  # pylint: disable
