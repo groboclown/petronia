@@ -12,17 +12,21 @@ import atexit
 import traceback
 from ctypes import sizeof as c_sizeof
 from ctypes import cast as c_cast
+from ctypes import Union as c_Union
 from ctypes import (
     CFUNCTYPE,
     POINTER,
     byref,
     c_int,
     c_uint,
+    c_short,
     c_void_p,
     c_long,
+    c_ulong,
     c_bool,
     create_unicode_buffer,
     Structure,
+    GetLastError,
 )
 from petronia_common.util import T, STRING_EMPTY_TUPLE, EMPTY_TUPLE, StdRet, RET_OK_NONE
 from petronia_native.common import log
@@ -71,7 +75,7 @@ from ..windows_constants import (
     PS_SOLID, PS_GEOMETRIC, BS_NULL, HS_DIAGCROSS, OPAQUE, TRANSPARENT,
     DT_LEFT, DT_TOP, DT_NOPREFIX,
     LWA_ALPHA, COLOR_WINDOW,
-    KEYEVENTF_SCANCODE, KEYEVENTF_KEYUP,
+    KEYEVENTF_KEYUP, INPUT_KEYBOARD,
     FW_NORMAL, FW_BOLD, DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY,
     FF_DONTCARE,
     LOGPIXELSY, MONITORINFOF_PRIMARY,
@@ -153,7 +157,7 @@ def load_functions(_env: Dict[str, str], func_map: Functions) -> None:  # pylint
     func_map.shell.register_window_hook = shell__register_window_hook
     func_map.shell.create_global_message_handler = shell__create_global_message_handler
     func_map.shell.unhook = shell__unhook
-    func_map.shell.inject_scancode = shell__inject_scancode
+    func_map.shell.inject_input_vks = shell__inject_input_vks
     func_map.shell.lock_workstation = shell__lock_workstation
     func_map.shell.pump_messages = shell__pump_messages
     func_map.shell.system_parameters_info = shell__system_parameters_info
@@ -1397,32 +1401,116 @@ def shell__unhook(hook_id: HHOOK) -> None:
         del _CALLBACK_POINTERS[hook_id]
 
 
-class INPUT_KEYBOARD(Structure):
-    """The INPUT_KEYBOARD structure.
+class MOUSEINPUT(Structure):
+    """Part of the INPUT structure.
     see https://msdn.microsoft.com/en-us/library/ms646270(v=vs.85).aspx
     see https://msdn.microsoft.com/en-us/library/ms646271(v=vs.85).aspx"""
     _fields_ = [
-        ("type", DWORD),
-        ("wVk", WORD),
-        ("wScan", WORD),
-        ("dwFlags", DWORD),
-        ("time", DWORD),
-        ("dwExtraInfo", c_void_p),
+        ('dx', c_long),
+        ('dy', c_long),
+        ('mouseData', c_long),
+        ('dwFlags', c_long),
+        ('time', c_long),
+        ('dwExtraInfo', POINTER(c_ulong))
     ]
 
 
-def shell__inject_scancode(scancode: int, is_key_up: bool) -> bool:
-    """Inject a key scancode into the keyboard buffer."""
-    inp = INPUT_KEYBOARD()
-    # pylint doesn't understand structures
-    inp.type = INPUT_KEYBOARD  # pylint:disable=attribute-defined-outside-init
-    inp.wScan = scancode  # pylint:disable=attribute-defined-outside-init
-    if is_key_up:
-        inp.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP  # pylint:disable=attribute-defined-outside-init
-    else:
-        inp.dwFlags = KEYEVENTF_SCANCODE  # pylint:disable=attribute-defined-outside-init
-    res = t_cast(UINT, windll.user32.SendInput(1, byref(inp), c_sizeof(INPUT_KEYBOARD)))
-    return res.value == 1  # 1 == number of events sent
+class KEYBDINPUT(Structure):
+    """Part of the INPUT structure.
+    see https://msdn.microsoft.com/en-us/library/ms646270(v=vs.85).aspx
+    see https://msdn.microsoft.com/en-us/library/ms646271(v=vs.85).aspx"""
+    _fields_ = [
+        ('wVk', c_short),
+        ('wScan', c_short),
+        ('dwFlags', c_long),
+        ('time', c_long),
+        ('dwExtraInfo', POINTER(c_ulong))
+    ]
+
+
+class HARDWAREINPUT(Structure):
+    """Part of the INPUT structure.
+    see https://msdn.microsoft.com/en-us/library/ms646270(v=vs.85).aspx
+    see https://msdn.microsoft.com/en-us/library/ms646271(v=vs.85).aspx"""
+    _fields_ = [
+        ('uMsg', c_long),
+        ('wParamL', c_short),
+        ('wParamH', c_short)
+    ]
+
+
+class INPUTUNION(c_Union):
+    """Part of the INPUT structure.
+    see https://msdn.microsoft.com/en-us/library/ms646270(v=vs.85).aspx
+    see https://msdn.microsoft.com/en-us/library/ms646271(v=vs.85).aspx"""
+    _fields_ = [
+        ('mi', MOUSEINPUT),
+        ('ki', KEYBDINPUT),
+        ('hi', HARDWAREINPUT)
+    ]
+
+
+class INPUT(Structure):
+    """The INPUT structure.
+    see https://msdn.microsoft.com/en-us/library/ms646270(v=vs.85).aspx
+    see https://msdn.microsoft.com/en-us/library/ms646271(v=vs.85).aspx"""
+    _fields_ = [
+        ('type', c_long),
+        ('value', INPUTUNION)
+    ]
+
+
+
+def shell__inject_input_vks(codes: Sequence[Tuple[int, bool]]) -> bool:
+    """Inject multiple vk codes into the keyboard buffer."""
+    count = len(codes)
+
+    # The inefficient form, but works if the "correct" version goes bonkers.
+    # success_count = 0
+    # for vk_code, is_key_up in codes:
+    #     flag = 0
+    #     if is_key_up:
+    #         flag = KEYEVENTF_KEYUP
+    #     inp = INPUT(type=INPUT_KEYBOARD, value=INPUTUNION(ki=KEYBDINPUT(
+    #         wVk=vk_code,
+    #         dwFlags=flag,
+    #         time=0,
+    #         dwExtraInfo=None,
+    #     )))
+    #     res = t_cast(UINT, windll.user32.SendInput(1, byref(inp), c_sizeof(INPUT)))
+    #     success_count += res
+    #     print(" - send input {0} / {1} returned {2}".format(vk_code, is_key_up, res))
+    #     if res != 1:
+    #         print(" - error: {0}".format(GetLastError()))
+
+    inp_list = (INPUT * count)()
+    i = 0
+    for vk_code, is_key_up in codes:
+        # pylint doesn't understand structures
+        inp_list[i].type = INPUT_KEYBOARD  # pylint:disable=attribute-defined-outside-init
+        # inp.wScan = scancode  # pylint:disable=attribute-defined-outside-init
+        # Scan codes also need to know about the 0xe0 extended key sequence.
+        # if is_key_up:
+        #     inp.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
+        # else:
+        #     inp.dwFlags = KEYEVENTF_SCANCODE
+        inp_list[i].value.ki.wVk = vk_code
+        if is_key_up:
+            inp_list[i].value.ki.dwFlags = KEYEVENTF_KEYUP  # pylint:disable=attribute-defined-outside-init
+        else:
+            inp_list[i].value.ki.dwFlags = 0  # pylint:disable=attribute-defined-outside-init
+        i += 1
+
+    success_count = t_cast(UINT, windll.user32.SendInput(
+        count,
+        # c_cast(inp_list, POINTER(INPUT_KEYBOARD)),
+        inp_list,
+        c_sizeof(INPUT)))
+    # print(" - send input returned {0}".format(success_count))
+    # if success_count != count:
+    #     print(" - error: {0}".format(GetLastError()))
+
+    return success_count == count
 
 
 def shell__lock_workstation() -> bool:

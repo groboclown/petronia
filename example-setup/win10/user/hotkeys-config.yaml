@@ -77,6 +77,8 @@ Hotkeys:
             parameters:
               - key: target
                 value: east
+              - key: wrap
+                value: wrap-screen
         - comment: Move portal focus North (up)
           keys:
             - up
@@ -85,6 +87,8 @@ Hotkeys:
             parameters:
               - key: target
                 value: north
+              - key: wrap
+                value: wrap-screen
         - comment: Move portal focus South (down)
           keys:
             - down
@@ -93,6 +97,8 @@ Hotkeys:
             parameters:
               - key: target
                 value: south
+              - key: wrap
+                value: wrap-screen
 
         # ---------------------------------------------------------------------
         # Set the window position in the portal
@@ -170,30 +176,74 @@ Hotkeys:
               - key: move_focus
                 value: "true"
 
-#       - key: "shift+down"
-#         action: move-window-to-portal
-#         parameters:
-#           direction: down
-#       - key: "shift+numpad2"
-#         action: move-window-to-portal
-#         parameters:
-#           direction: down
-#       - key: "shift+left"
-#         action: move-window-to-portal
-#         parameters:
-#           direction: left
-#       - key: "shift+numpad4"
-#         action: move-window-to-portal
-#         parameters:
-#           direction: left
-#       - key: "shift+right"
-#         action: move-window-to-portal
-#         parameters:
-#           direction: right
-#       - key: "shift+numpad6"
-#         action: move-window-to-portal
-#         parameters:
-#           direction: right
+        - comment: Move the active window to a different portal - south (arrows)
+          keys:
+            - lshift
+            - down
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: target
+                value: south
+              - key: move_focus
+                value: "true"
+        - comment: Move the active window to a different portal - south (numpad)
+          keys:
+            - lshift
+            - numpad2
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: target
+                value: south
+              - key: move_focus
+                value: "true"
+
+        - comment: Move the active window to a different portal - east (arrows)
+          keys:
+            - lshift
+            - right
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: target
+                value: east
+              - key: move_focus
+                value: "true"
+        - comment: Move the active window to a different portal - east (numpad)
+          keys:
+            - lshift
+            - numpad6
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: target
+                value: east
+              - key: move_focus
+                value: "true"
+
+        - comment: Move the active window to a different portal - west (arrows)
+          keys:
+            - lshift
+            - left
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: target
+                value: west
+              - key: move_focus
+                value: "true"
+        - comment: Move the active window to a different portal - west (numpad)
+          keys:
+            - lshift
+            - numpad4
+          event:
+            target_id: petronia.core.api.portal:move-window-to-portal
+            parameters:
+              - key: target
+                value: west
+              - key: move_focus
+                value: "true"
 
         # ---------------------------------------------------------------------
         # Rotate between windows in the active portal

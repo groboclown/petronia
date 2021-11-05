@@ -10,20 +10,20 @@ Data structures and marshalling for extension petronia_portal version 1.0.0.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Union,
     Any,
     SupportsInt,
-    List,
-    Optional,
     Dict,
+    List,
     cast,
+    Optional,
+    Union,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     collect_errors_from,
+    not_none,
     StdRet,
     STANDARD_PETRONIA_CATALOG,
-    not_none,
 )
 
 EXTENSION_NAME = 'petronia_portal'
@@ -216,7 +216,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('top','bottom','center', ):
+            if val not in ('bottom','top','center', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -493,8 +493,8 @@ class SplitContent:
         self,
         name: str,
         value: Union[
-            LayoutSplit,
             Portal,
+            LayoutSplit,
         ],
     ) -> None:
         self.__name = name
@@ -507,8 +507,8 @@ class SplitContent:
 
     @property
     def value(self) -> Union[
-            LayoutSplit,
             Portal,
+            LayoutSplit,
     ]:
         """The selector value."""
         return self.__value
@@ -537,12 +537,13 @@ class SplitContent:
     @staticmethod
     def parse_data(data: Dict[str, Any]) -> StdRet['SplitContent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
-        selector_name = data.get('^')
-        val = data.get('$')
+        selector_name = data.get('^', data.get('type'))
+        val = data.get('$', data.get('value'))
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
-                _('selector value must have ^ and $ keys'),
+                _('selector for {name} value must have ^ and $ keys, or "type" and "value" keys'),
+                name='SplitContent',
             )
         if selector_name == 'split':
             if not isinstance(val, dict):
@@ -648,7 +649,7 @@ class LayoutSplit:
                 name='LayoutSplit',
             )
         else:
-            if val not in ('horizontal','vertical', ):
+            if val not in ('vertical','horizontal', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -877,7 +878,7 @@ class WindowMatchItem:
                 name='WindowMatchItem',
             )
         else:
-            if val not in ('regex','glob','exists','exact','not-exists', ):
+            if val not in ('regex','exact','glob','exists','not-exists', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

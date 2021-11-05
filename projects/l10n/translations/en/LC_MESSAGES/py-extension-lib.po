@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia py-extension-lib VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-09-09 18:08-0500\n"
-"PO-Revision-Date: 2021-09-09 18:09-0500\n"
+"POT-Creation-Date: 2021-11-04 13:18-0500\n"
+"PO-Revision-Date: 2021-11-04 13:18-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
@@ -161,11 +161,13 @@ msgstr ""
 
 #: projects/py-extension-lib/petronia_ext_lib/runner/lookup.py:77
 #: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:67
+#: projects/py-extension-lib/petronia_ext_lib/runner/single_threaded.py:74
 msgid "parser for event {event_id} already registered"
 msgstr ""
 
 #: projects/py-extension-lib/petronia_ext_lib/runner/lookup.py:92
 #: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:86
+#: projects/py-extension-lib/petronia_ext_lib/runner/single_threaded.py:92
 msgid "event ID {event_id} does not have a registered parser"
 msgstr ""
 
@@ -186,11 +188,25 @@ msgid "a target handler for event {event_id} is already registered"
 msgstr ""
 
 #: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:94
+#: projects/py-extension-lib/petronia_ext_lib/runner/single_threaded.py:103
+#: projects/py-extension-lib/petronia_ext_lib/runner/single_threaded.py:138
 msgid "only targets that don't time out are supported."
 msgstr ""
 
 #: projects/py-extension-lib/petronia_ext_lib/runner/simple.py:118
 msgid "binary targets not supported"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/single_threaded.py:96
+msgid ""
+"a target handler for event \"{event_id}\", target \"{target_id}\" is "
+"already registered"
+msgstr ""
+
+#: projects/py-extension-lib/petronia_ext_lib/runner/single_threaded.py:131
+msgid ""
+"a binary target handler for event \"{event_id}\", target \"{target_id}\" "
+"is already registered"
 msgstr ""
 
 #: projects/py-extension-lib/petronia_ext_lib/standard/embedded_json_data.py:31

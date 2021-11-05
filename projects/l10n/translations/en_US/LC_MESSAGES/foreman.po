@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia foreman VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-09-09 18:06-0500\n"
-"PO-Revision-Date: 2021-09-09 18:06-0500\n"
+"POT-Creation-Date: 2021-11-04 13:16-0500\n"
+"PO-Revision-Date: 2021-11-04 13:16-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -126,19 +126,19 @@ msgstr ""
 msgid "channel name already reserved ({channel})"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:220
+#: projects/foreman/petronia_foreman/event_router/router.py:176
 msgid "handler {handler_id} already registered in channel {name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:228
+#: projects/foreman/petronia_foreman/event_router/router.py:184
 msgid "channel {name} not registered"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:291
+#: projects/foreman/petronia_foreman/event_router/router.py:247
 msgid "no such channel {name}"
 msgstr ""
 
-#: projects/foreman/petronia_foreman/event_router/router.py:341
+#: projects/foreman/petronia_foreman/event_router/router.py:297
 msgid "channel not registered ({channel})"
 msgstr ""
 
@@ -387,11 +387,11 @@ msgstr ""
 msgid "Not running under Windows."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/foreman_router.py:368
+#: projects/foreman/petronia_foreman/routing/foreman_router.py:367
 msgid "extension loader channel {channel} already registered."
 msgstr ""
 
-#: projects/foreman/petronia_foreman/routing/foreman_router.py:439
+#: projects/foreman/petronia_foreman/routing/foreman_router.py:438
 msgid "failed creating launcher {name}"
 msgstr ""
 

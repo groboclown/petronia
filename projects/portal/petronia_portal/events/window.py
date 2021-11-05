@@ -11,18 +11,18 @@ Data structures and marshalling for extension petronia.core.api.native.window ve
 from __future__ import annotations
 from typing import (
     Any,
-    List,
-    Dict,
     Optional,
-    SupportsInt,
     cast,
+    Dict,
+    List,
+    SupportsInt,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     not_none,
+    StdRet,
     collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.window'

@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.extension_loader
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
     cast,
+    SupportsInt,
+    SupportsFloat,
+    Any,
+    Union,
     List,
     Dict,
     Optional,
-    SupportsInt,
-    SupportsFloat,
-    Union,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
-    collect_errors_from,
+    StdRet,
     not_none,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.extension_loader'
@@ -167,16 +167,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            int,
-            List[datetime.datetime],
-            str,
-            List[float],
             datetime.datetime,
-            List[int],
             float,
+            List[int],
+            List[float],
             bool,
-            List[str],
             List[bool],
+            int,
+            str,
+            List[datetime.datetime],
+            List[str],
         ],
     ) -> None:
         self.__name = name
@@ -189,16 +189,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            int,
-            List[datetime.datetime],
-            str,
-            List[float],
             datetime.datetime,
-            List[int],
             float,
+            List[int],
+            List[float],
             bool,
-            List[str],
             List[bool],
+            int,
+            str,
+            List[datetime.datetime],
+            List[str],
     ]:
         """The selector value."""
         return self.__value
@@ -275,8 +275,8 @@ class MessageArgumentValue:
     @staticmethod
     def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgumentValue']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
-        selector_name = data.get('^')
-        val = data.get('$')
+        selector_name = data.get('^', data.get('type'))
+        val = data.get('$', data.get('value'))
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,

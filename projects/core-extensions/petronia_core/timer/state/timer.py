@@ -12,15 +12,15 @@ from __future__ import annotations
 from typing import (
     Any,
     Dict,
-    List,
     SupportsFloat,
+    List,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    not_none,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia_core.timer'

@@ -1,7 +1,7 @@
 # GENERATED CODE - DO NOT MODIFY
 
 """
-Data structures and marshalling for extension petronia.core.protocol.logging version 1.0.0.
+Data structures and marshalling for extension petronia.core.api.native.notification version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
@@ -10,25 +10,25 @@ Data structures and marshalling for extension petronia.core.protocol.logging ver
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    Any,
-    List,
-    SupportsInt,
-    cast,
-    Optional,
-    SupportsFloat,
     Union,
+    SupportsFloat,
+    Dict,
+    List,
+    Optional,
+    cast,
+    Any,
+    SupportsInt,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
     StdRet,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
     collect_errors_from,
 )
 
-EXTENSION_NAME = 'petronia.core.protocol.logging'
+EXTENSION_NAME = 'petronia.core.api.native.notification'
 EXTENSION_VERSION = (1, 0, 0)
 
 
@@ -42,16 +42,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            datetime.datetime,
             List[int],
-            List[float],
+            int,
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[bool],
+            List[str],
             str,
             bool,
-            int,
-            List[bool],
-            float,
-            List[datetime.datetime],
-            List[str],
+            List[float],
         ],
     ) -> None:
         self.__name = name
@@ -64,16 +64,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            datetime.datetime,
             List[int],
-            List[float],
+            int,
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[bool],
+            List[str],
             str,
             bool,
-            int,
-            List[bool],
-            float,
-            List[datetime.datetime],
-            List[str],
+            List[float],
     ]:
         """The selector value."""
         return self.__value
@@ -547,347 +547,317 @@ class LocalizableMessage:
         return "LocalizableMessage(" + repr(self.export_data()) + ")"
 
 
-class LogEvent:
+class NotificationTextCreatedEvent:
     """
-    A request to log a message. This can be publicly received, so that any extension
-    can listen to logging messages. For this reason, nothing private should be sent.
+    A short-term notification text alert is displayed. This only tells listeners
+    that one was requested to show; it does not tell listeners when it is removed.
+    Depending on the system configuration, this may either be an indication that the
+    underlying native system has created the text, or that another extension needs
+    to perform an action.
     """
-    __slots__ = ('scope', 'messages',)
-    FULL_EVENT_NAME = 'petronia.core.protocol.logging:log'
-    SHORT_EVENT_NAME = 'log'
-
-    UNIQUE_TARGET_FQN = 'petronia.core.protocol.logging:log'
-    UNIQUE_TARGET_REL = 'log'
+    __slots__ = ('text', 'title', 'icon_id', 'sound_id',)
+    FULL_EVENT_NAME = 'petronia.core.api.native.notification:notification-text-created'
+    SHORT_EVENT_NAME = 'notification-text-created'
 
     def __init__(
         self,
-        scope: str,
-        messages: List[LocalizableMessage],
+        text: LocalizableMessage,
+        title: LocalizableMessage,
+        icon_id: str,
+        sound_id: str,
     ) -> None:
-        self.scope = scope
-        self.messages = messages
+        self.text = text
+        self.title = title
+        self.icon_id = icon_id
+        self.sound_id = sound_id
 
     @property
     def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
         """Get the full event name that this object encapsulates."""
-        return LogEvent.FULL_EVENT_NAME
+        return NotificationTextCreatedEvent.FULL_EVENT_NAME
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
-            'scope': self.scope,
-            'messages': [v.export_data() for v in self.messages],
+            'text': self.text.export_data(),
+            'title': self.title.export_data(),
+            'icon_id': self.icon_id,
+            'sound_id': self.sound_id,
         }
         return _strip_none(ret)
 
     @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['LogEvent']:  # pylint: disable=R0912,R0911
+    def parse_data(data: Dict[str, Any]) -> StdRet['NotificationTextCreatedEvent']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
-        val = data.get('scope')
-        f_scope: str
+        val = data.get('text')
+        f_text: LocalizableMessage
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='scope',
-                name='LogEvent',
+                field_name='text',
+                name='NotificationTextCreatedEvent',
             )
         else:
-            if val not in ('debug','warning','verbose','info', ):
+            parsed_text = LocalizableMessage.parse_data(val)
+            if parsed_text.has_error:
+                return parsed_text.forward()
+            if parsed_text.value is None:
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
-                    _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='scope',
-                    type='str',
-                    name='LogEvent',
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='text',
                 )
-            f_scope = val
-        val = data.get('messages')
-        f_messages: List[LocalizableMessage]
+            f_text = parsed_text.result
+        val = data.get('title')
+        f_title: LocalizableMessage
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='messages',
-                name='LogEvent',
+                field_name='title',
+                name='NotificationTextCreatedEvent',
             )
         else:
-            f_messages = []
-            for item in val:
-                parsed_messages = LocalizableMessage.parse_data(item)
-                if parsed_messages.has_error:
-                    return parsed_messages.forward()
-                f_messages.append(parsed_messages.result)
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(LogEvent(
-            scope=not_none(f_scope),
-            messages=not_none(f_messages),
-        ))
-
-    def __repr__(self) -> str:
-        return "LogEvent(" + repr(self.export_data()) + ")"
-
-
-class Error:
-    """
-    A description of a failure.
-    """
-    __slots__ = ('identifier', 'categories', 'source', 'messages',)
-
-    def __init__(
-        self,
-        identifier: str,
-        categories: List[str],
-        source: Optional[str],
-        messages: List[LocalizableMessage],
-    ) -> None:
-        self.identifier = identifier
-        self.categories = categories
-        self.source = source
-        self.messages = messages
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'identifier': self.identifier,
-            'categories': list(self.categories),
-            'source': self.source,
-            'messages': [v.export_data() for v in self.messages],
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['Error']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('identifier')
-        f_identifier: str
+            parsed_title = LocalizableMessage.parse_data(val)
+            if parsed_title.has_error:
+                return parsed_title.forward()
+            if parsed_title.value is None:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='title',
+                )
+            f_title = parsed_title.result
+        val = data.get('icon_id')
+        f_icon_id: str
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='identifier',
-                name='Error',
+                field_name='icon_id',
+                name='NotificationTextCreatedEvent',
             )
         else:
             if not isinstance(val, str):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='identifier',
+                    field_name='icon_id',
                     type='str',
-                    name='Error',
+                    name='NotificationTextCreatedEvent',
                 )
-            f_identifier = val
-        val = data.get('categories')
-        f_categories: List[str]
+            f_icon_id = val
+        val = data.get('sound_id')
+        f_sound_id: str
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='categories',
-                name='Error',
+                field_name='sound_id',
+                name='NotificationTextCreatedEvent',
             )
         else:
-            if not isinstance(val, list):
+            if not isinstance(val, str):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='categories',
-                    type='List[str]',
-                    name='Error',
+                    field_name='sound_id',
+                    type='str',
+                    name='NotificationTextCreatedEvent',
                 )
-            f_categories = []
-            for item in val:
-                if not isinstance(item, str):
-                    return StdRet.pass_errmsg(
-                        STANDARD_PETRONIA_CATALOG,
-                        _(
-                            'Field {field_name} must contain items '
-                            'of type {type} for structure {name}'
-                        ),
-                        field_name='categories',
-                        type='str',
-                        name='Error',
-                    )
-                f_categories.append(item)
-        val = data.get('source')
-        f_source: Optional[str] = None
+            f_sound_id = val
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(NotificationTextCreatedEvent(
+            text=not_none(f_text),
+            title=not_none(f_title),
+            icon_id=not_none(f_icon_id),
+            sound_id=not_none(f_sound_id),
+        ))
+
+    def __repr__(self) -> str:
+        return "NotificationTextCreatedEvent(" + repr(self.export_data()) + ")"
+
+
+class NotificationIcon:
+    """
+    A single notification icon.
+    """
+    __slots__ = ('icon_id', 'image_id', 'title', 'hint',)
+
+    def __init__(
+        self,
+        icon_id: str,
+        image_id: Optional[str],
+        title: LocalizableMessage,
+        hint: LocalizableMessage,
+    ) -> None:
+        self.icon_id = icon_id
+        self.image_id = image_id
+        self.title = title
+        self.hint = hint
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'icon_id': self.icon_id,
+            'image_id': self.image_id,
+            'title': self.title.export_data(),
+            'hint': self.hint.export_data(),
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['NotificationIcon']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('icon_id')
+        f_icon_id: str
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='icon_id',
+                name='NotificationIcon',
+            )
+        else:
+            if not isinstance(val, str):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='icon_id',
+                    type='str',
+                    name='NotificationIcon',
+                )
+            f_icon_id = val
+        val = data.get('image_id')
+        f_image_id: Optional[str] = None
         if val is not None:
             if not isinstance(val, str):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
-                    field_name='source',
+                    field_name='image_id',
                     type='str',
-                    name='Error',
+                    name='NotificationIcon',
                 )
-            f_source = val
-        val = data.get('messages')
-        f_messages: List[LocalizableMessage]
+            f_image_id = val
+        val = data.get('title')
+        f_title: LocalizableMessage
         if val is None:  # pylint:disable=no-else-return
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
                 _('Required field {field_name} in {name}'),
-                field_name='messages',
-                name='Error',
+                field_name='title',
+                name='NotificationIcon',
             )
         else:
-            f_messages = []
+            parsed_title = LocalizableMessage.parse_data(val)
+            if parsed_title.has_error:
+                return parsed_title.forward()
+            if parsed_title.value is None:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='title',
+                )
+            f_title = parsed_title.result
+        val = data.get('hint')
+        f_hint: LocalizableMessage
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='hint',
+                name='NotificationIcon',
+            )
+        else:
+            parsed_hint = LocalizableMessage.parse_data(val)
+            if parsed_hint.has_error:
+                return parsed_hint.forward()
+            if parsed_hint.value is None:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='hint',
+                )
+            f_hint = parsed_hint.result
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(NotificationIcon(
+            icon_id=not_none(f_icon_id),
+            image_id=f_image_id,
+            title=not_none(f_title),
+            hint=not_none(f_hint),
+        ))
+
+    def __repr__(self) -> str:
+        return "NotificationIcon(" + repr(self.export_data()) + ")"
+
+
+class NotificationIconsState:
+    """
+    Describes the different status notifications that are represented as icons.
+    """
+    __slots__ = ('icons',)
+
+    UNIQUE_TARGET_FQN = 'petronia.core.api.native.notification:notification-icons'
+    UNIQUE_TARGET_REL = 'petronia.core.api.native.notification:notification-icons'
+
+    def __init__(
+        self,
+        icons: List[NotificationIcon],
+    ) -> None:
+        self.icons = icons
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'icons': [v.export_data() for v in self.icons],
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['NotificationIconsState']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('icons')
+        f_icons: List[NotificationIcon]
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='icons',
+                name='NotificationIconsState',
+            )
+        else:
+            f_icons = []
             for item in val:
-                parsed_messages = LocalizableMessage.parse_data(item)
-                if parsed_messages.has_error:
-                    return parsed_messages.forward()
-                f_messages.append(parsed_messages.result)
+                parsed_icons = NotificationIcon.parse_data(item)
+                if parsed_icons.has_error:
+                    return parsed_icons.forward()
+                f_icons.append(parsed_icons.result)
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(Error(
-            identifier=not_none(f_identifier),
-            categories=not_none(f_categories),
-            source=f_source,
-            messages=not_none(f_messages),
+        return StdRet.pass_ok(NotificationIconsState(
+            icons=not_none(f_icons),
         ))
 
     def __repr__(self) -> str:
-        return "Error(" + repr(self.export_data()) + ")"
-
-
-class SystemErrorEvent:
-    """
-    Report an error that's caused by Petronia itself (or an extension), rather than
-    something the user did.
-    """
-    __slots__ = ('error',)
-    FULL_EVENT_NAME = 'petronia.core.protocol.logging:system-error'
-    SHORT_EVENT_NAME = 'system-error'
-
-    UNIQUE_TARGET_FQN = 'petronia.core.protocol.logging:error'
-    UNIQUE_TARGET_REL = 'error'
-
-    def __init__(
-        self,
-        error: Error,
-    ) -> None:
-        self.error = error
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return SystemErrorEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'error': self.error.export_data(),
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['SystemErrorEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('error')
-        f_error: Error
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='error',
-                name='SystemErrorEvent',
-            )
-        else:
-            parsed_error = Error.parse_data(val)
-            if parsed_error.has_error:
-                return parsed_error.forward()
-            if parsed_error.value is None:
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _(
-                        'Field {field_name} must not be null'
-                    ),
-                    field_name='error',
-                )
-            f_error = parsed_error.result
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(SystemErrorEvent(
-            error=not_none(f_error),
-        ))
-
-    def __repr__(self) -> str:
-        return "SystemErrorEvent(" + repr(self.export_data()) + ")"
-
-
-class UserErrorEvent:
-    """
-    Report an error that's caused by the end user, such as a mis-configuration or
-    out-of-disk space.
-    """
-    __slots__ = ('user_error',)
-    FULL_EVENT_NAME = 'petronia.core.protocol.logging:user-error'
-    SHORT_EVENT_NAME = 'user-error'
-
-    UNIQUE_TARGET_FQN = 'petronia.core.protocol.logging:error'
-    UNIQUE_TARGET_REL = 'error'
-
-    def __init__(
-        self,
-        user_error: Error,
-    ) -> None:
-        self.user_error = user_error
-
-    @property
-    def fully_qualified_event_name(self) -> str:  # pylint: disable=R0201
-        """Get the full event name that this object encapsulates."""
-        return UserErrorEvent.FULL_EVENT_NAME
-
-    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
-        """Create the event data structure, ready for marshalling."""
-        ret: Dict[str, Any] = {
-            'user_error': self.user_error.export_data(),
-        }
-        return _strip_none(ret)
-
-    @staticmethod
-    def parse_data(data: Dict[str, Any]) -> StdRet['UserErrorEvent']:  # pylint: disable=R0912,R0911
-        """Parse the marshalled data into this structured form.  This includes full validation."""
-        errors: List[StdRet[None]] = []
-        val: Any
-        val = data.get('user_error')
-        f_user_error: Error
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='user_error',
-                name='UserErrorEvent',
-            )
-        else:
-            parsed_user_error = Error.parse_data(val)
-            if parsed_user_error.has_error:
-                return parsed_user_error.forward()
-            if parsed_user_error.value is None:
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _(
-                        'Field {field_name} must not be null'
-                    ),
-                    field_name='user_error',
-                )
-            f_user_error = parsed_user_error.result
-        if errors:
-            return StdRet.pass_error(not_none(collect_errors_from(errors)))
-        return StdRet.pass_ok(UserErrorEvent(
-            user_error=not_none(f_user_error),
-        ))
-
-    def __repr__(self) -> str:
-        return "UserErrorEvent(" + repr(self.export_data()) + ")"
+        return "NotificationIconsState(" + repr(self.export_data()) + ")"
 
 
 def _strip_none(dict_value: Dict[str, Any]) -> Dict[str, Any]:

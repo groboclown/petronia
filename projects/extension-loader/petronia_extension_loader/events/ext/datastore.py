@@ -10,17 +10,17 @@ Data structures and marshalling for extension petronia.core.api.datastore versio
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
-    List,
     Dict,
+    List,
+    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
     collect_errors_from,
+    StdRet,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.datastore'

@@ -72,17 +72,17 @@ REGISTER_IMAGE_DETAILS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'locale': '˄ɊïƾõʷɮΪɕƳ',
-            'format': 'όŝӭĪƖӸúвζѰǤЈ˝ǝtĊ',
+            'locale': 'ϩҵə',
+            'format': 'ʞлħј£оǮȈĿ?ȌӷҵýŠ˛ӘɶˉԤȚːϧźǥ ёƫ¦\x88',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'locale': 'Ҳ',
+            'locale': 'Ȯ',
 
-            'format': 'ѹ',
+            'format': 'ˌ',
 
         },
     ),
@@ -148,18 +148,18 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 9413455,
+            'identifier': 9856662,
             'mouse_buttons': [
-                -8092867615319746501,
-                5768494631854317793,
-                625085901154984028,
-                3995422983308488812,
-                2612533876902266431,
-                2355778351068067776,
-                8061233798454141718,
-                1423083579809275256,
-                5629196915019658120,
-                -5792297368280903232,
+                -1901734912293698689,
+                -436953450325315404,
+                3125739999186974287,
+                9208896919612916963,
+                1153925078246140302,
+                -6583431326241941755,
+                2709796762287485303,
+                1365024810803640966,
+                6436426010119695992,
+                -2512385031728101488,
             ],
         },
     ),
@@ -167,10 +167,10 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 2705590,
+            'identifier': -654152,
 
             'mouse_buttons': [
-                2807608083419899597,
+                -4927624528386507561,
             ],
 
         },
@@ -237,15 +237,15 @@ UI_TEXT_FIELD_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 9574388,
-            'text': '~ѕʚƾԦȦ ɱɫƦҵɺƝͱ˪ɋΦϔβӍƋ˫ϳVл9ȅɃmǩ',
+            'identifier': 3221341,
+            'text': 'ӤѠӜȸЧǖƜɈʋΝ¯ɁÇȭЉĠǰhҴȷĩɿʑҧдÑƌԦѫĞ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 2484723,
+            'identifier': 1272520,
 
             'text': '',
 

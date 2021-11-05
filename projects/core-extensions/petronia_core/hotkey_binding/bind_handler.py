@@ -106,6 +106,7 @@ def send_hotkey_fired_event(
         event: hotkey_events.BoundEvent,
 ) -> StdRet[None]:
     """Send a hotkey fired event."""
+    print(f'[HOTKEY] translated hotkey to {repr(event.export_data())}')
     return context.send_event(
         hotkey_events.HotkeyFiredEvent.UNIQUE_TARGET_FQN,
         event.target_id,

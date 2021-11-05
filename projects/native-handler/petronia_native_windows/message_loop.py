@@ -334,11 +334,10 @@ class WindowsMessageLoop:  # pylint:disable=too-many-instance-attributes
         # print(f"[key] {vk_to_names(vk_code)} {vk_code} {'up' if is_key_up else 'dn'}")
         if self._key_handler:
             res = self._key_handler(vk_code, scan_code, is_key_up, is_injected)
-            if WINDOWS_FUNCTIONS.shell.inject_scancode and res[1]:
-                for inject_scancode, inject_is_up in res[1]:
-                    # print(" - injecting {0} {1}".format(inject_scancode, inject_is_up))
-                    WINDOWS_FUNCTIONS.shell.inject_scancode(inject_scancode, inject_is_up)
-                    # Injection may cause a problem, but that's ignored.
+            if WINDOWS_FUNCTIONS.shell.inject_input_vks and res[1]:
+                if not WINDOWS_FUNCTIONS.shell.inject_input_vks(res[1]):
+                    print(" - injection of {0} failed".format(res[1]))
+                # Injection may cause a problem, but that's ignored.
             if res[0]:
                 # print(" - cancelling callback chain for key")
                 return SHELL__CANCEL_CALLBACK_CHAIN

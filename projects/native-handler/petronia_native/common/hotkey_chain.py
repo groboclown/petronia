@@ -249,7 +249,7 @@ class HotKeyChain:
         for key_list, name in chain_commands:
             for keys in key_list:
                 combos.add_child(keys, name, True)
-        # print("Set key chain to " + repr(combos))
+        print("Set key chain to " + repr(combos))
 
         # Change the variable in a single command.
         self._root_combos = combos

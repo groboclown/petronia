@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.native.screen ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
-    Optional,
-    List,
-    Dict,
-    cast,
-    SupportsInt,
     Union,
     SupportsFloat,
+    Dict,
+    List,
+    Optional,
+    cast,
+    Any,
+    SupportsInt,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    not_none,
-    STANDARD_PETRONIA_CATALOG,
     StdRet,
+    STANDARD_PETRONIA_CATALOG,
+    not_none,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia.core.api.native.screen'
@@ -631,16 +631,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
+            List[int],
+            int,
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[bool],
+            List[str],
+            str,
             bool,
             List[float],
-            List[int],
-            List[bool],
-            List[datetime.datetime],
-            List[str],
-            float,
-            str,
-            datetime.datetime,
-            int,
         ],
     ) -> None:
         self.__name = name
@@ -653,16 +653,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
+            List[int],
+            int,
+            float,
+            datetime.datetime,
+            List[datetime.datetime],
+            List[bool],
+            List[str],
+            str,
             bool,
             List[float],
-            List[int],
-            List[bool],
-            List[datetime.datetime],
-            List[str],
-            float,
-            str,
-            datetime.datetime,
-            int,
     ]:
         """The selector value."""
         return self.__value
@@ -739,8 +739,8 @@ class MessageArgumentValue:
     @staticmethod
     def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgumentValue']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
-        selector_name = data.get('^')
-        val = data.get('$')
+        selector_name = data.get('^', data.get('type'))
+        val = data.get('$', data.get('value'))
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,

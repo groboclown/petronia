@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Petronia core-extensions VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-09-09 18:04-0500\n"
-"PO-Revision-Date: 2021-09-09 18:05-0500\n"
+"POT-Creation-Date: 2021-11-04 13:14-0500\n"
+"PO-Revision-Date: 2021-11-04 13:14-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -19,11 +19,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
 
+#: projects/core-extensions/petronia_core/binarystore/bin_fetch_handler.py:114
+msgid "problem loading data from cache for data_id {data_id}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/binarystore/bin_store_handler.py:69
+msgid "unsupported mime type \"{mime_type}\" for data_id {data_id}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/binarystore/bin_store_handler.py:92
+msgid "cannot store data_id {data_id}, it is already in state {state}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/binarystore/bin_store_handler.py:142
+msgid "bad api usage: no valid pending storage request for data_id {data_id}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:77
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:515
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:534
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:597
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:616
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:688
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:803
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:875
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:980
 #: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:72
 #: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:174
-#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:252
-#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:277
-#: projects/core-extensions/petronia_core/datastore/state/datastore.py:61
+#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:240
+#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:265
 #: projects/core-extensions/petronia_core/file_logger/state/file_logger.py:66
 #: projects/core-extensions/petronia_core/file_logger/state/file_logger.py:85
 #: projects/core-extensions/petronia_core/file_logger/state/file_logger.py:168
@@ -89,10 +113,25 @@ msgstr ""
 msgid "Required field {field_name} in {name}"
 msgstr ""
 
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:85
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:265
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:278
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:291
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:304
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:523
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:605
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:624
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:811
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:883
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:895
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:907
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:919
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:988
+#: projects/core-extensions/petronia_core/binarystore/state/binarystore.py:67
+#: projects/core-extensions/petronia_core/binarystore/state/binarystore.py:79
 #: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:80
 #: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:182
-#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:285
-#: projects/core-extensions/petronia_core/datastore/state/datastore.py:69
+#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:273
 #: projects/core-extensions/petronia_core/file_logger/state/file_logger.py:74
 #: projects/core-extensions/petronia_core/file_logger/state/file_logger.py:93
 #: projects/core-extensions/petronia_core/file_logger/state/file_logger.py:105
@@ -146,34 +185,43 @@ msgstr ""
 msgid "Field {field_name} must be of type {type} for structure {name}"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:260
-#: projects/core-extensions/petronia_core/timer/events/impl/timer.py:78
-msgid "Field {field_name} must be of type datetime for structure {name}"
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:259
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:486
+msgid "selector value must have ^ and $ keys"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:269
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:317
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:544
+msgid "Value must be of type datetime for selector {name}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:330
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:468
+#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:257
 #: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:557
 #: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:695
 #: projects/core-extensions/petronia_core/timer/events/impl/timer.py:87
 msgid "Invalid date-time format: {value}"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/datastore/post_handler.py:59
-msgid "Could not find cache file {filename}"
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:337
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:364
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:391
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:418
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:445
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:564
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:591
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:618
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:645
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:672
+msgid "Field {field_name} must be of type {type} for selector {name}"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/datastore/shared_state.py:36
-msgid "Failed to create cache directory {cache_dir}"
-msgstr ""
-
-#: projects/core-extensions/petronia_core/file_logger/shared_state.py:151
-msgid "Could not find a log directory from data path {data_dirs}"
-msgstr ""
-
-#: projects/core-extensions/petronia_core/file_logger/shared_state.py:163
-msgid "Failed to create log directory {log_dir}"
-msgstr ""
-
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:347
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:374
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:401
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:428
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:455
 #: projects/core-extensions/petronia_core/file_logger/state/file_logger.py:115
 #: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:106
 #: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:174
@@ -193,6 +241,13 @@ msgstr ""
 msgid "Field {field_name} must contain items of type {type} for structure {name}"
 msgstr ""
 
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:477
+#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:704
+msgid "Invalid selector name {name} for {nc}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:545
+#: projects/core-extensions/petronia_core/binarystore/events/impl/binarystore.py:699
 #: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:269
 #: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:772
 #: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:1046
@@ -209,24 +264,29 @@ msgstr ""
 msgid "Field {field_name} must not be null"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:486
-msgid "selector value must have ^ and $ keys"
+#: projects/core-extensions/petronia_core/binarystore/shared_state.py:112
+msgid "Failed to create cache directory {cache_dir}"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:544
-msgid "Value must be of type datetime for selector {name}"
+#: projects/core-extensions/petronia_core/binarystore/shared_state.py:231
+msgid "failed to delete the cache file {filename}"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:564
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:591
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:618
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:645
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:672
-msgid "Field {field_name} must be of type {type} for selector {name}"
+#: projects/core-extensions/petronia_core/binarystore/shared_state.py:262
+msgid "failed to read/write data"
 msgstr ""
 
-#: projects/core-extensions/petronia_core/hotkey_binding/events/ext/hotkey.py:704
-msgid "Invalid selector name {name} for {nc}"
+#: projects/core-extensions/petronia_core/datastore/events/impl/datastore.py:248
+#: projects/core-extensions/petronia_core/timer/events/impl/timer.py:78
+msgid "Field {field_name} must be of type datetime for structure {name}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/file_logger/shared_state.py:151
+msgid "Could not find a log directory from data path {data_dirs}"
+msgstr ""
+
+#: projects/core-extensions/petronia_core/file_logger/shared_state.py:163
+msgid "Failed to create log directory {log_dir}"
 msgstr ""
 
 #: projects/core-extensions/petronia_core/hotkey_binding/native_handler.py:132

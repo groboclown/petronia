@@ -7,7 +7,7 @@ Logger:
     files:
       - # filename: petronia.log
         filename: "-"
-        message_format: "{now} {src:16s}: {text}"
+        message_format: "{now} {source:16s}: {text}"
         categories:
           - "*user"
           - "*system"

@@ -10,11 +10,11 @@ Data structures and marshalling for extension petronia_native_windows version 1.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Optional,
     SupportsInt,
+    Any,
     Dict,
     List,
-    Any,
+    Optional,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (

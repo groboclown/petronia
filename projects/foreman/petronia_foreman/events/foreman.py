@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.foreman version 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Optional,
-    Union,
-    List,
     SupportsFloat,
-    cast,
+    List,
     SupportsInt,
+    cast,
     Any,
     Dict,
+    Union,
+    Optional,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
     collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     StdRet,
+    not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman'
@@ -517,16 +517,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            str,
-            int,
-            float,
-            List[float],
-            bool,
             List[str],
-            List[int],
             List[bool],
             datetime.datetime,
             List[datetime.datetime],
+            bool,
+            List[int],
+            List[float],
+            float,
+            int,
+            str,
         ],
     ) -> None:
         self.__name = name
@@ -539,16 +539,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            str,
-            int,
-            float,
-            List[float],
-            bool,
             List[str],
-            List[int],
             List[bool],
             datetime.datetime,
             List[datetime.datetime],
+            bool,
+            List[int],
+            List[float],
+            float,
+            int,
+            str,
     ]:
         """The selector value."""
         return self.__value
@@ -625,8 +625,8 @@ class MessageArgumentValue:
     @staticmethod
     def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgumentValue']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
-        selector_name = data.get('^')
-        val = data.get('$')
+        selector_name = data.get('^', data.get('type'))
+        val = data.get('$', data.get('value'))
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,

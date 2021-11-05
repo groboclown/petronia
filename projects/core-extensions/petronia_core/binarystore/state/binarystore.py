@@ -11,17 +11,17 @@ Data structures and marshalling for extension petronia_core.binarystore version 
 from __future__ import annotations
 from typing import (
     List,
-    Any,
+    Dict,
     Optional,
     SupportsFloat,
-    Dict,
+    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
-    not_none,
     StdRet,
+    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia_core.binarystore'

@@ -98,7 +98,7 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
 
     def key_handler(
             self,
-            vk_code: int, _scan_code: int, is_key_up: bool, _is_key_injected: bool,
+            vk_code: int, _scan_code: int, is_key_up: bool, is_key_injected: bool,
     ) -> Tuple[bool, Sequence[Tuple[int, bool]]]:
         """Handle the low-level key events.  This function is passed to the message_loop's
         set_key_handler.
@@ -106,7 +106,9 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
         This MUST be done all in-process, because if the key sequence is not a bound hotkey,
         then it must be re-injected into the Windows system (if the config says so).
 
-        Also, because this is done in-process, it can't grab a lock.
+        Also, because this is done in-process, it shouldn't grab a lock... but it does.
+        The only real thing that can be done to accommodate this is to ensure everything else
+        spends very little time in the lock.
 
         Returns a tuple of
         (bool - true if cancel propagation of key, false if let it go through,
@@ -118,6 +120,11 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
         is_modifier = keymap.is_vk_modifier(vk_code)
         is_super = keymap.is_specially_handled_vk_key(vk_code)
         cancel_propagation_on_ignore = own_super_key and is_super
+
+        # Ignore injected keys.  This is a self preservation attempt to prevent Petronia
+        # from cycling around and retrying key chains that are ignored and re-injected back.
+        if is_key_injected:
+            return cancel_propagation_on_ignore, EMPTY_TUPLE
 
         with self.__lock:
             if is_modifier:
@@ -134,7 +141,7 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
 
             if state == hotkey_chain.IGNORED:
                 # Not in a hot key chain.
-                # print(f'[KEY] ignoring {vk_code}')
+                print(f'[KEY] ignoring {vk_code}')
                 return cancel_propagation_on_ignore, EMPTY_TUPLE
 
             if state == hotkey_chain.ACTION_CANCELLED:
@@ -144,15 +151,15 @@ class WindowsKeyHandler(handlers.hotkey.HotkeyHandler):  # pylint:disable=too-ma
                 if own_super_key and (is_super or self.__super_in_active):
                     res = EMPTY_TUPLE
                 else:
-                    res = self.__active_keys
+                    res = tuple([*self.__active_keys, (vk_code, is_key_up)])
                 self.__active_keys.clear()
                 self.__super_in_active = False
-                # print(f'[KEY] cancelled with {vk_code}; regenerating {res}')
+                print(f'[KEY] cancelled with {vk_code}; regenerating {res}')
                 return cancel_propagation_on_ignore, res
 
             if state == hotkey_chain.ACTION_PENDING:
                 # This key is part of a chain.
-                # print(f'[KEY] part of chain ({vk_code})')
+                print(f'[KEY] part of chain ({vk_code})')
                 self.__super_in_active = self.__super_in_active or is_super
                 self.__active_keys.append((vk_code, is_key_up))
                 return True, EMPTY_TUPLE
@@ -233,8 +240,11 @@ def parse_bindings(
             problems.sequence_problems[tuple(key_sequence)] = sequence_res.forward()
             valid = False
         elif master_keys_res.ok:
-            codes, name = sequence_res.result
-            combo = hotkey_chain.create_primary_chain(master_keys_res.result, codes)
+            # For a primary chain, these keys are down-then-up.  If an included code is a
+            # modifier, then it needs to be included in the master keys.
+            modifier_codes, std_codes, name = sequence_res.result
+            modifiers = [*master_keys_res.result, *modifier_codes]
+            combo = hotkey_chain.create_primary_chain(modifiers, std_codes)
             if combo.has_error:
                 problems.sequence_problems[tuple(key_sequence)] = sequence_res.forward()
                 valid = False
@@ -281,11 +291,16 @@ def parse_primary_master_sequence(
 
 
 def parse_sequence(sequence: Sequence[str]) -> StdRet[
-    Tuple[Sequence[hotkey_chain.StandardKeyCode], str]
+    Tuple[
+        Sequence[hotkey_chain.StandardKeyCode],
+        Sequence[hotkey_chain.StandardKeyCode],
+        str,
+    ]
 ]:
     """Create a sequence of key codes, and the referencable name for the sequence"""
     sequence_name = ''
-    codes: List[hotkey_chain.StandardKeyCode] = []
+    modifier_codes: List[hotkey_chain.StandardKeyCode] = []
+    std_codes: List[hotkey_chain.StandardKeyCode] = []
     errors: List[UserMessage] = []
 
     for name in sequence:
@@ -306,8 +321,11 @@ def parse_sequence(sequence: Sequence[str]) -> StdRet[
             ))
         else:
             sequence_name += '+' + name.lower()
-            codes.append(hotkey_chain.StandardKeyCode(key_codes[0]))
+            if keymap.is_vk_modifier(key_codes[0]):
+                modifier_codes.append(hotkey_chain.StandardKeyCode(key_codes[0]))
+            else:
+                std_codes.append(hotkey_chain.StandardKeyCode(key_codes[0]))
 
     if errors:
         return StdRet.pass_error(join_errors(*errors))
-    return StdRet.pass_ok((codes, sequence_name))
+    return StdRet.pass_ok((modifier_codes, std_codes, sequence_name))

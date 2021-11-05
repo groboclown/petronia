@@ -85,12 +85,13 @@ class {{structure_class_name}}:
     @staticmethod
     def parse_data(data: Dict[str, Any]) -> StdRet['{{structure_class_name}}']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
-        selector_name = data.get('^')
-        val = data.get('$')
+        selector_name = data.get('^', data.get('type'))
+        val = data.get('$', data.get('value'))
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
-                _('selector value must have ^ and $ keys'),
+                _('selector for {name} value must have ^ and $ keys, or "type" and "value" keys'),
+                name='{{structure_class_name}}',
             )
         {{#selector_types}}
         if selector_name == {{selector_type_repr}}:

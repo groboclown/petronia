@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.binarystore vers
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Union,
-    SupportsFloat,
-    cast,
-    Optional,
-    Dict,
     List,
     Any,
+    cast,
+    Union,
+    SupportsFloat,
     SupportsInt,
+    Optional,
+    Dict,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    STANDARD_PETRONIA_CATALOG,
-    StdRet,
     collect_errors_from,
+    StdRet,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.binarystore'
@@ -143,16 +143,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            List[bool],
-            List[float],
-            int,
-            List[datetime.datetime],
             bool,
             float,
+            List[bool],
+            List[float],
             List[str],
-            List[int],
+            List[datetime.datetime],
+            int,
             str,
             datetime.datetime,
+            List[int],
         ],
     ) -> None:
         self.__name = name
@@ -165,16 +165,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            List[bool],
-            List[float],
-            int,
-            List[datetime.datetime],
             bool,
             float,
+            List[bool],
+            List[float],
             List[str],
-            List[int],
+            List[datetime.datetime],
+            int,
             str,
             datetime.datetime,
+            List[int],
     ]:
         """The selector value."""
         return self.__value
@@ -251,8 +251,8 @@ class MessageArgumentValue:
     @staticmethod
     def parse_data(data: Dict[str, Any]) -> StdRet['MessageArgumentValue']:  # pylint: disable=R0912,R0911
         """Parse the marshalled data into this structured form.  This includes full validation."""
-        selector_name = data.get('^')
-        val = data.get('$')
+        selector_name = data.get('^', data.get('type'))
+        val = data.get('$', data.get('value'))
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
@@ -877,7 +877,7 @@ class DataDescriptionEvent:
                 name='DataDescriptionEvent',
             )
         else:
-            if val not in ('unset','active','deleted', ):
+            if val not in ('unset','deleted','active', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -939,9 +939,8 @@ class SendDataRequestEvent:
     """
     Tells the API to send out a message with the current state of the requested
     target ID data. Usually only called when an extension first starts and has
-    started listening to the data change messages. If the target ID's data is not
-    currently stored, then a delete message is sent. The sent message is either a
-    `data-updated` event or a `data-removed` event.
+    started listening to the data change messages. If the store_id's data is not
+    "active", then no event is sent.
     """
     __slots__ = ('store_id',)
     FULL_EVENT_NAME = 'petronia.core.api.binarystore:send-data:request'

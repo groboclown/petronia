@@ -84,7 +84,7 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
         ),
         context.register_target(
             hotkey_event.HotkeyFiredEvent.FULL_EVENT_NAME,
-            portal_event.FocusPortalEvent.FULL_EVENT_NAME,
+            portal_event.SplitPortalEvent.FULL_EVENT_NAME,
             SplitPortalHotkeyHandler(context),
         ),
 

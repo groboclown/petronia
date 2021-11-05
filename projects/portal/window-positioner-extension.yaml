@@ -46,7 +46,7 @@ state-data:
         value-type:
           description: >
             A window position in the virtual desktop.
-          type: object
+          type: structure
           fields:
             window_id:
               description: System ID of the window.
@@ -315,7 +315,7 @@ references:
   virtual-window:
     description: >
       A window and its position in the virtual desktop.
-    type: object
+    type: structure
     fields:
       window_id:
         description: System ID of the window.
