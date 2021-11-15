@@ -99,6 +99,7 @@ _SET_POSITION = 4
 _SET_STYLE = 5
 _SET_GLOBAL = 6
 _UPDATE_OS = 7
+_FOCUS_WINDOW = 8
 
 GLOBAL_SETTING__METRICS_BORDER_WIDTH = 'border-width'
 GLOBAL_SETTING__METRICS_PADDED_BORDER_WIDTH = 'padded-border-width'
@@ -253,6 +254,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         self.__queue.add_handler(_SET_STYLE, WindowsNativeHandler._queue_set_window_style)
         self.__queue.add_handler(_SET_GLOBAL, self._queue_set_global_style)
         self.__queue.add_handler(_UPDATE_OS, self._queue_load_os_settings)
+        self.__queue.add_handler(_FOCUS_WINDOW, self._queue_focus_window)
 
         loop.add_message_handler(
             hook_messages.window_minimized_message(self.on_window_minimized_message)
@@ -441,6 +443,12 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             )
         return RET_OK_NONE
 
+    def on_set_focused_window(self, wnd: WindowsNativeWindow, focus_id: int) -> StdRet[None]:
+        if self.__queue:
+            return self.__queue.queue_message(
+                _FOCUS_WINDOW, wnd,
+            )
+
     def on_set_global_settings(self, settings: Mapping[str, str]) -> StdRet[None]:
         # Pass this signal on to the message queue.
         if self.__queue:
@@ -483,6 +491,18 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             arg.on_os_maximized()
             user_messages.report_send_receive_problems(
                 WINDOWS_FUNCTIONS.window.maximize(arg.native_id)  # pylint:disable=not-callable
+            )
+
+    @staticmethod
+    def _queue_focus_window(arg: Any) -> None:
+        """Send the focus window / bring to top signal to a window.  Run from within the
+         message loop."""
+        # This is an internal function, so the assertions are just for debugging / developer
+        # aid.
+        if WINDOWS_FUNCTIONS.window.activate:
+            assert isinstance(arg, WindowsNativeWindow)  # nosec
+            user_messages.report_send_receive_problems(
+                WINDOWS_FUNCTIONS.window.activate(arg.native_id)  # pylint:disable=not-callable
             )
 
     @staticmethod

@@ -2,12 +2,13 @@
 
 from typing import List, Sequence
 from petronia_common.util import StdRet, join_none_results, RET_OK_NONE
+from petronia_common.util import i18n as _
 from petronia_ext_lib.extension_loader import send_register_listeners
 from petronia_ext_lib.runner import EventRegistryContext, ContextEventObjectTarget
 from . import shared_state, native_window_handler, tree
 from .events import portal as portal_event
 from .state import petronia_portal as portal_state
-from .user_messages import report_send_receive_problems
+from .user_messages import report_send_receive_problems, TRANSLATION_CATALOG
 
 
 def setup(context: EventRegistryContext) -> StdRet[None]:
@@ -540,6 +541,15 @@ def handle_rotate_active_window(context: EventRegistryContext, direction: str) -
             res = active_portal.rotate_windows_forward()
         elif direction.lower() in ('backward', 'backwards', 'reverse'):
             res = active_portal.rotate_windows_backward()
+        else:
+            return StdRet.pass_errmsg(
+                TRANSLATION_CATALOG,
+                _(
+                    'unsupported rotate-active-window direction ("{direction}"); '
+                    'supported directions are "forward" and "backward"'
+                ),
+                direction=direction,
+            )
     if res:
         return native_window_handler.send_set_window_focused_event(context, res[0])
     return RET_OK_NONE

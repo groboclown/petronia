@@ -238,7 +238,8 @@ class Portal(Tile):
         return self._update_window_position(self._window_order)
 
     def rotate_windows_forward(self) -> Sequence[KnownWindow]:
-        """Rotate the order of the windows, and return the new order."""
+        """Rotate the order of the windows, and return the new order.  Index 0 is the first,
+        and index -1 is the last."""
         if len(self._window_order) > 1:
             # This only makes sense to run if there is more than 1 window.
             first = self._window_order[0]
@@ -247,7 +248,8 @@ class Portal(Tile):
         return tuple(self._window_order)
 
     def rotate_windows_backward(self) -> Sequence[KnownWindow]:
-        """Rotate the order of the windows, and return the new order."""
+        """Rotate the order of the windows, and return the new order.  Index 0 is the first,
+        and index -1 is the last."""
         if len(self._window_order) > 1:
             # This only makes sense to run if there is more than 1 window.
             last = self._window_order[-1]

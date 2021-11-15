@@ -287,6 +287,10 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
                         None,
                     ),
                     (
+                        window_events.SetFocusedWindowEvent.FULL_EVENT_NAME,
+                        None,
+                    ),
+                    (
                         window_events.SetGlobalSettingsEvent.FULL_EVENT_NAME,
                         window_events.SetGlobalSettingsEvent.UNIQUE_TARGET_FQN,
                     ),
@@ -351,6 +355,16 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
                 window_events.SetWindowSettingsEvent.FULL_EVENT_NAME,
                 None,
                 SetWindowSettingsTarget(self),
+            ),
+
+            context.register_event_parser(
+                window_events.SetFocusedWindowEvent.FULL_EVENT_NAME,
+                window_events.SetFocusedWindowEvent.parse_data,
+            ),
+            context.register_target(
+                window_events.SetFocusedWindowEvent.FULL_EVENT_NAME,
+                None,
+                SetFocusedWindowTarget(self),
             ),
 
             context.register_event_parser(
@@ -581,6 +595,27 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
             )
         return self.on_restore_window_request(window)
 
+    def handle_set_focused_window_event(
+            self, target_id: str, event: window_events.SetFocusedWindowEvent,
+    ) -> StdRet[None]:
+        """Handle a set focused window event."""
+        if not self.__context:
+            return RET_OK_NONE
+        window = self.get_window_by_id(target_id)
+        if not window:
+            return send_no_window_id_log_message(
+                self.__context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
+                target_id, 'set-focused',
+            )
+        return self.on_set_focused_window(window, event.focus)
+
+    def handle_global_settings_event(
+            self, event: window_events.SetGlobalSettingsEvent,
+    ) -> StdRet[None]:
+        """Handle setting global settings event."""
+        if not self.__context:
+            return RET_OK_NONE
+
     def handle_set_window_settings_event(
             self, target_id: str, event: window_events.SetWindowSettingsEvent,
     ) -> StdRet[None]:
@@ -639,6 +674,12 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
         """Handler for natively setting a window's metadata.  If the metadata does change, then
         the `update_window_state` method should be called, but it doesn't need to happen
         within this call."""
+        raise NotImplementedError  # pragma no cover
+
+    def on_set_focused_window(self, window: NativeWindow, focus_id: int) -> StdRet[None]:
+        """Handler for natively giving the given window the `focus_id` focus.  If only one
+        focus is allowed in the system, then this should grant the window that focus, regardless
+        of the focus id value."""
         raise NotImplementedError  # pragma no cover
 
     def on_set_global_settings(self, settings: Mapping[str, str]) -> StdRet[None]:
@@ -724,10 +765,19 @@ class SetWindowSettingsTarget(AbstractWindowTarget[window_events.SetWindowSettin
         return self._handler.handle_maximize_window_event(target)
 
 
+class SetFocusedWindowTarget(AbstractWindowTarget[window_events.SetFocusedWindowEvent]):
+    """window_events.SetWindowSettingsEvent handler"""
+
+    def handle_event(
+            self, target: str, event: window_events.SetFocusedWindowEvent,
+    ) -> StdRet[None]:
+        return self._handler.handle_set_focused_window_event(target, event)
+
+
 class SetGlobalSettingsTarget(AbstractWindowTarget[window_events.SetGlobalSettingsEvent]):
     """window_events.SetGlobalSettingsEvent handler"""
 
     def handle_event(
             self, target: str, event: window_events.SetGlobalSettingsEvent,
     ) -> StdRet[None]:
-        return self._handler.handle_maximize_window_event(target)
+        return self._handler.handle_global_settings_event(event)
