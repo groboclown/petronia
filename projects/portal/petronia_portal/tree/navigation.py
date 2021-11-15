@@ -63,7 +63,7 @@ def contained_portals(parent: model.Tile) -> List[model.Portal]:
     if isinstance(parent, model.Portal):
         return [parent]
     ret: List[model.Portal] = []
-    if isinstance(parent, model.TileContainer):
+    if isinstance(parent, model.TileIterator):
         for child in parent.get_children():
             ret.extend(contained_portals(child))
     return ret

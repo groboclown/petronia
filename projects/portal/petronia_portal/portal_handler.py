@@ -440,7 +440,9 @@ def handle_mark_portal(_context: EventRegistryContext, name: str) -> StdRet[None
     return RET_OK_NONE
 
 
-class MoveWindowToPortalEventHandler(ContextEventObjectTarget[portal_event.MoveWindowToPortalEvent]):
+class MoveWindowToPortalEventHandler(
+    ContextEventObjectTarget[portal_event.MoveWindowToPortalEvent],
+):
     """Move the focused window to another portal."""
     def on_context_event(
             self, context: EventRegistryContext,
@@ -458,10 +460,13 @@ def handle_move_window_to_portal(
     """Handle the request to move the window to another portal"""
     window_id = shared_state.get_focused_window_id()
     active_portal_id = shared_state.get_active_portal_id()
+    print("[PORTAL] move-window request: window-id {0}, active-portal-id {1}".format(
+        window_id, active_portal_id))
     with shared_state.layout_root() as root:
         active_portal = root.get_portal_by_id(active_portal_id)
         target_portal_id = root.get_target_portal(active_portal_id, target)
-        if target_portal_id >= 0:
+        print("[PORTAL] target portal id: {0}".format(target_portal_id))
+        if target_portal_id >= 0 and target_portal_id != active_portal_id:
             res = root.move_window_to_portal_id(
                 window_id, target_portal_id, True, False,
             )
@@ -478,6 +483,11 @@ def handle_move_window_to_portal(
             return join_none_results(
                 res_focus,
                 native_window_handler.send_move_windows_event(context, res)
+            )
+        else:
+            print(
+                "[PORTAL] No target portal known for move-window, "
+                "or it is the same as the current portal."
             )
     return RET_OK_NONE
 

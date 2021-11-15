@@ -30,7 +30,7 @@ events:
   # shutdown:aborted
   #   - the shutdown process has been aborted.
   # shutdown:application
-  #   - the application shutdown phase has begin.  Applications have a time period in which
+  #   - the application shutdown phase has begun.  Applications have a time period in which
   #     they must stop before this extension forces it to stop.
   #   - the user can still abort the shutdown at this point.
   # shutdown:system

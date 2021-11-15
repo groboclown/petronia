@@ -121,19 +121,19 @@ def get_workspace_match(
     for config_match_permutations in permutations.permutations(block_count):
         # Match up the 0 - n screen block with the permutations[index] config.
         rank = 0.0
-        match: List[Tuple[screen_state.VirtualScreenBlock, portal_state.LayoutSplit]] = []
+        match_res: List[Tuple[screen_state.VirtualScreenBlock, portal_state.LayoutSplit]] = []
 
         for i in range(block_count):
             rank += match_screen_config_to_block(
                 config_matchers[config_match_permutations[i]].block,
                 screen_blocks[i],
             )
-            match.append(
+            match_res.append(
                 (screen_blocks[i], config_matchers[config_match_permutations[i]].layout)
             )
         if rank > best_rank:
             best_rank = rank
-            best_match = match
+            best_match = match_res
 
     return best_rank, best_match
 

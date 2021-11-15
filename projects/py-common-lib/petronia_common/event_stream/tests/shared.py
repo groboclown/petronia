@@ -2,7 +2,7 @@
 Shared test constants, functions, and other definitions.
 """
 
-from typing import List, Tuple, Dict, Optional, Any, cast
+from typing import List, Tuple, Dict, Optional, Union, Any, cast
 import unittest
 import io
 import threading
@@ -13,12 +13,14 @@ from ..defs import (
     RawEvent, RawBinaryReader, BinaryReader,
     is_raw_event_binary, raw_event_id, raw_event_source_id,
     raw_event_target_id, raw_event_binary_size, as_raw_event_binary_data_reader,
-    as_raw_event_object_data,
+    as_raw_event_object_data, is_raw_event_object,
 )
 from ...util import PetroniaReturnError, UserMessage
 from ...util.test_helpers import verified_not_none
 
 PACKET_MARKER = b'\0\0['
+
+ExpectedEvent = Tuple[str, str, str, Union[bytes, Dict[str, Any]]]
 
 
 def as_bin_str(data: str) -> bytes:
@@ -98,6 +100,33 @@ class CallbackCollector:
         """Are there any events left?"""
         return len(self.actual) <= 0
 
+    def assert_next_event_equal(
+            self, parent: unittest.TestCase,
+            expected: Optional[ExpectedEvent],
+    ) -> None:
+        """Ensures the next raw event equals the expected event."""
+        actual = self.next_as_raw_event(parent)
+        if expected is None:
+            parent.assertIsNone(actual)
+            return
+        parent.assertIsNotNone(actual)
+        # mypy requirement
+        assert actual is not None
+        parent.assertEqual(expected[0], raw_event_id(actual))
+        parent.assertEqual(expected[1], raw_event_source_id(actual))
+        parent.assertEqual(expected[2], raw_event_target_id(actual))
+        if isinstance(expected[3], bytes):
+            # binary
+            parent.assertTrue(is_raw_event_binary(actual))
+            parent.assertFalse(is_raw_event_object(actual))
+            data_reader = as_raw_event_binary_data_reader(actual)
+            parent.assertEqual(expected[3], data_reader(-1))
+        else:
+            # json
+            parent.assertTrue(is_raw_event_object(actual))
+            parent.assertFalse(is_raw_event_binary(actual))
+            parent.assertEqual(expected[3], as_raw_event_object_data(actual))
+
 
 class SimpleBinaryWriter:
     """Simplest implementation of a binary writer."""
@@ -111,6 +140,16 @@ class SimpleBinaryWriter:
     def getvalue(self) -> bytes:
         """Fetch the data written to this writer."""
         return self.__value
+
+    def clear(self) -> None:
+        """Clear the buffer contents."""
+        self.__value = b''
+
+    def collect_events(self) -> CallbackCollector:
+        """Load in the current buffer state into a event parser."""
+        ret = CallbackCollector()
+        ret.execute(self.__value)
+        return ret
 
 
 def create_read_stream(data: bytes) -> reader.BinaryReader:

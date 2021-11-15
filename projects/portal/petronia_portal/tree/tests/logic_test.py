@@ -148,3 +148,90 @@ class OptimizedTileTreeTest(unittest.TestCase):
         self.assertEqual(known1.pos_y, 0)
         self.assertEqual(known1.pos_w, 6)
         self.assertEqual(known1.pos_h, 24)
+
+    def test_move_window_to_portal_single_split(self) -> None:
+        tree = logic.OptimizedTileTree()
+        screen_block = screen_state.VirtualScreenBlock(0, 0, 21, 24, 1, 1)
+        portal1 = portal_state.Portal(
+            2, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
+            0, 0, 0, 0, ['default'],
+        )
+        portal2 = portal_state.Portal(
+            1, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
+            0, 0, 0, 0, ['b'],
+        )
+        top_layout = portal_state.LayoutSplit(1, 'horizontal', [
+            portal_state.SplitContent('x', portal_state.LayoutSplit(
+                1, 'horizontal', [
+                    portal_state.SplitContent('default', portal1),
+                    portal_state.SplitContent('b', portal2),
+                ],
+            ))
+        ])
+
+        window1 = window_event.WindowState(
+            True, 0, None,
+            window_event.ScreenDimension(10, 11, 5, 6),
+            False, [],
+        )
+        known1 = tree.register_window('w1', None, window1)
+        self.assertIsNotNone(known1)
+        tree.move_window_to_portal_id(
+            known1.target_id, tree.get_default_portal().portal_id, True, True,
+        )
+        self.assertTrue(known1.managed)
+        # Use an even divisor...
+
+        called_windows: List[Tuple[portal_state.Portal, Sequence[model.KnownWindow]]] = []
+
+        def portal_window_callback(
+                portal: portal_state.Portal, windows: Sequence[model.KnownWindow],
+        ) -> Iterable[model.KnownWindow]:
+            called_windows.append((portal, windows))
+            return []
+
+        changed_windows = tree.change_screen_layout(
+            [(screen_block, top_layout)], portal_window_callback,
+        )
+        self.assertEqual(changed_windows, [known1])
+        self.assertEqual(
+            [(portal1, [known1]), (portal2, [known1])],
+            called_windows
+        )
+
+    def test_get_target_portal_single_split(self) -> None:
+        tree = logic.OptimizedTileTree()
+        screen_block = screen_state.VirtualScreenBlock(0, 0, 21, 24, 1, 1)
+        portal1 = portal_state.Portal(
+            2, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
+            0, 0, 0, 0, ['p1'],
+        )
+        portal2 = portal_state.Portal(
+            1, portal_state.WindowPortalFit('left', 'top', 'fit', 'fit'),
+            0, 0, 0, 0, ['p2'],
+        )
+        top_layout = portal_state.LayoutSplit(1, 'horizontal', [
+            portal_state.SplitContent('x', portal_state.LayoutSplit(
+                1, 'horizontal', [
+                    portal_state.SplitContent('default', portal1),
+                    portal_state.SplitContent('b', portal2),
+                ],
+            ))
+        ])
+
+        def portal_window_callback(
+                portal: portal_state.Portal, windows: Sequence[model.KnownWindow],
+        ) -> Iterable[model.KnownWindow]:
+            return []
+
+        changed_windows = tree.change_screen_layout(
+            [(screen_block, top_layout)], portal_window_callback,
+        )
+        self.assertEqual(changed_windows, [])
+
+        origin_portal = tree.get_portal_by_alias('p1')
+        self.assertIsNotNone(origin_portal)
+        target_portal = tree.get_portal_by_alias('p2')
+        self.assertIsNotNone(target_portal)
+        target_id = tree.get_target_portal(origin_portal.portal_id, 'east')
+        self.assertEqual(target_id, target_portal.portal_id)
