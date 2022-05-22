@@ -75,7 +75,7 @@ def find_data_file(name: str, *possible_sub_dirs: str) -> Optional[str]:
 
 def load_windows10_settings() -> StdRet[None]:
     """Determine the settings for Windows."""
-    global platform_name, os_category, configuration_paths, data_paths  # pylint:disable=invalid-name,global-statement
+    global platform_name, os_category  # pylint:disable=invalid-name,global-statement
     platform_name = 'windows-10'
     os_category = CATEGORY__WINDOWS
     configuration_paths.clear()
@@ -93,7 +93,7 @@ def load_windows10_settings() -> StdRet[None]:
 
 def load_linux_x11_settings() -> StdRet[None]:
     """Load the X11 settings."""
-    global platform_name, os_category, configuration_paths, data_paths  # pylint:disable=invalid-name,global-statement
+    global platform_name, os_category  # pylint:disable=invalid-name,global-statement
     platform_name = 'linux-x11'
     os_category = CATEGORY__LINUX
     configuration_paths.extend(find_linux_config_paths())
@@ -103,7 +103,7 @@ def load_linux_x11_settings() -> StdRet[None]:
 
 def load_linux_wayland_settings() -> StdRet[None]:
     """Load the wayland settings."""
-    global platform_name, os_category, configuration_paths, data_paths  # pylint:disable=invalid-name,global-statement
+    global platform_name, os_category  # pylint:disable=invalid-name,global-statement
     platform_name = 'linux-wayland'
     os_category = CATEGORY__LINUX
     configuration_paths.extend(find_linux_config_paths())

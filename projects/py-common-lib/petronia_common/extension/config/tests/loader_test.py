@@ -388,7 +388,7 @@ BAD_DATA_TESTS: List[Tuple[str, Dict[str, Any], Sequence[Tuple[str, Dict[str, An
         [
             (
                 'Problem(s) in event {name}',
-                dict(name='x')
+                dict(name='x'),
             ),
             (
                 '`{key}` must be a string value',
@@ -1131,8 +1131,8 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                 None, event_schema.InternalType('z'), 0, 65535,
                             ), 'y'),
                             False,
-                        )
-                    }
+                        ),
+                    },
                 ),
                 None,
             )],
@@ -1255,7 +1255,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                             _internal_type(event_schema.ArrayEventDataType(
                                                 None,
                                                 _internal_type(
-                                                    event_schema.BoolEventDataType(None)
+                                                    event_schema.BoolEventDataType(None),
                                                 ),
                                                 1, 5,
                                             )),
@@ -1279,7 +1279,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                         ),
                                         'f4': event_schema.StructureFieldType(
                                             _internal_type(
-                                                event_schema.FloatEventDataType(None, -5.2, None)
+                                                event_schema.FloatEventDataType(None, -5.2, None),
                                             ),
                                             False,
                                         ),
@@ -1287,7 +1287,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                             _internal_type(event_schema.ArrayEventDataType(
                                                 None,
                                                 _internal_type(
-                                                    event_schema.IntEventDataType(None, 5, 6)
+                                                    event_schema.IntEventDataType(None, 5, 6),
                                                 ),
                                                 event_schema.DEFAULT_MIN_ARRAY_LENGTH,
                                                 event_schema.DEFAULT_MAX_ARRAY_LENGTH,
@@ -1302,7 +1302,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                         ),
                                         'f7': event_schema.StructureFieldType(
                                             _internal_type(
-                                                event_schema.DatetimeEventDataType(None)
+                                                event_schema.DatetimeEventDataType(None),
                                             ),
                                             False,
                                         ),
@@ -1310,10 +1310,10 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                             _internal_type(event_schema.SelectorEventDataType(
                                                 None, {
                                                     "x": _internal_type(
-                                                        event_schema.BoolEventDataType(None)
+                                                        event_schema.BoolEventDataType(None),
                                                     ),
                                                     "y": _internal_type(
-                                                        event_schema.BoolEventDataType(None)
+                                                        event_schema.BoolEventDataType(None),
                                                     ),
                                                 },
                                             )),
@@ -1323,7 +1323,7 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                                             _internal_type(event_schema.SelectorEventDataType(
                                                 None, {
                                                     "x": _internal_type(
-                                                        event_schema.BoolEventDataType(None)
+                                                        event_schema.BoolEventDataType(None),
                                                     ),
                                                 },
                                             )),
@@ -1401,8 +1401,8 @@ GOOD_DATA_TESTS: List[Tuple[str, Dict[str, Any], extension_schema.AbcExtensionMe
                             'first': event_schema.StructureFieldType(
                                 data_type=_internal_type(event_schema.BoolEventDataType(None)),
                                 optional=True,
-                            )
-                        }
+                            ),
+                        },
                     ),
                 ),
             ],

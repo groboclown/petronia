@@ -83,6 +83,6 @@ def send_log_message(
                     m,
                 )
                 for m in messages
-            ]
+            ],
         ),
     )

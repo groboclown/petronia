@@ -25,7 +25,7 @@ class ModelFunctionTest(unittest.TestCase):
         model.set_horiz_size(tile, 30, 20, 30, 20)
         self.assertEqual(tile.pos_x, 30)
         self.assertEqual(tile.pos_y, 0)
-        self.assertEqual(tile.width, 20)
+        self.assertEqual(tile.width, 30)
         self.assertEqual(tile.height, 0)
         self.assertEqual((30, 20), model.get_horiz_size(tile))
         self.assertEqual((0, 0), model.get_vert_size(tile))

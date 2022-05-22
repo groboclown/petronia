@@ -122,7 +122,7 @@ class ParseRawEventTest(unittest.TestCase):
         error = collector.next_as_error(self)
         self.assertEqual(
             "(UserMessage('Reached end-of-stream during packet read', ),)",
-            repr(error.messages())
+            repr(error.messages()),
         )
 
     def test_read_event_stream__error_callback_problem(self) -> None:
@@ -137,12 +137,12 @@ class ParseRawEventTest(unittest.TestCase):
         error1 = collector.next_as_error(self)
         self.assertEqual(
             "(UserMessage('Unexpected data in the event stream', ),)",
-            repr(error1.messages())
+            repr(error1.messages()),
         )
         error2 = collector.next_as_error(self)
         self.assertEqual(
             "(UserMessage('Unexpected data in the event stream', ),)",
-            repr(error2.messages())
+            repr(error2.messages()),
         )
         self.assertTrue(collector.is_empty())
 

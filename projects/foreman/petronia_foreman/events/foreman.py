@@ -554,9 +554,7 @@ class MessageArgumentValue:
         return self.__value
 
     def __repr__(self) -> str:
-        return 'MessageArgumentValue(type: {0}, value: {1})'.format(
-            self.__name, repr(self.__value),
-        )
+        return f'MessageArgumentValue(type: {self.__name}, value: {repr(self.__value)})'
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0912
         """Create the event data structure, ready for marshalling."""

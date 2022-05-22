@@ -1,5 +1,6 @@
 """Test the module."""
 
+from typing import Optional
 import unittest
 import os
 import sys
@@ -175,10 +176,12 @@ class ForemanUserMessageTest(unittest.TestCase):
     def test_display_error__debug(self) -> None:
         """Test local_display."""
         sys.stdout = io.StringIO()
+        exp: Optional[OSError] = None
         try:
             raise OSError('my custom err')
         except OSError as ose:
             exp = ose
+        assert exp is not None  # nosec  # forced by mypy
         err = ExceptionPetroniaReturnError(
             UserMessage('x', i18n('def')),
             exp,

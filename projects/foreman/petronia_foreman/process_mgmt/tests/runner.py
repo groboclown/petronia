@@ -22,7 +22,7 @@ def main() -> None:
 
     print("Runner: Reading data")
     data = os.read(event_read_fd, data_count)
-    print("Runner: read data [{0}]; will write.".format(repr(data)))
+    print(f"Runner: read data [{repr(data)}]; will write.")
     event_write.write(data)
     event_write.flush()
     event_write.close()

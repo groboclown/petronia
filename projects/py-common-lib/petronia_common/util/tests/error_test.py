@@ -204,7 +204,7 @@ class FunctionTest(unittest.TestCase):
     def test_collect_errors_from__no_errors(self) -> None:
         """collect_errors_from with only a pass_ok."""
         res = error.collect_errors_from(
-            error.StdRet.pass_ok(None)
+            error.StdRet.pass_ok(None),
         )
         self.assertIsNone(res)
 
@@ -212,7 +212,7 @@ class FunctionTest(unittest.TestCase):
         """collect_errors_from for 1 error"""
         res = error.collect_errors_from(
             error.StdRet.pass_ok(None),
-            error.StdRet.pass_errmsg('', i18n('x'))
+            error.StdRet.pass_errmsg('', i18n('x')),
         )
         self.assertIsNotNone(res)
         assert res is not None  # mypy required
@@ -236,7 +236,7 @@ class FunctionTest(unittest.TestCase):
     def test_collect_errors_from__1_callable(self) -> None:
         """collect_errors_from for 1 error"""
         res = error.collect_errors_from(
-            lambda: error.StdRet.pass_errmsg('', i18n('x'))
+            lambda: error.StdRet.pass_errmsg('', i18n('x')),
         )
         self.assertIsNotNone(res)
         assert res is not None  # mypy required
@@ -260,7 +260,8 @@ class FunctionTest(unittest.TestCase):
     def test_join_results_several_non_errors(self) -> None:
         """Test out joining several results together."""
         res = error.join_results(
-            sum,
+            # mypy has issues, and pylint complains on fixing for it
+            lambda v: sum(v),  # pylint: disable=unnecessary-lambda
             error.StdRet.pass_ok(1),
             error.StdRet.pass_ok(2),
             error.StdRet.pass_ok(3),

@@ -90,10 +90,9 @@ class UserMessage:
         return self.__message.format(**self.__args)
 
     def __repr__(self) -> str:
-        return 'UserMessage({0}, {1})'.format(
-            repr(self.__message),
-            ', '.join(['{0}={1}'.format(k, repr(v)) for k, v in self.__args.items()])
-        )
+        msg = repr(self.__message)
+        parts = ', '.join([f'{k}={repr(v)}' for k, v in self.__args.items()])
+        return f'UserMessage({msg}, {parts})'
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, UserMessage):

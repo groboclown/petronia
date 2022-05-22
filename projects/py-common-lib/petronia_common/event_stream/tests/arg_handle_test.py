@@ -3,7 +3,7 @@
 
 import unittest
 import os
-import platform
+import sys
 import tempfile
 import shutil
 from .. import arg_handle
@@ -21,7 +21,7 @@ class ArgHandleTest(unittest.TestCase):
             self.o_binary = int(getattr(os, 'O_BINARY'))  # pragma no cover
         else:
             self.o_binary = 0  # pragma no cover
-        if platform.system() == 'Windows':
+        if sys.platform == 'win32':
             import _winapi  # pylint: disable=C0415,E0401  # pragma no cover
             read_handle, write_handle = _winapi.CreatePipe(None, 0)  # pragma no cover
             _winapi.CloseHandle(read_handle)  # pragma no cover
@@ -29,9 +29,10 @@ class ArgHandleTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tempdir, ignore_errors=True)
-        if platform.system() == 'Windows' and self.valid_write_fd:
-            import _winapi  # pylint: disable=C0415,E0401  # pragma no cover
-            _winapi.CloseHandle(self.valid_write_fd)  # pragma no cover
+        if sys.platform == 'win32':
+            if self.valid_write_fd:
+                import _winapi  # pylint: disable=C0415,E0401  # pragma no cover
+                _winapi.CloseHandle(self.valid_write_fd)  # pragma no cover
 
     def test_get_fd_from_argument__not_int(self) -> None:
         """Test where the argument is not an integer."""

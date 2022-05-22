@@ -2,7 +2,6 @@
 Low-level hooks for connecting events to call-backs.
 """
 from typing import Callable, Optional
-from types import FrameType
 import faulthandler
 import signal
 
@@ -51,10 +50,7 @@ class OsHooks:
             faulthandler.enable(self.__log_fd, all_threads=True)
 
         if self.__on_shutdown:
-            def shutdown_callback(
-                    _sig,  # type: signal.Signals
-                    _frame: FrameType,
-            ) -> None:
+            def shutdown_callback() -> None:
                 # print("On shutdown")
                 if self.__on_shutdown:
                     self.__on_shutdown()
@@ -63,10 +59,7 @@ class OsHooks:
                 OsHooks._set_signal(signal_name, shutdown_callback)
 
         if self.__on_restart:
-            def restart_callback(
-                    _sig,  # type: signal.Signals
-                    _frame: FrameType,
-            ) -> None:
+            def restart_callback() -> None:
                 # print("On restart")
                 if self.__on_restart:
                     self.__on_restart()
@@ -75,10 +68,7 @@ class OsHooks:
                 OsHooks._set_signal(signal_name, restart_callback)
 
         if self.__on_kill:
-            def kill_callback(
-                    _sig,  # type: signal.Signals
-                    _frame: FrameType,
-            ) -> None:
+            def kill_callback() -> None:
                 # print("On kill")
                 if self.__on_kill:
                     # pylint is complaining that this isn't callable.  Don't know why.
@@ -90,11 +80,11 @@ class OsHooks:
     @staticmethod
     def _set_signal(
             signal_name: str,
-            handler,  # type: Callable[[signal.Signals, FrameType], None]
+            handler: Callable[[], None],
     ) -> None:
         if hasattr(signal, signal_name):
             try:
-                signal.signal(getattr(signal, signal_name), handler)
+                signal.signal(getattr(signal, signal_name), lambda x, y: handler())
                 # print(f"Set signal {signal_name}")
             except ValueError:
                 # Not available on this platform

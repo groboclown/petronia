@@ -23,7 +23,7 @@ class LoadItTest(unittest.TestCase):
         self.assertTrue(res.ok)
         self.assertEqual(
             [{'one': {'x': 'y'}}],
-            list(res.result)
+            list(res.result),
         )
 
     def test_load_error__1(self) -> None:
@@ -55,7 +55,7 @@ class LoadItTest(unittest.TestCase):
         messages = ';'.join([m.debug() for m in res.valid_error.messages()])
         self.assertTrue(
             'Invalid YAML format' in messages,
-            messages
+            messages,
         )
 
     def test_dump_empty(self) -> None:

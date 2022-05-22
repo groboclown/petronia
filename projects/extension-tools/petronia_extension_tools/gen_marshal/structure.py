@@ -69,7 +69,7 @@ def create_structures(
             # correct.
             timer = PerfTimer()
             ret_inner_structures = create_inner_structure(
-                event.name, '{0}:{1}'.format(data.metadata.name, event.name),
+                event.name, f'{data.metadata.name}:{event.name}',
                 event.unique_target,
                 event.structure, seen_structures, imports,
             )

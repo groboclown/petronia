@@ -1,8 +1,6 @@
 
 """
 Structural definition for the contents of the Foreman configuration.
-
-
 """
 
 from typing import Dict, List, Sequence, Optional
@@ -87,7 +85,7 @@ class ForemanConfig:
         """
         self._runtime_mapper.clear()
         boot_config = ConfigParser()
-        boot_section_name = DEFAULTSECT
+        boot_section_name: str = DEFAULTSECT
 
         for config in configs:
             for section_name in config.sections():
