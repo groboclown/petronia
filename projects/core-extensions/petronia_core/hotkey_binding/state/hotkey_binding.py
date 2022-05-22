@@ -5,23 +5,23 @@ Data structures and marshalling for extension petronia_core.hotkey_binding versi
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name,consider-using-f-string
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    cast,
     Optional,
-    List,
-    Dict,
     Any,
+    Dict,
+    List,
+    cast,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
-    collect_errors_from,
     not_none,
+    collect_errors_from,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia_core.hotkey_binding'
@@ -325,7 +325,7 @@ class BoundKeys:
                 name='BoundKeys',
             )
         else:
-            if val not in ('meta','sequence', ):
+            if val not in ('sequence','meta', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

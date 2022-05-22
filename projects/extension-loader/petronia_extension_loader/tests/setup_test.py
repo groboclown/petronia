@@ -25,7 +25,7 @@ class ExtensionLoaderSetupTest(unittest.TestCase):
         self.assertIsNotNone(res.error)
         self.assertEqual(
             ['No extension directory found.'],
-            [m.debug() for m in res.error_messages()]
+            [m.debug() for m in res.error_messages()],
         )
 
     def test_initialize_minimal(self) -> None:

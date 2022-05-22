@@ -9,7 +9,6 @@ import os
 import sys
 import shutil
 import subprocess
-import coverage
 
 # Bump back up after initial good build.
 # MINIMUM_COVERAGE_PERCENT = 99

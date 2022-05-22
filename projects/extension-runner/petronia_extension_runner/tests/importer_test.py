@@ -84,7 +84,7 @@ class ImporterTest(unittest.TestCase):
         self.assertEqual(
             [
                 f'extension-runner could not load Python module '
-                f'does-not-exist from path {repr([self.tempdir])}'
+                f'does-not-exist from path {repr([self.tempdir])}',
             ],
             [m.debug() for m in res.error_messages()],
         )
@@ -98,7 +98,7 @@ class ImporterTest(unittest.TestCase):
         self.assertEqual(
             [
                 f'extension-runner could not load Python module '
-                f'does-not-exist from path {repr([self.tempdir])}'
+                f'does-not-exist from path {repr([self.tempdir])}',
             ],
             [m.debug() for m in res.error_messages()],
         )

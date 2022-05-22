@@ -133,7 +133,7 @@ class ExtensionEventRegisterEventTarget(
         ))
         report_send_receive_problems(
             'hotkey-binding',
-            store_handler.send_extension_events_state(context)
+            store_handler.send_extension_events_state(context),
         )
         return False
 

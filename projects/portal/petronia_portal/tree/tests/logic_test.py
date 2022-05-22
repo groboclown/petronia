@@ -16,6 +16,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         tree = logic.OptimizedTileTree()
         self.assertFalse(tree.is_initialized())
         self.assertIsNone(tree.get_portal_by_id(1))
+        assert tree is not None  # nosec  # for mypy
         self.assertEqual(
             tuple(tree.get_known_windows()),
             tuple(),
@@ -32,6 +33,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         )
         known1 = tree.register_window('w1', None, window1)
         self.assertIsNotNone(known1)
+        assert known1 is not None  # nosec  # for mypy
         tree.move_window_to_portal_id(
             known1.target_id, tree.get_default_portal().portal_id, True, True,
         )
@@ -78,6 +80,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         )
         known1 = tree.register_window('w1', None, window1)
         self.assertIsNotNone(known1)
+        assert known1 is not None  # nosec  # for mypy
         tree.move_window_to_portal_id(
             known1.target_id, tree.get_default_portal().portal_id, True, True,
         )
@@ -120,7 +123,11 @@ class OptimizedTileTreeTest(unittest.TestCase):
 
         # Ensure the portals are correctly sized.
         port_mod_1 = tree.get_portal_by_alias('default')
+        self.assertIsNotNone(port_mod_1)
+        assert port_mod_1 is not None  # nosec  # for mypy
         port_mod_2 = tree.get_portal_by_alias('b')
+        self.assertIsNotNone(port_mod_2)
+        assert port_mod_2 is not None  # nosec  # for mypy
         self.assertEqual(port_mod_1.pos_x, 0)
         self.assertEqual(port_mod_1.pos_y, 0)
         self.assertEqual(port_mod_1.width, 15)
@@ -140,8 +147,11 @@ class OptimizedTileTreeTest(unittest.TestCase):
 
         # Now move the window to the second portal to ensure the positioning.
 
+        portal_b = tree.get_portal_by_alias('b')
+        self.assertIsNotNone(portal_b)
+        assert portal_b is not None  # nosec  # for mypy
         tree.move_window_to_portal_id(
-            'w1', tree.get_portal_by_alias('b').portal_id, True, True,
+            'w1', portal_b.portal_id, True, True,
         )
 
         self.assertEqual(known1.pos_x, 15)
@@ -176,6 +186,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         )
         known1 = tree.register_window('w1', None, window1)
         self.assertIsNotNone(known1)
+        assert known1 is not None  # nosec  # for mypy
         tree.move_window_to_portal_id(
             known1.target_id, tree.get_default_portal().portal_id, True, True,
         )
@@ -231,7 +242,9 @@ class OptimizedTileTreeTest(unittest.TestCase):
 
         origin_portal = tree.get_portal_by_alias('p1')
         self.assertIsNotNone(origin_portal)
+        assert origin_portal is not None  # nosec  # for mypy
         target_portal = tree.get_portal_by_alias('p2')
         self.assertIsNotNone(target_portal)
+        assert target_portal is not None  # nosec  # for mypy
         target_id = tree.get_target_portal(origin_portal.portal_id, 'east')
         self.assertEqual(target_id, target_portal.portal_id)

@@ -92,7 +92,7 @@ class EntrypointTest(unittest.TestCase):  # pylint:disable=too-many-instance-att
         self.assertIsNotNone(res.error)
         self.assertEqual(
             [
-                'extension-runner could not load Python module does-not-exist from path []'
+                'extension-runner could not load Python module does-not-exist from path []',
             ],
             [m.debug() for m in res.valid_error.messages()],
         )

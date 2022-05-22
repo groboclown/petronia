@@ -52,6 +52,6 @@ class SharedStateTest(unittest.TestCase):
 
 
 def _read_data(data: Optional[shared_state.StoredData]) -> bytes:
-    assert data is not None
+    assert data is not None  # nosec  # to make things easier for us.
     with open(data.filename, 'rb') as f:
         return f.read(data.size)

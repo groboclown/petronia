@@ -79,7 +79,8 @@ def mk_event_marshal_src(
                 {
                     'extension_name': metadata.name,
                     'extension_name_repr': repr(metadata.name),
-                    'extension_version': f'{metadata.version[0]}.{metadata.version[1]}.{metadata.version[2]}',
+                    'extension_version':
+                        f'{metadata.version[0]}.{metadata.version[1]}.{metadata.version[2]}',
                     'extension_version_repr': repr(metadata.version),
                     'imports': create_import_struct(imports),
                     'structures': structures,
@@ -156,7 +157,8 @@ def mk_event_marshal_test_src(
                 {
                     'extension_name': metadata.name,
                     'extension_name_repr': repr(metadata.name),
-                    'extension_version': f'{metadata.version[0]}.{metadata.version[1]}.{metadata.version[2]}',
+                    'extension_version':
+                        f'{metadata.version[0]}.{metadata.version[1]}.{metadata.version[2]}',
                     'extension_version_repr': repr(metadata.version),
                     'imports': create_import_struct(imports),
                     'structures': structures,

@@ -76,7 +76,7 @@ class GeneralOrderTest(unittest.TestCase):
         )
         self.assertEqual(
             {'api1', 'api2'},
-            {info.name for info in loaded['proto1'].required_by}
+            {info.name for info in loaded['proto1'].required_by},
         )
         self.assertEqual(
             {'impl1', 'impl2', 'api1', 'api2'},

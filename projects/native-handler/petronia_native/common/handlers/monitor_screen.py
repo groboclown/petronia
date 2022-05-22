@@ -101,10 +101,12 @@ class NativeMonitor:
         raise NotImplementedError
 
 
-NativeMonitorType = TypeVar('NativeMonitorType', bound=NativeMonitor, covariant=True)
+NativeMonitorType_co = TypeVar(  # pylint:disable=invalid-name
+    'NativeMonitorType_co', bound=NativeMonitor, covariant=True,
+)
 
 
-class WindowScreenMapper(Generic[NativeMonitorType]):
+class WindowScreenMapper(Generic[NativeMonitorType_co]):
     """A mapping between native windows, the screen, and the configuration.
 
     This is thread safe.
@@ -115,7 +117,7 @@ class WindowScreenMapper(Generic[NativeMonitorType]):
 
     def __init__(
             self,
-            native_monitors: Sequence[NativeMonitorType],
+            native_monitors: Sequence[NativeMonitorType_co],
             active_screen: virtual_screen.VirtualScreen,
             lock: Optional[threading.RLock] = None,
     ) -> None:
@@ -131,7 +133,7 @@ class WindowScreenMapper(Generic[NativeMonitorType]):
             return self._monitors
 
     @property
-    def native(self) -> Sequence[NativeMonitorType]:
+    def native(self) -> Sequence[NativeMonitorType_co]:
         """Get the active native monitors"""
         with self._lock:
             return self._native
@@ -142,7 +144,7 @@ class WindowScreenMapper(Generic[NativeMonitorType]):
         with self._lock:
             return self._screen
 
-    def on_monitor_change(self, active: Sequence[NativeMonitorType]) -> bool:
+    def on_monitor_change(self, active: Sequence[NativeMonitorType_co]) -> bool:
         """Called by the native code when a change to the monitors is
         detected.  If the monitors have actually changed, then True is returned."""
         monitors = [m.get_petronia_monitor() for m in active]
@@ -197,7 +199,7 @@ class WindowScreenMapper(Generic[NativeMonitorType]):
         )
 
 
-class AbstractMonitorHandler(Generic[NativeMonitorType]):
+class AbstractMonitorHandler(Generic[NativeMonitorType_co]):
     """Callback class for handling events based on the native implementation's detection of
     monitor state changes.  Changes should be passed to this handler, which will then pass
     those changes on to the WindowScreenMapper.
@@ -209,7 +211,7 @@ class AbstractMonitorHandler(Generic[NativeMonitorType]):
     __slots__ = ('_mapper', '_context')
 
     def __init__(
-            self, context: EventRegistryContext, mapper: WindowScreenMapper[NativeMonitorType],
+            self, context: EventRegistryContext, mapper: WindowScreenMapper[NativeMonitorType_co],
     ) -> None:
         self._mapper = mapper
         self._context: Optional[EventRegistryContext] = context
@@ -219,7 +221,7 @@ class AbstractMonitorHandler(Generic[NativeMonitorType]):
         self._context = None
 
     def get_virtual_screen_for_monitors(
-            self, active: Sequence[NativeMonitorType],
+            self, active: Sequence[NativeMonitorType_co],
     ) -> virtual_screen.VirtualScreen:
         """Finds the correct virtual screen for the monitor setup."""
         raise NotImplementedError
@@ -233,7 +235,7 @@ class AbstractMonitorHandler(Generic[NativeMonitorType]):
             store_virtual_screen_state(self._context, self._mapper.screen),
         )
 
-    def detected_monitor_changed(self, active: Sequence[NativeMonitorType]) -> StdRet[bool]:
+    def detected_monitor_changed(self, active: Sequence[NativeMonitorType_co]) -> StdRet[bool]:
         """Called by the native implementation when a change to the monitors happened.
         This triggers many other actions to happen.  Returns True if the monitors are
         considered changed."""

@@ -37,5 +37,5 @@ class BootExtensionMetadataTest(unittest.TestCase):
         self.assertEqual('{"c1": []}', event.configuration)
         self.assertEqual(
             repr([foreman.ExtensionPermission('x', ['p1', 'p2'])]),
-            repr(event.permissions)
+            repr(event.permissions),
         )

@@ -5,23 +5,23 @@ Data structures and marshalling for extension petronia.core.api.hotkey_binding v
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name,consider-using-f-string
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    List,
-    Any,
-    Optional,
-    cast,
     Dict,
+    List,
+    Optional,
+    Any,
+    cast,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
-    StdRet,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.hotkey_binding'
@@ -79,7 +79,7 @@ class SetMasterSequenceRequestEvent:
                 name='SetMasterSequenceRequestEvent',
             )
         else:
-            if val not in ('sequence','meta', ):
+            if val not in ('meta','sequence', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -919,7 +919,7 @@ class BoundKeysState:
                 name='BoundKeysState',
             )
         else:
-            if val not in ('sequence','meta', ):
+            if val not in ('meta','sequence', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

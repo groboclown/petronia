@@ -771,7 +771,7 @@ class SimpleSplit(TileContainer):
             if current_index == last_index:
                 content.value.size = remaining_size
             else:
-                content.value.size = (content.value.size * parent_size) / total_size
+                content.value.size = (content.value.size * parent_size) // total_size
             remaining_size -= content.value.size
 
 

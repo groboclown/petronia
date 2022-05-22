@@ -4,7 +4,6 @@ from typing import Optional
 import unittest
 from petronia_common.event_stream.tests.shared import (
     create_read_stream, SimpleBinaryWriter,
-    CallbackCollector,
 )
 from petronia_ext_lib.runner import SimpleEventRegistryContext
 from .. import portal_handler
@@ -110,10 +109,18 @@ class PortalHandlerTest(unittest.TestCase):
             portal_1 = root.get_portal_by_alias('p1')
             portal_2 = root.get_portal_by_alias('p2')
             portal_3 = root.get_portal_by_alias('p3')
+
+        # TODO this doesn't look right.
+        self.assertEqual(0, len(changed_windows))
+
+        assert known_window is not None  # nosec  # for mypy
         self.assertEqual(window_id, known_window.target_id)
         self.assertIsNotNone(portal_1)
+        assert portal_1 is not None  # nosec  # for mypy
         self.assertIsNotNone(portal_2)
+        assert portal_2 is not None  # nosec  # for mypy
         self.assertIsNotNone(portal_3)
+        assert portal_3 is not None  # nosec  # for mypy
         shared_state.set_active_portal_id(portal_1.portal_id)
         shared_state.set_focused_window_id(window_id)
         self.assertEqual(portal_1.portal_id, shared_state.get_active_portal_id())

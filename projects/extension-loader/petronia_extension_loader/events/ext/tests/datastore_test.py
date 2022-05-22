@@ -68,14 +68,14 @@ STORE_DATA_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'json': 'Ͼ4ʀ˻˙ȜюМШɺЗ¤ӍW;ʣ\x95ȿѢ\x8cːγҧδȲѝҴɨʄĚ',
+            'json': 'ӛ!ӻѻϨƵėԈқҺǀѡє\x82˩ƾËŋǓʰĕЎȘǶ\x87ǨԃʀΚӿ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'json': 'þϝ',
+            'json': 'Оþ',
 
         },
     ),
@@ -159,14 +159,14 @@ SEND_STATE_REQUEST_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'store_id': 'ˋΑMŕϡϑɣ\x94ŁȵȎɜɚǣıĔϪǹǅӼԐϲǮŔř˪ԓåыƟ',
+            'store_id': 'ӆʜӅɴǀҹҋΐЄǚԗŉɠΔǦƝɡѺΖ˃ѐ)ѽËʠɰ\x87˧ŶѦ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'store_id': 'ШӉΗϾҭ',
+            'store_id': 'ԇƫҎӮο',
 
         },
     ),
@@ -232,17 +232,17 @@ DATA_UPDATED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'changed': '20211104:182057.750110:+0000',
-            'json': 'ˢʝǗрѳǴϕĚҙǈňԢŪ˗ÌÒ¯ŜǟӶʱbśzʰRӦƖ˥ʛ',
+            'changed': '20220522:172820.364108:+0000',
+            'json': 'χƠ˫ʀԂӳξϥɀȶƿІ˥í˖VöǮ\xadѳΡ;ǰȇϗñѶѮӟÍ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'changed': '20211104:182057.770107:+0000',
+            'changed': '20220522:172820.370185:+0000',
 
-            'json': 'Ϣr',
+            'json': '¬Ы',
 
         },
     ),

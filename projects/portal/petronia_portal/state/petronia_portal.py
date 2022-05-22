@@ -5,25 +5,25 @@ Data structures and marshalling for extension petronia_portal version 1.0.0.
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name,consider-using-f-string
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
-    SupportsInt,
-    Dict,
     List,
-    cast,
-    Optional,
     Union,
+    Optional,
+    SupportsInt,
+    cast,
+    Any,
+    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     collect_errors_from,
     not_none,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia_portal'
@@ -216,7 +216,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('bottom','top','center', ):
+            if val not in ('top','bottom','center', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -235,7 +235,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('shrink','stretch','fit','none', ):
+            if val not in ('shrink','stretch','none','fit', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -254,7 +254,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('shrink','stretch','fit','none', ):
+            if val not in ('shrink','stretch','none','fit', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -878,7 +878,7 @@ class WindowMatchItem:
                 name='WindowMatchItem',
             )
         else:
-            if val not in ('regex','exact','glob','exists','not-exists', ):
+            if val not in ('glob','exists','not-exists','regex','exact', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

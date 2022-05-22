@@ -141,7 +141,7 @@ class StoreDataHandler(EventBinaryTarget):
                     TRANSLATION_CATALOG,
                     _('bad api usage: no valid pending storage request for data_id {data_id}'),
                     data_id=source,
-                )
+                ),
             )
             report_send_receive_problems('binarystore', self.context.send_event(
                 binarystore_event.StoreDataRequestEvent.UNIQUE_TARGET_FQN,
@@ -152,7 +152,7 @@ class StoreDataHandler(EventBinaryTarget):
                 ),
             ))
         else:
-            assert res.result is not None
+            assert res.result is not None  # nosec  # mypy required; only state left.
             report_send_receive_problems('binarystore', self.context.send_event(
                 binarystore_event.StoreDataRequestEvent.UNIQUE_TARGET_FQN,
                 source,

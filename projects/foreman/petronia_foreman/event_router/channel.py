@@ -144,7 +144,7 @@ class EventChannel(EventForwarderTarget):
         res = self.__handlers.add_handler(handler_id, produces, consumes, source_id_prefixes)
         trace_channel(
             self.name,
-            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+            f'{handler_id}: can consume {self.__handlers.consume_info()}',
         )
         return res
 
@@ -156,7 +156,7 @@ class EventChannel(EventForwarderTarget):
         res = self.__handlers.remove_handler(handler_id)
         trace_channel(
             self.name,
-            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+            f'{handler_id}: can consume {self.__handlers.consume_info()}',
         )
         return res
 
@@ -175,7 +175,7 @@ class EventChannel(EventForwarderTarget):
         res = self.__handlers.add_listener(handler_id, event_id, target_id)
         trace_channel(
             self.name,
-            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+            f'{handler_id}: can consume {self.__handlers.consume_info()}',
         )
         return res
 
@@ -194,7 +194,7 @@ class EventChannel(EventForwarderTarget):
         res = self.__handlers.remove_listener(handler_id, event_id, target_id)
         trace_channel(
             self.name,
-            f'{handler_id}: can consume {self.__handlers.consume_info()}'
+            f'{handler_id}: can consume {self.__handlers.consume_info()}',
         )
         return res
 

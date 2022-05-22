@@ -223,7 +223,7 @@ class ActiveWindow(Generic[T]):
 NativeWindow = TypeVar('NativeWindow', bound=ActiveWindow)
 
 
-class AbstractWindowHandler(Generic[NativeWindow, T]):
+class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-many-public-methods
     """Manages the window state according to Petronia events."""
     __slots__ = (
         '__context',
@@ -615,6 +615,10 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
         """Handle setting global settings event."""
         if not self.__context:
             return RET_OK_NONE
+        settings: Dict[str, str] = {}
+        for value in event.settings:
+            settings[value.key] = value.value
+        return self.on_set_global_settings(settings)
 
     def handle_set_window_settings_event(
             self, target_id: str, event: window_events.SetWindowSettingsEvent,
@@ -686,6 +690,20 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):
         """Handler for natively setting the global setting.  If the global data does change,
         then the `update_global_settings` method should be called."""
         raise NotImplementedError  # pragma no cover
+
+    def get_global_settings(self) -> List[window_events.NativeMetaValue]:
+        """Retrieve the global settings.  Unset values are returned as an empty string."""
+        return [
+            window_events.NativeMetaValue(k, v, self.__global_settings.get(k, ""))
+            for k, v in self.__global_meta_desc.items()
+        ]
+
+    def get_window_meta_desc(self) -> List[window_events.NativeMetaValue]:
+        """Retrieve the per-window meta description, OS dependent."""
+        return [
+            window_events.NativeMetaValue(k, v, "")
+            for k, v in self.__window_meta_desc.items()
+        ]
 
 
 class AbstractWindowTarget(EventObjectTarget[T]):

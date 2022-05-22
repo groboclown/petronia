@@ -14,14 +14,14 @@ class UnitsTest(unittest.TestCase):
         # Note: this is an invalid rectangle construction, in terms
         # of business logic, but for testing purposes it's fine.
         rect = units.ScreenRect(
-            t_cast(units.ScreenUnit, 1),
-            t_cast(units.ScreenUnit, 2),
-            t_cast(units.ScreenUnit, 3),
-            t_cast(units.ScreenUnit, 4),
-            t_cast(units.ScreenUnit, 5),
-            t_cast(units.ScreenUnit, 6),
-            t_cast(units.ScreenUnit, 7),
-            t_cast(units.ScreenUnit, 8),
+            x=t_cast(units.ScreenUnit, 1),
+            y=t_cast(units.ScreenUnit, 2),
+            width=t_cast(units.ScreenUnit, 3),
+            height=t_cast(units.ScreenUnit, 4),
+            left=t_cast(units.ScreenUnit, 5),
+            right=t_cast(units.ScreenUnit, 6),
+            top=t_cast(units.ScreenUnit, 7),
+            bottom=t_cast(units.ScreenUnit, 8),
         )
         self.assertEqual(1, rect.x)
         self.assertEqual(2, rect.y)

@@ -5,27 +5,27 @@ Data structures and marshalling for extension petronia.core.api.extension_loader
 """
 
 # mypy: allow-any-expr,allow-any-decorated,allow-any-explicit,allow-any-generics
-# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name
+# pylint:disable=too-many-lines,line-too-long,too-many-arguments,too-many-statements,too-many-return-statements,too-many-instance-attributes,too-few-public-methods,unused-import,invalid-name,consider-using-f-string
 
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    Any,
-    List,
     SupportsInt,
-    cast,
     Optional,
-    SupportsFloat,
+    cast,
+    Dict,
+    List,
     Union,
+    SupportsFloat,
+    Any,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     not_none,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.extension_loader'
@@ -167,16 +167,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            datetime.datetime,
+            List[bool],
+            int,
             List[int],
+            float,
             List[float],
             str,
-            bool,
-            int,
-            List[bool],
-            float,
             List[datetime.datetime],
+            bool,
             List[str],
+            datetime.datetime,
         ],
     ) -> None:
         self.__name = name
@@ -189,22 +189,24 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            datetime.datetime,
+            List[bool],
+            int,
             List[int],
+            float,
             List[float],
             str,
-            bool,
-            int,
-            List[bool],
-            float,
             List[datetime.datetime],
+            bool,
             List[str],
+            datetime.datetime,
     ]:
         """The selector value."""
         return self.__value
 
     def __repr__(self) -> str:
-        return f'MessageArgumentValue(type: {self.__name}, value: {repr(self.__value)})'
+        return 'MessageArgumentValue(type: {0}, value: {1})'.format(
+            self.__name, repr(self.__value),
+        )
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0912
         """Create the event data structure, ready for marshalling."""
@@ -278,7 +280,8 @@ class MessageArgumentValue:
         if not isinstance(selector_name, str):
             return StdRet.pass_errmsg(
                 STANDARD_PETRONIA_CATALOG,
-                _('selector value must have ^ and $ keys'),
+                _('selector for {name} value must have ^ and $ keys, or "type" and "value" keys'),
+                name='MessageArgumentValue',
             )
         if selector_name == 'string':
             if not isinstance(val, str):

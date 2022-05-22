@@ -36,5 +36,5 @@ def launcher_stopped() -> StdRet[T]:
     """Generate an error for when the launcher has already been stopped."""
     return StdRet.pass_errmsg(
         TRANSLATION_CATALOG,
-        _('Launcher already stopped')
+        _('Launcher already stopped'),
     )

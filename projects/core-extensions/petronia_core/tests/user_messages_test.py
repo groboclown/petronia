@@ -1,5 +1,6 @@
 """Test the module"""
 
+from typing import Optional
 import unittest
 import io
 import sys
@@ -33,10 +34,12 @@ class NativeUserMessagesTest(unittest.TestCase):
 
     def test_report_send_receive_problems__exception(self) -> None:
         """Test the report_send_receive_problems function"""
+        error: Optional[ValueError] = None
         try:
             raise ValueError()
         except ValueError as err:
             error = err
+        assert error is not None  # nosec  # for pylint
         sys.stderr = io.StringIO()
         user_messages.report_send_receive_problems(
             'z',

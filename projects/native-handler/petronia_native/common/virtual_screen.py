@@ -141,7 +141,7 @@ class VirtualScreen:
 
         # This algorithm is O(n^2)
 
-        for index1 in range(len(self._blocks)):
+        for index1 in range(len(self._blocks)):  # pylint:disable=consider-using-enumerate
             block1 = self._blocks[index1]
             # Loop over blocks that haven't been compared to yet.
             for index2 in range(index1 + 1, len(self._blocks)):
@@ -192,7 +192,7 @@ class VirtualScreen:
             return False
 
         # Both sets of blocks should already be sorted by the monitor's identifier.
-        for index in range(len(self._blocks)):
+        for index in range(len(self._blocks)):  # pylint:disable=consider-using-enumerate
             bk1 = self._blocks[index]
             bk2 = other.blocks[index]
             if bk1 != bk2:
@@ -470,7 +470,7 @@ class VirtualScreenConfigurationSet:
         best_config_index = -1
         best_rank = -1.0
         best_arrangement: List[Tuple[monitor.Monitor, Optional[defs.MonitorPosition]]] = EMPTY_LIST
-        for index in range(len(self._config_list)):
+        for index in range(len(self._config_list)):  # pylint:disable=consider-using-enumerate
             rank, arrangement = self._config_list[index].match(active)
             if rank > best_rank:
                 best_config_index = index

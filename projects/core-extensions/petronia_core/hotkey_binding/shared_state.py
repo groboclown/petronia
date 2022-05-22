@@ -111,7 +111,7 @@ def get_bound_keys_state() -> hotkey_events.BoundKeysState:
                     co_evt[1].target_id, [
                         hotkey_events.BoundEventParameter(param.key, param.value)
                         for param in co_evt[1].parameters
-                    ]
+                    ],
                 ), co_evt[0],
             )
             for seq, co_evt in _BOUND_KEYS.items()
@@ -133,7 +133,7 @@ def set_hotkey_state(config: hotkey_state.ConfigurationState) -> None:
             binding.event.target_id, [
                 hotkey_events.BoundEventParameter(param.key, param.value)
                 for param in binding.event.parameters
-            ]
+            ],
         ))
 
 

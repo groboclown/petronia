@@ -67,7 +67,7 @@ class LoadExtensionHandler(EventObjectTarget[extension_loader.LoadExtensionReque
                 display_message(
                     fail_res,
                     f'Failed attempting to send a failure message '
-                    f'for loading extension {event.name}'
+                    f'for loading extension {event.name}',
                 )
             return False
         if res.result is not None:
@@ -79,6 +79,6 @@ class LoadExtensionHandler(EventObjectTarget[extension_loader.LoadExtensionReque
                 display_message(
                     success_res,
                     f'Failed attempting to send a success message '
-                    f'for loading extension {event.name}'
+                    f'for loading extension {event.name}',
                 )
         return False

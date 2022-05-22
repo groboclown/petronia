@@ -70,8 +70,8 @@ class ScreenRect:  # pylint:disable=too-many-instance-attributes
     """Rectangle display on the screen."""
     __slots__ = ('__x', '__y', '__width', '__height', '__left', '__right', '__top', '__bottom',)
 
-    def __init__(  # pylint:disable=too-many-arguments
-            self,
+    def __init__(  # pylint:disable=too-many-arguments, invalid-name
+            self, *,
             x: ScreenUnit, y: ScreenUnit, width: ScreenUnit, height: ScreenUnit,
             left: ScreenUnit, right: ScreenUnit, top: ScreenUnit, bottom: ScreenUnit,
     ) -> None:
@@ -137,16 +137,14 @@ class ScreenRect:  # pylint:disable=too-many-instance-attributes
     ) -> 'ScreenRect':
         """Create a ScreenRect from the border position."""
         return ScreenRect(
-            cast(ScreenUnit, left), cast(ScreenUnit, top),
-            cast(ScreenUnit, right - left + 1), cast(ScreenUnit, bottom - top + 1),
-            cast(ScreenUnit, left), cast(ScreenUnit, right),
-            cast(ScreenUnit, top), cast(ScreenUnit, bottom),
+            x=cast(ScreenUnit, left), y=cast(ScreenUnit, top),
+            width=cast(ScreenUnit, right - left + 1), height=cast(ScreenUnit, bottom - top + 1),
+            left=cast(ScreenUnit, left), right=cast(ScreenUnit, right),
+            top=cast(ScreenUnit, top), bottom=cast(ScreenUnit, bottom),
         )
 
     def __repr__(self) -> str:
-        return 'ScreenRect(x={0}, y={1}, w={2}, h={3})'.format(
-            self.__x, self.__y, self.__width, self.__height,
-        )
+        return f'ScreenRect(x={self.__x}, y={self.__y}, w={self.__width}, h={self.__height})'
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, ScreenRect):
@@ -167,8 +165,8 @@ class ScreenRect:  # pylint:disable=too-many-instance-attributes
 
 
 EMPTY_SCREEN_RECT = ScreenRect(
-    ZERO_SCREEN_UNIT, ZERO_SCREEN_UNIT, ZERO_SCREEN_UNIT, ZERO_SCREEN_UNIT,
-    ZERO_SCREEN_UNIT, ZERO_SCREEN_UNIT, ZERO_SCREEN_UNIT, ZERO_SCREEN_UNIT,
+    x=ZERO_SCREEN_UNIT, y=ZERO_SCREEN_UNIT, width=ZERO_SCREEN_UNIT, height=ZERO_SCREEN_UNIT,
+    left=ZERO_SCREEN_UNIT, right=ZERO_SCREEN_UNIT, top=ZERO_SCREEN_UNIT, bottom=ZERO_SCREEN_UNIT,
 )
 
 
@@ -191,7 +189,7 @@ class OsScreenRect:  # pylint:disable=too-many-arguments,too-many-instance-attri
     __slots__ = ('__x', '__y', '__width', '__height', '__top', '__bottom', '__left', '__right')
 
     def __init__(
-            self,
+            self, *,
             x: int = 0,  # pylint:disable=invalid-name
             y: int = 0,  # pylint:disable=invalid-name
             width: int = 0,
@@ -258,8 +256,8 @@ class OsScreenRect:  # pylint:disable=too-many-arguments,too-many-instance-attri
         max_x = max(x1, x2)
         max_y = max(y1, y2)
         return OsScreenRect(
-            min_x, min_y, max_x - min_x,  max_y - min_y,
-            min_x, max_x, min_y, max_y,
+            x=min_x, y=min_y, width=max_x - min_x,  height=max_y - min_y,
+            left=min_x, right=max_x, top=min_y, bottom=max_y,
         )
 
     @staticmethod
@@ -269,8 +267,8 @@ class OsScreenRect:  # pylint:disable=too-many-arguments,too-many-instance-attri
         r_w = max(1, width)
         r_h = max(1, height)
         return OsScreenRect(
-            x, y, r_w, r_h,
-            x, x + r_w, y, y + r_h,
+            x=x, y=y, width=r_w, height=r_h,
+            left=x, right=x + r_w, top=y, bottom=y + r_h,
         )
 
     @staticmethod

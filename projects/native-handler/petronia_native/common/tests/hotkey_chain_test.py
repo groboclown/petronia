@@ -48,18 +48,18 @@ class KeyComboTreeTest(unittest.TestCase):
         self.assertTrue(tree.add_child([SKC_1], 's'))
         self.assertEqual(
             tree.get(SKC_1),
-            's'
+            's',
         )
         self.assertIsNone(tree.get(SKC_5))
 
         self.assertTrue(tree.add_child([SKC_2], 't'))
         self.assertEqual(
             tree.get(SKC_1),
-            's'
+            's',
         )
         self.assertEqual(
             tree.get(SKC_2),
-            't'
+            't',
         )
         self.assertIsNone(tree.get(SKC_5))
 
@@ -212,7 +212,7 @@ class CreateChainTest(unittest.TestCase):
             create_primary_chain([[STK_1, STK_2]], [STK_3]).value,
             [
                 [SK_1_DOWN, SK_3_DOWN],
-                [SK_2_DOWN, SK_3_DOWN]
+                [SK_2_DOWN, SK_3_DOWN],
             ],
         )
         self.assertEqual(

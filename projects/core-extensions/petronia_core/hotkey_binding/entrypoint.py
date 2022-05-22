@@ -55,7 +55,7 @@ def extension_entrypoint(
                 hotkey_state.ConfigurationState.UNIQUE_TARGET_FQN,
                 config_res.valid_error,
                 'invalid-configuration',
-            )
+            ),
         )
 
     context.process_reader(hotkey_state.EXTENSION_NAME)
@@ -112,6 +112,6 @@ def create_bindings_initialize_callback(
                 master_sequence.sequence_type, master_sequence.sequence,
                 shared_state.list_bound_keys(),
                 lambda x, y: None,
-            )
+            ),
         )
     return callback

@@ -97,7 +97,7 @@ class KeyComboTree:
         for key, val in sorted(list(self.children.items()), key=lambda x: x[0]):
             nks = f"{(key >> 1) & 0xff:02x}:{key & 1 == 0 and 'up' or 'dn'}"
             kids.append(repr(nks) + '=' + repr(val))
-        return "KeyComboTree({0})".format(', '.join(kids))
+        return f"KeyComboTree({', '.join(kids)})"
 
 
 ACTION_PENDING = 1
@@ -235,7 +235,7 @@ class HotKeyChain:
     _active_combos: Optional[KeyComboTree]
 
     def __init__(
-            self, chain_commands: Optional[List[Tuple[Sequence[KeyCombo], str]]] = None
+            self, chain_commands: Optional[List[Tuple[Sequence[KeyCombo], str]]] = None,
     ) -> None:
         self._root_combos = KeyComboTree()
         self._active_combos = None

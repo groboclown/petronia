@@ -56,8 +56,8 @@ CONFIGURATION_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'cachedir': 'ҐʼƏ΅әıԛϑӰћѽŖǇѧрğ½}ӒĬõšͳМϔkȕѧʰӓ',
-            'request_timeout_seconds': 397047.4359074449,
+            'cachedir': 'ʜДʈǠȳ.ͶϫʙϞһȸňΔ;ūɫхɣʥʜ\x85Ƒʿη·ˁEϏė',
+            'request_timeout_seconds': -21096.6637437834,
         },
     ),
     (

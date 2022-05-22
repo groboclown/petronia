@@ -125,7 +125,7 @@ class MonitorScreenTest(unittest.TestCase):
         self.assertEqual('desc', res.name)
         self.assertEqual(
             ((0, 10, 20), (1, 100, 90)),
-            res.monitor_defs
+            res.monitor_defs,
         )
         self.assertEqual(
             (

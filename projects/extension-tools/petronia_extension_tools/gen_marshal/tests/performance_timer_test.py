@@ -31,5 +31,5 @@ class PerfTimerTest(unittest.TestCase):
         time.sleep(0.01)
         self.assertGreaterEqual(
             timer.report('3'),
-            0.01
+            0.01,
         )

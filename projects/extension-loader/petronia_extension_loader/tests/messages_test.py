@@ -1,5 +1,6 @@
 """Test the module."""
 
+from typing import Optional
 import unittest
 import sys
 import io
@@ -41,11 +42,13 @@ class ExtensionLoaderMessagesTest(unittest.TestCase):
 
     def test_display_message__error(self) -> None:
         """Test display_message"""
+        err: Optional[IOError] = None
         sys.stdout = io.StringIO()
         try:
             raise IOError('my err')
         except IOError as ioe:
             err = ioe
+        assert err is not None  # nosec  # for pylint
         messages.display_message(StdRet.pass_exception(
             TRANSLATION_CATALOG, i18n('s1s'), err,
         ))

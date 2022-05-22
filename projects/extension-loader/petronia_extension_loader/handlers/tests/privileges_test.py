@@ -53,7 +53,7 @@ class PrivilegesTest(unittest.TestCase):
             # As a stand-alone extension, it can register listeners and announce it is loaded.
             {
                 'petronia.core.api.extension_loader:register-extension-listeners',
-                'petronia.core.api.foreman_announcement:extension-startup-complete'
+                'petronia.core.api.foreman_announcement:extension-startup-complete',
             },
             res,
         )
