@@ -332,6 +332,19 @@ def get_std_project_dirs(project_dir: str) -> List[Tuple[str, str]]:
     return ret
 
 
+def normalize_child_project_names(child_projects: List[str]) -> List[str]:
+    """Normalize the names; if it's a directory, strip off all the stuff but the name."""
+    ret: List[str] = []
+    for name in child_projects:
+        while name[-1] == '/':
+            name = name[:-1]
+        if os.path.isdir(name):
+            ret.append(os.path.basename(name))
+        else:
+            ret.append(name)
+    return ret
+
+
 def main(root_project_dir: str, child_projects: List[str]) -> int:
     """Static + Dynamic Checks on the code."""
     total_failures: List[str] = []
@@ -376,5 +389,5 @@ def main(root_project_dir: str, child_projects: List[str]) -> int:
 if __name__ == '__main__':
     sys.exit(main(
         os.path.join(os.path.dirname(sys.argv[0]), os.path.pardir, 'projects'),
-        sys.argv[1:],
+        normalize_child_project_names(sys.argv[1:]),
     ))
