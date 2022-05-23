@@ -62,7 +62,7 @@ class PortalHandlerTest(unittest.TestCase):
                                                     "justify_vertical": "top",
                                                     "fit_horizontal": "fit",
                                                     "fit_vertical": "fit",
-                                                }
+                                                },
                                             },
                                         },
                                         {
@@ -76,13 +76,13 @@ class PortalHandlerTest(unittest.TestCase):
                                                     "justify_vertical": "top",
                                                     "fit_horizontal": "fit",
                                                     "fit_vertical": "fit",
-                                                }
+                                                },
                                             },
-                                        }
+                                        },
                                     ],
-                                }
-                            }
-                        ]
+                                },
+                            },
+                        ],
                     },
                 }],
             }],

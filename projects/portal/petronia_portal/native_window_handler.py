@@ -177,7 +177,7 @@ def on_active_window_ids_changed(
         active_ids: window_event.ActiveWindowsState,
 ) -> StdRet[None]:
     """Handler for when the active window IDs data changes."""
-    print(f"[PORTAL] active window IDs updated")
+    print("[PORTAL] active window IDs updated")
     ret: List[StdRet[None]] = []
     # If an active ID is not in the list of known windows, send out a request to get the
     # data store update.
@@ -283,7 +283,7 @@ def send_move_windows_event(
         )
         for known in changed_windows
     ]
-    print(f'[PORTAL] moving windows:')
+    print('[PORTAL] moving windows:')
     for known in changed_windows:
         print(f'  - {repr(known)} - ({known.pos_x} {known.pos_y}) x ({known.pos_w}, {known.pos_h})')
     return context.send_event(

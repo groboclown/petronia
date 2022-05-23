@@ -153,7 +153,7 @@ class OptimizedTileTree:
         The get_assigned_windows callback should return the windows that the given
         portal should contain.
 
-        Returns windows that have changed size and/or position.
+        Returns the windows that have changed size and/or position.
         """
         if len(screens) <= 0:
             # Do not change.  This is a terrible scenario, and probably means a bug.
@@ -356,7 +356,7 @@ class OptimizedTileTree:
 
         return tuple(changed_windows)
 
-    def split_portal(
+    def split_portal(  # pylint:disable=no-self-use
             self,
             active_portal_id: int,
             _add_before: bool,
@@ -369,7 +369,7 @@ class OptimizedTileTree:
         print(f"[PORTAL NOT IMPLEMENTED] split {active_portal_id} in half")
         return []
 
-    def join_portals(
+    def join_portals(  # pylint:disable=no-self-use
             self,
             active_portal_id: int,
             _join_before: bool,

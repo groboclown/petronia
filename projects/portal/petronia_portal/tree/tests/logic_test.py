@@ -61,7 +61,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         self.assertEqual(changed_windows, [known1])
         self.assertEqual(
             [(main_portal, [known1])],
-            called_windows
+            called_windows,
         )
         # was: (10, 11) x (5, 6)
         # should now match screen size.
@@ -101,7 +101,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
                     portal_state.SplitContent('default', portal1),
                     portal_state.SplitContent('b', portal2),
                 ],
-            ))
+            )),
         ])
 
         called_windows: List[Tuple[portal_state.Portal, Sequence[model.KnownWindow]]] = []
@@ -118,7 +118,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         self.assertEqual(changed_windows, [known1])
         self.assertEqual(
             [(portal1, [known1]), (portal2, [known1])],
-            called_windows
+            called_windows,
         )
 
         # Ensure the portals are correctly sized.
@@ -160,6 +160,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
         self.assertEqual(known1.pos_h, 24)
 
     def test_move_window_to_portal_single_split(self) -> None:
+        """Move a window to a portal with a single split."""
         tree = logic.OptimizedTileTree()
         screen_block = screen_state.VirtualScreenBlock(0, 0, 21, 24, 1, 1)
         portal1 = portal_state.Portal(
@@ -176,7 +177,7 @@ class OptimizedTileTreeTest(unittest.TestCase):
                     portal_state.SplitContent('default', portal1),
                     portal_state.SplitContent('b', portal2),
                 ],
-            ))
+            )),
         ])
 
         window1 = window_event.WindowState(
@@ -207,10 +208,11 @@ class OptimizedTileTreeTest(unittest.TestCase):
         self.assertEqual(changed_windows, [known1])
         self.assertEqual(
             [(portal1, [known1]), (portal2, [known1])],
-            called_windows
+            called_windows,
         )
 
     def test_get_target_portal_single_split(self) -> None:
+        """Get the target portal from within a single split."""
         tree = logic.OptimizedTileTree()
         screen_block = screen_state.VirtualScreenBlock(0, 0, 21, 24, 1, 1)
         portal1 = portal_state.Portal(
@@ -227,11 +229,11 @@ class OptimizedTileTreeTest(unittest.TestCase):
                     portal_state.SplitContent('default', portal1),
                     portal_state.SplitContent('b', portal2),
                 ],
-            ))
+            )),
         ])
 
         def portal_window_callback(
-                portal: portal_state.Portal, windows: Sequence[model.KnownWindow],
+                _portal: portal_state.Portal, _windows: Sequence[model.KnownWindow],
         ) -> Iterable[model.KnownWindow]:
             return []
 

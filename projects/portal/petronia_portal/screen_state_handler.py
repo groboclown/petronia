@@ -6,7 +6,11 @@ from petronia_ext_lib.datastore import (
     InitCachedInstance,
 )
 from petronia_ext_lib.runner import EventRegistryContext
-from . import shared_state, tree, native_window_handler, user_messages, config_matcher, data_store_reader
+from . import (
+    shared_state, tree,
+    native_window_handler, user_messages,
+    config_matcher, data_store_reader,
+)
 from .state import screen as screen_state
 from .state import petronia_portal as portal_state
 
@@ -24,12 +28,13 @@ def setup(context: EventRegistryContext) -> StdRet[None]:
 def create_on_virtual_screen_changed(
         context: EventRegistryContext,
 ) -> Callable[[Optional[screen_state.VirtualScreenState]], None]:
+    """Generate the callback for when the virtual screen changes attributes."""
     def on_virtual_screen_changed(
             v_screen: Optional[screen_state.VirtualScreenState],
     ) -> None:
         """Callback for when the virtual screen data changes."""
         if not v_screen:
-            print(f'[PORTAL] virtual screens changed: no virtual screens')
+            print('[PORTAL] virtual screens changed: no virtual screens')
             return
         print(f'[PORTAL] virtual screens changed: {v_screen.export_data()}')
 
