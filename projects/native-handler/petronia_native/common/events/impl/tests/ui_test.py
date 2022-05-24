@@ -72,17 +72,17 @@ REGISTER_IMAGE_DETAILS_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'locale': 'CÉѸёɿΜԈǢϝȻ',
-            'format': 'tƇҁІǹa¹ȴʿ\x94\x8fŗȗѨʀҖґ҃ĚǼɇŻӂër\x9b',
+            'locale': 'ŊҢ',
+            'format': 'ϢұӆÆѢþΗŻЇǪŘíϋЌɅłƷ\u0383њĬΕԞΚʺʭΗ\u0382ƿĠҷ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'locale': 'ʤ',
+            'locale': 'ʦ',
 
-            'format': 'ѕ',
+            'format': '˕',
 
         },
     ),
@@ -148,10 +148,18 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 9465619,
+            'identifier': 1316540,
             'mouse_buttons': [
-                3032669418832288113,
-                4952137317265817904,
+                -1591221333229631561,
+                -3593226310353457704,
+                4192965169463716010,
+                -4402678042246879510,
+                4888599210939555890,
+                3280276486282926780,
+                2987991857211296688,
+                -6651893363168747683,
+                -8866846599490510618,
+                -2436223456649867962,
             ],
         },
     ),
@@ -159,10 +167,10 @@ UI_PANEL_CLICKED_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
         'bare-minimum-fields-present',
         {
 
-            'identifier': 8621521,
+            'identifier': 4318886,
 
             'mouse_buttons': [
-                4148457379822190157,
+                -7229752341882709300,
             ],
 
         },
@@ -229,15 +237,15 @@ UI_TEXT_FIELD_UPDATE_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'identifier': 866596,
-            'text': '҆į҅ƤȻǷӢĸ1ĶΕ4\x95ÐʕәξĄͿЏ\u0381ɸĭ\x8fĲȶʞԛʗÌ',
+            'identifier': 5917217,
+            'text': 'εmƎzˢѽϙøυӗǶǛ7ɛѢǳпӽ҄ԐįӦɅ\u038dŹˌćȂ`ќ',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'identifier': 4093397,
+            'identifier': 1718781,
 
             'text': '',
 

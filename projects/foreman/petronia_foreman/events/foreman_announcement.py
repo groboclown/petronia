@@ -11,15 +11,15 @@ Data structures and marshalling for extension petronia.core.api.foreman_announce
 from __future__ import annotations
 from typing import (
     Dict,
-    Any,
     List,
+    Any,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
-    not_none,
     collect_errors_from,
+    not_none,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.foreman_announcement'

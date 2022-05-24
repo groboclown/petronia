@@ -115,7 +115,7 @@ echo portal:
   --output "${pd}/portal/petronia_portal/events" \
   --implementation --api --state \
   "${pd}/portal/portal-extension.yaml" \
-  "${pd}/portal/window-positioner-extension.yaml"
+  "${pd}/ui-extensions/positioner-extension.yaml"
 "${h}/generate-events.sh" \
   --output "${pd}/portal/petronia_portal/events" \
   --api --state \

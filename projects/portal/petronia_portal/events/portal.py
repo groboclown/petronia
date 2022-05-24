@@ -10,20 +10,20 @@ Data structures and marshalling for extension petronia.core.api.portal version 1
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Union,
-    Optional,
-    Dict,
     Any,
-    SupportsInt,
     cast,
+    SupportsInt,
     List,
+    Union,
+    Dict,
+    Optional,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    StdRet,
     not_none,
+    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.portal'
@@ -197,7 +197,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('right','center','left', ):
+            if val not in ('left','right','center', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -216,7 +216,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('center','bottom','top', ):
+            if val not in ('top','bottom','center', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -235,7 +235,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('none','stretch','shrink','fit', ):
+            if val not in ('fit','none','shrink','stretch', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -254,7 +254,7 @@ class WindowPortalFit:
                 name='WindowPortalFit',
             )
         else:
-            if val not in ('none','stretch','shrink','fit', ):
+            if val not in ('fit','none','shrink','stretch', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -685,7 +685,7 @@ class LayoutSplit:
                 name='LayoutSplit',
             )
         else:
-            if val not in ('horizontal','vertical', ):
+            if val not in ('vertical','horizontal', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -1370,7 +1370,7 @@ class AdjustPortalSizeEvent:
                 name='AdjustPortalSizeEvent',
             )
         else:
-            if val not in ('horizontal','vertical', ):
+            if val not in ('vertical','horizontal', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -1543,7 +1543,7 @@ class MoveWindowToPortalEvent:
                 name='MoveWindowToPortalEvent',
             )
         else:
-            if val not in ('wrap-block','none','wrap-screen', ):
+            if val not in ('wrap-screen','none','wrap-block', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -1632,7 +1632,7 @@ class FocusPortalEvent:
                 name='FocusPortalEvent',
             )
         else:
-            if val not in ('wrap-block','none','wrap-screen', ):
+            if val not in ('wrap-screen','none','wrap-block', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),
@@ -1697,7 +1697,7 @@ class RotateActiveWindowEvent:
                 name='RotateActiveWindowEvent',
             )
         else:
-            if val not in ('backward','forward', ):
+            if val not in ('forward','backward', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

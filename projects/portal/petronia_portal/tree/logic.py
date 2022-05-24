@@ -364,7 +364,7 @@ class OptimizedTileTree:
     ) -> Sequence[model.KnownWindow]:
         """Split the active portal into two portals.
 
-        Returns windows that have changed size and/or position.
+        Returns the windows that have changed size and/or position.
         """
         print(f"[PORTAL NOT IMPLEMENTED] split {active_portal_id} in half")
         return []
@@ -376,7 +376,7 @@ class OptimizedTileTree:
     ) -> Sequence[model.KnownWindow]:
         """Join the active portal with an adjacent one.
 
-        Returns windows that have changed size and/or position.
+        Returns all windows that have changed size and/or position.
         """
         print(f"[PORTAL NOT IMPLEMENTED] join {active_portal_id}")
         return []
@@ -396,7 +396,7 @@ def _add_children_to_stack(
     """Handle the adding the current node to its parent, and adding the children of
     the current node into the stack.  This includes updating the relative size of the
     layouts to work right when added into the current node."""
-    current_split = model.SimpleSplit(current.direction == model.DIRECITON_HORIZONTAL)
+    current_split = model.SimpleSplit(current.direction == model.DIRECTION_HORIZONTAL)
     current_split.rel_size = current.size
     parent.add_child(current_split, False, False)
 

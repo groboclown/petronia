@@ -17,8 +17,8 @@ from typing import (
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     not_none,
-    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    STANDARD_PETRONIA_CATALOG,
     StdRet,
 )
 

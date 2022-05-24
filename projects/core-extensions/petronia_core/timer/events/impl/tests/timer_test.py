@@ -68,14 +68,14 @@ HEARTBEAT_EVENT_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'sent_on': '20220522:172834.144952:+0000',
+            'sent_on': '20220523:220033.108912:+0000',
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'sent_on': '20220522:172834.161270:+0000',
+            'sent_on': '20220523:220033.109261:+0000',
 
         },
     ),
@@ -137,14 +137,14 @@ HEARTBEAT_INTERVAL_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'seconds': 496611.4081766738,
+            'seconds': -4079.638361846155,
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'seconds': 333172.1954404795,
+            'seconds': 657152.0928629746,
 
         },
     ),

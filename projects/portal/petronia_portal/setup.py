@@ -1,4 +1,4 @@
-"""Setup the extension."""
+"""Set up the extension."""
 
 from typing import Optional
 from petronia_common.util import StdRet, join_none_results
@@ -13,7 +13,7 @@ from .state import petronia_portal as portal_state
 def setup_context(
         context: EventRegistryContext, config: Optional[portal_state.ConfigurationState],
 ) -> StdRet[None]:
-    """Setup the initial context and state."""
+    """Set up the initial context and state."""
     shared_state.clear_data(config)
     return join_none_results(
         data_store_reader.setup(context),

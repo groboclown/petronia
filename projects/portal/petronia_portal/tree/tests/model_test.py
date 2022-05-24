@@ -12,8 +12,10 @@ class ModelFunctionTest(unittest.TestCase):
     def test_get_set_size(self) -> None:
         """test get_horiz_size, get_vert_size, set_horiz_size, set_vert_size"""
         tile = model.Portal([], portal_state.Portal(
-            0, portal_state.WindowPortalFit('center', 'center', 'none', 'none'),
-            0, 0, 0, 0, [],
+            size=0,
+            preferred_location=portal_state.WindowPortalFit('center', 'center', 'none', 'none'),
+            padding_top=0, padding_bottom=0, padding_left=0, padding_right=0,
+            portal_aliases=[],
         ))
         self.assertEqual(tile.pos_x, 0)
         self.assertEqual(tile.pos_y, 0)
@@ -22,20 +24,20 @@ class ModelFunctionTest(unittest.TestCase):
         self.assertEqual((0, 0), model.get_horiz_size(tile))
         self.assertEqual((0, 0), model.get_vert_size(tile))
 
-        model.set_horiz_size(tile, 30, 20, 30, 20)
+        model.set_horiz_size(tile=tile, pos=30, length=20, other_pos=10, other_length=12)
         self.assertEqual(tile.pos_x, 30)
-        self.assertEqual(tile.pos_y, 0)
-        self.assertEqual(tile.width, 30)
-        self.assertEqual(tile.height, 0)
-        self.assertEqual((30, 20), model.get_horiz_size(tile))
-        self.assertEqual((0, 0), model.get_vert_size(tile))
-
-        model.set_vert_size(tile, 50, 60, 50, 60)
-        self.assertEqual(tile.pos_x, 30)
-        self.assertEqual(tile.pos_y, 50)
+        self.assertEqual(tile.pos_y, 10)
         self.assertEqual(tile.width, 20)
-        self.assertEqual(tile.height, 60)
+        self.assertEqual(tile.height, 12)
         self.assertEqual((30, 20), model.get_horiz_size(tile))
+        self.assertEqual((10, 12), model.get_vert_size(tile))
+
+        model.set_vert_size(tile, 50, 60, 16, 17)
+        self.assertEqual(tile.pos_x, 16)
+        self.assertEqual(tile.pos_y, 50)
+        self.assertEqual(tile.width, 17)
+        self.assertEqual(tile.height, 60)
+        self.assertEqual((16, 17), model.get_horiz_size(tile))
         self.assertEqual((50, 60), model.get_vert_size(tile))
 
     def test_get_first(self) -> None:

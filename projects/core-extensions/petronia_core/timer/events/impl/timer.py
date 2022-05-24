@@ -11,17 +11,17 @@ Data structures and marshalling for extension petronia.core.api.timer version 1.
 from __future__ import annotations
 from typing import (
     Dict,
-    SupportsFloat,
-    Any,
     List,
+    Any,
+    SupportsFloat,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
     STANDARD_PETRONIA_CATALOG,
-    StdRet,
     collect_errors_from,
+    not_none,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia.core.api.timer'

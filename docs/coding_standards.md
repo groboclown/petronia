@@ -45,4 +45,4 @@ Each launcher program is responsible for setting up its own logging configuratio
 
 ## Internationalization
 
-User messages should all be localizable.
+User messages should all be localizable.  Custom extensions need to register their localized message catalogs with the user message catalog extension point.

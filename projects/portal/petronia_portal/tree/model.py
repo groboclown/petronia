@@ -8,7 +8,7 @@ from ..state import petronia_portal as portal_state
 from ..events import window as window_event
 
 
-DIRECITON_HORIZONTAL = 'horizontal'
+DIRECTION_HORIZONTAL = 'horizontal'
 DIRECTION_VERTICAL = 'vertical'
 WINDOW_KEY_EXECUTABLE = 'executable'
 

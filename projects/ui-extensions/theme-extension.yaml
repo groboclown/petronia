@@ -1,0 +1,116 @@
+---
+schema-version: v1
+
+name: petronia.core.api.ui.theme
+type: api
+version: [1, 0, 0]
+about: Common UI Widgets
+description: >
+  A standard API for drawing UI widgets that have a common look-and-feel to them.
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia_portal
+  minimum: [1, 0, 0]
+
+
+state-data:
+  dialogs:
+    description: >
+      Information about how to display dialog messages.
+    fields:
+      content:
+        description: The focused window, or not set if no window is active.
+        optional: true
+        type: reference
+        ref: event-target-id
+
+events:
+  # "create-:request"
+  # ""
+
+references:
+  # ------------------------------
+  # Standard Types ...
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+
+  # ------------------------------
+  # Custom Types ...
+
+  panel-format:
+    description: Information about how a panel and its contents are displayed.
+    type: structure
+    fields:
+      text:
+        description: description of the text drawing.
+        optional: true
+        type: reference
+        ref: text-format
+      text-color:
+        description: color of the drawn text.  "#rrggbb" hex color formats are always supported.
+        optional: true
+        type: string
+      background-color:
+        description: color of the panel background.  "#rrggbb" hex color formats are always supported.
+        optional: true
+        type: string
+      background-image:
+        description: image reference (stored in the binary store) to show in the panel background.
+        optional: true
+        type: structure
+        fields:
+          image_id:
+            description: registered image ID in the binary store
+            type: reference
+            ref: event-target-id
+          fit:
+            description: how to fit the image inside the panel
+            type: enum
+            values:
+              - stretch
+              - stretch_vertical
+              - stretch_horizontal
+              - crop
+              - repeat
+              - repeat_vertical
+              - repeat_horizontal
+
+
+  text-format:
+    description: Information about how to display text.
+    type: structure
+    fields:
+      font-family:
+        description: name of the font family to display.
+        type: string
+        optional: true
+      font-size:
+        description: >
+          size of the font to display.  These should be screen pixel density agnostic,
+          so that 4k monitors show clear text for the same size as standard density.
+        type: int
+        optional: true
+      font-weight:
+        description: amount of extra bulk to draw around the font.  Normal weight is 1.
+        type: int
+        optional: true
+      font-angle:
+        description: >
+          angle to draw the font.  The value is 0 or "normal" for normal, "italic" for
+          italics, or an integer to indicate the angle (in degrees) to draw.  Some systems
+          may only support normal and italic, and use "0" for normal and any non-zero value for
+          italic.
+        type: int
+        optional: true
+      font-underline:
+        description: draw a line under the text.  0 means no line, 1 means 1 line, and so on.
+        type: int
+        optional: true

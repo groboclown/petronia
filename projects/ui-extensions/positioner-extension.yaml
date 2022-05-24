@@ -1,0 +1,399 @@
+---
+schema-version: v1
+
+name: petronia.core.api.ui.positioner
+type: api
+version: [1, 0, 0]
+about: Extensions that handle the positioning of the windows.
+description: >
+  A standard API for extensions that manage the positioning of windows.  This provides
+  a layer of indirection between the native UI windowing events and the extension that
+  interprets those and puts the windows where they should belong.  It adds additional
+  information to the windows, such as virtual desktop positioning to allow for multiple
+  virtual desktops.
+
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+depends: []
+default:
+  name: petronia_portal
+  minimum: [1, 0, 0]
+
+
+state-data:
+  focus:
+    description: >
+      The currently focused window.
+    fields:
+      window_id:
+        description: The focused window, or not set if no window is active.
+        optional: true
+        type: reference
+        ref: event-target-id
+
+  default-chrome:
+    description: >
+      The default chrome size to place around windows.  Requests for individual
+      windows can be done separately.
+    fields:
+      chrome_west:
+        description: amount of extra horizontal space on the left of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_east:
+        description: amount of extra horizontal space on the right of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_north:
+        description: amount of extra vertical space on the top of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_south:
+        description: amount of extra vertical space on the bottom of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+
+
+  virtual_desktop_windows:
+    description: >
+      List of window IDs and their position in the virtual desktops.
+    fields:
+      windows:
+        description: >
+          The list of all the visible windows.
+        type: array
+        min-length: 0
+        max-length: 65535
+        value-type:
+          description: >
+            A window position in the virtual desktop.
+          type: structure
+          fields:
+            window_id:
+              description: System ID of the window.
+              type: reference
+              ref: event-target-id
+            desktop_id:
+              description: virtual desktop id.
+              type: reference
+              ref: event-target-id
+            pos_x:
+              description: horizontal position of the upper-left corner of the window
+              type: reference
+              ref: screen-position
+            pos_y:
+              description: vertical position of the upper-left corner of the window
+              type: reference
+              ref: screen-position
+            width:
+              description: horizontal screen space used by the window.
+              type: reference
+              ref: screen-position
+            height:
+              description: horizontal screen space used by the window.
+              type: reference
+              ref: screen-position
+            chrome_west:
+              description: amount of extra horizontal space on the left of the window allocated for a theme's "chrome".
+              type: reference
+              ref: screen-position
+            chrome_east:
+              description: amount of extra horizontal space on the right of the window allocated for a theme's "chrome".
+              type: reference
+              ref: screen-position
+            chrome_north:
+              description: amount of extra vertical space on the top of the window allocated for a theme's "chrome".
+              type: reference
+              ref: screen-position
+            chrome_south:
+              description: amount of extra vertical space on the bottom of the window allocated for a theme's "chrome".
+              type: reference
+              ref: screen-position
+            minimized:
+              description: Is this window minimized?
+              type: bool
+            keyboard_focus:
+              description: Which keyboard has focus on this window.  -1 means none.
+              type: int
+              min-value: -1
+              max-value: 10000
+
+events:
+  window-updated:
+    description: >
+      The state for one or more existing windows has changed.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    unique-target: positioner
+    fields:
+      settings:
+        type: array
+        min-length: 1
+        max-length: 10000
+        value-type:
+          type: reference
+          ref: virtual-window
+
+  window-created:
+    description: >
+      A new window was created.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    unique-target: positioner
+    fields:
+      window:
+        type: reference
+        ref: virtual-window
+
+  window-destroyed:
+    description: >
+      An existing window was removed from the system.
+    priority: user
+    send-access: implementations
+    receive-access: public
+    unique-target: positioner
+    fields:
+      window_id:
+        description: System ID of the window.
+        type: reference
+        ref: event-target-id
+      desktop_id:
+        description: virtual desktop id.
+        type: reference
+        ref: event-target-id
+
+  "focus-window:request":
+    description: >
+      Request for a window to gain keyboard focus.  If this succeeds, a window update
+      is posted, along with a state change.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: positioner
+    fields:
+      desktop_id:
+        description: virtual desktop id.
+        type: reference
+        ref: event-target-id
+      keyboard_focus:
+        description: >
+          Which keyboard has focus on this window.  -1 means none.
+          This is native specific.  Some native implementations will take any non-negative
+          value to mean set the keyboard focus.
+        type: int
+        min-value: -1
+        max-value: 10000
+
+  "move-window:request":
+    description: >
+      Request to move a window.  This may cause other windows to adjust accordingly.  If this
+      succeeds, a window update is posted, along with a state change.  This is used for both
+      moving and resizing a window.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: positioner
+    fields:
+      desktop_id:
+        description: virtual desktop id.
+        type: reference
+        ref: event-target-id
+      pos_x:
+        description: horizontal position of the upper-left corner of the window, relative to the desktop space.
+        type: reference
+        ref: screen-position
+      pos_y:
+        description: vertical position of the upper-left corner of the window
+        type: reference
+        ref: screen-position
+      width:
+        description: horizontal screen space used by the window.
+        type: reference
+        ref: screen-position
+      height:
+        description: horizontal screen space used by the window.
+        type: reference
+        ref: screen-position
+
+  "close-window:request":
+    description: >
+      Request to close a window.  This may cause other windows to adjust accordingly.  If this
+      succeeds, a "window-destroyed" event is posted; if windows are then adjusted, a window-updated
+      event is posted.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: positioner
+    fields:
+      desktop_id:
+        description: virtual desktop id.
+        type: reference
+        ref: event-target-id
+
+  "set-window-chrome:request":
+    description: >
+      Request to set one or more windows' chrome space.  All affected windows will be sent in a
+      window update event.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: positioner
+    fields:
+      desktop_ids:
+        description: list of affected virtual desktop ids.
+        type: array
+        min-length: 1
+        max-length: 10000
+        value-type:
+          type: reference
+          ref: event-target-id
+      chrome_west:
+        description: amount of extra horizontal space on the left of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_east:
+        description: amount of extra horizontal space on the right of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_north:
+        description: amount of extra vertical space on the top of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_south:
+        description: amount of extra vertical space on the bottom of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+
+  "set-global-chrome:request":
+    description: >
+      Request to set the global chrome values.  Optionally, it can affect all existing windows, too.
+      The global state will be updated on success, and any affected windows will be included in a window update
+      event.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: positioner
+    fields:
+      affect_all:
+        description: set to "true" to set the chrome on all windows.
+        type: bool
+        optional: true
+      chrome_west:
+        description: amount of extra horizontal space on the left of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_east:
+        description: amount of extra horizontal space on the right of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_north:
+        description: amount of extra vertical space on the top of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_south:
+        description: amount of extra vertical space on the bottom of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+
+  "set-window-size-state:request":
+    description: >
+      Requests that one or more windows have a simple, relative set for them.
+    priority: user
+    send-access: public
+    receive-access: implementations
+    unique-target: positioner
+    fields:
+      desktop_ids:
+        description: list of affected virtual desktop ids.
+        type: array
+        min-length: 1
+        max-length: 10000
+        value-type:
+          type: reference
+          ref: event-target-id
+      relative-size:
+        description: the relative size state for the windows.
+        type: enum
+        values:
+          - minimize
+          - maximize
+          - restore
+
+
+references:
+  # ------------------------------
+  # Standard Types ...
+  event-target-id:
+    description: ID of an event listener.
+    type: string
+    min-length: 5
+    max-length: 600
+
+  # ------------------------------
+  # Custom Types ...
+
+  screen-position:
+    description: A workspace virtual screen pixel position; can be scaled or rotated to a different physical monitor value.
+    type: int
+    min-value: -10000000
+    max-value: 10000000
+
+
+  # =================================================================================================
+  virtual-window:
+    description: >
+      A window and its position in the virtual desktop.
+    type: structure
+    fields:
+      window_id:
+        description: System ID of the window.
+        type: reference
+        ref: event-target-id
+      desktop_id:
+        description: virtual desktop id.
+        type: reference
+        ref: event-target-id
+      pos_x:
+        description: horizontal position of the upper-left corner of the window, relative to the desktop space.
+        type: reference
+        ref: screen-position
+      pos_y:
+        description: vertical position of the upper-left corner of the window
+        type: reference
+        ref: screen-position
+      width:
+        description: horizontal screen space used by the window.
+        type: reference
+        ref: screen-position
+      height:
+        description: horizontal screen space used by the window.
+        type: reference
+        ref: screen-position
+      chrome_west:
+        description: amount of extra horizontal space on the left of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_east:
+        description: amount of extra horizontal space on the right of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_north:
+        description: amount of extra vertical space on the top of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      chrome_south:
+        description: amount of extra vertical space on the bottom of the window allocated for a theme's "chrome".
+        type: reference
+        ref: screen-position
+      minimized:
+        description: Is this window minimized?
+        type: bool
+      keyboard_focus:
+        description: Which keyboard has focus on this window.  -1 means none.
+        type: int
+        min-value: -1
+        max-value: 10000

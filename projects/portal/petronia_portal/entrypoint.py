@@ -1,4 +1,4 @@
-"""Data Store Entrypoint."""
+"""Extension Entrypoint."""
 
 from typing import Sequence, Dict, Any
 from petronia_common.event_stream import BinaryReader, BinaryWriter

@@ -15,3 +15,4 @@ venv/*
 *personal_config.json
 *personal_config.yaml
 tmp/*
+/local-*

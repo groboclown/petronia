@@ -1,0 +1,15 @@
+# UI Interactions
+
+The system breaks apart the user interface handling into small components, in order to make custom extensions or changes much more targeted.
+
+* native - low-level conversion of Petronia events into native OS / UI system requests.
+  * [hotkey](../projects/native-handler/native-hotkey-extension.yaml) - listens to user hotkey presses and turns those into `petornia_core/hotkey_binding` events.
+  * [monitor](../projects/native-handler/native-monitor-extension.yaml) - requests knowledge from the OS about the monitors and updates to the monitors (say, unplugging monitors, or docking a laptop with a docking station, or starting a remote desktop session).
+  * [screen](../projects/native-handler/native-screen-extension.yaml) - turns the monitor low-level information into a single virtual screen.  In some situations, this is entirely in the Petronia world, and others it's tightly integrated with the OS layers.  It can also be bundled with the other native plugins to make the overall screen-space translations faster.  Could be used with extensions that create a system tray to add explicit space outside the positioner dedicated for special UI components.
+  * [l10n](../projects/native-handler/native-l10n-extension.yaml) - handles localization message catalog registration, and translation of user messages into displayed screen messages.  This should be handled by the same extension that renders messages to make the processing faster.
+  * [notification](../projects/native-handler/native-notification-extension.yaml) - handles the "notification" area of the UI, which usually shows up in the "system tray".  These are the icons along with "toast" messages.
+  * [window](../projects/native-handler/native-window-extension.yaml) - manages application "windows" in terms of how they interact with the window manager.  Window focus, window location, and low-level OS attributes describing the window appearance are part of this.  This extension should only be used by the positioner.
+  * [ui](../projects/native-handler/native-ui-extension.yaml) - screen drawing and widget interactions.  This gives a common framework to draw simple GUI elements and give them interactivity.
+* [theme](../projects/ui-extensions/theme-extension.yaml) - central registry of colors, images, fonts, general size rules, and so on, along with a higher level widget library.  It allows for easier component creation along with consistent way to draw the components than the low-level native ui.
+* [positioner](../projects/ui-extensions/positioner-extension.yaml) - manages where application windows (from the native-window extension) are put onto the screen.  Has data for theme "chrome" so that the window position allows for theme decoration.  Sends state update information for positioned windows.
+* **chrome** - draws custom "chrome" (decoration) around windows.  It uses native-ui to create graphical components.  It sends messages to the positioner to create "chrome" space around windows, and receives state messages.  These are implemented as stand-alone extensions.
