@@ -28,9 +28,9 @@ OS_PREFIX = (
 )
 
 IGNORED_OS_NAMES = (
-    ('_x11', '_osx') if sys.platform == 'win32' else
+    ('_x11', '_wayland', '_osx') if sys.platform == 'win32' else
     ('_windows', '_osx') if sys.platform in ('linux', 'linux2') else
-    ('_windows', '_x11')
+    ('_windows', '_x11', '_wayland')
 )
 
 

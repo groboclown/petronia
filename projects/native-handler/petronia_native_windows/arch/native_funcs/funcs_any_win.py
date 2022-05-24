@@ -1460,7 +1460,6 @@ class INPUT(Structure):
     ]
 
 
-
 def shell__inject_input_vks(codes: Sequence[Tuple[int, bool]]) -> bool:
     """Inject multiple vk codes into the keyboard buffer."""
     count = len(codes)

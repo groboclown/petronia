@@ -1,15 +1,15 @@
-"""Windows OS Entrypoint."""
+"""X11 Entrypoint."""
 
 from typing import Sequence, Dict, Any
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, join_errors, RET_OK_NONE
 from petronia_ext_lib.runner.lookup import LookupEventRegistryContext
 from petronia_ext_lib import logging
-from .datastore.petronia_native_windows import (
-    ConfigurationState, Hotkeys, VirtualScreens, EXTENSION_NAME,
+from .datastore.petronia_native_x11 import (
+    ConfigurationState, VirtualScreens, EXTENSION_NAME,
 )
 from . import setup
-from .datastore import petronia_native_windows as native_windows_state
+from .datastore import petronia_native_x11 as native_windows_state
 
 
 def extension_entrypoint(
@@ -39,7 +39,7 @@ def extension_entrypoint(
 
     res = loop_res.result.start()
     if res.has_error:
-        print('Windows Native startup problem.')
+        print('X11 Native startup problem.')
         return res
 
     try:
@@ -52,6 +52,6 @@ def extension_entrypoint(
 def parse_config(config: Dict[str, Any]) -> StdRet[ConfigurationState]:
     """Parse the configuration dictionary."""
     if not config:
-        print("Windows Native configuration is empty.")
-        return StdRet.pass_ok(ConfigurationState(Hotkeys(False), VirtualScreens([])))
+        print("X11 Native configuration is empty.")
+        return StdRet.pass_ok(ConfigurationState(VirtualScreens([])))
     return ConfigurationState.parse_data(config)
