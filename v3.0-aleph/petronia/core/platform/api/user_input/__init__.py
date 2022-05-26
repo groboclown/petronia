@@ -1,4 +1,0 @@
-
-"""
-Hotkey management and notification.
-"""

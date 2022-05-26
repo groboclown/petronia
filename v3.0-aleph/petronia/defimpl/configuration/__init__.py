@@ -1,4 +1,0 @@
-
-"""
-Initial extension configuration implementations.
-"""

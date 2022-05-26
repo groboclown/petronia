@@ -1,4 +1,0 @@
-
-"""
-Different event bus implementations.
-"""

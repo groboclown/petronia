@@ -1,4 +1,0 @@
-
-"""
-Basic, shared utilities.
-"""

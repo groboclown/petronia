@@ -1,6 +1,0 @@
-
-"""
-Interfacing with libxcb.
-
-
-"""
