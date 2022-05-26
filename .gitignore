@@ -16,3 +16,4 @@ venv/*
 *personal_config.yaml
 tmp/*
 /local-*
+/.ref/

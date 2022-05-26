@@ -9,7 +9,7 @@ from .datastore.petronia_native_x11 import (
     ConfigurationState, VirtualScreens, EXTENSION_NAME,
 )
 from . import setup
-from .datastore import petronia_native_x11 as native_windows_state
+from .datastore import petronia_native_x11 as native_state
 
 
 def extension_entrypoint(
@@ -31,7 +31,7 @@ def extension_entrypoint(
             *config_res.error_messages(), *loop_res.error_messages(),
         ))
     if config_res.has_error:
-        print(f"Windows Native configuration problem; config = {config}")
+        print(f"X11 Native configuration problem; config = {config}")
         logging.send_user_error(
             context, EXTENSION_NAME + ':configuration', config_res.valid_error,
             'invalid-configuration',
@@ -43,7 +43,7 @@ def extension_entrypoint(
         return res
 
     try:
-        context.process_reader(native_windows_state.EXTENSION_NAME)
+        context.process_reader(native_state.EXTENSION_NAME)
     finally:
         loop_res.result.dispose(-1)
     return RET_OK_NONE

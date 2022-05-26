@@ -8,12 +8,7 @@ from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
 from petronia_native.common import handlers, user_messages
 from petronia_native.common.events.impl import screen as screen_event
 from .datastore.petronia_native_x11 import ConfigurationState, EXTENSION_NAME
-from . import message_loop
 from . import configuration
-from . import key_handler
-from . import screen
-from . import windows_vs
-from . import window_handler
 
 
 class X11Runner:
@@ -59,7 +54,7 @@ class X11Runner:
 def setup_context(
         context: EventRegistryContext,
         config: Optional[ConfigurationState],
-) -> StdRet[WindowsRunner]:
+) -> StdRet[X11Runner]:
     """Setup the context for the extension."""
     res = windows_vs.bootstrap_screens()
     if res.has_error:
@@ -92,7 +87,7 @@ def setup_context(
     screen_handler.register_with_loop(loop)
     win_handler.register_messages(loop)
 
-    return StdRet.pass_ok(WindowsRunner(
+    return StdRet.pass_ok(X11Runner(
         loop,
         [win_handler.initialize_system_state],
     ))
