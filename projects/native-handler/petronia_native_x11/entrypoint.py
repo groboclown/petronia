@@ -19,6 +19,7 @@ def extension_entrypoint(
         _args: Sequence[str],
 ) -> StdRet[None]:
     """Standardized entrypoint."""
+    print(f"Loading X11")
     context = LookupEventRegistryContext(reader, writer, None, None)
     config_res = parse_config(config)
     loop_res = setup.setup_context(context, config_res.value)

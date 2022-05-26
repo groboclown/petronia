@@ -1,0 +1,20 @@
+---
+
+# Extensions that the system defines to load.
+
+Timer:
+  extension: petronia_core.timer
+  enabled: true
+  properties:
+    seconds: 1.2
+
+Datastore:
+  extension: petronia_core.datastore
+  enabled: true
+
+Platform:
+  extension: petronia_native_x11
+  enabled: true
+  properties:
+    virtual_screens:
+      mapped_screens_by_monitors: []

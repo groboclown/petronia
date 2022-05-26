@@ -15,7 +15,7 @@ from typing import Callable, Any
 from typing import cast as t_cast
 import ctypes
 import warnings
-from .util import as_int
+from .util import as_py_int
 
 # typedef uint32_t xcb_window_t;
 XcbWindow = ctypes.c_uint32
@@ -525,61 +525,24 @@ class LibXcb:
     )
 
     def __init__(self) -> None:
-        print("getting libxcb")
-        try:
-            xcb = ctypes.cdll.LoadLibrary('libxcb.so.1')
-        except OSError:
-            raise OSError('Could not load libxcb.so.1; is it installed?')
-        print("getting libxcb-util")
-        try:
-            xcb_util = ctypes.cdll.LoadLibrary('libxcb-util.so.1')
-        except OSError:
-            raise OSError('Could not load libxcb.so.1; is it installed?')
-        print("getting libxcb-xtest")
-        try:
-            xcb_xtest = ctypes.cdll.LoadLibrary('libxcb-xtest.so.0')
-        except OSError:
-            raise OSError('Could not load xcb_xtest.so.0; is it installed?')
-        print("getting libxcb-randr")
-        try:
-            xcb_randr = ctypes.cdll.LoadLibrary('libxcb-randr.so.0')
-        except OSError:
-            raise OSError('Could not load libxcb-randr.so.0; is it installed?')
-        print("getting libxcb-xinerama")
-        try:
-            xcb_xinerama = ctypes.cdll.LoadLibrary('libxcb-xinerama.so.0')
-        except OSError:
-            raise OSError('Could not load xcb-xinerama.so.0; is it installed?')
-        print("getting libxcb-shape")
-        try:
-            xcb_shape = ctypes.cdll.LoadLibrary('libxcb-shape.so.0')
-        except OSError:
-            raise OSError('Could not load libxcb-shape.so.0; is it installed?')
-        print("getting libxcb-xfixes")
-        try:
-            xcb_xfixes = ctypes.cdll.LoadLibrary('libxcb-xfixes.so.0')
-        except OSError:
-            raise OSError('Could not load libxcb-xfixes.so.0; is it installed?')
-        print("getting libxcb-cursor")
-        try:
-            xcb_cursor = ctypes.cdll.LoadLibrary('libxcb-cursor.so.0')
-        except OSError:
-            raise OSError('Could not load libxcb-cursor.so.0; is it installed?')
-        print("getting libxcb-icccm")
-        try:
-            xcb_icccm = ctypes.cdll.LoadLibrary('libxcb-icccm.so.4')
-        except OSError:
-            raise OSError('Could not load libxcb-icccm.so.4; is it installed?')
-        print("getting cairo")
-        try:
-            cairo = ctypes.cdll.LoadLibrary('libcairo.so.2')
-        except OSError:
-            raise OSError('Could not load libcairo.so.2; is it installed?')
-        print("getting libc")
-        try:
-            c_lib = ctypes.cdll.LoadLibrary('libc.so.6')
-        except OSError:
-            raise OSError('Could not load libc.so.6; is it installed?')
+        def get_lib(name: str) -> ctypes.CDLL:
+            print(f"Loading {name}")
+            try:
+                return ctypes.cdll.LoadLibrary(name)
+            except OSError as err:
+                raise OSError(f'Could not load {name}; is it installed?') from err
+
+        xcb = get_lib('libxcb.so.1')
+        xcb_util = get_lib('libxcb-util.so.1')
+        xcb_xtest = get_lib('libxcb-xtest.so.0')
+        xcb_randr = get_lib('libxcb-randr.so.0')
+        xcb_xinerama = get_lib('libxcb-xinerama.so.0')
+        xcb_shape = get_lib('libxcb-shape.so.0')
+        xcb_xfixes = get_lib('libxcb-xfixes.so.0')
+        xcb_cursor = get_lib('libxcb-cursor.so.0')
+        xcb_icccm = get_lib('libxcb-icccm.so.4')
+        cairo = get_lib('libcairo.so.2')
+        c_lib = get_lib('libc.so.6')
 
         self.xcb_connect: Callable[
             [ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)], XcbConnectionP,
@@ -980,7 +943,7 @@ class LibXcb:
     def xcb_get_property_value_bytes(self, property_reply: XcbGetPropertyReplyP) -> bytes:
         data = self.xcb_get_property_value(property_reply)
         length = self.xcb_get_property_value_length(property_reply)
-        as_bytes = ctypes.cast(data, ctypes.POINTER(ctypes.c_byte * as_int(length)))
+        as_bytes = ctypes.cast(data, ctypes.POINTER(ctypes.c_byte * as_py_int(length)))
         return bytes(as_bytes.contents)
 
     @staticmethod

@@ -1,0 +1,7 @@
+---
+
+startup:
+  extension-dirs:
+    - ${SYS_PATH}
+    # - ${DATA_DIR}/core-extensions
+    # - ${DATA_DIR}/native-handler

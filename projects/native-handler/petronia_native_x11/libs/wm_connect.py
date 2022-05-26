@@ -9,7 +9,7 @@ from petronia_native.common import user_messages
 from .api import XcbApi, Freeable
 from .xcb import xcb_native as nat
 from .xcb.xcb_atoms import AtomDef, initialize_atoms
-from .xcb.util import as_int, as_uint8, as_uint16
+from .xcb.util import as_py_int, as_uint, as_uint8, as_uint16
 
 _PETRONIA_CHAR_P = ctypes.c_char_p(b'petronia')
 _PETRONIA_CI_CHAR_P = ctypes.c_char_p(b'petronia\0petronia')
@@ -191,10 +191,10 @@ def _with_visual(*, cxt: _CommonData, use_argb_visual: bool) -> StdRet[None]:
     if depth_res.has_error:
         return depth_res.forward()
     cxt.default_depth_raw = depth_res.value
-    cxt.default_depth = as_int(cxt.default_depth_raw)
+    cxt.default_depth = as_py_int(cxt.default_depth_raw)
     _debug("visual depth: {default_depth}", default_depth=cxt.default_depth)
 
-    cxt.default_colormap = as_int(screen.contents.default_colormap)
+    cxt.default_colormap = as_py_int(screen.contents.default_colormap)
     if cxt.default_depth_raw != screen.contents.root_depth:
         # Need to create a color map since we aren't using the default depth
         print("Generating new colormap due to depth difference")
@@ -204,6 +204,8 @@ def _with_visual(*, cxt: _CommonData, use_argb_visual: bool) -> StdRet[None]:
             cxt.default_colormap, screen.contents.root,
             cxt.visual.contents.visual_id,
         )
+
+    return RET_OK_NONE
 
 
 def _with_atoms(cxt: _CommonData) -> StdRet[None]:
@@ -219,8 +221,9 @@ def _with_cursor_context(cxt: _CommonData) -> StdRet[None]:
     """Initialize the cursor context."""
     conn = _req(cxt.conn)
     screen = _req(cxt.screen)
+    cxt.cursor_context = nat.XcbCursorContextP()
     int_res = cxt.lib.xcb_cursor_context_new(conn, screen, ctypes.byref(cxt.cursor_context))
-    if as_int(int_res) < 0:
+    if as_py_int(int_res) < 0:
         return StdRet.pass_errmsg(
             user_messages.TRANSLATION_CATALOG,
             _('xcb-cursor failed initialization'),
@@ -299,7 +302,7 @@ def _find_visual_depth(
                 _debug(" - checking visual {vid}", vid=visual_iter.data.contents.visual_id)
                 if visual_id == visual_iter.data.contents.visual_id:
                     # officially returns a c_uint8, but Python auto-translates that to an int.
-                    return StdRet.pass_ok(as_int(depth_iter.data.contents.depth))
+                    return StdRet.pass_ok(as_py_int(depth_iter.data.contents.depth))
                 lib.xcb_visualtype_next(ctypes.byref(visual_iter))
             lib.xcb_depth_next(ctypes.byref(depth_iter))
     return StdRet.pass_errmsg(
@@ -442,7 +445,10 @@ def _acquire_wm_sn(
 
     # custom event to announce that this connection is the new owner.
     ev = nat.XcbClientMessageEvent()
-    lib.memset(ctypes.byref(ev), ctypes.c_uint8(0), ctypes.c_uint(ctypes.sizeof(ev)))
+    # lib.memset(
+    #     ctypes.cast(ctypes.byref(ev), ctypes.c_void_p),
+    #     ctypes.c_uint8(0), as_uint(ctypes.sizeof(ev)),
+    # )
     ev.response_type = nat.XCB_CLIENT_MESSAGE
     ev.window = screen.contents.root
     ev.format = 32
@@ -518,7 +524,7 @@ def _become_window_manager(cxt: _CommonData) -> StdRet[None]:
     conn = _req(cxt.conn)
     screen = _req(cxt.screen)
 
-    select_input_val = ctypes.c_uint32(nat.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT)
+    select_input_val = nat.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
     cookie = cxt.lib.xcb_change_window_attributes_checked(
         conn, screen.contents.root, nat.XCB_CW_EVENT_MASK,
         ctypes.cast(ctypes.byref(select_input_val), ctypes.c_void_p),

@@ -13,7 +13,7 @@ CtypeInt = Union[
 ]
 
 
-def as_int(val: CtypeInt) -> int:
+def as_py_int(val: CtypeInt) -> int:
     """Convert a ctype integer value into a python int."""
     if isinstance(val, int):
         return val
@@ -22,12 +22,17 @@ def as_int(val: CtypeInt) -> int:
 
 def as_uint8(val: CtypeInt) -> ctypes.c_uint8:
     """convert a c_int into a c_uint8"""
-    return ctypes.c_uint8(as_int(val))
+    return ctypes.c_uint8(as_py_int(val))
 
 
 def as_uint16(val: CtypeInt) -> ctypes.c_uint16:
     """convert a c_int into a c_uint8"""
-    return ctypes.c_uint16(as_int(val))
+    return ctypes.c_uint16(as_py_int(val))
+
+
+def as_uint(val: CtypeInt) -> ctypes.c_uint:
+    """convert a c_int into a c_uint8"""
+    return ctypes.c_uint(as_py_int(val))
 
 
 class EnterExit(Generic[T]):
