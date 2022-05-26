@@ -84,7 +84,7 @@ def setup_context(
     if res.has_error:
         return res.forward()
 
-    win_handler = window_handler.WindowsNativeHandler()
+    win_handler = window_handler.WindowsNativeHandler(screen_handler.mapper)
     win_handler.register_listeners(context, EXTENSION_NAME)
 
     loop = message_loop.WindowsMessageLoop()

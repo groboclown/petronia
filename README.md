@@ -4,6 +4,14 @@
 
 [![dev branch build](https://travis-ci.com/groboclown/petronia.svg?branch=windows-handler)](https://travis-ci.com/github/groboclown/petronia) [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit) [![license: MIT](https://img.shields.io/badge/license-MIT-brightgreen)](https://github.com/groboclown/petronia) ![platforms: win-64 & linux-64](https://img.shields.io/badge/platforms-win--64%20%7C%20linux--64-informational)
 
+## V3 Status
+
+* 2022-May - Development is back!
+* Petronia on Windows is workable.  Not great.
+* Petronia on X11 has started.  It can become the window manager, but that's about it so far.
+* Petronia on Wayland is planned.
+* Once minimal support for X11 is in place, the [TODO](TODO.md) list will be attacked.
+
 ## Previous Release: v2.2
 
 * [petronia-2.2-x64.zip](https://github.com/groboclown/petronia/releases/download/v2.2/petronia-2.2-x64.zip)

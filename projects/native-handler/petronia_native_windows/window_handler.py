@@ -1,15 +1,18 @@
 """Handle message loop and Petronia event interactions."""
 
 from typing import Mapping, Dict, List, Set, Optional, Any, Hashable
+from typing import cast as t_cast
 from ctypes import cast as c_cast
 import concurrent.futures
 from petronia_common.util import (
     StdRet, UserMessage, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none,
 )
 from petronia_native.common import user_messages, defs, log
-from petronia_native.common.handlers import window
+from petronia_native.common.defs import ScreenUnit
+from petronia_native.common.handlers import window, monitor_screen
 from petronia_native.common.events.impl import window as window_events
 from .arch.native_funcs import HWND, RECT, WINDOWS_FUNCTIONS, DWORD, LONG
+from .arch.native_funcs.monitor import WindowsMonitor
 from . import hook_messages, message_loop, message_queue
 
 
@@ -218,9 +221,13 @@ CUSTOM_MESSAGE_ID__WINDOW_HANDLES = 12
 class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWND]):
     """Windows native handler for Petronia events."""
 
-    __slots__ = ('__executor', '__queue', '__loop')
+    __slots__ = ('__executor', '__queue', '__loop', '__screen_mapper')
 
-    def __init__(self, executor: Optional[concurrent.futures.ThreadPoolExecutor] = None) -> None:
+    def __init__(
+            self,
+            screen_mapper: monitor_screen.WindowScreenMapper[WindowsMonitor],
+            executor: Optional[concurrent.futures.ThreadPoolExecutor] = None,
+    ) -> None:
         window.AbstractWindowHandler.__init__(
             self,
             DEFAULT_GLOBAL_SETTINGS, GLOBAL_SETTINGS_DESCRIPTIONS, WINDOW_META_DESCRIPTIONS,
@@ -228,6 +235,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         self.__executor = executor or concurrent.futures.ThreadPoolExecutor(1)
         self.__queue: Optional[message_queue.UserMessageQueue] = None
         self.__loop: Optional[message_loop.WindowsMessageLoop] = None
+        self.__screen_mapper = screen_mapper
 
     def hash_native_id(self, native_id: HWND) -> Hashable:
         return str(native_id)
@@ -250,7 +258,9 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         self.__queue.add_handler(_MINIMIZE_WINDOW, WindowsNativeHandler._queue_minimize_window)
         self.__queue.add_handler(_MAXIMIZE_WINDOW, WindowsNativeHandler._queue_maximize_window)
         self.__queue.add_handler(_RESTORE_WINDOW, WindowsNativeHandler._queue_restore_window)
-        self.__queue.add_handler(_SET_POSITION, self._queue_set_position_window)
+        self.__queue.add_handler(
+            _SET_POSITION, lambda x: self._queue_set_position_window(self.__screen_mapper, x),
+        )
         self.__queue.add_handler(_SET_STYLE, WindowsNativeHandler._queue_set_window_style)
         self.__queue.add_handler(_SET_GLOBAL, self._queue_set_global_style)
         self.__queue.add_handler(_UPDATE_OS, self._queue_load_os_settings)
@@ -518,7 +528,10 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             )
 
     @staticmethod
-    def _queue_set_position_window(arg: Any) -> None:
+    def _queue_set_position_window(
+            mapper: monitor_screen.WindowScreenMapper[WindowsMonitor],
+            arg: Any,
+    ) -> None:
         """Send the move/resize signal to a window.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
@@ -529,9 +542,21 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             assert isinstance(new_location, window_events.ScreenDimension)  # nosec
 
             print(f'[Native] Handling request to move/resize window {wnd.window_id}')
+            rect = mapper.screen_to_window_area((
+                t_cast(ScreenUnit, new_location.x),
+                t_cast(ScreenUnit, new_location.y),
+                t_cast(ScreenUnit, new_location.width),
+                t_cast(ScreenUnit, new_location.height),
+            ))
+            if not rect:
+                # Failed to map.
+                # TODO better error reporting.
+                print(f"Failed to map {new_location} to monitor coordinates")
+                return
+            print(f"** MOVE WINDOW: Mapping {new_location} to {rect}")
             success = WINDOWS_FUNCTIONS.window.move_resize(  # pylint:disable=not-callable
                 wnd.native_id,
-                new_location.x, new_location.y, new_location.width, new_location.height,
+                rect.x, rect.y, rect.width, rect.height,
                 True,
             )
             if success:

@@ -107,7 +107,7 @@ NativeMonitorType_co = TypeVar(  # pylint:disable=invalid-name
 
 
 class WindowScreenMapper(Generic[NativeMonitorType_co]):
-    """A mapping between native windows, the screen, and the configuration.
+    """A mapping between native UI elements, the screen, and the configuration.
 
     This is thread safe.
 

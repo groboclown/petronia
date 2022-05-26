@@ -11,16 +11,16 @@ Data structures and marshalling for extension petronia.core.api.datastore versio
 from __future__ import annotations
 from typing import (
     Dict,
-    List,
     Any,
+    List,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    STANDARD_PETRONIA_CATALOG,
     not_none,
     collect_errors_from,
     StdRet,
-    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia.core.api.datastore'

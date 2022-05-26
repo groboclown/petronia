@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia_native_x11 version 1.0.0.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Any,
-    List,
-    Optional,
-    SupportsInt,
     Dict,
+    Any,
+    SupportsInt,
+    Optional,
+    List,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
-    StdRet,
     STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
+    not_none,
+    StdRet,
 )
 
 EXTENSION_NAME = 'petronia_native_x11'

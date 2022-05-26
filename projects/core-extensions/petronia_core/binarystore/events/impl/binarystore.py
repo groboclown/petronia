@@ -10,22 +10,22 @@ Data structures and marshalling for extension petronia.core.api.binarystore vers
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Optional,
+    Union,
+    SupportsInt,
+    List,
+    Dict,
     cast,
     SupportsFloat,
-    List,
-    SupportsInt,
     Any,
-    Dict,
-    Union,
+    Optional,
 )
 import datetime
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    not_none,
-    StdRet,
-    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
+    collect_errors_from,
+    StdRet,
+    not_none,
 )
 
 EXTENSION_NAME = 'petronia.core.api.binarystore'
@@ -143,16 +143,16 @@ class MessageArgumentValue:
         self,
         name: str,
         value: Union[
-            float,
-            datetime.datetime,
             str,
             List[str],
             List[int],
-            List[bool],
-            List[float],
+            datetime.datetime,
+            int,
             bool,
             List[datetime.datetime],
-            int,
+            List[bool],
+            float,
+            List[float],
         ],
     ) -> None:
         self.__name = name
@@ -165,16 +165,16 @@ class MessageArgumentValue:
 
     @property
     def value(self) -> Union[
-            float,
-            datetime.datetime,
             str,
             List[str],
             List[int],
-            List[bool],
-            List[float],
+            datetime.datetime,
+            int,
             bool,
             List[datetime.datetime],
-            int,
+            List[bool],
+            float,
+            List[float],
     ]:
         """The selector value."""
         return self.__value
@@ -878,7 +878,7 @@ class DataDescriptionEvent:
                 name='DataDescriptionEvent',
             )
         else:
-            if val not in ('deleted','unset','active', ):
+            if val not in ('unset','active','deleted', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

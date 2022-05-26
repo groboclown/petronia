@@ -87,6 +87,12 @@ state-data:
           then this is used to reference the new virtual-screen setting.
         type: structure
         fields:
+          skip_systray:
+            description: >
+              If "true", then the space used up by the system tray is ignored.  Otherwise, the
+              window placement works around the system tray.
+            type: bool
+            optional: true
           mapped_screens_by_monitors:
             type: array
             min-length: 1

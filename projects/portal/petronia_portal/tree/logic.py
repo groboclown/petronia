@@ -66,7 +66,8 @@ class OptimizedTileTree:
             target_id: str, fit: Optional[portal_state.WindowPortalFit],
             window_state: window_event.WindowState,
     ) -> Optional[model.KnownWindow]:
-        """Add the window to the tile tree registration."""
+        """Add the window to the tile tree registration.  The windows is NOT assigned to
+        a portal."""
         if self.get_window_by_id(target_id) is not None:
             # It was already registered.
             return None
@@ -222,8 +223,8 @@ class OptimizedTileTree:
         while tile_stack:
             next_indent, next_tile = tile_stack.pop(0)
             size_text = (
-                f'({next_tile.pos_x}, {next_tile.pos_y}) x '
-                f'({next_tile.width}, {next_tile.height})'
+                f'(x={next_tile.pos_x}, y={next_tile.pos_y}) x '
+                f'(w={next_tile.width}, h={next_tile.height})'
             )
             if isinstance(next_tile, model.TileIterator):
                 print(f'{next_indent} > {repr(next_tile)} {size_text}')

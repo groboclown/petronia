@@ -69,21 +69,53 @@ def bootstrap_screens() -> StdRet[None]:
 
 def to_petronia_screen(
         windows_monitors: Sequence[WindowsMonitor],
+        full_screen: bool,
 ) -> virtual_screen.VirtualScreen:
     """Convert the Windows monitor list to a virtual screen list."""
-    return virtual_screen.VirtualScreen([
-        virtual_screen.VirtualScreenBlock(
-            m.work_area,
-            (
-                cast(defs.ScreenUnit, m.virtual_desktop_area.x),
-                cast(defs.ScreenUnit, m.virtual_desktop_area.y),
-                cast(defs.ScreenUnit, m.virtual_desktop_area.width),
-                cast(defs.ScreenUnit, m.virtual_desktop_area.height),
-            ),
-            0,
-        )
-        for m in windows_monitors
-    ])
+    print("Monitors:")
+    screen_blocks: List[virtual_screen.VirtualScreenBlock] = []
+    for monitor in windows_monitors:
+        print(f" - work area (i, x, y, w, h): {monitor.work_area}{full_screen and '' or ' <=='}")
+        print(f" - virtual: {repr(monitor.virtual_desktop_area)}{full_screen and ' <==' or ''}")
+        if full_screen:
+            screen_blocks.append(virtual_screen.VirtualScreenBlock(
+                (
+                    monitor.work_area[defs.MONITOR_AREA_MONITOR_INDEX],
+                    cast(defs.MonitorUnit, monitor.virtual_desktop_area.x),
+                    cast(defs.MonitorUnit, monitor.virtual_desktop_area.y),
+                    cast(defs.MonitorUnit, monitor.virtual_desktop_area.width),
+                    cast(defs.MonitorUnit, monitor.virtual_desktop_area.height),
+                ),
+                (
+                    cast(defs.ScreenUnit, monitor.virtual_desktop_area.x),
+                    cast(defs.ScreenUnit, monitor.virtual_desktop_area.y),
+                    cast(defs.ScreenUnit, monitor.virtual_desktop_area.width),
+                    cast(defs.ScreenUnit, monitor.virtual_desktop_area.height),
+                ),
+                0,
+            ))
+        else:
+            # Need to take into account the side-mounted sys tray.  If the sys tray is on the
+            #   side or on the top, then the virtual area needs to be pushed up.
+            # This means we need to take into account whether the sys tray appears on this
+            #   monitor or not.
+            screen_blocks.append(virtual_screen.VirtualScreenBlock(
+                monitor.work_area,
+                (
+                    cast(
+                        defs.ScreenUnit,
+                        monitor.virtual_desktop_area.x,
+                    ),
+                    cast(
+                        defs.ScreenUnit,
+                        monitor.virtual_desktop_area.y,
+                    ),
+                    cast(defs.ScreenUnit, monitor.work_area[defs.MONITOR_AREA_WIDTH]),
+                    cast(defs.ScreenUnit, monitor.work_area[defs.MONITOR_AREA_HEIGHT]),
+                ),
+                0,
+            ))
+    return virtual_screen.VirtualScreen(screen_blocks)
 
 
 class WindowPosition:  # pylint:disable=too-many-instance-attributes

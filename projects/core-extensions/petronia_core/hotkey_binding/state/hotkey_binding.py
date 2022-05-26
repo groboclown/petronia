@@ -10,17 +10,17 @@ Data structures and marshalling for extension petronia_core.hotkey_binding versi
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    List,
-    cast,
-    Any,
     Optional,
+    Any,
+    List,
+    Dict,
+    cast,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
     collect_errors_from,
-    STANDARD_PETRONIA_CATALOG,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
     StdRet,
 )
 
@@ -325,7 +325,7 @@ class BoundKeys:
                 name='BoundKeys',
             )
         else:
-            if val not in ('meta','sequence', ):
+            if val not in ('sequence','meta', ):
                 return StdRet.pass_errmsg(
                     STANDARD_PETRONIA_CATALOG,
                     _('Field {field_name} must be of type {type} for structure {name}'),

@@ -315,7 +315,7 @@ events:
         value-type:
           type: reference
           ref: event-target-id
-      relative-size:
+      relative_size:
         description: the relative size state for the windows.
         type: enum
         values:

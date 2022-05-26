@@ -68,14 +68,14 @@ CONFIGURATION_STATE_GOOD_PARSE_DATA_TESTS: Sequence[
     (
         'all-fields-present',
         {
-            'seconds': 3.8026424721785923,
+            'seconds': 7.562521397620968,
         },
     ),
     (
         'bare-minimum-fields-present',
         {
 
-            'seconds': 7.422060807501225,
+            'seconds': 5.2148232701296235,
 
         },
     ),

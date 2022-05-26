@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia_native_windows version 1.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Optional,
-    List,
     Dict,
-    Any,
     SupportsInt,
+    Any,
+    List,
+    Optional,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
-    not_none,
     StdRet,
     STANDARD_PETRONIA_CATALOG,
+    not_none,
+    collect_errors_from,
 )
 
 EXTENSION_NAME = 'petronia_native_windows'
@@ -530,17 +530,20 @@ class VirtualScreens:
     the monitor state changes, then this is used to reference the new virtual-screen
     setting.
     """
-    __slots__ = ('mapped_screens_by_monitors',)
+    __slots__ = ('skip_systray', 'mapped_screens_by_monitors',)
 
     def __init__(
         self,
+        skip_systray: Optional[bool],
         mapped_screens_by_monitors: List[ScreenMonitorMappingConfigGroup],
     ) -> None:
+        self.skip_systray = skip_systray
         self.mapped_screens_by_monitors = mapped_screens_by_monitors
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
+            'skip_systray': self.skip_systray,
             'mapped_screens_by_monitors': [v.export_data() for v in self.mapped_screens_by_monitors],
         }
         return _strip_none(ret)
@@ -550,6 +553,18 @@ class VirtualScreens:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
+        val = data.get('skip_systray')
+        f_skip_systray: Optional[bool] = None
+        if val is not None:
+            if not isinstance(val, bool):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='skip_systray',
+                    type='bool',
+                    name='VirtualScreens',
+                )
+            f_skip_systray = val
         val = data.get('mapped_screens_by_monitors')
         f_mapped_screens_by_monitors: List[ScreenMonitorMappingConfigGroup]
         if val is None:  # pylint:disable=no-else-return
@@ -569,6 +584,7 @@ class VirtualScreens:
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(VirtualScreens(
+            skip_systray=f_skip_systray,
             mapped_screens_by_monitors=not_none(f_mapped_screens_by_monitors),
         ))
 

@@ -18,10 +18,10 @@ from typing import (
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    STANDARD_PETRONIA_CATALOG,
-    not_none,
-    collect_errors_from,
     StdRet,
+    collect_errors_from,
+    not_none,
+    STANDARD_PETRONIA_CATALOG,
 )
 
 EXTENSION_NAME = 'petronia_core.binarystore'

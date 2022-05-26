@@ -9,7 +9,6 @@ from petronia_common.util import (
 from petronia_common.util import i18n as _
 from .defs import TRANSLATION_CATALOG
 from .finder import find_config_files, find_extension_dirs
-# from . import messages
 
 
 _EXTENSION_DIRS: List[str] = []
@@ -238,13 +237,20 @@ def get_extension_dirs_for_name(name: str, data_dirs: Sequence[str]) -> Sequence
     """Get the extension directories for the given name."""
     if os.path.isdir(name):
         return [name]
-    ret: List[str] = [name]
+
+    # Add the names regardless of whether they exist as a directory yet or not.
+    ret: List[str] = []
+    replaced = False
     if '${DATA_DIR}' in name:
         for data_dir in data_dirs:
             ret.append(name.replace('${DATA_DIR}', data_dir))
+        replaced = True
     if '${SYS_PATH}' in name:
         for data_dir in sys.path:
             ret.append(name.replace('${SYS_PATH}', data_dir))
+        replaced = True
+    if not replaced:
+        ret.append(name)
     return ret
 
 

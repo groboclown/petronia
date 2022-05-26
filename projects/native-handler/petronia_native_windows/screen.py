@@ -28,7 +28,10 @@ class WindowsScreen(monitor_screen.AbstractMonitorHandler[WindowsMonitor]):
         windows_monitors = windows_vs.get_windows_monitors()
         monitor_screen.AbstractMonitorHandler.__init__(
             self, context, WindowsWindowScreenMapper(
-                windows_monitors, windows_vs.to_petronia_screen(windows_monitors),
+                windows_monitors,
+                windows_vs.to_petronia_screen(
+                    windows_monitors, config.get_config().virtual_screens.skip_systray,
+                ),
             ),
         )
         self.__config = config
@@ -65,7 +68,10 @@ class WindowsScreen(monitor_screen.AbstractMonitorHandler[WindowsMonitor]):
     def get_virtual_screen_for_monitors(
             self, active: Sequence[WindowsMonitor],
     ) -> virtual_screen.VirtualScreen:
-        return windows_vs.to_petronia_screen(active)
+        return windows_vs.to_petronia_screen(
+            active,
+            self.__config.get_config().virtual_screens.skip_systray,
+        )
 
     def _maybe_monitors_changed(self) -> None:
         """Did the monitors change at all?  Should be run outside the message loop."""
@@ -79,12 +85,19 @@ class WindowsScreen(monitor_screen.AbstractMonitorHandler[WindowsMonitor]):
                         self.detected_monitor_changed(new_monitors),
                     )
 
+    @property
+    def mapper(self) -> monitor_screen.WindowScreenMapper[windows_vs.WindowsMonitor]:
+        """Fetch the screen mapper."""
+        return self._mapper
+
 
 class WindowsWindowScreenMapper(monitor_screen.WindowScreenMapper[windows_vs.WindowsMonitor]):
     """Windows specific version of the monitor.
 
     This is intended to be a 1-for-1 mapping of the native monitor to the screen space.
     """
+
+    # TODO there is a bug here - it doesn't account for the sys tray.
 
     def screen_to_window_pos(
             self, screen_pos: defs.ScreenPosition,

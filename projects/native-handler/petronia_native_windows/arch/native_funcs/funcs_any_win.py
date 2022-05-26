@@ -1738,6 +1738,10 @@ def monitor__find_monitors() -> Sequence[WindowsMonitor]:
     """Find the monitors in the system."""
     monitor_handles: List[Tuple[HMONITOR, LONG, LONG, LONG, LONG]] = []
 
+    # TODO this needs to gain additional data for:
+    #     unsigned int nScreenWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    #     unsigned int nScreenHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
     def callback(
             h_monitor: HMONITOR, _hdc_monitor: HDC, lprc_monitor: LPRECT, _l_param: LPARAM,
     ) -> bool:
@@ -1766,11 +1770,13 @@ def monitor__find_monitors() -> Sequence[WindowsMonitor]:
                 monitor_handle=monitor_handle,
                 monitor_index=index,
 
+                # rcMonitor: monitor rectangle in virtual screen coordinates.
                 monitor_left=info.rcMonitor.left,
                 monitor_right=info.rcMonitor.right,
                 monitor_top=info.rcMonitor.top,
                 monitor_bottom=info.rcMonitor.bottom,
 
+                # rcWork: monitor work area rectangle in virtual screen coordinates.
                 work_left=info.rcWork.left,
                 work_right=info.rcWork.right,
                 work_top=info.rcWork.top,
@@ -1782,7 +1788,7 @@ def monitor__find_monitors() -> Sequence[WindowsMonitor]:
                 vd_bottom=vd_b.value,
 
                 name=info.szDevice,
-                is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == 1,
+                is_primary=(info.dwFlags & MONITORINFOF_PRIMARY) == MONITORINFOF_PRIMARY,
 
                 # Generic versions of Windows does not support these API queries.
                 # Default for an unknown DPI is 96.  It just is.

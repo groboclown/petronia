@@ -1,6 +1,6 @@
 # Running To-Do List
 
-This is the to-do list for Petronia v3.1.
+This is the to-do list for Petronia v3.0.
 
 
 ## Implementation Improvements
@@ -14,9 +14,10 @@ These are desired, tactical changes to bits of already written code.
 
 ### core-extensions
 
-* finish shutdown extension design.  This needs to borrow heavily from the v3.0 notes.
+* finish shutdown extension design and implementation.  Some trickery will need to be done to get it to send a proper foreman shutdown request.
 * hotkey-binding needs de-register for extension events.
 * the timer extension needs to have a configuration protocol, and listen for changes to the configuration for the timer interval.
+* look into moving the core API yaml definitions into their own, separate project.  UI extensions already have this to some extent, and these could be unified.
 
 
 ### native
@@ -32,9 +33,12 @@ These are desired, tactical changes to bits of already written code.
 * `virtual_screen` config matching updates:
   * needs to take priority on user configurations, and include default ones if no user configuration matches "enough".
   * add a limit to config matching; if a match is not above a certain value, then it isn't used.
-* Windows:
-  * test out running the loop with monitor change detection, attach a second monitor, ensure the monitor detection happens, then move the relative positions between monitors, and ensure that the monitor change detection happens again.
+
+#### native-windows
+
+* Not taking the sys tray size into account.  This is due to insufficient information stored with the monitor information.  It should be processed by `WindowsWindowScreenMapper` and `to_petronia_screen`.
 * Hotkey chain requires meta-characters that are still pressed after ok should then be passed again; the hotkey chain forgets meta-characters one the action is completed.  This shows itself as a bug where pressing a hotkey requires releasing then pressing the meta-keys again.
+* test out running the loop with monitor change detection, attach a second monitor, ensure the monitor detection happens, then move the relative positions between monitors, and ensure that the monitor change detection happens again.
 
 
 ### py-common-lib
@@ -53,6 +57,7 @@ These are desired, tactical changes to bits of already written code.
 * once the extension-tools are fixed to have improved test coverage of the events, take out the exclusion from the `.coveragerc` file.
 * increase coverage.
 * look into making the tools here use asyncio rather than threading.
+* Need to investigate how to make event binding more automatic.  Perhaps as an addition to the usual data generation, perhaps a better API.
 
 
 ### extension-tools
@@ -95,6 +100,7 @@ These are desired, tactical changes to bits of already written code.
 * foreman currently has a build dependency on `py-extension-lib` in order to share some very targeted behavior.  Should this be moved over to `py-common-lib`?  Currently, `py-common-lib` includes the arg-handler logic that is only used by extensions, so either move that arg handler over to extension lib, or move the foreman dependent stuff into py-common-lib.
 * should there be an implementation file for foreman?  It should never be started by the extension loader, but it may need it for completing its graph.
 * improve `global_event_intercept` to timeout extension loading if they took too long to start.
+* error handling isn't implemented yet (e.g.`foreman_complete_handler.py`).
 
 
 ### py-extension-lib
@@ -183,7 +189,7 @@ Now that pylint supports Python 3.9, look at migrating to that.
 
 ### foreman
 
-* add docker launcher.
+* add docker/podman launcher.
 * add [sandbox](https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md) launcher.  If we eventually go with OSX, then Blastdoor would be another option.
 
 
@@ -204,4 +210,4 @@ Early development that caused rethinking of how things are done, but that code n
 
 ## Clean Up
 
-* Remove the old v3.0 and v2 directories once the old code has been salvaged.
+* Remove the old v2 directory once the old code has been salvaged.
