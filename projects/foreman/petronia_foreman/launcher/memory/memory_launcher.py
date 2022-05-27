@@ -2,7 +2,7 @@
 Creates the in-memory launcher category.
 """
 
-from typing import Sequence, Tuple, Dict, List, Optional
+from typing import Sequence, Tuple, Dict, List, Union, Optional
 import json
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, UserMessage, join_errors, RET_OK_NONE, DelayedValueHolder
@@ -193,16 +193,22 @@ class MemoryLauncherCategory(AbcLauncherCategory):
         return RET_OK_NONE
 
     @staticmethod
-    def _on_error(module_name: str, extension_point: str, err: BaseException) -> None:
-        user_message.display_error(
-            StdRet.pass_exception(
-                TRANSLATION_CATALOG,
-                _('Encountered error running extension in module {mod_name}, function {func_name}'),
-                err,
-                mod_name=module_name,
-                func_name=extension_point,
-            ).valid_error, True,
-        )
+    def _on_error(
+            module_name: str, extension_point: str, err: Union[BaseException, StdRet[None]],
+    ) -> None:
+        if isinstance(err, BaseException):
+            user_message.display_error(
+                StdRet.pass_exception(
+                    TRANSLATION_CATALOG,
+                    _('Encountered error running extension in module {mod_name}, function {func_name}'),
+                    err,
+                    mod_name=module_name,
+                    func_name=extension_point,
+                ).valid_error, True,
+            )
+        else:
+            for msg in err.error_messages():
+                user_message.display_message(msg)
 
     @staticmethod
     def _on_complete(module_name: str, extension_point: str) -> None:

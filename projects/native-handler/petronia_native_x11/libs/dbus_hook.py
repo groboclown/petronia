@@ -1,9 +1,14 @@
 """Dbus handler."""
 
-from petronia_common.util import StdRet
-from .handler import Hooks
+from petronia_common.util import StdRet, RET_OK_NONE
+from .hook_manager import Hooks
 
 
-def setup(hooks: Hooks) -> StdRet[None]:
+class DbusApi:
+    """API stuff for dbus."""
+    __slots__ = ()
+
+
+def setup_dbus(hooks: Hooks) -> StdRet[DbusApi]:
     """Set up dbus."""
-    pass
+    return StdRet.pass_ok(DbusApi())

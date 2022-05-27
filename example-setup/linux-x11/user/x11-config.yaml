@@ -1,0 +1,8 @@
+---
+
+X11:
+  extension: petronia_native_x11
+  enabled: true
+  properties:
+    connection:
+      replace_existing_wm: true

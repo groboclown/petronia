@@ -12,6 +12,28 @@
 * Petronia on Wayland is planned.
 * Once minimal support for X11 is in place, the [TODO](TODO.md) list will be attacked.
 
+Running V3:
+
+To run V3, you'll need to download the source and checkout the `dev` branch.  Then, depending on your operating system, run:
+
+* Windows (only tested on Windows 10, but should be usable all the way back to Windows 2000)
+  1. Ensure Python 3.9 or later is installed.
+  2. Open a cmd prompt.
+  3. `cd (petronia source directory)`
+  4. `python -m venv .venv`
+     * If the python program isn't found, you'll need to use the Python install path.
+  5. `python -m pip install -r bin/requirements`
+  6. `.venv\Scripts\activate.bat`
+  7. `windows-test.bat`
+* Linux with X11
+  1. Ensure Python 3.9 or later is installed, along with libxcb and Xephyr.
+  2. `cd (petronia source directory)`
+  3. `python3 -m venv .venv`
+  4. `source .venv/bin/activate`
+  5. `./linux-x11-test.sh --xephyr 800x600 :1`
+    * By adding the `--xephyr 800x600 :1`, you will launch an X server inside an X server to allow for testing out Petronia.
+
+
 ## Previous Release: v2.2
 
 * [petronia-2.2-x64.zip](https://github.com/groboclown/petronia/releases/download/v2.2/petronia-2.2-x64.zip)
@@ -68,14 +90,3 @@ With a tile layout, and the availability of keys to perform the same actions, th
 v3.0 is in an "alpha" stage of development.  It misses key features that prevents it from creating a working environment.
 
 If you find issues with your environment, please [file a bug](https://github.com/groboclown/petronia/issues), and be sure to include which version of Windows you're using, and whether it's 32-bit or 64-bit.
-
-
-## Running
-
-v3.0 isn't ready for use, but for those testing it out, here's some instructions:
-
-1. Right now, only Windows integration is supported.  So you'll need to be running with a version of Windows, preferably at or later than Windows 2000, though only Windows 10 is tested at the moment.
-1. Install Python 3.8 or later.  If you're running a 64-bit OS, then use the 64-bit Python.  If you are running a 32-bit OS, then use the 32-bit Python.
-1. Pull the project from Github, and checkout the `dev` branch.
-1. Make sure you have the Python executable in your path.
-1. Run `windows-test.bat`

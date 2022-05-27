@@ -1,4 +1,4 @@
-"""Test out the Windows native handler in a stand-alone applicaiton."""
+"""Test out the Windows native handler in a stand-alone application."""
 
 from typing import Tuple, Sequence, List
 import time

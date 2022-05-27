@@ -94,6 +94,9 @@ XcbGetGeometryCookie = XcbVoidCookie
 # xcb_get_property_cookie_t
 XcbGetPropertyCookie = XcbVoidCookie
 
+# xcb_query_tree_cookie_t
+XcbQueryTreeCookie = XcbVoidCookie
+
 
 class XcbGenericError(ctypes.Structure):
     """The xcb_generic_error_t structure"""
@@ -382,8 +385,36 @@ XCB_CLIENT_MESSAGE = ctypes.c_uint8(33)
 XCB_GET_PROPERTY_TYPE_ANY = XcbAtom(0)
 
 XCB_CW_EVENT_MASK = ctypes.c_uint32(2048)
-XCB_EVENT_MASK_PROPERTY_CHANGE = ctypes.c_uint32(4194304)
-XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT = ctypes.c_uint32(1048576)
+
+XCB_EVENT_MASK_NO_EVENT__i = 0
+XCB_EVENT_MASK_KEY_PRESS__i = 1
+XCB_EVENT_MASK_KEY_RELEASE__i = 2
+XCB_EVENT_MASK_BUTTON_PRESS__i = 4
+XCB_EVENT_MASK_BUTTON_RELEASE__i = 8
+XCB_EVENT_MASK_ENTER_WINDOW__i = 16
+XCB_EVENT_MASK_LEAVE_WINDOW__i = 32
+XCB_EVENT_MASK_POINTER_MOTION__i = 64
+XCB_EVENT_MASK_POINTER_MOTION_HINT__i = 128
+XCB_EVENT_MASK_BUTTON_1_MOTION__i = 256
+XCB_EVENT_MASK_BUTTON_2_MOTION__i = 512
+XCB_EVENT_MASK_BUTTON_3_MOTION__i = 1024
+XCB_EVENT_MASK_BUTTON_4_MOTION__i = 2048
+XCB_EVENT_MASK_BUTTON_5_MOTION__i = 4096
+XCB_EVENT_MASK_BUTTON_MOTION__i = 8192
+XCB_EVENT_MASK_KEYMAP_STATE__i = 16384
+XCB_EVENT_MASK_EXPOSURE__i = 32768
+XCB_EVENT_MASK_VISIBILITY_CHANGE__i = 65536
+XCB_EVENT_MASK_STRUCTURE_NOTIFY__i = 131072
+XCB_EVENT_MASK_RESIZE_REDIRECT__i = 262144
+XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY__i = 524288
+XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY__u32 = ctypes.c_uint32(XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY__i)
+XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT__i = 1048576
+XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT__u32 = ctypes.c_uint32(XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT__i)
+XCB_EVENT_MASK_FOCUS_CHANGE__i = 2097152
+XCB_EVENT_MASK_PROPERTY_CHANGE__i = 4194304
+XCB_EVENT_MASK_PROPERTY_CHANGE__u32 = ctypes.c_uint32(XCB_EVENT_MASK_PROPERTY_CHANGE__i)
+XCB_EVENT_MASK_COLOR_MAP_CHANGE__i = 8388608
+XCB_EVENT_MASK_OWNER_GRAB_BUTTON__i = 16777216
 
 XCB_PROP_MODE_REPLACE = ctypes.c_uint8(0)
 XCB_PROP_MODE_PREPEND = ctypes.c_uint8(1)
@@ -463,12 +494,14 @@ XCB_ATOM_WM_TRANSIENT_FOR = XcbAtom(68)
 XCB_EVENT_RESPONSE_TYPE_MASK = 0x7f
 XCB_PROPERTY_NOTIFY = 28
 
+XCB_INPUT_FOCUS_POINTER_ROOT = ctypes.c_uint8(1)
+
 
 class LibXcb:
     """The library of functions."""
     __slots__ = (
         # xcb
-        'xcb_connect', 'xcb_connection_has_error',
+        'xcb_connect', 'xcb_connection_has_error', 'xcb_disconnect',
         'xcb_screen_allowed_depths_iterator', 'xcb_depth_next',
         'xcb_depth_visuals_iterator', 'xcb_visualtype_next',
         'xcb_generate_id', 'xcb_free_pixmap', 'xcb_create_pixmap',
@@ -484,15 +517,18 @@ class LibXcb:
         'xcb_change_property',
         'xcb_change_window_attributes',
         'xcb_send_event', 'xcb_wait_for_event', 'xcb_request_check',
-        'xcb_change_window_attributes_checked',
+        'xcb_change_window_attributes_checked', 'xcb_change_window_attributes',
         'xcb_prefetch_maximum_request_length',
         'xcb_grab_server', 'xcb_flush', 'xcb_ungrab_server',
+        'xcb_set_input_focus', 'xcb_reparent_window',
+        'xcb_query_tree_unchecked',
 
         # xcb variables
         'xcb_big_requests_id',
         
         # xcb-util
         'xcb_aux_get_screen', 'xcb_atom_name_by_screen',
+        'xcb_aux_sync',
 
         # xcb-xtest
         'xcb_test_id',
@@ -510,7 +546,7 @@ class LibXcb:
         'xcb_xfixes_id',
 
         # xcb-cursor
-        'xcb_cursor_context_new',
+        'xcb_cursor_context_new', 'xcb_cursor_context_free',
 
         # xcb-icccm
         'xcb_icccm_set_wm_class', 'xcb_icccm_set_wm_name',
@@ -556,6 +592,12 @@ class LibXcb:
         self.xcb_connection_has_error.restype = ctypes.c_int
         self.xcb_connection_has_error.argtypes = (XcbConnectionP,)
 
+        self.xcb_disconnect: Callable[
+            [XcbConnectionP], None
+        ] = xcb.xcb_disconnect
+        self.xcb_disconnect.restype = None
+        self.xcb_disconnect.argtypes = (XcbConnectionP,)
+
         # connection, screen number -> screen info
         self.xcb_aux_get_screen: Callable[
             [XcbConnectionP, ctypes.c_int], XcbScreenP,
@@ -569,6 +611,12 @@ class LibXcb:
         ] = xcb_util.xcb_atom_name_by_screen
         self.xcb_atom_name_by_screen.restype = ctypes.c_char_p
         self.xcb_atom_name_by_screen.argtypes = (ctypes.c_char_p, ctypes.c_uint8)
+
+        self.xcb_aux_sync: Callable[
+            [XcbConnectionP], None
+        ] = xcb_util.xcb_aux_sync
+        self.xcb_aux_sync.restype = None
+        self.xcb_aux_sync.argtypes = (XcbConnectionP,)
 
         self.xcb_screen_allowed_depths_iterator: Callable[
             [XcbScreenP], XcbDepthIterator,
@@ -798,6 +846,30 @@ class LibXcb:
         self.xcb_ungrab_server.restype = XcbVoidCookie
         self.xcb_ungrab_server.argtypes = (XcbConnectionP,)
 
+        # connection, revert_to, focus, time -> cookie
+        self.xcb_set_input_focus: Callable[
+            [XcbConnectionP, ctypes.c_uint8, XcbWindow, XcbTimestamp], XcbVoidCookie,
+        ] = xcb.xcb_set_input_focus
+        self.xcb_set_input_focus.restype = XcbVoidCookie
+        self.xcb_set_input_focus.argtypes = (
+            XcbConnectionP, ctypes.c_uint8, XcbWindow, XcbTimestamp,
+        )
+
+        self.xcb_query_tree_unchecked: Callable[
+            [XcbConnectionP, XcbWindow], XcbQueryTreeCookie,
+        ] = xcb.xcb_query_tree_unchecked
+        self.xcb_query_tree_unchecked.restype = XcbQueryTreeCookie
+        self.xcb_query_tree_unchecked.argtypes = (XcbConnectionP, XcbWindow)
+
+        # connection, window, parent, x, y -> cookie
+        self.xcb_reparent_window: Callable[
+            [XcbConnectionP, XcbWindow, XcbWindow, ctypes.c_int16, ctypes.c_int16], XcbVoidCookie,
+        ] = xcb.xcb_reparent_window
+        self.xcb_reparent_window.restype = XcbVoidCookie
+        self.xcb_reparent_window.argtypes = (
+            XcbConnectionP, XcbWindow, XcbWindow, ctypes.c_int16, ctypes.c_int16,
+        )
+
         self.xcb_flush: Callable[
             [XcbConnectionP], ctypes.c_int,
         ] = xcb.xcb_flush
@@ -837,11 +909,26 @@ class LibXcb:
             XcbConnectionP, XcbWindow, ctypes.c_uint32, ctypes.c_void_p,
         )
 
+        # connection, window, value_mask, value_list -> cookie
+        self.xcb_change_window_attributes: Callable[
+            [XcbConnectionP, XcbWindow, ctypes.c_uint32, ctypes.c_void_p], XcbVoidCookie,
+        ] = xcb.xcb_change_window_attributes
+        self.xcb_change_window_attributes.restype = XcbVoidCookie
+        self.xcb_change_window_attributes.argtypes = (
+            XcbConnectionP, XcbWindow, ctypes.c_uint32, ctypes.c_void_p,
+        )
+
         self.xcb_cursor_context_new: Callable[
             [XcbConnectionP, XcbScreenP, XcbCursorContextPP], ctypes.c_int,
         ] = xcb_cursor.xcb_cursor_context_new
         self.xcb_cursor_context_new.restype = ctypes.c_int
         self.xcb_cursor_context_new.argtypes = (XcbConnectionP, XcbScreenP, XcbCursorContextPP)
+
+        self.xcb_cursor_context_free: Callable[
+            [XcbCursorContextP], None,
+        ] = xcb_cursor.xcb_cursor_context_free
+        self.xcb_cursor_context_free.restype = None
+        self.xcb_cursor_context_free.argtypes = (XcbCursorContextP,)
 
         # connection, window, class-length, class-name
         self.xcb_icccm_set_wm_class: Callable[

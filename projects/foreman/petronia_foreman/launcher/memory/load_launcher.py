@@ -2,7 +2,7 @@
 Finds options specific to the in-memory launcher.
 """
 
-from typing import List, Sequence, Dict, Callable, Optional, Any
+from typing import List, Sequence, Dict, Callable, Optional, Union, Any
 import os
 import sys
 import types
@@ -13,7 +13,7 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from .importer import load_module_from_path
 from ...constants import TRANSLATION_CATALOG
 from ...configuration import RuntimeConfig
-from ...user_message import display_error, display_exception, local_display
+from ...user_message import display_exception, local_display
 
 ENTRYPOINT_OPTION = 'entrypoint'
 DEFAULT_ENTRYPOINT = 'extension_entrypoint'
@@ -83,7 +83,7 @@ class DelayedStartThread:
 
 def connect_launcher(  # pylint:disable=too-many-arguments
         entrypoint_name: str, module: types.ModuleType,
-        error_callback: Callable[[str, str, BaseException], None],
+        error_callback: Callable[[str, str, Union[BaseException, StdRet[None]]], None],
         completed_callback: Callable[[str, str], None],
         arguments: Sequence[str],
         reader: BinaryReader,
@@ -109,20 +109,31 @@ def connect_launcher(  # pylint:disable=too-many-arguments
         )
 
     def runner() -> None:
+        res_val: Union[BaseException, StdRet[None], None] = None
         try:
             res = entrypoint(reader, writer, config, arguments)
-            if isinstance(res, StdRet) and res.has_error:
-                local_display(
-                    _('Extension in Python module {name} failed to load:'),
+            if isinstance(res, StdRet):
+                res_val = res
+            else:
+                res_val = StdRet.pass_errmsg(
+                    TRANSLATION_CATALOG,
+                    _('Extension in Python module {name} returned with invalid return value {ret}'),
                     name=module.__name__,
+                    ret=repr(res)
                 )
-                display_error(res.valid_error, True)
         except BaseException as err:  # pylint:disable=broad-except
-            # Should this be moved into the callback?
-            display_exception(f'[FOREMAN] extension {module.__name__} failed on startup', err)
-            error_callback(module.__name__, entrypoint_name, err)
-        else:
+            res_val = err
+        if res_val is None:
+            # Should not happen, but...
             completed_callback(module.__name__, entrypoint_name)
+        if isinstance(res_val, StdRet):
+            if res_val.has_error:
+                error_callback(module.__name__, entrypoint_name, res_val)
+            else:
+                completed_callback(module.__name__, entrypoint_name)
+        else:
+            assert isinstance(res_val, BaseException)  # nosec  # for mypy
+            error_callback(module.__name__, entrypoint_name, res_val)
 
     ret = DelayedStartThread(name=_next_thread_id(), target=runner)
     ret.start()

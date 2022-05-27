@@ -141,4 +141,5 @@ _ATOM_NAMES: Sequence[bytes] = (
     b"_NET_WM_ACTION_CLOSE",
     b"_NET_WM_ACTION_ABOVE",
     b"_NET_WM_ACTION_BELOW",
+    b"PETRONIA_CLIENT_ORDER",
 )

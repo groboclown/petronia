@@ -6,10 +6,10 @@ import ctypes
 from petronia_common.util import T, StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
 from petronia_native.common import user_messages
-from .api import XcbApi, Freeable
+from .api import XcbApi
 from .xcb import xcb_native as nat
 from .xcb.xcb_atoms import AtomDef, initialize_atoms
-from .xcb.util import as_py_int, as_uint, as_uint8, as_uint16
+from .xcb.util import as_py_int, as_uint8, as_uint16
 
 _PETRONIA_CHAR_P = ctypes.c_char_p(b'petronia')
 _PETRONIA_CI_CHAR_P = ctypes.c_char_p(b'petronia\0petronia')
@@ -17,14 +17,80 @@ _WM_S_CHAR_P = ctypes.c_char_p(b'WM_S')
 _SELECTION_OWNER_WINDOW_CHAR_P = ctypes.c_char_p(b'Petronia WM_Sn selection owner window')
 
 
+class WmConnectionData:
+    """Data holder to pass the large amounts of data around."""
+    __slots__ = (
+        'lib',
+        'conn', 'screen', 'default_visual', 'visual',
+        'default_depth', 'default_colormap', 'atoms',
+        'cursor_context', 'timestamp', 'default_screen',
+        'default_depth_raw', 'selection_atom', 'selection_owner_window',
+        'pending_events',
+    )
+
+    def __init__(self) -> None:
+        self.lib = nat.LibXcb()
+        self.conn: Optional[nat.XcbConnectionP] = None
+        self.default_screen = ctypes.c_int(0)
+        self.screen: Optional[nat.XcbScreenP] = None
+        self.default_visual: Optional[nat.XcbVisualtypeP] = None
+        self.visual: Optional[nat.XcbVisualtypeP] = None
+        self.default_depth_raw = ctypes.c_uint8(0)
+        self.default_depth: int = 0
+        self.default_colormap: int = 0
+        self.cursor_context: Optional[nat.XcbCursorContextP] = None
+        self.timestamp = nat.XcbTimestamp(0)
+        self.atoms: Optional[AtomDef] = None
+        self.selection_atom: Optional[nat.XcbAtom] = None
+        self.selection_owner_window: Optional[nat.XcbWindow] = None
+        self.pending_events: List[nat.XcbGenericEventP] = []
+
+    def close(self, res: StdRet[T]) -> StdRet:
+        """Close any open connections."""
+        for event in self.pending_events:
+            # Each pending event must be freed up.
+            self.lib.free(event)
+        self.pending_events.clear()
+
+        if res.has_error:
+            return res.forward()
+        return RET_OK_NONE
+
+    def create_api(self) -> XcbApi:
+        """Turn this into an API."""
+        return XcbApi(
+            lib=self.lib,
+            conn=_req(self.conn),
+            screen=_req(self.screen),
+            visual=_req(self.visual),
+            default_depth=self.default_depth,
+            default_colormap=self.default_colormap,
+            cursor_context=_req(self.cursor_context),
+            atoms=_req(self.atoms),
+            selection_atom=_req(self.selection_atom),
+            selection_owner_window=_req(self.selection_owner_window),
+            timestamp=self.timestamp,
+        )
+
+
+class WMRet:
+    """Return values from the window manager connection."""
+    __slots__ = ('xcb', 'pending_events', 'shutdown')
+
+    def __init__(self, xcb: XcbApi) -> None:
+        self.xcb = xcb
+        self.pending_events: List[nat.XcbGenericEventP] = []
+        self.shutdown: List[Callable[[XcbApi], StdRet[None]]] = []
+
+
 def connect_as_window_manager(
         *,
         on_server_init: Sequence[Callable[[XcbApi], StdRet[None]]],
         use_argb_visual: bool = True,
         replace_existing_wm: bool = False,
-) -> StdRet[XcbApi]:
+) -> StdRet[WMRet]:
     """Connect to the X server and attempt to become the window manager."""
-    cxt = _CommonData()
+    cxt = WmConnectionData()
     no_res = _with_connection(cxt)
     if no_res.has_error:
         return cxt.close(no_res)
@@ -75,78 +141,18 @@ def connect_as_window_manager(
 
     cxt.lib.xcb_ungrab_server(_req(cxt.conn))
 
-    return StdRet.pass_ok(xcb_api)
+    ret = WMRet(xcb_api)
+    ret.pending_events.extend(cxt.pending_events)
+
+    ret.shutdown.extend([
+        _on_shutdown_cursor,
+        _on_shutdown_xcb,
+    ])
+
+    return StdRet.pass_ok(ret)
 
 
-class _CommonData:
-    """Data holder to pass the large amounts of data around."""
-    __slots__ = (
-        'lib',
-        'conn', 'screen', 'default_visual', 'visual',
-        'default_depth', 'default_colormap', 'atoms',
-        'cursor_context', 'timestamp', 'default_screen',
-        'default_depth_raw', 'selection_atom', 'selection_owner_window',
-        'pending_events', 'to_free',
-    )
-
-    def __init__(self) -> None:
-        self.lib = nat.LibXcb()
-        self.conn: Optional[nat.XcbConnectionP] = None
-        self.default_screen = ctypes.c_int(0)
-        self.screen: Optional[nat.XcbScreenP] = None
-        self.default_visual: Optional[nat.XcbVisualtypeP] = None
-        self.visual: Optional[nat.XcbVisualtypeP] = None
-        self.default_depth_raw = ctypes.c_uint8(0)
-        self.default_depth: int = 0
-        self.default_colormap: int = 0
-        self.cursor_context: Optional[nat.XcbCursorContextP] = None
-        self.timestamp = nat.XcbTimestamp(0)
-        self.atoms: Optional[AtomDef] = None
-        self.selection_atom: Optional[nat.XcbAtom] = None
-        self.selection_owner_window: Optional[nat.XcbWindow] = None
-        self.pending_events: List[nat.XcbGenericEventP] = []
-        self.to_free: List[Freeable] = []
-
-    def close(self, res: StdRet[T]) -> StdRet:
-        """Close any open connections."""
-        for event in self.pending_events:
-            # Each pending event must be freed up.
-            self.lib.free(event)
-        self.pending_events.clear()
-
-        for ptr in self.to_free:
-            # each pointer must be freed up
-            ptr.free(self.lib)
-        self.to_free.clear()
-
-        if res.has_error:
-            return res.forward()
-        return RET_OK_NONE
-
-    def needs_free(self, val: Any) -> None:
-        """Mark the pointer as needing to be freed."""
-        self.to_free.append(Freeable(val))
-
-    def create_api(self) -> XcbApi:
-        """Turn this into an API."""
-        return XcbApi(
-            lib=self.lib,
-            conn=_req(self.conn),
-            screen=_req(self.screen),
-            visual=_req(self.visual),
-            default_depth=self.default_depth,
-            default_colormap=self.default_colormap,
-            cursor_context=_req(self.cursor_context),
-            atoms=_req(self.atoms),
-            selection_atom=_req(self.selection_atom),
-            selection_owner_window=_req(self.selection_owner_window),
-            timestamp=self.timestamp,
-            pending_events=self.pending_events,
-            to_free=self.to_free,
-        )
-
-
-def _with_connection(cxt: _CommonData) -> StdRet[None]:
+def _with_connection(cxt: WmConnectionData) -> StdRet[None]:
     _debug("Connecting")
     if cxt.conn:
         return StdRet.pass_errmsg(
@@ -168,7 +174,7 @@ def _with_connection(cxt: _CommonData) -> StdRet[None]:
     return RET_OK_NONE
 
 
-def _with_visual(*, cxt: _CommonData, use_argb_visual: bool) -> StdRet[None]:
+def _with_visual(*, cxt: WmConnectionData, use_argb_visual: bool) -> StdRet[None]:
     """Get the screen + visual + colormap.  Requires a connection."""
     _debug("get screen")
     conn = _req(cxt.conn)
@@ -208,7 +214,7 @@ def _with_visual(*, cxt: _CommonData, use_argb_visual: bool) -> StdRet[None]:
     return RET_OK_NONE
 
 
-def _with_atoms(cxt: _CommonData) -> StdRet[None]:
+def _with_atoms(cxt: WmConnectionData) -> StdRet[None]:
     """Initialize the atoms."""
     atom_res = initialize_atoms(cxt.lib, _req(cxt.conn))
     if atom_res.has_error:
@@ -217,7 +223,7 @@ def _with_atoms(cxt: _CommonData) -> StdRet[None]:
     return RET_OK_NONE
 
 
-def _with_cursor_context(cxt: _CommonData) -> StdRet[None]:
+def _with_cursor_context(cxt: WmConnectionData) -> StdRet[None]:
     """Initialize the cursor context."""
     conn = _req(cxt.conn)
     screen = _req(cxt.screen)
@@ -231,7 +237,7 @@ def _with_cursor_context(cxt: _CommonData) -> StdRet[None]:
     return RET_OK_NONE
 
 
-def _with_extension_prefetch(cxt: _CommonData) -> StdRet[None]:
+def _with_extension_prefetch(cxt: WmConnectionData) -> StdRet[None]:
     """Prefetch the extensions"""
     conn = _req(cxt.conn)
     cxt.lib.xcb_prefetch_extension_data(conn, cxt.lib.xcb_big_requests_id)
@@ -311,7 +317,7 @@ def _find_visual_depth(
     )
 
 
-def _test_cairo_surface(cxt: _CommonData) -> StdRet[None]:
+def _test_cairo_surface(cxt: WmConnectionData) -> StdRet[None]:
     """Test creation of a new surface."""
     # create the 1x1 pixmap
     conn = _req(cxt.conn)
@@ -366,7 +372,7 @@ def _set_xwindow_petronia_class_instance(
 
 
 def _acquire_wm_sn(
-        cxt: _CommonData,
+        cxt: WmConnectionData,
         replace_existing: bool,
 ) -> StdRet[None]:
     """Acquire the WM_Sn
@@ -421,12 +427,14 @@ def _acquire_wm_sn(
     if not get_sel_reply:
         return StdRet.pass_errmsg(
             user_messages.TRANSLATION_CATALOG,
-            _('Failed to allocate window manager; get selection owner for WM_Sn failed')
+            _('Failed to allocate window manager; get selection owner for WM_Sn failed'),
         )
-    if not replace_existing and get_sel_reply.contents.owner != nat.XCB_NONE:
+    if not replace_existing and as_py_int(get_sel_reply.contents.owner) != as_py_int(nat.XCB_NONE):
         return StdRet.pass_errmsg(
             user_messages.TRANSLATION_CATALOG,
-            _('Failed to allocate window manager; another window manager is running')
+            _('Failed to allocate window manager; another window manager is running ({owner})'),
+            owner=repr(get_sel_reply.contents.owner),
+            rep=repr(replace_existing),
         )
 
     lib.xcb_set_selection_owner(conn, owner_window, atom, timestamp)
@@ -472,7 +480,7 @@ def _acquire_wm_sn(
 _PropertyDataType = ctypes.c_uint32 * 1
 
 
-def _with_timestamp(cxt: _CommonData) -> StdRet[None]:
+def _with_timestamp(cxt: WmConnectionData) -> StdRet[None]:
     """Get a timestamp from the X server. Each one of the pending events is an
     event that was fetched but not handled; they must all be freed."""
     lib = cxt.lib
@@ -480,7 +488,7 @@ def _with_timestamp(cxt: _CommonData) -> StdRet[None]:
     screen = _req(cxt.screen)
 
     lib.xcb_grab_server(conn)
-    property_data = _PropertyDataType(nat.XCB_EVENT_MASK_PROPERTY_CHANGE)
+    property_data = _PropertyDataType(nat.XCB_EVENT_MASK_PROPERTY_CHANGE__u32)
     lib.xcb_change_window_attributes(
         conn, screen.contents.root, nat.XCB_CW_EVENT_MASK,
         ctypes.cast(ctypes.byref(property_data), ctypes.c_void_p),
@@ -519,12 +527,12 @@ def _with_timestamp(cxt: _CommonData) -> StdRet[None]:
         pending_events.append(event)
 
 
-def _become_window_manager(cxt: _CommonData) -> StdRet[None]:
+def _become_window_manager(cxt: WmConnectionData) -> StdRet[None]:
     """Perform xcb_change_window_attributes_checked to become the new window manager"""
     conn = _req(cxt.conn)
     screen = _req(cxt.screen)
 
-    select_input_val = nat.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+    select_input_val = nat.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT__u32
     cookie = cxt.lib.xcb_change_window_attributes_checked(
         conn, screen.contents.root, nat.XCB_CW_EVENT_MASK,
         ctypes.cast(ctypes.byref(select_input_val), ctypes.c_void_p),
@@ -538,6 +546,18 @@ def _become_window_manager(cxt: _CommonData) -> StdRet[None]:
     return RET_OK_NONE
 
 
+def _on_shutdown_cursor(xcb: XcbApi) -> StdRet[None]:
+    """Shutdown the cursor allocations."""
+    xcb.disconnect_xcb_cursor()
+    return RET_OK_NONE
+
+
+def _on_shutdown_xcb(xcb: XcbApi) -> StdRet[None]:
+    """Shutdown xcb"""
+    xcb.disconnect_xcb()
+    return RET_OK_NONE
+
+
 def _req(val: Optional[T]) -> T:
     """Require that the value is not None."""
     if val is None:
@@ -547,4 +567,4 @@ def _req(val: Optional[T]) -> T:
 
 def _debug(message: str, **kwargs: Any) -> None:
     """Debug print."""
-    print(message.format(**kwargs))
+    user_messages.low_println(message.format(**kwargs))

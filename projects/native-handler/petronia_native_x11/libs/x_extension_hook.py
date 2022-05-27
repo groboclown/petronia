@@ -1,10 +1,27 @@
 """extension setup handler."""
 
-from petronia_common.util import StdRet
-from .handler import Hooks
+from typing import Sequence, Optional
+from petronia_common.util import StdRet, RET_OK_FALSE
+from .api import EventCallback
+from .hook_manager import Hooks
 
 
-def setup(hooks: Hooks) -> StdRet[None]:
+class XExtensionApi:
+    """API for working with X extensions."""
+
+    def get_event_handler(self) -> EventCallback:
+        return EwmhCallback()
+
+
+class EwmhCallback(EventCallback):
+    def event_map(self) -> Optional[Sequence[int]]:
+        return None
+
+    def handle(self) -> StdRet[bool]:
+        return RET_OK_FALSE
+
+
+def setup_x_ext(hooks: Hooks) -> StdRet[XExtensionApi]:
     """Set up the extensions."""
 
     # check for each needed extension
@@ -12,4 +29,4 @@ def setup(hooks: Hooks) -> StdRet[None]:
     #  - shape
     #  - xfixes
 
-    pass
+    return StdRet.pass_ok(XExtensionApi())

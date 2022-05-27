@@ -4,7 +4,7 @@ from typing import List, Callable, Optional
 from petronia_common.util import StdRet
 from petronia_ext_lib import datastore
 from petronia_ext_lib import runner
-from .datastore.petronia_native_x11 import ConfigurationState
+from .datastore.petronia_native_x11 import ConfigurationState, Connection, VirtualScreens
 
 
 class ConfigurationStore:
@@ -15,15 +15,16 @@ class ConfigurationStore:
             self,
             config: Optional[ConfigurationState],
     ) -> None:
-        self._cache = config
-        self._callbacks: List[Callable[[Optional[ConfigurationState]], None]] = []
+        # Setup default values.
+        self._cache = ConfigurationStore._with_defaults(config)
+        self._callbacks: List[Callable[[ConfigurationState], None]] = []
 
-    def get_config(self) -> Optional[ConfigurationState]:
+    def get_config(self) -> ConfigurationState:
         """Get the configuration.  This should be considered mutable, but any update
         should follow up by calling into on_config_update()."""
         return self._cache
 
-    def add_callback(self, callback: Callable[[Optional[ConfigurationState]], None]) -> None:
+    def add_callback(self, callback: Callable[[ConfigurationState], None]) -> None:
         """Add a callback which is invoked when the configuration changes."""
         self._callbacks.append(callback)
 
@@ -35,8 +36,23 @@ class ConfigurationStore:
 
     def put_in_datastore(self, context: runner.EventRegistryContext) -> StdRet[None]:
         """Put the internal configuration state into the datastore."""
-        if self._cache is None:
-            return datastore.send_delete_data(context, ConfigurationState.UNIQUE_TARGET_FQN)
+        # cache is never None here.
+        # if self._cache is None:
+        #     return datastore.send_delete_data(context, ConfigurationState.UNIQUE_TARGET_FQN)
         return datastore.send_store_data(
             context, ConfigurationState.UNIQUE_TARGET_FQN, self._cache,
         )
+
+    @staticmethod
+    def _with_defaults(config: Optional[ConfigurationState]) -> ConfigurationState:
+        config = config or ConfigurationState(Connection(None, None), VirtualScreens([]))
+        config.connection = config.connection or Connection(None, None)
+        config.connection.use_argb_visual = (
+            True if config.connection.use_argb_visual is None
+            else config.connection.use_argb_visual
+        )
+        config.connection.replace_existing_wm = (
+            False if config.connection.replace_existing_wm is None
+            else config.connection.replace_existing_wm
+        )
+        return config

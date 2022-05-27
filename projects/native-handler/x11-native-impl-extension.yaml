@@ -66,6 +66,24 @@ state-data:
     description: >
       Configuration for all the components of the X11 native handler.
     fields:
+      connection:
+        description: >
+          Information about how to connect to the X server.
+        type: structure
+        fields:
+          use_argb_visual:
+            description: >
+              Use 32-bit depth visuals, if available (Alpha / Red / Green / Blue per pixel).
+              Defaults to 'true'.
+            type: bool
+            optional: true
+          replace_existing_wm:
+            description: >
+              If true, then any existing window manager will be replaced, if possible.
+              In some situations, even with this set the running window manager won't release
+              control.  Defaults to 'false'.
+            type: bool
+            optional: true
       virtual_screens:
         description: >
           The virtual screen mapping for different screen sizes.  Any call to set the current monitor

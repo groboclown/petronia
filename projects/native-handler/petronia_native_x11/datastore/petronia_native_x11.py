@@ -10,22 +10,84 @@ Data structures and marshalling for extension petronia_native_x11 version 1.0.0.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    Any,
+    List,
     SupportsInt,
     Optional,
-    List,
+    Any,
+    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    STANDARD_PETRONIA_CATALOG,
     collect_errors_from,
     not_none,
+    STANDARD_PETRONIA_CATALOG,
     StdRet,
 )
 
 EXTENSION_NAME = 'petronia_native_x11'
 EXTENSION_VERSION = (1, 0, 0)
+
+
+class Connection:
+    """
+    Information about how to connect to the X server.
+    """
+    __slots__ = ('use_argb_visual', 'replace_existing_wm',)
+
+    def __init__(
+        self,
+        use_argb_visual: Optional[bool],
+        replace_existing_wm: Optional[bool],
+    ) -> None:
+        self.use_argb_visual = use_argb_visual
+        self.replace_existing_wm = replace_existing_wm
+
+    def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
+        """Create the event data structure, ready for marshalling."""
+        ret: Dict[str, Any] = {
+            'use_argb_visual': self.use_argb_visual,
+            'replace_existing_wm': self.replace_existing_wm,
+        }
+        return _strip_none(ret)
+
+    @staticmethod
+    def parse_data(data: Dict[str, Any]) -> StdRet['Connection']:  # pylint: disable=R0912,R0911
+        """Parse the marshalled data into this structured form.  This includes full validation."""
+        errors: List[StdRet[None]] = []
+        val: Any
+        val = data.get('use_argb_visual')
+        f_use_argb_visual: Optional[bool] = None
+        if val is not None:
+            if not isinstance(val, bool):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='use_argb_visual',
+                    type='bool',
+                    name='Connection',
+                )
+            f_use_argb_visual = val
+        val = data.get('replace_existing_wm')
+        f_replace_existing_wm: Optional[bool] = None
+        if val is not None:
+            if not isinstance(val, bool):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='replace_existing_wm',
+                    type='bool',
+                    name='Connection',
+                )
+            f_replace_existing_wm = val
+        if errors:
+            return StdRet.pass_error(not_none(collect_errors_from(errors)))
+        return StdRet.pass_ok(Connection(
+            use_argb_visual=f_use_argb_visual,
+            replace_existing_wm=f_replace_existing_wm,
+        ))
+
+    def __repr__(self) -> str:
+        return "Connection(" + repr(self.export_data()) + ")"
 
 
 class SourceMonitor:
@@ -526,20 +588,23 @@ class ConfigurationState:
     """
     Configuration for all the components of the X11 native handler.
     """
-    __slots__ = ('virtual_screens',)
+    __slots__ = ('connection', 'virtual_screens',)
 
     UNIQUE_TARGET_FQN = 'petronia_native_x11:configuration'
     UNIQUE_TARGET_REL = 'petronia_native_x11:configuration'
 
     def __init__(
         self,
+        connection: Connection,
         virtual_screens: VirtualScreens,
     ) -> None:
+        self.connection = connection
         self.virtual_screens = virtual_screens
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
+            'connection': self.connection.export_data(),
             'virtual_screens': self.virtual_screens.export_data(),
         }
         return _strip_none(ret)
@@ -549,6 +614,28 @@ class ConfigurationState:
         """Parse the marshalled data into this structured form.  This includes full validation."""
         errors: List[StdRet[None]] = []
         val: Any
+        val = data.get('connection')
+        f_connection: Connection
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='connection',
+                name='ConfigurationState',
+            )
+        else:
+            parsed_connection = Connection.parse_data(val)
+            if parsed_connection.has_error:
+                return parsed_connection.forward()
+            if parsed_connection.value is None:
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _(
+                        'Field {field_name} must not be null'
+                    ),
+                    field_name='connection',
+                )
+            f_connection = parsed_connection.result
         val = data.get('virtual_screens')
         f_virtual_screens: VirtualScreens
         if val is None:  # pylint:disable=no-else-return
@@ -574,6 +661,7 @@ class ConfigurationState:
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(ConfigurationState(
+            connection=not_none(f_connection),
             virtual_screens=not_none(f_virtual_screens),
         ))
 

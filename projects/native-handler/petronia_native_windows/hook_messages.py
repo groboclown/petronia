@@ -1,4 +1,3 @@
-
 """
 Works with the `windows_hook_event` to create Python-friendly wrappers around
 Windows-specific WM_* message handlers.

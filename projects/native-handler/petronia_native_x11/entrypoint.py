@@ -1,12 +1,12 @@
 """X11 Entrypoint."""
 
-from typing import Sequence, Dict, Any
+from typing import Sequence, Dict, Optional, Any
 from petronia_common.event_stream import BinaryReader, BinaryWriter
-from petronia_common.util import StdRet, join_errors, RET_OK_NONE
+from petronia_common.util import StdRet, join_errors
 from petronia_ext_lib.runner.lookup import LookupEventRegistryContext
 from petronia_ext_lib import logging
 from .datastore.petronia_native_x11 import (
-    ConfigurationState, VirtualScreens, EXTENSION_NAME,
+    ConfigurationState, EXTENSION_NAME,
 )
 from . import setup
 from .datastore import petronia_native_x11 as native_state
@@ -41,18 +41,17 @@ def extension_entrypoint(
     res = loop_res.result.start()
     if res.has_error:
         print('X11 Native startup problem.')
-        return res
+        return res.forward()
 
     try:
         context.process_reader(native_state.EXTENSION_NAME)
     finally:
-        loop_res.result.dispose(-1)
-    return RET_OK_NONE
+        return loop_res.result.dispose(-1)
 
 
-def parse_config(config: Dict[str, Any]) -> StdRet[ConfigurationState]:
+def parse_config(config: Dict[str, Any]) -> StdRet[Optional[ConfigurationState]]:
     """Parse the configuration dictionary."""
     if not config:
         print("X11 Native configuration is empty.")
-        return StdRet.pass_ok(ConfigurationState(VirtualScreens([])))
+        return StdRet.pass_ok(None)
     return ConfigurationState.parse_data(config)
