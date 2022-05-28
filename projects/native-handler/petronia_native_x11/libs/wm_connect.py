@@ -7,6 +7,7 @@ from petronia_common.util import T, StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
 from petronia_native.common import user_messages
 from .api import XcbApi
+from .event_handler import EventHandlerLoop
 from .xcb import xcb_native as nat
 from .xcb.xcb_atoms import AtomDef, initialize_atoms
 from .xcb.util import as_py_int, as_uint8, as_uint16
@@ -75,11 +76,11 @@ class WmConnectionData:
 
 class WMRet:
     """Return values from the window manager connection."""
-    __slots__ = ('xcb', 'pending_events', 'shutdown')
+    __slots__ = ('xcb', 'event_loop', 'shutdown')
 
-    def __init__(self, xcb: XcbApi) -> None:
+    def __init__(self, xcb: XcbApi, loop: EventHandlerLoop) -> None:
         self.xcb = xcb
-        self.pending_events: List[nat.XcbGenericEventP] = []
+        self.event_loop = loop
         self.shutdown: List[Callable[[XcbApi], StdRet[None]]] = []
 
 
@@ -90,6 +91,9 @@ def connect_as_window_manager(
         replace_existing_wm: bool = False,
 ) -> StdRet[WMRet]:
     """Connect to the X server and attempt to become the window manager."""
+
+    # TODO setup the event thread and use that to capture events?
+
     cxt = WmConnectionData()
     no_res = _with_connection(cxt)
     if no_res.has_error:
@@ -141,8 +145,18 @@ def connect_as_window_manager(
 
     cxt.lib.xcb_ungrab_server(_req(cxt.conn))
 
-    ret = WMRet(xcb_api)
-    ret.pending_events.extend(cxt.pending_events)
+    event_loop = EventHandlerLoop(
+        api=xcb_api,
+        xcb=cxt.lib,
+        conn=cxt.conn,
+
+        # TODO replace with a real handler
+        on_error=lambda x: user_messages.low_traceback(x),
+
+        # TODO allow configuring queue wait time?
+    )
+    event_loop.add_missed_events(cxt.pending_events)
+    ret = WMRet(xcb_api, event_loop)
 
     ret.shutdown.extend([
         _on_shutdown_cursor,
@@ -203,7 +217,7 @@ def _with_visual(*, cxt: WmConnectionData, use_argb_visual: bool) -> StdRet[None
     cxt.default_colormap = as_py_int(screen.contents.default_colormap)
     if cxt.default_depth_raw != screen.contents.root_depth:
         # Need to create a color map since we aren't using the default depth
-        print("Generating new colormap due to depth difference")
+        _debug("Generating new colormap due to depth difference")
         cxt.default_colormap = cxt.lib.xcb_generate_id(_req(cxt.conn))
         cxt.lib.xcb_create_colormap(
             conn, nat.XCB_COLORMAP_ALLOC_NONE,
@@ -256,15 +270,15 @@ def _find_visual(
     depth_iter = lib.xcb_screen_allowed_depths_iterator(screen)
     if depth_iter.data:
         while depth_iter.rem != 0:
-            _debug("Getting depth visuals")
+            # _debug("Getting depth visuals")
             visual_iter = lib.xcb_depth_visuals_iterator(depth_iter.data)
             while visual_iter.rem != 0:
-                _debug("Found visual id {vid}", vid=repr(visual_iter.data.contents.visual_id))
+                # _debug("Found visual id {vid}", vid=repr(visual_iter.data.contents.visual_id))
                 if visual_iter.data.contents.visual_id == visual:
                     return visual_iter.data
-                _debug("Getting next visual type")
+                # _debug("Getting next visual type")
                 lib.xcb_visualtype_next(ctypes.byref(visual_iter))
-            _debug("getting next depth")
+            # _debug("getting next depth")
             lib.xcb_depth_next(ctypes.byref(depth_iter))
     return nat.XcbVisualtypeP()
 
@@ -278,17 +292,17 @@ def _find_argb_visual(
     depth_iter = lib.xcb_screen_allowed_depths_iterator(screen)
     if depth_iter.data:
         while depth_iter.rem != 0:
-            _debug(" - checking depth {dep}", dep=depth_iter.data.contents.depth)
+            # _debug(" - checking depth {dep}", dep=depth_iter.data.contents.depth)
             if depth_iter.data.contents.depth == 32:
                 # Get the first visual.
                 visual_iter = lib.xcb_depth_visuals_iterator(depth_iter.data)
                 if visual_iter.rem != 0:
                     return visual_iter.data
-            _debug(" - moving to next depth")
+            # _debug(" - moving to next depth")
             # byref may not do the conversion right...
             ptr = ctypes.pointer(depth_iter)
             lib.xcb_depth_next(ptr)
-    _debug(" - not found; returning null")
+    # _debug(" - not found; returning null")
     return nat.XcbVisualtypeP()
 
 
@@ -302,10 +316,10 @@ def _find_visual_depth(
     depth_iter = lib.xcb_screen_allowed_depths_iterator(screen)
     if depth_iter.data:
         while depth_iter.rem != 0:
-            _debug(" - checking depth {dep}", dep=depth_iter.data.contents.depth)
+            # _debug(" - checking depth {dep}", dep=depth_iter.data.contents.depth)
             visual_iter = lib.xcb_depth_visuals_iterator(depth_iter.data)
             while visual_iter.rem != 0:
-                _debug(" - checking visual {vid}", vid=visual_iter.data.contents.visual_id)
+                # _debug(" - checking visual {vid}", vid=visual_iter.data.contents.visual_id)
                 if visual_id == visual_iter.data.contents.visual_id:
                     # officially returns a c_uint8, but Python auto-translates that to an int.
                     return StdRet.pass_ok(as_py_int(depth_iter.data.contents.depth))
@@ -546,13 +560,13 @@ def _become_window_manager(cxt: WmConnectionData) -> StdRet[None]:
     return RET_OK_NONE
 
 
-def _on_shutdown_cursor(xcb: XcbApi) -> StdRet[None]:
+def _on_shutdown_cursor(xcb: XcbApi, timeout: float) -> StdRet[None]:
     """Shutdown the cursor allocations."""
     xcb.disconnect_xcb_cursor()
     return RET_OK_NONE
 
 
-def _on_shutdown_xcb(xcb: XcbApi) -> StdRet[None]:
+def _on_shutdown_xcb(xcb: XcbApi, timeout: float) -> StdRet[None]:
     """Shutdown xcb"""
     xcb.disconnect_xcb()
     return RET_OK_NONE

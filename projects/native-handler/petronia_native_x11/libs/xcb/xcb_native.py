@@ -242,6 +242,29 @@ class XcbClientMessageData(ctypes.Union):
     ]
 
 
+class XcbKeyPressEvent(ctypes.Structure):
+    """xcb_key_press_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('detail', XcbKeycode),
+        ('sequence', ctypes.c_uint16),
+        ('time', XcbTimestamp),
+        ('root', XcbWindow),
+        ('event', XcbWindow),
+        ('child', XcbWindow),
+        ('root_x', ctypes.c_int16),
+        ('root_y', ctypes.c_int16),
+        ('event_x', ctypes.c_int16),
+        ('event_y', ctypes.c_int16),
+        ('state', ctypes.c_uint16),
+        ('same_screen', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+    ]
+
+
+XcbKeyPressEventP = ctypes.POINTER(XcbKeyPressEvent)
+
+
 class XcbClientMessageEvent(ctypes.Structure):
     """xcb_client_message_event_t"""
     _fields_ = [
@@ -252,6 +275,40 @@ class XcbClientMessageEvent(ctypes.Structure):
         ('type', XcbAtom),
         ('data', XcbClientMessageData),
     ]
+
+
+XcbClientMessageEventP = ctypes.POINTER(XcbClientMessageEvent)
+
+
+class XcbGenericEvent(ctypes.Structure):
+    """xcb_generic_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint8),
+        ('pad', ctypes.c_uint8 * 7),
+        ('full_sequence', ctypes.c_uint32),
+    ]
+
+
+XcbGenericEventP = ctypes.POINTER(XcbGenericEvent)
+
+
+class XcbPropertyNotifyEvent(ctypes.Structure):
+    """xcb_property_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('window', XcbWindow),
+        ('atom', XcbAtom),
+        ('time', XcbTimestamp),
+        ('state', ctypes.c_uint8),
+        ('pad1', ctypes.c_uint8 * 3),
+    ]
+
+
+XcbPropertyNotifyEventP = ctypes.POINTER(XcbPropertyNotifyEvent)
 
 
 class XcbGetGeometryReply(ctypes.Structure):
@@ -289,20 +346,6 @@ class XcbGetPropertyReply(ctypes.Structure):
 
 
 XcbGetPropertyReplyP = ctypes.POINTER(XcbGetPropertyReply)
-
-
-class XcbGenericEvent(ctypes.Structure):
-    """xcb_generic_event_t"""
-    _fields_ = [
-        ('response_type', ctypes.c_uint8),
-        ('pad0', ctypes.c_uint8),
-        ('sequence', ctypes.c_uint8),
-        ('pad', ctypes.c_uint8 * 7),
-        ('full_sequence', ctypes.c_uint32),
-    ]
-
-
-XcbGenericEventP = ctypes.POINTER(XcbGenericEvent)
 
 
 class XcbCursorContext(ctypes.Structure):
@@ -343,23 +386,6 @@ class XcbSetup(ctypes.Structure):
 XcbSetupP = ctypes.POINTER(XcbSetup)
 
 
-class XcbPropertyNotifyEvent(ctypes.Structure):
-    """xcb_property_notify_event_t"""
-    _fields_ = [
-        ('response_type', ctypes.c_uint8),
-        ('pad0', ctypes.c_uint8),
-        ('sequence', ctypes.c_uint16),
-        ('window', XcbWindow),
-        ('atom', XcbAtom),
-        ('time', XcbTimestamp),
-        ('state', ctypes.c_uint8),
-        ('pad1', ctypes.c_uint8 * 3),
-    ]
-
-
-XcbPropertyNotifyEventP = ctypes.POINTER(XcbPropertyNotifyEvent)
-
-
 class CairoSurface(ctypes.Structure):
     """The opaque Cairo cairo_surface_t type"""
     _fields_ = []
@@ -381,10 +407,10 @@ NULL_XcbGenericErrorPP = ctypes.cast(NULL, XcbGenericErrorPP)
 CAIRO_STATUS_SUCCESS = 0
 XCB_COPY_FROM_PARENT = ctypes.c_uint16(0)
 XCB_NONE = XcbWindow(0)
-XCB_CLIENT_MESSAGE = ctypes.c_uint8(33)
 XCB_GET_PROPERTY_TYPE_ANY = XcbAtom(0)
 
 XCB_CW_EVENT_MASK = ctypes.c_uint32(2048)
+XCB_EVENT_RESPONSE_TYPE_MASK = 0x7f
 
 XCB_EVENT_MASK_NO_EVENT__i = 0
 XCB_EVENT_MASK_KEY_PRESS__i = 1
@@ -415,6 +441,61 @@ XCB_EVENT_MASK_PROPERTY_CHANGE__i = 4194304
 XCB_EVENT_MASK_PROPERTY_CHANGE__u32 = ctypes.c_uint32(XCB_EVENT_MASK_PROPERTY_CHANGE__i)
 XCB_EVENT_MASK_COLOR_MAP_CHANGE__i = 8388608
 XCB_EVENT_MASK_OWNER_GRAB_BUTTON__i = 16777216
+
+# Event IDs
+XCB_KEY_PRESS = 2
+XCB_KEY_RELEASE = 3
+XCB_BUTTON_PRESS = 4
+XCB_BUTTON_RELEASE = 5
+XCB_MOTION_NOTIFY = 6
+XCB_ENTER_NOTIFY = 7
+XCB_LEAVE_NOTIFY = 8
+XCB_FOCUS_IN = 9
+XCB_FOCUS_OUT = 10
+XCB_KEYMAP_NOTIFY = 11
+XCB_EXPOSE = 12
+XCB_GRAPHICS_EXPOSURE = 13
+XCB_NO_EXPOSURE = 14
+XCB_VISIBILITY_NOTIFY = 15
+XCB_CREATE_NOTIFY = 16
+XCB_DESTROY_NOTIFY = 17
+XCB_UNMAP_NOTIFY = 18
+XCB_MAP_NOTIFY = 19
+XCB_MAP_REQUEST = 20
+XCB_REPARENT_NOTIFY = 21
+XCB_CONFIGURE_NOTIFY = 22
+XCB_CONFIGURE_REQUEST = 23
+XCB_GRAVITY_NOTIFY = 24
+XCB_RESIZE_REQUEST = 25
+XCB_CIRCULATE_NOTIFY = 26
+XCB_CIRCULATE_REQUEST = 27
+XCB_PROPERTY_NOTIFY = 28
+XCB_SELECTION_CLEAR = 29
+XCB_SELECTION_REQUEST = 30
+XCB_SELECTION_NOTIFY = 31
+XCB_COLORMAP_NOTIFY = 32
+XCB_CLIENT_MESSAGE = 33
+XCB_MAPPING_NOTIFY = 34
+XCB_GE_GENERIC = 35
+
+# Error IDs
+XCB_REQUEST = 1
+XCB_VALUE = 2
+XCB_WINDOW = 3
+XCB_PIXMAP = 4
+XCB_ATOM = 5
+XCB_CURSOR = 6
+XCB_FONT = 7
+XCB_MATCH = 8
+XCB_DRAWABLE = 9
+XCB_ACCESS = 10
+XCB_ALLOC = 11
+XCB_COLORMAP = 12
+XCB_G_CONTEXT = 13
+XCB_ID_CHOICE = 14
+XCB_NAME = 15
+XCB_LENGTH = 16
+XCB_IMPLEMENTATION = 17
 
 XCB_PROP_MODE_REPLACE = ctypes.c_uint8(0)
 XCB_PROP_MODE_PREPEND = ctypes.c_uint8(1)
@@ -491,9 +572,6 @@ XCB_ATOM_CAP_HEIGHT = XcbAtom(66)
 XCB_ATOM_WM_CLASS = XcbAtom(67)
 XCB_ATOM_WM_TRANSIENT_FOR = XcbAtom(68)
 
-XCB_EVENT_RESPONSE_TYPE_MASK = 0x7f
-XCB_PROPERTY_NOTIFY = 28
-
 XCB_INPUT_FOCUS_POINTER_ROOT = ctypes.c_uint8(1)
 
 
@@ -516,7 +594,7 @@ class LibXcb:
         'xcb_get_property_value_length', 'xcb_get_property_value',
         'xcb_change_property',
         'xcb_change_window_attributes',
-        'xcb_send_event', 'xcb_wait_for_event', 'xcb_request_check',
+        'xcb_send_event', 'xcb_wait_for_event', 'xcb_poll_for_event', 'xcb_request_check',
         'xcb_change_window_attributes_checked', 'xcb_change_window_attributes',
         'xcb_prefetch_maximum_request_length',
         'xcb_grab_server', 'xcb_flush', 'xcb_ungrab_server',
@@ -562,7 +640,6 @@ class LibXcb:
 
     def __init__(self) -> None:
         def get_lib(name: str) -> ctypes.CDLL:
-            print(f"Loading {name}")
             try:
                 return ctypes.cdll.LoadLibrary(name)
             except OSError as err:
@@ -893,6 +970,12 @@ class LibXcb:
         self.xcb_wait_for_event.restype = XcbGenericEventP
         self.xcb_wait_for_event.argtypes = (XcbConnectionP,)
 
+        self.xcb_poll_for_event: Callable[
+            [XcbConnectionP], XcbGenericEventP,
+        ] = xcb.xcb_poll_for_event
+        self.xcb_poll_for_event.restype = XcbGenericEventP
+        self.xcb_poll_for_event.argtypes = (XcbConnectionP,)
+
         # xcb_generic_error_t *xcb_request_check(xcb_connection_t *c, xcb_void_cookie_t cookie);
         self.xcb_request_check: Callable[
             [XcbConnectionP, XcbVoidCookie], XcbGenericEventP,
@@ -1023,7 +1106,10 @@ class LibXcb:
                 self._free(ptr)
                 # ptr.contents = None
             elif isinstance(ptr, (bytes, str, bytearray)):
-                warnings.warn(f"Tried to free a {type(ptr)}")
+                warnings.warn(
+                    f"Tried to free a {type(ptr)}",
+                    stacklevel=2,
+                )
             else:
                 raise ValueError(f'Not a pointer: {ptr} ({type(ptr)})')
 

@@ -56,6 +56,8 @@ class X11Runner:
         if res.has_error:
             return res.forward()
 
+        self.__loop.start()
+
         # Wait for the loop to start.
         end_time = time.time() + 60.0
         while time.time() < end_time and not self.__loop.is_running():

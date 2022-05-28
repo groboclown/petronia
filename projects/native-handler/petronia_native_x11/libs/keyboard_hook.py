@@ -24,7 +24,10 @@ class EwmhCallback(EventCallback):
 def setup_keyboard(hooks: Hooks) -> StdRet[KeyboardAPI]:
     """Set up the keyboard."""
 
+    ret = KeyboardAPI()
+
     # xcb_key_symbols_alloc
     # xkb init
 
-    return StdRet.pass_ok(KeyboardAPI())
+    hooks.add_event_callback(ret.get_event_handler())
+    return StdRet.pass_ok(ret)

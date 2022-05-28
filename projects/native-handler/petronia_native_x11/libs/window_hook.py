@@ -32,7 +32,8 @@ class WindowApi:
         self.__api: Optional[XcbApi] = None
         self.__screen_tree_cookie: Optional[xcb_native.XcbQueryTreeCookie] = None
 
-    def on_server_init(self, xcb: XcbApi) -> StdRet[None]:
+    def on_init_1(self, xcb: XcbApi) -> StdRet[None]:
+        """Initialization phase 1 - screen is grabbed."""
         with self.__lock:
             if self.__api is not None:
                 # Already setup
@@ -44,7 +45,12 @@ class WindowApi:
             self.__screen_tree_cookie = xcb.query_tree(xcb.screen_root)
         return RET_OK_NONE
 
-    def on_shutdown(self, xcb: XcbApi, _timeout: float) -> StdRet[None]:
+    def on_init_2(self, xcb: XcbApi) -> StdRet[None]:
+        """Initialization phase 2 - screen is ungrabbed, haven't captured events yet."""
+        # TODO scan the queried tree.
+        return RET_OK_NONE
+
+    def on_shutdown(self, xcb: XcbApi, timeout: float) -> StdRet[None]:
         """On-shutdown hook"""
         with self.__lock:
             if self.__api is None:
@@ -61,14 +67,6 @@ class WindowApi:
                     new_parent_id=self.__api.screen_root,
                     new_x=window.orig_x, new_y=window.orig_y,
                 )
-
-            # Save the order of windows
-            self.__api.change_window_property_uint32(
-                mode=PROPERTY_MODE__REPLACE, window_id=None,
-                property_atom=xcb.atoms.PETRONIA_CLIENT_ORDER,
-                property_type=xcb_native.XCB_ATOM_WINDOW,
-                ctypes_data=win_ids,
-            )
 
             self.__managed_windows.clear()
 
@@ -91,9 +89,11 @@ class EwmhCallback(EventCallback):
 def setup_windows(hooks: Hooks) -> StdRet[WindowApi]:
     """Set up the events."""
     ret = WindowApi()
-    hooks.add_initializer(ret.on_server_init)
+    hooks.add_screen_initializer(ret.on_init_1)
+    hooks.add_pre_event_initializer(ret.on_init_2)
     hooks.add_shutdown(ret.on_shutdown)
 
     # TODO add event hooks for window events.
 
+    hooks.add_event_callback(ret.get_event_handler())
     return StdRet.pass_ok(ret)

@@ -25,6 +25,8 @@ class EwmhCallback(EventCallback):
 def setup_ewmh(hooks: Hooks) -> StdRet[EwmhApi]:
     """Set up ewmh."""
 
-    # ewmh init
+    ret = EwmhApi()
+    # TODO ewmh init
 
-    return StdRet.pass_ok(EwmhApi())
+    hooks.add_event_callback(ret.get_event_handler())
+    return StdRet.pass_ok(ret)

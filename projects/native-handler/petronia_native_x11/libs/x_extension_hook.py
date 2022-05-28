@@ -23,10 +23,12 @@ class EwmhCallback(EventCallback):
 
 def setup_x_ext(hooks: Hooks) -> StdRet[XExtensionApi]:
     """Set up the extensions."""
+    ret = XExtensionApi()
 
     # check for each needed extension
     #  - xtest
     #  - shape
     #  - xfixes
 
-    return StdRet.pass_ok(XExtensionApi())
+    hooks.add_event_callback(ret.get_event_handler())
+    return StdRet.pass_ok(ret)
