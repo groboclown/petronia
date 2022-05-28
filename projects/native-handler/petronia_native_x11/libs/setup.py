@@ -7,7 +7,7 @@ from .event_handler import EventHandlerLoop
 from .hook_manager import HookManager
 from .ewmh_hook import setup_ewmh, EwmhApi
 from .dbus_hook import setup_dbus, DbusApi
-from .graphics_hook import setup_grapics_context, GraphicsContextApi
+from .pui_hook import setup_petronia_ui, PetroniaUiApi
 from .keyboard_hook import setup_keyboard, KeyboardAPI
 from .screens_hook import setup_screens, ScreenApi
 from .window_hook import setup_windows, WindowApi
@@ -28,7 +28,7 @@ class X11Access:
             dbus: DbusApi,
             events: EventHandlerLoop,
             ewmh: EwmhApi,
-            gc: GraphicsContextApi,
+            gc: PetroniaUiApi,
             keys: KeyboardAPI,
             windows: WindowApi,
             screens: ScreenApi,
@@ -88,7 +88,7 @@ def setup_x11(
     if ewmh_res.has_error:
         return ewmh_res.forward()
 
-    gc_res = setup_grapics_context(hook_manager.for_hook())
+    gc_res = setup_petronia_ui(hook_manager.for_hook())
     if gc_res.has_error:
         return gc_res.forward()
 

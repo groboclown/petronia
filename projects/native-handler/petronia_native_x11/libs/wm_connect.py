@@ -7,7 +7,7 @@ from petronia_common.util import T, StdRet, RET_OK_NONE
 from petronia_common.util import i18n as _
 from petronia_native.common import user_messages
 from .api import XcbApi
-from .event_handler import EventHandlerLoop
+from .event_handler import setup_event_listener_with_screen, EventHandlerLoop
 from .xcb import xcb_native as nat
 from .xcb.xcb_atoms import AtomDef, initialize_atoms
 from .xcb.util import as_py_int, as_uint8, as_uint16
@@ -26,7 +26,7 @@ class WmConnectionData:
         'default_depth', 'default_colormap', 'atoms',
         'cursor_context', 'timestamp', 'default_screen',
         'default_depth_raw', 'selection_atom', 'selection_owner_window',
-        'pending_events',
+        'pending_events', 'no_focus_window', 'graphics_context',
     )
 
     def __init__(self) -> None:
@@ -45,6 +45,8 @@ class WmConnectionData:
         self.selection_atom: Optional[nat.XcbAtom] = None
         self.selection_owner_window: Optional[nat.XcbWindow] = None
         self.pending_events: List[nat.XcbGenericEventP] = []
+        self.no_focus_window: Optional[nat.XcbWindow] = None
+        self.graphics_context: Optional[nat.XcbGContext] = None
 
     def close(self, res: StdRet[T]) -> StdRet:
         """Close any open connections."""
@@ -136,12 +138,20 @@ def connect_as_window_manager(
 
     cxt.lib.xcb_prefetch_maximum_request_length(_req(cxt.conn))
 
+    no_res = _create_no_focus_window(cxt)
+    if no_res.has_error:
+        return cxt.close(no_res)
+
     xcb_api = cxt.create_api()
 
     for callback in on_server_init:
         no_res = callback(xcb_api)
         if no_res.has_error:
             return cxt.close(no_res)
+
+    no_res = setup_event_listener_with_screen(xcb_api)
+    if no_res.has_error:
+        return cxt.close(no_res)
 
     cxt.lib.xcb_ungrab_server(_req(cxt.conn))
 
@@ -504,7 +514,7 @@ def _with_timestamp(cxt: WmConnectionData) -> StdRet[None]:
     lib.xcb_grab_server(conn)
     property_data = _PropertyDataType(nat.XCB_EVENT_MASK_PROPERTY_CHANGE__u32)
     lib.xcb_change_window_attributes(
-        conn, screen.contents.root, nat.XCB_CW_EVENT_MASK,
+        conn, screen.contents.root, nat.XCB_CW_EVENT_MASK_uint32,
         ctypes.cast(ctypes.byref(property_data), ctypes.c_void_p),
     )
     lib.xcb_change_property(
@@ -515,7 +525,7 @@ def _with_timestamp(cxt: WmConnectionData) -> StdRet[None]:
     property_data = _PropertyDataType(0)
     lib.xcb_change_window_attributes(
         conn, screen.contents.root,
-        nat.XCB_CW_EVENT_MASK,
+        nat.XCB_CW_EVENT_MASK_uint32,
         ctypes.cast(ctypes.byref(property_data), ctypes.c_void_p),
     )
     lib.xcb_ungrab_server(conn)
@@ -548,7 +558,7 @@ def _become_window_manager(cxt: WmConnectionData) -> StdRet[None]:
 
     select_input_val = nat.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT__u32
     cookie = cxt.lib.xcb_change_window_attributes_checked(
-        conn, screen.contents.root, nat.XCB_CW_EVENT_MASK,
+        conn, screen.contents.root, nat.XCB_CW_EVENT_MASK_uint32,
         ctypes.cast(ctypes.byref(select_input_val), ctypes.c_void_p),
     )
     err = cxt.lib.xcb_request_check(conn, cookie)
@@ -557,6 +567,64 @@ def _become_window_manager(cxt: WmConnectionData) -> StdRet[None]:
             user_messages.TRANSLATION_CATALOG,
             _('Cannot select substructure redirect; e.g. another window manager is running'),
         )
+    return RET_OK_NONE
+
+
+def _create_no_focus_window(cxt: WmConnectionData) -> StdRet[None]:
+    """Create a window to capture events when nothing else has focus.
+
+    This also grabs a default GC with the default depth."""
+    conn = _req(cxt.conn)
+    screen = _req(cxt.screen)
+    visual = _req(cxt.visual)
+
+    no_focus_window = cxt.lib.xcb_generate_id(conn)
+    cxt.no_focus_window = no_focus_window
+    gc = cxt.lib.xcb_generate_id(conn)
+    cxt.graphics_context = gc
+
+    value_list_type = ctypes.c_uint32 * 4
+    cxt.lib.xcb_create_window(
+        # connection, depth, wid, parent
+        conn, cxt.default_depth_raw, no_focus_window, screen.contents.root,
+
+        # x, y, width, height, border_width
+        ctypes.c_int16(-1), ctypes.c_int16(-1), ctypes.c_uint16(1), ctypes.c_uint16(1),
+        ctypes.c_uint16(0),
+
+        # class, visual
+        nat.XCB_COPY_FROM_PARENT, visual.contents.visual_id,
+
+        # value mask
+        ctypes.c_int32(
+                nat.XCB_CW_BACK_PIXEL | nat.XCB_CW_BORDER_PIXEL
+                | nat.XCB_CW_OVERRIDE_REDIRECT | nat.XCB_CW_COLORMAP
+        ),
+
+        # value list
+        ctypes.cast(
+            value_list_type(
+                screen.contents.white_pixel,
+                screen.contents.black_pixel,
+                1,
+                cxt.default_colormap,
+            ),
+            ctypes.c_void_p,
+        ),
+    )
+    _set_xwindow_petronia_class_instance(cxt.lib, conn, no_focus_window)
+    _set_xwindow_name(cxt.lib, conn, no_focus_window, ctypes.c_char_p(b'Petronia Non Focus'))
+    cxt.lib.xcb_map_window(conn, no_focus_window)
+    gc_val_list_type = ctypes.c_uint32 * 2
+    cxt.lib.xcb_create_gc(
+        conn, gc, no_focus_window,
+        nat.XCB_GC_FOREGROUND | nat.XCB_GC_BACKGROUND,
+        ctypes.cast(
+            gc_val_list_type(screen.contents.black_pixel, screen.contents.white_pixel),
+            ctypes.c_void_p,
+        ),
+    )
+
     return RET_OK_NONE
 
 

@@ -5,7 +5,7 @@ import ctypes
 import threading
 from concurrent.futures import Future, Executor, ThreadPoolExecutor
 from queue import Queue, Empty
-from petronia_common.util import StdRet, T
+from petronia_common.util import StdRet, RET_OK_NONE, T
 from petronia_native.common import user_messages
 from .api import XcbApi
 from .xcb import xcb_native
@@ -241,13 +241,6 @@ class EventHandlerLoop:
             self.__state = 'running'
         user_messages.low_println("Running X Server Event Loop")
 
-        # Setup events to listen to on the root window.
-        self.__api.change_window_attributes(
-            window_id=self.__api.screen_root,
-            value_mask=xcb_native.XCB_CW_EVENT_MASK,
-            value_list=(ROOT_WINDOW_EVENT_MASK,),
-        )
-
         while True:
             stop_now = False
             with self.__lock:
@@ -319,3 +312,13 @@ class EventHandlerLoop:
         with self.__lock:
             self.__state = 'stopped'
         user_messages.low_println("X Loop Stopped")
+
+
+def setup_event_listener_with_screen(api: XcbApi) -> StdRet[None]:
+    # Setup events to listen to on the root window.
+    api.change_window_attributes(
+        window_id=api.screen_root,
+        value_mask=xcb_native.XCB_CW_EVENT_MASK_uint32,
+        value_list=(ROOT_WINDOW_EVENT_MASK,),
+    )
+    return RET_OK_NONE

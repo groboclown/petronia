@@ -35,11 +35,17 @@ XcbAtom = ctypes.c_uint32
 # typedef uint32_t xcb_drawable_t;
 XcbDrawable = ctypes.c_uint32
 
+# typedef uint32_t xcb_gcontext_t;
+XcbGContext = ctypes.c_uint32
+
 # typedef uint32_t xcb_pixmap_t;
 XcbPixmap = ctypes.c_uint32
 
 # typedef uint32_t xcb_timestamp_t;
 XcbTimestamp = ctypes.c_uint32
+
+# typedef uint8_t xcb_button_t;
+XcbButton = ctypes.c_uint8
 
 
 class XcbConnection(ctypes.Structure):
@@ -263,6 +269,9 @@ class XcbKeyPressEvent(ctypes.Structure):
 
 
 XcbKeyPressEventP = ctypes.POINTER(XcbKeyPressEvent)
+# typedef xcb_key_press_event_t xcb_key_release_event_t;
+XcbKeyReleaseEvent = XcbKeyPressEvent
+XcbKeyReleaseEventP = ctypes.POINTER(XcbKeyReleaseEvent)
 
 
 class XcbClientMessageEvent(ctypes.Structure):
@@ -309,6 +318,102 @@ class XcbPropertyNotifyEvent(ctypes.Structure):
 
 
 XcbPropertyNotifyEventP = ctypes.POINTER(XcbPropertyNotifyEvent)
+
+
+class XcbExposeEvent(ctypes.Structure):
+    """xcb_expose_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('window', XcbWindow),
+        ('x', ctypes.c_uint16),
+        ('y', ctypes.c_uint16),
+        ('width', ctypes.c_uint16),
+        ('height', ctypes.c_uint16),
+        ('x', ctypes.c_uint16),
+        ('count', ctypes.c_uint16),
+        ('pad1', ctypes.c_uint8 * 2),
+    ]
+
+
+XcbExposeEventP = ctypes.POINTER(XcbExposeEvent)
+
+
+class XcbButtonPressEvent(ctypes.Structure):
+    """xcb_button_press_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('detail', XcbButton),
+        ('sequence', ctypes.c_uint16),
+        ('time', XcbTimestamp),
+        ('root', XcbWindow),
+        ('event', XcbWindow),
+        ('child', XcbWindow),
+        ('root_x', ctypes.c_int16),
+        ('root_y', ctypes.c_int16),
+        ('event_x', ctypes.c_int16),
+        ('event_y', ctypes.c_int16),
+        ('state', ctypes.c_uint16),
+        ('same_screen', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+    ]
+
+
+XcbButtonPressEventP = ctypes.POINTER(XcbButtonPressEvent)
+# typedef xcb_button_press_event_t xcb_button_release_event_t;
+XcbButtonReleaseEvent = XcbButtonPressEvent
+XcbButtonReleaseEventP = ctypes.POINTER(XcbButtonReleaseEvent)
+
+
+class XcbMotionNotifyEvent(ctypes.Structure):
+    """xcb_motion_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('detail', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('time', XcbTimestamp),
+        ('root', XcbWindow),
+        ('event', XcbWindow),
+        ('child', XcbWindow),
+        ('root_x', ctypes.c_int16),
+        ('root_y', ctypes.c_int16),
+        ('event_x', ctypes.c_int16),
+        ('event_y', ctypes.c_int16),
+        ('state', ctypes.c_uint16),
+        ('same_screen', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+    ]
+
+
+XcbMotionNotifyEventP = ctypes.POINTER(XcbMotionNotifyEvent)
+
+
+class XcbEnterNotifyEvent(ctypes.Structure):
+    """xcb_enter_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('detail', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('time', XcbTimestamp),
+        ('root', XcbWindow),
+        ('event', XcbWindow),
+        ('child', XcbWindow),
+        ('root_x', ctypes.c_int16),
+        ('root_y', ctypes.c_int16),
+        ('event_x', ctypes.c_int16),
+        ('event_y', ctypes.c_int16),
+        ('state', ctypes.c_uint16),
+        ('mode', ctypes.c_uint8),
+        ('same_screen', ctypes.c_uint8),
+    ]
+
+
+XcbEnterNotifyEventP = ctypes.POINTER(XcbEnterNotifyEvent)
+
+# typedef xcb_enter_notify_event_t xcb_leave_notify_event_t;
+XcbLeaveNotifyEvent = XcbEnterNotifyEvent
+XcbLeaveNotifyEventP = ctypes.POINTER(XcbLeaveNotifyEvent)
 
 
 class XcbGetGeometryReply(ctypes.Structure):
@@ -402,14 +507,40 @@ XCB_COLORMAP_ALLOC_NONE: ctypes.c_uint8 = ctypes.c_uint8(0)
 XCB_COLORMAP_ALLOC_ALL: ctypes.c_uint8 = ctypes.c_uint8(1)
 NULL = ctypes.c_void_p(None)
 NULL_c_char_p = ctypes.cast(NULL, ctypes.POINTER(ctypes.c_char))
+NULL_uint = ctypes.cast(NULL, ctypes.POINTER(ctypes.c_uint))
+NULL_int = ctypes.cast(NULL, ctypes.POINTER(ctypes.c_int))
 NULL_XcbGenericErrorPP = ctypes.cast(NULL, XcbGenericErrorPP)
 # CAIRO_STATUS_SUCCESS: CairoStatus = ctypes.c_int(0)
 CAIRO_STATUS_SUCCESS = 0
+
+XCB_WINDOW_CLASS_COPY_FROM_PARENT = 0
+XCB_WINDOW_CLASS_INPUT_OUTPUT = 1
+XCB_WINDOW_CLASS_INPUT_ONLY = 2
+
 XCB_COPY_FROM_PARENT = ctypes.c_uint16(0)
+
 XCB_NONE = XcbWindow(0)
 XCB_GET_PROPERTY_TYPE_ANY = XcbAtom(0)
 
-XCB_CW_EVENT_MASK = ctypes.c_uint32(2048)
+XCB_CW_BACK_PIXMAP = 1
+XCB_CW_BACK_PIXEL = 2
+XCB_CW_BORDER_PIXMAP = 4
+XCB_CW_BORDER_PIXEL = 8
+XCB_CW_BIT_GRAVITY = 16
+XCB_CW_WIN_GRAVITY = 32
+XCB_CW_BACKING_STORE = 64
+XCB_CW_BACKING_PLANES = 128
+XCB_CW_BACKING_PIXEL = 256
+XCB_CW_OVERRIDE_REDIRECT = 512
+XCB_CW_SAVE_UNDER = 1024
+XCB_CW_EVENT_MASK = 2048
+XCB_CW_DONT_PROPAGATE = 4096
+XCB_CW_COLORMAP = 8192
+XCB_CW_CURSOR = 16384
+
+XCB_CW_EVENT_MASK_uint32 = ctypes.c_uint32(XCB_CW_EVENT_MASK)
+
+
 XCB_EVENT_RESPONSE_TYPE_MASK = 0x7f
 
 XCB_EVENT_MASK_NO_EVENT__i = 0
@@ -574,6 +705,45 @@ XCB_ATOM_WM_TRANSIENT_FOR = XcbAtom(68)
 
 XCB_INPUT_FOCUS_POINTER_ROOT = ctypes.c_uint8(1)
 
+XCB_GC_FUNCTION = 1
+XCB_GC_PLANE_MASK = 2
+XCB_GC_FOREGROUND = 4
+XCB_GC_BACKGROUND = 8
+XCB_GC_LINE_WIDTH = 16
+XCB_GC_LINE_STYLE = 32
+XCB_GC_CAP_STYLE = 64
+XCB_GC_JOIN_STYLE = 128
+XCB_GC_FILL_STYLE = 256
+XCB_GC_FILL_RULE = 512
+XCB_GC_TILE = 1024
+XCB_GC_STIPPLE = 2048
+XCB_GC_TILE_STIPPLE_ORIGIN_X = 4096
+XCB_GC_TILE_STIPPLE_ORIGIN_Y = 8192
+XCB_GC_FONT = 16384
+XCB_GC_SUBWINDOW_MODE = 32768
+XCB_GC_GRAPHICS_EXPOSURES = 65536
+XCB_GC_CLIP_ORIGIN_X = 131072
+XCB_GC_CLIP_ORIGIN_Y = 262144
+XCB_GC_CLIP_MASK = 524288
+XCB_GC_DASH_OFFSET = 1048576
+XCB_GC_DASH_LIST = 2097152
+XCB_GC_ARC_MODE = 4194304
+
+# Key / Button masks
+XCB_KEY_BUT_MASK_SHIFT = 1
+XCB_KEY_BUT_MASK_LOCK = 2
+XCB_KEY_BUT_MASK_CONTROL = 4
+XCB_KEY_BUT_MASK_MOD_1 = 8
+XCB_KEY_BUT_MASK_MOD_2 = 16
+XCB_KEY_BUT_MASK_MOD_3 = 32
+XCB_KEY_BUT_MASK_MOD_4 = 64
+XCB_KEY_BUT_MASK_MOD_5 = 128
+XCB_KEY_BUT_MASK_BUTTON_1 = 256
+XCB_KEY_BUT_MASK_BUTTON_2 = 512
+XCB_KEY_BUT_MASK_BUTTON_3 = 1024
+XCB_KEY_BUT_MASK_BUTTON_4 = 2048
+XCB_KEY_BUT_MASK_BUTTON_5 = 4096
+
 
 class LibXcb:
     """The library of functions."""
@@ -584,7 +754,7 @@ class LibXcb:
         'xcb_depth_visuals_iterator', 'xcb_visualtype_next',
         'xcb_generate_id', 'xcb_free_pixmap', 'xcb_create_pixmap',
         'xcb_create_colormap', 'xcb_prefetch_extension_data',
-        'xcb_create_window',
+        'xcb_create_window', 'xcb_map_window', 'xcb_create_gc',
         'xcb_intern_atom_unchecked', 'xcb_intern_atom_reply',
         'xcb_get_selection_owner', 'xcb_get_selection_owner_reply',
         'xcb_set_selection_owner',
@@ -780,6 +950,24 @@ class LibXcb:
             ctypes.c_uint16, ctypes.c_uint16,
             XcbVisualid, ctypes.c_int32,
             ctypes.c_void_p,
+        )
+
+        self.xcb_map_window: Callable[
+            [XcbConnectionP, XcbWindow], XcbVoidCookie,
+        ] = xcb.xcb_map_window
+        self.xcb_map_window.restype = XcbVoidCookie
+        self.xcb_map_window.argtypes = (XcbConnectionP, XcbWindow)
+
+        # connection, context id, drawable, value mask, value list -> cookie
+        self.xcb_create_gc: Callable[
+            [
+                XcbConnectionP, XcbGContext, XcbDrawable, ctypes.c_uint32, ctypes.c_void_p,
+            ],
+            XcbVoidCookie,
+        ] = xcb.xcb_create_gc
+        self.xcb_create_gc.restype = XcbVoidCookie
+        self.xcb_create_gc.argtypes = (
+            XcbConnectionP, XcbGContext, XcbDrawable, ctypes.c_uint32, ctypes.c_void_p,
         )
 
         # connection, only_if_exists, name_len, name -> atom

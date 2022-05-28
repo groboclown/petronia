@@ -1,9 +1,10 @@
 """ctypes utility functions."""
+
 from types import TracebackType
-from typing import Callable, Generic, Type, Union, Optional
+from typing import Sequence, Callable, Generic, Type, Union, Optional
 import ctypes
-import contextlib
 from petronia_common.util import T
+
 
 CtypeInt = Union[
     int,
@@ -21,18 +22,30 @@ def as_py_int(val: CtypeInt) -> int:
 
 
 def as_uint8(val: CtypeInt) -> ctypes.c_uint8:
-    """convert a c_int into a c_uint8"""
+    """convert an int type into a c_uint8"""
     return ctypes.c_uint8(as_py_int(val))
 
 
 def as_uint16(val: CtypeInt) -> ctypes.c_uint16:
-    """convert a c_int into a c_uint8"""
+    """convert an int type into a c_uint16"""
+    return ctypes.c_uint16(as_py_int(val))
+
+
+def as_uint32(val: CtypeInt) -> ctypes.c_uint16:
+    """convert an in type into a c_uint32"""
     return ctypes.c_uint16(as_py_int(val))
 
 
 def as_uint(val: CtypeInt) -> ctypes.c_uint:
-    """convert a c_int into a c_uint8"""
+    """convert an int type into a c_uint"""
     return ctypes.c_uint(as_py_int(val))
+
+
+def as_uint32_list(*items: ctypes.c_uint32) -> ctypes.c_void_p:
+    """Create an array of c_uint32 values"""
+    ret_type = ctypes.c_uint32 * len(items)
+    ret_val = ret_type(*items)
+    return ctypes.cast(ret_val, ctypes.c_void_p)
 
 
 class EnterExit(Generic[T]):
