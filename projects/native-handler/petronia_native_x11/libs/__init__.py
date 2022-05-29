@@ -19,6 +19,21 @@ General conventions:
       are the null aliases, which should be "NULL__type_name"
 """
 
+from . import libc
+from .xcb_library import xcb_types as libxcb_types
+from .xcb_library import xcb as libxcb
+from .xcb_library import xcb_consts as libxcb_consts
+from .xcb_library import xcb_atoms, atomlist
+from . import libcairo_types, libcairo, libcairo_consts
+from . import libxcb_cursor_types, libxcb_cursor
+from . import libxcb_icccm
+from . import libxcb_randr
+from . import libxcb_shape
+from . import libxcb_util
+from . import libxcb_xfixes
+from . import libxcb_xinerama
+from . import libxcb_xtest
+
 
 """
 Example of how to find functions and static constants in libraries.

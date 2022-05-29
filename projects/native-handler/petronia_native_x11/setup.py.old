@@ -1,4 +1,12 @@
-"""Set up the extension for running."""
+"""Set up the extension for running.
+
+There are 4 stages for setup:
+
+1. boot - called with the basic libraries.
+2. with-screen - called when the screen is grabbed and the connection
+    is established as a window manager.
+3. pre-events - called after the screen is released, and before the event loop starts.
+"""
 
 from typing import Optional
 import time
@@ -9,7 +17,6 @@ from petronia_native.common import handlers, user_messages
 from petronia_native.common.events.impl import screen as screen_event
 from .datastore.petronia_native_x11 import ConfigurationState
 from . import configuration
-from .libs.setup import setup_x11, X11Access
 from .pet_evt.setup import setup_petronia_events, PetroniaEventHandlers
 
 

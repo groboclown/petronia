@@ -4,7 +4,7 @@ from typing import List, Sequence, Callable
 import ctypes
 from petronia_common.util import PetroniaReturnError, StdRet, T
 from . import ct_util
-from .libxcb import xcb
+from .xcb_library import xcb_types
 
 
 class LibXcbIcccm:
@@ -20,29 +20,29 @@ class LibXcbIcccm:
         self._setup_res(xcb_icccm_res)
 
         self.xcb_icccm_set_wm_class: Callable[
-            [xcb_native.XcbConnectionP, xcb_native.XcbWindow, ctypes.c_uint32, ctypes.c_char_p],
-            xcb_native.XcbVoidCookie,
+            [xcb_types.XcbConnectionP, xcb_types.XcbWindow, ctypes.c_uint32, ctypes.c_char_p],
+            xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
             self.__problems, xcb_icccm_res, 'xcb_icccm_set_wm_class',
-            returns=xcb_native.XcbVoidCookie,
-            connection=xcb_native.XcbConnectionP,
-            window=xcb_native.XcbWindow,
+            returns=xcb_types.XcbVoidCookie,
+            connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
             class_name_length=ctypes.c_uint32,
             class_name=ctypes.c_char_p,
         )
 
         self.xcb_icccm_set_wm_name: Callable[
             [
-                xcb_native.XcbConnectionP, xcb_native.XcbWindow, xcb_native.XcbAtom,
+                xcb_types.XcbConnectionP, xcb_types.XcbWindow, xcb_types.XcbAtom,
                 ctypes.c_uint8, ctypes.c_uint32, ctypes.c_char_p,
             ],
-            xcb_native.XcbVoidCookie,
+            xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
             self.__problems, xcb_icccm_res, 'xcb_icccm_set_wm_name',
-            returns=xcb_native.XcbVoidCookie,
-            connection=xcb_native.XcbConnectionP,
-            window=xcb_native.XcbWindow,
-            encoding=xcb_native.XcbAtom,
+            returns=xcb_types.XcbVoidCookie,
+            connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+            encoding=xcb_types.XcbAtom,
             format=ctypes.c_uint8,
             name_length=ctypes.c_uint32,
             name=ctypes.c_char_p,

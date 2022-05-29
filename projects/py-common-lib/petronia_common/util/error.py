@@ -185,13 +185,34 @@ class StdRet(Generic[T_co]):
     @final
     def forward(self) -> StdRet[V]:
         """Forward this error as another type.  It doesn't allocate a
-        new value.  This can ONLY be used if the value is known to be None."""
-        assert self.__value is None
+        new value.  This can ONLY be used if this is an error."""
+        assert self.__error is not None
 
         # This does not count as checking for an error, because the returned
         # value is "self", which must still be checked.
 
         return cast(StdRet[V], self)
+
+    @final
+    def map_static(self, other: V) -> StdRet[V]:
+        """Similar to forward, but use the given value if this result is okay."""
+        if self.__error:
+            # This does not count as checking for an error, because the returned
+            # value is "self", which must still be checked.
+            return cast(StdRet[V], self)
+        self.__checked_error = True
+        return StdRet(error=None, value=other)
+
+    @final
+    def map(self, callback: Callable[[T_co], V]) -> StdRet[V]:
+        """If everything is fine, call the callback with the current value, and it
+        maps that value to another (not StdRet) value."""
+        if self.__error:
+            # This does not count as checking for an error, because the returned
+            # value is "self", which must still be checked.
+            return cast(StdRet[V], self)
+        self.__checked_error = True
+        return StdRet(error=None, value=callback(self.__value))
 
     @property
     @final

@@ -4,7 +4,7 @@ from typing import List, Sequence, Callable
 import ctypes
 from petronia_common.util import PetroniaReturnError, StdRet, T
 from . import ct_util
-from .libxcb import xcb as nat
+from .xcb_library import xcb_types
 
 
 class LibXcbUtil:
@@ -22,11 +22,11 @@ class LibXcbUtil:
         self._setup_res(xcb_util_res)
 
         self.xcb_aux_get_screen: Callable[
-            [nat.XcbConnectionP, ctypes.c_int], nat.XcbScreenP,
+            [xcb_types.XcbConnectionP, ctypes.c_int], xcb_types.XcbScreenP,
         ] = ct_util.as_typed_call(
             self.__problems, xcb_util_res, 'xcb_aux_get_screen',
-            returns=nat.XcbScreenP,
-            connection=nat.XcbConnectionP,
+            returns=xcb_types.XcbScreenP,
+            connection=xcb_types.XcbConnectionP,
             screen_number=ctypes.c_int,
         )
 
@@ -40,11 +40,11 @@ class LibXcbUtil:
         )
 
         self.xcb_aux_sync: Callable[
-            [nat.XcbConnectionP], None
+            [xcb_types.XcbConnectionP], None
         ] = ct_util.as_typed_call(
             self.__problems, xcb_util_res, 'xcb_aux_sync',
             returns=None,
-            connection=nat.XcbConnectionP,
+            connection=xcb_types.XcbConnectionP,
         )
 
     @property

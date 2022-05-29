@@ -4,7 +4,7 @@ from typing import List, Sequence, Callable
 import ctypes
 from petronia_common.util import PetroniaReturnError, StdRet, T
 from . import ct_util
-from .libxcb import xcb
+from .xcb_library import xcb_types
 
 
 class LibXcbXFixes:
@@ -21,7 +21,7 @@ class LibXcbXFixes:
 
         self.xcb_xfixes_id = ct_util.as_library_extern(
             self.__problems, xcb_xfixes_res, 'xcb_xfixes_id',
-            xcb_native.XcbExtensionP,
+            xcb_types.XcbExtensionP,
         )
 
     @property

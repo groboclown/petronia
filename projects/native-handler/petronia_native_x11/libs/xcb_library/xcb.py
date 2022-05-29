@@ -11,7 +11,7 @@ https://xcb.freedesktop.org/manual/xproto_8h_source.html
 https://xcb.freedesktop.org/manual/xcb_8h_source.html
 """
 
-from typing import Sequence, Callable
+from typing import Sequence, List, Callable
 from typing import cast as t_cast
 import ctypes
 from petronia_common.util import PetroniaReturnError, StdRet, T
@@ -51,6 +51,7 @@ class LibXcb:
     )
 
     def __init__(self) -> None:
+        self.__problems: List[PetroniaReturnError] = []
         xcb_res = ct_util.load_lib('libxcb.so.1')
         self.xcb_connect: Callable[
             [ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)], xcb_types.XcbConnectionP,
@@ -166,8 +167,6 @@ class LibXcb:
             pixmap=xcb_types.XcbPixmap,
         )
 
-        # connection, depth, wid, parent, x, y, width, height,
-        # border_width, class, _visual, value_mask, *value_list
         self.xcb_create_window: Callable[
             [
                 xcb_types.XcbConnectionP, ctypes.c_uint8,
@@ -182,27 +181,43 @@ class LibXcb:
             self.__problems, xcb_res, 'xcb_create_window',
             returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
-            xxx
+            depth=ctypes.c_uint8,
+            window=xcb_types.XcbWindow,
+            parent=xcb_types.XcbWindow,
+            x=ctypes.c_int16,
+            y=ctypes.c_int16,
+            width=ctypes.c_uint16,
+            height=ctypes.c_uint16,
+            border_width=ctypes.c_uint16,
+            window_class=ctypes.c_uint16,
+            visual=xcb_types.XcbVisualid,
+            value_mask=ctypes.c_int32,
+            value_list=ctypes.c_void_p,
         )
 
         self.xcb_map_window: Callable[
             [xcb_types.XcbConnectionP, xcb_types.XcbWindow], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_map_window',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
         )
 
-        # connection, context id, drawable, value mask, value list -> cookie
         self.xcb_create_gc: Callable[
             [
-                xcb_types.XcbConnectionP, xcb_types.XcbGContext, xcb_types.XcbDrawable, ctypes.c_uint32, ctypes.c_void_p,
+                xcb_types.XcbConnectionP, xcb_types.XcbGContext,
+                xcb_types.XcbDrawable, ctypes.c_uint32, ctypes.c_void_p,
             ],
-            XcbVoidCookie,
+            xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_create_gc',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            context_id=xcb_types.XcbGContext,
+            drawable=xcb_types.XcbDrawable,
+            value_mask=ctypes.c_uint32,
+            value_list=ctypes.c_void_p,
         )
 
         # connection, only_if_exists, name_len, name -> atom
@@ -210,241 +225,317 @@ class LibXcb:
             [xcb_types.XcbConnectionP, ctypes.c_uint8, ctypes.c_uint16, ctypes.c_char_p],
             xcb_types.XcbInternAtomCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_intern_atom_unchecked',
+            returns=xcb_types.XcbInternAtomCookie,
             connection=xcb_types.XcbConnectionP,
+            only_if_exists=ctypes.c_uint8,
+            name_len=ctypes.c_uint16,
+            name=ctypes.c_char_p,
         )
 
         self.xcb_intern_atom_reply: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbInternAtomCookie, xcb_types.XcbGenericErrorPP], xcb_types.XcbInternAtomReplyP,
+            [xcb_types.XcbConnectionP, xcb_types.XcbInternAtomCookie, xcb_types.XcbGenericErrorPP],
+            xcb_types.XcbInternAtomReplyP,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_intern_atom_reply',
+            returns=xcb_types.XcbInternAtomReplyP,
             connection=xcb_types.XcbConnectionP,
+            request_cookie=xcb_types.XcbInternAtomCookie,
+            error=xcb_types.XcbGenericErrorPP,
         )
 
         self.xcb_get_selection_owner: Callable[
             [xcb_types.XcbConnectionP, xcb_types.XcbAtom], xcb_types.XcbGetSelectionOwnerCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_selection_owner',
+            returns=xcb_types.XcbGetSelectionOwnerCookie,
             connection=xcb_types.XcbConnectionP,
+            selection=xcb_types.XcbAtom,
         )
 
         self.xcb_get_selection_owner_reply: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbGetSelectionOwnerCookie, xcb_types.XcbGenericErrorPP],
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbGetSelectionOwnerCookie,
+                xcb_types.XcbGenericErrorPP,
+            ],
             xcb_types.XcbGetSelectionOwnerReplyP,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_selection_owner_reply',
+            returns=xcb_types.XcbGetSelectionOwnerReplyP,
             connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbGetSelectionOwnerCookie,
+            error=xcb_types.XcbGenericErrorPP,
         )
 
         self.xcb_set_selection_owner: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbWindow, xcb_types.XcbAtom, xcb_types.XcbTimestamp], xcb_types.XcbVoidCookie,
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbWindow, xcb_types.XcbAtom,
+                xcb_types.XcbTimestamp,
+            ], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_set_selection_owner',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            owner=xcb_types.XcbWindow,
+            selection=xcb_types.XcbAtom,
+            time=xcb_types.XcbTimestamp,
         )
 
         self.xcb_get_geometry: Callable[
             [xcb_types.XcbConnectionP, xcb_types.XcbDrawable], xcb_types.XcbGetGeometryCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_geometry',
+            returns=xcb_types.XcbGetGeometryCookie,
             connection=xcb_types.XcbConnectionP,
+            drawable=xcb_types.XcbDrawable,
         )
 
         self.xcb_get_geometry_reply: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbGetGeometryCookie, xcb_types.XcbGenericErrorPP], xcb_types.XcbGetGeometryReplyP,
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbGetGeometryCookie,
+                xcb_types.XcbGenericErrorPP,
+            ], xcb_types.XcbGetGeometryReplyP,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_geometry_reply',
+            returns=xcb_types.XcbGetGeometryReplyP,
             connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbGetGeometryCookie,
+            error=xcb_types.XcbGenericErrorPP,
         )
 
         self.xcb_setup_roots_iterator: Callable[
             [xcb_types.XcbSetupP], xcb_types.XcbScreenIterator,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_setup_roots_iterator',
+            returns=xcb_types.XcbScreenIterator,
+            setup=xcb_types.XcbSetupP,
         )
 
         self.xcb_get_setup: Callable[
             [xcb_types.XcbConnectionP], xcb_types.XcbSetupP
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_setup',
+            returns=xcb_types.XcbSetupP,
             connection=xcb_types.XcbConnectionP,
         )
 
-        # connection, _delete, window, property, type, long_offset, long_length -> cookie
         self.xcb_get_property: Callable[
             [
                 xcb_types.XcbConnectionP, ctypes.c_uint8, xcb_types.XcbWindow, xcb_types.XcbAtom,
                 xcb_types.XcbAtom, ctypes.c_uint32, ctypes.c_uint32,
             ], xcb_types.XcbGetPropertyCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_property',
+            returns=xcb_types.XcbGetPropertyCookie,
             connection=xcb_types.XcbConnectionP,
+            delete=ctypes.c_uint8,
+            window=xcb_types.XcbWindow,
+            property=xcb_types.XcbAtom,
+            type=xcb_types.XcbAtom,
+            long_offset=ctypes.c_uint32,
+            long_length=ctypes.c_uint32,
         )
 
         self.xcb_get_property_reply: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbGetPropertyCookie, xcb_types.XcbGenericErrorPP], xcb_types.XcbGetPropertyReplyP,
+            [
+                xcb_types.XcbConnectionP,
+                xcb_types.XcbGetPropertyCookie, xcb_types.XcbGenericErrorPP,
+            ], xcb_types.XcbGetPropertyReplyP,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_property_reply',
+            returns=xcb_types.XcbGetPropertyReplyP,
             connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbGetPropertyCookie,
+            error=xcb_types.XcbGenericErrorPP,
         )
 
         self.xcb_get_property_value_length: Callable[
             [xcb_types.XcbGetPropertyReplyP], ctypes.c_int,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_property_value_length',
+            returns=ctypes.c_int,
+            reply=xcb_types.XcbGetPropertyReplyP,
         )
 
-        # void * xcb_get_property_value (const xcb_get_property_reply_t *R);
         self.xcb_get_property_value: Callable[
             [xcb_types.XcbGetPropertyReplyP], ctypes.c_void_p,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_get_property_value',
+            returns=ctypes.c_void_p,
+            reply=xcb_types.XcbGetPropertyReplyP,
         )
 
         # connection, mode, window, property, type, format, data_len, data
         self.xcb_change_property: Callable[
             [
-                xcb_types.XcbConnectionP, ctypes.c_uint8, xcb_types.XcbWindow, xcb_types.XcbAtom, xcb_types.XcbAtom,
+                xcb_types.XcbConnectionP, ctypes.c_uint8, xcb_types.XcbWindow,
+                xcb_types.XcbAtom, xcb_types.XcbAtom,
                 ctypes.c_uint8, ctypes.c_uint32, ctypes.c_void_p,
             ],
             xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_change_property',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            mode=ctypes.c_uint8,
+            window=xcb_types.XcbWindow,
+            property=xcb_types.XcbAtom,
+            type=xcb_types.XcbAtom,
+            format=ctypes.c_uint8,  # number of bits per item in data, either 8, 16, or 32.
+            data_len=ctypes.c_uint32,  # number of elements in the data array, not size.
+            data=ctypes.c_void_p,
         )
 
         self.xcb_change_window_attributes: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbWindow, ctypes.c_uint32, ctypes.c_void_p], xcb_types.XcbVoidCookie,
+            [xcb_types.XcbConnectionP, xcb_types.XcbWindow, ctypes.c_uint32, ctypes.c_void_p],
+            xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_change_window_attributes',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+            value_mask=ctypes.c_uint32,
+            value_list=ctypes.c_void_p,
         )
 
         self.xcb_prefetch_maximum_request_length: Callable[
             [xcb_types.XcbConnectionP], None,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_prefetch_maximum_request_length',
+            returns=None,
             connection=xcb_types.XcbConnectionP,
         )
 
         self.xcb_grab_server: Callable[
             [xcb_types.XcbConnectionP], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_grab_server',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
         )
 
         self.xcb_ungrab_server: Callable[
             [xcb_types.XcbConnectionP], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_ungrab_server',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
         )
 
         # connection, revert_to, focus, time -> cookie
         self.xcb_set_input_focus: Callable[
-            [xcb_types.XcbConnectionP, ctypes.c_uint8, xcb_types.XcbWindow, xcb_types.XcbTimestamp], xcb_types.XcbVoidCookie,
+            [
+                xcb_types.XcbConnectionP, ctypes.c_uint8,
+                xcb_types.XcbWindow, xcb_types.XcbTimestamp,
+            ], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_set_input_focus',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            revert_to=ctypes.c_uint8,
+            focus=xcb_types.XcbWindow,
+            time=xcb_types.XcbTimestamp,
         )
 
         self.xcb_query_tree_unchecked: Callable[
             [xcb_types.XcbConnectionP, xcb_types.XcbWindow], xcb_types.XcbQueryTreeCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_query_tree_unchecked',
+            returns=xcb_types.XcbQueryTreeCookie,
             connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
         )
 
-        # connection, window, parent, x, y -> cookie
         self.xcb_reparent_window: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbWindow, xcb_types.XcbWindow, ctypes.c_int16, ctypes.c_int16], xcb_types.XcbVoidCookie,
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbWindow, xcb_types.XcbWindow,
+                ctypes.c_int16, ctypes.c_int16,
+            ], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_reparent_window',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+            parent=xcb_types.XcbWindow,
+            x=ctypes.c_int16,
+            y=ctypes.c_int16,
         )
 
         self.xcb_flush: Callable[
             [xcb_types.XcbConnectionP], ctypes.c_int,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_flush',
+            returns=ctypes.c_int,
             connection=xcb_types.XcbConnectionP,
         )
 
-        # connection, propagate, destination, event_mask, event -> cookie
         self.xcb_send_event: Callable[
             [
-                xcb_types.XcbConnectionP, ctypes.c_uint8, xcb_types.XcbWindow, ctypes.c_uint32, ctypes.c_char_p,
+                xcb_types.XcbConnectionP, ctypes.c_uint8, xcb_types.XcbWindow,
+                ctypes.c_uint32, ctypes.c_char_p,
             ], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_send_event',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            propagate=ctypes.c_uint8,
+            destination=xcb_types.XcbWindow,
+            event_mask=ctypes.c_uint32,
+            event=ctypes.c_char_p,
         )
 
         self.xcb_wait_for_event: Callable[
             [xcb_types.XcbConnectionP], xcb_types.XcbGenericEventP,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_wait_for_event',
+            returns=xcb_types.XcbGenericEventP,
             connection=xcb_types.XcbConnectionP,
         )
 
         self.xcb_poll_for_event: Callable[
             [xcb_types.XcbConnectionP], xcb_types.XcbGenericEventP,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_poll_for_event',
+            returns=xcb_types.XcbGenericEventP,
             connection=xcb_types.XcbConnectionP,
         )
 
-        # xcb_generic_error_t *xcb_request_check(xcb_connection_t *c, xcb_void_cookie_t cookie);
         self.xcb_request_check: Callable[
             [xcb_types.XcbConnectionP, xcb_types.XcbVoidCookie], xcb_types.XcbGenericEventP,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_request_check',
+            returns=xcb_types.XcbGenericEventP,
             connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbVoidCookie,
         )
 
-        # connection, window, value_mask, value_list -> cookie
         self.xcb_change_window_attributes_checked: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbWindow, ctypes.c_uint32, ctypes.c_void_p], xcb_types.XcbVoidCookie,
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbWindow,
+                ctypes.c_uint32, ctypes.c_void_p,
+            ], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_change_window_attributes_checked',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+            value_mask=ctypes.c_uint32,
+            value_list=ctypes.c_void_p,
         )
 
         # connection, window, value_mask, value_list -> cookie
         self.xcb_change_window_attributes: Callable[
-            [xcb_types.XcbConnectionP, xcb_types.XcbWindow, ctypes.c_uint32, ctypes.c_void_p], xcb_types.XcbVoidCookie,
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbWindow,
+                ctypes.c_uint32, ctypes.c_void_p,
+            ], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
-            self.__problems, xcb_res, '',
-            returns=x,
+            self.__problems, xcb_res, 'xcb_change_window_attributes',
+            returns=xcb_types.XcbVoidCookie,
             connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+            value_mask=ctypes.c_uint32,
+            value_list=ctypes.c_void_p,
         )
 
         self.xcb_big_requests_id = ct_util.as_library_extern(

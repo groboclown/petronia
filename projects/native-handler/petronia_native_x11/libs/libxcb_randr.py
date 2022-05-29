@@ -4,7 +4,7 @@ from typing import List, Sequence, Callable
 import ctypes
 from petronia_common.util import PetroniaReturnError, StdRet, T
 from . import ct_util
-from .libxcb import xcb
+from .xcb_library import xcb_types
 
 
 class LibXcbRandr:
@@ -20,7 +20,7 @@ class LibXcbRandr:
 
         self.xcb_randr_id = ct_util.as_library_extern(
             self.__problems, xcb_randr_res, 'xcb_randr_id',
-            xcb_native.XcbExtensionP,
+            xcb_types.XcbExtensionP,
         )
 
     @property
@@ -32,9 +32,9 @@ class LibXcbRandr:
             self.__problems.append(res.valid_error)
 
 
-def load_libxcb_util() -> StdRet[LibXcbUtil]:
+def load_libxcb_util() -> StdRet[LibXcbRandr]:
     """Load the library."""
-    ret = LibXcbUtil()
+    ret = LibXcbRandr()
     if ret.problems:
         return StdRet.pass_error(*ret.problems)
     return StdRet.pass_ok(ret)

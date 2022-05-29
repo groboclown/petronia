@@ -5,7 +5,7 @@ import ctypes
 from petronia_common.util import PetroniaReturnError, StdRet, T
 from . import ct_util
 from . import libcairo_types
-from .libxcb import xcb
+from .xcb_library import xcb_types
 
 
 class LibCairo:
@@ -23,14 +23,17 @@ class LibCairo:
         self._setup_res(cairo_res)
 
         self.cairo_xcb_surface_create: Callable[
-            [xcb_native.XcbConnectionP, xcb_native.XcbDrawable, xcb_native.XcbVisualtypeP, ctypes.c_int, ctypes.c_int],
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbDrawable,
+                xcb_types.XcbVisualtypeP, ctypes.c_int, ctypes.c_int,
+            ],
             libcairo_types.CairoSurfaceP,
         ] = ct_util.as_typed_call(
             self.__problems, cairo_res, 'cairo_xcb_surface_create',
             returns=libcairo_types.CairoSurfaceP,
-            connection=xcb_native.XcbConnectionP,
-            drawable=xcb_native.XcbDrawable,
-            visual=xcb_native.XcbVisualtypeP,
+            connection=xcb_types.XcbConnectionP,
+            drawable=xcb_types.XcbDrawable,
+            visual=xcb_types.XcbVisualtypeP,
             width=ctypes.c_int,
             height=ctypes.c_int,
         )

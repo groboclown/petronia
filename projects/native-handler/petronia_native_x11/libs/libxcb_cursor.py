@@ -5,7 +5,7 @@ import ctypes
 from petronia_common.util import PetroniaReturnError, StdRet, T
 from . import ct_util
 from . import libxcb_cursor_types
-from .libxcb import xcb
+from .xcb_library import xcb_types
 
 
 class LibXcbCursor:
@@ -23,14 +23,14 @@ class LibXcbCursor:
 
         self.xcb_cursor_context_new: Callable[
             [
-                xcb_native.XcbConnectionP, xcb_native.XcbScreenP,
+                xcb_types.XcbConnectionP, xcb_types.XcbScreenP,
                 libxcb_cursor_types.XcbCursorContextPP,
             ], ctypes.c_int,
         ] = ct_util.as_typed_call(
             self.__problems, xcb_cursor_res, 'xcb_cursor_context_new',
             returns=ctypes.c_int,
-            connection=xcb_native.XcbConnectionP,
-            screen=xcb_native.XcbScreenP,
+            connection=xcb_types.XcbConnectionP,
+            screen=xcb_types.XcbScreenP,
             ctx=libxcb_cursor_types.XcbCursorContextPP,
         )
 
