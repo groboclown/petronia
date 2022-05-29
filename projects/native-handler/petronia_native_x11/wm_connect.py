@@ -10,7 +10,7 @@ from .api import XcbApi
 from .event_handler import setup_event_listener_with_screen, EventHandlerLoop
 from .xcb import xcb_native as nat
 from .xcb.xcb_atoms import AtomDef, initialize_atoms
-from .xcb.util import as_py_int, as_uint8, as_uint16
+from .c_util import as_py_int, as_uint8, as_uint16
 
 _PETRONIA_CHAR_P = ctypes.c_char_p(b'petronia')
 _PETRONIA_CI_CHAR_P = ctypes.c_char_p(b'petronia\0petronia')
@@ -185,7 +185,7 @@ def _with_connection(cxt: WmConnectionData) -> StdRet[None]:
         )
 
     _debug("connecting to default screen")
-    cxt.conn = cxt.lib.xcb_connect(nat.NULL_c_char_p, ctypes.byref(cxt.default_screen))
+    cxt.conn = cxt.lib.xcb_connect(nat.NULL__c_char_p, ctypes.byref(cxt.default_screen))
     _debug("check if connection has error ({conn})", conn=cxt.conn)
     error_code = cxt.lib.xcb_connection_has_error(_req(cxt.conn))
     _debug("error code {code}", code=error_code)
@@ -520,7 +520,7 @@ def _with_timestamp(cxt: WmConnectionData) -> StdRet[None]:
     lib.xcb_change_property(
         conn, nat.XCB_PROP_MODE_APPEND, screen.contents.root,
         nat.XCB_ATOM_RESOURCE_MANAGER, nat.XCB_ATOM_STRING,
-        ctypes.c_uint8(8), ctypes.c_uint32(0), nat.NULL_c_char_p,
+        ctypes.c_uint8(8), ctypes.c_uint32(0), nat.NULL__c_char_p,
     )
     property_data = _PropertyDataType(0)
     lib.xcb_change_window_attributes(

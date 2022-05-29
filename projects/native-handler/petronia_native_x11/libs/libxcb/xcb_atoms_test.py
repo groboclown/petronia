@@ -2,7 +2,7 @@
 
 import unittest
 import ctypes
-from . import xcb_atoms, xcb_native
+from . import xcb_atoms, xcb
 
 
 class XcbAtomsTest(unittest.TestCase):

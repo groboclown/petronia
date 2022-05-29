@@ -9,7 +9,7 @@ from petronia_common.util import StdRet, RET_OK_NONE, T
 from petronia_native.common import user_messages
 from .api import XcbApi
 from .xcb import xcb_native
-from .xcb.util import as_py_int
+from .c_util import as_py_int
 
 
 ROOT_WINDOW_EVENT_MASK = (

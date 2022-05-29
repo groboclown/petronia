@@ -2,7 +2,8 @@
 
 from typing import Sequence, Tuple, List
 import ctypes
-from petronia_native_x11.libs.xcb import xcb_native, util
+from petronia_native_x11.libs import ct_util
+from petronia_native_x11.libs.xcb import xcb_native
 
 MASK_NAMES: Sequence[Tuple[int, str]] = (
     (xcb_native.XCB_KEY_BUT_MASK_SHIFT, 'shift'),
@@ -23,7 +24,7 @@ MASK_NAMES: Sequence[Tuple[int, str]] = (
 
 def name_modifiers(mask: ctypes.c_uint32) -> Sequence[str]:
     names: List[str] = []
-    i_mask = util.as_py_int(mask)
+    i_mask = c_util.as_py_int(mask)
     for mod, name in MASK_NAMES:
         if (mod & i_mask) != 0:
             names.append(name)
@@ -33,7 +34,7 @@ def name_modifiers(mask: ctypes.c_uint32) -> Sequence[str]:
 def main() -> None:
     """ """
     lib = xcb_native.LibXcb()
-    connection = lib.xcb_connect(xcb_native.NULL_c_char_p, xcb_native.NULL_int)
+    connection = lib.xcb_connect(xcb_native.NULL__c_char_p, xcb_native.NULL__int)
     screen = lib.xcb_setup_roots_iterator(lib.xcb_get_setup(connection)).data
     window = lib.xcb_generate_id(connection)
     mask = xcb_native.XCB_CW_BACK_PIXEL | xcb_native.XCB_CW_EVENT_MASK
@@ -45,9 +46,9 @@ def main() -> None:
         ctypes.c_int16(0), ctypes.c_int16(0),  # x, y
         ctypes.c_uint16(150), ctypes.c_uint16(150),  # width, height
         ctypes.c_uint16(10),  # border width
-        util.as_uint16(xcb_native.XCB_WINDOW_CLASS_INPUT_OUTPUT),
+        c_util.as_uint16(xcb_native.XCB_WINDOW_CLASS_INPUT_OUTPUT),
         screen.contents.root_visual,
-        ctypes.c_int32(mask), util.as_uint32_list(
+        ctypes.c_int32(mask), c_util.as_uint32_list(
             ctypes.c_uint32(screen.contents.white_pixel),
             ctypes.c_uint32(
                     xcb_native.XCB_EVENT_MASK_EXPOSURE__i
@@ -71,7 +72,7 @@ def main() -> None:
             event = lib.xcb_wait_for_event(connection)
             if not event:
                 break
-            response_type = util.as_py_int(event.contents.response_type) & ~0x80
+            response_type = c_util.as_py_int(event.contents.response_type) & ~0x80
             if response_type == xcb_native.XCB_EXPOSE:
                 expose = ctypes.cast(event, xcb_native.XcbExposeEventP)
                 print(
@@ -81,7 +82,7 @@ def main() -> None:
                 )
             elif response_type == xcb_native.XCB_BUTTON_PRESS:
                 bpe = ctypes.cast(event, xcb_native.XcbButtonPressEventP)
-                bp_detail = util.as_py_int(bpe.contents.detail)
+                bp_detail = c_util.as_py_int(bpe.contents.detail)
                 if bp_detail == 4:
                     print(
                         f"Wheel button up in window {bpe.contents.event} at "
@@ -102,7 +103,7 @@ def main() -> None:
                     )
             elif response_type == xcb_native.XCB_BUTTON_RELEASE:
                 bre = ctypes.cast(event, xcb_native.XcbButtonReleaseEventP)
-                br_detail = util.as_py_int(bre.contents.detail)
+                br_detail = c_util.as_py_int(bre.contents.detail)
                 print(
                     f"Button {br_detail} released in window {bre.contents.event} at "
                     f"({bre.contents.event_x}, {bre.contents.event_y})"

@@ -5,7 +5,7 @@ from .atomlist import ATOM_NAMES
 import ctypes
 
 from petronia_common.util import StdRet
-from . import xcb_native
+from . import xcb
 
 
 class AtomDef:
