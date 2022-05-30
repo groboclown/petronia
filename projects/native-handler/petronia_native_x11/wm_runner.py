@@ -29,11 +29,6 @@ class WindowManagerPhaseRunner(hook_types.PhaseRunner):
     def prepare_event_loop(
             self, data: common_data.WindowManagerData,
     ) -> StdRet[running_data.RunningData]:
-        no_res = event_handler.setup_event_listener_with_screen(data)
-        if no_res.has_error:
-            data.libs.xcb.xcb_disconnect(data.connection)
-            return no_res.forward()
-
         data.libs.xcb.xcb_ungrab_server(data.connection)
 
         event_loop = EventHandlerLoop(

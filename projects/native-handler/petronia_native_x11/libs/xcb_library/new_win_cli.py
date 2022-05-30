@@ -2,6 +2,7 @@
 
 from typing import Sequence, Tuple, List
 import ctypes
+import time
 from petronia_native_x11.libs import ct_util, libc
 from petronia_native_x11.libs import libxcb as xcb_native
 from petronia_native_x11.libs import libxcb_types as xcb_types
@@ -41,8 +42,8 @@ def main() -> None:
         return
     xcb = libxcb_res.result
     libc_res = libc.load_libc()
-    if libxcb_res.has_error:
-        print(libxcb_res.valid_error.messages())
+    if libc_res.has_error:
+        print(libc_res.valid_error.messages())
         return
     clib = libc_res.result
     connection = xcb.xcb_connect(ct_util.NULL__c_char_p, ct_util.NULL__int)
@@ -78,11 +79,16 @@ def main() -> None:
     xcb.xcb_flush(connection)
 
     try:
-
         while True:
-            event = xcb.xcb_wait_for_event(connection)
+            # Note: signals like ctrl-c aren't interpreted until an event comes
+            #   down the X wire.
+            # event = xcb.xcb_wait_for_event(connection)
+            # if not event:
+            #     break
+            event = xcb.xcb_poll_for_event(connection)
             if not event:
-                break
+                time.sleep(0.1)
+                continue
             response_type = ct_util.as_py_int(event.contents.response_type) & ~0x80
             if response_type == xcb_consts.XCB_EXPOSE:
                 expose = ctypes.cast(event, xcb_types.XcbExposeEventP)

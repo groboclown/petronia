@@ -1,6 +1,6 @@
 """Handle xcb events."""
 
-from typing import Sequence, List, Dict, Literal, Callable, Optional
+from typing import Sequence, List, Dict, Literal, Callable, Optional, Type
 import ctypes
 import threading
 from concurrent.futures import Future, Executor, ThreadPoolExecutor
@@ -9,19 +9,6 @@ from petronia_common.util import StdRet, T
 from petronia_native.common import user_messages
 from . import common_data
 from .libs import libc, libxcb_types, libxcb_consts, ct_util
-
-
-ROOT_WINDOW_EVENT_MASK = (
-    libxcb_consts.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
-    | libxcb_consts.XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
-    | libxcb_consts.XCB_EVENT_MASK_ENTER_WINDOW
-    | libxcb_consts.XCB_EVENT_MASK_LEAVE_WINDOW
-    | libxcb_consts.XCB_EVENT_MASK_STRUCTURE_NOTIFY
-    | libxcb_consts.XCB_EVENT_MASK_BUTTON_PRESS
-    | libxcb_consts.XCB_EVENT_MASK_BUTTON_RELEASE
-    | libxcb_consts.XCB_EVENT_MASK_FOCUS_CHANGE
-    | libxcb_consts.XCB_EVENT_MASK_PROPERTY_CHANGE
-)
 
 
 class EventResponse:
@@ -96,7 +83,9 @@ class LowEvents(EventRegistrar):
         ] = []
         self.__callbacks: Dict[int, EventResponseCallback] = {
             libxcb_consts.XCB_KEY_PRESS:
-                lambda a, e: self._handle_runner(ctypes.cast(e, libxcb_types.XcbKeyPressEventP), a),
+                lambda a, e: self._handle_runner(
+                    e, libxcb_types.XcbKeyPressEvent, a, self.__keys,
+                ),
             # xcb_native.XCB_KEY_RELEASE:
             # xcb_native.XCB_BUTTON_PRESS:
             # xcb_native.XCB_BUTTON_RELEASE:
@@ -138,21 +127,25 @@ class LowEvents(EventRegistrar):
             api: common_data.WindowManagerData,
     ) -> None:
         """Handle the event.  The event must be valid.  It is freed outside this call."""
-        callback = self.__callbacks.get(ct_util.as_py_int(event.value.contents.response_type))
+        response_type = ct_util.as_py_int(event.contents.response_type) & ~0x80
+        callback = self.__callbacks.get(response_type)
         if callback:
-            user_messages.low_println(f"Processing X event response {event.contents.response_type}")
+            user_messages.low_println(f"Processing X event response {response_type}")
             callback(api, event)
         else:
-            user_messages.low_println(f"Ignoring X event response {event.contents.response_type}")
+            user_messages.low_println(f"Ignoring X event response {response_type}")
 
     def _handle_runner(
-            self, event: T,
+            self,
+            event: T,
+            real_type: Type[T],
+            api: common_data.WindowManagerData,
             runners: Sequence[Callable[[common_data.WindowManagerData, T], None]],
     ) -> None:
         """Handle the runner list calls."""
         for runner in runners:
             try:
-                runner(self.__api, event)
+                runner(api, ctypes.cast(event.contents, real_type))
             except BaseException as err:
                 self.__error_callback(err)
 
@@ -290,25 +283,29 @@ class EventHandlerLoop:
                 break
 
             # Non-blocking event fetch from the X server until there is nothing pending.
+            # user_messages.low_println(" - X loop: poll start")
             keep_pulling = True
             while keep_pulling:
                 event_ptr = self.__cxt.libs.xcb.xcb_poll_for_event(self.__cxt.connection)
                 if not event_ptr:
-                    # user_messages.low_println(f" - X loop: end of events to poll")
+                    # user_messages.low_println(" - X loop: end of events to poll")
                     # TODO check for error.
                     # No event.  Nothing else is pending at this moment.
                     keep_pulling = False
                 else:
                     event = self.__cxt.libs.clib.freeable(event_ptr, self.__lock)
                     # TODO check for quit event?
-                    user_messages.low_println(f" - X loop: handling X event {event}")
+                    user_messages.low_println(
+                        f" - X loop: handling X event {event.contents.response_type}"
+                    )
                     self.__handlers.on_event(event, self.__cxt)
                     event.close()
 
             # Now that the immediately available requests are handled and the pending
-            #   events from the X server are handled, wait a little bit for requests
+            #   events from the X server are handled, wait a bit for requests
             #   from inside our program.  This will give a bit of time before the next
             #   batch of events are handled.
+            # user_messages.low_println(" - X loop: pet event poll")
             try:
                 request = self.__request_queue.get(block=True, timeout=self.__queue_wait_time)
                 if request == _STOP_SERVER_REQUEST:
@@ -326,13 +323,3 @@ class EventHandlerLoop:
         with self.__lock:
             self.__state = 'stopped'
         user_messages.low_println("X Loop Stopped")
-
-
-def setup_event_listener_with_screen(cxt: common_data.WindowManagerData) -> StdRet[None]:
-    # Setup events to listen to on the root window.
-    res = cxt.change_window_attributes(
-        window_id=cxt.screen_root,
-        value_mask=libxcb_consts.XCB_CW_EVENT_MASK__c,
-        value_list=(ROOT_WINDOW_EVENT_MASK,),
-    )
-    return res.map_none()

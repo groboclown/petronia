@@ -88,16 +88,3 @@ class WindowManagerData:
             ctypes.cast(prop_data, ctypes.c_void_p),
         )
         return RET_OK_NONE
-
-    def change_window_attributes(
-            self, *,
-            window_id: libxcb_types.XcbWindow,
-            value_mask: ctypes.c_uint32,
-            value_list: Sequence[ctypes.c_uint32],
-    ) -> StdRet[libxcb_types.XcbVoidCookie]:
-        data_type = ctypes.c_uint32 * (len(value_list) + 1)
-        prop_data = data_type(*value_list, 0)
-        res = self.__libs.xcb.xcb_change_window_attributes(
-            self.__conn, window_id, value_mask, ctypes.cast(prop_data, ctypes.c_void_p),
-        )
-        return StdRet.pass_ok(res)

@@ -513,10 +513,35 @@ def _become_window_manager(cxt: WindowManagerDataBuilder) -> StdRet[None]:
     conn = _req(cxt.conn)
     screen = _req(cxt.screen)
 
-    select_input_val = libxcb_consts.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT__c
+    # Request getting all these events
     cookie = cxt.lib.xcb.xcb_change_window_attributes_checked(
-        conn, screen.contents.root, libxcb_consts.XCB_CW_EVENT_MASK__c,
-        ctypes.cast(ctypes.byref(select_input_val), ctypes.c_void_p),
+        conn, screen.contents.root,
+        libxcb_consts.XCB_CW_EVENT_MASK__c,
+        ct_util.as_uint32_list(
+            # Just one value, masking together all the events to capture.
+            ctypes.c_uint32(
+                # This one makes us the window manager
+                libxcb_consts.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+
+                # All the other things that are interesting.
+                | libxcb_consts.XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
+                | libxcb_consts.XCB_EVENT_MASK_ENTER_WINDOW
+                | libxcb_consts.XCB_EVENT_MASK_LEAVE_WINDOW
+                | libxcb_consts.XCB_EVENT_MASK_STRUCTURE_NOTIFY
+                | libxcb_consts.XCB_EVENT_MASK_BUTTON_PRESS
+                | libxcb_consts.XCB_EVENT_MASK_BUTTON_RELEASE
+                | libxcb_consts.XCB_EVENT_MASK_BUTTON_MOTION
+                | libxcb_consts.XCB_EVENT_MASK_KEY_PRESS
+                | libxcb_consts.XCB_EVENT_MASK_KEY_RELEASE
+                | libxcb_consts.XCB_EVENT_MASK_KEYMAP_STATE
+                | libxcb_consts.XCB_EVENT_MASK_POINTER_MOTION
+                | libxcb_consts.XCB_EVENT_MASK_POINTER_MOTION_HINT
+                # | libxcb_consts.XCB_EVENT_MASK_VISIBILITY_CHANGE
+                | libxcb_consts.XCB_EVENT_MASK_EXPOSURE
+                | libxcb_consts.XCB_EVENT_MASK_FOCUS_CHANGE
+                | libxcb_consts.XCB_EVENT_MASK_PROPERTY_CHANGE
+            ),
+        ),
     )
     err = cxt.lib.xcb.xcb_request_check(conn, cookie)
     if err:
