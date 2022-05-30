@@ -7,21 +7,20 @@ from concurrent.futures import Future, Executor, ThreadPoolExecutor
 from queue import Queue, Empty
 from petronia_common.util import StdRet, RET_OK_NONE, T
 from petronia_native.common import user_messages
-from .api import XcbApi
-from .xcb import xcb_native
-from .c_util import as_py_int
+from . import common_data
+from .libs import libc, libxcb_types, libxcb_consts, ct_util
 
 
 ROOT_WINDOW_EVENT_MASK = (
-    xcb_native.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT__i
-    | xcb_native.XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY__i
-    | xcb_native.XCB_EVENT_MASK_ENTER_WINDOW__i
-    | xcb_native.XCB_EVENT_MASK_LEAVE_WINDOW__i
-    | xcb_native.XCB_EVENT_MASK_STRUCTURE_NOTIFY__i
-    | xcb_native.XCB_EVENT_MASK_BUTTON_PRESS__i
-    | xcb_native.XCB_EVENT_MASK_BUTTON_RELEASE__i
-    | xcb_native.XCB_EVENT_MASK_FOCUS_CHANGE__i
-    | xcb_native.XCB_EVENT_MASK_PROPERTY_CHANGE__i
+    libxcb_consts.XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+    | libxcb_consts.XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
+    | libxcb_consts.XCB_EVENT_MASK_ENTER_WINDOW
+    | libxcb_consts.XCB_EVENT_MASK_LEAVE_WINDOW
+    | libxcb_consts.XCB_EVENT_MASK_STRUCTURE_NOTIFY
+    | libxcb_consts.XCB_EVENT_MASK_BUTTON_PRESS
+    | libxcb_consts.XCB_EVENT_MASK_BUTTON_RELEASE
+    | libxcb_consts.XCB_EVENT_MASK_FOCUS_CHANGE
+    | libxcb_consts.XCB_EVENT_MASK_PROPERTY_CHANGE
 )
 
 
@@ -31,20 +30,23 @@ class EventResponse:
 
 EventQueryCallback = Callable[[StdRet[EventResponse]], StdRet[None]]
 
-EventQueryRegisterCookie = Callable[[xcb_native.XcbVoidCookie], None]
+EventQueryRegisterCookie = Callable[[libxcb_types.XcbVoidCookie], None]
 
-EventQuery = Callable[[XcbApi, EventQueryRegisterCookie], None]
+EventQuery = Callable[[common_data.CommonData, EventQueryRegisterCookie], None]
 
 FutureEventQuery = Callable[
-    [XcbApi, EventQueryRegisterCookie],
+    [common_data.CommonData, EventQueryRegisterCookie],
     StdRet[None],
 ]
 
-EventResponseCallback = Callable[[XcbApi, xcb_native.XcbGenericEventP], None]
+EventResponseCallback = Callable[
+    [common_data.WindowManagerData, libc.Pointer[libxcb_types.XcbGenericEventP]],
+    None,
+]
 
-ServerRequest = Callable[[XcbApi], None]
+ServerRequest = Callable[[common_data.WindowManagerData], None]
 
-_STOP_SERVER_REQUEST: Callable[[XcbApi], None] = lambda x: None
+_STOP_SERVER_REQUEST: ServerRequest = lambda x: None
 
 
 EventStateEnum = Literal['init', 'starting', 'running', 'stop-request', 'stopping', 'stopped']
@@ -89,10 +91,12 @@ class LowEvents(EventRegistrar):
             on_error: Callable[[BaseException], None],
     ) -> None:
         self.__error_callback = on_error
-        self.__keys: List[Callable[[XcbApi, xcb_native.XcbKeyPressEvent], None]] = []
+        self.__keys: List[
+            Callable[[common_data.CommonData, libxcb_types.XcbKeyPressEvent], None]
+        ] = []
         self.__callbacks: Dict[int, EventResponseCallback] = {
-            xcb_native.XCB_KEY_PRESS:
-                lambda a, e: self._handle_runner(ctypes.cast(e, xcb_native.XcbKeyPressEventP), a),
+            libxcb_consts.XCB_KEY_PRESS:
+                lambda a, e: self._handle_runner(ctypes.cast(e, libxcb_types.XcbKeyPressEventP), a),
             # xcb_native.XCB_KEY_RELEASE:
             # xcb_native.XCB_BUTTON_PRESS:
             # xcb_native.XCB_BUTTON_RELEASE:
@@ -128,16 +132,23 @@ class LowEvents(EventRegistrar):
             # xcb_native.XCB_GE_GENERIC = 35
         }
 
-    def on_event(self, event: xcb_native.XcbGenericEventP, api: XcbApi) -> None:
+    def on_event(
+            self,
+            event: libc.Pointer[libxcb_types.XcbGenericEventP],
+            api: common_data.WindowManagerData,
+    ) -> None:
         """Handle the event.  The event must be valid.  It is freed outside this call."""
-        callback = self.__callbacks.get(as_py_int(event.contents.response_type))
+        callback = self.__callbacks.get(ct_util.as_py_int(event.value.contents.response_type))
         if callback:
             user_messages.low_println(f"Processing X event response {event.contents.response_type}")
-            callback(event, api)
+            callback(api, event)
         else:
             user_messages.low_println(f"Ignoring X event response {event.contents.response_type}")
 
-    def _handle_runner(self, event: T, runners: Sequence[Callable[[XcbApi, T], None]]) -> None:
+    def _handle_runner(
+            self, event: T,
+            runners: Sequence[Callable[[common_data.CommonData, T], None]],
+    ) -> None:
         """Handle the runner list calls."""
         for runner in runners:
             try:
@@ -155,14 +166,14 @@ class EventHandlerLoop:
     All public APIs are for calling into the thread.
     """
     __slots__ = (
-        '__lock', '__state', '__api', '__xcb', '__conn', '__thread',
+        '__lock', '__state', '__cxt', '__thread',
         '__request_queue', '__queue_wait_time', '__handlers',
         '__error_callback', '__executor', '__pending_events',
     )
 
     def __init__(
             self, *,
-            api: XcbApi, xcb: xcb_native.LibXcb, conn: xcb_native.XcbConnectionP,
+            cxt: common_data.WindowManagerData,
             on_error: Callable[[BaseException], None],
             queue_wait_time: float = 0.1,
             executor: Optional[Executor] = None,
@@ -170,21 +181,22 @@ class EventHandlerLoop:
         self.__lock = threading.RLock()
         self.__executor = executor or ThreadPoolExecutor(16)
         self.__state: EventStateEnum = 'init'
-        self.__api = api
-        self.__xcb = xcb
-        self.__conn = conn
+        self.__cxt = cxt
         self.__thread: Optional[threading.Thread] = None
-        self.__request_queue = Queue()  # type: Queue[Callable[[XcbApi], None]]
+        self.__request_queue = Queue()  # type: Queue[ServerRequest]
         self.__queue_wait_time = queue_wait_time
         self.__handlers = LowEvents(on_error)
         self.__error_callback = on_error
-        self.__pending_events: List[xcb_native.XcbGenericEventP] = []
+        self.__pending_events: List[libc.Pointer[libxcb_types.XcbGenericEventP]] = []
 
     def get_event_registrar(self) -> EventRegistrar:
         """Get the per-event type registration."""
         return self.__handlers
 
-    def add_missed_events(self, events: Sequence[xcb_native.XcbGenericEventP]) -> None:
+    def add_missed_events(
+            self,
+            events: Sequence[libc.Pointer[libxcb_types.XcbGenericEventP]],
+    ) -> None:
         """Add X server events that were read outside the loop but that should be
         processed inside the loop."""
         with self.__lock:
@@ -253,9 +265,10 @@ class EventHandlerLoop:
             # First, handle improperly managed events.
             with self.__lock:
                 for pending_event in self.__pending_events:
-                    user_messages.low_println(f" - X loop: pending event {pending_event}")
-                    self.__handlers.on_event(pending_event, self.__api)
-                    self.__xcb.free(pending_event)
+                    if pending_event:
+                        user_messages.low_println(f" - X loop: pending event {pending_event}")
+                        self.__handlers.on_event(pending_event.value, self.__cxt)
+                        pending_event.close()
                 self.__pending_events.clear()
 
             # read requests out to the server while requests are immediately ready.
@@ -269,7 +282,7 @@ class EventHandlerLoop:
                         break
                     user_messages.low_println(f" - X loop: petronia request {request}")
                     with self.__lock:
-                        request(self.__api)
+                        request(self.__cxt)
                 except Empty:
                     # Nothing in the request queue
                     keep_pulling = False
@@ -279,17 +292,18 @@ class EventHandlerLoop:
             # Non-blocking event fetch from the X server until there is nothing pending.
             keep_pulling = True
             while keep_pulling:
-                event = self.__xcb.xcb_poll_for_event(self.__conn)
-                if not event:
+                event_ptr = self.__cxt.libs.xcb.xcb_poll_for_event(self.__cxt.connection)
+                if not event_ptr:
                     # user_messages.low_println(f" - X loop: end of events to poll")
                     # TODO check for error.
                     # No event.  Nothing else is pending at this moment.
                     keep_pulling = False
                 else:
+                    event = self.__cxt.libs.clib.freeable(event_ptr, self.__lock)
                     # TODO check for quit event?
                     user_messages.low_println(f" - X loop: handling X event {event}")
-                    self.__handlers.on_event(event, self.__api)
-                    self.__xcb.free(event)
+                    self.__handlers.on_event(event, self.__cxt)
+                    event.close()
 
             # Now that the immediately available requests are handled and the pending
             #   events from the X server are handled, wait a little bit for requests
@@ -303,7 +317,7 @@ class EventHandlerLoop:
                     break
                 user_messages.low_println(f" - X loop: petronia request {request} (2)")
                 with self.__lock:
-                    request(self.__api)
+                    request(self.__cxt)
             except Empty:
                 # Nothing in the request
                 pass
@@ -314,11 +328,11 @@ class EventHandlerLoop:
         user_messages.low_println("X Loop Stopped")
 
 
-def setup_event_listener_with_screen(api: XcbApi) -> StdRet[None]:
+def setup_event_listener_with_screen(cxt: common_data.WindowManagerData) -> StdRet[None]:
     # Setup events to listen to on the root window.
-    api.change_window_attributes(
-        window_id=api.screen_root,
-        value_mask=xcb_native.XCB_CW_EVENT_MASK_uint32,
+    cxt.change_window_attributes(
+        window_id=cxt.screen_root,
+        value_mask=libxcb_consts.XCB_CW_EVENT_MASK__c,
         value_list=(ROOT_WINDOW_EVENT_MASK,),
     )
     return RET_OK_NONE

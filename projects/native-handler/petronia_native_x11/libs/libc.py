@@ -1,11 +1,28 @@
 """Standard C library."""
 
-from typing import Sequence, List, Callable, Any, Optional
+from typing import Sequence, List, Callable, Generic, Union, Optional, Any
 import ctypes
 import threading
 import warnings
-from petronia_common.util import PetroniaReturnError, StdRet, T
+from petronia_common.util import PetroniaReturnError, StdRet, T, V
 from . import ct_util
+
+
+class Pointer(ct_util.Closable[V], Generic[V]):
+    @property
+    def contents(self) -> Optional[V]:
+        if self.value:
+            return self.value
+        return None
+
+
+class RealPointer(Pointer):   # types: RealPointer(Pointer[ctypes.pointer[V]], Generic[V])
+    @property
+    def contents(self) -> Optional[V]:
+        """Like .contents..."""
+        if self.value:
+            return self.value.contents
+        return None
 
 
 class LibC:
@@ -61,12 +78,16 @@ class LibC:
         """Force the memory to be freed.  Use carefully."""
         self._free(ctypes.cast(ptr, ctypes.c_void_p))
 
-    def freeable(self, ptr: T, lock: Optional[threading.Lock] = None) -> ct_util.Closable[T]:
+    def freeable(
+            self,
+            ptr,  # types: ctypes.pointer[T]
+            lock: Optional[Union[threading.Lock, threading.RLock]] = None,
+    ) -> Pointer[T]:
         """Wrap the pointer in a closable type, to ensure its memory gets freed."""
         if not ptr:
             raise ValueError('pointers must be tested for non-null outside this call.')
         if isinstance(ptr, ctypes.c_void_p):
-            return ct_util.Closable(ptr, self._free, lock)
+            return Pointer(ptr, self._free, lock)
         if (
                 # built-in pointer types
                 isinstance(ptr, (ctypes.c_char_p, ctypes.c_wchar_p))
@@ -74,13 +95,13 @@ class LibC:
                 # constructed pointer
                 or (isinstance(ptr, object) and ptr.__class__.__name__.startswith('LP_'))
         ):
-            return ct_util.Closable(ptr, self.force_free, lock)
+            return RealPointer(ptr, self.force_free, lock)
         elif isinstance(ptr, (bytes, str, bytearray, ctypes.Array)):
             warnings.warn(
                 f"Incorrectly assumed {type(ptr)} is a freeable pointer",
                 stacklevel=2,
             )
-            return ct_util.Closable(ptr, lambda x: None, lock)
+            return Pointer(ptr, lambda x: None, lock)
         raise ValueError(f'Not a pointer: {ptr} ({type(ptr)})')  # programmer error
 
 

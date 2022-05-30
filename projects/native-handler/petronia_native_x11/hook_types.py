@@ -1,6 +1,6 @@
 """Basic hook."""
 
-from typing import Union
+from typing import Union, Callable
 from petronia_common.util import StdRet, UserMessage
 from petronia_ext_lib.runner import LookupEventRegistryContext
 from .configuration import ConfigurationStore
@@ -13,27 +13,24 @@ class Hook:
     def setup_wm_screen(self, data: WindowManagerData) -> StdRet[None]:
         """Setup after the connection to the X server is established as the window manager and
         the screen is grabbed."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def setup_pre_event_loop(self, data: CommonData) -> StdRet[None]:
         """Setup after the screen is released ("ungrabbed") and just before the
         event loop starts running."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def shutdown(self, data: CommonData) -> StdRet[None]:
         """After the event loop stops, shut down.  The X server connection will still
         be open."""
-        raise NotImplemented
+        raise NotImplementedError
 
 
-class HookFactory:
-    """Creates a hook if it's valid."""
-
-    def create(self, libs: Libraries) -> StdRet[Union[Hook, UserMessage]]:
-        """Creates a hook after the libraries are loaded.  If the hook can't
-        be created but that doesn't stop the extension, then a user message
-        is returned indicating a warning."""
-        raise NotImplemented
+"""
+HookFactory: Creates a hook after the libraries are loaded.  If the hook can't
+be created but that doesn't stop the extension, then a user message
+is returned indicating a warning."""
+HookFactory = Callable[[Libraries], StdRet[Union[Hook, UserMessage]]]
 
 
 class PhaseRunner:
@@ -44,22 +41,22 @@ class PhaseRunner:
             context: LookupEventRegistryContext, config: ConfigurationStore,
     ) -> StdRet[Libraries]:
         """Setup enough to get to the point where the 'setup_boot' can run."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def become_window_manager(self, libs: Libraries) -> StdRet[WindowManagerData]:
         """Setup enough to connect to the server and become a window manager."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def prepare_event_loop(self, data: WindowManagerData) -> StdRet[CommonData]:
         """Release the screen and prepare for the loop to start."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def run_event_loop(self, data: CommonData) -> StdRet[None]:
         """Run the event loop.  Exits after the loop is running, which should be in another
         thread."""
-        raise NotImplemented
+        raise NotImplementedError
 
-    def shutdown(self, data: CommonData) -> StdRet[None]:
+    def shutdown(self, data: CommonData, timeout: float) -> StdRet[None]:
         """After all the hooks finish shutting down, shut down the connection to the
         X server nicely."""
-        raise NotImplemented
+        raise NotImplementedError

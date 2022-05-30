@@ -1,6 +1,6 @@
 """X11 Entrypoint."""
 
-from typing import Sequence, Dict, Optional, Any
+from typing import Sequence, Dict, Any
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, join_errors
 from petronia_ext_lib.runner.lookup import LookupEventRegistryContext
@@ -10,7 +10,7 @@ from .datastore.petronia_native_x11 import (
     ConfigurationState, EXTENSION_NAME,
 )
 from .configuration import ConfigurationStore
-from . import runner, hook_types
+from . import runner, hook_types, wm_runner
 from .datastore import petronia_native_x11 as native_state
 
 
@@ -64,9 +64,10 @@ def parse_config(config: Dict[str, Any]) -> StdRet[ConfigurationStore]:
 
 def get_phase_runner() -> hook_types.PhaseRunner:
     """Get the phase runner."""
-    raise NotImplemented
+    return wm_runner.WindowManagerPhaseRunner()
 
 
 def get_hook_factories() -> Sequence[hook_types.HookFactory]:
     """Get all the hook factories that might run."""
-    raise NotImplemented
+    # raise NotImplementedError
+    return []

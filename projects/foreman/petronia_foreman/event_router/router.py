@@ -186,7 +186,7 @@ class EventRouter:
                 )
             return maybe_channel.add_handler(
                 handler_id, produces, consumes, source_id_prefixes,
-            ).forward()
+            ).map_none()
 
     def remove_handler(self, handler_id: str) -> bool:
         """Removes the handler from its registered channel.

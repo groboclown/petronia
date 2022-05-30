@@ -58,9 +58,7 @@ def create_api_marshal_source(  # pylint: disable=too-many-arguments
         output_dir, data.metadata, event_module_name, structures, imports,
     )
     timer.report(f'mk_event_marshal_test_src({event_module_name})')
-    if res.has_error:
-        return res.forward()
-    return RET_OK_NONE
+    return res.map_none()
 
 
 def mk_event_marshal_src(

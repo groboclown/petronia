@@ -43,6 +43,4 @@ def create_launcher_category(
         )
     launcher = launcher_factory(runtime_configuration)
     ret_valid = launcher.is_valid()
-    if ret_valid.has_error:
-        return ret_valid.forward()
-    return StdRet.pass_ok(launcher)
+    return ret_valid.map_static(launcher)

@@ -16,7 +16,7 @@ CtypeInt = Union[
     int,
     ctypes.c_int, ctypes.c_int8, ctypes.c_int16, ctypes.c_int32,
     ctypes.c_uint, ctypes.c_uint8, ctypes.c_uint16, ctypes.c_uint32,
-    ctypes.c_byte, ctypes.c_ubyte,
+    ctypes.c_byte, ctypes.c_ubyte, ctypes.c_size_t,
 ]
 
 NULL = ctypes.c_void_p(None)
@@ -138,7 +138,7 @@ class Closable(Generic[T]):
             self,
             value: T,
             closer: Callable[[T], None],
-            lock: Optional[threading.Lock] = None,
+            lock: Optional[Union[threading.Lock, threading.RLock]] = None,
     ) -> None:
         if value is None:
             raise ValueError('cannot use a None value')  # programmer error
@@ -162,6 +162,9 @@ class Closable(Generic[T]):
 
     def is_available(self) -> bool:
         """Is this value not closed?"""
+        return self.__value is not None
+
+    def __bool__(self) -> bool:
         return self.__value is not None
 
     @property

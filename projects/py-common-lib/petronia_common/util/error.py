@@ -183,6 +183,17 @@ class StdRet(Generic[T_co]):
         return self.__value is not None
 
     @final
+    def map_none(self) -> StdRet[None]:
+        """Forward this value as a none value."""
+        if self.__value is None:
+
+            # This does not count as checking for an error, because the returned
+            # value is "self", which must still be checked.
+
+            return cast(StdRet[None], self)
+        return RET_OK_NONE
+
+    @final
     def forward(self) -> StdRet[V]:
         """Forward this error as another type.  It doesn't allocate a
         new value.  This can ONLY be used if this is an error."""

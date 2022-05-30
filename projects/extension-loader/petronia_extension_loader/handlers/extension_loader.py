@@ -62,9 +62,7 @@ def initiate_load_extension(
             max_version=max_version,
         )
     res = load_extension(shared_state, context, source_id, ext_info, installed)
-    if not res:
-        return res.forward()
-    return RET_OK_NONE
+    return res.map_none()
 
 
 def load_extension(

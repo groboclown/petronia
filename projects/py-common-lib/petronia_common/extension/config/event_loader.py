@@ -18,7 +18,7 @@ def load_full_event_schema(
 ) -> StdRet[List[event_schema.EventType]]:
     """Loads a full event schema object, including resolving references."""
     parsed_references_res = parse_references(raw_references)
-    if not parsed_references_res.ok:
+    if parsed_references_res.has_error:
         return parsed_references_res.forward()
     parsed_references = parsed_references_res.result
     ret: List[event_schema.EventType] = []
@@ -28,7 +28,7 @@ def load_full_event_schema(
                 STDC, _('event schemas must be dictionaries'),
             )
         ret_event = load_event_schema(event_name, raw_event, parsed_references)
-        if not ret_event.ok:
+        if ret_event.has_error:
             return ret_event.forward()
         ret.append(ret_event.result)
     return StdRet.pass_ok(ret)
@@ -246,7 +246,7 @@ def load_event_bool_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.BoolEv
 def load_event_enum_data_type(raw: Dict[str, Any]) -> StdRet[event_schema.EnumEventDataType]:
     """Reads an event enum data type"""
     ret_description = load_event_type_description(raw)
-    if not ret_description.ok:
+    if ret_description.has_error:
         return ret_description.forward()
     raw_values = raw.get('values', EMPTY_TUPLE)
     values: List[str] = []
@@ -346,7 +346,7 @@ def load_event_structure_data_type(
 ) -> StdRet[event_schema.StructureEventDataType]:
     """Reads an event structure data type"""
     ret_description = load_event_type_description(raw)
-    if not ret_description.ok:
+    if ret_description.has_error:
         return ret_description.forward()
     raw_fields = raw.get('fields')
     if not isinstance(raw_fields, dict):
@@ -397,7 +397,7 @@ def load_event_selector_data_type(
 ) -> StdRet[event_schema.SelectorEventDataType]:
     """Reads an event selector data type"""
     ret_description = load_event_optional_str_value('description', raw)
-    if not ret_description.ok:
+    if ret_description.has_error:
         return ret_description.forward()
     raw_type_mapping = raw.get('type-mapping')
     if not isinstance(raw_type_mapping, dict):

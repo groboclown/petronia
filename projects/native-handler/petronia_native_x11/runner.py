@@ -33,7 +33,7 @@ def start_server(
     hook_boot_res: List[StdRet[None]] = []
     hooks: List[Hook] = []
     for hook_factory in hook_factories:
-        hf_res = hook_factory.create(boot_res.result)
+        hf_res = hook_factory(boot_res.result)
         if hf_res.has_error:
             hook_boot_res.append(hf_res.forward())
         else:
@@ -88,7 +88,7 @@ def stop_server(
         res.append(hooks[i - 1].shutdown(data))
 
     # Finally, stop the server
-    res.append(runner.shutdown(data))
+    res.append(runner.shutdown(data, timeout))
 
     # Return whatever errors were discovered.
     errors = collect_errors_from(res)

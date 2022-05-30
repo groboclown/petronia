@@ -38,7 +38,7 @@ def validate_extension(
         value: StdRet[extension_schema.AbcExtensionMetadata],
 ) -> StdRet[extension_schema.AbcExtensionMetadata]:
     """Validate an extension"""
-    if not value.ok:
+    if value.has_error:
         return value.forward()
     validation = value.result.validate_type()
     if validation:
@@ -226,7 +226,7 @@ def load_extension_dependencies(
     ret: List[extension_schema.ExtensionDependency] = []
     for dep in raw_depends:
         ret_dep = load_extension_dependency(dep)
-        if not ret_dep.ok:
+        if ret_dep.has_error:
             return ret_dep.forward()
         ret.append(ret_dep.result)
     return StdRet.pass_ok(ret)
@@ -243,16 +243,16 @@ def load_extension_dependency(value: Any) -> StdRet[extension_schema.ExtensionDe
             value=repr(value),
         )
     ret_name = load_dict_str_value('name', value)
-    if not ret_name.ok:
+    if ret_name.has_error:
         return ret_name.forward()
     ret_minimum = load_extension_version_value(value.get('minimum'))
-    if not ret_minimum.ok:
+    if ret_minimum.has_error:
         return ret_minimum.forward()
     raw_below = value.get('below')
     below: Optional[ExtensionVersion] = None
     if raw_below:
         ret_below = load_extension_version_value(raw_below)
-        if not ret_below.ok:
+        if ret_below.has_error:
             return ret_below.forward()
         below = ret_below.value
     return StdRet.pass_ok(extension_schema.ExtensionDependency(
