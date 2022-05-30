@@ -21,7 +21,7 @@ def extension_entrypoint(
         _args: Sequence[str],
 ) -> StdRet[None]:
     """Standardized entrypoint."""
-    print(f"Loading X11")
+    print("Loading X11")
     context = LookupEventRegistryContext(reader, writer, None, None)
 
     # Bad configuration isn't a failure state.
@@ -29,7 +29,9 @@ def extension_entrypoint(
 
     phase_runner = get_phase_runner()
     setup_res = runner.start_server(
-        context, config_res.value,
+        context,
+        # A bad config doesn't stop us.
+        config_res.value or ConfigurationStore(None),
         lambda m: user_messages.display_message(m.debug()),
         phase_runner, get_hook_factories(),
     )

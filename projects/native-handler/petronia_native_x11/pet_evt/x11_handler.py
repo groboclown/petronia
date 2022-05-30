@@ -5,28 +5,31 @@ from typing import cast as t_cast
 from ctypes import cast as c_cast
 import concurrent.futures
 from petronia_common.util import (
-    StdRet, UserMessage, EMPTY_MAPPING, RET_OK_NONE, join_none_results, join_results, not_none,
+    StdRet, UserMessage, RET_OK_NONE, join_none_results, join_results, not_none,
 )
 from petronia_native.common import user_messages, defs, log
 from petronia_native.common.defs import ScreenUnit
 from petronia_native.common.handlers import window, monitor_screen
 from petronia_native.common.events.impl import window as window_events
-from ..libs.xcb import xcb_native
+from ..libs import libxcb_types
+from ..running_data import RunningData
 
 
-class X11NativeWindow(window.ActiveWindow[xcb_native.XcbWindow]):
+class X11NativeWindow(window.ActiveWindow[libxcb_types.XcbWindow]):
     """An active window with Windows data."""
-    __slots__ = ('__request', '__notice', '__size_state')
+    __slots__ = ('__request', '__notice', '__size_state', '__rd')
 
     def __init__(
             self,
             window_id: str,
-            wid: xcb_native.XcbWindow,
+            run_data: RunningData,
+            wid: libxcb_types.XcbWindow,
             state: window_events.WindowState,
     ) -> None:
         window.ActiveWindow.__init__(self, window_id, wid, str(wid), state)
         self.__request = state.location
         self.__notice = state.location
+        self.__rd = run_data
 
         # Should include minimized, restored, or maximized.
         self.__size_state: Set[str] = set()
@@ -75,15 +78,14 @@ class X11NativeWindow(window.ActiveWindow[xcb_native.XcbWindow]):
         # TODO if the window was minimized or maximized, restore to that state.
         # This will be put into the flags, which would be like:
         # "show-window", "hide-window",
+
         if (
-                WINDOWS_FUNCTIONS.window.set_position
-                and (
-                    self.__notice.x != self.__request.x
-                    or self.__notice.y != self.__request.y
-                    or self.__notice.width != self.__request.width
-                    or self.__notice.height != self.__request.height
-                )
+                self.__notice.x != self.__request.x
+                or self.__notice.y != self.__request.y
+                or self.__notice.width != self.__request.width
+                or self.__notice.height != self.__request.height
         ):
+            # return self.__rd.xcb. ...
             return WINDOWS_FUNCTIONS.window.set_position(
                 self.native_id, c_cast(0, HWND), defs.OsScreenRect.from_size(
                     self.__notice.x, self.__notice.y, self.__notice.width, self.__notice.height,
@@ -216,26 +218,28 @@ WINDOW_META_DESCRIPTIONS: Mapping[str, str] = {
 CUSTOM_MESSAGE_ID__WINDOW_HANDLES = 12
 
 
-class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.XcbWindow]):
+class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, libxcb_types.XcbWindow]):
     """Windows native handler for Petronia events."""
 
-    __slots__ = ('__executor', '__queue', '__loop', '__screen_mapper')
+    __slots__ = ('__executor', '__queue', '__loop', '__screen_mapper', '__rd')
 
     def __init__(
             self,
             screen_mapper: monitor_screen.WindowScreenMapper[WindowsMonitor],
+            run_data: RunningData,
             executor: Optional[concurrent.futures.ThreadPoolExecutor] = None,
     ) -> None:
         window.AbstractWindowHandler.__init__(
             self,
             DEFAULT_GLOBAL_SETTINGS, GLOBAL_SETTINGS_DESCRIPTIONS, WINDOW_META_DESCRIPTIONS,
         )
+        self.__rd = run_data
         self.__executor = executor or concurrent.futures.ThreadPoolExecutor(1)
         self.__queue: Optional[message_queue.UserMessageQueue] = None
         self.__loop: Optional[message_loop.WindowsMessageLoop] = None
         self.__screen_mapper = screen_mapper
 
-    def hash_native_id(self, native_id: xcb_native.XcbWindow) -> Hashable:
+    def hash_native_id(self, native_id: libxcb_types.XcbWindow) -> Hashable:
         return str(native_id)
 
     def close(self) -> None:
@@ -313,7 +317,7 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
             for wp in self.get_active_windows()
         ]))
 
-    def on_window_minimized_message(self, hwnd: xcb_native.XcbWindow, size: RECT) -> None:
+    def on_window_minimized_message(self, hwnd: libxcb_types.XcbWindow, size: RECT) -> None:
         """Handle the window_minimized_message loop message"""
         wnd = self.get_window_by_native(hwnd)
         if wnd:
@@ -325,7 +329,7 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
             self.__executor.submit(self._in_exec_update_window_state, wnd)
         # else log?
 
-    def on_window_created_message(self, hwnd: xcb_native.XcbWindow) -> None:
+    def on_window_created_message(self, hwnd: libxcb_types.XcbWindow) -> None:
         """Handle the window_created_message loop message"""
         log.debug('window created: {hwnd}', hwnd=hwnd)
         wnd = self.get_window_by_native(hwnd)
@@ -342,7 +346,7 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
             # in this newly created window, then this should call SetWinEventHook to attach
             # this message loop to the PID of the window's process.
 
-    def on_window_destroyed_message(self, hwnd: xcb_native.XcbWindow) -> None:
+    def on_window_destroyed_message(self, hwnd: libxcb_types.XcbWindow) -> None:
         """Handle the window_destroyed_message loop message"""
         log.debug('Window destroyed: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_destroy_window_state, hwnd, 'closed')
@@ -350,17 +354,17 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
         # If the SetWinEventHook was called, then it needs to be unhooked here if this
         # is the last window for the PID.
 
-    def on_shell_window_focused_message(self, hwnd: xcb_native.XcbWindow) -> None:
+    def on_shell_window_focused_message(self, hwnd: libxcb_types.XcbWindow) -> None:
         """Handle the shell_window_focused_message loop message"""
         log.debug('window focused: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_focus_window, hwnd)
 
-    def on_window_activated_message(self, hwnd: xcb_native.XcbWindow) -> None:
+    def on_window_activated_message(self, hwnd: libxcb_types.XcbWindow) -> None:
         """Handle the window_activated_message and window_rude_activated_message loop message"""
         log.debug('window activated: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_focus_window, hwnd)
 
-    def on_window_update_message(self, hwnd: xcb_native.XcbWindow) -> None:
+    def on_window_update_message(self, hwnd: libxcb_types.XcbWindow) -> None:
         """Called by an event that caused a non-size information about the window
         to change, such as the title."""
         log.debug('window updated: {hwnd}', hwnd=hwnd)
@@ -372,7 +376,7 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
             )
             self.__executor.submit(self._in_exec_update_window_state, wnd)
 
-    def on_forced_exit_message(self, hwnd: xcb_native.XcbWindow) -> None:
+    def on_forced_exit_message(self, hwnd: libxcb_types.XcbWindow) -> None:
         """Handle the forced_exit_message loop message"""
         log.debug('window forced exit: {hwnd}', hwnd=hwnd)
         self.__executor.submit(self._in_exec_destroy_window_state, hwnd, 'forced')
@@ -380,13 +384,13 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
         # If the SetWinEventHook was called, then it needs to be unhooked here if this
         # is the last window for the PID.
 
-    def on_window_flash_message(self, hwnd: xcb_native.XcbWindow) -> None:
+    def on_window_flash_message(self, hwnd: libxcb_types.XcbWindow) -> None:
         """Handle the window_flash_message loop message"""
         log.debug("window flashed: {hwnd}", hwnd=hwnd)
         self.__executor.submit(self._in_exec_window_flashed, hwnd)
 
     def on_window_replace_message(
-            self, new_hwnd: xcb_native.XcbWindow, old_hwnd: xcb_native.XcbWindow,
+            self, new_hwnd: libxcb_types.XcbWindow, old_hwnd: libxcb_types.XcbWindow,
     ) -> None:
         """Handle the window_replacing_message and window_replaced_message loop messages."""
         log.debug(
@@ -395,7 +399,12 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
         )
         old_window = self.get_window_by_native(old_hwnd)
         if old_window:
-            new_window = X11NativeWindow(old_window.window_id, new_hwnd, old_window.state)
+            new_window = X11NativeWindow(
+                window_id=old_window.window_id,
+                run_data=self.__rd,
+                wid=new_hwnd,
+                state=old_window.state,
+            )
             self.replace_native_id(old_window, new_window)
 
     def on_set_window_position_request(  # pylint:disable=arguments-differ
@@ -470,38 +479,35 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
         """Send the close window signal to a window.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.window.close:
-            assert isinstance(arg, X11NativeWindow)  # nosec
+        assert isinstance(arg, X11NativeWindow)  # nosec
 
-            # This call will just ask another window to close itself.  If it actually closes, then
-            # that will be triggered as a separate message that this handler can respond to.
-            user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.close(arg.native_id)  # pylint:disable=not-callable
-            )
+        # This call will just ask another window to close itself.  If it actually closes, then
+        # that will be triggered as a separate message that this handler can respond to.
+        user_messages.report_send_receive_problems(
+            WINDOWS_FUNCTIONS.window.close(arg.native_id)  # pylint:disable=not-callable
+        )
 
     @staticmethod
     def _queue_minimize_window(arg: Any) -> None:
         """Send the minimize window signal to a window.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.window.minimize:
-            assert isinstance(arg, X11NativeWindow)  # nosec
-            arg.on_os_minimized()
-            user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.minimize(arg.native_id)  # pylint:disable=not-callable
-            )
+        assert isinstance(arg, X11NativeWindow)  # nosec
+        arg.on_os_minimized()
+        user_messages.report_send_receive_problems(
+            WINDOWS_FUNCTIONS.window.minimize(arg.native_id)  # pylint:disable=not-callable
+        )
 
     @staticmethod
     def _queue_maximize_window(arg: Any) -> None:
         """Send the maximize window signal to a window.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.window.maximize:
-            assert isinstance(arg, X11NativeWindow)  # nosec
-            arg.on_os_maximized()
-            user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.maximize(arg.native_id)  # pylint:disable=not-callable
-            )
+        assert isinstance(arg, X11NativeWindow)  # nosec
+        arg.on_os_maximized()
+        user_messages.report_send_receive_problems(
+            WINDOWS_FUNCTIONS.window.maximize(arg.native_id)  # pylint:disable=not-callable
+        )
 
     @staticmethod
     def _queue_focus_window(arg: Any) -> None:
@@ -509,23 +515,21 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
          message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.window.activate:
-            assert isinstance(arg, X11NativeWindow)  # nosec
-            user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.activate(arg.native_id)  # pylint:disable=not-callable
-            )
+        assert isinstance(arg, X11NativeWindow)  # nosec
+        user_messages.report_send_receive_problems(
+            WINDOWS_FUNCTIONS.window.activate(arg.native_id)  # pylint:disable=not-callable
+        )
 
     @staticmethod
     def _queue_restore_window(arg: Any) -> None:
         """Send the restore window signal to a window.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.window.restore:
-            assert isinstance(arg, X11NativeWindow)  # nosec
-            arg.on_os_restored()
-            user_messages.report_send_receive_problems(
-                WINDOWS_FUNCTIONS.window.restore(arg.native_id)  # pylint:disable=not-callable
-            )
+        assert isinstance(arg, X11NativeWindow)  # nosec
+        arg.on_os_restored()
+        user_messages.report_send_receive_problems(
+            WINDOWS_FUNCTIONS.window.restore(arg.native_id)  # pylint:disable=not-callable
+        )
 
     @staticmethod
     def _queue_set_position_window(
@@ -535,78 +539,75 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
         """Send the move/resize signal to a window.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.window.move_resize:
-            assert isinstance(arg, tuple)  # nosec
-            wnd, new_location = arg
-            assert isinstance(wnd, X11NativeWindow)  # nosec
-            assert isinstance(new_location, window_events.ScreenDimension)  # nosec
+        assert isinstance(arg, tuple)  # nosec
+        wnd, new_location = arg
+        assert isinstance(wnd, X11NativeWindow)  # nosec
+        assert isinstance(new_location, window_events.ScreenDimension)  # nosec
 
-            print(f'[Native] Handling request to move/resize window {wnd.window_id}')
-            rect = mapper.screen_to_window_area((
-                t_cast(ScreenUnit, new_location.x),
-                t_cast(ScreenUnit, new_location.y),
-                t_cast(ScreenUnit, new_location.width),
-                t_cast(ScreenUnit, new_location.height),
-            ))
-            if not rect:
-                # Failed to map.
-                # TODO better error reporting.
-                print(f"Failed to map {new_location} to monitor coordinates")
-                return
-            print(f"** MOVE WINDOW: Mapping {new_location} to {rect}")
-            success = WINDOWS_FUNCTIONS.window.move_resize(  # pylint:disable=not-callable
-                wnd.native_id,
-                rect.x, rect.y, rect.width, rect.height,
-                True,
-            )
-            if success:
-                wnd.on_request_move(new_location)
-                # TODO change the position state in the datastore.
-                # I don't think this will trigger another Windows message that would then
-                # perform this operation.
+        print(f'[Native] Handling request to move/resize window {wnd.window_id}')
+        rect = mapper.screen_to_window_area((
+            t_cast(ScreenUnit, new_location.x),
+            t_cast(ScreenUnit, new_location.y),
+            t_cast(ScreenUnit, new_location.width),
+            t_cast(ScreenUnit, new_location.height),
+        ))
+        if not rect:
+            # Failed to map.
+            # TODO better error reporting.
+            print(f"Failed to map {new_location} to monitor coordinates")
+            return
+        print(f"** MOVE WINDOW: Mapping {new_location} to {rect}")
+        success = WINDOWS_FUNCTIONS.window.move_resize(  # pylint:disable=not-callable
+            wnd.native_id,
+            rect.x, rect.y, rect.width, rect.height,
+            True,
+        )
+        if success:
+            wnd.on_request_move(new_location)
+            # TODO change the position state in the datastore.
+            # I don't think this will trigger another Windows message that would then
+            # perform this operation.
 
     @staticmethod
     def _queue_set_window_style(arg: Any) -> None:
         """Perform style window setting.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.window.set_style:
-            assert isinstance(arg, tuple)  # nosec
-            wnd, settings = arg
-            assert isinstance(wnd, X11NativeWindow)  # nosec
-            assert isinstance(settings, dict)  # nosec
-            style: Dict[str, bool] = {}
-            for key, val in settings.items():
-                bool_val = _parse_bool(val)
-                if bool_val is not None and key in WINDOW_META_STYLES:
-                    style[WINDOW_META_STYLES[key]] = bool_val
+        assert isinstance(arg, tuple)  # nosec
+        wnd, settings = arg
+        assert isinstance(wnd, X11NativeWindow)  # nosec
+        assert isinstance(settings, dict)  # nosec
+        style: Dict[str, bool] = {}
+        for key, val in settings.items():
+            bool_val = _parse_bool(val)
+            if bool_val is not None and key in WINDOW_META_STYLES:
+                style[WINDOW_META_STYLES[key]] = bool_val
 
-            res = WINDOWS_FUNCTIONS.window.set_style(wnd.native_id, style)  # pylint:disable=not-callable
-            if res.ok:
-                # TODO: change the settings in the datastore
-                pass
+        res = WINDOWS_FUNCTIONS.window.set_style(wnd.native_id, style)  # pylint:disable=not-callable
+        if res.ok:
+            # TODO: change the settings in the datastore
+            pass
 
     def _queue_set_global_style(self, arg: Any) -> None:
         """Perform global style setting.  Run from within the message loop."""
         # This is an internal function, so the assertions are just for debugging / developer
         # aid.
-        if WINDOWS_FUNCTIONS.shell.set_border_size:
-            assert isinstance(arg, dict)  # nosec
-            border_width = _get_int(GLOBAL_SETTING__METRICS_BORDER_WIDTH, arg, -1)
-            padded_border_width = _get_int(GLOBAL_SETTING__METRICS_BORDER_WIDTH, arg, 4)
-            if border_width >= 0:
-                user_messages.report_send_receive_problems(
-                    WINDOWS_FUNCTIONS.shell.set_border_size(  # pylint:disable=not-callable
-                        border_width, padded_border_width,
-                    )
+        assert isinstance(arg, dict)  # nosec
+        border_width = _get_int(GLOBAL_SETTING__METRICS_BORDER_WIDTH, arg, -1)
+        padded_border_width = _get_int(GLOBAL_SETTING__METRICS_BORDER_WIDTH, arg, 4)
+        if border_width >= 0:
+            user_messages.report_send_receive_problems(
+                WINDOWS_FUNCTIONS.shell.set_border_size(  # pylint:disable=not-callable
+                    border_width, padded_border_width,
                 )
-            new_settings_res = X11NativeHandler._load_global_settings()
-            user_messages.report_send_receive_problems(new_settings_res)
-            if new_settings_res.ok:
-                self.__executor.submit(
-                    self._in_exec_update_global_settings,
-                    new_settings_res.result,
-                )
+            )
+        new_settings_res = X11NativeHandler._load_global_settings()
+        user_messages.report_send_receive_problems(new_settings_res)
+        if new_settings_res.ok:
+            self.__executor.submit(
+                self._in_exec_update_global_settings,
+                new_settings_res.result,
+            )
 
     def _queue_load_os_settings(self, _arg: Any) -> None:
         """Load up the OS settings."""
@@ -669,7 +670,7 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
             self.window_created(window_state, False)
         )
 
-    def _in_exec_destroy_window_state(self, hwnd: xcb_native.XcbWindow, reason: str) -> None:
+    def _in_exec_destroy_window_state(self, hwnd: libxcb_types.XcbWindow, reason: str) -> None:
         log.debug(
             "Sending window destroyed event: {hwnd} {reason}",
             hwnd=hwnd, reason=reason,
@@ -678,13 +679,13 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
             self.window_destroyed(hwnd, reason)
         )
 
-    def _in_exec_focus_window(self, hwnd: xcb_native.XcbWindow) -> None:
+    def _in_exec_focus_window(self, hwnd: libxcb_types.XcbWindow) -> None:
         log.debug("Sending focus window event: {hwnd}", hwnd=hwnd)
         user_messages.report_send_receive_problems(
             self.window_focused(0, hwnd)
         )
 
-    def _in_exec_window_flashed(self, hwnd: xcb_native.XcbWindow) -> None:
+    def _in_exec_window_flashed(self, hwnd: libxcb_types.XcbWindow) -> None:
         log.debug("Sending window flashed event: {hwnd}", hwnd=hwnd)
         user_messages.report_send_receive_problems(
             self.window_flashing(hwnd)
@@ -694,83 +695,79 @@ class X11NativeHandler(window.AbstractWindowHandler[X11NativeWindow, xcb_native.
     def _load_global_settings() -> StdRet[Mapping[str, str]]:
         """Read all the global OS settings, and update the state.
         This should be run from the windows message loop."""
-        if WINDOWS_FUNCTIONS.shell.get_window_metrics:
-            metrics = WINDOWS_FUNCTIONS.shell.get_window_metrics()  # pylint:disable=not-callable
-            if metrics.has_error:
-                return metrics.forward()
-            return StdRet.pass_ok({
-                GLOBAL_SETTING__METRICS_BORDER_WIDTH:
-                    str(metrics.result.border_width),
-                GLOBAL_SETTING__METRICS_PADDED_BORDER_WIDTH:
-                    str(metrics.result.padded_border_width),
-                GLOBAL_SETTING__METRICS_SCROLL_WIDTH:
-                    str(metrics.result.scroll_width),
-                GLOBAL_SETTING__METRICS_SCROLL_HEIGHT:
-                    str(metrics.result.scroll_height),
-                GLOBAL_SETTING__METRICS_CAPTION_WIDTH:
-                    str(metrics.result.caption_width),
-                GLOBAL_SETTING__METRICS_CAPTION_HEIGHT:
-                    str(metrics.result.caption_height),
+        metrics = WINDOWS_FUNCTIONS.shell.get_window_metrics()  # pylint:disable=not-callable
+        if metrics.has_error:
+            return metrics.forward()
+        return StdRet.pass_ok({
+            GLOBAL_SETTING__METRICS_BORDER_WIDTH:
+                str(metrics.result.border_width),
+            GLOBAL_SETTING__METRICS_PADDED_BORDER_WIDTH:
+                str(metrics.result.padded_border_width),
+            GLOBAL_SETTING__METRICS_SCROLL_WIDTH:
+                str(metrics.result.scroll_width),
+            GLOBAL_SETTING__METRICS_SCROLL_HEIGHT:
+                str(metrics.result.scroll_height),
+            GLOBAL_SETTING__METRICS_CAPTION_WIDTH:
+                str(metrics.result.caption_width),
+            GLOBAL_SETTING__METRICS_CAPTION_HEIGHT:
+                str(metrics.result.caption_height),
 
-                # TODO font metrics struct to string
-                GLOBAL_SETTING__METRICS_CAPTION_FONT: '',
+            # TODO font metrics struct to string
+            GLOBAL_SETTING__METRICS_CAPTION_FONT: '',
 
-                GLOBAL_SETTING__METRICS_SMALL_CAPTION_WIDTH:
-                    str(metrics.result.sm_caption_width),
-                GLOBAL_SETTING__METRICS_SMALL_CAPTION_HEIGHT:
-                    str(metrics.result.sm_caption_height),
+            GLOBAL_SETTING__METRICS_SMALL_CAPTION_WIDTH:
+                str(metrics.result.sm_caption_width),
+            GLOBAL_SETTING__METRICS_SMALL_CAPTION_HEIGHT:
+                str(metrics.result.sm_caption_height),
 
-                # TODO font metrics struct to string
-                # GLOBAL_SETTING__METRICS_SMALL_CAPTION_FONT: '',
+            # TODO font metrics struct to string
+            # GLOBAL_SETTING__METRICS_SMALL_CAPTION_FONT: '',
 
-                GLOBAL_SETTING__METRICS_MENU_WIDTH:
-                    str(metrics.result.menu_width),
-                GLOBAL_SETTING__METRICS_MENU_HEIGHT:
-                    str(metrics.result.menu_height),
+            GLOBAL_SETTING__METRICS_MENU_WIDTH:
+                str(metrics.result.menu_width),
+            GLOBAL_SETTING__METRICS_MENU_HEIGHT:
+                str(metrics.result.menu_height),
 
-                # TODO font metrics struct to string
-                # GLOBAL_SETTING__METRICS_MENU_FONT: '',
+            # TODO font metrics struct to string
+            # GLOBAL_SETTING__METRICS_MENU_FONT: '',
 
-                # TODO font metrics struct to string
-                # GLOBAL_SETTING__METRICS_STATUS_FONT: '',
+            # TODO font metrics struct to string
+            # GLOBAL_SETTING__METRICS_STATUS_FONT: '',
 
-                # TODO font metrics struct to string
-                # GLOBAL_SETTING__METRICS_MESSAGE_FONT: '',
-            })
-        return StdRet.pass_ok(EMPTY_MAPPING)
+            # TODO font metrics struct to string
+            # GLOBAL_SETTING__METRICS_MESSAGE_FONT: '',
+        })
 
     def _load_window_states(self) -> StdRet[List[X11NativeWindow]]:
         """Read in all the OS Windows and their states.  Should be done in the message loop."""
-        active_windows: Dict[xcb_native.XcbWindow, X11NativeWindow] = {
+        active_windows: Dict[libxcb_types.XcbWindow, X11NativeWindow] = {
             wnd.native_id: wnd
             for wnd in self.get_active_windows()
         }
         res: List[StdRet[None]] = []
 
-        focused_hwnd: Optional[xcb_native.XcbWindow] = None
-        if WINDOWS_FUNCTIONS.window.get_active_window:
-            focused_hwnd = WINDOWS_FUNCTIONS.window.get_active_window()  # pylint:disable=not-callable
-        if WINDOWS_FUNCTIONS.window.find_handles:
-            handles = WINDOWS_FUNCTIONS.window.find_handles()  # pylint:disable=not-callable
-            for handle in handles:
-                wnd = active_windows.get(handle)
-                if not wnd:
-                    wnd = self._mk_window_state(handle)
-                if wnd:
-                    if focused_hwnd == handle:
-                        wnd.state.focus = 0
-                        wnd.state.active = True
-                    res.append(update_window_state(wnd.native_id, wnd.state))
-                    active_windows[handle] = wnd
-                elif handle in active_windows:
-                    del active_windows[handle]
+        focused_hwnd: Optional[libxcb_types.XcbWindow] = None
+        focused_hwnd = WINDOWS_FUNCTIONS.window.get_active_window()  # pylint:disable=not-callable
+        handles = WINDOWS_FUNCTIONS.window.find_handles()  # pylint:disable=not-callable
+        for handle in handles:
+            wnd = active_windows.get(handle)
+            if not wnd:
+                wnd = self._mk_window_state(handle)
+            if wnd:
+                if focused_hwnd == handle:
+                    wnd.state.focus = 0
+                    wnd.state.active = True
+                res.append(update_window_state(wnd.native_id, wnd.state))
+                active_windows[handle] = wnd
+            elif handle in active_windows:
+                del active_windows[handle]
 
         return join_results(
             lambda x: list(active_windows.values()),
             *res
         )
 
-    def _mk_window_state(self, hwnd: xcb_native.XcbWindow) -> Optional[X11NativeWindow]:
+    def _mk_window_state(self, hwnd: libxcb_types.XcbWindow) -> Optional[X11NativeWindow]:
         ret = X11NativeWindow(
             self.create_next_window_id(),
             hwnd,
@@ -811,7 +808,7 @@ def _get_int(key: str, struct: Mapping[str, str], default: int) -> int:
 
 
 def update_window_state(  # pylint:disable=too-many-branches
-        hwnd: xcb_native.XcbWindow, state: window_events.WindowState,
+        hwnd: libxcb_types.XcbWindow, state: window_events.WindowState,
 ) -> StdRet[None]:
     """Load the window state data.  Should be called from the Windows message loop.
     The different API calls can generate errors which can be ignored.  These are not
@@ -824,24 +821,22 @@ def update_window_state(  # pylint:disable=too-many-branches
         for m in state.meta
     }
     access_problems: List[UserMessage] = []
-    if WINDOWS_FUNCTIONS.window.border_rectangle:
-        rect_res = WINDOWS_FUNCTIONS.window.border_rectangle(  # pylint:disable=not-callable
-            hwnd,
-        )
-        access_problems.extend(rect_res.error_messages())
-        if rect_res.ok:
-            state.location.x = rect_res.result.x
-            state.location.y = rect_res.result.y
-            state.location.width = rect_res.result.width
-            state.location.height = rect_res.result.height
-    if WINDOWS_FUNCTIONS.window.get_style:
-        style = WINDOWS_FUNCTIONS.window.get_style(  # pylint:disable=not-callable
-            hwnd,
-        )
-        meta.update({
-            key: 'true' if style.get(WINDOW_META_STYLES[key], False) else 'false'
-            for key in WINDOW_META_STYLES  # keys()
-        })
+    rect_res = WINDOWS_FUNCTIONS.window.border_rectangle(  # pylint:disable=not-callable
+        hwnd,
+    )
+    access_problems.extend(rect_res.error_messages())
+    if rect_res.ok:
+        state.location.x = rect_res.result.x
+        state.location.y = rect_res.result.y
+        state.location.width = rect_res.result.width
+        state.location.height = rect_res.result.height
+    style = WINDOWS_FUNCTIONS.window.get_style(  # pylint:disable=not-callable
+        hwnd,
+    )
+    meta.update({
+        key: 'true' if style.get(WINDOW_META_STYLES[key], False) else 'false'
+        for key in WINDOW_META_STYLES  # keys()
+    })
     pid: DWORD = DWORD(0)
     if WINDOWS_FUNCTIONS.window.get_process_id:
         pid = WINDOWS_FUNCTIONS.window.get_process_id(  # pylint:disable=not-callable
@@ -867,18 +862,16 @@ def update_window_state(  # pylint:disable=too-many-branches
     #     if name_res.ok:
     #         meta[WINDOW_META__WINDOW_MODULE_FILENAME] = name_res.result
 
-    if WINDOWS_FUNCTIONS.window.get_title:
-        meta[WINDOW_META__WINDOW_TITLE] = WINDOWS_FUNCTIONS.window.get_title(  # pylint:disable=not-callable
-            hwnd,
-        )
-    if WINDOWS_FUNCTIONS.process.get_username_domain_for_pid and pid != 0:
+    meta[WINDOW_META__WINDOW_TITLE] = WINDOWS_FUNCTIONS.window.get_title(  # pylint:disable=not-callable
+        hwnd,
+    )
+    if pid != 0:
         user_domain_res = WINDOWS_FUNCTIONS.process.get_username_domain_for_pid(  # pylint:disable=not-callable
             pid,
         )
         access_problems.extend(user_domain_res.error_messages())
         if user_domain_res.ok:
             meta[WINDOW_META__OWNER] = f'{user_domain_res.result[0]}/{user_domain_res.result[1]}'
-    if WINDOWS_FUNCTIONS.process.get_executable_filename and pid != 0:
         exec_fn_res = WINDOWS_FUNCTIONS.process.get_executable_filename(pid)  # pylint:disable=not-callable
         access_problems.extend(exec_fn_res.error_messages())
         if exec_fn_res.ok and exec_fn_res.value:
@@ -933,10 +926,7 @@ def is_manageable(wnd: X11NativeWindow) -> bool:
         if meta_value.key == WINDOW_META__WINDOW_TITLE:
             title = meta_value.value
 
-    if (
-            (visible is None or popup is None or tool is None)
-            and WINDOWS_FUNCTIONS.window.get_style
-    ):
+    if visible is None or popup is None or tool is None:
         style = WINDOWS_FUNCTIONS.window.get_style(  # pylint:disable=not-callable
             hwnd,
         )
@@ -968,7 +958,7 @@ def is_manageable(wnd: X11NativeWindow) -> bool:
         #     print(f'  - {meta.key}: [{meta.value}]')
         return False
 
-    if title is None and WINDOWS_FUNCTIONS.window.get_title:
+    if title is None:
         title = WINDOWS_FUNCTIONS.window.get_title(  # pylint:disable=not-callable
             hwnd,
         )

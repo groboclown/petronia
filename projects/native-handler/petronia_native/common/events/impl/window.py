@@ -10,18 +10,18 @@ Data structures and marshalling for extension petronia.core.api.native.window ve
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
-    Dict,
-    SupportsInt,
-    List,
     cast,
+    List,
+    SupportsInt,
     Any,
     Optional,
+    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
+    collect_errors_from,
     not_none,
     STANDARD_PETRONIA_CATALOG,
-    collect_errors_from,
     StdRet,
 )
 
@@ -249,7 +249,7 @@ class WindowState:
     """
     The state of a window.
     """
-    __slots__ = ('active', 'focus', 'parent_id', 'location', 'minimized', 'meta',)
+    __slots__ = ('active', 'focus', 'parent_id', 'location', 'minimized', 'resizable', 'full_screen', 'meta',)
 
     def __init__(
         self,
@@ -258,6 +258,8 @@ class WindowState:
         parent_id: Optional[str],
         location: ScreenDimension,
         minimized: bool,
+        resizable: bool,
+        full_screen: bool,
         meta: List[NativeMetaValue],
     ) -> None:
         self.active = active
@@ -265,6 +267,8 @@ class WindowState:
         self.parent_id = parent_id
         self.location = location
         self.minimized = minimized
+        self.resizable = resizable
+        self.full_screen = full_screen
         self.meta = meta
 
     def export_data(self) -> Dict[str, Any]:  # pylint: disable=R0201
@@ -275,6 +279,8 @@ class WindowState:
             'parent_id': self.parent_id,
             'location': self.location.export_data(),
             'minimized': self.minimized,
+            'resizable': self.resizable,
+            'full_screen': self.full_screen,
             'meta': [v.export_data() for v in self.meta],
         }
         return _strip_none(ret)
@@ -375,6 +381,44 @@ class WindowState:
                     name='WindowState',
                 )
             f_minimized = val
+        val = data.get('resizable')
+        f_resizable: bool
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='resizable',
+                name='WindowState',
+            )
+        else:
+            if not isinstance(val, bool):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='resizable',
+                    type='bool',
+                    name='WindowState',
+                )
+            f_resizable = val
+        val = data.get('full_screen')
+        f_full_screen: bool
+        if val is None:  # pylint:disable=no-else-return
+            return StdRet.pass_errmsg(
+                STANDARD_PETRONIA_CATALOG,
+                _('Required field {field_name} in {name}'),
+                field_name='full_screen',
+                name='WindowState',
+            )
+        else:
+            if not isinstance(val, bool):
+                return StdRet.pass_errmsg(
+                    STANDARD_PETRONIA_CATALOG,
+                    _('Field {field_name} must be of type {type} for structure {name}'),
+                    field_name='full_screen',
+                    type='bool',
+                    name='WindowState',
+                )
+            f_full_screen = val
         val = data.get('meta')
         f_meta: List[NativeMetaValue]
         if val is None:  # pylint:disable=no-else-return
@@ -399,6 +443,8 @@ class WindowState:
             parent_id=f_parent_id,
             location=not_none(f_location),
             minimized=not_none(f_minimized),
+            resizable=not_none(f_resizable),
+            full_screen=not_none(f_full_screen),
             meta=not_none(f_meta),
         ))
 

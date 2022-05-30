@@ -90,6 +90,7 @@ state-data:
           mapping will change the current value in this configuration.  If the monitor state changes,
           then this is used to reference the new virtual-screen setting.
         type: structure
+        optional: true
         fields:
           mapped_screens_by_monitors:
             type: array

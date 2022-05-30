@@ -10,16 +10,16 @@ Data structures and marshalling for extension petronia_native_x11 version 1.0.0.
 # Allow forward references and thus cyclic data types
 from __future__ import annotations
 from typing import (
+    Optional,
+    Dict,
+    Any,
     List,
     SupportsInt,
-    Optional,
-    Any,
-    Dict,
 )
 from petronia_common.util import i18n as _
 from petronia_common.util import (
-    collect_errors_from,
     not_none,
+    collect_errors_from,
     STANDARD_PETRONIA_CATALOG,
     StdRet,
 )
@@ -596,7 +596,7 @@ class ConfigurationState:
     def __init__(
         self,
         connection: Connection,
-        virtual_screens: VirtualScreens,
+        virtual_screens: Optional[VirtualScreens],
     ) -> None:
         self.connection = connection
         self.virtual_screens = virtual_screens
@@ -605,7 +605,7 @@ class ConfigurationState:
         """Create the event data structure, ready for marshalling."""
         ret: Dict[str, Any] = {
             'connection': self.connection.export_data(),
-            'virtual_screens': self.virtual_screens.export_data(),
+            'virtual_screens': None if self.virtual_screens is None else self.virtual_screens.export_data(),
         }
         return _strip_none(ret)
 
@@ -637,32 +637,18 @@ class ConfigurationState:
                 )
             f_connection = parsed_connection.result
         val = data.get('virtual_screens')
-        f_virtual_screens: VirtualScreens
-        if val is None:  # pylint:disable=no-else-return
-            return StdRet.pass_errmsg(
-                STANDARD_PETRONIA_CATALOG,
-                _('Required field {field_name} in {name}'),
-                field_name='virtual_screens',
-                name='ConfigurationState',
-            )
-        else:
+        f_virtual_screens: Optional[VirtualScreens] = None
+        if val is not None:
             parsed_virtual_screens = VirtualScreens.parse_data(val)
             if parsed_virtual_screens.has_error:
                 return parsed_virtual_screens.forward()
-            if parsed_virtual_screens.value is None:
-                return StdRet.pass_errmsg(
-                    STANDARD_PETRONIA_CATALOG,
-                    _(
-                        'Field {field_name} must not be null'
-                    ),
-                    field_name='virtual_screens',
-                )
-            f_virtual_screens = parsed_virtual_screens.result
+            # Value, not result, because it could be optional...
+            f_virtual_screens = parsed_virtual_screens.value
         if errors:
             return StdRet.pass_error(not_none(collect_errors_from(errors)))
         return StdRet.pass_ok(ConfigurationState(
             connection=not_none(f_connection),
-            virtual_screens=not_none(f_virtual_screens),
+            virtual_screens=f_virtual_screens,
         ))
 
     def __repr__(self) -> str:

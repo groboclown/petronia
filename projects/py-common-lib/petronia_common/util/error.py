@@ -191,6 +191,7 @@ class StdRet(Generic[T_co]):
             # value is "self", which must still be checked.
 
             return cast(StdRet[None], self)
+        self.__checked_error = True
         return RET_OK_NONE
 
     @final
@@ -224,6 +225,17 @@ class StdRet(Generic[T_co]):
             return cast(StdRet[V], self)
         self.__checked_error = True
         return StdRet(error=None, value=callback(self.__value))
+
+    @final
+    def then(self, callback: Callable[[T_co], StdRet[V]]) -> StdRet[V]:
+        """If everything is fine, call the callback with the current value, and it
+        maps that value to another (not StdRet) value."""
+        if self.__error:
+            # This does not count as checking for an error, because the returned
+            # value is "self", which must still be checked.
+            return cast(StdRet[V], self)
+        self.__checked_error = True
+        return callback(self.__value)
 
     @property
     @final

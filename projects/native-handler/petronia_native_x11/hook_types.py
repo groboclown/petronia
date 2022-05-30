@@ -4,7 +4,8 @@ from typing import Union, Callable
 from petronia_common.util import StdRet, UserMessage
 from petronia_ext_lib.runner import LookupEventRegistryContext
 from .configuration import ConfigurationStore
-from .common_data import Libraries, WindowManagerData, CommonData
+from .common_data import Libraries, WindowManagerData
+from .running_data import RunningData
 
 
 class Hook:
@@ -15,12 +16,12 @@ class Hook:
         the screen is grabbed."""
         raise NotImplementedError
 
-    def setup_pre_event_loop(self, data: CommonData) -> StdRet[None]:
+    def setup_pre_event_loop(self, data: RunningData) -> StdRet[None]:
         """Setup after the screen is released ("ungrabbed") and just before the
         event loop starts running."""
         raise NotImplementedError
 
-    def shutdown(self, data: CommonData) -> StdRet[None]:
+    def shutdown(self, data: RunningData) -> StdRet[None]:
         """After the event loop stops, shut down.  The X server connection will still
         be open."""
         raise NotImplementedError
@@ -47,16 +48,16 @@ class PhaseRunner:
         """Setup enough to connect to the server and become a window manager."""
         raise NotImplementedError
 
-    def prepare_event_loop(self, data: WindowManagerData) -> StdRet[CommonData]:
+    def prepare_event_loop(self, data: WindowManagerData) -> StdRet[RunningData]:
         """Release the screen and prepare for the loop to start."""
         raise NotImplementedError
 
-    def run_event_loop(self, data: CommonData) -> StdRet[None]:
+    def run_event_loop(self, data: RunningData) -> StdRet[None]:
         """Run the event loop.  Exits after the loop is running, which should be in another
         thread."""
         raise NotImplementedError
 
-    def shutdown(self, data: CommonData, timeout: float) -> StdRet[None]:
+    def shutdown(self, data: RunningData, timeout: float) -> StdRet[None]:
         """After all the hooks finish shutting down, shut down the connection to the
         X server nicely."""
         raise NotImplementedError

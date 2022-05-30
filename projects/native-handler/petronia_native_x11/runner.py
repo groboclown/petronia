@@ -12,7 +12,7 @@ from typing import Sequence, List, Tuple, Callable
 from petronia_common.util import StdRet, UserMessage, RET_OK_NONE, collect_errors_from
 from petronia_ext_lib.runner import LookupEventRegistryContext
 from .configuration import ConfigurationStore
-from .common_data import CommonData
+from .running_data import RunningData
 from .hook_types import Hook, HookFactory, PhaseRunner
 
 
@@ -20,7 +20,7 @@ def start_server(
         context: LookupEventRegistryContext, config: ConfigurationStore,
         on_warning: Callable[[UserMessage], None],
         runner: PhaseRunner, hook_factories: Sequence[HookFactory],
-) -> StdRet[Tuple[CommonData, Sequence[Hook]]]:
+) -> StdRet[Tuple[RunningData, Sequence[Hook]]]:
     """Start the connection to the X server, run the hooks, and start up the event loop."""
 
     # Step 1: boot
@@ -78,7 +78,7 @@ def start_server(
 
 
 def stop_server(
-        data: CommonData, timeout: float,
+        data: RunningData, timeout: float,
         runner: PhaseRunner, hooks: Sequence[Hook],
 ) -> StdRet[None]:
     """Stop the server."""

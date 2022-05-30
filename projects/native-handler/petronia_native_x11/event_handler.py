@@ -5,7 +5,7 @@ import ctypes
 import threading
 from concurrent.futures import Future, Executor, ThreadPoolExecutor
 from queue import Queue, Empty
-from petronia_common.util import StdRet, RET_OK_NONE, T
+from petronia_common.util import StdRet, T
 from petronia_native.common import user_messages
 from . import common_data
 from .libs import libc, libxcb_types, libxcb_consts, ct_util
@@ -32,10 +32,10 @@ EventQueryCallback = Callable[[StdRet[EventResponse]], StdRet[None]]
 
 EventQueryRegisterCookie = Callable[[libxcb_types.XcbVoidCookie], None]
 
-EventQuery = Callable[[common_data.CommonData, EventQueryRegisterCookie], None]
+EventQuery = Callable[[common_data.WindowManagerData, EventQueryRegisterCookie], None]
 
 FutureEventQuery = Callable[
-    [common_data.CommonData, EventQueryRegisterCookie],
+    [common_data.WindowManagerData, EventQueryRegisterCookie],
     StdRet[None],
 ]
 
@@ -92,7 +92,7 @@ class LowEvents(EventRegistrar):
     ) -> None:
         self.__error_callback = on_error
         self.__keys: List[
-            Callable[[common_data.CommonData, libxcb_types.XcbKeyPressEvent], None]
+            Callable[[common_data.WindowManagerData, libxcb_types.XcbKeyPressEvent], None]
         ] = []
         self.__callbacks: Dict[int, EventResponseCallback] = {
             libxcb_consts.XCB_KEY_PRESS:
@@ -147,7 +147,7 @@ class LowEvents(EventRegistrar):
 
     def _handle_runner(
             self, event: T,
-            runners: Sequence[Callable[[common_data.CommonData, T], None]],
+            runners: Sequence[Callable[[common_data.WindowManagerData, T], None]],
     ) -> None:
         """Handle the runner list calls."""
         for runner in runners:
@@ -330,9 +330,9 @@ class EventHandlerLoop:
 
 def setup_event_listener_with_screen(cxt: common_data.WindowManagerData) -> StdRet[None]:
     # Setup events to listen to on the root window.
-    cxt.change_window_attributes(
+    res = cxt.change_window_attributes(
         window_id=cxt.screen_root,
         value_mask=libxcb_consts.XCB_CW_EVENT_MASK__c,
         value_list=(ROOT_WINDOW_EVENT_MASK,),
     )
-    return RET_OK_NONE
+    return res.map_none()

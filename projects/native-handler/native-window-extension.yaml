@@ -475,6 +475,12 @@ references:
       minimized:
         description: Is this window minimized?
         type: bool
+      resizable:
+        description: Can this window be resized?
+        type: bool
+      full_screen:
+        description: Is this window intended to cover the full screen?
+        type: bool
       meta:
         type: reference
         ref: window-meta-values

@@ -1,8 +1,8 @@
 """Connect to the X server, become a window manager, and grab the screen."""
 
-from typing import List, Optional, Any
+from typing import List, Optional, Callable, Any
 import ctypes
-from petronia_common.util import StdRet, collect_errors_from, RET_OK_NONE, T, V
+from petronia_common.util import StdRet, RET_OK_NONE, T
 from petronia_common.util import i18n as _
 from petronia_native.common import user_messages
 from petronia_native_x11 import common_data
@@ -21,36 +21,26 @@ _SELECTION_OWNER_WINDOW_CHAR_P = ctypes.c_char_p(b'Petronia WM_Sn selection owne
 def connect_as_wm(libs: common_data.Libraries) -> StdRet[common_data.WindowManagerData]:
     cxt = WindowManagerDataBuilder(libs)
 
-    conn_res = _connect(cxt)
-    if conn_res.has_error:
-        return cxt.halt(conn_res)
-    conn = _req(cxt.conn)
+    return _ordered_res(
+        lambda: cxt.close(),
 
-    vis_res = _with_visual(
-        cxt=cxt,
-        use_argb_visual=libs.config.get_config().connection.use_argb_visual,
-    )
-    atom_res = _with_atoms(cxt)
-    cairo_res = _test_cairo_surface(cxt)
-    time_res = _with_timestamp(cxt)
-    wm_res = _acquire_wm_sn(
-        cxt=cxt,
-        replace_existing=libs.config.get_config().connection.replace_existing_wm,
-    )
-
-    # Start a bunch of actions once we've grabbed the server.
-    cxt.lib.xcb.xcb_grab_server(conn)
-
-    bwm_res = _become_window_manager(cxt)
-
-    cxt.lib.xcb.xcb_prefetch_maximum_request_length(conn)
-
-    errs = collect_errors_from(
-        vis_res, atom_res, cairo_res, time_res, wm_res, bwm_res,
-    )
-    if errs:
-        return cxt.halt(StdRet.pass_error(errs))
-    return cxt.build()
+        lambda: _connect(cxt),
+        lambda: _with_screen(cxt),
+        lambda: _with_visual(
+            cxt=cxt,
+            use_argb_visual=libs.config.get_config().connection.use_argb_visual,
+        ),
+        lambda: _with_atoms(cxt),
+        lambda: _test_cairo_surface(cxt),
+        lambda: _with_timestamp(cxt),
+        lambda: _acquire_wm_sn(
+            cxt=cxt,
+            replace_existing=libs.config.get_config().connection.replace_existing_wm,
+        ),
+        lambda: _become_window_manager(cxt),
+        lambda: _grab_server(cxt),
+        lambda: _prefetch_maximum_request_length(cxt),
+    ).then(lambda x: cxt.build())
 
 
 class WindowManagerDataBuilder:
@@ -78,12 +68,12 @@ class WindowManagerDataBuilder:
         self.selection_atom: Optional[libxcb_types.XcbAtom] = None
         self.selection_owner_window: Optional[libxcb_types.XcbWindow] = None
 
-    def halt(self, res: StdRet[T]) -> StdRet[V]:
+    def close(self) -> None:
         """Close any open connections."""
         if self.conn:
+            self.lib.xcb.xcb_ungrab_server(self.conn)
             self.lib.xcb.xcb_disconnect(self.conn)
             self.conn = None
-        return res.forward()
 
     def build(self) -> StdRet[common_data.WindowManagerData]:
         return StdRet.pass_ok(common_data.WindowManagerData(
@@ -126,16 +116,11 @@ def _connect(cxt: WindowManagerDataBuilder) -> StdRet[None]:
     return RET_OK_NONE
 
 
-def _with_visual(*, cxt: WindowManagerDataBuilder, use_argb_visual: bool) -> StdRet[None]:
+def _with_screen(cxt: WindowManagerDataBuilder) -> StdRet[None]:
     # Requires:
     #   -cxt.conn
     # Sets:
     #   +cxt.screen
-    #   +cxt.default_visual
-    #   +cxt.visual
-    #   +cxt.default_depth_raw
-    #   +cxt.default_depth
-    #   +cxt.default_colormap
 
     _debug("get screen")
     conn = _req(cxt.conn)
@@ -150,7 +135,25 @@ def _with_visual(*, cxt: WindowManagerDataBuilder, use_argb_visual: bool) -> Std
     screen = _req(cxt.screen)
     cxt.default_visual = _find_visual(cxt.lib.xcb, screen, screen.contents.root_visual)
 
+    return RET_OK_NONE
+
+
+def _with_visual(*, cxt: WindowManagerDataBuilder, use_argb_visual: bool) -> StdRet[None]:
+    # Requires:
+    #   -cxt.conn
+    # Sets:
+    #   +cxt.default_visual
+    #   +cxt.visual
+    #   +cxt.default_depth_raw
+    #   +cxt.default_depth
+    #   +cxt.default_colormap
+
+    conn = _req(cxt.conn)
+    screen = _req(cxt.screen)
+
     _debug("get visual")
+    cxt.default_visual = _find_visual(cxt.lib.xcb, screen, screen.contents.root_visual)
+
     if use_argb_visual:
         cxt.visual = _find_argb_visual(cxt.lib.xcb, screen)
     if not cxt.visual:
@@ -186,6 +189,7 @@ def _with_atoms(cxt: WindowManagerDataBuilder) -> StdRet[None]:
     #   -cxt.conn
     # Sets:
     #   +cxt.atoms
+    _debug('Getting atoms')
     atom_res = xcb_atoms.initialize_atoms(cxt.lib.xcb, cxt.lib.clib, _req(cxt.conn))
     if atom_res.has_error:
         return atom_res.forward()
@@ -265,6 +269,7 @@ def _find_visual_depth(
 
 def _test_cairo_surface(cxt: WindowManagerDataBuilder) -> StdRet[None]:
     """Test creation of a new surface."""
+    _debug("test cairo surface")
     # create the 1x1 pixmap
     conn = _req(cxt.conn)
     screen = _req(cxt.screen)
@@ -326,6 +331,7 @@ def _acquire_wm_sn(
     As per https://tronche.com/gui/x/icccm/sec-4.html#s-4.3
     the window manager must obtain the WM_S(n), where n is the screen number.
     """
+    _debug("acquiring WM_Sn")
     if not cxt.lib.has_xcb_util():
         # No api available to do this.
         _debug("Can't acquire WM_Sn via the API.")
@@ -338,6 +344,7 @@ def _acquire_wm_sn(
     timestamp = _req(cxt.timestamp)
     atoms = _req(cxt.atoms)
 
+    _debug(" - create window")
     owner_window = lib.xcb_generate_id(conn)
     lib.xcb_create_window(
         conn, screen.contents.root_depth, owner_window, screen.contents.root,
@@ -348,9 +355,11 @@ def _acquire_wm_sn(
         ctypes.c_int32(0), ct_util.NULL,
     )
     if cxt.lib.has_xcb_icccm():
+        _debug(" - set class and name")
         _set_xwindow_petronia_class_instance(cxt.lib.xcb_icccm, conn, owner_window)
         _set_xwindow_name(cxt.lib.xcb_icccm, conn, owner_window, _SELECTION_OWNER_WINDOW_CHAR_P)
 
+    _debug(" - getting the atom name for the WM_Sn")
     atom_name = cxt.lib.xcb_util.xcb_atom_name_by_screen(
         _WM_S_CHAR_P, ct_util.as_uint8(default_screen),
     )
@@ -359,11 +368,17 @@ def _acquire_wm_sn(
             user_messages.TRANSLATION_CATALOG,
             _('Failed to allocate window manager; WM_Sn atom name failure')
         )
+    _debug(f" - fetching the atom named {atom_name}")
     atom_q = lib.xcb_intern_atom_unchecked(
         conn, ctypes.c_uint8(0),
         ct_util.as_uint16(cxt.lib.clib.strlen(atom_name)), atom_name,
     )
-    cxt.lib.clib.force_free(atom_name)
+    # Python is being helpful and returning the ctypes.c_char_p as a bytearray instead.
+    #   ... for some implementations.
+    if isinstance(atom_name, ctypes.c_char_p):
+        _debug(f" - freeing the atom name {repr(atom_name)}")
+        cxt.lib.clib.force_free(atom_name)
+    _debug(" - getting the atom reply")
     atom_r = lib.xcb_intern_atom_reply(conn, atom_q, libxcb_consts.NULL__XcbGenericErrorPP)
     if not atom_r:
         return StdRet.pass_errmsg(
@@ -371,9 +386,11 @@ def _acquire_wm_sn(
             _('Failed to allocate window manager; WM_Sn atom name fetch failure')
         )
     atom: libxcb_types.XcbAtom = atom_r.contents.atom
+    _debug(" - freeing the atom reply")
     cxt.lib.clib.force_free(atom_r)
 
     # If the selection is already owned, try to capture it.
+    _debug(" - getting the selection owner")
     get_sel_reply = lib.xcb_get_selection_owner_reply(
         conn,
         lib.xcb_get_selection_owner(conn, atom), libxcb_consts.NULL__XcbGenericErrorPP,
@@ -395,21 +412,27 @@ def _acquire_wm_sn(
             rep=repr(replace_existing),
         )
 
+    _debug(" - setting selection owner to the new window")
     lib.xcb_set_selection_owner(conn, owner_window, atom, timestamp)
-    if get_sel_reply.contents.owner != libxcb_consts.XCB_NONE:
+    old_owner = get_sel_reply.contents.owner
+    _debug(" - freeing the selection owner reply")
+    cxt.lib.clib.force_free(get_sel_reply)
+    if old_owner != libxcb_consts.XCB_NONE:
         # Wait for the old owner
         while True:
+            _debug(" - getting the old owner")
             geometry_reply = lib.xcb_get_geometry_reply(
-                conn, lib.xcb_get_geometry(conn, get_sel_reply.contents.owner),
+                conn, lib.xcb_get_geometry(conn, old_owner),
                 libxcb_consts.NULL__XcbGenericErrorPP,
             )
             if geometry_reply:
+                _debug(" - still exists; freeing the old owner reply")
                 cxt.lib.clib.force_free(geometry_reply)
             else:
                 break
-    cxt.lib.clib.force_free(get_sel_reply)
 
     # custom event to announce that this connection is the new owner.
+    _debug(" - announce this is the new owner")
     ev = libxcb_types.XcbClientMessageEvent()
     # lib.memset(
     #     ctypes.cast(ctypes.byref(ev), ctypes.c_void_p),
@@ -504,11 +527,35 @@ def _become_window_manager(cxt: WindowManagerDataBuilder) -> StdRet[None]:
     return RET_OK_NONE
 
 
+def _grab_server(cxt: WindowManagerDataBuilder) -> StdRet[None]:
+    # Start a bunch of actions once we've grabbed the server.
+    cxt.lib.xcb.xcb_grab_server(_req(cxt.conn))
+    return RET_OK_NONE
+
+
+def _prefetch_maximum_request_length(cxt: WindowManagerDataBuilder) -> StdRet[None]:
+    cxt.lib.xcb.xcb_prefetch_maximum_request_length(_req(cxt.conn))
+    return RET_OK_NONE
+
+
 def _req(val: Optional[T]) -> T:
     """Require that the value is not None."""
     if val is None:
         raise ValueError()
     return val
+
+
+def _ordered_res(
+        on_failure: Callable[[], None],
+        *order: Callable[[], StdRet[None]],
+) -> StdRet[None]:
+    """Call each item in order.  If any one of them fails, exit at that point."""
+    for callback in order:
+        res = callback()
+        if res.has_error:
+            on_failure()
+            return res.forward()
+    return RET_OK_NONE
 
 
 def _debug(message: str, **kwargs: Any) -> None:

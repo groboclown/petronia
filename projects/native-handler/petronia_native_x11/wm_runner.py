@@ -3,7 +3,7 @@
 from petronia_common.util import StdRet, RET_OK_NONE
 from petronia_ext_lib.runner import LookupEventRegistryContext
 from petronia_native.common import user_messages
-from . import hook_types, common_data, event_handler
+from . import hook_types, common_data, running_data, event_handler
 from .configuration import ConfigurationStore
 from .event_handler import EventHandlerLoop
 from .wm_connect import connect_as_wm
@@ -28,7 +28,7 @@ class WindowManagerPhaseRunner(hook_types.PhaseRunner):
 
     def prepare_event_loop(
             self, data: common_data.WindowManagerData,
-    ) -> StdRet[common_data.CommonData]:
+    ) -> StdRet[running_data.RunningData]:
         no_res = event_handler.setup_event_listener_with_screen(data)
         if no_res.has_error:
             data.libs.xcb.xcb_disconnect(data.connection)
@@ -36,25 +36,26 @@ class WindowManagerPhaseRunner(hook_types.PhaseRunner):
 
         data.libs.xcb.xcb_ungrab_server(data.connection)
 
-        ret = common_data.CommonData(
-            wm_data=data,
-        )
-
         event_loop = EventHandlerLoop(
-            cxt=ret,
+            cxt=data,
 
             # TODO replace with a real handler
             on_error=lambda x: user_messages.low_traceback(x),
 
             # TODO allow configuring queue wait time?
         )
-        event_loop.add_missed_events(cxt.pending_events)
-        ret = WMRet(xcb_api, event_loop)
+        # event_loop.add_missed_events(cxt.pending_events)
 
-    def run_event_loop(self, data: common_data.CommonData) -> StdRet[None]:
-        pass
+        return StdRet.pass_ok(running_data.RunningData(
+            wm_data=data,
+            event_loop=event_loop,
+        ))
 
-    def shutdown(self, data: common_data.CommonData, timeout: float) -> StdRet[None]:
+    def run_event_loop(self, data: running_data.RunningData) -> StdRet[None]:
+        data.event_loop.start()
+        return RET_OK_NONE
+
+    def shutdown(self, data: running_data.RunningData, timeout: float) -> StdRet[None]:
         # TODO do some nice extra shutdown
         data.xcb.xcb_disconnect(data.connection)
         return RET_OK_NONE
