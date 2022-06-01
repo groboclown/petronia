@@ -132,7 +132,8 @@ def load_lib(name: str) -> StdRet[ctypes.CDLL]:
 
 class Closable(Generic[T]):
     """Wrapper object for a value that can be closed"""
-    __slots__ = ('__value', '__closer', '__origin', '__lock')
+    # This can be subclassed, so slots does not work here.
+    # __slots__ = ('__value', '__closer', '__origin', '__lock')
 
     def __init__(
             self,

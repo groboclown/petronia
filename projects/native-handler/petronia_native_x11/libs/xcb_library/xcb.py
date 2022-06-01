@@ -45,6 +45,10 @@ class LibXcb:
         'xcb_grab_server', 'xcb_flush', 'xcb_ungrab_server',
         'xcb_set_input_focus', 'xcb_reparent_window',
         'xcb_query_tree_unchecked',
+        'xcb_get_keyboard_mapping_reply', 'xcb_get_keyboard_mapping',
+        'xcb_get_keyboard_mapping_keysyms',
+        'xcb_get_modifier_mapping', 'xcb_get_modifier_mapping_reply',
+        'xcb_get_modifier_mapping_keycodes',
 
         # xcb variables
         'xcb_big_requests_id',
@@ -523,7 +527,6 @@ class LibXcb:
             value_list=ctypes.c_void_p,
         )
 
-        # connection, window, value_mask, value_list -> cookie
         self.xcb_change_window_attributes: Callable[
             [
                 xcb_types.XcbConnectionP, xcb_types.XcbWindow,
@@ -536,6 +539,70 @@ class LibXcb:
             window=xcb_types.XcbWindow,
             value_mask=ctypes.c_uint32,
             value_list=ctypes.c_void_p,
+        )
+
+        self.xcb_get_keyboard_mapping_reply: Callable[
+            [
+                xcb_types.XcbConnectionP,
+                xcb_types.XcbGetKeyboardMappingCookie,
+                xcb_types.XcbGenericErrorPP,
+            ], xcb_types.XcbGetKeyboardMappingReplyP,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_keyboard_mapping_reply',
+            returns=xcb_types.XcbGetKeyboardMappingReplyP,
+            connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbGetKeyboardMappingCookie,
+            errors=xcb_types.XcbGenericErrorPP,
+        )
+
+        self.xcb_get_keyboard_mapping: Callable[
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbKeycode, ctypes.c_uint8,
+            ], xcb_types.XcbGetKeyboardMappingCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_keyboard_mapping',
+            returns=xcb_types.XcbGetKeyboardMappingCookie,
+            connection=xcb_types.XcbConnectionP,
+            first_keycode=xcb_types.XcbKeycode,
+            count=ctypes.c_uint8,
+        )
+
+        self.xcb_get_keyboard_mapping_keysyms: Callable[
+            [xcb_types.XcbGetKeyboardMappingReplyP], xcb_types.XcbKeysymP,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_keyboard_mapping_keysyms',
+            returns=xcb_types.XcbKeysymP,
+            reply=xcb_types.XcbGetKeyboardMappingReplyP,
+        )
+
+        self.xcb_get_modifier_mapping: Callable[
+            [xcb_types.XcbConnectionP], xcb_types.XcbGetModifierMappingCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_modifier_mapping',
+            returns=xcb_types.XcbGetModifierMappingCookie,
+            connection=xcb_types.XcbConnectionP,
+        )
+
+        self.xcb_get_modifier_mapping_reply: Callable[
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbGetModifierMappingCookie,
+                xcb_types.XcbGenericErrorPP,
+            ],
+            xcb_types.XcbGetModifierMappingReplyP,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_modifier_mapping_reply',
+            returns=xcb_types.XcbGetModifierMappingReplyP,
+            connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbGetModifierMappingCookie,
+            error=xcb_types.XcbGenericErrorPP,
+        )
+
+        self.xcb_get_modifier_mapping_keycodes: Callable[
+            [xcb_types.XcbGetModifierMappingReplyP], xcb_types.XcbKeycodeP,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_modifier_mapping_keycodes',
+            returns=xcb_types.XcbKeycodeP,
+            reply=xcb_types.XcbGetModifierMappingReplyP,
         )
 
         self.xcb_big_requests_id = ct_util.as_library_extern(

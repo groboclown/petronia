@@ -9,6 +9,7 @@ from . import ct_util
 
 
 class Pointer(ct_util.Closable[V], Generic[V]):
+    """A pointer-like value."""
     @property
     def contents(self) -> Optional[V]:
         if self.value:
@@ -17,12 +18,30 @@ class Pointer(ct_util.Closable[V], Generic[V]):
 
 
 class RealPointer(Pointer):   # types: RealPointer(Pointer[ctypes.pointer[V]], Generic[V])
+    """A real pointer type."""
+
+    def __init__(
+            self,
+            value,  # types: ctypes.pointer[V]
+            closer: Callable[[T], None],
+            lock: Optional[Union[threading.Lock, threading.RLock]] = None,
+    ) -> None:
+        Pointer.__init__(self, value, closer, lock)
+        # calling .contents on a pointer returns a new object every time, so
+        #   capture that value once.
+        if value:
+            self.__contents = value.contents
+        else:
+            self.__contents = None
+
     @property
     def contents(self) -> Optional[V]:
         """Like .contents..."""
-        if self.value:
-            return self.value.contents
-        return None
+        return self.__contents
+
+    def close(self) -> None:
+        self.__contents = None
+        Pointer.close(self)
 
 
 class LibC:

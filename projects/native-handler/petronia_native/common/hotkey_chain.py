@@ -7,7 +7,7 @@ The system should allow for only one type of chain to be used at a time.
 from typing import Dict, List, Tuple, Sequence, Iterable, Union, Optional, NewType, cast
 from petronia_common.util import StdRet, T
 from petronia_common.util import i18n as _
-from petronia_native.common.user_messages import TRANSLATION_CATALOG
+from . import user_messages, handlers
 
 
 # The platform-specific integer representation of the key press.  It's up to
@@ -133,12 +133,12 @@ def create_primary_chain(
     # the modifiers to trigger it.
     if not modifiers:
         return StdRet.pass_errmsg(
-            TRANSLATION_CATALOG,
+            user_messages.TRANSLATION_CATALOG,
             _('modifiers list cannot be empty'),
         )
     if not key_sequence:
         return StdRet.pass_errmsg(
-            TRANSLATION_CATALOG,
+            user_messages.TRANSLATION_CATALOG,
             _('key sequence cannot be empty'),
         )
     ret: List[List[StatefulKeyCode]] = []
@@ -177,12 +177,12 @@ def create_modal_chain(
     # Additionally, the key release must be done in any order for any of the initial keys.
     if not initial_modifiers:
         return StdRet.pass_errmsg(
-            TRANSLATION_CATALOG,
+            user_messages.TRANSLATION_CATALOG,
             _('modifiers list cannot be empty'),
         )
     if not modal_keys:
         return StdRet.pass_errmsg(
-            TRANSLATION_CATALOG,
+            user_messages.TRANSLATION_CATALOG,
             _('modal key list cannot be empty'),
         )
 

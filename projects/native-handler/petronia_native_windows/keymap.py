@@ -4,6 +4,30 @@ Handlers for Windows VirtualKey (VK) codes and key names.
 """
 
 from typing import Sequence, List, Dict, Set
+from petronia_native.common.hotkey_parser import KeyMap
+
+
+class WindowsKeyMap(KeyMap):
+    """Hard-coded keymap."""
+    def get_key_aliases(self, code: int) -> Sequence[str]:
+        """Get the UTF key mapped to the key code."""
+        return vk_to_names(code)
+
+    def get_codes_for_alias(self, key: str) -> Sequence[int]:
+        """Get the key codes mapped to the given UTF key.  If there are no mappings,
+        then this returns an empty list."""
+        return get_vk_keys_for_alias(key, False)
+
+    def is_meta_code(self, code: int) -> bool:
+        return is_vk_modifier(code)
+
+    def get_meta_codes_for_alias(self, key: str) -> Sequence[int]:
+        """Get the key code mapped to the given UTF key, but only if the key code is
+        a meta-character."""
+        return get_vk_keys_for_alias(key, True)
+
+
+WINDOWS_KEY_MAP = WindowsKeyMap()
 
 
 def vk_to_names(vk_code: int) -> Sequence[str]:

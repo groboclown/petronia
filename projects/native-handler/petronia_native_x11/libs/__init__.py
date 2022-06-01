@@ -33,6 +33,7 @@ from . import libxcb_util
 from . import libxcb_xfixes
 from . import libxcb_xinerama
 from . import libxcb_xtest
+from . import keys
 
 
 """

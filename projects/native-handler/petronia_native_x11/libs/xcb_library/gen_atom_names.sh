@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# The atomlist.m4 file comes from the xcb-util-wm library,
+#   located under ewmh/atomlist.m4
+
 if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
   echo "Generates atomlist.py list from atomlist.m4"
   exit 0

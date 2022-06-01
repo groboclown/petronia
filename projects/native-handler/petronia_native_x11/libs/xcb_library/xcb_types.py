@@ -13,6 +13,11 @@ XcbVisualid = ctypes.c_uint32
 
 # typedef uint8_t xcb_keycode_t;
 XcbKeycode = ctypes.c_uint8
+XcbKeycodeP = ctypes.POINTER(XcbKeycode)
+
+# typedef uint32_t xcb_keysym_t;
+XcbKeysym = ctypes.c_uint32
+XcbKeysymP = ctypes.POINTER(XcbKeysym)
 
 # typedef uint32_t xcb_atom_t;
 XcbAtom = ctypes.c_uint32
@@ -87,6 +92,12 @@ XcbGetPropertyCookie = XcbVoidCookie
 
 # xcb_query_tree_cookie_t
 XcbQueryTreeCookie = XcbVoidCookie
+
+# xcb_get_keyboard_mapping_cookie_t
+XcbGetKeyboardMappingCookie = XcbVoidCookie
+
+# xcb_get_modifier_mapping_cookie_t
+XcbGetModifierMappingCookie = XcbVoidCookie
 
 
 class XcbGenericError(ctypes.Structure):
@@ -231,6 +242,34 @@ class XcbClientMessageData(ctypes.Union):
         ('data16', ctypes.c_uint16 * 10),
         ('data32', ctypes.c_uint32 * 5),
     ]
+
+
+class XcbGetKeyboardMappingReply(ctypes.Structure):
+    """xcb_get_keyboard_mapping_reply_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('keysyms_per_keycode', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('length', ctypes.c_uint32),
+        ('pad0', ctypes.c_uint8 * 24),
+    ]
+
+
+XcbGetKeyboardMappingReplyP = ctypes.POINTER(XcbGetKeyboardMappingReply)
+
+
+class XcbGetModifierMappingReply(ctypes.Structure):
+    """xcb_get_modifier_mapping_reply_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('keycodes_per_modifier', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('length', ctypes.c_uint32),
+        ('pad0', ctypes.c_uint8 * 24),
+    ]
+
+
+XcbGetModifierMappingReplyP = ctypes.POINTER(XcbGetModifierMappingReply)
 
 
 class XcbKeyPressEvent(ctypes.Structure):
@@ -399,6 +438,159 @@ XcbEnterNotifyEventP = ctypes.POINTER(XcbEnterNotifyEvent)
 # typedef xcb_enter_notify_event_t xcb_leave_notify_event_t;
 XcbLeaveNotifyEvent = XcbEnterNotifyEvent
 XcbLeaveNotifyEventP = ctypes.POINTER(XcbLeaveNotifyEvent)
+
+
+class XcbKeymapNotifyEvent(ctypes.Structure):
+    """xcb_keymap_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('keys', ctypes.c_uint8 * 31),
+    ]
+
+
+XcbKeymapNotifyEventP = ctypes.POINTER(XcbKeymapNotifyEvent)
+
+
+class XcbCreateNotifyEvent(ctypes.Structure):
+    """xcb_create_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('window', XcbWindow),
+        ('x', ctypes.c_int16),
+        ('y', ctypes.c_int16),
+        ('width', ctypes.c_uint16),
+        ('height', ctypes.c_uint16),
+        ('border_width', ctypes.c_uint16),
+        ('override_redirect', ctypes.c_uint8),
+        ('pad1', ctypes.c_uint8),
+    ]
+
+
+XcbCreateNotifyEventP = ctypes.POINTER(XcbCreateNotifyEvent)
+
+
+class XcbDestroyNotifyEvent(ctypes.Structure):
+    """xcb_destroy_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('event', XcbWindow),
+        ('window', XcbWindow),
+    ]
+
+
+XcbDestroyNotifyEventP = ctypes.POINTER(XcbDestroyNotifyEvent)
+
+
+class XcbUnmapNotifyEvent(ctypes.Structure):
+    """xcb_unmap_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('event', XcbWindow),
+        ('window', XcbWindow),
+        ('from_configure', ctypes.c_uint8),
+        ('pad1', ctypes.c_uint8 * 3),
+    ]
+
+
+XcbUnmapNotifyEventP = ctypes.POINTER(XcbUnmapNotifyEvent)
+
+
+class XcbMapNotifyEvent(ctypes.Structure):
+    """xcb_map_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('event', XcbWindow),
+        ('window', XcbWindow),
+        ('override_redirect', ctypes.c_uint8),
+        ('pad1', ctypes.c_uint8 * 3),
+    ]
+
+
+XcbMapNotifyEventP = ctypes.POINTER(XcbMapNotifyEvent)
+
+
+class XcbMapRequestEvent(ctypes.Structure):
+    """xcb_map_request_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('parent', XcbWindow),
+        ('window', XcbWindow),
+    ]
+
+
+XcbMapRequestEventP = ctypes.POINTER(XcbMapRequestEvent)
+
+
+class XcbReparentNotifyEvent(ctypes.Structure):
+    """xcb_reparent_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('event', XcbWindow),
+        ('window', XcbWindow),
+        ('parent', XcbWindow),
+        ('x', ctypes.c_int16),
+        ('y', ctypes.c_int16),
+        ('override_redirect', ctypes.c_uint8),
+        ('pad1', ctypes.c_uint8 * 3),
+    ]
+
+
+XcbReparentNotifyEventP = ctypes.POINTER(XcbReparentNotifyEvent)
+
+
+class XcbConfigureNotifyEvent(ctypes.Structure):
+    """xcb_configure_notify_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('event', XcbWindow),
+        ('window', XcbWindow),
+        ('above_sibling', XcbWindow),
+        ('x', ctypes.c_int16),
+        ('y', ctypes.c_int16),
+        ('width', ctypes.c_uint16),
+        ('height', ctypes.c_uint16),
+        ('border_width', ctypes.c_uint16),
+        ('override_redirect', ctypes.c_uint8),
+        ('pad1', ctypes.c_uint8),
+    ]
+
+
+XcbConfigureNotifyEventP = ctypes.POINTER(XcbConfigureNotifyEvent)
+
+
+class XcbConfigureRequestEvent(ctypes.Structure):
+    """xcb_configure_request_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('stack_mode', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('parent', XcbWindow),
+        ('window', XcbWindow),
+        ('sibling', XcbWindow),
+        ('x', ctypes.c_int16),
+        ('y', ctypes.c_int16),
+        ('width', ctypes.c_uint16),
+        ('height', ctypes.c_uint16),
+        ('border_width', ctypes.c_uint16),
+        ('value_mask', ctypes.c_uint16),
+    ]
+
+
+XcbConfigureRequestEventP = ctypes.POINTER(XcbConfigureRequestEvent)
 
 
 class XcbGetGeometryReply(ctypes.Structure):

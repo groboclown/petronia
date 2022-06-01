@@ -12,6 +12,7 @@ from .datastore.petronia_native_x11 import (
 from .configuration import ConfigurationStore
 from . import runner, hook_types, wm_runner
 from .datastore import petronia_native_x11 as native_state
+from .hooks import keyboard_hook
 
 
 def extension_entrypoint(
@@ -71,5 +72,6 @@ def get_phase_runner() -> hook_types.PhaseRunner:
 
 def get_hook_factories() -> Sequence[hook_types.HookFactory]:
     """Get all the hook factories that might run."""
-    # raise NotImplementedError
-    return []
+    return [
+        keyboard_hook.keyboard_factory,
+    ]

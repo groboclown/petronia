@@ -76,6 +76,8 @@ XCB_EVENT_MASK_COLOR_MAP_CHANGE = 8388608
 XCB_EVENT_MASK_OWNER_GRAB_BUTTON = 16777216
 
 # Event IDs
+#  key_press is supposed to be 2, and key_release is supposed to be 3, but
+#  that isn't what is happening here.
 XCB_KEY_PRESS = 2
 XCB_KEY_RELEASE = 3
 XCB_BUTTON_PRESS = 4
