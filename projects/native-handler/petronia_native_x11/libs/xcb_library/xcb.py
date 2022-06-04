@@ -41,10 +41,14 @@ class LibXcb:
         'xcb_change_window_attributes',
         'xcb_send_event', 'xcb_wait_for_event', 'xcb_poll_for_event', 'xcb_request_check',
         'xcb_change_window_attributes_checked', 'xcb_change_window_attributes',
+        'xcb_get_window_attributes_unchecked', 'xcb_get_window_attributes_reply',
         'xcb_prefetch_maximum_request_length',
         'xcb_grab_server', 'xcb_flush', 'xcb_ungrab_server',
-        'xcb_set_input_focus', 'xcb_reparent_window',
-        'xcb_query_tree_unchecked',
+        'xcb_set_input_focus', 'xcb_configure_window',
+        'xcb_reparent_window', 'xcb_reparent_window_checked',
+        'xcb_change_save_set',
+        'xcb_query_tree_unchecked', 'xcb_query_tree_reply',
+        'xcb_query_tree_children_length', 'xcb_query_tree_children',
         'xcb_get_keyboard_mapping_reply', 'xcb_get_keyboard_mapping',
         'xcb_get_keyboard_mapping_keysyms',
         'xcb_get_modifier_mapping', 'xcb_get_modifier_mapping_reply',
@@ -450,6 +454,33 @@ class LibXcb:
             window=xcb_types.XcbWindow,
         )
 
+        self.xcb_query_tree_reply: Callable[
+            [xcb_types.XcbConnectionP, xcb_types.XcbQueryTreeCookie, xcb_types.XcbGenericErrorPP],
+            xcb_types.XcbQueryTreeReplyP,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_query_tree_reply',
+            returns=xcb_types.XcbQueryTreeReplyP,
+            connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbQueryTreeCookie,
+            error=xcb_types.XcbGenericErrorPP,
+        )
+
+        self.xcb_query_tree_children_length: Callable[
+            [xcb_types.XcbQueryTreeReplyP], ctypes.c_int,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_query_tree_children_length',
+            returns=ctypes.c_int,
+            reply=xcb_types.XcbQueryTreeReplyP,
+        )
+
+        self.xcb_query_tree_children: Callable[
+            [xcb_types.XcbQueryTreeReplyP], xcb_types.XcbWindowP,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_query_tree_children',
+            returns=xcb_types.XcbWindowP,
+            reply=xcb_types.XcbQueryTreeReplyP,
+        )
+
         self.xcb_reparent_window: Callable[
             [
                 xcb_types.XcbConnectionP, xcb_types.XcbWindow, xcb_types.XcbWindow,
@@ -463,6 +494,49 @@ class LibXcb:
             parent=xcb_types.XcbWindow,
             x=ctypes.c_int16,
             y=ctypes.c_int16,
+        )
+
+        self.xcb_reparent_window_checked: Callable[
+            [
+                xcb_types.XcbConnectionP, xcb_types.XcbWindow, xcb_types.XcbWindow,
+                ctypes.c_int16, ctypes.c_int16,
+            ], xcb_types.XcbVoidCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_reparent_window_checked',
+            returns=xcb_types.XcbVoidCookie,
+            connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+            parent=xcb_types.XcbWindow,
+            x=ctypes.c_int16,
+            y=ctypes.c_int16,
+        )
+
+        self.xcb_configure_window: Callable[
+            [
+                xcb_types.XcbConnectionP,
+                xcb_types.XcbWindow,
+                ctypes.c_uint16,
+                ctypes.c_void_p,
+            ], xcb_types.XcbVoidCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_configure_window',
+            returns=xcb_types.XcbVoidCookie,
+            connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+            value_mask=ctypes.c_uint16,
+            value_list=ctypes.c_void_p,
+        )
+
+        self.xcb_change_save_set: Callable[
+            [
+                xcb_types.XcbConnectionP, ctypes.c_uint8, xcb_types.XcbWindow,
+            ], xcb_types.XcbVoidCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_change_save_set',
+            returns=xcb_types.XcbVoidCookie,
+            connection=xcb_types.XcbConnectionP,
+            mode=ctypes.c_uint8,
+            window=xcb_types.XcbWindow,
         )
 
         self.xcb_flush: Callable[
@@ -539,6 +613,31 @@ class LibXcb:
             window=xcb_types.XcbWindow,
             value_mask=ctypes.c_uint32,
             value_list=ctypes.c_void_p,
+        )
+
+        self.xcb_get_window_attributes_unchecked: Callable[
+            [xcb_types.XcbConnectionP, xcb_types.XcbWindow],
+            xcb_types.XcbGetWindowAttributesCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_window_attributes_unchecked',
+            returns=xcb_types.XcbGetWindowAttributesCookie,
+            connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+        )
+
+        self.xcb_get_window_attributes_reply: Callable[
+            [
+                xcb_types.XcbConnectionP,
+                xcb_types.XcbGetWindowAttributesCookie,
+                xcb_types.XcbGenericErrorPP,
+            ],
+            xcb_types.XcbGetWindowAttributesReplyP,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_get_window_attributes_reply',
+            returns=xcb_types.XcbGetWindowAttributesReplyP,
+            connection=xcb_types.XcbConnectionP,
+            cookie=xcb_types.XcbGetWindowAttributesCookie,
+            error=xcb_types.XcbGenericErrorPP,
         )
 
         self.xcb_get_keyboard_mapping_reply: Callable[

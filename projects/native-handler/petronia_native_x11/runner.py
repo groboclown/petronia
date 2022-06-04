@@ -10,14 +10,14 @@ There are 4 stages for setup:
 
 from typing import Sequence, List, Tuple, Callable
 from petronia_common.util import StdRet, UserMessage, RET_OK_NONE, collect_errors_from
-from petronia_ext_lib.runner import LookupEventRegistryContext
+from petronia_ext_lib.runner import EventRegistryContext
 from .configuration import ConfigurationStore
 from .running_data import RunningData
 from .hook_types import Hook, HookFactory, PhaseRunner
 
 
 def start_server(
-        context: LookupEventRegistryContext, config: ConfigurationStore,
+        context: EventRegistryContext, config: ConfigurationStore,
         on_warning: Callable[[UserMessage], None],
         runner: PhaseRunner, hook_factories: Sequence[HookFactory],
 ) -> StdRet[Tuple[RunningData, Sequence[Hook]]]:
@@ -28,7 +28,7 @@ def start_server(
     if boot_res.has_error:
         return boot_res.forward()
 
-    # Step 2: After boot, run hooks.
+    # Step 2: After boot, load hooks.
     # Let all the hooks run before reporting an error.
     hook_boot_res: List[StdRet[None]] = []
     hooks: List[Hook] = []

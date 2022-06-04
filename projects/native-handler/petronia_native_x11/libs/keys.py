@@ -22,6 +22,13 @@ def grab_keymap(
         c_lib: libc.LibC,
         connection: xcb_types.XcbConnectionP,
 ) -> hotkey_parser.KeyMap:
+    """Load the keymap.  This must be done outside the grab_screen block, so
+    hooks must call it during `setup_pre_event_loop`.  Otherwise, the event
+    loop won't capture window events."""
+    meta_keys: Set[int] = set()
+    key_to_code: Dict[str, Set[int]] = {}
+    code_to_key: Dict[int, Sequence[str]] = {}
+
     setup_p = xcb_lib.xcb_get_setup(connection)
     setup = setup_p.contents
     min_keycode = setup.min_keycode
@@ -36,7 +43,6 @@ def grab_keymap(
     modifier_keycode_count = modifier_keycodes_p.contents.length
     modifier_keycodes_array = xcb_lib.xcb_get_modifier_mapping_keycodes(modifier_keycodes_p)
 
-    meta_keys: Set[int] = set()
     for mod_idx in range(0, modifier_keycode_count):
         mod = ct_util.as_py_int(modifier_keycodes_array[mod_idx])
         if mod != 0:
@@ -60,9 +66,6 @@ def grab_keymap(
     keysym_count = ct_util.as_py_int(keyboard_mapping.length)
     keysyms_per_keycode = ct_util.as_py_int(keyboard_mapping.keysyms_per_keycode)
     keycode_count = keysym_count // keysyms_per_keycode
-
-    key_to_code: Dict[str, Set[int]] = {}
-    code_to_key: Dict[int, Sequence[str]] = {}
 
     keysym_idx = 0
     for keycode_idx in range(0, keycode_count):
@@ -101,8 +104,11 @@ def keysym_to_str(keysym: xcb_types.XcbKeysym) -> Sequence[str]:
     sym = ct_util.as_py_int(keysym)
 
     res = _KEYSYM_TABLE.get(sym)
-    if res:
+    if res is not None:
         return res
+
+    # For some reason, this is not being added to the table correctly.
+
 
     # Latin-1 characters
     #   mapped 1-to-1
@@ -142,10 +148,13 @@ def generate_keysym_table() -> None:
 
     _KEYSYM_TABLE.clear()
     for keysym, alias_list in table.items():
-        _KEYSYM_TABLE[keysym] = tuple(alias_list)
+        if not alias_list:
+            _KEYSYM_TABLE[keysym] = EMPTY_TUPLE
+        else:
+            _KEYSYM_TABLE[keysym] = tuple(alias_list)
 
-    # Some special aliases.
-    _KEYSYM_TABLE[0] = EMPTY_TUPLE  # NO_SYMBOL
+    # Some special alias defaults and overrides.
+    _KEYSYM_TABLE[0] = EMPTY_TUPLE  # Default the NO_SYMBOL.
     _KEYSYM_TABLE[ord(' ')] = ('space', 'spacebar', ' ')
 
     print(f"[KEY] Generated keysym table with {len(_KEYSYM_TABLE)} entries")

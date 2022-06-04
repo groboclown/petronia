@@ -64,8 +64,32 @@ class WindowManagerData:
         return self.__conn
 
     @property
+    def screen(self) -> libxcb_types.XcbScreenP:
+        return self.__screen
+
+    @property
     def screen_root(self) -> libxcb_types.XcbWindow:
         return self.__screen.contents.root
+
+    @property
+    def atoms(self) -> xcb_atoms.AtomDef:
+        return self.__atoms
+
+    @property
+    def default_depth_raw(self) -> ctypes.c_uint8:
+        return self.__default_depth_raw
+
+    @property
+    def visual(self) -> libxcb_types.XcbVisualtypeP:
+        return self.__visual
+
+    @property
+    def visual_id(self) -> libxcb_types.XcbVisualid:
+        return self.__visual.contents.visual_id
+
+    @property
+    def default_colormap(self) -> int:
+        return self.__default_colormap
 
     def change_window_property_uint32(
             self, *,

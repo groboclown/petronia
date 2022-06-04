@@ -2,15 +2,17 @@
 
 from typing import Optional
 import threading
+import ctypes
 from petronia_common.util import T
-from petronia_ext_lib.runner import LookupEventRegistryContext
+from petronia_ext_lib.runner import EventRegistryContext
 from .common_data.wm_data import WindowManagerData
 from .configuration import ConfigurationStore
 from .event_handler import EventHandlerLoop
 from .libs import (
     libxcb, libcairo, libc, libxcb_icccm,
     libxcb_util, libxcb_types,
-    libxcb_consts,
+    libxcb_consts, xcb_atoms,
+    ct_util,
 )
 
 
@@ -45,7 +47,7 @@ class RunningData:
         return self.__loop
 
     @property
-    def context(self) -> LookupEventRegistryContext:
+    def context(self) -> EventRegistryContext:
         return self.__wm.libs.context
 
     @property
@@ -92,3 +94,58 @@ class RunningData:
     @property
     def connection(self) -> libxcb_types.XcbConnectionP:
         return self.__wm.connection
+
+    @property
+    def screen(self) -> libxcb_types.XcbScreenP:
+        return self.__wm.screen
+
+    @property
+    def screen_root(self) -> libxcb_types.XcbWindow:
+        return self.__wm.screen_root
+
+    @property
+    def default_depth_raw(self) -> ctypes.c_uint8:
+        return self.__wm.default_depth_raw
+
+    @property
+    def atoms(self) -> xcb_atoms.AtomDef:
+        return self.__wm.atoms
+
+    @property
+    def visual_id(self) -> libxcb_types.XcbVisualid:
+        return self.__wm.visual_id
+
+    @property
+    def default_colormap(self) -> int:
+        return self.__wm.default_colormap
+
+    def get_reply_text(self, reply: libxcb_types.XcbGetPropertyReplyP) -> Optional[str]:
+        """
+        Returns a non-empty string if there is text, or None if the string is empty
+        or there is no reply text.
+
+        :param reply:
+        :return:
+        """
+        if not reply:
+            return None
+        reply_data = reply.contents
+        reply_type = reply_data.type
+        reply_format_bit_count = ct_util.as_py_int(reply_data.format)
+        property_len = ct_util.as_py_int(self.xcb.xcb_get_property_value_length(reply))
+        if (
+                reply_type in (
+                    libxcb_consts.XCB_ATOM_STRING__c,
+                    self.atoms.UTF8_STRING,
+                    self.atoms.COMPOUND_TEXT,
+                )
+                and reply_format_bit_count == 8
+                and property_len > 0
+        ):
+            value_p = self.xcb.xcb_get_property_value(reply)
+            value_chars = ctypes.cast(value_p, ctypes.POINTER(ctypes.c_uint8))
+            raw = b''
+            for idx in range(property_len):
+                raw += value_chars[idx]
+            return raw.decode('utf-8')
+        return None

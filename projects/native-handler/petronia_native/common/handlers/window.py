@@ -1,7 +1,9 @@
 """Handler for Petronia events with native windows."""
 
-from typing import Iterable, Sequence, List, Mapping, Dict, Optional, Generic, TypeVar, Hashable
-from petronia_common.util import StdRet, join_none_results, RET_OK_NONE, T
+from typing import (
+    Iterable, Sequence, List, Mapping, Dict, Optional, Generic, TypeVar, Hashable,
+)
+from petronia_common.util import StdRet, join_none_results, RET_OK_NONE, T, Lockable, NoopLockable
 from petronia_common.util import i18n as _
 from petronia_ext_lib import datastore, logging, extension_loader
 from petronia_ext_lib.runner import EventRegistryContext, EventObjectTarget
@@ -69,11 +71,14 @@ def store_global_settings(
 
 
 def create_window_state(
+        *,
         is_active: bool,
         has_focus: int,
         parent_id: Optional[str],
         location: defs.ScreenRect,
         minimized: bool,
+        full_screen: bool,
+        resizable: bool,
         meta: Mapping[str, str],
         meta_description: Mapping[str, str],
 ) -> window_events.WindowState:
@@ -90,6 +95,8 @@ def create_window_state(
             window_events.NativeMetaValue(key, meta_description.get(key), val)
             for key, val in meta.items()
         ],
+        resizable=resizable,
+        full_screen=full_screen,
     )
 
 
@@ -219,6 +226,16 @@ class ActiveWindow(Generic[T]):
         can be used as a dictionary key."""
         return self.__hash_id
 
+    def _update_meta_value(
+            self, key: str, value: str, key_desc: Mapping[str, str],
+    ) -> None:
+        """Update the meta value."""
+        for item in self.state.meta:
+            if item.key == key:
+                item.value = value
+                return
+        self.state.meta.append(window_events.NativeMetaValue(key, key_desc.get(key), value))
+
 
 NativeWindow = TypeVar('NativeWindow', bound=ActiveWindow)
 
@@ -230,6 +247,7 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
         '__active_windows_by_id', '__active_windows_by_native_id',
         '__focused', '__global_settings',
         '__global_meta_desc', '__window_meta_desc', '__next_id',
+        '__lock',
     )
 
     def __init__(
@@ -237,6 +255,7 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
             initial_global_settings: Mapping[str, str],
             global_meta_desc: Mapping[str, str],
             window_meta_desc: Mapping[str, str],
+            lock: Optional[Lockable] = None,
     ) -> None:
         self.__context: Optional[EventRegistryContext] = None
         self.__next_id = 0
@@ -246,6 +265,7 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
         self.__global_settings = dict(initial_global_settings)
         self.__global_meta_desc = dict(global_meta_desc)
         self.__window_meta_desc = dict(window_meta_desc)
+        self.__lock = lock or NoopLockable()
 
     def register_listeners(
             self,
@@ -253,7 +273,11 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
             extension_name: str,
     ) -> StdRet[None]:
         """Register this handler to listen for events with the context.  The global settings
-        will need to be updated outside of this call."""
+        will need to be updated outside this call.
+
+        This must be called from a thread that can send and receive from the Petronia
+        context handler.
+        """
         self.__context = context
         return join_none_results(
             context.register_eof_target(self.on_context_shutdown),
@@ -391,26 +415,33 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
 
     def get_window_by_id(self, window_id: str) -> Optional[NativeWindow]:
         """Get the window with the id"""
-        return self.__active_windows_by_id.get(window_id)
+        with self.__lock:
+            return self.__active_windows_by_id.get(window_id)
 
     def get_window_by_native(self, native_id: T) -> Optional[NativeWindow]:
         """Get the window with the id"""
-        return self.__active_windows_by_native_id.get(self.hash_native_id(native_id))
+        with self.__lock:
+            return self.__active_windows_by_native_id.get(self.hash_native_id(native_id))
 
     def get_active_windows(self) -> Iterable[NativeWindow]:
         """Get all the active windows known by this object."""
-        return tuple(self.__active_windows_by_id.values())
+        with self.__lock:
+            return tuple(self.__active_windows_by_id.values())
 
     def replace_native_id(self, old: NativeWindow, new: NativeWindow) -> None:
         """Replace the old representation of the window (as the OS sees it) with a
         new ID.  This performs no state change by itself."""
-        if (
-                old.hashable_native_id in self.__active_windows_by_native_id
-                and new.native_id != old.native_id
-                and old.window_id == new.window_id
-        ):
-            del self.__active_windows_by_native_id[old.hashable_native_id]
-            self.__active_windows_by_native_id[new.hashable_native_id] = new
+        with self.__lock:
+            if (
+                    old.hashable_native_id in self.__active_windows_by_native_id
+                    and new.native_id != old.native_id
+                    and old.window_id == new.window_id
+            ):
+                del self.__active_windows_by_native_id[old.hashable_native_id]
+                self.__active_windows_by_native_id[new.hashable_native_id] = new
+                self.__active_windows_by_id[new.window_id] = new
+
+                # This does not change the state, so don't send an update.
 
     def update_window_state(self, window: NativeWindow) -> StdRet[None]:
         """Update the window state."""
@@ -418,102 +449,132 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
             return RET_OK_NONE
 
         wid = window.window_id
-        if wid not in self.__active_windows_by_id:
-            return StdRet.pass_errmsg(
-                user_messages.TRANSLATION_CATALOG,
-                _('no active window with id {wid}'),
-                wid=wid,
-            )
+        with self.__lock:
+            if wid not in self.__active_windows_by_id:
+                return StdRet.pass_errmsg(
+                    user_messages.TRANSLATION_CATALOG,
+                    _('no active window with id {wid}'),
+                    wid=wid,
+                )
 
-        self.__active_windows_by_id[wid] = window
-        self.__active_windows_by_native_id[window.hashable_native_id] = window
+            self.__active_windows_by_id[wid] = window
+            self.__active_windows_by_native_id[window.hashable_native_id] = window
 
-        return store_window_details(self.__context, wid, window.state)
+            return store_window_details(self.__context, wid, window.state)
 
     def update_global_settings(self, settings: Mapping[str, str]) -> StdRet[None]:
         """Update the global settings in the datastore."""
-        if self.__context:
-            return store_global_settings(self.__context, settings, self.__global_settings)
+        context = self.__context
+        if context:
+            with self.__lock:
+                self.__global_settings.clear()
+                self.__global_settings.update(settings)
+            return store_global_settings(context, settings, self.__global_meta_desc)
         return RET_OK_NONE
 
     def create_next_window_id(self) -> str:
         """Create the next window_id; used for creating a new ActiveWindow instance."""
-        index = self.__next_id
-        self.__next_id += 1
+        with self.__lock:
+            index = self.__next_id
+            self.__next_id += 1
         return BASE_WINDOW_TARGET_ID + str(index)
 
     def window_created(
             self, window: NativeWindow, delay_send_active_ids: bool,
     ) -> StdRet[None]:
         """Record a window as being created."""
-        if not self.__context:
-            # print("- not sending window created event; closed")
+        context = self.__context
+        if not context:
+            print("- not sending window created event; closed")
             return RET_OK_NONE
 
-        if window.window_id in self.__active_windows_by_id:
-            # print("- not sending window created event; already registered")
-            return StdRet.pass_errmsg(
-                user_messages.TRANSLATION_CATALOG,
-                _('window id {wid} already registered'),
-                wid=window.window_id,
-            )
+        with self.__lock:
+            if window.window_id in self.__active_windows_by_id:
+                print("- not sending window created event; already registered")
+                return StdRet.pass_errmsg(
+                    user_messages.TRANSLATION_CATALOG,
+                    _('window id {wid} already registered'),
+                    wid=window.window_id,
+                )
 
-        self.__active_windows_by_id[window.window_id] = window
-        self.__active_windows_by_native_id[window.hashable_native_id] = window
-        # print("- sending events")
-        res1 = send_window_created_event(self.__context, window.window_id, window.state)
+            self.__active_windows_by_id[window.window_id] = window
+            self.__active_windows_by_native_id[window.hashable_native_id] = window
+            active_window_keys = self.__active_windows_by_id.keys()
+
+        print(f"- sending events for {window.window_id}")
+        res1 = send_window_created_event(context, window.window_id, window.state)
         if not delay_send_active_ids:
             return join_none_results(
                 res1,
-                store_active_windows_state(self.__context, self.__active_windows_by_id.keys()),
+                store_active_windows_state(context, active_window_keys),
             )
         return res1
 
     def send_active_ids(self) -> StdRet[None]:
         """Send the active IDs event."""
-        if self.__context:
-            return store_active_windows_state(self.__context, self.__active_windows_by_id.keys())
+        context = self.__context
+        if context:
+            with self.__lock:
+                active_window_keys = self.__active_windows_by_id.keys()
+            return store_active_windows_state(context, active_window_keys)
         return RET_OK_NONE
 
     def window_destroyed(self, native_id: T, reason: str) -> StdRet[None]:
         """Record that a window was destroyed."""
-        hashable_native_id = self.hash_native_id(native_id)
-        wnd = self.__active_windows_by_native_id.get(hashable_native_id)
-        if not self.__context or wnd is None:
+        context = self.__context
+        if not context:
             return RET_OK_NONE
+        hashable_native_id = self.hash_native_id(native_id)
 
-        del self.__active_windows_by_native_id[hashable_native_id]
-        del self.__active_windows_by_id[wnd.window_id]
+        with self.__lock:
+            wnd = self.__active_windows_by_native_id.get(hashable_native_id)
+            if not self.__context or wnd is None:
+                return RET_OK_NONE
+
+            del self.__active_windows_by_native_id[hashable_native_id]
+            del self.__active_windows_by_id[wnd.window_id]
+            active_window_keys = self.__active_windows_by_id.keys()
+
         return join_none_results(
-            store_active_windows_state(self.__context, self.__active_windows_by_id.keys()),
-            send_window_destroyed_event(self.__context, wnd.window_id, reason),
+            store_active_windows_state(context, active_window_keys),
+            send_window_destroyed_event(context, wnd.window_id, reason),
         )
 
     def window_flashing(self, native_id: T) -> StdRet[None]:
         """Send the event notifying that the window is flashing."""
-        hashable_native_id = self.hash_native_id(native_id)
-        wnd = self.__active_windows_by_native_id.get(hashable_native_id)
-        if not self.__context or wnd is None:
+        context = self.__context
+        if not context:
             return RET_OK_NONE
 
-        return send_window_flashed_event(self.__context, wnd.window_id)
+        hashable_native_id = self.hash_native_id(native_id)
+        with self.__lock:
+            wnd = self.__active_windows_by_native_id.get(hashable_native_id)
+            if wnd is None:
+                return RET_OK_NONE
+
+        return send_window_flashed_event(context, wnd.window_id)
 
     def window_focused(self, focus_group: int, native_id: T) -> StdRet[None]:
         """Set the given window as focused for the given focus group.  This will make
         the previously focused window not-focused, and update their states.  If the
         window is already focused for the focus group, this is a no-op."""
-        newly_focused_hash = self.hash_native_id(native_id)
-        newly_focused = self.__active_windows_by_native_id.get(newly_focused_hash)
-        old_focused_id = self.__focused.get(focus_group)
-        if not newly_focused or old_focused_id == newly_focused.window_id or not self.__context:
-            # no such window, the now-focused window is already focused, or closed.
+        context = self.__context
+        if not context:
             return RET_OK_NONE
-        old_focused_state: Optional[window_events.WindowState] = None
-        if old_focused_id:
-            old_focused_state = self.__active_windows_by_id[old_focused_id].state
-        self.__focused[focus_group] = newly_focused.window_id
+
+        newly_focused_hash = self.hash_native_id(native_id)
+        with self.__lock:
+            newly_focused = self.__active_windows_by_native_id.get(newly_focused_hash)
+            old_focused_id = self.__focused.get(focus_group)
+            if not newly_focused or old_focused_id == newly_focused.window_id:
+                # no such window, or the now-focused window is already focused
+                return RET_OK_NONE
+            old_focused_state: Optional[window_events.WindowState] = None
+            if old_focused_id:
+                old_focused_state = self.__active_windows_by_id[old_focused_id].state
+            self.__focused[focus_group] = newly_focused.window_id
         return send_window_focused_event(
-            context=self.__context,
+            context=context,
             focus_group=focus_group,
             new_focused_window_id=newly_focused.window_id,
             new_focused_state=newly_focused.state,
@@ -524,8 +585,9 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
     def handle_set_window_positions_event(
             self, event: window_events.SetWindowPositionsEvent,
     ) -> StdRet[None]:
-        """Handle a request to set the window positions."""
-        if not self.__context:
+        """Handle a Petronia request to set the window positions."""
+        context = self.__context
+        if not context:
             return RET_OK_NONE
 
         res: List[StdRet[None]] = []
@@ -538,59 +600,63 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
                     res.append(self.on_minimize_window_request(window))
             else:
                 res.append(send_no_window_id_log_message(
-                    self.__context, window_events.SetWindowPositionsEvent.UNIQUE_TARGET_FQN,
+                    context, window_events.SetWindowPositionsEvent.UNIQUE_TARGET_FQN,
                     position.window_id, 'set-position',
                 ))
         return join_none_results(*res)
 
     def handle_close_window_event(self, target_id: str) -> StdRet[None]:
-        """Handle a request to close a window."""
-        if not self.__context:
+        """Handle a Petronia request to close a window."""
+        context = self.__context
+        if context is None:
             return RET_OK_NONE
 
         window = self.get_window_by_id(target_id)
         if not window:
             return send_no_window_id_log_message(
-                self.__context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
+                context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
                 target_id, 'close-window',
             )
         return self.on_close_window_request(window)
 
     def handle_minimize_window_event(self, target_id: str) -> StdRet[None]:
-        """Handle a minimize window event."""
-        if not self.__context:
+        """Handle a Petronia request to minimize a window."""
+        context = self.__context
+        if not context:
             return RET_OK_NONE
 
         window = self.get_window_by_id(target_id)
         if not window:
             return send_no_window_id_log_message(
-                self.__context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
+                context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
                 target_id, 'minimize-window',
             )
         return self.on_minimize_window_request(window)
 
     def handle_maximize_window_event(self, target_id: str) -> StdRet[None]:
-        """Handle a maximize window event."""
-        if not self.__context:
+        """Handle a Petronia request to maximize a window."""
+        context = self.__context
+        if not context:
             return RET_OK_NONE
 
         window = self.get_window_by_id(target_id)
         if not window:
             return send_no_window_id_log_message(
-                self.__context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
+                context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
                 target_id, 'maximize-window',
             )
         return self.on_maximize_window_request(window)
 
     def handle_restore_window_event(self, target_id: str) -> StdRet[None]:
-        """Handle a restore window event."""
-        if not self.__context:
+        """Handle a Petronia request to restore a window."""
+        context = self.__context
+        if not context:
             return RET_OK_NONE
 
         window = self.get_window_by_id(target_id)
         if not window:
             return send_no_window_id_log_message(
-                self.__context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
+                context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
                 target_id, 'restore-window',
             )
         return self.on_restore_window_request(window)
@@ -598,13 +664,14 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
     def handle_set_focused_window_event(
             self, target_id: str, event: window_events.SetFocusedWindowEvent,
     ) -> StdRet[None]:
-        """Handle a set focused window event."""
-        if not self.__context:
+        """Handle a Petronia request to set the focused window."""
+        context = self.__context
+        if not context:
             return RET_OK_NONE
         window = self.get_window_by_id(target_id)
         if not window:
             return send_no_window_id_log_message(
-                self.__context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
+                context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
                 target_id, 'set-focused',
             )
         return self.on_set_focused_window(window, event.focus)
@@ -612,7 +679,7 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
     def handle_global_settings_event(
             self, event: window_events.SetGlobalSettingsEvent,
     ) -> StdRet[None]:
-        """Handle setting global settings event."""
+        """Handle a Petronia request to change the global settings."""
         if not self.__context:
             return RET_OK_NONE
         settings: Dict[str, str] = {}
@@ -623,14 +690,15 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
     def handle_set_window_settings_event(
             self, target_id: str, event: window_events.SetWindowSettingsEvent,
     ) -> StdRet[None]:
-        """Handle a set window settings event."""
-        if not self.__context:
+        """Handle a Petronia request to change a window's settings."""
+        context = self.__context
+        if not context:
             return RET_OK_NONE
 
         window = self.get_window_by_id(target_id)
         if not window:
             return send_no_window_id_log_message(
-                self.__context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
+                context, window_events.WindowCreatedEvent.UNIQUE_TARGET_FQN,
                 target_id, 'set-window-settings',
             )
         return self.on_set_window_settings(
@@ -697,6 +765,10 @@ class AbstractWindowHandler(Generic[NativeWindow, T]):  # pylint:disable=too-man
             window_events.NativeMetaValue(k, v, self.__global_settings.get(k, ""))
             for k, v in self.__global_meta_desc.items()
         ]
+
+    def get_global_setting(self, name: str) -> Optional[str]:
+        """Get a single global value, if set."""
+        return self.__global_settings.get(name)
 
     def get_window_meta_desc(self) -> List[window_events.NativeMetaValue]:
         """Retrieve the per-window meta description, OS dependent."""

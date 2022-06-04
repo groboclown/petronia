@@ -1,6 +1,7 @@
 """Handle xcb events."""
 
 from typing import Sequence, List, Dict, Literal, Callable, Optional, Type
+from typing import cast as t_cast
 import ctypes
 import threading
 from concurrent.futures import Future, Executor, ThreadPoolExecutor
@@ -27,7 +28,7 @@ FutureEventQuery = Callable[
 ]
 
 EventResponseCallback = Callable[
-    [libc.Pointer[libxcb_types.XcbGenericEventP]],
+    [libxcb_types.XcbGenericEventP],
     None,
 ]
 
@@ -61,30 +62,44 @@ class EventHandler:
         raise NotImplemented
 
 
+# These callbacks take the contents of the pointer, rather than the pointer itself.
+# ctypes makes a copy of the contents every time you call ".contents", so this allows
+# the pointer to be freed immediately, and the data to not be re-copied every time it's
+# called.  It also means that the handler can use the data in any thread, and not need
+# to worry about the data being freed.
+# The only danger is for events that pass more data than explicitly remarked
+# by the structure.  However, that only happens for the request/response style xcb calls,
+# not for the event data.
 KeyPressEventCallback = Callable[[libxcb_types.XcbKeyPressEventP], Optional[bool]]
 KeyReleaseEventCallback = Callable[[libxcb_types.XcbKeyReleaseEventP], Optional[bool]]
+KeymapEventCallback = Callable[[libxcb_types.XcbKeymapNotifyEventP], Optional[bool]]
 ButtonPressEventCallback = Callable[[libxcb_types.XcbButtonPressEventP], Optional[bool]]
 ButtonReleaseEventCallback = Callable[[libxcb_types.XcbButtonReleaseEventP], Optional[bool]]
-KeymapEventCallback = Callable[[libxcb_types.XcbKeymapNotifyEventP], Optional[bool]]
+MotionEventCallback = Callable[[libxcb_types.XcbMotionNotifyEventP], Optional[bool]]
+EnterEventCallback = Callable[[libxcb_types.XcbEnterNotifyEventP], Optional[bool]]
+LeaveEventCallback = Callable[[libxcb_types.XcbLeaveNotifyEventP], Optional[bool]]
+FocusInEventCallback = Callable[[libxcb_types.XcbFocusInEventP], Optional[bool]]
+FocusOutEventCallback = Callable[[libxcb_types.XcbFocusOutEventP], Optional[bool]]
 WinCreateEventCallback = Callable[[libxcb_types.XcbCreateNotifyEventP], Optional[bool]]
 WinDestroyEventCallback = Callable[[libxcb_types.XcbDestroyNotifyEventP], Optional[bool]]
 MapRequestEventCallback = Callable[[libxcb_types.XcbMapRequestEventP], Optional[bool]]
-ConfigureEventCallback = Callable[[libxcb_types.XcbConfigureRequestEventP], Optional[bool]]
+UnmapEventCallback = Callable[[libxcb_types.XcbUnmapNotifyEventP], Optional[bool]]
+ConfigureRequestEventCallback = Callable[[libxcb_types.XcbConfigureRequestEventP], Optional[bool]]
 
 
 class EventRegistrar:
     """register handlers for specific X events."""
-    def register_keymap_callback(self, callback: KeymapEventCallback) -> None:
-        """Registers a callback that takes the event as an argument.
-        It should return True to cancel other callbacks from running."""
-        raise NotImplementedError
-
     def register_keypress_callback(self, callback: KeyPressEventCallback) -> None:
         """Registers a callback that takes the event as an argument.
         It should return True to cancel other callbacks from running."""
         raise NotImplementedError
 
     def register_keyrelease_callback(self, callback: KeyReleaseEventCallback) -> None:
+        """Registers a callback that takes the event as an argument.
+        It should return True to cancel other callbacks from running."""
+        raise NotImplementedError
+
+    def register_keymap_callback(self, callback: KeymapEventCallback) -> None:
         """Registers a callback that takes the event as an argument.
         It should return True to cancel other callbacks from running."""
         raise NotImplementedError
@@ -99,6 +114,31 @@ class EventRegistrar:
         It should return True to cancel other callbacks from running."""
         raise NotImplementedError
 
+    def register_motion_callback(self, callback: MotionEventCallback) -> None:
+        """Registers a callback that takes the event as an argument.
+        It should return True to cancel other callbacks from running."""
+        raise NotImplementedError
+
+    def register_enter_callback(self, callback: EnterEventCallback) -> None:
+        """Registers a callback that takes the event as an argument.
+        It should return True to cancel other callbacks from running."""
+        raise NotImplementedError
+
+    def register_leave_callback(self, callback: LeaveEventCallback) -> None:
+        """Registers a callback that takes the event as an argument.
+        It should return True to cancel other callbacks from running."""
+        raise NotImplementedError
+
+    def register_focus_in_callback(self, callback: FocusInEventCallback) -> None:
+        """Registers a callback that takes the event as an argument.
+        It should return True to cancel other callbacks from running."""
+        raise NotImplementedError
+
+    def register_focus_out_callback(self, callback: FocusOutEventCallback) -> None:
+        """Registers a callback that takes the event as an argument.
+        It should return True to cancel other callbacks from running."""
+        raise NotImplementedError
+
     def register_window_create_callback(self, callback: WinCreateEventCallback) -> None:
         """Registers a callback that takes the event as an argument.
         It should return True to cancel other callbacks from running."""
@@ -109,12 +149,17 @@ class EventRegistrar:
         It should return True to cancel other callbacks from running."""
         raise NotImplementedError
 
+    def register_unmap_callback(self, callback: UnmapEventCallback) -> None:
+        """Registers a callback that takes the event as an argument.
+        It should return True to cancel other callbacks from running."""
+        raise NotImplementedError
+
     def register_map_request_callback(self, callback: MapRequestEventCallback) -> None:
         """Registers a callback that takes the event as an argument.
         It should return True to cancel other callbacks from running."""
         raise NotImplementedError
 
-    def register_configure_request_callback(self, callback: ConfigureEventCallback) -> None:
+    def register_configure_request_callback(self, callback: ConfigureRequestEventCallback) -> None:
         """Registers a callback that takes the event as an argument.
         It should return True to cancel other callbacks from running."""
         raise NotImplementedError
@@ -126,12 +171,12 @@ class LowEvents(EventRegistrar):
     __slots__ = (
         '__api', '__error_callback',
         '__callbacks',
-        '__keypress', '__keyrelease',
-        '__buttonpress', '__buttonrelease',
-        '__keymap',
+        '__keypress', '__keyrelease', '__keymap',
+        '__buttonpress', '__buttonrelease', '__motion', '__enter', '__leave',
+        '__focusin', '__focusout',
 
         '__win_create', '__win_destroy',
-        '__map_req', '__configure_req',
+        '__unmap', '__map_req', '__configure_req',
     )
 
     def __init__(
@@ -141,13 +186,19 @@ class LowEvents(EventRegistrar):
         self.__error_callback = on_error
         self.__keypress: List[KeyPressEventCallback] = []
         self.__keyrelease: List[KeyReleaseEventCallback] = []
+        self.__keymap: List[KeymapEventCallback] = []
         self.__buttonpress: List[ButtonPressEventCallback] = []
         self.__buttonrelease: List[ButtonReleaseEventCallback] = []
-        self.__keymap: List[KeymapEventCallback] = []
+        self.__motion: List[MotionEventCallback] = []
+        self.__enter: List[EnterEventCallback] = []
+        self.__leave: List[LeaveEventCallback] = []
+        self.__focusin: List[FocusInEventCallback] = []
+        self.__focusout: List[FocusOutEventCallback] = []
         self.__win_create: List[WinCreateEventCallback] = []
         self.__win_destroy: List[WinDestroyEventCallback] = []
+        self.__unmap: List[UnmapEventCallback] = []
         self.__map_req: List[MapRequestEventCallback] = []
-        self.__configure_req: List[ConfigureEventCallback] = []
+        self.__configure_req: List[ConfigureRequestEventCallback] = []
 
         self.__callbacks: Dict[int, EventResponseCallback] = {
             libxcb_consts.XCB_KEY_PRESS:
@@ -166,20 +217,37 @@ class LowEvents(EventRegistrar):
                 lambda e: self._handle_runner(
                     e, libxcb_types.XcbButtonReleaseEventP, self.__buttonrelease,
                 ),
-            # libxcb_consts.XCB_MOTION_NOTIFY:
-            # libxcb_consts.XCB_ENTER_NOTIFY:
-            # libxcb_consts.XCB_LEAVE_NOTIFY:
-            # libxcb_consts.XCB_FOCUS_IN:
-            # libxcb_consts.XCB_FOCUS_OUT:
+            libxcb_consts.XCB_MOTION_NOTIFY:
+                lambda e: self._handle_runner(
+                    e, libxcb_types.XcbMotionNotifyEventP, self.__motion,
+                ),
+            libxcb_consts.XCB_ENTER_NOTIFY:
+                lambda e: self._handle_runner(
+                    e, libxcb_types.XcbEnterNotifyEventP, self.__enter,
+                ),
+            libxcb_consts.XCB_LEAVE_NOTIFY:
+                lambda e: self._handle_runner(
+                    e, libxcb_types.XcbLeaveNotifyEventP, self.__leave,
+                ),
+            libxcb_consts.XCB_FOCUS_IN:
+                lambda e: self._handle_runner(
+                    e, libxcb_types.XcbFocusInEventP, self.__focusin,
+                ),
+            libxcb_consts.XCB_FOCUS_OUT:
+                # Do we need to check this?
+                lambda e: self._handle_runner(
+                    e, libxcb_types.XcbFocusOutEventP, self.__focusout,
+                ),
             libxcb_consts.XCB_KEYMAP_NOTIFY:
                 lambda e: self._handle_runner(
                     e, libxcb_types.XcbKeymapNotifyEventP, self.__keymap,
                 ),
-            # libxcb_consts.XCB_EXPOSE:
-            # libxcb_consts.XCB_GRAPHICS_EXPOSURE:
-            # libxcb_consts.XCB_NO_EXPOSURE = 14
-            # libxcb_consts.XCB_VISIBILITY_NOTIFY = 15
+            # libxcb_consts.XCB_EXPOSE:  # TODO need to check
+            # libxcb_consts.XCB_GRAPHICS_EXPOSURE:  # Do we need to check this?
+            # libxcb_consts.XCB_NO_EXPOSURE:  # Do we need to check this?
+            # libxcb_consts.XCB_VISIBILITY_NOTIFY:  # Do we need to check this?
             libxcb_consts.XCB_CREATE_NOTIFY:
+                # Do we need to check this?
                 lambda e: self._handle_runner(
                     e, libxcb_types.XcbCreateNotifyEventP, self.__win_create,
                 ),
@@ -187,30 +255,38 @@ class LowEvents(EventRegistrar):
                 lambda e: self._handle_runner(
                     e, libxcb_types.XcbDestroyNotifyEventP, self.__win_destroy,
                 ),
-            # libxcb_consts.XCB_UNMAP_NOTIFY = 18
-            # libxcb_consts.XCB_MAP_NOTIFY = 19
+            libxcb_consts.XCB_UNMAP_NOTIFY:
+                lambda e: self._handle_runner(
+                    e, libxcb_types.XcbUnmapNotifyEventP, self.__unmap,
+                ),
+            # libxcb_consts.XCB_MAP_NOTIFY:  # Do we need to check this?
             libxcb_consts.XCB_MAP_REQUEST:
                 lambda e: self._handle_runner(
                     e, libxcb_types.XcbMapRequestEventP, self.__map_req,
                 ),
-            # libxcb_consts.XCB_REPARENT_NOTIFY = 21
-            # libxcb_consts.XCB_CONFIGURE_NOTIFY = 22
+            # libxcb_consts.XCB_REPARENT_NOTIFY:   # TODO need to check
+            # libxcb_consts.XCB_CONFIGURE_NOTIFY:  # TODO need to check
             libxcb_consts.XCB_CONFIGURE_REQUEST:
                 lambda e: self._handle_runner(
-                    e, libxcb_types.XcbConfigureRequestEvent, self.__configure_req,
+                    e, libxcb_types.XcbConfigureRequestEventP, self.__configure_req,
                 ),
-            # libxcb_consts.XCB_GRAVITY_NOTIFY = 24
-            # libxcb_consts.XCB_RESIZE_REQUEST = 25
-            # libxcb_consts.XCB_CIRCULATE_NOTIFY = 26
-            # libxcb_consts.XCB_CIRCULATE_REQUEST = 27
-            # libxcb_consts.XCB_PROPERTY_NOTIFY = 28
-            # libxcb_consts.XCB_SELECTION_CLEAR = 29
-            # libxcb_consts.XCB_SELECTION_REQUEST = 30
-            # libxcb_consts.XCB_SELECTION_NOTIFY = 31
-            # libxcb_consts.XCB_COLORMAP_NOTIFY = 32
-            # libxcb_consts.XCB_CLIENT_MESSAGE = 33
-            # libxcb_consts.XCB_MAPPING_NOTIFY = 34
-            # libxcb_consts.XCB_GE_GENERIC = 35
+            # libxcb_consts.XCB_GRAVITY_NOTIFY:  # Do we need to check this?
+            # libxcb_consts.XCB_RESIZE_REQUEST:  # Do we need to check this?
+            # libxcb_consts.XCB_CIRCULATE_NOTIFY:  # Do we need to check this?
+            # libxcb_consts.XCB_CIRCULATE_REQUEST:  # Do we need to check this?
+            # libxcb_consts.XCB_PROPERTY_NOTIFY:   # TODO need to check
+            # libxcb_consts.XCB_SELECTION_CLEAR:  # TODO need to check
+            # libxcb_consts.XCB_SELECTION_REQUEST:  # TODO need to check
+            # libxcb_consts.XCB_SELECTION_NOTIFY:  # TODO need to check
+            # libxcb_consts.XCB_COLORMAP_NOTIFY:  # Do we need to check this?
+            # libxcb_consts.XCB_CLIENT_MESSAGE:   # TODO need to check
+            # libxcb_consts.XCB_MAPPING_NOTIFY:  # Do we need to check this?
+            # libxcb_consts.XCB_GE_GENERIC:  # Do we need to check this?
+
+            # XCB_RANDR_SCREEN_CHANGE_NOTIFY
+            # XCB_RANDR_NOTIFY
+            # XCB_SHAPE_NOTIFY
+            # XCB_XFIXES_SELECTION_NOTIFY
         }
 
     def register_keymap_callback(self, callback: KeymapEventCallback) -> None:
@@ -237,14 +313,35 @@ class LowEvents(EventRegistrar):
     def register_map_request_callback(self, callback: MapRequestEventCallback) -> None:
         self.__map_req.append(callback)
 
-    def register_configure_request_callback(self, callback: ConfigureEventCallback) -> None:
+    def register_configure_request_callback(self, callback: ConfigureRequestEventCallback) -> None:
         self.__configure_req.append(callback)
+
+    def register_motion_callback(self, callback: MotionEventCallback) -> None:
+        self.__motion.append(callback)
+
+    def register_enter_callback(self, callback: EnterEventCallback) -> None:
+        self.__enter.append(callback)
+
+    def register_leave_callback(self, callback: LeaveEventCallback) -> None:
+        self.__leave.append(callback)
+
+    def register_focus_in_callback(self, callback: FocusInEventCallback) -> None:
+        self.__focusin.append(callback)
+
+    def register_focus_out_callback(self, callback: FocusOutEventCallback) -> None:
+        self.__focusout.append(callback)
+
+    def register_unmap_callback(self, callback: UnmapEventCallback) -> None:
+        self.__unmap.append(callback)
 
     def on_event(
             self,
-            event: libc.Pointer[libxcb_types.XcbGenericEventP],
+            event: libxcb_types.XcbGenericEventP,
     ) -> None:
         """Handle the event.  The event must be valid.  It is freed outside this call."""
+        # TODO look at the sequence on the event, and ignore sequences that have been handled.
+        #   Without this, subtle bugs can slip into the event handling.
+
         response_type = ct_util.as_py_int(event.contents.response_type) & ~0x80
         callback = self.__callbacks.get(response_type)
         if callback:
@@ -255,17 +352,18 @@ class LowEvents(EventRegistrar):
 
     def _handle_runner(
             self,
-            event: libc.Pointer[T],
-            real_type: Type[T],
-            runners: Sequence[Callable[[T], Optional[bool]]],
+            event,  # type: ctypes.pointer[T]
+            real_type,  # type: Type[ctypes.pointer[T]]
+            runners,  # type: Sequence[Callable[[ctypes.pointer[T]], Optional[bool]]]
     ) -> None:
         """Handle the runner list calls."""
         for runner in runners:
             try:
-                if runner(ctypes.cast(event.value, real_type)) is True:
+                if runner(ctypes.cast(event, real_type)) is True:
                     # Stop other events from running.
                     return
             except BaseException as err:
+                print(f"src: {type(event)}, real type: {real_type}")
                 self.__error_callback(err)
 
 
@@ -310,7 +408,7 @@ class EventHandlerLoop:
             events: Sequence[libc.Pointer[libxcb_types.XcbGenericEventP]],
     ) -> None:
         """Add X server events that were read outside the loop but that should be
-        processed inside the loop."""
+        processed inside the loop.  The events must be freed after calling this."""
         with self.__lock:
             self.__pending_events.extend(events)
 
@@ -417,7 +515,7 @@ class EventHandlerLoop:
                     user_messages.low_println(
                         f" - X loop: handling X event {event.contents.response_type}"
                     )
-                    self.__handlers.on_event(event)
+                    self.__handlers.on_event(event.value)
                     event.close()
 
             # Now that the immediately available requests are handled and the pending

@@ -16,9 +16,11 @@ from petronia_ext_lib.runner import (
 from petronia_ext_lib.runner.registry import EventObject
 from petronia_ext_lib.standard.embedded_json_data import embedded_json_data
 from petronia_native.common.events.impl import window as window_events
+from petronia_native_windows.configuration import ConfigurationStore
 from . import setup
 from . import message_loop
 from . import window_handler
+from . import screen
 
 
 class SinkContext(EventRegistryContext):
@@ -101,7 +103,9 @@ def show_window_data(data: window_events.WindowState) -> None:
 def main(_args: Sequence[str]) -> int:
     """CLI entry method."""
     context = SinkContext()
-    win_handler = window_handler.WindowsNativeHandler()
+    config = ConfigurationStore(None)
+    screen_monitor = screen.WindowsScreen(context, config)
+    win_handler = window_handler.WindowsNativeHandler(screen_monitor.mapper)
     win_handler.register_listeners(context, 'x')
     loop = message_loop.WindowsMessageLoop()
     win_handler.register_messages(loop)

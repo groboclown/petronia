@@ -54,7 +54,7 @@ class StoreDataHandler(ContextEventObjectTarget[datastore_event.StoreDataRequest
             ))
             return False
         _updated, new_date = shared_state.store_json_data(source, data)
-        # print(f"[DATASTORE] stored data for {source}")
+        print(f"[DATASTORE] stored data for {source}")
         report_send_receive_problems('datastore', context.send_event(
             datastore_event.SendStateRequestEvent.UNIQUE_TARGET_FQN,
             source,

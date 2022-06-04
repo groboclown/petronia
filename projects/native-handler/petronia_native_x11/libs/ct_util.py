@@ -59,6 +59,20 @@ def as_uint32_list(*items: ctypes.c_uint32) -> ctypes.c_void_p:
     return ctypes.cast(ret_val, ctypes.c_void_p)
 
 
+def as_int32_list(*items: ctypes.c_int32) -> ctypes.c_void_p:
+    """Create an array of c_uint32 values"""
+    ret_type = ctypes.c_int32 * len(items)
+    ret_val = ret_type(*items)
+    return ctypes.cast(ret_val, ctypes.c_void_p)
+
+
+def as_xint32_list(*items: Union[ctypes.c_uint32, ctypes.c_int32]) -> ctypes.c_void_p:
+    """Create an array of c_uint32 values"""
+    ret_type = ctypes.c_int32 * len(items)
+    ret_val = ret_type(*items)
+    return ctypes.cast(ret_val, ctypes.c_void_p)
+
+
 def as_null(src_type: Type[T]) -> T:
     """Create a NULL alias for the given type; must be a pointer."""
     return ctypes.cast(NULL, src_type)

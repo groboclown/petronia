@@ -1,6 +1,8 @@
 """X11 Entrypoint."""
 
 from typing import Sequence, Dict, Any
+import threading
+import concurrent.futures
 from petronia_common.event_stream import BinaryReader, BinaryWriter
 from petronia_common.util import StdRet, join_errors
 from petronia_ext_lib.runner.lookup import LookupEventRegistryContext
@@ -12,7 +14,7 @@ from .datastore.petronia_native_x11 import (
 from .configuration import ConfigurationStore
 from . import runner, hook_types, wm_runner
 from .datastore import petronia_native_x11 as native_state
-from .hooks import keyboard_hook
+from .hooks import keyboard_hook, window_hook
 
 
 def extension_entrypoint(
@@ -23,7 +25,10 @@ def extension_entrypoint(
 ) -> StdRet[None]:
     """Standardized entrypoint."""
     print("Loading X11")
-    context = LookupEventRegistryContext(reader, writer, None, None)
+    context = LookupEventRegistryContext(
+        reader, writer, None, threading.RLock(),
+        concurrent.futures.ThreadPoolExecutor(1),
+    )
 
     # Bad configuration isn't a failure state.
     config_res = parse_config(config)
@@ -74,4 +79,5 @@ def get_hook_factories() -> Sequence[hook_types.HookFactory]:
     """Get all the hook factories that might run."""
     return [
         keyboard_hook.keyboard_factory,
+        window_hook.window_factory,
     ]

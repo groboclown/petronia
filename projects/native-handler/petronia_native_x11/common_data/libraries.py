@@ -2,7 +2,7 @@
 
 from typing import Callable, Optional
 from petronia_common.util import StdRet, collect_errors_from, UserMessage, T
-from petronia_ext_lib.runner import LookupEventRegistryContext
+from petronia_ext_lib.runner import EventRegistryContext
 from ..configuration import ConfigurationStore
 from ..libs import (
     libxcb, libcairo, libc, libxcb_cursor, libxcb_icccm, libxcb_randr, libxcb_shape,
@@ -21,7 +21,7 @@ class Libraries:
 
     def __init__(
             self, *,
-            context: LookupEventRegistryContext,
+            context: EventRegistryContext,
             config: ConfigurationStore,
 
             # Required libraries
@@ -54,7 +54,7 @@ class Libraries:
         self.__xcb_xtest = xcb_xtest
 
     @property
-    def context(self) -> LookupEventRegistryContext:
+    def context(self) -> EventRegistryContext:
         return self.__context
 
     @property
@@ -95,7 +95,7 @@ class Libraries:
     @staticmethod
     def create(
             *,
-            context: LookupEventRegistryContext,
+            context: EventRegistryContext,
             config: ConfigurationStore,
             warning_report: Optional[Callable[[UserMessage], None]] = None,
     ) -> StdRet['Libraries']:

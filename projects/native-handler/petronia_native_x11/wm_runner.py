@@ -1,9 +1,9 @@
 """The phase runner for the window manager."""
 
 from petronia_common.util import StdRet, RET_OK_NONE
-from petronia_ext_lib.runner import LookupEventRegistryContext
+from petronia_ext_lib.runner import EventRegistryContext
 from petronia_native.common import user_messages
-from . import hook_types, common_data, running_data, event_handler
+from . import hook_types, common_data, running_data
 from .configuration import ConfigurationStore
 from .event_handler import EventHandlerLoop
 from .wm_connect import connect_as_wm
@@ -13,7 +13,7 @@ class WindowManagerPhaseRunner(hook_types.PhaseRunner):
     """The phase runner."""
 
     def boot(
-            self, context: LookupEventRegistryContext, config: ConfigurationStore,
+            self, context: EventRegistryContext, config: ConfigurationStore,
     ) -> StdRet[common_data.Libraries]:
         return common_data.Libraries.create(
             context=context,

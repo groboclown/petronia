@@ -58,3 +58,6 @@ from . import input_buffer
 from .input_buffer import StreamedBinaryReader, StreamReadState, select_reader, single_reader_loop
 
 from .tzdate import tznow
+
+from . import lockable
+from .lockable import Lockable, NoopLockable

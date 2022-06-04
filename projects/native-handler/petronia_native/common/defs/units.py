@@ -129,6 +129,21 @@ class ScreenRect:  # pylint:disable=too-many-instance-attributes
         return self.__x, self.__y, self.__width, self.__height
 
     @staticmethod
+    def from_xywh(
+            pos_x: int,
+            pos_y: int,
+            width: int,
+            height: int,
+    ) -> 'ScreenRect':
+        """Create a ScreenRect from the (x,y) x (w,h)."""
+        return ScreenRect(
+            x=cast(ScreenUnit, pos_x), y=cast(ScreenUnit, pos_y),
+            width=cast(ScreenUnit, width), height=cast(ScreenUnit, height),
+            left=cast(ScreenUnit, pos_x), right=cast(ScreenUnit, pos_x + width - 1),
+            top=cast(ScreenUnit, pos_y), bottom=cast(ScreenUnit, pos_y + height - 1),
+        )
+
+    @staticmethod
     def from_border(
             left: int,
             right: int,

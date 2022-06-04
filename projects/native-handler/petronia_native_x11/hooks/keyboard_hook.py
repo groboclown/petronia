@@ -38,11 +38,11 @@ class KeyboardHook(Hook, HotkeyHandler):
         self.__executor = executor or ThreadPoolExecutor(1)
 
     def setup_wm_screen(self, data: WindowManagerData) -> StdRet[None]:
-        self._update_keymap(data)
         return RET_OK_NONE
 
     def setup_pre_event_loop(self, data: RunningData) -> StdRet[None]:
         self.__data = data
+        self._update_keymap(data.window_manager_data)
         data.event_loop.get_event_registrar().register_keypress_callback(self._key_pressed)
         data.event_loop.get_event_registrar().register_keyrelease_callback(self._key_released)
         data.event_loop.get_event_registrar().register_keymap_callback(self._keymap)

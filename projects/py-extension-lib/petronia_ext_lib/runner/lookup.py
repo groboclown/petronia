@@ -3,6 +3,7 @@ for large number of targets at the expense of more memory.  It also handles bina
 
 from typing import Tuple, List, Dict, Callable, Union, Optional, Generic
 import threading
+import concurrent.futures
 import time
 import traceback
 from petronia_common.event_stream import (
@@ -27,17 +28,24 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
     threading).
 
     Writing is performed within the same lock.  All event handling is performed
-    within the lock, so the lock must be a re-entrant lock to do anything useful."""
+    within the lock, so the lock must be a re-entrant lock to do anything useful.
+
+    If the send_executor is given, then the write requests happen in that executor
+    (still under the lock, but the lock is set in the executor).  However, any
+    errors encountered with the sending are passed to the on_error handler, and
+    not actually returned.
+    """
 
     __slots__ = (
         '_object_targets', '_binary_targets', '_eof_targets',
-        '__reader', '__writer', '_on_error', '_lock',
+        '__reader', '__writer', '_on_error', '_lock', '__send_executor',
     )
 
     def __init__(
             self, reader: BinaryReader, writer: BinaryWriter,
             on_error: Optional[Callable[[PetroniaReturnError], bool]],
-            lock: Optional[threading.RLock],
+            lock: Optional[threading.RLock] = None,
+            send_executor: Optional[concurrent.futures.Executor] = None,
     ) -> None:
         self._lock = lock or threading.RLock()
         self.__writer = writer
@@ -46,6 +54,7 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
         self._object_targets: Dict[str, ParserHandler] = {}
         self._binary_targets: Dict[str, Tuple[float, EventBinaryTarget]] = {}
         self._eof_targets: List[Callable[[], None]] = []
+        self.__send_executor = send_executor
 
     def stop_reader(self) -> None:
         """Stop the reader.  This will only perform a stop when the next read begins.
@@ -123,32 +132,45 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
         self._eof_targets.append(callback)
         return RET_OK_NONE
 
-    def send_event(self, source_id: str, target_id: str, event: EventObject) -> StdRet[None]:
+    def _inner_send_error(self, callback, *args) -> None:  # types: ignore
         with self._lock:
-            return write_object_event_to_stream(
-                self.__writer, event.fully_qualified_event_name, source_id, target_id,
-                event.export_data(),
-            )
+            res = callback(*args)
+        if isinstance(res, StdRet) and res.has_error:
+            self._on_error(res.valid_error)
+
+    def _perform_send(self, callback, *args) -> StdRet[None]:  # types: ignore
+        if self.__send_executor:
+            self.__send_executor.submit(self._inner_send_error, callback, *args)
+            return RET_OK_NONE
+        with self._lock:
+            return callback(*args)
+
+    def send_event(self, source_id: str, target_id: str, event: EventObject) -> StdRet[None]:
+        return self._perform_send(
+            write_object_event_to_stream,
+            self.__writer, event.fully_qualified_event_name, source_id, target_id,
+            event.export_data(),
+        )
 
     def send_binary_event(
             self, source_id: str, target_id: str, event_id: str, data: Union[bytes, bytearray],
     ) -> StdRet[None]:
-        with self._lock:
-            return write_binary_event_to_stream(
-                self.__writer, event_id, source_id, target_id,
-                len(data), bytes(data),
-            )
+        return self._perform_send(
+            write_binary_event_to_stream,
+            self.__writer, event_id, source_id, target_id,
+            len(data), bytes(data),
+        )
 
     def send_binary_event_stream(
             self, source_id: str, target_id: str, event_id: str, data_size: int,
             data: RawBinaryReader,
     ) -> StdRet[None]:
         """Send the binary event safely."""
-        with self._lock:
-            return write_binary_event_to_stream(
-                self.__writer, event_id, source_id, target_id,
-                data_size, data,
-            )
+        return self._perform_send(
+            write_binary_event_to_stream,
+            self.__writer, event_id, source_id, target_id,
+            data_size, data,
+        )
 
     def _event_listener(self, event: RawEvent) -> bool:
         """Process an event."""
@@ -222,6 +244,11 @@ class LookupEventRegistryContext(registry.EventRegistryContext):
         for key in remove:
             self._binary_targets[key][1].on_close()
             del self._binary_targets[key]
+
+    def _in_exec(self, callback, *args):  # types: ignore
+        res = callback(*args)
+        if isinstance(res, StdRet) and res.has_error:
+            self._on_error(res.valid_error)
 
 
 def noop_on_error(error: PetroniaReturnError) -> bool:

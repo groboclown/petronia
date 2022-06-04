@@ -2,7 +2,7 @@
 
 from typing import Union, Callable
 from petronia_common.util import StdRet, UserMessage
-from petronia_ext_lib.runner import LookupEventRegistryContext
+from petronia_ext_lib.runner import EventRegistryContext
 from .configuration import ConfigurationStore
 from .common_data import Libraries, WindowManagerData
 from .running_data import RunningData
@@ -39,7 +39,7 @@ class PhaseRunner:
 
     def boot(
             self,
-            context: LookupEventRegistryContext, config: ConfigurationStore,
+            context: EventRegistryContext, config: ConfigurationStore,
     ) -> StdRet[Libraries]:
         """Setup enough to get to the point where the 'setup_boot' can run."""
         raise NotImplementedError

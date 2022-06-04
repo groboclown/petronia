@@ -45,18 +45,21 @@ class WindowsNativeWindow(window.ActiveWindow[HWND]):
         self.__size_state.remove('minimized')
         self.__size_state.remove('maximized')
         self.__size_state.add('restored')
+        self.state.minimized = False
 
     def on_os_minimized(self) -> None:
         """When the OS announces the window was minimized."""
         self.__size_state.add('minimized')
         self.__size_state.remove('maximized')
         self.__size_state.remove('restored')
+        self.state.minimized = True
 
     def on_os_maximized(self) -> None:
         """When the OS announces the window was maximized."""
         self.__size_state.remove('minimized')
         self.__size_state.add('maximized')
         self.__size_state.remove('restored')
+        self.state.minimized = False
 
     def on_os_moved_notice(self, new_position: window_events.ScreenDimension) -> None:
         """Called when Windows announces the window moved."""
@@ -319,6 +322,7 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
         """Handle the window_minimized_message loop message"""
         wnd = self.get_window_by_native(hwnd)
         if wnd:
+            # TODO should this be joined with the window on_minimized call?
             wnd.state.minimized = True
             wnd.state.location.x = _clong_to_int(size.left)
             wnd.state.location.y = _clong_to_int(size.top)
@@ -775,9 +779,10 @@ class WindowsNativeHandler(window.AbstractWindowHandler[WindowsNativeWindow, HWN
             self.create_next_window_id(),
             hwnd,
             window.create_window_state(
-                False, -1, None,
-                defs.ScreenRect.from_border(0, 0, 0, 0),
-                False, {}, WINDOW_META_DESCRIPTIONS,
+                is_active=False, has_focus=-1, parent_id=None,
+                location=defs.ScreenRect.from_border(0, 0, 0, 0),
+                minimized=False, full_screen=False, resizable=False,
+                meta={}, meta_description=WINDOW_META_DESCRIPTIONS,
             ),
         )
         # Note: call is_manageable before loading up all the metadata.  This

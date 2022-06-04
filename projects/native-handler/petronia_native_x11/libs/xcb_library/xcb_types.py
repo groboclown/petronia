@@ -4,6 +4,7 @@ import ctypes
 
 # typedef uint32_t xcb_window_t;
 XcbWindow = ctypes.c_uint32
+XcbWindowP = ctypes.POINTER(XcbWindow)
 
 # typedef uint32_t xcb_colormap_t;
 XcbColormap = ctypes.c_uint32
@@ -98,6 +99,9 @@ XcbGetKeyboardMappingCookie = XcbVoidCookie
 
 # xcb_get_modifier_mapping_cookie_t
 XcbGetModifierMappingCookie = XcbVoidCookie
+
+# xcb_get_window_attributes_cookie_t
+XcbGetWindowAttributesCookie = XcbVoidCookie
 
 
 class XcbGenericError(ctypes.Structure):
@@ -272,6 +276,51 @@ class XcbGetModifierMappingReply(ctypes.Structure):
 XcbGetModifierMappingReplyP = ctypes.POINTER(XcbGetModifierMappingReply)
 
 
+class XcbGetWindowAttributesReply(ctypes.Structure):
+    """xcb_get_window_attributes_reply_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('backing_store', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('length', ctypes.c_uint32),
+        ('visual', XcbVisualid),
+        ('class', ctypes.c_uint16),
+        ('bit_gravity', ctypes.c_uint8),
+        ('win_gravity', ctypes.c_uint8),
+        ('backing_planes', ctypes.c_uint32),
+        ('backing_pixel', ctypes.c_uint32),
+        ('save_under', ctypes.c_uint8),
+        ('map_is_installed', ctypes.c_uint8),
+        ('map_state', ctypes.c_uint8),
+        ('override_redirect', ctypes.c_uint8),
+        ('colormap', XcbColormap),
+        ('all_event_masks', ctypes.c_uint32),
+        ('your_event_mask', ctypes.c_uint32),
+        ('do_not_propagate_mask', ctypes.c_uint16),
+        ('pad0', ctypes.c_uint8 * 2),
+    ]
+
+
+XcbGetWindowAttributesReplyP = ctypes.POINTER(XcbGetWindowAttributesReply)
+
+
+class XcbQueryTreeReply(ctypes.Structure):
+    """xcb_query_tree_reply_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('length', ctypes.c_uint32),
+        ('root', XcbWindow),
+        ('parent', XcbWindow),
+        ('children_len', ctypes.c_uint16),
+        ('pad1', ctypes.c_uint8 * 14),
+    ]
+
+
+XcbQueryTreeReplyP = ctypes.POINTER(XcbQueryTreeReply)
+
+
 class XcbKeyPressEvent(ctypes.Structure):
     """xcb_key_press_event_t"""
     _fields_ = [
@@ -438,6 +487,24 @@ XcbEnterNotifyEventP = ctypes.POINTER(XcbEnterNotifyEvent)
 # typedef xcb_enter_notify_event_t xcb_leave_notify_event_t;
 XcbLeaveNotifyEvent = XcbEnterNotifyEvent
 XcbLeaveNotifyEventP = ctypes.POINTER(XcbLeaveNotifyEvent)
+
+
+class XcbFocusInEvent(ctypes.Structure):
+    """xcb_focus_in_event_t"""
+    _fields_ = [
+        ('response_type', ctypes.c_uint8),
+        ('detail', ctypes.c_uint8),
+        ('sequence', ctypes.c_uint16),
+        ('event', XcbWindow),
+        ('mode', ctypes.c_uint8),
+        ('pad0', ctypes.c_uint8 * 3),
+    ]
+
+
+XcbFocusInEventP = ctypes.POINTER(XcbFocusInEvent)
+# typedef xcb_focus_in_event_t xcb_focus_out_event_t;
+XcbFocusOutEvent = XcbFocusInEvent
+XcbFocusOutEventP = XcbFocusInEventP
 
 
 class XcbKeymapNotifyEvent(ctypes.Structure):
