@@ -53,6 +53,7 @@ class LibXcb:
         'xcb_get_keyboard_mapping_keysyms',
         'xcb_get_modifier_mapping', 'xcb_get_modifier_mapping_reply',
         'xcb_get_modifier_mapping_keycodes',
+        'xcb_unmap_window', 'xcb_destroy_window',
 
         # xcb variables
         'xcb_big_requests_id',
@@ -430,7 +431,6 @@ class LibXcb:
             connection=xcb_types.XcbConnectionP,
         )
 
-        # connection, revert_to, focus, time -> cookie
         self.xcb_set_input_focus: Callable[
             [
                 xcb_types.XcbConnectionP, ctypes.c_uint8,
@@ -702,6 +702,24 @@ class LibXcb:
             self.__problems, xcb_res, 'xcb_get_modifier_mapping_keycodes',
             returns=xcb_types.XcbKeycodeP,
             reply=xcb_types.XcbGetModifierMappingReplyP,
+        )
+
+        self.xcb_unmap_window: Callable[
+            [xcb_types.XcbConnectionP, xcb_types.XcbWindow], xcb_types.XcbVoidCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_unmap_window',
+            returns=xcb_types.XcbVoidCookie,
+            connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
+        )
+
+        self.xcb_destroy_window: Callable[
+            [xcb_types.XcbConnectionP, xcb_types.XcbWindow], xcb_types.XcbVoidCookie,
+        ] = ct_util.as_typed_call(
+            self.__problems, xcb_res, 'xcb_destroy_window',
+            returns=xcb_types.XcbVoidCookie,
+            connection=xcb_types.XcbConnectionP,
+            window=xcb_types.XcbWindow,
         )
 
         self.xcb_big_requests_id = ct_util.as_library_extern(

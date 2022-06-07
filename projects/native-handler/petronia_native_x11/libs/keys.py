@@ -88,6 +88,13 @@ def grab_keymap(
         code_to_key[keycode] = tuple(syms)
     c_lib.force_free(keyboard_mapping_p)
 
+    # Add in known extra meta characters
+    for extra_meta in _PETRONIA_META:
+        if extra_meta in key_to_code:
+            meta_keys.update(key_to_code[extra_meta])
+
+    # print(f"[X11 KEYS] known key aliases: {key_to_code.keys()}")
+
     return hotkey_parser.StaticKeyMap(
         key_to_code={
             k: tuple(v)
@@ -108,7 +115,6 @@ def keysym_to_str(keysym: xcb_types.XcbKeysym) -> Sequence[str]:
         return res
 
     # For some reason, this is not being added to the table correctly.
-
 
     # Latin-1 characters
     #   mapped 1-to-1
@@ -147,15 +153,17 @@ def generate_keysym_table() -> None:
         alias_list.add(alias)
 
     _KEYSYM_TABLE.clear()
+    _KEYSYM_TABLE.update(_BUILTIN_KEYS)
     for keysym, alias_list in table.items():
         if not alias_list:
             _KEYSYM_TABLE[keysym] = EMPTY_TUPLE
         else:
+            results = list(alias_list)
+            for alias in results:
+                friendly = _ALIASES.get(alias)
+                if friendly:
+                    alias_list.update(friendly)
             _KEYSYM_TABLE[keysym] = tuple(alias_list)
-
-    # Some special alias defaults and overrides.
-    _KEYSYM_TABLE[0] = EMPTY_TUPLE  # Default the NO_SYMBOL.
-    _KEYSYM_TABLE[ord(' ')] = ('space', 'spacebar', ' ')
 
     print(f"[KEY] Generated keysym table with {len(_KEYSYM_TABLE)} entries")
     # print("[KEY] keysyms: " + repr(_KEYSYM_TABLE.keys()))
@@ -167,3 +175,87 @@ def generate_keysym_table() -> None:
 # corresponding character plus #x01000000. In the interest of backwards
 # compatibility, clients should be able to process both the Unicode
 # KEYSYM and the Legacy KEYSYM for those characters where both exist.
+
+
+# Custom aliases to make it easier for users.
+# This maps a known key name from X to a list of friendly names.
+_ALIASES: Dict[str, Sequence[str]] = {
+    'escape': ('esc',),
+    'exclam': ('!',),
+    'at': ('@',),
+    'numbersign': ('#', 'hash',),
+    'dollar': ('$',),
+    'percent': ('%',),
+    'asciicircum': ('^', 'hat',),
+    'ampersand': ('&', 'and',),
+    'asterisk': ('*',),
+    'parenleft': ('(',),
+    'parenright': (')',),
+    'minus': ('-', 'hyphen',),
+    'underscore': ('_',),
+    'equal': ('=', 'equals',),
+    'plus': ('+',),
+    'bracketleft': ('[', 'left-bracket', 'open-bracket'),
+    'bracketright': (']', 'right-bracket', 'close-bracket', 'closed-bracket'),
+    'braceleft': (
+        '{', 'left-curly-brace', 'left-curly-bracket', 'open-curly-brace', 'open-curly-bracket',
+    ),
+    'braceright': (
+        '}', 'right-curly-brace', 'right-curly-bracket',
+        'close-curly-brace', 'close-curly-bracket',
+        'closed-curly-brace', 'closed-curly-bracket',
+    ),
+    'return': ('enter',),
+    'space': (' ', 'spacebar',),
+    'semicolon': (';',),
+    'colon': (':',),
+    'apostrophe': ("'", 'squote', 'tick', 'quote-left'),
+    'quotedbl': ("'", 'quote', 'double-quote'),
+    'grave': ('`', 'back-quote'),
+    'asciitilde': ('~', 'tilde', 'twiddle'),
+    'backslash': ('\\',),
+    'bar': ('|',),
+    'comma': (',',),
+    'less': ('<', 'less-than'),
+    'greater': ('>', 'greater-than'),
+    'period': ('.',),
+    'slash': ('/',),
+    'question': ('?', 'question-mark',),
+    'sys_req': ('sysreq',),
+    'print_screen': ('prtscn',),
+    'page_up': ('pgup',),
+    'page_down': ('pgdn',),
+    'delete': ('del',),
+    'insert': ('ins',),
+
+    # kp_multiply, kp_home, kp_enter, ...
+    'kp_0': ('numpad0',),
+    'kp_1': ('numpad1',),
+    'kp_2': ('numpad2',),
+    'kp_3': ('numpad3',),
+    'kp_4': ('numpad4',),
+    'kp_5': ('numpad5',),
+    'kp_6': ('numpad6',),
+    'kp_7': ('numpad7',),
+    'kp_8': ('numpad8',),
+    'kp_9': ('numpad9',),
+
+    'control_l': ('lcontrol', 'lctrl', 'ctrl',),
+    'control_r': ('rcontrol', 'rctrl', 'ctrl',),
+    'shift_l': ('lshift', 'lshft', 'shift'),
+    'shift_r': ('rshift', 'rshft', 'shift'),
+    'alt_l': ('lalt', 'alt'),
+    'alt_r': ('ralt', 'alt'),
+    'meta_l': ('lmeta', 'meta'),
+    'meta_r': ('rmeta', 'meta'),
+    'super_l': ('lsuper', 'lwin', 'win', 'super'),
+    'super_r': ('rsuper', 'rwin', 'win', 'super'),
+    'menu': ('lmenu', 'rmenu'),
+    'altgraph': ('altgr',),
+}
+_BUILTIN_KEYS: Dict[int, Sequence[str]] = {
+    0: EMPTY_TUPLE,  # Default NO_SYMBOL
+}
+_PETRONIA_META = {
+    'lsuper', 'rsuper', 'lshift', 'rshift', 'lmeta', 'rmeta', 'lalt', 'ralt', 'lmenu', 'rmenu',
+}

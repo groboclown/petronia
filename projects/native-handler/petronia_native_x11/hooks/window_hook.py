@@ -55,6 +55,10 @@ class X11WindowHandler(window.ActiveWindow[libxcb_types.XcbWindow]):
         self.__override_redirect = override_redirect
         self.__owner_window_id = wid
         self.__frame_window: Optional[libxcb_types.XcbWindow] = None
+        self._update_meta_value(
+            WINDOW_SETTING__METRICS_BORDER_WIDTH, str(border), WINDOW_META_STYLES,
+        )
+        print(f"[X11 WINDOW] Constructor {wid}- set border to {border}")
 
     def copy_as_mapped_id(
             self, new_id: libxcb_types.XcbWindow,
@@ -74,12 +78,23 @@ class X11WindowHandler(window.ActiveWindow[libxcb_types.XcbWindow]):
         )
         ret.__request = self.__request
         ret.__request_border = self.__request_border
-        ret.mapped = True
+        ret.mapped = self.mapped  # don't set to true yet...
         ret.__request_sibling = self.__request_sibling
         ret.__request_stack_mode = self.__request_stack_mode
         # self.__override_redirect handled in constructor
         ret.__owner_window_id = self.__owner_window_id
         ret.__frame_window = self.__frame_window
+        ret._update_meta_value(
+            WINDOW_SETTING__METRICS_BORDER_WIDTH, str(self.__request_border), WINDOW_META_STYLES,
+        )
+        ret._update_meta_value(
+            WINDOW_SETTING__METRICS_SIBLING, str(self.__request_sibling), WINDOW_META_STYLES,
+        )
+        ret._update_meta_value(
+            WINDOW_SETTING__METRICS_STACK_MODE, str(self.__request_stack_mode), WINDOW_META_STYLES,
+        )
+        print(f"[X11 WINDOW] Copy {new_id}- set border to {self.__request_border}")
+
         return ret
 
     @property
@@ -100,6 +115,10 @@ class X11WindowHandler(window.ActiveWindow[libxcb_types.XcbWindow]):
             )
         self.__frame_window = window_id
         return RET_OK_NONE
+
+    def removed_frame(self) -> None:
+        # Do a check?
+        self.__frame_window = None
 
     @property
     def override_redirect(self) -> bool:
@@ -165,14 +184,16 @@ class X11WindowHandler(window.ActiveWindow[libxcb_types.XcbWindow]):
                 try:
                     int_val = int(val)
                     if int_val < 0:
+                        # Caught by outer except
                         raise ValueError()
                     self._update_meta_value(key, val, WINDOW_META_STYLES)
+                    print(f"[X11 WINDOW] Update settings {self.native_id}- set border to {int_val}")
                     self.__request_border = int_val
                     changed = True
                 except ValueError:
                     problems.append(UserMessage(
                         user_messages.TRANSLATION_CATALOG,
-                        _('invalid {setting} = "{value}" (must be a positive integer)'),
+                        _('invalid {setting} = "{value}" (must be a non-negative integer)'),
                         setting=key,
                         value=val,
                     ))
@@ -256,6 +277,15 @@ class X11WindowHandler(window.ActiveWindow[libxcb_types.XcbWindow]):
             self.state.location = ScreenDimension(
                 x=pos_x, y=pos_y, width=width, height=height,
             )
+            print(
+                f"[X11 WINDOW] Update {self.native_id} - set window to "
+                f"({pos_x}, {pos_y}) sized ({width}, {height}) border {border_width}"
+            )
+        else:
+            print(
+                f"[X11 WINDOW] Update {self.native_id} - ignored because "
+                f"from_x={from_x}, mapped={self.mapped}, override={self.__override_redirect}"
+            )
 
 
 GLOBAL_SETTING__METRICS_BORDER_WIDTH = 'border-width'
@@ -334,6 +364,7 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             attributes = data.xcb.xcb_get_window_attributes_reply(
                 data.connection, attribute_cookie, libxcb_consts.NULL__XcbGenericErrorPP,
             )
+            attribute_data = attributes.contents
             geom = data.xcb.xcb_get_geometry_reply(
                 data.connection, geom_cookie, libxcb_consts.NULL__XcbGenericErrorPP,
             )
@@ -342,11 +373,17 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
                 native_id=window_id, pos_x=geom_data.x, pos_y=geom_data.y,
                 width=geom_data.width, height=geom_data.height,
                 border_width=geom_data.border_width,
-                override_redirect=ct_util.as_py_int(attributes.contents.override_redirect) == 1,
+                override_redirect=ct_util.as_py_int(attribute_data.override_redirect) == 1,
             )
             data.clib.force_free(geom)
             data.clib.force_free(attributes)
-            self._internal_map_window(window_id, _req(self.get_window_by_native(window_id)))
+            if (
+                    ct_util.as_py_int(attribute_data.map_state)
+                    != libxcb_consts.XCB_MAP_STATE_UNVIEWABLE
+            ):
+                self._internal_map_window(window_id, _req(self.get_window_by_native(window_id)))
+            else:
+                user_messages.low_println(f"[X11] Not mapping unviewable window {window_id}")
 
         registrar = data.event_loop.get_event_registrar()
         registrar.register_buttonpress_callback(self._x11_buttonpress_event)
@@ -410,7 +447,11 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
     ) -> StdRet[None]:
         data = self.__data
         if data and data.connection:
-            print(f"[X11] Petronia requesting to move window {native_window.native_id}")
+            print(
+                f"[X11] Petronia requesting to move window {native_window.native_id} to "
+                f"({new_location.x}, {new_location.y}) sized "
+                f"({new_location.width}, {new_location.height})"
+            )
             native_window.update_from_explicit(
                 from_x=False,
                 pos_x=new_location.x,
@@ -509,6 +550,10 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             win = self.get_window_by_native(window_id)
             if not win:
                 return self._on_missing_window('configure', window_id)
+        if win.mapped:
+            # Ignore configure request
+            user_messages.low_println(f"[X11] Ignoring X request to configure {win.window_id}")
+            return False
 
         # Cache values
         req_x = event_data.x
@@ -561,6 +606,10 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_STACK_MODE
             resp_list.append(req_stx)
 
+        print(
+            f"[X11] X configuration request for {win.window_id}: "
+            f"({new_x}, {new_y}) sized ({new_w}, {new_h}) border {new_b}"
+        )
         win.update_from_explicit(
             from_x=True,
             pos_x=new_x,
@@ -572,6 +621,7 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             stack_mode=new_stx,
         )
         user_messages.report_send_receive_problems(win.send_state(data.window_manager_data))
+        # Because this is a configure, we don't pass this on to actually move the thing.
         return True
 
     # MapRequestEventCallback
@@ -607,14 +657,28 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
         )
         win: Optional[X11WindowHandler] = None
         if window_attributes_cookie:
+            # Get the real override-redirect setting, and see if it's mapped to
+            #   be visible.
             window_attributes = data.xcb.xcb_get_window_attributes_reply(
                 data.connection, window_attributes_cookie, libxcb_consts.NULL__XcbGenericErrorPP,
             )
             if window_attributes:
-                win = old_win.copy_as_mapped_id(
-                    mapped_window_id,
-                    ct_util.as_py_int(window_attributes.contents.override_redirect) == 1,
-                )
+                # Check if it's mapped.  It could have been mapped then immediately not
+                #   mapped.
+                if (
+                        ct_util.as_py_int(window_attributes.contents.map_state)
+                        != libxcb_consts.XCB_MAP_STATE_UNVIEWABLE
+                ):
+                    win = old_win.copy_as_mapped_id(
+                        mapped_window_id,
+                        ct_util.as_py_int(window_attributes.contents.override_redirect) == 1,
+                    )
+                else:
+                    user_messages.low_println(
+                        f"[X11] Mapping unviewable window {mapped_window_id}: "
+                        f"{window_attributes.contents.map_state}."
+                    )
+                    return
                 data.clib.force_free(window_attributes)
         if win is None:
             win = old_win.copy_as_mapped_id(mapped_window_id)
@@ -679,6 +743,7 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             ctypes.c_uint32(0),  # offset
             libxcb_consts.UINT_MAX__c,  # length
         )
+        geom_cookie = data.xcb.xcb_get_geometry(data.connection, mapped_window_id)
 
         # Ensure the window is automatically mapped in case we crash
         print("2")
@@ -699,8 +764,24 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
         if not res:
             user_messages.low_println("[X11] - failed to set the frame window.  Aborting manage.")
             user_messages.report_send_receive_problems(res)
+            data.event_loop.ignore_event(startup_id_cookie.sequence, -1)
+            data.event_loop.ignore_event(geom_cookie.sequence, -1)
             return False
         print('5')
+        # Don't believe the original window size requests; it's usually wrong.
+        geom = data.xcb.xcb_get_geometry_reply(
+            data.connection, geom_cookie, libxcb_consts.NULL__XcbGenericErrorPP,
+        )
+        if geom:
+            geom_data = geom.contents
+            win.update_from_explicit(
+                from_x=True,
+                pos_x=geom_data.x, pos_y=geom_data.y,
+                width=geom_data.width, height=geom_data.height,
+                border_width=geom_data.border_width,
+            )
+            data.clib.force_free(geom)
+
         data.xcb.xcb_create_window(
             data.connection,
             data.default_depth_raw,
@@ -760,16 +841,18 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             )
             # make event window a child of F with reparent window
             print("8")
-            reparent_cookie = data.xcb.xcb_reparent_window_checked(
+            reparent_cookie = data.xcb.xcb_reparent_window(
                 data.connection,
                 mapped_window_id,
                 frame_id,
                 ctypes.c_int16(0), ctypes.c_int16(0),  # relative x,y position in the frame.
             )
+
             # render F and event window with map_window
             print("9")
             # data.xcb.xcb_map_window(data.connection, mapped_window_id)
             data.xcb.xcb_map_window(data.connection, frame_id)
+            win.mapped = True
 
             # Bring back normal event handling to the window.
             print("10")
@@ -832,8 +915,9 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
         if err:
             res = StdRet.pass_errmsg(
                 user_messages.TRANSLATION_CATALOG,
-                _('Failed to reparent window {window}'),
-                window=mapped_window_id,
+                _('Failed to reparent window {window}: response type {error}'),
+                window=repr(mapped_window_id),
+                error=repr(err.contents.response_type),
             )
             logging.send_system_error(
                 context=data.context, source_id=win.window_id,
@@ -852,10 +936,33 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
     # UnmapEventCallback
     def _x11_unmap_event(self, event: libxcb_types.XcbUnmapNotifyEventP) -> Optional[bool]:
         # Window is now invisible.
-        win_id = event.contents.event
+        event_data = event.contents
+        event_win_id = event_data.event
+        win_id = event_data.window
+        win = self.get_window_by_native(win_id)
+        if not win:
+            win = self.get_window_by_native(event_win_id)
+            if not win:
+                self._on_missing_window('unmap-event', win_id)
+                return False
+        win.mapped = False
+        data = self.__data
+
+        # Close the frame.
+        if data and data.connection:
+            data.xcb.xcb_unmap_window(data.connection, win.native_id)
+            data.xcb.xcb_reparent_window(
+                data.connection, win.native_id, data.screen_root,
+                ctypes.c_int16(0), ctypes.c_int16(0),
+            )
+            # Should wait until reparent completes?
+            if win.frame_window_id:
+                data.xcb.xcb_destroy_window(data.connection, win.frame_window_id)
+                win.removed_frame()
         user_messages.low_println(f"[X11] unmap window {win_id} child {event.contents.window}")
-        # TODO need to set the state as minimized.
-        return None
+        # TODO update state to make it look minimized.
+        user_messages.report_send_receive_problems(self.update_window_state(win))
+        return True
 
     # MotionEventCallback
     def _x11_motion_event(self, event: libxcb_types.XcbMotionNotifyEventP) -> Optional[bool]:
@@ -899,6 +1006,10 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
         border_width = event_data.border_width
         # Window managers should ignore this window if override_redirect is 1.
         override_redirect = ct_util.as_py_int(event_data.override_redirect) == 1
+        print(
+            f"[X11] X11 window create event: {native_id} to "
+            f"({pos_x}, {pos_y}) sized ({width}, {height}) border {border_width}"
+        )
         self._internal_create_window(
             native_id=native_id, pos_x=pos_x, pos_y=pos_y, width=width, height=height,
             border_width=border_width, override_redirect=override_redirect,
@@ -912,7 +1023,7 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             border_width: ctypes.c_uint32, override_redirect: bool,
     ) -> Optional[bool]:
         user_messages.low_println(
-            f"[X11] created window {native_id} with override {override_redirect}"
+            f"[X11] created window {native_id} with override {override_redirect} border {border_width}"
         )
         win = X11WindowHandler(
             window_id=self.create_next_window_id(),
@@ -954,12 +1065,29 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
         #   As a notify event, this is letting the window manager know that the
         #   action occurred, and all we can do is update our internal data structures
         #   to reflect this state.
-        win_id = event.contents.event
-        user_messages.low_println(f"[X11] removed window {win_id} child {event.contents.window}")
+        event_data = event.contents
+        event_win_id = event_data.event
+        win_id = event_data.window
+        win = self.get_window_by_native(win_id)
+        if not win:
+            win = self.get_window_by_native(event_win_id)
+            if not win:
+                self._on_missing_window('destroy-event', win_id)
+                return False
         user_messages.report_send_receive_problems(self.window_destroyed(
-            native_id=win_id,
+            native_id=win.native_id,
             reason='destroyed',
         ))
+
+        win.mapped = False
+        data = self.__data
+
+        # Close the frame.
+        if data and data.connection:
+            if win.frame_window_id:
+                data.xcb.xcb_destroy_window(data.connection, win.frame_window_id)
+                win.removed_frame()
+        user_messages.low_println(f"[X11] deleted window {win_id}")
         return False
 
 

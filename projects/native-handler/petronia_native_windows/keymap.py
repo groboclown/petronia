@@ -327,10 +327,12 @@ STR_VK_MAP: Dict[str, int] = {
                                   # For the US standard keyboard, the '[{' key
     "oem4": 0xDB,
     "[": 0xDB,
+
+    # X11 has bracket and brace be the two separate names.
     "left-bracket": 0xBD,
-    "left-brace": 0xBD,
+    # "left-brace": 0xBD,
     "open-bracket": 0xBD,
-    "open-brace": 0xBD,
+    # "open-brace": 0xBD,
     "{": 0xDB,
     "left-curly-bracket": 0xDB,
     "left-curly-brace": 0xDB,

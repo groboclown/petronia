@@ -208,7 +208,6 @@ class KeyboardHook(Hook, HotkeyHandler):
                     # Should these be passed in?
 
                     print('[KEY] updated key bindings')
-
             return ret
         # No keymap or binding data, so we can't conclude anything yet.
         return handlers.hotkey.BoundKeyProblems()

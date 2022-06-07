@@ -1,15 +1,18 @@
 """Handle xcb events."""
 
 from typing import Sequence, List, Dict, Literal, Callable, Optional, Type
-from typing import cast as t_cast
 import ctypes
 import threading
+import time
 from concurrent.futures import Future, Executor, ThreadPoolExecutor
 from queue import Queue, Empty
 from petronia_common.util import StdRet, T
 from petronia_native.common import user_messages
 from . import common_data
 from .libs import libc, libxcb_types, libxcb_consts, ct_util
+
+
+IGNORED_EVENT_STAY_ALIVE_SECONDS = 5.0
 
 
 class EventResponse:
@@ -379,6 +382,7 @@ class EventHandlerLoop:
         '__lock', '__state', '__cxt', '__thread',
         '__request_queue', '__queue_wait_time', '__handlers',
         '__error_callback', '__executor', '__pending_events',
+        '__ignored_events',
     )
 
     def __init__(
@@ -398,10 +402,16 @@ class EventHandlerLoop:
         self.__handlers = LowEvents(on_error)
         self.__error_callback = on_error
         self.__pending_events: List[libc.Pointer[libxcb_types.XcbGenericEventP]] = []
+        self.__ignored_events = IgnorableEventList()
 
     def get_event_registrar(self) -> EventRegistrar:
         """Get the per-event type registration."""
         return self.__handlers
+
+    def ignore_event(self, sequence: int, response_type: Optional[int]) -> None:
+        """Mark the event response type and sequence as ignored."""
+        with self.__lock:
+            self.__ignored_events.add_event(sequence, response_type)
 
     def add_missed_events(
             self,
@@ -472,10 +482,19 @@ class EventHandlerLoop:
                     stop_now = True
                     break
 
-            # First, handle improperly managed events.
-            with self.__lock:
+                # Make a copy of the ignorable events that aren't expired, so
+                #   that we don't need to worry about locking another silliness.
+                ignorable_events = self.__ignored_events.manage()
+
+                # Handle improperly managed events.
                 for pending_event in self.__pending_events:
-                    if pending_event:
+                    if (
+                            pending_event
+                            and ignorable_events.is_ok(
+                                pending_event.contents.sequence,
+                                pending_event.contents.response_type,
+                            )
+                    ):
                         user_messages.low_println(f" - X loop: pending event {pending_event}")
                         self.__handlers.on_event(pending_event.value)
                         pending_event.close()
@@ -511,11 +530,19 @@ class EventHandlerLoop:
                     keep_pulling = False
                 else:
                     event = self.__cxt.libs.clib.freeable(event_ptr, self.__lock)
-                    # TODO check for quit event?
-                    user_messages.low_println(
-                        f" - X loop: handling X event {event.contents.response_type}"
-                    )
-                    self.__handlers.on_event(event.value)
+                    if ignorable_events.is_ok(
+                        event.contents.sequence,
+                        event.contents.response_type,
+                    ):
+                        # Note: X doesn't send the window manager a stop request.
+                        user_messages.low_println(
+                            f" - X loop: handling X event {event.contents.response_type}"
+                        )
+                        self.__handlers.on_event(event.value)
+                    else:
+                        user_messages.low_println(
+                            f" - X loop: ignoring X event {event.contents.response_type}"
+                        )
                     event.close()
 
             # Now that the immediately available requests are handled and the pending
@@ -540,3 +567,63 @@ class EventHandlerLoop:
         with self.__lock:
             self.__state = 'stopped'
         user_messages.low_println("X Loop Stopped")
+
+
+class IgnoredEvent:
+    """An event to ignore.  These time out eventually.
+    Even on a match for an ignored event, these should only be removed at the timeout,
+    due to issues with multiple events being triggered for the same initial request."""
+    __slots__ = ('__sequence', '__expires_at', '__response_type')
+
+    def __init__(self, sequence: int, response_type: Optional[int]) -> None:
+        self.__sequence = sequence
+        self.__response_type = -1 if response_type is None else response_type
+        self.__expires_at = time.time() + IGNORED_EVENT_STAY_ALIVE_SECONDS
+
+    def is_expired(self) -> bool:
+        """Is this ignored event expired?"""
+        return time.time() > self.__expires_at
+
+    def is_match(self, *, sequence: int, response_type: int) -> bool:
+        """Is this a match?  Does not check expiration."""
+        if sequence != self.__sequence:
+            return False
+
+        # Sequence numbers match.
+        if response_type != -1 and response_type != self.__response_type:
+            return False
+
+        # response type matches or this is an event with a non-response type value.
+        return True
+
+
+class IgnorableEventList:
+    """List of ignorable events."""
+    __slots__ = ('__events',)
+
+    def __init__(self) -> None:
+        self.__events: List[IgnoredEvent] = []
+
+    def add_event(self, sequence: int, response_type: Optional[int]) -> None:
+        """Add the ignored event"""
+        evt = IgnoredEvent(sequence, response_type)
+        self.__events.append(evt)
+
+    def is_ok(self, sequence: int, response_type: int) -> bool:
+        """Is the event okay to handle (e.g. not ignored)?"""
+        for evt in self.__events:
+            if evt.is_match(sequence=sequence, response_type=response_type):
+                return False
+        return True
+
+    def manage(self) -> 'IgnorableEventList':
+        """Manage the event list for expired events, and return a copy for easy
+        ignore checking."""
+        events: List[IgnoredEvent] = []
+        for evt in self.__events:
+            if not evt.is_expired():
+                events.append(evt)
+        self.__events = events
+        ret = IgnorableEventList()
+        ret.__events = list(events)
+        return ret
