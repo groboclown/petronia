@@ -2,8 +2,6 @@
 
 from typing import Optional, Sequence
 from petronia_common.util import StdRet, RET_OK_NONE, RET_OK_FALSE
-from .api import EventCallback, XcbApi
-from .hook_manager import Hooks
 
 
 class ScreenApi:

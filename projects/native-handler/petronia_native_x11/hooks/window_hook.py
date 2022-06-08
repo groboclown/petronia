@@ -621,7 +621,7 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             stack_mode=new_stx,
         )
         user_messages.report_send_receive_problems(win.send_state(data.window_manager_data))
-        # Because this is a configure, we don't pass this on to actually move the thing.
+        # Because this is a configuration, we don't pass this on to actually move the thing.
         return True
 
     # MapRequestEventCallback
@@ -796,7 +796,7 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
             data.visual_id,
 
             # Value Mask
-            ctypes.c_int32(
+            ctypes.c_uint32(
                 libxcb_consts.XCB_CW_BORDER_PIXEL
                 | libxcb_consts.XCB_CW_BIT_GRAVITY
                 | libxcb_consts.XCB_CW_WIN_GRAVITY
@@ -810,7 +810,7 @@ class WindowHook(Hook, window.AbstractWindowHandler[X11WindowHandler, libxcb_typ
                 data.screen.contents.black_pixel,
                 libxcb_consts.XCB_GRAVITY_NORTH_WEST__c,
                 libxcb_consts.XCB_GRAVITY_NORTH_WEST__c,
-                ctypes.c_int32(1),
+                ctypes.c_int32(0),  # override == 1
 
                 # register for key events on F and event window.
                 ctypes.c_int32(
