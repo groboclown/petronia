@@ -40,7 +40,7 @@ def grab_keymap(
         xcb_lib.xcb_get_modifier_mapping(connection),
         xcb_consts.NULL__XcbGenericErrorPP,
     )
-    modifier_keycode_count = modifier_keycodes_p.contents.length
+    modifier_keycode_count = modifier_keycodes_p.contents.size
     modifier_keycodes_array = xcb_lib.xcb_get_modifier_mapping_keycodes(modifier_keycodes_p)
 
     for mod_idx in range(0, modifier_keycode_count):
@@ -63,7 +63,7 @@ def grab_keymap(
     )
     keysym_array = xcb_lib.xcb_get_keyboard_mapping_keysyms(keyboard_mapping_p)
     keyboard_mapping = keyboard_mapping_p.contents
-    keysym_count = ct_util.as_py_int(keyboard_mapping.length)
+    keysym_count = ct_util.as_py_int(keyboard_mapping.size)
     keysyms_per_keycode = ct_util.as_py_int(keyboard_mapping.keysyms_per_keycode)
     keycode_count = keysym_count // keysyms_per_keycode
 
