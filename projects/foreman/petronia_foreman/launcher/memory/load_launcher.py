@@ -13,7 +13,6 @@ from petronia_common.event_stream import BinaryReader, BinaryWriter
 from .importer import load_module_from_path
 from ...constants import TRANSLATION_CATALOG
 from ...configuration import RuntimeConfig
-from ...user_message import display_exception, local_display
 
 ENTRYPOINT_OPTION = 'entrypoint'
 DEFAULT_ENTRYPOINT = 'extension_entrypoint'
