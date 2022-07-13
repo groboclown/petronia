@@ -7,7 +7,7 @@ The system should allow for only one type of chain to be used at a time.
 from typing import Dict, List, Tuple, Sequence, Iterable, Union, Optional, NewType, cast
 from petronia_common.util import StdRet, T
 from petronia_common.util import i18n as _
-from . import user_messages, handlers
+from . import user_messages
 
 
 # The platform-specific integer representation of the key press.  It's up to
