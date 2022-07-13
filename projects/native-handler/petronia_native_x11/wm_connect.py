@@ -352,7 +352,7 @@ def _acquire_wm_sn(
         ctypes.c_int16(-1), ctypes.c_int16(-1), ctypes.c_uint16(1), ctypes.c_uint16(1),
         ctypes.c_uint16(0),
         libxcb_consts.XCB_COPY_FROM_PARENT, screen.contents.root_visual,
-        ctypes.c_int32(0), ct_util.NULL,
+        ctypes.c_uint32(0), ct_util.NULL,
     )
     if cxt.lib.has_xcb_icccm():
         _debug(" - set class and name")

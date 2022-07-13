@@ -183,7 +183,7 @@ class LibXcb:
                 ctypes.c_int16, ctypes.c_int16,
                 ctypes.c_uint16, ctypes.c_uint16,
                 ctypes.c_uint16, ctypes.c_uint16,
-                xcb_types.XcbVisualid, ctypes.c_int32,
+                xcb_types.XcbVisualid, ctypes.c_uint32,
                 ctypes.c_void_p,
             ], xcb_types.XcbVoidCookie,
         ] = ct_util.as_typed_call(
@@ -200,7 +200,7 @@ class LibXcb:
             border_width=ctypes.c_uint16,
             window_class=ctypes.c_uint16,
             visual=xcb_types.XcbVisualid,
-            value_mask=ctypes.c_int32,
+            value_mask=ctypes.c_uint32,
             value_list=ctypes.c_void_p,
         )
 
@@ -737,12 +737,6 @@ class LibXcb:
 
     # -----------------------------------------------------------------------
     # Helpers
-
-    def xcb_get_property_value_bytes(self, property_reply: xcb_types.XcbGetPropertyReplyP) -> bytes:
-        data = self.xcb_get_property_value(property_reply)
-        length = self.xcb_get_property_value_length(property_reply)
-        as_bytes = ctypes.cast(data, ctypes.POINTER(ctypes.c_byte * ct_util.as_py_int(length)))
-        return bytes(as_bytes.contents)
 
     @staticmethod
     def get_xcb_event_response_type(evt: xcb_types.XcbGenericEventP) -> int:

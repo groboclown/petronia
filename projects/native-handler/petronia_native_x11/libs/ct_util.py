@@ -6,18 +6,21 @@ import threading
 import ctypes
 import warnings
 import contextlib
+import struct
 from petronia_common.util import StdRet, PetroniaReturnError, T, UserMessage
 from petronia_common.util import i18n as _
 from petronia_common.util.error import SimplePetroniaReturnError
 from petronia_native.common import user_messages
 
 
-CtypeInt = Union[
-    int,
-    ctypes.c_int, ctypes.c_int8, ctypes.c_int16, ctypes.c_int32,
-    ctypes.c_uint, ctypes.c_uint8, ctypes.c_uint16, ctypes.c_uint32,
-    ctypes.c_byte, ctypes.c_ubyte, ctypes.c_size_t,
+CTypeInt = Union[
+    ctypes.c_int8, ctypes.c_int16, ctypes.c_int32, ctypes.c_int64,
+    ctypes.c_uint8, ctypes.c_uint16, ctypes.c_uint32, ctypes.c_uint64,
+    ctypes.c_size_t,
+    ctypes.c_byte, ctypes.c_short, ctypes.c_int, ctypes.c_long, ctypes.c_longlong,
+    ctypes.c_ubyte, ctypes.c_ushort, ctypes.c_uint, ctypes.c_ulong, ctypes.c_ulonglong,
 ]
+PCTypeInt = Union[int, CTypeInt]
 
 NULL = ctypes.c_void_p(None)
 NULL__c_char_p = ctypes.cast(NULL, ctypes.POINTER(ctypes.c_char))
@@ -25,51 +28,82 @@ NULL__uint = ctypes.cast(NULL, ctypes.POINTER(ctypes.c_uint))
 NULL__int = ctypes.cast(NULL, ctypes.POINTER(ctypes.c_int))
 
 
-def as_py_int(val: CtypeInt) -> int:
+def as_py_int(val: PCTypeInt) -> int:
     """Convert a ctype integer value into a python int."""
     if isinstance(val, int):
         return val
     return val.value
 
 
-def as_uint8(val: CtypeInt) -> ctypes.c_uint8:
+def as_uint8(val: PCTypeInt) -> ctypes.c_uint8:
     """convert an int type into a c_uint8"""
+    if isinstance(val, ctypes.c_uint8):
+        return val
     return ctypes.c_uint8(as_py_int(val))
 
 
-def as_uint16(val: CtypeInt) -> ctypes.c_uint16:
+def as_uint16(val: PCTypeInt) -> ctypes.c_uint16:
     """convert an int type into a c_uint16"""
+    if isinstance(val, ctypes.c_uint16):
+        return val
     return ctypes.c_uint16(as_py_int(val))
 
 
-def as_uint32(val: CtypeInt) -> ctypes.c_uint16:
+def as_int16(val: PCTypeInt) -> ctypes.c_int16:
+    """convert an int type into a c_uint16"""
+    if isinstance(val, ctypes.c_int16):
+        return val
+    return ctypes.c_int16(as_py_int(val))
+
+
+def as_int32(val: PCTypeInt) -> ctypes.c_int32:
     """convert an in type into a c_uint32"""
-    return ctypes.c_uint16(as_py_int(val))
+    if isinstance(val, ctypes.c_int32):
+        return val
+    return ctypes.c_int32(as_py_int(val))
 
 
-def as_uint(val: CtypeInt) -> ctypes.c_uint:
+def as_uint32(val: PCTypeInt) -> ctypes.c_uint32:
+    """convert an in type into a c_uint32"""
+    if isinstance(val, ctypes.c_uint32):
+        return val
+    return ctypes.c_uint32(as_py_int(val))
+
+
+def as_uint(val: PCTypeInt) -> ctypes.c_uint:
     """convert an int type into a c_uint"""
+    if isinstance(val, ctypes.c_uint):
+        return val
     return ctypes.c_uint(as_py_int(val))
 
 
-def as_uint32_list(*items: ctypes.c_uint32) -> ctypes.c_void_p:
+def as_uint32_list(*items: PCTypeInt) -> ctypes.c_void_p:
     """Create an array of c_uint32 values"""
     ret_type = ctypes.c_uint32 * len(items)
-    ret_val = ret_type(*items)
+    args: List[ctypes.c_uint32] = [as_uint32(v) for v in items]
+    ret_val = ret_type(*args)
     return ctypes.cast(ret_val, ctypes.c_void_p)
 
 
 def as_int32_list(*items: ctypes.c_int32) -> ctypes.c_void_p:
     """Create an array of c_uint32 values"""
     ret_type = ctypes.c_int32 * len(items)
-    ret_val = ret_type(*items)
+    args: List[ctypes.c_int32] = [as_int32(v) for v in items]
+    ret_val = ret_type(*args)
     return ctypes.cast(ret_val, ctypes.c_void_p)
 
 
-def as_xint32_list(*items: Union[ctypes.c_uint32, ctypes.c_int32]) -> ctypes.c_void_p:
-    """Create an array of c_uint32 values"""
-    ret_type = ctypes.c_int32 * len(items)
-    ret_val = ret_type(*items)
+def as_numeric_list(*items: CTypeInt) -> ctypes.c_void_p:
+    """Create an array of values, packed according to the item types."""
+    pack_size = ''
+    args: List[int] = []
+    for item in items:
+        # This forces the type to be a ctypes basic type.
+        pack_size += item._type_  # types: ignore
+        args.append(as_py_int(item))
+    raw_bytes = struct.pack(pack_size, *args)
+    ret_type = ctypes.c_uint8 * len(raw_bytes)
+    ret_val = ret_type(*raw_bytes)
     return ctypes.cast(ret_val, ctypes.c_void_p)
 
 

@@ -3,6 +3,7 @@
 from typing import Dict, List
 import ctypes
 import time
+import random
 from petronia_native_x11.libs import (
     libc, ct_util,
     libxcb, libxcb_types, libxcb_consts,
@@ -37,7 +38,7 @@ def main() -> None:
     cookie = xcb.xcb_change_window_attributes_checked(
         conn, screen.contents.root,
         libxcb_consts.XCB_CW_EVENT_MASK__c,
-        ct_util.as_uint32_list(
+        ct_util.as_numeric_list(
             # Just one value, masking together all the events to capture.
             ctypes.c_uint32(
                 # This one makes us the window manager
@@ -102,29 +103,45 @@ def main() -> None:
             # ensure when we exit it's restored
             xcb.xcb_change_save_set(conn, libxcb_consts.XCB_SET_MODE_INSERT__c, window)
 
-            # TODO ALL BELOW HERE ISN'T WORKING
-
             new_frame_id = xcb.xcb_generate_id(conn)
             window_frames[ct_util.as_py_int(window)] = new_frame_id
             generated_frames.append(new_frame_id)
-            pos_x = 0  # ct_util.as_py_int(geom.contents.x)
-            pos_y = 0  # ct_util.as_py_int(geom.contents.y)
-            pos_w = 800  # ct_util.as_py_int(geom.contents.width)
-            pos_h = 600  # ct_util.as_py_int(geom.contents.height)
+            pos_x = ct_util.as_py_int(geom.contents.x) + int(random.random() * 10)
+            pos_y = ct_util.as_py_int(geom.contents.y) + int(random.random() * 10)
+            pos_w = ct_util.as_py_int(geom.contents.width)
+            pos_h = ct_util.as_py_int(geom.contents.height)
             pos_bw = 2  # ct_util.as_py_int(geom.contents.border_width)
             print(
                 f" - putting window {window} at ({pos_x}, {pos_y}) sized "
                 f"({pos_w}, {pos_h}) border {pos_bw}"
             )
             xcb.xcb_create_window(
-                conn, screen.contents.root_depth, new_frame_id, screen.contents.root,
+                conn,
+
+                # Error conditions:
+                #  The new parent window is not on the same screen as the old parent window.
+                #
+                #  The new parent window is the specified window or an inferior of the
+                #  specified window.
+                #
+                # The new parent is InputOnly and the window is not.
+                #
+                # The specified window has a ParentRelative background and the new parent window
+                # is not the same depth as the specified window.
+                # screen.contents.root_depth,
+                _find_visual_depth(xcb, screen, attributes.contents.visual),
+
+                new_frame_id, screen.contents.root,
                 # x, y, width, height, border width
                 ctypes.c_int16(pos_x), ctypes.c_int16(pos_y),
                 ctypes.c_uint16(pos_w), ctypes.c_uint16(pos_h), ctypes.c_uint16(pos_bw),
-                libxcb_consts.XCB_COPY_FROM_PARENT__c, screen.contents.root_visual,
+                libxcb_consts.XCB_COPY_FROM_PARENT__c,
+
+                # screen.contents.root_visual,
+                attributes.contents.visual,
 
                 # Value Mask
-                ctypes.c_int32(
+                ctypes.c_uint32(
                     libxcb_consts.XCB_CW_BORDER_PIXEL
                     | libxcb_consts.XCB_CW_BIT_GRAVITY
                     | libxcb_consts.XCB_CW_WIN_GRAVITY
@@ -134,8 +151,8 @@ def main() -> None:
                 ),
 
                 # Values
-                ct_util.as_int32_list(
-                    screen.contents.black_pixel,
+                ct_util.as_numeric_list(
+                    ct_util.as_uint32(screen.contents.white_pixel),
                     libxcb_consts.XCB_GRAVITY_NORTH_WEST__c,
                     libxcb_consts.XCB_GRAVITY_NORTH_WEST__c,
                     ctypes.c_int32(0),  # override; set to 1?
@@ -171,7 +188,7 @@ def main() -> None:
                     | libxcb_consts.XCB_CONFIG_WINDOW_WIDTH
                     | libxcb_consts.XCB_CONFIG_WINDOW_HEIGHT
                     | libxcb_consts.XCB_CONFIG_WINDOW_BORDER_WIDTH
-                ), ct_util.as_int32_list(
+                ), ct_util.as_numeric_list(
                     ctypes.c_int32(pos_x), ctypes.c_int32(pos_y),
                     ctypes.c_int32(pos_w), ctypes.c_int32(pos_h),
                     ctypes.c_int32(pos_bw),
@@ -184,18 +201,26 @@ def main() -> None:
             clib.force_free(attributes)
 
     # Could at this point probe all existing clients and add them.
-    screen_tree_cookie = xcb.xcb_query_tree_unchecked(conn, screen.contents.root)
-    trees = xcb.xcb_query_tree_reply(
-        conn, screen_tree_cookie, libxcb_consts.NULL__XcbGenericErrorPP,
-    )
-    window_count = ct_util.as_py_int(xcb.xcb_query_tree_children_length(trees))
-    tree_windows = xcb.xcb_query_tree_children(trees)
-    for idx in range(0, window_count):
-        setup_window(tree_windows[idx], True)
-    clib.force_free(trees)
+    # xcb.xcb_grab_server(conn)
+    try:
+        screen_tree_cookie = xcb.xcb_query_tree_unchecked(conn, screen.contents.root)
+        trees = xcb.xcb_query_tree_reply(
+            conn, screen_tree_cookie, libxcb_consts.NULL__XcbGenericErrorPP,
+        )
+        try:
+            window_count = ct_util.as_py_int(xcb.xcb_query_tree_children_length(trees))
+            tree_windows = xcb.xcb_query_tree_children(trees)
+            for idx in range(0, window_count):
+                setup_window(tree_windows[idx], True)
+        finally:
+            clib.force_free(trees)
+    finally:
+        # xcb.xcb_ungrab_server(conn)
+        pass
 
     # Event loop
     running = True
+    print("X loop starting")
     while running:
         event = xcb.xcb_poll_for_event(conn)
         if not event:
@@ -214,9 +239,12 @@ def main() -> None:
                 if map_evt.contents.window not in generated_frames:
                     print(" - mapping request")
                     setup_window(map_evt.contents.window, False)
+                else:
+                    print(" - ignoring mapping request")
             elif response_type == libxcb_consts.XCB_UNMAP_NOTIFY:
                 unmap_evt = ctypes.cast(event, libxcb_types.XcbUnmapNotifyEventP)
                 if unmap_evt.contents.window in generated_frames:
+                    print(" - ignoring unmap request")
                     continue
                 window_id = ct_util.as_py_int(unmap_evt.contents.window)
                 frame_id = window_frames.get(window_id)
@@ -235,6 +263,8 @@ def main() -> None:
                     del window_frames[window_id]
                     if frame_id in generated_frames:
                         generated_frames.remove(frame_id)
+                else:
+                    print(" - ignored unmap")
             elif response_type == libxcb_consts.XCB_DESTROY_NOTIFY:
                 dst_evt = ctypes.cast(event, libxcb_types.XcbDestroyNotifyEventP)
                 window_id = ct_util.as_py_int(dst_evt.contents.window)
@@ -245,6 +275,8 @@ def main() -> None:
                     del window_frames[window_id]
                     if frame_id in generated_frames:
                         generated_frames.remove(frame_id)
+                else:
+                    print(" - ignored destroy window")
             elif response_type == libxcb_consts.XCB_CONFIGURE_REQUEST:
                 cfg_evt = ctypes.cast(event, libxcb_types.XcbConfigureRequestEventP)
                 window_id = ct_util.as_py_int(cfg_evt.contents.window)
@@ -253,38 +285,58 @@ def main() -> None:
                     # Not managed yet, let these pass.
                     value_mask = ct_util.as_py_int(cfg_evt.contents.value_mask)
                     resp_mask = 0
-                    resp_list: List[ctypes.c_int32] = []
+                    resp_list: List[ct_util.CTypeInt] = []
 
                     # Note: order of bit checking is extremely important.
                     if value_mask & libxcb_consts.XCB_CONFIG_WINDOW_X != 0:
                         resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_X
-                        resp_list.append(cfg_evt.contents.x)
+                        resp_list.append(ct_util.as_int32(cfg_evt.contents.x))
                     if value_mask & libxcb_consts.XCB_CONFIG_WINDOW_Y != 0:
                         resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_Y
-                        resp_list.append(cfg_evt.contents.y)
+                        resp_list.append(ct_util.as_int32(cfg_evt.contents.y))
                     if value_mask & libxcb_consts.XCB_CONFIG_WINDOW_WIDTH != 0:
                         resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_WIDTH
-                        resp_list.append(cfg_evt.contents.width)
+                        resp_list.append(ct_util.as_uint32(cfg_evt.contents.width))
                     if value_mask & libxcb_consts.XCB_CONFIG_WINDOW_HEIGHT != 0:
                         resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_HEIGHT
-                        resp_list.append(cfg_evt.contents.height)
+                        resp_list.append(ct_util.as_uint32(cfg_evt.contents.height))
                     if value_mask & libxcb_consts.XCB_CONFIG_WINDOW_BORDER_WIDTH != 0:
                         resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_BORDER_WIDTH
-                        resp_list.append(cfg_evt.contents.border_width)
+                        resp_list.append(ct_util.as_uint32(cfg_evt.contents.border_width))
                     if value_mask & libxcb_consts.XCB_CONFIG_WINDOW_SIBLING != 0:
                         resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_SIBLING
-                        resp_list.append(cfg_evt.contents.sibling)
+                        resp_list.append(ct_util.as_uint32(cfg_evt.contents.sibling))
                     if value_mask & libxcb_consts.XCB_CONFIG_WINDOW_STACK_MODE != 0:
                         resp_mask |= libxcb_consts.XCB_CONFIG_WINDOW_STACK_MODE
-                        resp_list.append(cfg_evt.contents.stack_mode)
+                        resp_list.append(ct_util.as_uint32(cfg_evt.contents.stack_mode))
                     xcb.xcb_configure_window(
                         conn, cfg_evt.contents.window,
-                        ctypes.c_uint16(resp_mask), ct_util.as_int32_list(*resp_list),
+                        ctypes.c_uint16(resp_mask), ct_util.as_numeric_list(*resp_list),
                     )
+                else:
+                    print(" - ignoring config")
             else:
-                print(" - config; ignoring")
+                print(" - ignoring event")
         finally:
             clib.force_free(event)
+
+
+def _find_visual_depth(
+        lib: libxcb.LibXcb,
+        screen: libxcb_types.XcbScreenP,
+        visual_id: libxcb_types.XcbVisualid,
+) -> ctypes.c_uint8:
+    """Find the pixel depth (number of bits per pixel) for the visual."""
+    depth_iter = lib.xcb_screen_allowed_depths_iterator(screen)
+    if depth_iter.data:
+        while depth_iter.rem != 0:
+            visual_iter = lib.xcb_depth_visuals_iterator(depth_iter.data)
+            while visual_iter.rem != 0:
+                if visual_id == visual_iter.data.contents.visual_id:
+                    return depth_iter.data.contents.depth
+                lib.xcb_visualtype_next(ctypes.byref(visual_iter))
+            lib.xcb_depth_next(ctypes.byref(depth_iter))
+    return screen.contents.root_depth
 
 
 if __name__ == '__main__':
