@@ -1,0 +1,235 @@
+---
+schema-version: v1
+
+name: petronia_native_wayland
+type: impl
+version: [1, 0, 0]
+about: Wayland specific native interface extension.
+description: >
+  X11 specific native interface extension.
+licenses:
+  - MIT
+authors:
+  - Petronia Project
+
+runtime:
+  launcher: core
+  permissions:
+    platform:
+      - wayland-only
+    x11-api:
+      - detect-monitors
+      - capture-keys
+      - get-processes
+      - get-style
+      - set-style
+      - get-windows
+      - move-window
+      - close-window
+      - shell-notify
+
+implements:
+  - name: petronia.core.api.native.hotkey
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.l10n
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.monitor
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.screen
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.ui
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.window
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.api.native.notification
+    minimum: [1, 0, 0]
+    below: [2, 0 ,0]
+
+depends:
+  - name: petronia.core.api.datastore
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+  - name: petronia.core.protocol.logging
+    minimum: [1, 0, 0]
+    below: [2, 0, 0]
+
+
+state-data:
+
+  configuration:
+    description: >
+      Configuration for all the components of the Wayland native handler.
+    fields:
+      connection:
+        description: >
+          Information about how to connect to the Wayland server.
+        type: structure
+        fields:
+          replace_existing_wm:
+            description: >
+              If true, then any existing window manager will be replaced, if possible.
+              In some situations, even with this set the running window manager won't release
+              control.  Defaults to 'false'.
+            type: bool
+            optional: true
+      virtual_screens:
+        description: >
+          The virtual screen mapping for different screen sizes.  Any call to set the current monitor
+          mapping will change the current value in this configuration.  If the monitor state changes,
+          then this is used to reference the new virtual-screen setting.
+        type: structure
+        optional: true
+        fields:
+          mapped_screens_by_monitors:
+            type: array
+            min-length: 1
+            max-length: 1000
+            value-type:
+              type: reference
+              ref: screen-monitor-mapping-config-group
+
+
+references:
+  # =========================================================================
+  # Standard Types
+  response-identifier:
+    description: >
+      An identifier, created by the sender, that is included in the response so the sender matches the
+      response to the sent message.  Combined with the sender's ID (for requests) or target's ID
+      (for responses) creates a unique identifier.
+    type: int
+    min-value: -999999
+    max-value: 9999999
+
+  # =========================================================================
+  # Custom Types
+
+  screen-monitor-mapping-config-group:
+    description: >
+      A single configuration defining how all the virtual screen sections are mapped into
+      the monitor space.
+    type: structure
+    fields:
+      description:
+        description: An optional description for this configuration.
+        optional: true
+        type: string
+        min-length: 0
+        max-length: 1000
+      monitors:
+        description: List of source monitors.  The closest match monitor config will be used.
+        type: array
+        min-length: 1
+        max-length: 65535
+        value-type:
+          type: reference
+          ref: source-monitor
+      screen:
+        description: List of the virtual-screen blocks to monitor space.
+        type: array
+        min-length: 1
+        max-length: 65535
+        value-type:
+          type: reference
+          ref: screen-monitor-mapping
+
+  source-monitor:
+    description: A source monitor to match the virtual screen configuration against.
+    type: structure
+    fields:
+      identifier:
+        description: A monitor identifier, used in the virtual screen mapping.
+        type: reference
+        ref: response-identifier
+      width:
+        description: Source monitor width in pixels.
+        type: int
+        min-value: 0
+      height:
+        description: Source monitor height in pixels.
+        type: int
+        min-value: 0
+
+  screen-monitor-mapping:
+    description: >
+      A description of a virtual screen, and how it maps to an underlying monitor.  It's possible
+      to define multiple of these mappings per monitor, but serves no real purpose.
+    type: structure
+    fields:
+      source_monitor:
+        description: >
+          The source monitor `identifier`.  If no source is given, then it is a non-visible screen.
+        type: reference
+        ref: response-identifier
+        optional: true
+      source_nw_x_pixel:
+        description: >
+          The left-most "x" pixel on the monitor that maps to the east virtual screen pixel.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      source_nw_y_pixel:
+        description: >
+          The top-most "y" pixel on the monitor that maps to the east virtual screen pixel.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      source_pixel_width:
+        description: >
+          The number of pixels wide (along the x-axis) for the source monitor.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+      source_pixel_height:
+        description: >
+          The number of pixels tall (along the y-axis) for the source monitor.
+        type: int
+        min-value: 0
+        max-value: 2000000000
+
+      rotation:
+        description: >
+          The rotation of the monitor.  Some OS environments allow telling a monitor
+          to rotate itself, which allows for tall-and-skinny positioning of wide-screen
+          monitors.  In general, the valid values are '0' (normal display), '90' (clockwise
+          one rotation), '180' (you have it upside-down), and '270' (counter-clockwise one
+          rotation).  Some OS environments do this automatically for Petronia.  This value,
+          if supported, means the source pixels are for the post-rotated screen coordinates;
+          For the usual (0, 0) coordinate, then the screen is rotated '90', then the rotated
+          coordinate (0, 0) would look to the end user like it's at (100, 0) for a 100-pixel
+          wide monitor; however, setting this value to '90' makes the (0, 0) screen position
+          still refer to what the user sees as the top-left corner of the monitor.
+        type: int
+        min-value: 0
+        max-value: 359
+
+      virtual_nw_x_pixel:
+        description: >
+          The virtual screen space's "nw_x_pixel" location.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      virtual_nw_y_pixel:
+        description: >
+          The virtual screen space's "nw_y_pixel" location.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      virtual_width:
+        description: >
+          The virtual screen space's pixel count along the x-axis.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000
+      virtual_height:
+        description: >
+          The virtual screen space's pixel count along the y-axis.
+        type: int
+        min-value: -2000000000
+        max-value: 2000000000

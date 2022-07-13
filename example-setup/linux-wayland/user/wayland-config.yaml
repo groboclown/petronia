@@ -1,0 +1,8 @@
+---
+
+Wayland:
+  extension: petronia_native_wayland
+  enabled: true
+  properties:
+    connection:
+      replace_existing_wm: true

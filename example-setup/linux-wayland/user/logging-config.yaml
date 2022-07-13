@@ -1,0 +1,18 @@
+---
+
+Logger:
+  extension: petronia_core.file_logger
+  enabled: true
+  properties:
+    files:
+      - # filename: petronia.log
+        filename: "-"
+        message_format: "{now} {source:16s}: {text}"
+        categories:
+          - "*user"
+          - "*system"
+          - "*log"
+          - debug
+          - verbose
+          - info
+          - warning

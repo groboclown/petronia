@@ -99,6 +99,10 @@ echo native-handler:
   --output "${pd}/native-handler/petronia_native_x11/datastore" \
   --state \
   "${pd}/native-handler/x11-native-impl-extension.yaml"
+"${h}/generate-events.sh" \
+  --output "${pd}/native-handler/petronia_native_wayland/datastore" \
+  --state \
+  "${pd}/native-handler/wayland-native-impl-extension.yaml"
 
 
 # Extension lib.
